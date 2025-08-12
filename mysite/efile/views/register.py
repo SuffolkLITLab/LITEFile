@@ -1,37 +1,48 @@
-from django.shortcuts import render, redirect
 from django.contrib import messages
+from django.shortcuts import redirect, render
+
 from ..forms import EFileRegistrationForm
-from django.contrib.auth.models import User
+
 
 def efile_register(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         form = EFileRegistrationForm(request.POST)
         # Backend validation matching frontend JS
         errors = []
         required_fields = [
-            'first_name', 'last_name', 'street_address', 'city', 'zip_code', 'state', 'county', 'email', 'password', 'confirm_password'
+            "first_name",
+            "last_name",
+            "street_address",
+            "city",
+            "zip_code",
+            "state",
+            "county",
+            "email",
+            "password",
+            "confirm_password",
         ]
         for field in required_fields:
-            value = form.data.get(field, '').strip()
+            value = form.data.get(field, "").strip()
             if not value:
                 errors.append(f"{field.replace('_', ' ').title()} is required.")
 
         # Email format
         import re
-        email = form.data.get('email', '')
-        email_regex = r'^[^\s@]+@[^\s@]+\.[^\s@]+$'
+
+        email = form.data.get("email", "")
+        email_regex = r"^[^\s@]+@[^\s@]+\.[^\s@]+$"
         if email and not re.match(email_regex, email):
             errors.append("Please enter a valid email address.")
 
         # Zip code format
-        zip_code = form.data.get('zip_code', '')
-        zip_regex = r'^\d{5}(-\d{4})?$'
+        zip_code = form.data.get("zip_code", "")
+        zip_regex = r"^\d{5}(-\d{4})?$"
         if zip_code and not re.match(zip_regex, zip_code):
             errors.append("Please enter a valid ZIP code (e.g., 12345 or 12345-6789)")
 
         # Password match
-        password = form.data.get('password', '')
-        confirm_password = form.data.get('confirm_password', '')
+        password = form.data.get("password", "")
+        confirm_password = form.data.get("confirm_password", "")
         if password and confirm_password and password != confirm_password:
             errors.append("Passwords don't match.")
 
@@ -39,14 +50,17 @@ def efile_register(request):
         def check_password_strength(pw):
             checks = [
                 len(pw) >= 8,
-                re.search(r'[a-z]', pw),
-                re.search(r'[A-Z]', pw),
-                re.search(r'[0-9]', pw),
-                re.search(r'[^A-Za-z0-9]', pw)
+                re.search(r"[a-z]", pw),
+                re.search(r"[A-Z]", pw),
+                re.search(r"[0-9]", pw),
+                re.search(r"[^A-Za-z0-9]", pw),
             ]
             return sum(bool(c) for c in checks)
+
         if password and check_password_strength(password) < 3:
-            errors.append("Password must be stronger (at least 3 of: 8+ chars, lowercase, uppercase, number, symbol)")
+            errors.append(
+                "Password must be stronger (at least 3 of: 8+ chars, lowercase, uppercase, number, symbol)"
+            )
 
         if errors:
             for error in errors:
@@ -56,7 +70,7 @@ def efile_register(request):
 
         if form.is_valid():
             data = {
-                "registrationType": "INDIVIDUAL", 
+                "registrationType": "INDIVIDUAL",
                 "firstName": form.cleaned_data["first_name"],
                 "middleName": form.cleaned_data.get("middle_name", ""),
                 "lastName": form.cleaned_data["last_name"],
@@ -75,15 +89,15 @@ def efile_register(request):
             }
             try:
                 import requests
+
                 response = requests.post(
                     "https://efile-test.suffolklitlab.org/jurisdictions/illinois/adminusers/users",
                     json=data,
-                    timeout=10
+                    timeout=10,
                 )
                 if response.status_code == 201:
                     messages.success(
-                        request,
-                        "Registration successful! Please log in with your new account."
+                        request, "Registration successful! Please log in with your new account."
                     )
                     return redirect("efile_login")
                 else:
