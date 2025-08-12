@@ -12,6 +12,6 @@ def test_login_page_renders(client):
     """Basic smoke test: GET /login/ should render the login page (200)."""
     url = reverse("efile_login")
     resp = client.get(url)
-    assert resp.status_code == 400
+    assert resp.status_code == 200
     # Optional sanity check that template contains 'login' somewhere
     assert b"login" in resp.content.lower()

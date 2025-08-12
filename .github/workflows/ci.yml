@@ -31,7 +31,9 @@ jobs:
         run: ruff check .
 
       - name: Type check (ty)
-        run: ty check
+        run: |
+          # Point ty at the exact interpreter where deps were installed
+          ty check --python "$(python -c 'import sys; print(sys.executable)')"
 
       - name: Run tests
         env:
