@@ -5,38 +5,36 @@ from django.contrib.auth.models import User
 import requests
 
 def efile_register(request):
+    STATE_NAMES = {
+        "AL": "Alabama", "AK": "Alaska", "AZ": "Arizona", "AR": "Arkansas", "CA": "California", "CO": "Colorado", "CT": "Connecticut", "DE": "Delaware", "FL": "Florida", "GA": "Georgia", "HI": "Hawaii", "ID": "Idaho", "IL": "Illinois", "IN": "Indiana", "IA": "Iowa", "KS": "Kansas", "KY": "Kentucky", "LA": "Louisiana", "ME": "Maine", "MD": "Maryland", "MA": "Massachusetts", "MI": "Michigan", "MN": "Minnesota", "MS": "Mississippi", "MO": "Missouri", "MT": "Montana", "NE": "Nebraska", "NV": "Nevada", "NH": "New Hampshire", "NJ": "New Jersey", "NM": "New Mexico", "NY": "New York", "NC": "North Carolina", "ND": "North Dakota", "OH": "Ohio", "OK": "Oklahoma", "OR": "Oregon", "PA": "Pennsylvania", "RI": "Rhode Island", "SC": "South Carolina", "SD": "South Dakota", "TN": "Tennessee", "TX": "Texas", "UT": "Utah", "VT": "Vermont", "VA": "Virginia", "WA": "Washington", "WV": "West Virginia", "WI": "Wisconsin", "WY": "Wyoming"
+    }
     if request.method == 'POST':
         form = EFileRegistrationForm(request.POST)
-        # Backend validation matching frontend JS
-        errors = []
         required_fields = [
             'first_name', 'last_name', 'street_address', 'city', 'zip_code', 'state', 'county', 'email', 'password', 'confirm_password'
         ]
         for field in required_fields:
             value = form.data.get(field, '').strip()
+            print(f"Checking field: {field}", value)
             if not value:
-                errors.append(f"{field.replace('_', ' ').title()} is required.")
+                form.add_error(field, f"{field.replace('_', ' ').title()} is required.")
 
-        # Email format
         import re
         email = form.data.get('email', '')
-        email_regex = r'^[^\s@]+@[^\s@]+\.[^\s@]+$'
+        email_regex = r'^[^\s@]+@[^\s@]+\.[^\s@]+'
         if email and not re.match(email_regex, email):
-            errors.append("Please enter a valid email address.")
+            form.add_error('email', "Please enter a valid email address.")
 
-        # Zip code format
         zip_code = form.data.get('zip_code', '')
         zip_regex = r'^\d{5}(-\d{4})?$'
         if zip_code and not re.match(zip_regex, zip_code):
-            errors.append("Please enter a valid ZIP code (e.g., 12345 or 12345-6789)")
+            form.add_error('zip_code', "Please enter a valid ZIP code (e.g., 12345 or 12345-6789)")
 
-        # Password match
         password = form.data.get('password', '')
         confirm_password = form.data.get('confirm_password', '')
         if password and confirm_password and password != confirm_password:
-            errors.append("Passwords don't match.")
+            form.add_error('confirm_password', "Passwords don't match.")
 
-        # Password strength
         def check_password_strength(pw):
             checks = [
                 len(pw) >= 8,
@@ -47,27 +45,25 @@ def efile_register(request):
             ]
             return sum(bool(c) for c in checks)
         if password and check_password_strength(password) < 3:
-            errors.append("Password must be stronger (at least 3 of: 8+ chars, lowercase, uppercase, number, symbol)")
+            form.add_error('password', "Password must be stronger (at least 3 of: 8+ chars, lowercase, uppercase, number, symbol)")
 
-        if errors:
-            for error in errors:
-                messages.error(request, error)
-            # Don't proceed to API call
+        if form.errors:
             return render(request, "efile/register.html", {"form": form})
 
         if form.is_valid():
+            state_abbr = form.cleaned_data["state"]
+            state_full = STATE_NAMES.get(state_abbr, state_abbr).lower()
             data = {
-                "registrationType": "INDIVIDUAL", 
+                "registrationType": "INDIVIDUAL",
                 "firstName": form.cleaned_data["first_name"],
                 "middleName": form.cleaned_data.get("middle_name", ""),
                 "lastName": form.cleaned_data["last_name"],
                 "streetAddressLine1": form.cleaned_data["street_address"],
                 "streetAddressLine2": form.cleaned_data.get("street_address_2", ""),
                 "city": form.cleaned_data["city"],
-                "state": form.cleaned_data["state"],
+                "stateCode":  state_abbr,
                 "zipCode": form.cleaned_data["zip_code"],
                 "countryCode": "US",
-                "county": form.cleaned_data["county"],
                 "email": form.cleaned_data["email"],
                 "phoneNumber": form.cleaned_data.get("phone", ""),
                 # "emailUpdates": form.cleaned_data.get("email_updates", False),
@@ -75,17 +71,31 @@ def efile_register(request):
                 "password": form.cleaned_data["password"],
             }
             try:
+                from django.conf import settings
+                api_key = getattr(settings, "SUFFOLK_EFILE_API_KEY", None)
+                headers = {"x-api-key": api_key} if api_key else {}
+                endpoint = f"https://efile-test.suffolklitlab.org/jurisdictions/{state_full}/adminusers/users"
+                print("[DEBUG] Endpoint:", endpoint)
+                print("[DEBUG] Headers:", headers)
+                print("[DEBUG] Payload:", data)
                 response = requests.post(
-                    "https://efile-test.suffolklitlab.org/jurisdictions/illinois/adminusers/users",
+                    endpoint,
                     json=data,
+                    headers=headers,
                     timeout=10
                 )
+                print("[DEBUG] Response status:", response.status_code)
+                print("[DEBUG] Response body:", response.text)
                 if response.status_code == 201:
+                    tokens = response.json().get('tokens') if response.headers.get('Content-Type', '').startswith('application/json') else None
+                    if tokens:
+                        request.session['user_tokens'] = tokens
                     messages.success(
                         request,
-                        "Registration successful! Please log in with your new account."
+                        "Registration successful! Please log in with your new account after verifying your email."
                     )
-                    return redirect("efile_login")
+                    # Redirect to login page
+                    return redirect("/login/")
                 else:
                     try:
                         error_msg = response.json().get("error") or response.text
@@ -93,9 +103,11 @@ def efile_register(request):
                         error_msg = response.text
                     messages.error(request, f"Registration failed: {error_msg}")
             except Exception as e:
+                print("[DEBUG] Exception:", str(e))
                 messages.error(request, f"Registration failed: {str(e)}")
         else:
             messages.error(request, "Please correct the errors below.")
     else:
+        # Always show a blank form on reload
         form = EFileRegistrationForm()
     return render(request, "efile/register.html", {"form": form})
