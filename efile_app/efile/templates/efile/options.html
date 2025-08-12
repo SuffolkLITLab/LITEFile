@@ -1,0 +1,116 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Illinois eFile</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/options.css' %}">
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-balance-scale scales-icon"></i>
+                    <h1>Illinois eFile</h1>
+                </div>
+                <div class="profile-icon">
+                    <i class="fas fa-user"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2 class="section-title">eFiling Options</h2>
+        
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-xl-7">
+                <div class="option-card" onclick="fileNewCase()">
+                    <div class="d-flex align-items-center">
+                        <div class="option-icon">
+                            <i class="fas fa-university"></i>
+                        </div>
+                        <div class="option-content">
+                            <h3>File a New Case</h3>
+                            <p>Begin a NEW case by efiling your form and documents.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="option-card" onclick="respondToCase()">
+                    <div class="d-flex align-items-center">
+                        <div class="option-icon">
+                            <i class="fas fa-reply"></i>
+                        </div>
+                        <div class="option-content">
+                            <h3>Respond</h3>
+                            <p>If you have been served and need to file a response.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="option-card" onclick="addToCase()">
+                    <div class="d-flex align-items-center">
+                        <div class="option-icon">
+                            <i class="fas fa-upload"></i>
+                        </div>
+                        <div class="option-content">
+                            <h3>Add to Your Case</h3>
+                            <p>Add documents to an existing case that you filed.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="option-card" onclick="addToExpertForm()">
+                    <div class="d-flex align-items-center">
+                        <div class="option-icon">
+                            <i class="fas fa-university"></i>
+                        </div>
+                        <div class="option-content">
+                            <h3>Expert Form</h3>
+                            <p>Know what you're doing</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function fileNewCase() {
+            alert('Redirecting to File a New Case...');
+            // In a real application, this would redirect to the new case filing form
+        }
+
+        function respondToCase() {
+            alert('Redirecting to Response Filing...');
+            // In a real application, this would redirect to the response filing form
+        }
+
+        function addToCase() {
+            alert('Redirecting to Add Documents...');
+            // In a real application, this would redirect to the document addition form
+        }
+
+        // Add keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const focusedElement = document.activeElement;
+                if (focusedElement.classList.contains('option-card')) {
+                    focusedElement.click();
+                }
+            }
+        });
+
+        // Make cards focusable for accessibility
+        document.querySelectorAll('.option-card').forEach(card => {
+            card.setAttribute('tabindex', '0');
+            card.setAttribute('role', 'button');
+        });
+    </script>
+</body>
+</html>

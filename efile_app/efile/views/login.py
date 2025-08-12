@@ -35,12 +35,11 @@ def efile_login(request):
                         print(data)
                         if data.get("tokens"):
                             # Save tokens in session
-                            request.session["efile_tokens"] = data["tokens"]
+                            request.session['auth_tokens'] = data['tokens']
 
                             print(request)
-                            messages.success(request, "Successfully logged in!")
-                            next_page = request.GET.get("next", "options")
-                            return redirect(next_page)
+                            messages.success(request, 'Successfully logged in!')
+                            return redirect('/options/')
                         else:
                             messages.error(request, data.get("message", "Invalid email or password."))
                     else:
