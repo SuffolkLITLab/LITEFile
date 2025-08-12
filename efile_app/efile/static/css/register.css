@@ -59,7 +59,7 @@ body {
     flex-wrap: wrap;
 }
 .btn-register {
-    background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+    background: #1e3a5f;
     border: none;
     border-radius: 25px;
     padding: 0.75rem 2.5rem;
@@ -70,7 +70,8 @@ body {
     min-width: 150px;
 }
 .btn-register:hover {
-    background: linear-gradient(135deg, #0d5a52 0%, #0f9488 100%);
+    background: #1e3a5f;
+    filter: brightness(1.5);
     transform: translateY(-1px);
     color: white;
 }

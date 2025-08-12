@@ -1,0 +1,30 @@
+/* Header Styles */
+.header {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2c5aa0 100%);
+    color: white;
+    padding: 1rem 0;
+    margin-bottom: 2rem;
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 500;
+}
+
+.profile-icon {
+    width: 40px;
+    height: 40px;
+    background-color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #1e3a5f;
+    cursor: pointer;
+}
+
+.scales-icon {
+    font-size: 1.2rem;
+    margin-right: 0.5rem;
+}

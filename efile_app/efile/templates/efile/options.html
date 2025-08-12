@@ -10,19 +10,7 @@
     <link rel="stylesheet" href="{% static 'css/options.css' %}">
 </head>
 <body>
-    <div class="header">
-        <div class="container">
-            <div class="d-flex justify-content-between align-items-center">
-                <div class="d-flex align-items-center">
-                    <i class="fas fa-balance-scale scales-icon"></i>
-                    <h1>Illinois eFile</h1>
-                </div>
-                <div class="profile-icon">
-                    <i class="fas fa-user"></i>
-                </div>
-            </div>
-        </div>
-    </div>
+    {% include 'efile/components/profile_header.html' %}
 
     <div class="container">
         <h2 class="section-title">eFiling Options</h2>
@@ -94,6 +82,10 @@
         function addToCase() {
             alert('Redirecting to Add Documents...');
             // In a real application, this would redirect to the document addition form
+        }
+
+        function addToExpertForm() {
+            window.location.href = '/expert_form/';
         }
 
         // Add keyboard navigation

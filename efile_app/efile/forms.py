@@ -21,6 +21,7 @@ class EFileRegistrationForm(forms.Form):
     # Legal Name
     first_name = forms.CharField(
         max_length=100,
+        label="First or Given Name",
         widget=forms.TextInput(attrs={'class': 'form-control', 'id': 'firstName', 'required': 'required'})
     )
     middle_name = forms.CharField(
@@ -30,6 +31,7 @@ class EFileRegistrationForm(forms.Form):
     )
     last_name = forms.CharField(
         max_length=100,
+        label="Last or Family Name",
         widget=forms.TextInput(attrs={'class': 'form-control', 'id': 'lastName', 'required': 'required'})
     )
     # Physical Address
@@ -81,12 +83,17 @@ class EFileRegistrationForm(forms.Form):
     )
     # Contact Information
     email = forms.EmailField(
-        widget=forms.EmailInput(attrs={'class': 'form-control', 'id': 'email', 'required': 'required'})
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'id': 'email',
+            'label':'Email address for court communications',
+            'required': 'required'})
     )
     phone = forms.CharField(
         max_length=20,
         widget=forms.TextInput(attrs={
             'class': 'form-control', 
+            'label': 'Primary Phone Number',
             'id': 'phone',
             'required': 'required'
         })
@@ -140,3 +147,19 @@ class EFileRegistrationForm(forms.Form):
             last_name=self.cleaned_data['last_name']
         )
         return user
+
+class EFileExpertForm(forms.Form):
+    email = forms.EmailField(
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'id': 'email',
+            'required': True
+        })
+    )
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'id': 'password',
+            'required': True
+        })
+    )
