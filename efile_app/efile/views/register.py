@@ -108,7 +108,7 @@ def efile_register(request):
         if password and check_password_strength(password) < 3:
             form.add_error(
                 "password",
-                ("Password must be stronger " "(at least 3 of: 8+ chars, lowercase, uppercase, number, symbol)"),
+                ("Password must be stronger (at least 3 of: 8+ chars, lowercase, uppercase, number, symbol)"),
             )
 
         if form.errors:
