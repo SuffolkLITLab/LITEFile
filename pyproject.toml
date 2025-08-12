@@ -21,6 +21,11 @@ build-backend = "setuptools.build_meta"
 dev = [
   "ruff>=0.5.0,<1",
   "ty",
+  "pytest>=8.0",
+  "pytest-django>=4.8",
+  "pytest-cov>=5.0",
+  "pytest-xdist>=3.6",
+  "pre-commit>=3.7",
 ]
 
 [project.optional-dependencies]
@@ -28,6 +33,11 @@ dev = [
 dev = [
     "ruff>=0.5.0,<1",
     "ty",
+    "pytest>=8.0",
+    "pytest-django>=4.8",
+    "pytest-cov>=5.0",
+    "pytest-xdist>=3.6",
+    "pre-commit>=3.7",
 ]
 
 [tool.ruff]
@@ -64,3 +74,14 @@ known-first-party = ["mysite"]
 [tool.ty.src]
 include = ["mysite"]
 exclude = ["**/migrations/**"]
+
+# pytest configuration (pytest and pytest-django)
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "efile.settings"
+pythonpath = [
+  "mysite",
+]
+testpaths = [
+  "mysite",
+]
+addopts = "-ra --strict-markers"

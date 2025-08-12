@@ -91,7 +91,57 @@ Ruff is configured in `pyproject.toml` under `[tool.ruff]`.
     uv run ruff format .
     ```
 
-Notes: Ruff targets Python 3.10, line length 100, and excludes Django migrations (`**/migrations/*`).
+Notes: Ruff targets Python 3.10, line length 120, and excludes Django migrations (`**/migrations/*`).
+
+## Testing
+
+Pytest is configured via `pyproject.toml` to use `pytest-django`.
+
+- __Install dev deps__ (once):
+  ```bash
+  uv sync --group dev
+  ```
+
+- __Run all tests__ (from project root):
+  ```bash
+  pytest -q
+  ```
+
+- __Select tests__:
+  ```bash
+  pytest mysite/efile/ -q                 # only the efile app
+  pytest -k "login and not slow" -q       # expression match
+  pytest mysite/efile/tests/test_smoke.py::test_login_page_renders -q
+  ```
+
+- __Speed tips__:
+  ```bash
+  pytest --reuse-db -q            # keep the test DB between runs
+  pytest -n auto -q               # run in parallel (pytest-xdist)
+  ```
+
+- __Coverage__ (optional):
+  ```bash
+  pytest --cov=mysite --cov-report=term-missing
+  ```
+
+Notes:
+- `DJANGO_SETTINGS_MODULE` is set to `efile.settings` in `[tool.pytest.ini_options]`.
+- Tests are discovered under `mysite/`. An example smoke test lives at `mysite/efile/tests/test_smoke.py`.
+
+## Type checking (Ty)
+
+Ty (a Rust-based type checker) is configured in `pyproject.toml` under `[tool.ty.src]`.
+
+- __Run a one-off check__:
+  ```bash
+  uv run ty check
+  ```
+
+- __Watch mode__ (re-run on changes):
+  ```bash
+  uv run ty watch
+  ```
 
 ## Project Layout
 
