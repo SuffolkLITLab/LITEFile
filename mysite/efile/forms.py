@@ -3,13 +3,9 @@ from django.contrib.auth.models import User
 
 
 class EFileLoginForm(forms.Form):
-    email = forms.EmailField(
-        widget=forms.EmailInput(attrs={"class": "form-control", "id": "email", "required": True})
-    )
+    email = forms.EmailField(widget=forms.EmailInput(attrs={"class": "form-control", "id": "email", "required": True}))
     password = forms.CharField(
-        widget=forms.PasswordInput(
-            attrs={"class": "form-control", "id": "password", "required": True}
-        )
+        widget=forms.PasswordInput(attrs={"class": "form-control", "id": "password", "required": True})
     )
 
 
@@ -36,12 +32,8 @@ class EFileRegistrationForm(forms.Form):
         required=False,
         widget=forms.TextInput(attrs={"class": "form-control", "id": "streetAddress2"}),
     )
-    city = forms.CharField(
-        max_length=100, widget=forms.TextInput(attrs={"class": "form-control", "id": "city"})
-    )
-    zip_code = forms.CharField(
-        max_length=10, widget=forms.TextInput(attrs={"class": "form-control", "id": "zip"})
-    )
+    city = forms.CharField(max_length=100, widget=forms.TextInput(attrs={"class": "form-control", "id": "city"}))
+    zip_code = forms.CharField(max_length=10, widget=forms.TextInput(attrs={"class": "form-control", "id": "zip"}))
     COUNTY_CHOICES = [
         ("", "Type or select Counties"),
         ("adams", "Adams"),
@@ -150,9 +142,7 @@ class EFileRegistrationForm(forms.Form):
         choices=COUNTY_CHOICES, widget=forms.Select(attrs={"class": "form-select", "id": "county"})
     )
     # Contact Information
-    email = forms.EmailField(
-        widget=forms.EmailInput(attrs={"class": "form-control", "id": "email"})
-    )
+    email = forms.EmailField(widget=forms.EmailInput(attrs={"class": "form-control", "id": "email"}))
     phone = forms.CharField(
         max_length=20,
         widget=forms.TextInput(
@@ -164,9 +154,7 @@ class EFileRegistrationForm(forms.Form):
         ),
     )
     # Password
-    password = forms.CharField(
-        widget=forms.PasswordInput(attrs={"class": "form-control", "id": "password"})
-    )
+    password = forms.CharField(widget=forms.PasswordInput(attrs={"class": "form-control", "id": "password"}))
     confirm_password = forms.CharField(
         widget=forms.PasswordInput(attrs={"class": "for∂m-control", "id": "confirmPassword"})
     )

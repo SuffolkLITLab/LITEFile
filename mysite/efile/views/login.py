@@ -42,9 +42,7 @@ def efile_login(request):
                             next_page = request.GET.get("next", "options")
                             return redirect(next_page)
                         else:
-                            messages.error(
-                                request, data.get("message", "Invalid email or password.")
-                            )
+                            messages.error(request, data.get("message", "Invalid email or password."))
                     else:
                         messages.error(request, "Login service error. Please try again later.")
                 except Exception as e:

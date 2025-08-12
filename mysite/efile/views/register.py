@@ -58,9 +58,7 @@ def efile_register(request):
             return sum(bool(c) for c in checks)
 
         if password and check_password_strength(password) < 3:
-            errors.append(
-                "Password must be stronger (at least 3 of: 8+ chars, lowercase, uppercase, number, symbol)"
-            )
+            errors.append("Password must be stronger (at least 3 of: 8+ chars, lowercase, uppercase, number, symbol)")
 
         if errors:
             for error in errors:
@@ -96,9 +94,7 @@ def efile_register(request):
                     timeout=10,
                 )
                 if response.status_code == 201:
-                    messages.success(
-                        request, "Registration successful! Please log in with your new account."
-                    )
+                    messages.success(request, "Registration successful! Please log in with your new account.")
                     return redirect("efile_login")
                 else:
                     try:

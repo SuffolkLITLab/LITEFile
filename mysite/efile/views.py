@@ -1,10 +1,14 @@
 # views.py - Complete updated file for Illinois eFile system
-from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login
 from django.contrib import messages
-from django.views.generic import TemplateView
-from .forms import EFileLoginForm, EFileRegistrationForm
-from django.contrib.auth.models import User
+from django.shortcuts import redirect
+
+# Preserving original imports for when we un-comment all the other methods.
+# from django.shortcuts import render, redirect
+# from django.contrib.auth import authenticate, login
+# from django.contrib import messages
+# from django.views.generic import TemplateView
+# from .forms import EFileLoginForm, EFileRegistrationForm
+# from django.contrib.auth.models import User
 
 # Login view (simplified - no longer handles registration)
 # def efile_login(request):
@@ -12,7 +16,7 @@ from django.contrib.auth.models import User
 #     Handle login and redirect to separate registration page
 #     """
 #     login_form = EFileLoginForm()
-    
+
 #     if request.method == 'POST':
 #         if 'login_submit' in request.POST:
 #             # Handle login
@@ -20,7 +24,7 @@ from django.contrib.auth.models import User
 #             if login_form.is_valid():
 #                 email = login_form.cleaned_data['email']
 #                 password = login_form.cleaned_data['password']
-                
+
 #                 # Try to find user by email
 #                 try:
 #                     user = User.objects.get(email=email)
@@ -35,7 +39,7 @@ from django.contrib.auth.models import User
 #                         messages.error(request, 'Invalid email or password.')
 #                 except User.DoesNotExist:
 #                     messages.error(request, 'No account found with this email address.')
-    
+
 #     context = {
 #         'login_form': login_form,
 #     }
@@ -49,7 +53,7 @@ from django.contrib.auth.models import User
 #         if form.is_valid():
 #             # Prepare payload for external API
 #             data = {
-#                 "registrationType": "INDIVIDUAL", 
+#                 "registrationType": "INDIVIDUAL",
 #                 "firstName": form.cleaned_data["first_name"],
 #                 "middleName": form.cleaned_data.get("middle_name", ""),
 #                 "lastName": form.cleaned_data["last_name"],
@@ -101,7 +105,7 @@ from django.contrib.auth.models import User
 #     if not request.user.is_authenticated:
 #         messages.info(request, 'Please log in to access your dashboard.')
 #         return redirect('efile_login')
-    
+
 #     context = {
 #         'user': request.user,
 #         # If using UserProfile model:
@@ -115,18 +119,18 @@ from django.contrib.auth.models import User
 #     Class-based view for the eFile login page
 #     """
 #     template_name = 'efile/login.html'
-    
+
 #     def get_context_data(self, **kwargs):
 #         context = super().get_context_data(**kwargs)
 #         context['login_form'] = EFileLoginForm()
 #         return context
-    
+
 #     def post(self, request, *args, **kwargs):
 #         login_form = EFileLoginForm(request.POST)
 #         if login_form.is_valid():
 #             email = login_form.cleaned_data['email']
 #             password = login_form.cleaned_data['password']
-            
+
 #             try:
 #                 user = User.objects.get(email=email)
 #                 user = authenticate(request, username=user.username, password=password)
@@ -139,7 +143,7 @@ from django.contrib.auth.models import User
 #                     messages.error(request, 'Invalid email or password.')
 #             except User.DoesNotExist:
 #                 messages.error(request, 'No account found with this email address.')
-        
+
 #         context = self.get_context_data()
 #         context['login_form'] = login_form
 #         return render(request, self.template_name, context)
@@ -156,26 +160,28 @@ from django.contrib.auth.models import User
 #             # Here you would typically send a password reset email
 #             # For now, we'll just show a success message
 #             messages.success(
-#                 request, 
+#                 request,
 #                 'If an account with this email exists, you will receive password reset instructions.'
 #             )
 #             return redirect('efile_login')
 #         except User.DoesNotExist:
 #             # Don't reveal whether the email exists or not for security
 #             messages.success(
-#                 request, 
+#                 request,
 #                 'If an account with this email exists, you will receive password reset instructions.'
 #             )
 #             return redirect('efile_login')
-    
+
 #     return render(request, 'efile/password_reset.html')
 
+
 # # Logout view (optional custom implementation)
-# def efile_logout(request):
+def efile_logout(request):
     """
     Custom logout view
     """
     from django.contrib.auth import logout
+
     logout(request)
-    messages.success(request, 'You have been successfully logged out.')
-    return redirect('efile_login')
+    messages.success(request, "You have been successfully logged out.")
+    return redirect("efile_login")
