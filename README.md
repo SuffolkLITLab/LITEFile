@@ -143,6 +143,24 @@ Ty (a Rust-based type checker) is configured in `pyproject.toml` under `[tool.ty
   uv run ty watch
   ```
 
+## Pre-commit hooks
+
+Pre-commit hooks are configured in `.pre-commit-config.yaml` to run Ruff formatting/linting and type checking on commits, plus tests on push.
+
+- __Install pre-commit hooks__ (one-time setup):
+  ```bash
+  uv run pre-commit install
+  uv run pre-commit install --hook-type pre-push
+  ```
+
+- __Run hooks manually__:
+  ```bash
+  uv run pre-commit run --all-files    # run all hooks on all files
+  uv run pre-commit run pytest         # run just the pytest hook
+  ```
+
+**Note**: The pytest hook runs on `pre-push` stage to keep commits fast. If you skip the pre-push hook installation, tests won't run automatically before pushing.
+
 ## Project Layout
 
 - `mysite/manage.py` — Django management script
