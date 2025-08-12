@@ -73,6 +73,26 @@ Deactivate with `deactivate` when you're done.
 - __Static files__
   During development, static files are served automatically. No `collectstatic` is needed.
 
+## Development: dev dependencies and Ruff
+
+Ruff is configured in `pyproject.toml` under `[tool.ruff]`.
+
+- __Using uv__
+  - Install dev tools: 
+    ```bash
+    uv sync --group dev
+    ```
+  - Lint the codebase:
+    ```bash
+    uv run ruff check .
+    ```
+  - Auto-format (optional):
+    ```bash
+    uv run ruff format .
+    ```
+
+Notes: Ruff targets Python 3.10, line length 100, and excludes Django migrations (`**/migrations/*`).
+
 ## Project Layout
 
 - `mysite/manage.py` — Django management script

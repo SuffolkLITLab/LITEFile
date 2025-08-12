@@ -15,3 +15,45 @@ build-backend = "setuptools.build_meta"
 [tool.uv]
 # uv will create and manage a local .venv by default when using `uv sync`
 # You can commit `uv.lock` to lock dependencies.
+
+[dependency-groups]
+# Allow `uv sync --group dev`
+dev = [
+  "ruff>=0.5.0,<1",
+]
+
+[project.optional-dependencies]
+# Development-only tools
+dev = [
+    "ruff>=0.5.0,<1",
+]
+
+[tool.ruff]
+# Align with project Python requirement
+target-version = "py310"
+line-length = 100
+src = ["mysite"]
+extend-exclude = [
+    "**/migrations/*",
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+
+[tool.ruff.lint]
+select = [
+    # pycodestyle / pyflakes
+    "E", "F",
+    # isort imports
+    "I",
+    # pyupgrade
+    "UP",
+    # bugbear
+    "B",
+]
+ignore = []
+
+[tool.ruff.lint.isort]
+known-first-party = ["mysite"]
