@@ -31,7 +31,7 @@ jobs:
         run: ruff check .
 
       - name: Type check (ty)
-        run: ty
+        run: ty check
 
       - name: Run tests
         env:
