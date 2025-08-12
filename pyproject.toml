@@ -1,0 +1,17 @@
+[project]
+name = "form-submission-mvp"
+version = "0.1.0"
+description = "Minimal Django app for form submission and review"
+requires-python = ">=3.10"
+dependencies = [
+    "Django==5.2.5",
+    "requests>=2.31,<3",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.uv]
+# uv will create and manage a local .venv by default when using `uv sync`
+# You can commit `uv.lock` to lock dependencies.

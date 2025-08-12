@@ -2,7 +2,6 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from ..forms import EFileRegistrationForm
 from django.contrib.auth.models import User
-import requests
 
 def efile_register(request):
     if request.method == 'POST':
@@ -75,6 +74,7 @@ def efile_register(request):
                 "password": form.cleaned_data["password"],
             }
             try:
+                import requests
                 response = requests.post(
                     "https://efile-test.suffolklitlab.org/jurisdictions/illinois/adminusers/users",
                     json=data,
