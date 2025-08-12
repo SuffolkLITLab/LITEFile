@@ -46,7 +46,7 @@ A minimal Django app for form submission and review. The Django project lives un
 - macOS/Linux:
   ```bash
   source .venv/bin/activate
-  cd mysite
+  cd efile_app
   python manage.py migrate
   python manage.py runserver
   ```
