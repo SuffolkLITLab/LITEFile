@@ -1,6 +1,6 @@
 # Form Submission MVP
 
-A minimal Django app for form submission and review. The Django project lives under `mysite/` with settings in `mysite/efile/`.
+A minimal Django app for form submission and review. The Django project lives under `efile_app/` with settings in `efile_app/efile/`.
 
 ## Quick Start
 
