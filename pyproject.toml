@@ -20,12 +20,14 @@ build-backend = "setuptools.build_meta"
 # Allow `uv sync --group dev`
 dev = [
   "ruff>=0.5.0,<1",
+  "ty",
 ]
 
 [project.optional-dependencies]
 # Development-only tools
 dev = [
     "ruff>=0.5.0,<1",
+    "ty",
 ]
 
 [tool.ruff]
@@ -57,3 +59,8 @@ ignore = []
 
 [tool.ruff.lint.isort]
 known-first-party = ["mysite"]
+
+# Ty (Rust-based Python type checker)
+[tool.ty.src]
+include = ["mysite"]
+exclude = ["**/migrations/**"]
