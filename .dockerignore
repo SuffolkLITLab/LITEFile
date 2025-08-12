@@ -1,0 +1,37 @@
+# Git and VCS
+.git
+.gitmodules
+
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pytest_cache/
+.pytest_cache/
+
+# Virtual environments
+.venv/
+.env
+.env.*
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+.coverage
+htmlcov/
+
+# OS files
+.DS_Store
+
+# Tool caches
+.ruff_cache/
+.uv/
+
+# Local DBs
+*.sqlite3
+
+# Docker
+Dockerfile*
+compose.override.yml

@@ -1,0 +1,27 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: form-submission-mvp:web
+    command: >-
+      sh -c "uv run python efile_app/manage.py migrate &&
+             uv run python efile_app/manage.py runserver 0.0.0.0:8000"
+    ports:
+      - "8000:8000"
+    environment:
+      PYTHONDONTWRITEBYTECODE: "1"
+      PYTHONUNBUFFERED: "1"
+      # DJANGO_SETTINGS_MODULE: efile.settings  # manage.py sets this; uncomment to override
+    volumes:
+      - .:/app:delegated
+      - venv:/app/.venv
+    # healthcheck:
+    #   test: ["CMD-SHELL", "wget -qO- http://localhost:8000/ || exit 1"]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 5
+
+volumes:
+  venv:
+    driver: local
