@@ -5,9 +5,15 @@ on:
   pull_request:
 
 jobs:
-  lint-type-test:
+  checks:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        check: [ruff, type, tests]
+    name: "${{ matrix.check }}"
     steps:
+      # Common setup
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -19,23 +25,43 @@ jobs:
       - name: Upgrade pip
         run: python -m pip install -U pip
 
-      - name: Install dependencies (runtime + dev tools)
+      # Per-check installs
+      - name: Install deps for ruff
+        if: matrix.check == 'ruff'
+        run: |
+          python -m pip install ruff
+
+      - name: Install deps for type
+        if: matrix.check == 'type'
         run: |
           python -m pip install Django==5.2.5 'requests>=2.31,<3'
-          python -m pip install ruff ty pytest pytest-django pytest-cov pytest-xdist
+          python -m pip install ty
 
+      - name: Install deps for tests
+        if: matrix.check == 'tests'
+        run: |
+          python -m pip install Django==5.2.5 'requests>=2.31,<3'
+          python -m pip install pytest pytest-django pytest-cov pytest-xdist
+
+      # ruff
       - name: Ruff format (check only)
+        if: matrix.check == 'ruff'
         run: ruff format --check .
 
       - name: Ruff lint
+        if: matrix.check == 'ruff'
         run: ruff check .
 
+      # type checking
       - name: Type check (ty)
+        if: matrix.check == 'type'
         run: |
           # Point ty at the exact interpreter where deps were installed
           ty check --python "$(python -c 'import sys; print(sys.executable)')"
 
+      # tests
       - name: Run tests
+        if: matrix.check == 'tests'
         env:
           DJANGO_SETTINGS_MODULE: efile.settings
         run: pytest -q
