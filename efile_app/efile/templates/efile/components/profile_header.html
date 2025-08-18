@@ -1,41 +1,63 @@
 {% load static %}
-<link href="{% static 'css/header.css' %}" rel="stylesheet">
+<link href="{% static 'css/header.css' %}" rel="stylesheet" />
 <div class="header">
-    <div class="container">
-        <div class="d-flex justify-content-between align-items-center">
-            <div class="d-flex align-items-center">
-                <i class="fas fa-balance-scale scales-icon"></i>
-                <h1>Illinois eFile</h1>
-            </div>
-            <div class="profile-icon" id="profileIcon" style="cursor:pointer;">
-                <i class="fas fa-user"></i>
-            </div>
-        </div>
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center">
+        <i class="fas fa-balance-scale scales-icon"></i>
+        <h1>Illinois eFile</h1>
+      </div>
+      <div class="profile-icon" id="profileIcon" style="cursor: pointer">
+        <i class="fas fa-user"></i>
+      </div>
     </div>
+  </div>
 </div>
 <!-- Profile Modal -->
-<div class="modal fade" id="profileModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
+<div
+  class="modal fade"
+  id="profileModal"
+  tabindex="-1"
+  aria-labelledby="profileModalLabel"
+  aria-hidden="true"
+>
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="profileModalLabel">Profile Info</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
       </div>
       <div class="modal-body">
-        <p>Welcome to Illinois eFile. Here you can manage your filings and account.</p>
-        <button type="button" class="btn btn-danger w-100" onclick="window.location.href='/login/'">Logout</button>
+        <p>
+          Welcome to Illinois eFile. Here you can manage your filings and
+          account.
+        </p>
+        <button
+          type="button"
+          class="btn btn-danger w-100"
+          onclick="window.location.href='/login/'"
+        >
+          Logout
+        </button>
       </div>
     </div>
   </div>
 </div>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        var profileIcon = document.getElementById('profileIcon');
-        if (profileIcon) {
-            profileIcon.addEventListener('click', function() {
-                var modal = new bootstrap.Modal(document.getElementById('profileModal'));
-                modal.show();
-            });
-        }
-    });
+  document.addEventListener("DOMContentLoaded", function () {
+    var profileIcon = document.getElementById("profileIcon");
+    if (profileIcon) {
+      profileIcon.addEventListener("click", function () {
+        var modal = new bootstrap.Modal(
+          document.getElementById("profileModal")
+        );
+        modal.show();
+      });
+    }
+  });
 </script>

@@ -1,11 +1,15 @@
 # views.py - Complete updated file for Illinois eFile system
 from django.contrib import messages
-from django.shortcuts import redirect
+from django.shortcuts import render, redirect
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
+from .utils.case_config import case_types_config
+import json
 
 # Preserving original imports for when we un-comment all the other methods.
-# from django.shortcuts import render, redirect
 # from django.contrib.auth import authenticate, login
-# from django.contrib import messages
 # from django.views.generic import TemplateView
 # from .forms import EFileLoginForm, EFileRegistrationForm
 # from django.contrib.auth.models import User
@@ -173,6 +177,241 @@ from django.shortcuts import redirect
 #             return redirect('efile_login')
 
 #     return render(request, 'efile/password_reset.html')
+
+
+# Expert Form View
+def expert_form(request):
+    """
+    Display the expert form for case details and parties
+    """
+    if request.method == 'POST':
+        # Handle form submission
+        # This would process the form data and save it
+        messages.success(request, 'Case details saved successfully!')
+        return redirect('dashboard')  # or next step
+    
+    # Get existing case data from session if available
+    from .utils.case_data_utils import get_case_data
+    case_data = get_case_data(request)
+    
+    print(f"Expert form view - case_data from session: {case_data}")
+    
+    context = {
+        'case_data': case_data
+    }
+    
+    return render(request, 'efile/expert_form.html', context)
+
+
+# API Endpoints for Dynamic Form Configuration
+
+@require_http_methods(["GET"])
+def api_case_categories(request):
+    """
+    API endpoint to get all available case categories
+    """
+    try:
+        categories = case_types_config.get_case_categories()
+        return JsonResponse({
+            'success': True,
+            'data': categories
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+
+@require_http_methods(["GET"])
+def api_case_types(request):
+    """
+    API endpoint to get case types for a specific category
+    """
+    try:
+        category_id = request.GET.get('parent')
+        if not category_id:
+            return JsonResponse({
+                'success': False,
+                'error': 'Missing category parameter'
+            }, status=400)
+        
+        case_types = case_types_config.get_case_types(category_id)
+        return JsonResponse({
+            'success': True,
+            'data': case_types
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+
+@require_http_methods(["GET"])
+def api_filing_types(request):
+    """
+    API endpoint to get filing types for a specific case type
+    """
+    try:
+        case_type_id = request.GET.get('parent')
+        category_id = request.GET.get('category')
+        
+        if not case_type_id or not category_id:
+            return JsonResponse({
+                'success': False,
+                'error': 'Missing required parameters'
+            }, status=400)
+        
+        filing_types = case_types_config.get_filing_types(category_id, case_type_id)
+        return JsonResponse({
+            'success': True,
+            'data': filing_types
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+
+@require_http_methods(["GET"])
+def api_document_types(request):
+    """
+    API endpoint to get document types for a specific filing type
+    """
+    try:
+        filing_type_id = request.GET.get('parent')
+        case_type_id = request.GET.get('case_type')
+        category_id = request.GET.get('category')
+        county = request.GET.get('county')
+        
+        if not filing_type_id or not case_type_id or not category_id:
+            return JsonResponse({
+                'success': False,
+                'error': 'Missing required parameters'
+            }, status=400)
+        
+        document_types = case_types_config.get_document_types(
+            category_id, case_type_id, filing_type_id, county
+        )
+        return JsonResponse({
+            'success': True,
+            'data': document_types
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+
+@require_http_methods(["GET"])
+def api_counties(request):
+    """
+    API endpoint to get available counties
+    """
+    try:
+        # This would typically come from a database or external API
+        # For now, we'll return Illinois counties
+        counties = [
+            {'value': 'cook', 'text': 'Cook County'},
+            {'value': 'dupage', 'text': 'DuPage County'},
+            {'value': 'lake', 'text': 'Lake County'},
+            {'value': 'kane', 'text': 'Kane County'},
+            {'value': 'will', 'text': 'Will County'},
+            {'value': 'mchenry', 'text': 'McHenry County'},
+            {'value': 'winnebago', 'text': 'Winnebago County'},
+            {'value': 'madison', 'text': 'Madison County'},
+            {'value': 'st_clair', 'text': 'St. Clair County'},
+            {'value': 'sangamon', 'text': 'Sangamon County'},
+        ]
+        
+        # Filter by user preference if provided
+        user_filter = request.GET.get('user_filter')
+        if user_filter:
+            # Move user's preferred county to the top
+            preferred = [c for c in counties if c['value'] == user_filter]
+            others = [c for c in counties if c['value'] != user_filter]
+            counties = preferred + others
+        
+        return JsonResponse({
+            'success': True,
+            'data': counties
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+
+@require_http_methods(["GET"])
+def api_form_config(request):
+    """
+    API endpoint to get complete form configuration for a specific filing type
+    """
+    try:
+        category_id = request.GET.get('category')
+        case_type_id = request.GET.get('case_type')
+        filing_type_id = request.GET.get('filing_type')
+        
+        if not all([category_id, case_type_id, filing_type_id]):
+            return JsonResponse({
+                'success': False,
+                'error': 'Missing required parameters'
+            }, status=400)
+        
+        # Validate that the selection is valid
+        validation = case_types_config.validate_selection(category_id, case_type_id, filing_type_id)
+        if not all(validation.values()):
+            return JsonResponse({
+                'success': False,
+                'error': 'Invalid selection combination'
+            }, status=400)
+        
+        # Get complete form configuration
+        config = case_types_config.get_form_config(category_id, case_type_id, filing_type_id)
+        
+        return JsonResponse({
+            'success': True,
+            'data': config
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+
+@require_http_methods(["GET"])
+def api_user_profile(request):
+    """
+    API endpoint to get user profile information
+    """
+    try:
+        # Mock user profile data - replace with actual user data
+        profile_data = {
+            'username': 'john_doe',
+            'first_name': 'John',
+            'last_name': 'Doe',
+            'email': 'john.doe@example.com',
+            'preferred_county': 'cook',
+            'location': {
+                'county': 'Cook County',
+                'state': 'Illinois'
+            }
+        }
+        
+        return JsonResponse({
+            'success': True,
+            'data': profile_data
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
 
 
 # # Logout view (optional custom implementation)

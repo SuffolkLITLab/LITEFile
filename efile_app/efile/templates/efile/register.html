@@ -1,330 +1,298 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Illinois eFile - Register</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/register.css' %}">
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{% static 'css/register.css' %}" />
     <style>
-        input.form-control.field-error,
-        select.form-select.field-error {
-            border: 2px solid #ef4444 !important;
-            box-shadow: 0 0 0 0.2rem rgba(239,68,68,.25) !important;
-        }
+      input.form-control.field-error,
+      select.form-select.field-error {
+        border: 2px solid #ef4444 !important;
+        box-shadow: 0 0 0 0.2rem rgba(239, 68, 68, 0.25) !important;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="main-container">
-        <div class="register-card">
-            <!-- Brand Header -->
-            <div class="brand-header">
-                <i class="fas fa-balance-scale scales-icon"></i>
-                <h1 class="brand-title">Illinois eFile</h1>
-            </div>
-
-            <!-- Registration Content -->
-            <div class="register-content">
-                <h2 class="page-title">Register to eFile</h2>
-
-                <!-- Django Messages -->
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                            {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    {% endfor %}
-                {% endif %}
-
-                <!-- Important Notice -->
-                <div class="alert-warning">
-                    <strong>Important Note</strong>
-                    <p>The information you enter here is used when you efile your documents. Please use your full correct legal name and address to avoid issues with your filing.</p>
-                </div>
-
-                <form id="registrationForm" method="post">
-                    {% csrf_token %}
-                    
-                    <!-- Your Legal Name -->
-                    <div class="section-title">Your Legal Name</div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            {{ form.first_name.label_tag }}
-                            {{ form.first_name }}
-                            {% if form.first_name.errors %}
-                                <div class="text-danger small">{{ form.first_name.errors }}</div>
-                            {% endif %}
-                        </div>
-                        <div class="col-md-6">
-                            {{ form.middle_name.label_tag }}
-                            {{ form.middle_name }}
-                            {% if form.middle_name.errors %}
-                                <div class="text-danger small">{{ form.middle_name.errors }}</div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        {{ form.last_name.label_tag }}
-                        {{ form.last_name }}
-                        {% if form.last_name.errors %}
-                            <div class="text-danger small">{{ form.last_name.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <!-- Physical Address -->
-                    <div class="section-title">Physical Address</div>
-                    <div class="mb-3">
-                        {{ form.street_address.label_tag }}
-                        {{ form.street_address }}
-                        {% if form.street_address.errors %}
-                            <div class="text-danger small">{{ form.street_address.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="mb-3">
-                        {{ form.street_address_2.label_tag }}
-                        {{ form.street_address_2 }}
-                        {% if form.street_address_2.errors %}
-                            <div class="text-danger small">{{ form.street_address_2.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="row">
-                        <div class="col-md-5">
-                            {{ form.city.label_tag }}
-                            {{ form.city }}
-                            {% if form.city.errors %}
-                                <div class="text-danger small">{{ form.city.errors }}</div>
-                            {% endif %}
-                        </div>
-                        <div class="col-md-4">
-                            {{ form.state.label_tag }}
-                            {{ form.state }}
-                            {{ form.state_code }}
-                            {% if form.state.errors %}
-                                <div class="text-danger small">{{ form.state.errors }}</div>
-                            {% endif %}
-                        </div>
-                        <div class="col-md-3">
-                            {{ form.zip_code.label_tag }}
-                            {{ form.zip_code }}
-                            {% if form.zip_code.errors %}
-                                <div class="text-danger small">{{ form.zip_code.errors }}</div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        {{ form.county.label_tag }}
-                        {{ form.county }}
-                        {% if form.county.errors %}
-                            <div class="text-danger small">{{ form.county.errors }}</div>
-                        {% endif %}
-                        <div id="countyDropdown" class="dropdown-menu w-100" style="max-height: 200px; overflow-y: auto;"></div>
-                    </div>
-                    <!-- Contact Information -->
-                    <div class="section-title">Contact Information</div>
-                    <div class="mb-3">
-                        {{ form.email.label_tag }}
-                        {{ form.email }}
-                        {% if form.email.errors %}
-                            <div class="text-danger small">{{ form.email.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="mb-3">
-                        {{ form.phone.label_tag }}
-                        <div class="phone-example">10-digit, U.S. only. For example 444-444-4444</div>
-                        {{ form.phone }}
-                        {% if form.phone.errors %}
-                            <div class="text-danger small">{{ form.phone.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <!-- Communication Preferences -->
-                    <div class="checkbox-section">
-                        <div class="section-title section-title-tight">Potentially sensitive Information</div>
-                            <div class="mb-3">
-                                {{ form.commPreference }}
-                                {% if form.commPreference.errors %}
-                                    <div class="text-danger small">{{ form.commPreference.errors }}</div>
-                                {% endif %}
-                        </div>
-                    </div>
-                    <!-- Password Section -->
-                    <div class="password-section">
-                        <div class="section-title section-title-tight">Choose a Password</div>
-                        <div class="mb-3">
-                            {{ form.password.label_tag }}
-                            <div class="password-input-group">
-                                {{ form.password }}
-                                <button type="button" class="password-toggle" onclick="togglePassword('password')">
-                                    <i class="fas fa-eye" id="password-icon"></i>
-                                </button>
-                            </div>
-                            <div class="password-strength">
-                                <div class="strength-bar" id="strength1"></div>
-                                <div class="strength-bar" id="strength2"></div>
-                                <div class="strength-bar" id="strength3"></div>
-                                <div class="strength-bar" id="strength4"></div>
-                            </div>
-                            {% if form.password.errors %}
-                                <div class="text-danger small">{{ form.password.errors }}</div>
-                            {% endif %}
-                        </div>
-                        <div class="mb-3">
-                            {{ form.confirm_password.label_tag }}
-                            <div class="password-input-group">
-                                {{ form.confirm_password }}
-                                <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword')">
-                                    <i class="fas fa-eye" id="confirmPassword-icon"></i>
-                                </button>
-                            </div>
-                            {% if form.confirm_password.errors %}
-                                <div class="text-danger small">{{ form.confirm_password.errors }}</div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    
-                    <!-- Action Buttons -->
-                    <div class="btn-container">
-                        <button type="button" class="btn btn-back" onclick="goBack()">
-                            <i class="fas fa-arrow-left me-2"></i>Back
-                        </button>
-                        <button type="submit" class="btn btn-register">
-                            Register Me to eFile
-                        </button>
-                    </div>
-                </form>
-            </div>
+      <div class="register-card">
+        <!-- Brand Header -->
+        <div class="brand-header">
+          <i class="fas fa-balance-scale scales-icon"></i>
+          <h1 class="brand-title">Illinois eFile</h1>
         </div>
+
+        <!-- Registration Content -->
+        <div class="register-content">
+          <h2 class="page-title">Register to eFile</h2>
+
+          <!-- Django Messages -->
+          {% if messages %} {% for message in messages %}
+          <div
+            class="alert alert-{{ message.tags }} alert-dismissible fade show"
+            role="alert"
+          >
+            {{ message }}
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="alert"
+            ></button>
+          </div>
+          {% endfor %} {% endif %}
+
+          <!-- Important Notice -->
+          <div class="alert-warning">
+            <strong>Important Note</strong>
+            <p>
+              The information you enter here is used when you efile your
+              documents. Please use your full correct legal name and address to
+              avoid issues with your filing.
+            </p>
+          </div>
+
+          <form id="registrationForm" method="post">
+            {% csrf_token %}
+
+            <!-- Your Legal Name -->
+            <div class="section-title">Your Legal Name</div>
+            <div class="row">
+              <div class="col-md-6">
+                {{ form.first_name.label_tag }} {{ form.first_name }} {% if form.first_name.errors %}
+                <div class="text-danger small">
+                  {{ form.first_name.errors }}
+                </div>
+                {% endif %}
+              </div>
+              <div class="col-md-6">
+                {{ form.middle_name.label_tag }} {{ form.middle_name }} {% if form.middle_name.errors %}
+                <div class="text-danger small">
+                  {{ form.middle_name.errors }}
+                </div>
+                {% endif %}
+              </div>
+            </div>
+            <div class="mb-3">
+              {{ form.last_name.label_tag }} {{ form.last_name }} {% if form.last_name.errors %}
+              <div class="text-danger small">{{ form.last_name.errors }}</div>
+              {% endif %}
+            </div>
+            <!-- Physical Address -->
+            <div class="section-title">Physical Address</div>
+            <div class="mb-3">
+              {{ form.street_address.label_tag }} {{ form.street_address }} {% if form.street_address.errors %}
+              <div class="text-danger small">
+                {{ form.street_address.errors }}
+              </div>
+              {% endif %}
+            </div>
+            <div class="mb-3">
+              {{ form.street_address_2.label_tag }} {{ form.street_address_2 }} {% if form.street_address_2.errors %}
+              <div class="text-danger small">
+                {{ form.street_address_2.errors }}
+              </div>
+              {% endif %}
+            </div>
+            <div class="row">
+              <div class="col-md-5">
+                {{ form.city.label_tag }} {{ form.city }} {% if form.city.errors %}
+                <div class="text-danger small">{{ form.city.errors }}</div>
+                {% endif %}
+              </div>
+              <div class="col-md-4">
+                {{ form.state.label_tag }} {{ form.state }} {{ form.state_code }} {% if form.state.errors %}
+                <div class="text-danger small">{{ form.state.errors }}</div>
+                {% endif %}
+              </div>
+              <div class="col-md-3">
+                {{ form.zip_code.label_tag }} {{ form.zip_code }} {% if form.zip_code.errors %}
+                <div class="text-danger small">{{ form.zip_code.errors }}</div>
+                {% endif %}
+              </div>
+            </div>
+            <!-- Contact Information -->
+            <div class="section-title">Contact Information</div>
+            <div class="mb-3">
+              {{ form.email.label_tag }} {{ form.email }} {% if form.email.errors %}
+              <div class="text-danger small">{{ form.email.errors }}</div>
+              {% endif %}
+            </div>
+            <div class="mb-3">
+              {{ form.phone.label_tag }}
+              <div class="phone-example">
+                10-digit, U.S. only. For example 444-444-4444
+              </div>
+              {{ form.phone }} {% if form.phone.errors %}
+              <div class="text-danger small">{{ form.phone.errors }}</div>
+              {% endif %}
+            </div>
+
+            <!-- Password Section -->
+            <div class="password-section">
+              <div class="section-title section-title-tight">
+                Choose a Password
+              </div>
+              <div class="mb-3">
+                {{ form.password.label_tag }}
+                <div class="password-input-group">
+                  {{ form.password }}
+                  <button
+                    type="button"
+                    class="password-toggle"
+                    onclick="togglePassword('password')"
+                  >
+                    <i class="fas fa-eye" id="password-icon"></i>
+                  </button>
+                </div>
+                <div class="password-strength">
+                  <div class="strength-bar" id="strength1"></div>
+                  <div class="strength-bar" id="strength2"></div>
+                  <div class="strength-bar" id="strength3"></div>
+                  <div class="strength-bar" id="strength4"></div>
+                </div>
+                {% if form.password.errors %}
+                <div class="text-danger small">{{ form.password.errors }}</div>
+                {% endif %}
+              </div>
+              <div class="mb-3">
+                {{ form.confirm_password.label_tag }}
+                <div class="password-input-group">
+                  {{ form.confirm_password }}
+                  <button
+                    type="button"
+                    class="password-toggle"
+                    onclick="togglePassword('confirmPassword')"
+                  >
+                    <i class="fas fa-eye" id="confirmPassword-icon"></i>
+                  </button>
+                </div>
+                {% if form.confirm_password.errors %}
+                <div class="text-danger small">
+                  {{ form.confirm_password.errors }}
+                </div>
+                {% endif %}
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="btn-container">
+              <button type="button" class="btn btn-back" onclick="goBack()">
+                <i class="fas fa-arrow-left me-2"></i>Back
+              </button>
+              <button type="submit" class="btn btn-register">
+                Register Me to eFile
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
-    
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script>
-        // County typeahead data and logic
-        const counties = [
-            "Adams", "Alexander", "Bond", "Boone", "Brown", "Bureau", "Calhoun", "Carroll", "Cass", "Champaign", "Christian", "Clark", "Clay", "Clinton", "Coles", "Cook", "Crawford", "Cumberland", "DeKalb", "DeWitt", "Douglas", "DuPage", "Edgar", "Edwards", "Effingham", "Fayette", "Ford", "Franklin", "Fulton", "Gallatin", "Greene", "Grundy", "Hamilton", "Hancock", "Hardin", "Henderson", "Henry", "Iroquois", "Jackson", "Jasper", "Jefferson", "Jersey", "Jo Daviess", "Johnson", "Kane", "Kankakee", "Kendall", "Knox", "Lake", "LaSalle", "Lawrence", "Lee", "Livingston", "Logan", "Macon", "Macoupin", "Madison", "Marion", "Marshall", "Mason", "Massac", "McDonough", "McHenry", "McLean", "Menard", "Mercer", "Monroe", "Montgomery", "Morgan", "Moultrie", "Ogle", "Peoria", "Perry", "Piatt", "Pike", "Pope", "Pulaski", "Putnam", "Randolph", "Richland", "Rock Island", "Saline", "Sangamon", "Schuyler", "Scott", "Shelby", "Stark", "Stephenson", "Tazewell", "Union", "Vermilion", "Wabash", "Warren", "Washington", "Wayne", "White", "Whiteside", "Will", "Williamson", "Winnebago", "Woodford"
-        ];
-        const countyInput = document.getElementById('county');
-        const countyDropdown = document.getElementById('countyDropdown');
-        countyInput.addEventListener('input', function() {
-            const value = this.value.trim().toLowerCase();
-            countyDropdown.innerHTML = '';
-            if (value.length === 0) {
-                countyDropdown.style.display = 'none';
-                return;
-            }
-            const matches = counties.filter(county => county.toLowerCase().includes(value));
-            if (matches.length > 0) {
-                matches.forEach(county => {
-                    const item = document.createElement('button');
-                    item.type = 'button';
-                    item.className = 'dropdown-item';
-                    item.textContent = county;
-                    item.onclick = function() {
-                        countyInput.value = county;
-                        countyDropdown.innerHTML = '';
-                        countyDropdown.style.display = 'none';
-                    };
-                    countyDropdown.appendChild(item);
-                });
-                countyDropdown.style.display = 'block';
+      document
+        .getElementById("password")
+        .addEventListener("input", updatePasswordStrength);
+
+      // Password strength bar update function
+      function checkPasswordStrength(password) {
+        let strength = 0;
+        if (password.length >= 8) strength++;
+        if (/[a-z]/.test(password)) strength++;
+        if (/[A-Z]/.test(password)) strength++;
+        if (/[0-9]/.test(password)) strength++;
+        if (/[^A-Za-z0-9]/.test(password)) strength++;
+        return strength;
+      }
+
+      function updatePasswordStrength() {
+        const password = document.getElementById("password").value;
+        const strength = checkPasswordStrength(password);
+        const bars = document.querySelectorAll(".strength-bar");
+        bars.forEach((bar, index) => {
+          bar.classList.remove("active", "medium", "weak");
+          if (index < strength) {
+            if (strength <= 2) {
+              bar.classList.add("weak");
+            } else if (strength <= 3) {
+              bar.classList.add("medium");
             } else {
-                countyDropdown.style.display = 'none';
+              bar.classList.add("active");
             }
+          }
         });
-        // Hide dropdown when clicking outside
-        document.addEventListener('click', function(e) {
-            if (!countyInput.contains(e.target) && !countyDropdown.contains(e.target)) {
-                countyDropdown.innerHTML = '';
-                countyDropdown.style.display = 'none';
-            }
+      }
+
+      function validatePasswordMatch() {
+        const password = document.getElementById("password").value;
+        const confirmPassword =
+          document.getElementById("confirmPassword").value;
+        const confirmField = document.getElementById("confirmPassword");
+
+        if (confirmPassword && password !== confirmPassword) {
+          confirmField.style.borderColor = "#ef4444";
+          return false;
+        } else {
+          confirmField.style.borderColor = "#d1d5db";
+          return true;
+        }
+      }
+      function goBack() {
+        window.location.href = "/login/";
+      }
+      // Event listeners
+      document
+        .getElementById("password")
+        .addEventListener("input", updatePasswordStrength);
+      document
+        .getElementById("confirmPassword")
+        .addEventListener("input", validatePasswordMatch);
+
+      // Password toggle function
+      function togglePassword(fieldType) {
+        let field, icon;
+        if (fieldType === "password") {
+          field = document.getElementById("password");
+          icon = document.getElementById("password-icon");
+        } else if (fieldType === "confirmPassword") {
+          field = document.getElementById("confirmPassword");
+          icon = document.getElementById("confirmPassword-icon");
+        }
+
+        if (field.type === "password") {
+          field.type = "text";
+          icon.classList.remove("fa-eye");
+          icon.classList.add("fa-eye-slash");
+        } else {
+          field.type = "password";
+          icon.classList.remove("fa-eye-slash");
+          icon.classList.add("fa-eye");
+        }
+      }
+
+      // Add interactive effects
+      document.addEventListener("DOMContentLoaded", function () {
+        const inputs = document.querySelectorAll(".form-control, .form-select");
+
+        inputs.forEach((input) => {
+          input.addEventListener("focus", function () {
+            this.style.transform = "translateY(-1px)";
+          });
+
+          input.addEventListener("blur", function () {
+            this.style.transform = "translateY(0)";
+          });
         });
-        document.getElementById('password').addEventListener('input', updatePasswordStrength);
-        
-        // Password strength bar update function
-        function checkPasswordStrength(password) {
-            let strength = 0;
-            if (password.length >= 8) strength++;
-            if (/[a-z]/.test(password)) strength++;
-            if (/[A-Z]/.test(password)) strength++;
-            if (/[0-9]/.test(password)) strength++;
-            if (/[^A-Za-z0-9]/.test(password)) strength++;
-            return strength;
-        }
-
-        function updatePasswordStrength() {
-            const password = document.getElementById('password').value;
-            const strength = checkPasswordStrength(password);
-            const bars = document.querySelectorAll('.strength-bar');
-            bars.forEach((bar, index) => {
-                bar.classList.remove('active', 'medium', 'weak');
-                if (index < strength) {
-                    if (strength <= 2) {
-                        bar.classList.add('weak');
-                    } else if (strength <= 3) {
-                        bar.classList.add('medium');
-                    } else {
-                        bar.classList.add('active');
-                    }
-                }
-            });
-        }
-
-        function validatePasswordMatch() {
-            const password = document.getElementById('password').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-            const confirmField = document.getElementById('confirmPassword');
-            
-            if (confirmPassword && password !== confirmPassword) {
-                confirmField.style.borderColor = '#ef4444';
-                return false;
-            } else {
-                confirmField.style.borderColor = '#d1d5db';
-                return true;
-            }
-        }
-        function goBack() {
-          window.location.href = "/login/";
-        }        
-        // Event listeners
-        document.getElementById('password').addEventListener('input', updatePasswordStrength);
-        document.getElementById('confirmPassword').addEventListener('input', validatePasswordMatch);
-
-        // Password toggle function
-        function togglePassword(fieldType) {
-            let field, icon;
-            if (fieldType === 'password') {
-                field = document.getElementById('password');
-                icon = document.getElementById('password-icon');
-            } else if (fieldType === 'confirmPassword') {
-                field = document.getElementById('confirmPassword');
-                icon = document.getElementById('confirmPassword-icon');
-            }
-            
-            if (field.type === 'password') {
-                field.type = 'text';
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-eye-slash');
-            } else {
-                field.type = 'password';
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
-            }
-        }
-
-        // Add interactive effects
-        document.addEventListener('DOMContentLoaded', function() {
-            const inputs = document.querySelectorAll('.form-control, .form-select');
-            
-            inputs.forEach(input => {
-                input.addEventListener('focus', function() {
-                    this.style.transform = 'translateY(-1px)';
-                });
-                
-                input.addEventListener('blur', function() {
-                    this.style.transform = 'translateY(0)';
-                });
-            });
-        });
+      });
     </script>
-</body>
+  </body>
 </html>

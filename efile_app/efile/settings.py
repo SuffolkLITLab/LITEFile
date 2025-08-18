@@ -90,3 +90,13 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 LOGIN_REDIRECT_URL = "/dashboard/"
 LOGOUT_REDIRECT_URL = "/login/"
 SUFFOLK_EFILE_API_KEY = "bF9PWmOaJv2CUgFB9ypP2"
+
+# AWS S3 Configuration
+AWS_ACCESS_KEY_ID = "AKIA3C6FLW7XTYISIW72"
+AWS_SECRET_ACCESS_KEY = r"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"  # Raw string to handle special chars
+AWS_S3_BUCKET_NAME = "forms-mvp-xf6361"
+AWS_S3_REGION_NAME = "us-east-1"
+
+# File Upload Settings
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
+ALLOWED_FILE_TYPES = ['.pdf', '.doc', '.docx']

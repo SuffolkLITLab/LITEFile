@@ -1,0 +1,379 @@
+# Case Types Configuration for Illinois eFile System
+# This file defines the structure and requirements for different case types
+
+case_categories:
+  miscellaneous:
+    name: "Miscellaneous"
+    description: "Various miscellaneous legal matters"
+    case_types:
+      name_change:
+        name: "Name Change"
+        description: "Legal name change proceedings"
+        filing_types:
+          petition_name_change:
+            name: "Petition for Name Change"
+            required_parties:
+              - id: "petitioner"
+                name: "Petitioner"
+                title: "Petitioner"
+                required: true
+                fields:
+                  - name: "first_name"
+                    label: "First Name"
+                    type: "text"
+                    required: true
+                  - name: "last_name"
+                    label: "Last Name"
+                    type: "text"
+                    required: true
+                  - name: "address"
+                    label: "Address"
+                    type: "textarea"
+                    required: true
+                    rows: 3
+              - id: "name_sought"
+                name: "Name Sought"
+                title: "Name Sought"
+                required: true
+                fields:
+                  - name: "new_first_name"
+                    label: "First Name"
+                    type: "text"
+                    required: true
+                  - name: "new_last_name"
+                    label: "Last Name"
+                    type: "text"
+                    required: true
+            document_types:
+              - value: "petition"
+                text: "Petition Document"
+              - value: "supporting_docs"
+                text: "Supporting Documents"
+            optional_services:
+              - id: "certified_mailing"
+                name: "Certified Mailing Fee (Each Mailing)"
+                fee: 5.00
+              - id: "record_search"
+                name: "Record Search"
+                fee: 10.00
+              - id: "copies_first"
+                name: "Copies - 1st Page"
+                fee: 2.00
+  civil:
+    name: "Civil"
+    description: "Civil litigation matters"
+    case_types:
+      small_claims:
+        name: "Small Claims"
+        description: "Small claims court proceedings"
+        keywords: ["small claims", "small", "claims"]
+        filing_types:
+          complaint:
+            name: "Complaint"
+            required_parties:
+              - id: "plaintiff"
+                name: "Plaintiff"
+                title: "Plaintiff"
+                required: true
+                fields:
+                  - name: "first_name"
+                    label: "First Name"
+                    type: "text"
+                    required: true
+                  - name: "last_name"
+                    label: "Last Name"
+                    type: "text"
+                    required: true
+                  - name: "address"
+                    label: "Address"
+                    type: "textarea"
+                    required: true
+                    rows: 3
+                  - name: "phone"
+                    label: "Phone Number"
+                    type: "tel"
+                    required: false
+              - id: "defendant"
+                name: "Defendant"
+                title: "Defendant"
+                required: true
+                fields:
+                  - name: "first_name"
+                    label: "First Name"
+                    type: "text"
+                    required: true
+                  - name: "last_name"
+                    label: "Last Name"
+                    type: "text"
+                    required: true
+                  - name: "address"
+                    label: "Known Address"
+                    type: "textarea"
+                    required: false
+                    rows: 3
+            document_types:
+              - value: "complaint"
+                text: "Complaint"
+              - value: "summons"
+                text: "Summons"
+            optional_services:
+              - id: "summons_service"
+                name: "Summons Service Fee"
+                fee: 15.00
+              - id: "jury_demand"
+                name: "Jury Demand/Request - 6 person"
+                fee: 25.00
+          counterclaim:
+            name: "Counterclaim"
+            required_parties:
+              - id: "counter_plaintiff"
+                name: "Counter-Plaintiff"
+                title: "Counter-Plaintiff"
+                required: true
+                fields:
+                  - name: "first_name"
+                    label: "First Name"
+                    type: "text"
+                    required: true
+                  - name: "last_name"
+                    label: "Last Name"
+                    type: "text"
+                    required: true
+            document_types:
+              - value: "counterclaim"
+                text: "Counterclaim Document"
+            optional_services:
+              - id: "certified_mailing"
+                name: "Certified Mailing Fee (Each Mailing)"
+                fee: 5.00
+
+      contract_dispute:
+        name: "Contract Dispute"
+        description: "Contract-related legal disputes"
+        keywords: ["contract dispute", "contract", "dispute", "breach"]
+        filing_types:
+          breach_of_contract:
+            name: "Breach of Contract"
+            required_parties:
+              - id: "plaintiff"
+                name: "Plaintiff"
+                title: "Plaintiff"
+                required: true
+                fields:
+                  - name: "entity_type"
+                    label: "Entity Type"
+                    type: "select"
+                    required: true
+                    options:
+                      - value: "individual"
+                        text: "Individual"
+                      - value: "corporation"
+                        text: "Corporation"
+                      - value: "llc"
+                        text: "LLC"
+                  - name: "first_name"
+                    label: "First Name / Entity Name"
+                    type: "text"
+                    required: true
+                  - name: "last_name"
+                    label: "Last Name"
+                    type: "text"
+                    required: false
+                    depends_on:
+                      field: "entity_type"
+                      value: "individual"
+              - id: "defendant"
+                name: "Defendant"
+                title: "Defendant"
+                required: true
+                fields:
+                  - name: "first_name"
+                    label: "First Name / Entity Name"
+                    type: "text"
+                    required: true
+                  - name: "last_name"
+                    label: "Last Name"
+                    type: "text"
+                    required: false
+            document_types:
+              - value: "complaint"
+                text: "Complaint"
+              - value: "contract_copy"
+                text: "Copy of Contract"
+            optional_services:
+              - id: "jury_demand"
+                name: "Jury Demand/Request - 6 person"
+                fee: 25.00
+              - id: "summons_service"
+                name: "Summons Service Fee"
+                fee: 15.00
+
+  family:
+    name: "Family"
+    description: "Family law matters"
+    case_types:
+      divorce:
+        name: "Divorce"
+        description: "Divorce proceedings"
+        filing_types:
+          petition_divorce:
+            name: "Petition for Divorce"
+            required_parties:
+              - id: "petitioner"
+                name: "Petitioner"
+                title: "Petitioner (Filing Party)"
+                required: true
+                fields:
+                  - name: "first_name"
+                    label: "First Name"
+                    type: "text"
+                    required: true
+                  - name: "last_name"
+                    label: "Last Name"
+                    type: "text"
+                    required: true
+                  - name: "address"
+                    label: "Current Address"
+                    type: "textarea"
+                    required: true
+                    rows: 3
+                  - name: "marriage_date"
+                    label: "Date of Marriage"
+                    type: "date"
+                    required: true
+              - id: "respondent"
+                name: "Respondent"
+                title: "Respondent (Other Spouse)"
+                required: true
+                fields:
+                  - name: "first_name"
+                    label: "First Name"
+                    type: "text"
+                    required: true
+                  - name: "last_name"
+                    label: "Last Name"
+                    type: "text"
+                    required: true
+                  - name: "address"
+                    label: "Last Known Address"
+                    type: "textarea"
+                    required: false
+                    rows: 3
+            document_types:
+              - value: "petition"
+                text: "Petition for Divorce"
+              - value: "marriage_certificate"
+                text: "Marriage Certificate Copy"
+            optional_services:
+              - id: "summons_service"
+                name: "Summons Service Fee"
+                fee: 15.00
+              - id: "certified_mailing"
+                name: "Certified Mailing Fee (Each Mailing)"
+                fee: 5.00
+
+  probate:
+    name: "Probate"
+    description: "Estate and probate matters"
+    case_types:
+      will_probate:
+        name: "Will Probate"
+        description: "Probate of a will"
+        filing_types:
+          petition_probate:
+            name: "Petition for Probate"
+            required_parties:
+              - id: "petitioner"
+                name: "Petitioner"
+                title: "Petitioner (Executor/Administrator)"
+                required: true
+                fields:
+                  - name: "first_name"
+                    label: "First Name"
+                    type: "text"
+                    required: true
+                  - name: "last_name"
+                    label: "Last Name"
+                    type: "text"
+                    required: true
+                  - name: "relationship"
+                    label: "Relationship to Deceased"
+                    type: "select"
+                    required: true
+                    options:
+                      - value: "spouse"
+                        text: "Spouse"
+                      - value: "child"
+                        text: "Child"
+                      - value: "parent"
+                        text: "Parent"
+                      - value: "sibling"
+                        text: "Sibling"
+                      - value: "other"
+                        text: "Other"
+              - id: "deceased"
+                name: "Deceased"
+                title: "Deceased Person"
+                required: true
+                fields:
+                  - name: "first_name"
+                    label: "First Name"
+                    type: "text"
+                    required: true
+                  - name: "last_name"
+                    label: "Last Name"
+                    type: "text"
+                    required: true
+                  - name: "date_of_death"
+                    label: "Date of Death"
+                    type: "date"
+                    required: true
+                  - name: "last_address"
+                    label: "Last Known Address"
+                    type: "textarea"
+                    required: true
+                    rows: 3
+            document_types:
+              - value: "petition"
+                text: "Petition for Probate"
+              - value: "will_original"
+                text: "Original Will"
+              - value: "death_certificate"
+                text: "Death Certificate"
+            optional_services:
+              - id: "record_search"
+                name: "Record Search"
+                fee: 10.00
+              - id: "certified_copies"
+                name: "Certified Copies"
+                fee: 5.00
+
+# Global optional services that apply to all case types
+global_optional_services:
+  - id: "mailing_fees"
+    name: "Mailing Fees (when clerk required to mail)"
+    fee: 3.00
+  - id: "copies_docket"
+    name: "Copies - Docket"
+    fee: 1.00
+  - id: "copies_first"
+    name: "Copies - 1st Page"
+    fee: 2.00
+  - id: "copies_2_19"
+    name: "Copies - Pages 2-19"
+    fee: 1.50
+  - id: "copies_20_beyond"
+    name: "Copies - Pages 20 and beyond"
+    fee: 1.00
+  - id: "certification_seal"
+    name: "Certification or Authentication with Seal"
+    fee: 5.00
+
+# Default document types available for all case types
+default_document_types:
+  - value: "non_confidential"
+    text: "Non-Confidential"
+  - value: "confidential"
+    text: "Confidential"
+  - value: "sealed"
+    text: "Sealed Document"

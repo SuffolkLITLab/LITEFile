@@ -1,0 +1,166 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Your Documents</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="{% static 'efile/css/upload.css' %}" rel="stylesheet">
+</head>
+<body>
+    {% include 'efile/components/profile_header.html' %}
+
+    <div class="container">
+        <div class="upload-container">
+            <h2 class="section-header">Upload Your Documents</h2>
+            <p class="section-description">
+                Upload your petition and any supporting documents. All documents must be in PDF format and clearly legible.
+            </p>
+
+            <!-- Case Information Summary -->
+            <div class="case-summary mb-4">
+                <div class="row">
+                    <div class="col-md-4">
+                        <strong>Case Type:</strong> {{ case_type }}
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Filing:</strong> {{ filing_type }}
+                    </div>
+                    <div class="col-md-4">
+                        <strong>County:</strong> {{ court }}
+                    </div>
+                </div>
+            </div>
+
+            <form id="uploadForm" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <!-- Lead Document Section -->
+                <div class="document-section mb-4">
+                    <label class="form-label document-label">
+                        <strong>Lead Document</strong> <span class="required">*</span>
+                    </label>
+                    <p class="text-muted">Your main petition document - this is the primary filing for your case.</p>
+                    
+                    <div class="upload-area" id="leadDocumentArea">
+                        <div class="upload-placeholder">
+                            <i class="fas fa-file-pdf fa-3x text-muted mb-3"></i>
+                            <p class="mb-2"><strong>Click to upload or drag and drop</strong></p>
+                            <p class="text-muted small">PDF files only, maximum 10MB</p>
+                        </div>
+                        <input type="file" id="leadDocument" name="lead_document" accept=".pdf" class="file-input" required>
+                    </div>
+                </div>
+
+                <!-- Document Requirements -->
+                <div class="requirements-section mb-4">
+                    <h5>Document Requirements</h5>
+                    <div class="requirement-item">
+                        <strong>Format:</strong> All documents must be in PDF format with text that can be read clearly.
+                    </div>
+                    <div class="requirement-item">
+                        <strong>Size Limit:</strong> Each document must be under 10MB.
+                    </div>
+                </div>
+
+                <!-- Supporting Documents Section -->
+                <div class="document-section mb-4">
+                    <label class="form-label document-label">
+                        <strong>Supporting Documents</strong>
+                    </label>
+                    <p class="text-muted">Optional additional documents that support your petition (birth certificates, marriage certificates, etc.)</p>
+                    
+                    <div class="upload-area" id="supportingDocumentsArea">
+                        <div class="upload-placeholder">
+                            <i class="fas fa-file-upload fa-3x text-muted mb-3"></i>
+                            <p class="mb-2"><strong>Click to upload or drag and drop</strong></p>
+                            <p class="text-muted small">PDF files only, maximum 10MB each</p>
+                        </div>
+                        <input type="file" id="supportingDocuments" name="supporting_documents" accept=".pdf" class="file-input" multiple>
+                    </div>
+                </div>
+
+                <!-- Document Options -->
+                <div class="document-options mb-4">
+                    <h5>Document Options</h5>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="filingComponent" class="form-label"><strong>Filing Component</strong> <span class="required">*</span></label>
+                            <select class="form-select" id="filingComponent" name="filing_component" required>
+                                <option value="">Lead Document</option>
+                                <option value="lead">Lead Document</option>
+                                <option value="supporting">Supporting Document</option>
+                                <option value="exhibit">Exhibit</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="certifiedCopies" name="certified_copies">
+                                <label class="form-check-label" for="certifiedCopies">
+                                    Request certified copies when filed
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="sealedConfidential" name="sealed_confidential">
+                                <label class="form-check-label" for="sealedConfidential">
+                                    Request documents be sealed/confidential
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Before You Continue Section -->
+                <div class="alert alert-warning">
+                    <h6><strong>Before You Continue</strong></h6>
+                    <p class="mb-2"><strong>Review your documents:</strong> Make sure all text is legible and all required information is complete.</p>
+                    <p class="mb-2"><strong>File names:</strong> Your documents will be renamed according to court standards when filed.</p>
+                    <p class="mb-0"><strong>Cannot be changed:</strong> Once submitted, you cannot modify these documents without filing additional motions.</p>
+                </div>
+
+                <!-- Progress and Loading -->
+                <div class="upload-progress" id="uploadProgress" style="display: none;">
+                    <div class="progress mb-3">
+                        <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+                    </div>
+                    <p class="text-center">Creating filing and uploading documents...</p>
+                </div>
+
+                <!-- Error Messages -->
+                <div class="alert alert-danger" id="errorAlert" style="display: none;">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span id="errorMessage"></span>
+                </div>
+
+                <!-- Success Messages -->
+                <div class="alert alert-success" id="successAlert" style="display: none;">
+                    <i class="fas fa-check-circle me-2"></i>
+                    <span id="successMessage"></span>
+                </div>
+
+                <!-- Form Buttons -->
+                <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mt-4">
+                    <button type="button" onclick="window.location.href='{% url 'expert_form' %}'" class="btn btn-outline-secondary px-4">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Case Details
+                    </button>
+                    <button type="submit" class="btn btn-primary px-4" id="submitButton">
+                        <i class="fas fa-upload me-2"></i>Continue to Review & Pay
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/upload-handler.js' %}"></script>
+</body>
+</html>

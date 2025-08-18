@@ -1,0 +1,139 @@
+# Case Type Configuration
+# Determines what form sections to show based on case type ID from Suffolk API
+
+case_types:
+  # Name Change Cases
+  "78346":  # Adult Name Change
+    name: "Adult Name Change"
+    category: "name_change"
+    required_parties:
+      - id: "petitioner"
+        name: "Current Name Information"
+        required: true
+        fields:
+          - name: "petitioner_first_name"
+            label: "Current First Name"
+            type: "text"
+            required: true
+          - name: "petitioner_last_name"
+            label: "Current Last Name"
+            type: "text"
+            required: true
+          - name: "petitioner_address"
+            label: "Current Address"
+            type: "textarea"
+            required: true
+      - id: "new_identity"
+        name: "Requested New Name"
+        required: true
+        fields:
+          - name: "new_first_name"
+            label: "First Name"
+            type: "text"
+            required: true
+          - name: "new_last_name"
+            label: "Last Name"
+            type: "text"
+            required: true
+    optional_services:
+      - id: "certified_copies"
+        name: "Certified Copies"
+        fee: 15.00
+        description: "Request certified copies of your name change order"
+      - id: "expedited_service"
+        name: "Expedited Processing"
+        fee: 50.00
+        description: "Rush processing of your name change petition"
+
+  # Minor Name Change Cases
+  "78347":  # Minor Name Change
+    name: "Minor Name Change"
+    category: "name_change"
+    required_parties:
+      - id: "petitioner"
+        name: "Petitioner (Parent/Guardian)"
+        required: true
+        fields:
+          - name: "petitioner_first_name"
+            label: "Your First Name"
+            type: "text"
+            required: true
+          - name: "petitioner_last_name"
+            label: "Your Last Name"
+            type: "text"
+            required: true
+          - name: "petitioner_address"
+            label: "Your Address"
+            type: "textarea"
+            required: true
+      - id: "minor"
+        name: "Minor's Current Information"
+        required: true
+        fields:
+          - name: "minor_first_name"
+            label: "Minor's Current First Name"
+            type: "text"
+            required: true
+          - name: "minor_last_name"
+            label: "Minor's Current Last Name"
+            type: "text"
+            required: true
+          - name: "minor_birth_date"
+            label: "Minor's Date of Birth"
+            type: "date"
+            required: true
+      - id: "new_identity"
+        name: "Requested New Name for Minor"
+        required: true
+        fields:
+          - name: "new_first_name"
+            label: "First Name"
+            type: "text"
+            required: true
+          - name: "new_last_name"
+            label: "Last Name"
+            type: "text"
+            required: true
+    optional_services:
+      - id: "certified_copies"
+        name: "Certified Copies"
+        fee: 15.00
+        description: "Request certified copies of the name change order"
+
+  # Default case type (fallback for unknown case types)
+  "default":
+    name: "General Case"
+    category: "general"
+    required_parties:
+      - id: "petitioner"
+        name: "Petitioner"
+        required: true
+        fields:
+          - name: "petitioner_first_name"
+            label: "First Name"
+            type: "text"
+            required: true
+          - name: "petitioner_last_name"
+            label: "Last Name"
+            type: "text"
+            required: true
+          - name: "petitioner_address"
+            label: "Address"
+            type: "textarea"
+            required: true
+    optional_services:
+      - id: "certified_copies"
+        name: "Certified Copies"
+        fee: 15.00
+        description: "Request certified copies of your filing"
+      - id: "expedited_service"
+        name: "Expedited Processing"
+        fee: 50.00
+        description: "Rush processing of your filing"
+
+# Service fee schedule
+service_fees:
+  certified_copies: 15.00
+  expedited_service: 50.00
+  additional_copies: 5.00
+  rush_delivery: 25.00

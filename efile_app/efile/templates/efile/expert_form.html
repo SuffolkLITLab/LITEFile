@@ -2,435 +2,192 @@
 
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Case Details & Parties</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="{% static 'efile/css/expert_form.css' %}" rel="stylesheet">
-</head>
-<body>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link href="{% static 'efile/css/expert_form.css' %}" rel="stylesheet" />
+  </head>
+  <body>
     {% include 'efile/components/profile_header.html' %}
 
     <div class="container">
-        <div class="form-container">
-            <form method="post" id="expertForm">
-                {% csrf_token %}
-                
-                <h2 class="section-header">Case Details & Parties</h2>
-                <p class="section-description">
-                    Please provide the basic information about your case and all parties involved. Required fields are marked with a red asterisk (<span class="required">*</span>).
-                </p>
+      <div class="form-container">
+        <form id="expertForm" onsubmit="return false;">
+          {% csrf_token %}
 
-                <!-- Case Classification Section -->
-                <h3 class="subsection-header">Case Classification</h3>
+          <h2 class="section-header">Case Details & Parties</h2>
+          <p class="section-description">
+            Please provide the basic information about your case and all parties
+            involved. Required fields are marked with a red asterisk (<span
+              class="required"
+              >*</span
+            >).
+          </p>
 
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label for="county" class="form-label">County <span class="required">*</span></label>
-                        <select class="form-select dropdown-field" 
-                                id="county" 
-                                name="county" 
-                                data-level="3"
-                                data-endpoint="/api/dropdowns/counties/"
-                                required>
-                            <option value="">Select County</option>
-                        </select>
-                        <div class="loading-spinner" id="loading-3" style="display: none;">
-                            <i class="fas fa-spinner fa-spin"></i> Loading counties...
-                        </div>
-                    </div>
-                    </div>
-                
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label for="case_category" class="form-label">Case Category <span class="required">*</span></label>
-                        <select class="form-select dropdown-field" 
-                                id="case_category" 
-                                name="case_category" 
-                                data-level="0"
-                                data-endpoint="/api/dropdowns/case-categories/"
-                                required>
-                            <option value="">Select Case Category</option>
-                        </select>
-                        <div class="loading-spinner" id="loading-0" style="display: none;">
-                            <i class="fas fa-spinner fa-spin"></i> Loading categories...
-                        </div>
-                    </div>
-                </div>
+          <!-- Case Classification Section -->
+          <h3 class="subsection-header">Case Classification</h3>
 
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label for="case_type" class="form-label">Case Type <span class="required">*</span></label>
-                        <select class="form-select dropdown-field" 
-                                id="case_type" 
-                                name="case_type" 
-                                data-level="1"
-                                required disabled>
-                            <option value="">Select Case Type</option>
-                        </select>
-                        <div class="loading-spinner" id="loading-1" style="display: none;">
-                            <i class="fas fa-spinner fa-spin"></i> Loading case types...
-                        </div>
-                    </div>
-                </div>
+          <div
+            class="alert alert-info"
+            id="userProfileStatus"
+            style="display: none"
+          >
+            <i class="fas fa-user-check"></i> Loading your information...
+          </div>
 
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label for="filing_type" class="form-label">Filing Type <span class="required">*</span></label>
-                        <select class="form-select dropdown-field" 
-                                id="filing_type" 
-                                name="filing_type" 
-                                data-level="2"
-                                required disabled>
-                            <option value="">Select Filing Type</option>
-                        </select>
-                        <div class="loading-spinner" id="loading-2" style="display: none;">
-                            <i class="fas fa-spinner fa-spin"></i> Loading filing types...
-                        </div>
-                    </div>
-                </div>
+          <div class="row mb-3">
+            <div class="col-md-6 court-container">
+              <label for="court" class="form-label"
+                >Court <span class="required">*</span></label
+              >
+              <select
+                class="form-select dropdown-field"
+                id="court"
+                name="court"
+                data-level="3"
+                data-endpoint="/api/dropdowns/courts/"
+                required
+              >
+                <option value="">Select Court</option>
+              </select>
+              <div class="loading-spinner" id="loading-3" style="display: none">
+                <i class="fas fa-spinner fa-spin"></i> Loading courts...
+              </div>
+            </div>
+          </div>
 
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label for="document_type" class="form-label">Document Type <span class="required">*</span></label>
-                        <select class="form-select dropdown-field" 
-                                id="document_type" 
-                                name="document_type" 
-                                data-level="4"
-                                required disabled>
-                            <option value="">Select Document Type</option>
-                        </select>
-                        <div class="loading-spinner" id="loading-4" style="display: none;">
-                            <i class="fas fa-spinner fa-spin"></i> Loading document types...
-                        </div>
-                    </div>
-                </div>
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="case_category" class="form-label"
+                >Case Category <span class="required">*</span></label
+              >
+              <select
+                class="form-select dropdown-field"
+                id="case_category"
+                name="case_category"
+                data-level="0"
+                data-endpoint="/api/dropdowns/case-categories/"
+                required
+                disabled
+              >
+                <option value="">First select a court</option>
+              </select>
+              <div class="loading-spinner" id="loading-0" style="display: none">
+                <i class="fas fa-spinner fa-spin"></i> Loading categories...
+              </div>
+            </div>
+          </div>
 
-                <!-- Required Parties Section -->
-                <h3 class="subsection-header">Required Parties</h3>
-                
-                <div class="party-section">
-                    <div class="party-title">Petitioner <span class="required">*</span></div>
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="petitioner_first_name" class="form-label">First Name</label>
-                            <input type="text" class="form-control" id="petitioner_first_name" name="petitioner_first_name">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="petitioner_last_name" class="form-label">Last Name</label>
-                            <input type="text" class="form-control" id="petitioner_last_name" name="petitioner_last_name">
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="petitioner_address" class="form-label">Address</label>
-                        <textarea class="form-control" id="petitioner_address" name="petitioner_address" rows="3"></textarea>
-                    </div>
-                </div>
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="case_type" class="form-label"
+                >Case Type <span class="required">*</span></label
+              >
+              <select
+                class="form-select dropdown-field"
+                id="case_type"
+                name="case_type"
+                data-level="1"
+                required
+                disabled
+              >
+                <option value="">Select Case Type</option>
+              </select>
+              <div class="loading-spinner" id="loading-1" style="display: none">
+                <i class="fas fa-spinner fa-spin"></i> Loading case types...
+              </div>
+            </div>
+          </div>
 
-                <div class="party-section">
-                    <div class="party-title">Name Sought <span class="required">*</span></div>
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="new_first_name" class="form-label">New First Name</label>
-                            <input type="text" class="form-control" id="new_first_name" name="new_first_name">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="new_last_name" class="form-label">New Last Name</label>
-                            <input type="text" class="form-control" id="new_last_name" name="new_last_name">
-                        </div>
-                    </div>
-                </div>
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="filing_type" class="form-label"
+                >Filing Type <span class="required">*</span></label
+              >
+              <select
+                class="form-select dropdown-field"
+                id="filing_type"
+                name="filing_type"
+                data-level="2"
+                required
+                disabled
+              >
+                <option value="">Select Filing Type</option>
+              </select>
+              <div class="loading-spinner" id="loading-2" style="display: none">
+                <i class="fas fa-spinner fa-spin"></i> Loading filing types...
+              </div>
+            </div>
+          </div>
 
-                <!-- Optional Services Section -->
-                <h3 class="subsection-header">Optional Services</h3>
-                
-                <div class="checkbox-group">
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="certified_mailing" name="optional_services" value="certified_mailing">
-                        <label class="form-check-label" for="certified_mailing">
-                            Certified Mailing Fee (Each Mailing)
-                        </label>
-                    </div>
-                    
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="issue_alias" name="optional_services" value="issue_alias">
-                        <label class="form-check-label" for="issue_alias">
-                            Issue Alias Summons
-                        </label>
-                    </div>
-                    
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="jury_demand" name="optional_services" value="jury_demand">
-                        <label class="form-check-label" for="jury_demand">
-                            Jury Demand/Request - 6 person (Excluding SC, P, PR, & GR)
-                        </label>
-                    </div>
-                    
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="record_search" name="optional_services" value="record_search">
-                        <label class="form-check-label" for="record_search">
-                            Record Search
-                        </label>
-                    </div>
-                    
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="mailing_fees" name="optional_services" value="mailing_fees">
-                        <label class="form-check-label" for="mailing_fees">
-                            Mailing Fees (when clerk required to mail)
-                        </label>
-                    </div>
-                    
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="copies_docket" name="optional_services" value="copies_docket">
-                        <label class="form-check-label" for="copies_docket">
-                            Copies - Docket
-                        </label>
-                    </div>
-                    
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="copies_first" name="optional_services" value="copies_first">
-                        <label class="form-check-label" for="copies_first">
-                            Copies - 1st Page
-                        </label>
-                    </div>
-                    
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="copies_2_19" name="optional_services" value="copies_2_19">
-                        <label class="form-check-label" for="copies_2_19">
-                            Copies - Pages 2-19
-                        </label>
-                    </div>
-                    
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="copies_20_beyond" name="optional_services" value="copies_20_beyond">
-                        <label class="form-check-label" for="copies_20_beyond">
-                            Copies - Pages 20 and beyond
-                        </label>
-                    </div>
-                    
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="certified_judgment" name="optional_services" value="certified_judgment">
-                        <label class="form-check-label" for="certified_judgment">
-                            Certified Copy of Judgment (Each)
-                        </label>
-                    </div>
-                    
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="record_search_gov" name="optional_services" value="record_search_gov">
-                        <label class="form-check-label" for="record_search_gov">
-                            Record Search - Government
-                        </label>
-                    </div>
-                    
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="certification_seal" name="optional_services" value="certification_seal">
-                        <label class="form-check-label" for="certification_seal">
-                            Certification or Authentication with Seal
-                        </label>
-                    </div>
-                    
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="summons_service" name="optional_services" value="summons_service">
-                        <label class="form-check-label" for="summons_service">
-                            Summons Service Fee
-                        </label>
-                    </div>
-                </div>
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="document_type" class="form-label"
+                >Document Type <span class="required">*</span></label
+              >
+              <select
+                class="form-select dropdown-field"
+                id="document_type"
+                name="document_type"
+                data-level="4"
+                required
+                disabled
+              >
+                <option value="">Select Document Type</option>
+              </select>
+              <div class="loading-spinner" id="loading-4" style="display: none">
+                <i class="fas fa-spinner fa-spin"></i> Loading document types...
+              </div>
+            </div>
+          </div>
 
-                <!-- Form Buttons -->
-                <div class="d-flex justify-content-between mt-4">
-                    <button type="button" class="btn btn-outline-secondary px-4">Save Draft</button>
-                    <button type="submit" class="btn btn-primary px-4">Continue to Documents</button>
-                </div>
-            </form>
-        </div>
+          <!-- Dynamic Case-Specific Sections -->
+          <div id="dynamicSections" style="display: none"></div>
+
+          <!-- Form Buttons -->
+          <div class="d-flex justify-content-between mt-4">
+            <button type="button" id="saveDraftBtn" class="btn btn-outline-secondary px-4">
+              Save Draft
+            </button>
+            <button type="submit" class="btn btn-primary px-4">
+              Continue to Documents
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Pass case data to JavaScript -->
+    {{ case_data|json_script:"case-data" }}
     <script>
-        class CascadingDropdowns {
-            constructor() {
-                this.dropdownMapping = {
-                    'case_category': { next: 'case_type', endpoint: '/api/dropdowns/case-types/' },
-                    'case_type': { next: 'filing_type', endpoint: '/api/dropdowns/filing-types/' },
-                    'filing_type': { next: 'document_type', endpoint: '/api/dropdowns/document-types/' },
-                    'county': { next: 'document_type', endpoint: '/api/dropdowns/document-types/' }
-                };
-                this.init();
-            }
-
-            init() {
-                // Load initial data for independent dropdowns
-                this.loadDropdownData('case_category', '/api/dropdowns/case-categories/');
-                this.loadDropdownData('county', '/api/dropdowns/counties/');
-                
-                // Add event listeners
-                document.addEventListener('change', (e) => {
-                    if (e.target.classList.contains('dropdown-field')) {
-                        this.handleDropdownChange(e.target);
-                    }
-                });
-            }
-
-            async loadDropdownData(fieldId, endpoint, params = {}) {
-                const dropdown = document.getElementById(fieldId);
-                const loader = document.getElementById(`loading-${dropdown.dataset.level}`);
-                
-                if (!dropdown) return;
-
-                try {
-                    this.showLoader(loader);
-                    this.clearDropdown(dropdown);
-                    
-                    const response = await this.makeRequest(endpoint, params);
-                    
-                    if (response.success) {
-                        this.populateDropdown(dropdown, response.data);
-                        dropdown.disabled = false;
-                    } else {
-                        this.showError(dropdown, response.error || 'Failed to load options');
-                    }
-                } catch (error) {
-                    console.error('Error loading dropdown data:', error);
-                    this.showError(dropdown, 'Network error occurred');
-                } finally {
-                    this.hideLoader(loader);
-                }
-            }
-
-            async makeRequest(endpoint, params = {}) {
-                const url = new URL(endpoint, window.location.origin);
-                Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
-                
-                const response = await fetch(url, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                return await response.json();
-            }
-
-            handleDropdownChange(dropdown) {
-                const fieldId = dropdown.id;
-                const selectedValue = dropdown.value;
-                const mapping = this.dropdownMapping[fieldId];
-                
-                if (mapping && selectedValue) {
-                    // Load data for the next dropdown
-                    this.loadDropdownData(mapping.next, mapping.endpoint, { parent: selectedValue });
-                } else if (mapping) {
-                    // Clear and disable the next dropdown if no value selected
-                    const nextDropdown = document.getElementById(mapping.next);
-                    if (nextDropdown) {
-                        this.clearDropdown(nextDropdown);
-                        nextDropdown.disabled = true;
-                    }
-                }
-                
-                // Clear dependent dropdowns
-                this.clearDependentDropdowns(fieldId);
-            }
-
-            clearDependentDropdowns(changedFieldId) {
-                const dependencies = {
-                    'case_category': ['case_type', 'filing_type'],
-                    'case_type': ['filing_type'],
-                    'county': ['document_type']
-                };
-                
-                const toClear = dependencies[changedFieldId] || [];
-                toClear.forEach(fieldId => {
-                    const dropdown = document.getElementById(fieldId);
-                    if (dropdown && fieldId !== this.dropdownMapping[changedFieldId]?.next) {
-                        this.clearDropdown(dropdown);
-                        dropdown.disabled = true;
-                    }
-                });
-            }
-
-            populateDropdown(dropdown, options) {
-                const placeholder = dropdown.querySelector('option[value=""]').textContent;
-                dropdown.innerHTML = `<option value="">${placeholder}</option>`;
-                
-                options.forEach(option => {
-                    const optionElement = document.createElement('option');
-                    optionElement.value = option.value || option.id;
-                    optionElement.textContent = option.label || option.name;
-                    dropdown.appendChild(optionElement);
-                });
-            }
-
-            clearDropdown(dropdown) {
-                const placeholder = dropdown.querySelector('option[value=""]')?.textContent || 'Please select...';
-                dropdown.innerHTML = `<option value="">${placeholder}</option>`;
-            }
-
-            showLoader(loader) {
-                if (loader) loader.style.display = 'block';
-            }
-
-            hideLoader(loader) {
-                if (loader) loader.style.display = 'none';
-            }
-
-            showError(dropdown, message) {
-                dropdown.innerHTML = `<option value="">Error: ${message}</option>`;
-                dropdown.disabled = false;
-            }
-        }
-
-        // Initialize when DOM is loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            new CascadingDropdowns();
-            
-            const form = document.querySelector('form');
-            const requiredFields = form.querySelectorAll('[required]');
-            
-            // Add validation styling
-            requiredFields.forEach(field => {
-                field.addEventListener('invalid', function() {
-                    this.classList.add('is-invalid');
-                });
-                
-                field.addEventListener('input', function() {
-                    if (this.validity.valid) {
-                        this.classList.remove('is-invalid');
-                        this.classList.add('is-valid');
-                    }
-                });
-            });
-
-            // Save draft functionality
-            document.querySelector('.btn-outline-secondary').addEventListener('click', function() {
-                alert('Draft saved successfully!');
-            });
-
-            // Form submission
-            form.addEventListener('submit', function(e) {
-                let isValid = true;
-                requiredFields.forEach(field => {
-                    if (!field.validity.valid) {
-                        isValid = false;
-                        field.classList.add('is-invalid');
-                    }
-                });
-
-                if (!isValid) {
-                    e.preventDefault();
-                    alert('Please fill in all required fields.');
-                }
-            });
-        });
+      const caseDataElement = document.getElementById("case-data");
+      window.caseData = caseDataElement
+        ? JSON.parse(caseDataElement.textContent)
+        : null;
+      console.log("Template case data element:", caseDataElement);
+      console.log(
+        "Template case data content:",
+        caseDataElement ? caseDataElement.textContent : "null"
+      );
+      console.log("Parsed case data:", window.caseData);
     </script>
-</body>
+
+    <!-- Form JavaScript Modules -->
+    <script src="{% static 'js/api-utils.js' %}"></script>
+    <script src="{% static 'js/cascading-dropdowns.js' %}"></script>
+    <script src="{% static 'js/dynamic-form-sections.js' %}"></script>
+    <script src="{% static 'js/form-validation.js' %}"></script>
+    <script src="{% static 'js/expert-form-main.js' %}"></script>
+  </body>
 </html>

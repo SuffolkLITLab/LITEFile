@@ -6,14 +6,16 @@ from .dropdown_views import (
     get_case_categories,
     get_case_types,
     get_filing_types,
-    get_counties,
-    get_document_types
+    get_courts,
+    get_document_types,
+    get_optional_services
 )
 from .auth_views import (
     user_login,
     user_logout,
     user_profile,
-    external_auth
+    external_auth,
+    external_profile
 )
 from .filing_views import (
     get_filings,
@@ -22,6 +24,10 @@ from .filing_views import (
     update_filing,
     delete_filing
 )
+from .config_views import (
+    get_form_config
+)
+from .case_type_config import get_case_type_config
 
 app_name = 'api'
 
@@ -30,14 +36,20 @@ urlpatterns = [
     path('dropdowns/case-categories/', get_case_categories, name='case_categories'),
     path('dropdowns/case-types/', get_case_types, name='case_types'),
     path('dropdowns/filing-types/', get_filing_types, name='filing_types'),
-    path('dropdowns/counties/', get_counties, name='counties'),
+    path('dropdowns/courts/', get_courts, name='courts'),
     path('dropdowns/document-types/', get_document_types, name='document_types'),
+    path('dropdowns/optional-services/', get_optional_services, name='optional_services'),
+    
+    # Form configuration endpoints
+    path('form-config/', get_form_config, name='form_config'),
+    path('case-type-config/', get_case_type_config, name='case_type_config'),
     
     # Authentication API endpoints
     path('auth/login/', user_login, name='login'),
     path('auth/logout/', user_logout, name='logout'),
     path('auth/profile/', user_profile, name='profile'),
     path('auth/external/', external_auth, name='external_auth'),
+    path('auth/external-profile/', external_profile, name='external_profile'),
     
     # Filing API endpoints
     path('filings/', get_filings, name='filings_list'),

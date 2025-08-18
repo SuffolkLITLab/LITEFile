@@ -114,3 +114,38 @@ body {
   background-color: #f8f9fa;
   opacity: 0.65;
 }
+
+/* Recommendation notice styling */
+.recommendation-notice {
+  font-size: 0.875rem !important;
+  padding: 8px 12px !important;
+  margin: 5px 0 !important;
+  border: 1px solid #28a745;
+  background-color: #d4edda;
+  color: #155724;
+  border-radius: 4px;
+  animation: fadeInOut 4s ease-in-out;
+}
+
+.recommendation-notice i {
+  color: #ffd700;
+  margin-right: 6px;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateY(-10px); }
+  15% { opacity: 1; transform: translateY(0); }
+  85% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-10px); }
+}
+
+/* Recommended option styling */
+option.recommended {
+  font-weight: bold;
+  background-color: #fff3cd;
+}
+
+/* Court dropdown container positioning */
+.court-container {
+  position: relative;
+}

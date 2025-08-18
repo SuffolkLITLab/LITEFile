@@ -44,7 +44,7 @@ dev = [
 # Align with project Python requirement
 target-version = "py310"
 line-length = 120
-src = ["mysite"]
+src = ["efile_app"]
 extend-exclude = [
     "**/migrations/*",
 ]
@@ -68,20 +68,21 @@ select = [
 ignore = []
 
 [tool.ruff.lint.isort]
-known-first-party = ["mysite"]
+known-first-party = ["efile_app"]
 
 # Ty (Rust-based Python type checker)
 [tool.ty.src]
-include = ["mysite"]
+include = ["efile_app"]
 exclude = ["**/migrations/**"]
 
 # pytest configuration (pytest and pytest-django)
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "efile.settings"
 pythonpath = [
-  "mysite",
+  "efile_app",
 ]
 testpaths = [
-  "mysite",
+  "efile_app",
 ]
 addopts = "-ra --strict-markers"
+

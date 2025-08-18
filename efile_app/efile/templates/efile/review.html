@@ -1,0 +1,253 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review Your Case Details</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .review-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .review-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid #dee2e6;
+        }
+        .review-section h3 {
+            color: #495057;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 0.5rem;
+        }
+        .review-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .review-item:last-child {
+            border-bottom: none;
+        }
+        .review-label {
+            font-weight: 600;
+            color: #495057;
+            flex: 0 0 200px;
+        }
+        .review-value {
+            flex: 1;
+            text-align: right;
+            color: #212529;
+        }
+        .review-value.empty {
+            color: #6c757d;
+            font-style: italic;
+        }
+        .cache-indicator {
+            background: #d4edda;
+            color: #155724;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            border: 1px solid #c3e6cb;
+        }
+        .edit-link {
+            color: #007bff;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        .edit-link:hover {
+            text-decoration: underline;
+        }
+        
+        /* Responsive button styling */
+        @media (max-width: 576px) {
+            .review-container {
+                padding: 1rem;
+            }
+            
+            .btn {
+                text-align: center;
+                width: 100%;
+            }
+            
+            .d-flex.gap-2 .btn {
+                width: auto;
+                flex: 1;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .review-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .review-label {
+                margin-bottom: 0.25rem;
+                flex: none;
+            }
+            
+            .review-value {
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+<body>
+    {% include 'efile/components/profile_header.html' %}
+
+    <div class="container">
+        <div class="review-container">
+            <h2 class="text-center mb-4">
+                <i class="fas fa-clipboard-check me-2"></i>Review Your Case Details
+            </h2>
+            
+            <div class="cache-indicator">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Using Cached Data:</strong> This review page uses cached information to display friendly names without additional API calls.
+                <a href="#" onclick="showCacheDetails()" class="ms-2 edit-link">View Cache Details</a>
+            </div>
+
+            {% for section_key, section in review_sections.items %}
+            <div class="review-section">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3>{{ section.title }}</h3>
+                    <a href="{% url 'expert_form' %}" class="edit-link">
+                        <i class="fas fa-edit me-1"></i>Edit
+                    </a>
+                </div>
+                
+                {% for item in section.items %}
+                <div class="review-item">
+                    <span class="review-label">{{ item.label }}:</span>
+                    <span class="review-value{% if not item.value %} empty{% endif %}">
+                        {{ item.value|default:"Not provided" }}
+                        {% if item.raw and item.raw != item.value %}
+                            <small class="text-muted d-block">(ID: {{ item.raw }})</small>
+                        {% endif %}
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endfor %}
+
+            <!-- Action Buttons -->
+            <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mt-4">
+                <a href="{% url 'expert_form' %}" class="btn btn-outline-secondary px-4">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Case Details
+                </a>
+                <div class="d-flex flex-column flex-sm-row gap-2">
+                    <button onclick="testCacheFunctionality()" class="btn btn-info px-3">
+                        <i class="fas fa-flask me-2"></i>Test Cache
+                    </button>
+                    <a href="{% url 'upload' %}" class="btn btn-primary px-4">
+                        <i class="fas fa-check me-2"></i>Looks Good, Continue
+                    </a>
+                </div>
+            </div>
+
+            <!-- Cache Details Modal -->
+            <div class="modal fade" id="cacheModal" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Cache Details</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div id="cacheDetails">
+                                <p>Loading cache information...</p>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-warning" onclick="clearCacheAndRefresh()">Clear Cache</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/api-utils.js' %}"></script>
+    
+    {{ friendly_names|json_script:"friendly-names" }}
+    
+    <script>
+        const friendlyNames = JSON.parse(document.getElementById('friendly-names').textContent);
+        
+        function showCacheDetails() {
+            const modal = new bootstrap.Modal(document.getElementById('cacheModal'));
+            const cacheDetails = document.getElementById('cacheDetails');
+            
+            if (window.apiUtils) {
+                const stats = window.apiUtils.getCacheStats();
+                cacheDetails.innerHTML = `
+                    <h6>Cache Statistics</h6>
+                    <ul>
+                        <li><strong>Total Entries:</strong> ${stats.totalEntries}</li>
+                        <li><strong>Valid Entries:</strong> ${stats.validEntries}</li>
+                        <li><strong>Expired Entries:</strong> ${stats.expiredEntries}</li>
+                        <li><strong>Cache Size:</strong> ${(stats.cacheSize / 1024).toFixed(2)} KB</li>
+                    </ul>
+                    
+                    <h6>Cache Entries</h6>
+                    <div style="max-height: 300px; overflow-y: auto;">
+                        ${stats.entries.map(entry => `
+                            <div class="border-bottom pb-2 mb-2">
+                                <strong>Key:</strong> ${entry.key}<br>
+                                <strong>Age:</strong> ${entry.ageMinutes} minutes<br>
+                                <strong>Valid:</strong> ${entry.isValid ? '✅' : '❌'}<br>
+                                <strong>Size:</strong> ${(entry.dataSize / 1024).toFixed(2)} KB
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else {
+                cacheDetails.innerHTML = '<p class="text-danger">API Utils not available</p>';
+            }
+            
+            modal.show();
+        }
+        
+        function testCacheFunctionality() {
+            if (window.testCache) {
+                console.log('🧪 Running cache test from review page...');
+                window.testCache();
+                alert('Cache test completed! Check the console for results.');
+            } else {
+                alert('Cache testing not available');
+            }
+        }
+        
+        function clearCacheAndRefresh() {
+            if (window.clearCache) {
+                window.clearCache();
+                alert('Cache cleared! The page will refresh to show the effect.');
+                setTimeout(() => window.location.reload(), 1000);
+            }
+        }
+
+        // Log friendly names that were successfully resolved
+        console.log('🎯 Friendly names displayed on review page:', friendlyNames);
+        
+        // Show cache usage on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.cacheStats) {
+                console.log('📊 Current cache status:');
+                window.cacheStats();
+            }
+        });
+    </script>
+</body>
+</html>
