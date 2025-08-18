@@ -1,13 +1,12 @@
 """
 API views for dropdown data in Illinois eFile system
 Handles cascading dropdowns for case categories, types, counties, etc.
-Uses YAML configuration for dynamic form structure.
+Uses GET requests to external APIs exclusively.
 """
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 import requests
 from .base import APIResponseMixin, get_auth_tokens, validate_request
-from ..utils.case_config import case_types_config
 from ..utils.zip_to_county_il import get_county_by_zip
 
 
@@ -31,105 +30,35 @@ class DropdownAPIViews(APIResponseMixin):
             # Make API call to external categories endpoint
             api_url = f"https://efile-test.suffolklitlab.org/jurisdictions/{jurisdiction}/codes/courts/{court_code}/categories"
             
-            try:
-                # Make the API request with auth tokens if available
-                headers = {}
-                if auth_tokens and 'token' in auth_tokens:
-                    headers['Authorization'] = f"Bearer {auth_tokens['token']}"
+            # Make the API request with auth tokens if available
+            headers = {}
+            if auth_tokens and 'token' in auth_tokens:
+                headers['Authorization'] = f"Bearer {auth_tokens['token']}"
+            
+            response = requests.get(api_url, headers=headers, timeout=10)
+            
+            if response.status_code == 200:
+                # Parse the API response - expecting list of {name, code} objects
+                api_data = response.json()
                 
-                response = requests.get(api_url, headers=headers, timeout=10)
+                # Transform API data to our dropdown format
+                categories = []
+                if isinstance(api_data, list):
+                    for category in api_data:
+                        if isinstance(category, dict) and 'code' in category and 'name' in category:
+                            categories.append({
+                                'value': category['code'],
+                                'text': f"{category['name']} ({category['code']})"
+                            })
                 
-                if response.status_code == 200:
-                    # Parse the API response - expecting list of {name, code} objects
-                    api_data = response.json()
-                    
-                    # Transform API data to our dropdown format
-                    categories = []
-                    if isinstance(api_data, list):
-                        for category in api_data:
-                            if isinstance(category, dict) and 'code' in category and 'name' in category:
-                                categories.append({
-                                    'value': category['code'],
-                                    'text': f"{category['name']} ({category['code']})"
-                                })
-                    
-                    return DropdownAPIViews.success_response(categories)
-                    
-                else:
-                    # API call failed, fall back to YAML configuration
-                    raise requests.RequestException(f"API returned status {response.status_code}")
-                    
-            except (requests.RequestException, requests.Timeout) as api_error:
-                # Fallback to YAML configuration if API fails
-                print(f"API request failed for court {court_code}: {api_error}")
-                categories = case_types_config.get_case_categories()
-                filtered_categories = DropdownAPIViews._filter_categories_by_court(categories, court_code)
-                return DropdownAPIViews.success_response(filtered_categories)
+                return DropdownAPIViews.success_response(categories)
+            else:
+                return DropdownAPIViews.error_response(f"API request failed with status {response.status_code}")
                 
+        except (requests.RequestException, requests.Timeout) as api_error:
+            return DropdownAPIViews.error_response(f"API request failed: {str(api_error)}")
         except Exception as e:
             return DropdownAPIViews.error_response(f"Error: {str(e)}")
-    
-    @staticmethod
-    def _filter_categories_by_court(categories, court_code):
-        """
-        Filter case categories based on court jurisdiction and capabilities.
-        Different courts may handle different types of cases.
-        """
-        if not categories or not court_code:
-            return categories
-        
-        # Court-specific filtering logic
-        court_lower = court_code.lower()
-        
-        # Supreme Court and Appellate Courts typically handle appeals
-        if 'supcrt' in court_lower or 'pac' in court_lower:
-            # Filter to only appellate case types
-            filtered = [cat for cat in categories if 'appeal' in cat.get('text', '').lower() or 'appellate' in cat.get('text', '').lower()]
-            # If no appellate categories found, return all categories (fallback)
-            return filtered if filtered else categories
-        
-        # Cook County specialized divisions
-        elif 'cook:' in court_lower:
-            division = court_lower.split(':')[1] if ':' in court_lower else ''
-            
-            if division == 'chd1':  # Chancery
-                filtered = [cat for cat in categories if any(keyword in cat.get('text', '').lower() 
-                           for keyword in ['chancery', 'civil', 'contract', 'property', 'business'])]
-                return filtered if filtered else categories  # Fallback to all categories
-                
-            elif division == 'crd1':  # Criminal
-                filtered = [cat for cat in categories if 'criminal' in cat.get('text', '').lower()]
-                return filtered if filtered else categories  # Fallback to all categories
-                
-            elif division == 'dr1':  # Domestic Relations
-                filtered = [cat for cat in categories if any(keyword in cat.get('text', '').lower() 
-                           for keyword in ['family', 'domestic', 'divorce', 'custody', 'marriage'])]
-                return filtered if filtered else categories  # Fallback to all categories
-                
-            elif division == 'pr1':  # Probate
-                filtered = [cat for cat in categories if any(keyword in cat.get('text', '').lower() 
-                           for keyword in ['probate', 'estate', 'guardianship', 'will'])]
-                return filtered if filtered else categories  # Fallback to all categories
-                
-            elif division == 'law1':  # Law Division
-                filtered = [cat for cat in categories if any(keyword in cat.get('text', '').lower() 
-                           for keyword in ['civil', 'tort', 'personal', 'injury', 'contract', 'miscellaneous'])]
-                return filtered if filtered else categories  # Fallback to all categories
-        
-        # Traffic courts handle only traffic cases
-        elif 'tr' in court_lower or 'traffic' in court_lower:
-            filtered = [cat for cat in categories if 'traffic' in cat.get('text', '').lower() 
-                       or 'violation' in cat.get('text', '').lower()]
-            return filtered if filtered else categories  # Fallback to all categories
-        
-        # ARDC handles attorney discipline
-        elif 'ardc' in court_lower:
-            filtered = [cat for cat in categories if any(keyword in cat.get('text', '').lower() 
-                       for keyword in ['discipline', 'attorney', 'professional', 'ethics'])]
-            return filtered if filtered else categories  # Fallback to all categories
-        
-        # For regular county courts, return all categories (most flexible)
-        return categories
     
     @staticmethod
     @require_http_methods(["GET"])
@@ -152,58 +81,33 @@ class DropdownAPIViews(APIResponseMixin):
             # Make API call to external case types endpoint
             api_url = f"https://efile-test.suffolklitlab.org/jurisdictions/{jurisdiction}/codes/courts/{court_code}/case_types/?category_id={category_id}"
             
-            try:
-                # Make the API request with auth tokens if available
-                headers = {}
-                if auth_tokens and 'token' in auth_tokens:
-                    headers['Authorization'] = f"Bearer {auth_tokens['token']}"
+            # Make the API request with auth tokens if available
+            headers = {}
+            if auth_tokens and 'token' in auth_tokens:
+                headers['Authorization'] = f"Bearer {auth_tokens['token']}"
+            
+            response = requests.get(api_url, headers=headers, timeout=10)
+            
+            if response.status_code == 200:
+                # Parse the API response - expecting list of {name, code} objects
+                api_data = response.json()
                 
-                response = requests.get(api_url, headers=headers, timeout=10)
+                # Transform API data to our dropdown format
+                case_types = []
+                if isinstance(api_data, list):
+                    for case_type in api_data:
+                        if isinstance(case_type, dict) and 'code' in case_type and 'name' in case_type:
+                            case_types.append({
+                                'value': case_type['code'],
+                                'text': f"{case_type['name']} ({case_type['code']})"
+                            })
                 
-                if response.status_code == 200:
-                    # Parse the API response - expecting list of {name, code} objects
-                    api_data = response.json()
-                    
-                    # Transform API data to our dropdown format
-                    case_types = []
-                    if isinstance(api_data, list):
-                        for case_type in api_data:
-                            if isinstance(case_type, dict) and 'code' in case_type and 'name' in case_type:
-                                case_types.append({
-                                    'value': case_type['code'],
-                                    'text': f"{case_type['name']} ({case_type['code']})"
-                                })
-                    
-                    # If Suffolk API returns empty results, fall back to YAML configuration
-                    if not case_types:
-                        print(f"Suffolk API returned empty results for court {court_code}, category {category_id}. Falling back to YAML config.")
-                        
-                        # Map Suffolk API category IDs to YAML category keys
-                        category_mapping = {
-                            '7': 'civil',      # Civil cases
-                            '1': 'family',     # Family cases
-                            '2': 'criminal',   # Criminal cases  
-                            '3': 'probate',    # Probate cases
-                            '4': 'miscellaneous', # Miscellaneous cases
-                            # Add more mappings as needed
-                        }
-                        
-                        yaml_category = category_mapping.get(category_id, category_id)
-                        case_types = case_types_config.get_case_types(yaml_category)
-                        print(f"Using YAML category '{yaml_category}' for Suffolk category '{category_id}', found {len(case_types)} case types")
-                    
-                    return DropdownAPIViews.success_response(case_types)
-                    
-                else:
-                    # API call failed, fall back to YAML configuration
-                    raise requests.RequestException(f"API returned status {response.status_code}")
-                    
-            except (requests.RequestException, requests.Timeout) as api_error:
-                # Fallback to YAML configuration if API fails
-                print(f"API request failed for court {court_code}, category {category_id}: {api_error}")
-                case_types = case_types_config.get_case_types(category_id)
                 return DropdownAPIViews.success_response(case_types)
+            else:
+                return DropdownAPIViews.error_response(f"API request failed with status {response.status_code}")
                 
+        except (requests.RequestException, requests.Timeout) as api_error:
+            return DropdownAPIViews.error_response(f"API request failed: {str(api_error)}")
         except Exception as e:
             return DropdownAPIViews.error_response(f"Error: {str(e)}")
     
@@ -232,60 +136,33 @@ class DropdownAPIViews(APIResponseMixin):
             # Make API call to external filing types endpoint
             api_url = f"https://efile-test.suffolklitlab.org/jurisdictions/{jurisdiction}/codes/courts/{court_code}/filing_types/?initial={initial}&category_id={casetype_id}"
             
-            try:
-                # Make the API request with auth tokens if available
-                headers = {}
-                if auth_tokens and 'token' in auth_tokens:
-                    headers['Authorization'] = f"Bearer {auth_tokens['token']}"
+            # Make the API request with auth tokens if available
+            headers = {}
+            if auth_tokens and 'token' in auth_tokens:
+                headers['Authorization'] = f"Bearer {auth_tokens['token']}"
+            
+            response = requests.get(api_url, headers=headers, timeout=10)
+            
+            if response.status_code == 200:
+                # Parse the API response - expecting list of {name, code} objects
+                api_data = response.json()
                 
-                response = requests.get(api_url, headers=headers, timeout=10)
+                # Transform API data to our dropdown format
+                filing_types = []
+                if isinstance(api_data, list):
+                    for filing_type in api_data:
+                        if isinstance(filing_type, dict) and 'code' in filing_type and 'name' in filing_type:
+                            filing_types.append({
+                                'value': filing_type['code'],
+                                'text': f"{filing_type['name']} ({filing_type['code']})"
+                            })
                 
-                if response.status_code == 200:
-                    # Parse the API response - expecting list of {name, code} objects
-                    api_data = response.json()
-                    
-                    # Transform API data to our dropdown format
-                    filing_types = []
-                    if isinstance(api_data, list):
-                        for filing_type in api_data:
-                            if isinstance(filing_type, dict) and 'code' in filing_type and 'name' in filing_type:
-                                filing_types.append({
-                                    'value': filing_type['code'],
-                                    'text': f"{filing_type['name']} ({filing_type['code']})"
-                                })
-                    
-                    # If Suffolk API returns empty results, fall back to YAML configuration
-                    if not filing_types:
-                        print(f"Suffolk API returned empty results for court {court_code}, case type {casetype_id}. Falling back to YAML config.")
-                        
-                        # Map Suffolk API category IDs to YAML category keys
-                        category_mapping = {
-                            '7': 'civil',      # Civil cases
-                            '1': 'family',     # Family cases
-                            '2': 'criminal',   # Criminal cases  
-                            '3': 'probate',    # Probate cases
-                            '4': 'miscellaneous', # Miscellaneous cases
-                        }
-                        
-                        category_id = request.GET.get('category')  # Legacy category parameter for YAML fallback
-                        yaml_category = category_mapping.get(category_id, category_id) if category_id else 'civil'
-                        filing_types = case_types_config.get_filing_types(yaml_category, casetype_id)
-                        print(f"Using YAML category '{yaml_category}' for case type '{casetype_id}', found {len(filing_types)} filing types")
-                    
-                    return DropdownAPIViews.success_response(filing_types)
-                    
-                else:
-                    # API call failed, fall back to YAML configuration
-                    raise requests.RequestException(f"API returned status {response.status_code}")
-                    
-            except (requests.RequestException, requests.Timeout) as api_error:
-                # Fallback to YAML configuration if API fails
-                print(f"API request failed for court {court_code}, case type {casetype_id}: {api_error}")
-                # For fallback, we'll use the legacy parameter structure
-                category_id = request.GET.get('category')  # Legacy category parameter for YAML fallback
-                filing_types = case_types_config.get_filing_types(category_id, casetype_id)
                 return DropdownAPIViews.success_response(filing_types)
+            else:
+                return DropdownAPIViews.error_response(f"API request failed with status {response.status_code}")
                 
+        except (requests.RequestException, requests.Timeout) as api_error:
+            return DropdownAPIViews.error_response(f"API request failed: {str(api_error)}")
         except Exception as e:
             return DropdownAPIViews.error_response(f"Error: {str(e)}")
     
@@ -559,55 +436,34 @@ class DropdownAPIViews(APIResponseMixin):
             # Make API call to external document types endpoint
             api_url = f"https://efile-test.suffolklitlab.org/jurisdictions/{jurisdiction}/codes/courts/{court_code}/filing_types/{filing_type_id}/document_types"
             print(f"API URL: {api_url}")  # Debugging line
-            try:
-                # Make the API request with auth tokens if available
-                headers = {}
-                if auth_tokens and 'token' in auth_tokens:
-                    headers['Authorization'] = f"Bearer {auth_tokens['token']}"
+            
+            # Make the API request with auth tokens if available
+            headers = {}
+            if auth_tokens and 'token' in auth_tokens:
+                headers['Authorization'] = f"Bearer {auth_tokens['token']}"
+            
+            response = requests.get(api_url, headers=headers, timeout=10)
+            
+            if response.status_code == 200:
+                # Parse the API response - expecting list of {name, code} objects
+                api_data = response.json()
                 
-                response = requests.get(api_url, headers=headers, timeout=10)
+                # Transform API data to our dropdown format
+                document_types = []
+                if isinstance(api_data, list):
+                    for document_type in api_data:
+                        if isinstance(document_type, dict) and 'code' in document_type and 'name' in document_type:
+                            document_types.append({
+                                'value': document_type['code'],
+                                'text': f"{document_type['name']} ({document_type['code']})"
+                            })
                 
-                if response.status_code == 200:
-                    # Parse the API response - expecting list of {name, code} objects
-                    api_data = response.json()
-                    
-                    # Transform API data to our dropdown format
-                    document_types = []
-                    if isinstance(api_data, list):
-                        for document_type in api_data:
-                            if isinstance(document_type, dict) and 'code' in document_type and 'name' in document_type:
-                                document_types.append({
-                                    'value': document_type['code'],
-                                    'text': f"{document_type['name']} ({document_type['code']})"
-                                })
-                    
-                    return DropdownAPIViews.success_response(document_types)
-                    
-                else:
-                    # API call failed, fall back to YAML configuration
-                    raise requests.RequestException(f"API returned status {response.status_code}")
-                    
-            except (requests.RequestException, requests.Timeout) as api_error:
-                # Fallback to YAML configuration if API fails
-                print(f"API request failed for court {court_code}, filing type {filing_type_id}: {api_error}")
-                # For fallback, we'll use the legacy parameter structure
-                case_type_id = request.GET.get('case_type')
-                category_id = request.GET.get('category')
-                county = request.GET.get('county')
-                
-                if all([filing_type_id, case_type_id, category_id]):
-                    document_types = case_types_config.get_document_types(
-                        category_id, case_type_id, filing_type_id, county
-                    )
-                else:
-                    # Return default document types if specific parameters not provided
-                    document_types = [
-                        {'value': 'non_confidential', 'text': 'Non-Confidential'},
-                        {'value': 'confidential', 'text': 'Confidential'},
-                        {'value': 'sealed', 'text': 'Sealed Document'}
-                    ]
                 return DropdownAPIViews.success_response(document_types)
+            else:
+                return DropdownAPIViews.error_response(f"API request failed with status {response.status_code}")
 
+        except (requests.RequestException, requests.Timeout) as api_error:
+            return DropdownAPIViews.error_response(f"API request failed: {str(api_error)}")
         except Exception as e:
             return DropdownAPIViews.error_response(f"Error: {str(e)}")
 

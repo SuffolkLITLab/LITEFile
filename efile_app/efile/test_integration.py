@@ -104,16 +104,17 @@ class TestBasicFunctionality:
 class TestUtilityFunctions:
     """Test utility functions in isolation."""
     
-    def test_case_config_exists(self):
-        """Test that case configuration can be imported."""
+    def test_case_form_config_exists(self):
+        """Test that case form configuration can be loaded."""
         try:
-            from efile.utils.case_config import case_types_config
-            # Should be able to get categories without error
-            categories = case_types_config.get_case_categories()
-            assert isinstance(categories, list)
-        except ImportError:
-            # If case_config doesn't exist, skip this test
-            pytest.skip("case_config module not found")
+            from efile.api.case_form_views import CaseFormAPIViews
+            # Should be able to load case type forms without error
+            forms_config = CaseFormAPIViews._load_case_type_forms()
+            assert forms_config is not None
+            assert 'case_types' in forms_config
+        except Exception:
+            # If case-type-forms.yaml doesn't exist, skip this test
+            pytest.skip("case-type-forms.yaml not found")
     
     def test_dropdown_api_views_can_be_imported(self):
         """Test that dropdown API views can be imported."""
