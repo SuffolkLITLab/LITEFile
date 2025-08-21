@@ -20,15 +20,24 @@ class UploadHandler {
             supporting: []
         };
         
+        this.initialized = false;
+        
         this.init();
     }
 
     async init() {
+        if (this.initialized) {
+            console.warn('UploadHandler already initialized, skipping...');
+            return;
+        }
+        
         // First, sync any localStorage data to session
         await this.syncFormDataToSession();
         
         this.setupEventListeners();
         this.setupDragAndDrop();
+        
+        this.initialized = true;
     }
 
     async syncFormDataToSession() {
@@ -36,9 +45,7 @@ class UploadHandler {
         const caseFormData = localStorage.getItem('caseFormData');
         if (caseFormData) {
             try {
-                console.log('Syncing form data to session...');
-                
-                const response = await fetch('/api/save-form-data/', {
+                const response = await fetch('/api/save-case-data/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -48,7 +55,6 @@ class UploadHandler {
                 });
 
                 if (response.ok) {
-                    console.log('Form data synced to session successfully');
                     // Clear localStorage since it's now in session
                     localStorage.removeItem('caseFormData');
                 } else {
@@ -57,6 +63,95 @@ class UploadHandler {
             } catch (error) {
                 console.error('Error syncing form data:', error);
             }
+        }
+    }
+
+    async saveUploadDataToSession(uploadData) {
+        try {
+            const response = await fetch('/api/save-upload-data/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.getCSRFToken()
+                },
+                body: JSON.stringify(uploadData)
+            });
+
+            if (!response.ok) {
+                let errText = 'Failed to save upload data to session';
+                try {
+                    const errJson = await response.json();
+                    errText = errJson.error || errJson.message || errText;
+                } catch (e) {}
+                throw new Error(errText);
+            }
+
+            const result = await response.json();
+            if (!result.success) {
+                throw new Error(result.error || 'Failed to save upload data to session');
+            }
+        } catch (error) {
+            console.error('Error saving upload data to session:', error);
+            throw error;
+        }
+    }
+
+    async saveFilesToSession() {
+        try {
+            // Create file metadata to save to session (we can't store actual File objects)
+            const fileData = {
+                lead: this.uploadedFiles.lead ? {
+                    name: this.uploadedFiles.lead.name,
+                    size: this.uploadedFiles.lead.size,
+                    type: this.uploadedFiles.lead.type
+                } : null,
+                supporting: this.uploadedFiles.supporting.map(file => ({
+                    name: file.name,
+                    size: file.size,
+                    type: file.type
+                }))
+            };
+
+            // Also save any form options
+            const filingComponent = document.getElementById('filingComponent')?.value || '';
+            const certifiedCopies = document.getElementById('certifiedCopies')?.checked || false;
+            const sealedConfidential = document.getElementById('sealedConfidential')?.checked || false;
+
+            const uploadData = {
+                files: fileData,
+                options: {
+                    filing_component: filingComponent,
+                    certified_copies: certifiedCopies,
+                    sealed_confidential: sealedConfidential
+                }
+            };
+
+            const response = await fetch('/api/save-upload-data/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.getCSRFToken()
+                },
+                body: JSON.stringify(uploadData)
+            });
+
+            if (!response.ok) {
+                // Try to extract error message from JSON if available
+                let errText = 'Failed to save upload data to session';
+                try {
+                    const errJson = await response.json();
+                    errText = errJson.error || errJson.message || errText;
+                } catch (e) {}
+                throw new Error(errText);
+            }
+
+            const result = await response.json();
+            if (!result.success) {
+                throw new Error(result.error || 'Failed to save upload data to session');
+            }
+        } catch (error) {
+            console.error('Error saving files to session:', error);
+            throw error;
         }
     }
 
@@ -80,13 +175,59 @@ class UploadHandler {
             this.handleFileSelection(e.target.files, 'supporting');
         });
 
-        // Upload area clicks
-        this.leadDocumentArea.addEventListener('click', () => {
-            this.leadDocumentInput.click();
+        // Upload area clicks with aggressive throttling to prevent double firing
+        let lastLeadClick = 0;
+        let lastSupportingClick = 0;
+        const CLICK_THROTTLE_MS = 1000; // 1 second throttle
+
+        this.leadDocumentArea.addEventListener('click', (e) => {
+            // Check if click is on file preview or remove button
+            if (e.target.closest('.file-preview') || 
+                e.target.closest('.file-remove') ||
+                e.target.classList.contains('file-remove')) {
+                return;
+            }
+
+            const now = Date.now();
+            if (now - lastLeadClick < CLICK_THROTTLE_MS) {
+                return;
+            }
+
+            lastLeadClick = now;
+            
+            // Prevent default and stop propagation to avoid any interference
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Use setTimeout to ensure this runs after any other event handlers
+            setTimeout(() => {
+                this.leadDocumentInput.click();
+            }, 10);
         });
 
-        this.supportingDocumentsArea.addEventListener('click', () => {
-            this.supportingDocumentsInput.click();
+        this.supportingDocumentsArea.addEventListener('click', (e) => {
+            // Check if click is on file preview or remove button
+            if (e.target.closest('.file-preview') || 
+                e.target.closest('.file-remove') ||
+                e.target.classList.contains('file-remove')) {
+                return;
+            }
+
+            const now = Date.now();
+            if (now - lastSupportingClick < CLICK_THROTTLE_MS) {
+                return;
+            }
+
+            lastSupportingClick = now;
+            
+            // Prevent default and stop propagation to avoid any interference
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Use setTimeout to ensure this runs after any other event handlers
+            setTimeout(() => {
+                this.supportingDocumentsInput.click();
+            }, 10);
         });
     }
 
@@ -135,10 +276,33 @@ class UploadHandler {
             // Only one lead document allowed
             this.uploadedFiles.lead = validFiles[0];
             this.updateFilePreview(this.leadDocumentArea, [validFiles[0]], 'lead');
+
+            // Ensure the native file input reflects the selection so browser validation works
+            try {
+                const dt = new DataTransfer();
+                dt.items.add(validFiles[0]);
+                if (this.leadDocumentInput) {
+                    this.leadDocumentInput.files = dt.files;
+                }
+            } catch (e) {
+                // Some older browsers may not support DataTransfer constructor in this context
+                console.warn('Could not set native input.files via DataTransfer:', e);
+            }
         } else {
             // Multiple supporting documents allowed
             this.uploadedFiles.supporting = [...this.uploadedFiles.supporting, ...validFiles];
             this.updateFilePreview(this.supportingDocumentsArea, this.uploadedFiles.supporting, 'supporting');
+
+            // Update native supporting input FileList to match uploadedFiles.supporting
+            try {
+                const dt = new DataTransfer();
+                this.uploadedFiles.supporting.forEach(file => dt.items.add(file));
+                if (this.supportingDocumentsInput) {
+                    this.supportingDocumentsInput.files = dt.files;
+                }
+            } catch (e) {
+                console.warn('Could not set native supporting input.files via DataTransfer:', e);
+            }
         }
 
         this.updateSubmitButton();
@@ -193,10 +357,55 @@ class UploadHandler {
                     <div class="text-muted small">${fileSize}</div>
                 </div>
             </div>
-            <button type="button" class="file-remove" onclick="uploadHandler.removeFile('${type}', ${index})">
+            <button type="button" class="file-remove">
                 <i class="fas fa-times"></i>
             </button>
         `;
+        
+        // Add event listener to the remove button with strong event prevention
+        const removeButton = preview.querySelector('.file-remove');
+        removeButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+
+            if (type === 'lead') {
+                this.uploadedFiles.lead = null;
+                this.updateFilePreview(this.leadDocumentArea, [], 'lead');
+                // Clear the native file input
+                if (this.leadDocumentInput) {
+                    this.leadDocumentInput.value = '';
+                }
+            } else {
+                // Find and remove the specific file from the array
+                const fileIndex = this.uploadedFiles.supporting.indexOf(file);
+                if (fileIndex > -1) {
+                    this.uploadedFiles.supporting.splice(fileIndex, 1);
+                    this.updateFilePreview(this.supportingDocumentsArea, this.uploadedFiles.supporting, 'supporting');
+                    
+                    // Update native supporting input FileList
+                    try {
+                        const dt = new DataTransfer();
+                        this.uploadedFiles.supporting.forEach(f => dt.items.add(f));
+                        if (this.supportingDocumentsInput) {
+                            this.supportingDocumentsInput.files = dt.files;
+                        }
+                    } catch (err) {
+                        console.warn('Could not update native supporting input.files after removal:', err);
+                    }
+                }
+            }
+            
+            this.updateSubmitButton();
+            
+            // Return false to ensure no further event processing
+            return false;
+        }, true); // Use capture phase to intercept before other handlers
+        
+        // Also add a mousedown event to completely prevent any interaction issues
+        removeButton.addEventListener('mousedown', (e) => {
+            e.stopPropagation();
+        }, true);
         
         return preview;
     }
@@ -205,9 +414,26 @@ class UploadHandler {
         if (type === 'lead') {
             this.uploadedFiles.lead = null;
             this.updateFilePreview(this.leadDocumentArea, [], 'lead');
+            
+            // Clear the native file input
+            if (this.leadDocumentInput) {
+                this.leadDocumentInput.value = '';
+            }
         } else {
             this.uploadedFiles.supporting.splice(index, 1);
+            // Regenerate all supporting file previews with correct indices
             this.updateFilePreview(this.supportingDocumentsArea, this.uploadedFiles.supporting, 'supporting');
+            
+            // Update native supporting input FileList
+            try {
+                const dt = new DataTransfer();
+                this.uploadedFiles.supporting.forEach(file => dt.items.add(file));
+                if (this.supportingDocumentsInput) {
+                    this.supportingDocumentsInput.files = dt.files;
+                }
+            } catch (e) {
+                console.warn('Could not update native supporting input.files after removal:', e);
+            }
         }
         
         this.updateSubmitButton();
@@ -228,31 +454,97 @@ class UploadHandler {
         this.submitButton.disabled = true;
 
         try {
-            // Step 1: Create filing with case data
-            const filing = await this.createFiling();
-            
-            if (!filing.success) {
-                throw new Error(filing.error);
+            // Upload documents directly to S3 and get URLs
+            const uploadResult = await this.uploadToS3();
+
+            // Now save the complete upload data (including URLs) to session
+            const uploadDataWithUrls = {
+                files: {
+                    lead: null,
+                    supporting: []
+                },
+                options: {
+                    filing_component: document.getElementById('filingComponent')?.value || '',
+                    certified_copies: document.getElementById('certifiedCopies')?.checked || false,
+                    sealed_confidential: document.getElementById('sealedConfidential')?.checked || false
+                }
+            };
+
+            // Process uploaded files and extract URLs
+            if (uploadResult.files && uploadResult.files.length > 0) {
+                // Find the lead document (first document or marked as 'lead')
+                const leadDoc = uploadResult.files.find(f => f.type === 'lead') || uploadResult.files[0];
+                if (leadDoc) {
+                    uploadDataWithUrls.files.lead = {
+                        name: leadDoc.original_name,
+                        size: leadDoc.size,
+                        type: this.uploadedFiles.lead.type,
+                        url: leadDoc.public_url,
+                        s3_key: leadDoc.key
+                    };
+                }
+
+                // Process supporting documents
+                const supportingDocs = uploadResult.files.filter(f => f.type === 'supporting');
+                supportingDocs.forEach((doc, index) => {
+                    const originalFile = this.uploadedFiles.supporting[index];
+                    uploadDataWithUrls.files.supporting.push({
+                        name: doc.original_name,
+                        size: doc.size,
+                        type: originalFile?.type,
+                        url: doc.public_url,
+                        s3_key: doc.key
+                    });
+                });
             }
+            // Save the complete upload data with URLs to session
+            await this.saveUploadDataToSession(uploadDataWithUrls);
 
-            // Step 2: Upload documents
-            await this.uploadDocuments(filing.filing_id);
-
-            // Step 3: Show success and redirect
-            this.showSuccess('Filing created and documents uploaded successfully!');
+            // Show success message briefly
+            this.showSuccess('Documents uploaded successfully! Redirecting to review...');
             
-            // Redirect to review page after 2 seconds
+            // Redirect to review page after 1 second
             setTimeout(() => {
-                window.location.href = '/review/'; // Adjust URL as needed
-            }, 2000);
+                window.location.href = '/review/';
+            }, 1000);
 
         } catch (error) {
-            console.error('Filing submission error:', error);
+            console.error('File upload error:', error);
             this.showError(error.message);
             this.submitButton.disabled = false;
         } finally {
             this.hideProgress();
         }
+    }
+
+    async uploadToS3() {
+        const formData = new FormData();
+        
+        // Add lead document
+        if (this.uploadedFiles.lead) {
+            formData.append('documents', this.uploadedFiles.lead);
+        }
+        
+        // Add supporting documents
+        this.uploadedFiles.supporting.forEach(file => {
+            formData.append('documents', file);
+        });
+
+        const response = await fetch('/api/simple-s3-upload/', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': this.getCSRFToken()
+            }
+        });
+
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.error);
+        }
+        
+        return result;
     }
 
     async createFiling() {
@@ -355,5 +647,9 @@ class UploadHandler {
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    window.uploadHandler = new UploadHandler();
+    if (!window.uploadHandler) {
+        window.uploadHandler = new UploadHandler();
+    } else {
+        console.warn('UploadHandler already exists, skipping initialization');
+    }
 });

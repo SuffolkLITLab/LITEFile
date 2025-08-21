@@ -5,7 +5,7 @@ from django.views.decorators.cache import cache_page
 from django.conf import settings
 import os
 
-@cache_page(60 * 15)  # Cache for 15 minutes
+# @cache_page(60 * 15)  # Cache for 15 minutes - temporarily disabled for development
 def get_case_type_config(request):
     """
     Serves the case type configuration from YAML file as JSON

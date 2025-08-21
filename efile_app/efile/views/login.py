@@ -36,6 +36,8 @@ def efile_login(request):
                         if data.get("tokens"):
                             # Save tokens in session
                             request.session["auth_tokens"] = data["tokens"]
+                            # Save user email for use in forms
+                            request.session["user_email"] = email
 
                             print(request)
                             messages.success(request, "Successfully logged in!")
@@ -50,3 +52,22 @@ def efile_login(request):
         "login_form": login_form,
     }
     return render(request, "efile/login.html", context)
+
+
+def efile_logout(request):
+    """
+    Custom logout view
+    """
+    from django.contrib.auth import logout
+    from django.contrib.messages.api import get_messages
+
+    # Clear any existing messages first
+    storage = get_messages(request)
+    for message in storage:
+        pass  # This consumes all messages
+
+    logout(request)
+    # Clear session data
+    request.session.flush()
+    messages.success(request, "You have been successfully logged out.")
+    return redirect("efile_login")

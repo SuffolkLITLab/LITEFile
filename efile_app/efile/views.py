@@ -232,15 +232,3 @@ def api_user_profile(request):
             'success': False,
             'error': str(e)
         }, status=500)
-
-
-# # Logout view (optional custom implementation)
-def efile_logout(request):
-    """
-    Custom logout view
-    """
-    from django.contrib.auth import logout
-
-    logout(request)
-    messages.success(request, "You have been successfully logged out.")
-    return redirect("efile_login")

@@ -93,6 +93,10 @@ body {
   width: 200px;
 }
 
+.btn-register {
+  width: 200px;
+}
+
 .btn-sign-in:hover,
 .btn-register:hover {
   background: #1e3a5f;

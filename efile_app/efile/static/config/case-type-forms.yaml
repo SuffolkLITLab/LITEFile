@@ -10,34 +10,55 @@ case_types:
     sections:
       parties:
         title: "Required Parties"
+        api_endpoint: "/api/dropdowns/party-types/"
+        requires_params: ["court", "case_type"]
         fields:
           - section_title: "Petitioner"
             required: true
+            party_type_filter: ["5628"]  # "Petitioner" party type code
             fields:
+              - name: "petitioner_party_type"
+                label: "Party Type"
+                type: "party_type_dropdown"
+                required: true
+                column_width: "col-12"
+                api_endpoint: "/api/dropdowns/party-types/"
               - name: "petitioner_first_name"
                 label: "First Name"
                 type: "text"
                 required: true
-                column_width: "col-md-6"
+                column_width: "col-6"
               - name: "petitioner_last_name"
                 label: "Last Name"
                 type: "text"
                 required: true
-                column_width: "col-md-6"
+                column_width: "col-6"
           
           - section_title: "Name Sought"
-            required: true
+            required: false  # Default to not required
+            conditional_requirements:
+              # Only required for cook:cd1 court specifically
+              required_for_courts: ["cook:cd1"]
+              # Optional/hidden for all other courts
+              hidden_for_courts: ["cook:chd1", "cook:pr1", "cook:crd1", "cook:law1", "cook:cvd1", "cook:dr1"]
+            party_type_filter: ["56354"]  # "Name Sought" party type code
             fields:
+              - name: "new_name_party_type"
+                label: "Party Type"
+                type: "party_type_dropdown"
+                required: true
+                column_width: "col-12"
+                api_endpoint: "/api/dropdowns/party-types/"
               - name: "new_first_name"
                 label: "First Name"
                 type: "text"
                 required: true
-                column_width: "col-md-6"
+                column_width: "col-6"
               - name: "new_last_name"
                 label: "Last Name"
                 type: "text"
                 required: true
-                column_width: "col-md-6"
+                column_width: "col-6"
 
   # Example configuration for future case types
   divorce:

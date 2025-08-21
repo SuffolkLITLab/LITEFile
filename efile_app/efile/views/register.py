@@ -68,6 +68,7 @@ def efile_register(request):
             "zip_code",
             "state",
             "email",
+            "phone",
             "password",
             "confirm_password",
         ]

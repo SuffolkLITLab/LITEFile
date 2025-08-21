@@ -16,12 +16,13 @@ class DynamicFormSections {
         // Load configuration from server
         await this.loadConfiguration();
         
+        // Load any existing case data from the session
+        await this.loadExistingCaseData();
+        
         // Listen for case type changes to trigger form section updates
         const caseTypeSelect = document.getElementById('case_type');
         if (caseTypeSelect) {
-            console.log('=== Adding event listener to case_type dropdown ===');
             caseTypeSelect.addEventListener('change', () => {
-                console.log('case_type change event triggered from addEventListener');
                 this.handleCaseTypeChange();
             });
             
@@ -29,10 +30,8 @@ class DynamicFormSections {
             const observer = new MutationObserver((mutations) => {
                 mutations.forEach(mutation => {
                     if (mutation.type === 'childList' || mutation.type === 'attributes') {
-                        console.log('case_type dropdown DOM changed:', mutation.type);
                         // Check if dropdown was cleared
                         if (caseTypeSelect.value === '' && this.dynamicSections && this.dynamicSections.style.display === 'block') {
-                            console.log('case_type was cleared, hiding dynamic sections');
                             this.hideDynamicSections();
                         }
                     }
@@ -43,9 +42,7 @@ class DynamicFormSections {
                 attributes: true, 
                 attributeFilter: ['value'] 
             });
-        } else {
-            console.log('case_type dropdown not found in DOM');
-        }
+        } 
     }
 
     async loadConfiguration() {
@@ -55,7 +52,6 @@ class DynamicFormSections {
             
             if (result.success) {
                 this.config = result.config;
-                console.log('Loaded case type configuration:', this.config);
             } else {
                 console.error('Failed to load configuration:', result.error);
                 this.config = this.getDefaultConfig();
@@ -63,6 +59,33 @@ class DynamicFormSections {
         } catch (error) {
             console.error('Error loading configuration:', error);
             this.config = this.getDefaultConfig();
+        }
+    }
+
+    async loadExistingCaseData() {
+        try {
+            // Check if there's an API endpoint to retrieve saved case data
+            const response = await fetch('/api/get-case-data/', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                if (result.success && result.data && Object.keys(result.data).length > 0) {
+                    this.restorationData = result.data;
+                    
+                    // Also make it available for form validation system
+                    if (window.formValidation) {
+                        window.formValidation.restorationData = result.data;
+                    }
+                } 
+            } 
+        } catch (error) {
+            console.warn('Could not load existing case data:', error);
+            // This is not a critical error, continue without saved data
         }
     }
 
@@ -105,28 +128,19 @@ class DynamicFormSections {
     }
 
     handleCaseTypeChange() {
-        console.log('=== DynamicFormSections.handleCaseTypeChange called ===');
         const caseTypeSelect = document.getElementById('case_type');
         
         if (!caseTypeSelect) {
-            console.log('Case type select element not found');
             return;
         }
         
         if (!this.config) {
-            console.log('Configuration not loaded yet');
             return;
         }
         
         const caseTypeText = caseTypeSelect.options[caseTypeSelect.selectedIndex]?.text || '';
         const caseTypeValue = caseTypeSelect.value;
-        
-        console.log('Case type dropdown details:');
-        console.log('- Selected index:', caseTypeSelect.selectedIndex);
-        console.log('- Selected text:', caseTypeText);
-        console.log('- Selected value:', caseTypeValue);
-        console.log('- Dropdown disabled:', caseTypeSelect.disabled);
-        
+
         // Don't hide sections immediately if the dropdown is being cleared - give time for restoration
         if (!caseTypeValue) {
             // Check if this is a temporary clearing (cascading dropdown coordination)
@@ -134,67 +148,51 @@ class DynamicFormSections {
                                    window.cascadingDropdowns?.optionalServicesLoaded === false;
             
             if (isBeingCleared) {
-                console.log('case_type appears to be temporarily cleared (cascading coordination), not hiding sections immediately');
                 // Set a timeout to check again later
                 setTimeout(() => {
                     if (!caseTypeSelect.value && caseTypeSelect.options.length <= 1) {
-                        console.log('case_type still empty after timeout, hiding sections now');
                         this.hideDynamicSections();
                     } else if (caseTypeSelect.value) {
-                        console.log('case_type restored after timeout, re-triggering handleCaseTypeChange');
                         this.handleCaseTypeChange();
                     }
                 }, 1000); // Wait 1 second for cascading system to restore values
                 return;
             } else {
-                console.log('No case type value selected, hiding sections');
                 this.hideDynamicSections();
                 return;
             }
         }
         
-        console.log('Looking for configuration for case type text:', caseTypeText);
         const caseTypeConfig = this.findCaseTypeConfig(caseTypeText);
         
         if (caseTypeConfig) {
-            console.log('Found configuration:', caseTypeConfig);
             this.currentCaseType = caseTypeValue; // Track the current case type
             this.renderCaseTypeForm(caseTypeConfig);
             this.showDynamicSections();
         } else {
-            console.log('No configuration found for case type:', caseTypeText);
-            console.log('Available configurations:', Object.keys(this.config.case_types || {}));
             this.hideDynamicSections();
         }
-        console.log('=== handleCaseTypeChange completed ===');
     }
 
     findCaseTypeConfig(caseTypeText) {
-        console.log('=== findCaseTypeConfig called ===');
-        console.log('Looking for config matching text:', caseTypeText);
         
         const lowerCaseText = caseTypeText.toLowerCase();
-        console.log('Normalized text:', lowerCaseText);
         
         // Also try to match by dropdown value if text matching fails
         const caseTypeSelect = document.getElementById('case_type');
         const caseTypeValue = caseTypeSelect ? caseTypeSelect.value : '';
-        console.log('Case type value:', caseTypeValue);
         
         for (const [configKey, caseConfig] of Object.entries(this.config.case_types)) {
-            console.log(`Checking config: ${configKey}`, caseConfig.keywords);
             const keywords = caseConfig.keywords || [];
             
             // Method 1: Check if any keyword matches the case type text
             const matchingKeyword = keywords.find(keyword => {
                 const lowerKeyword = keyword.toLowerCase();
                 const matches = lowerCaseText.includes(lowerKeyword);
-                console.log(`- Keyword "${lowerKeyword}" matches "${lowerCaseText}": ${matches}`);
                 return matches;
             });
             
             if (matchingKeyword) {
-                console.log(`✅ Found matching config "${configKey}" with keyword "${matchingKeyword}"`);
                 return caseConfig;
             }
             
@@ -204,26 +202,21 @@ class DynamicFormSections {
                 lowerCaseText.includes('change') ||
                 caseTypeValue.toLowerCase().includes('name')
             )) {
-                console.log(`✅ Found matching config "${configKey}" via direct matching`);
                 return caseConfig;
             }
         }
         
         // Method 3: If no match found, try some common patterns
         if (lowerCaseText.includes('name') && lowerCaseText.includes('change')) {
-            console.log('Attempting to use name_change config for name change related text');
             if (this.config.case_types.name_change) {
                 return this.config.case_types.name_change;
             }
         }
         
-        console.log('❌ No matching configuration found');
         return null;
     }
 
     renderCaseTypeForm(caseTypeConfig) {
-        console.log('=== renderCaseTypeForm called ===');
-        console.log('Config received:', caseTypeConfig);
         
         // Preserve current state before re-rendering
         this.preserveCurrentState();
@@ -232,31 +225,37 @@ class DynamicFormSections {
         
         // Render parties section
         if (sections.parties) {
-            console.log('Rendering parties section');
             this.renderSection('parties', sections.parties);
-        } else {
-            console.log('No parties section to render');
-        }
+        } 
         
         // Render services section  
         if (sections.services) {
-            console.log('Rendering services section');
             this.renderSection('services', sections.services);
-        } else {
-            console.log('No services section to render');
-        }
+        } 
         
         // Restore preserved state after rendering
         this.restorePreservedState();
         
-        console.log('=== renderCaseTypeForm completed ===');
+        // Check if there's restoration data from form validation that needs to be applied
+        if (this.restorationData) {
+            setTimeout(() => {
+                this.populateRenderedFields(this.restorationData);
+                this.restorationData = null; // Clear after use
+            }, 50);
+        }
+        
+        // Notify form validation system that dynamic fields have been rendered
+        setTimeout(() => {
+            if (window.formValidation && window.formValidation.restorationData) {
+                window.formValidation.populateDynamicFields(window.formValidation.restorationData);
+            }
+        }, 100);
+        
     }
 
     renderSection(sectionType, sectionConfig) {
-        console.log(`=== renderSection called: ${sectionType} ===`);
         // Ensure containers exist inside the dynamicSections wrapper
         if (!this.dynamicSections) {
-            console.log('dynamicSections wrapper not found, cannot render sections');
             return;
         }
 
@@ -273,7 +272,6 @@ class DynamicFormSections {
                 this.dynamicSections.appendChild(header);
                 this.dynamicSections.appendChild(containerDiv);
                 this.partiesContainer = containerDiv;
-                console.log('Created partiesContainer and header dynamically');
             }
         } else if (sectionType === 'services') {
             if (!this.servicesContainer) {
@@ -281,7 +279,6 @@ class DynamicFormSections {
                 containerDiv.id = 'servicesContainer';
                 this.dynamicSections.appendChild(containerDiv);
                 this.servicesContainer = containerDiv;
-                console.log('Created servicesContainer dynamically');
             }
         }
 
@@ -290,24 +287,21 @@ class DynamicFormSections {
         let html = '';
         
         if (sectionType === 'parties') {
-            console.log('Rendering parties section with config:', sectionConfig);
             html = this.renderPartiesSection(sectionConfig);
         } else if (sectionType === 'services') {
-            console.log('Rendering services section with config:', sectionConfig);
             html = this.renderServicesSection(sectionConfig);
         }
         
-        console.log(`Generated HTML length: ${html.length}`);
-        console.log(`HTML preview: ${html.substring(0, 100)}...`);
         
         container.innerHTML = html;
         
-        console.log(`Updated ${sectionType} container innerHTML`);
+        
+        // Load party type dropdowns after rendering
+        this.loadPartyTypeDropdowns();
         
         // Update form validation after rendering
         this.updateFormValidation();
         
-        console.log(`=== renderSection completed: ${sectionType} ===`);
     }
 
     renderPartiesSection(sectionConfig) {
@@ -316,15 +310,31 @@ class DynamicFormSections {
         
         fields.forEach(partyGroup => {
             if (partyGroup.section_title) {
-                const requiredIndicator = partyGroup.required ? '<span class="required">*</span>' : '';
+                // Check if this section should be shown based on current court selection
+                const shouldShow = this.shouldShowSection(partyGroup);
+                
+                // Skip rendering this section entirely if it shouldn't be shown
+                if (!shouldShow) {
+                    return;
+                }
+                
+                // Check if this section should be required based on current court selection
+                const isRequired = this.evaluateConditionalRequirement(partyGroup);
+                const requiredIndicator = isRequired ? '<span class="required">*</span>' : '';
+                
+                // Add optional indicator if not required
+                const optionalIndicator = !isRequired ? '<span class="optional">(Optional)</span>' : '';
+                
                 html += `<div class="party-section">
-                    <div class="party-title">${partyGroup.section_title} ${requiredIndicator}</div>`;
+                    <div class="party-title">${partyGroup.section_title} ${requiredIndicator} ${optionalIndicator}</div>`;
                 
                 if (partyGroup.fields && partyGroup.fields.length > 0) {
                     html += '<div class="row mb-3">';
                     
                     partyGroup.fields.forEach(field => {
-                        html += this.renderField(field);
+                        // Update field requirement based on section requirement
+                        const updatedField = { ...field, required: field.required && isRequired };
+                        html += this.renderField(updatedField);
                     });
                     
                     html += '</div>';
@@ -335,6 +345,114 @@ class DynamicFormSections {
         });
         
         return html;
+    }
+    
+    shouldShowSection(partyGroup) {
+        // If no conditional requirements defined, show by default
+        if (!partyGroup.conditional_requirements) {
+            return true;
+        }
+        
+        // Get current court selection
+        const courtDropdown = document.getElementById('court');
+        const selectedCourt = courtDropdown ? courtDropdown.value : null;
+        
+        if (!selectedCourt) {
+            // No court selected yet, show by default
+            return true;
+        }
+        
+        const conditionalReqs = partyGroup.conditional_requirements;
+        
+        // Check if current court is in hidden_for_courts list
+        if (conditionalReqs.hidden_for_courts && conditionalReqs.hidden_for_courts.includes(selectedCourt)) {
+            return false;
+        }
+        
+        // Check if current court is in required_for_courts list (should show)
+        if (conditionalReqs.required_for_courts && conditionalReqs.required_for_courts.includes(selectedCourt)) {
+            return true;
+        }
+        
+        // Check if current court is in optional_for_courts list (should show but optional)
+        if (conditionalReqs.optional_for_courts && conditionalReqs.optional_for_courts.includes(selectedCourt)) {
+            return true;
+        }
+        
+        // Check county-based requirements (extract county from court code)
+        if (conditionalReqs.required_for_counties || conditionalReqs.optional_for_counties) {
+            const county = this.extractCountyFromCourt(selectedCourt);
+            
+            if (conditionalReqs.required_for_counties && conditionalReqs.required_for_counties.includes(county)) {
+                return true;
+            }
+            
+            if (conditionalReqs.optional_for_counties && conditionalReqs.optional_for_counties.includes(county)) {
+                return true;
+            }
+        }
+        
+        // For "Name Sought" section, hide by default for all other courts
+        if (partyGroup.section_title && partyGroup.section_title.toLowerCase().includes('name sought')) {
+            return false;
+        }
+        
+        // Default to showing the section
+        return true;
+    }
+    
+    evaluateConditionalRequirement(partyGroup) {
+        // If no conditional requirements defined, use default required value
+        if (!partyGroup.conditional_requirements) {
+            return partyGroup.required || false;
+        }
+        
+        // Get current court selection
+        const courtDropdown = document.getElementById('court');
+        const selectedCourt = courtDropdown ? courtDropdown.value : null;
+        
+        if (!selectedCourt) {
+            // No court selected yet, default to base required value
+            return partyGroup.required || false;
+        }
+        
+        const conditionalReqs = partyGroup.conditional_requirements;
+        
+        // Check if current court is in required_for_courts list
+        if (conditionalReqs.required_for_courts && conditionalReqs.required_for_courts.includes(selectedCourt)) {
+            return true;
+        }
+        
+        // Check if current court is in optional_for_courts list
+        if (conditionalReqs.optional_for_courts && conditionalReqs.optional_for_courts.includes(selectedCourt)) {
+            return false;
+        }
+        
+        // Check county-based requirements (extract county from court code)
+        if (conditionalReqs.required_for_counties || conditionalReqs.optional_for_counties) {
+            const county = this.extractCountyFromCourt(selectedCourt);
+            
+            if (conditionalReqs.required_for_counties && conditionalReqs.required_for_counties.includes(county)) {
+                return true;
+            }
+            
+            if (conditionalReqs.optional_for_counties && conditionalReqs.optional_for_counties.includes(county)) {
+                return false;
+            }
+        }
+        
+        // Default to base required value if no specific rules match
+        return partyGroup.required || false;
+    }
+    
+    extractCountyFromCourt(courtCode) {
+        // Handle court codes like "cook:cd1" -> "cook"
+        if (courtCode.includes(':')) {
+            return courtCode.split(':')[0];
+        }
+        
+        // Handle direct county codes like "dupage", "kane"
+        return courtCode.toLowerCase();
     }
 
     renderServicesSection(sectionConfig) {
@@ -392,6 +510,21 @@ class DynamicFormSections {
                 inputHtml = `<input type="tel" class="form-control" id="${fieldId}" name="${fieldName}" ${requiredAttr}>`;
                 break;
                 
+            case 'party_type_dropdown':
+                // Create a dropdown for party types that will be populated via API
+                inputHtml = `
+                    <select class="form-select party-type-dropdown" 
+                            id="${fieldId}" 
+                            name="${fieldName}" 
+                            data-api-endpoint="${field.api_endpoint || '/api/dropdowns/party-types/'}"
+                            ${requiredAttr}>
+                        <option value="">Select Party Type</option>
+                    </select>
+                    <div class="loading-spinner" id="loading-${fieldId}" style="display: none;">
+                        <i class="fas fa-spinner fa-spin"></i> Loading party types...
+                    </div>`;
+                break;
+                
             default:
                 inputHtml = `<input type="text" class="form-control" id="${fieldId}" name="${fieldName}" ${requiredAttr}>`;
         }
@@ -403,39 +536,162 @@ class DynamicFormSections {
             </div>`;
     }
 
+    async loadPartyTypeDropdowns() {
+        
+        // Find all party type dropdowns in the rendered sections
+        const partyTypeDropdowns = document.querySelectorAll('.party-type-dropdown');
+        
+        if (partyTypeDropdowns.length === 0) {
+            return;
+        }
+        
+        partyTypeDropdowns.forEach(async (dropdown) => {
+            const fieldId = dropdown.id;
+            const apiEndpoint = dropdown.dataset.apiEndpoint || '/api/dropdowns/party-types/';
+            let defaultValue = dropdown.dataset.defaultValue || '';
+            
+            // Check for saved case data first (highest priority)
+            if (window.formValidation && window.formValidation.restorationData && window.formValidation.restorationData[fieldId]) {
+                defaultValue = window.formValidation.restorationData[fieldId];
+            }
+            // Check for restoration data from preserved form state
+            else if (this.restorationData && this.restorationData[fieldId]) {
+                defaultValue = this.restorationData[fieldId];
+            }
+            // Check for preserved form data
+            else if (this.preservedFormData && this.preservedFormData[fieldId]) {
+                defaultValue = this.preservedFormData[fieldId];
+            }
+            
+            
+            // Show loading spinner
+            const loadingSpinner = document.getElementById(`loading-${fieldId}`);
+            if (loadingSpinner) {
+                loadingSpinner.style.display = 'block';
+            }
+            
+            try {
+                // Get current form values for court and case_type
+                const courtSelect = document.getElementById('court');
+                const caseTypeSelect = document.getElementById('case_type');
+                
+                const court = courtSelect ? courtSelect.value : '';
+                const caseType = caseTypeSelect ? caseTypeSelect.value : '';
+                
+                
+                if (!court || !caseType) {
+                    if (loadingSpinner) loadingSpinner.style.display = 'none';
+                    return;
+                }
+                
+                // Build API URL with parameters
+                const url = new URL(apiEndpoint, window.location.origin);
+                url.searchParams.append('court', court);
+                url.searchParams.append('case_type', caseType);
+                
+                
+                const response = await fetch(url);
+                const result = await response.json();
+                
+                
+                if (result.success && result.data && result.data.party_types) {
+                    const partyTypes = result.data.party_types;
+                    
+                    // Clear existing options except the first one
+                    dropdown.innerHTML = '<option value="">Select Party Type</option>';
+                    
+                    // If no saved data, try to find intelligent default from API response
+                    if (!defaultValue) {
+                        // Find the parent section title
+                        const partySection = dropdown.closest('.party-section');
+                        if (partySection) {
+                            const titleElement = partySection.querySelector('.party-title');
+                            if (titleElement) {
+                                const sectionTitle = titleElement.textContent.toLowerCase().replace(/\s*\*\s*$/, '').replace(/\s*\(optional\)\s*$/i, '').trim();
+                                
+                                // Find party type that matches the section title
+                                const matchingPartyType = partyTypes.find(partyType => {
+                                    const partyName = partyType.name.toLowerCase();
+                                    return partyName.includes(sectionTitle) || 
+                                           sectionTitle.includes(partyName.split(' ')[0]) ||
+                                           (sectionTitle === 'name sought' && partyName.includes('name')) ||
+                                           (sectionTitle === 'petitioner' && partyName.includes('petitioner')) ||
+                                           (sectionTitle === 'defendant' && partyName.includes('defendant')) ||
+                                           (sectionTitle === 'plaintiff' && partyName.includes('plaintiff')) ||
+                                           (sectionTitle === 'respondent' && partyName.includes('respondent'));
+                                });
+                                
+                                if (matchingPartyType) {
+                                    defaultValue = matchingPartyType.code;
+                                } 
+                            }
+                        }
+                    }
+                    
+                    
+                    // Add all party type options
+                    let addedCount = 0;
+                    partyTypes.forEach(partyType => {
+                        const option = document.createElement('option');
+                        option.value = partyType.code;
+                        option.textContent = partyType.name;
+                        // Set as selected if this is the default value
+                        if (partyType.code === defaultValue) {
+                            option.selected = true;
+                        }
+                        
+                        dropdown.appendChild(option);
+                        addedCount++;
+                    });
+                    
+                    
+                } else {
+                    console.error('Failed to load party types:', result.error || 'Unknown error', result);
+                    
+                    // Add error option
+                    dropdown.innerHTML = '<option value="">Error loading party types</option>';
+                }
+                
+            } catch (error) {
+                console.error(`Error loading party types for ${fieldId}:`, error);
+                
+                // Add error option
+                dropdown.innerHTML = '<option value="">Error loading party types</option>';
+                
+            } finally {
+                // Hide loading spinner
+                if (loadingSpinner) {
+                    loadingSpinner.style.display = 'none';
+                }
+            }
+        });
+        
+    }
+
     showDynamicSections() {
-        console.log('=== showDynamicSections called ===');
         if (this.dynamicSections) {
-            console.log('Showing dynamic sections container');
             this.dynamicSections.style.display = 'block';
             
             // Also verify content was rendered
             const partiesContent = this.partiesContainer ? this.partiesContainer.innerHTML.trim() : '';
             const servicesContent = this.servicesContainer ? this.servicesContainer.innerHTML.trim() : '';
             
-            console.log('Parties content length:', partiesContent.length);
-            console.log('Services content length:', servicesContent.length);
             
             if (partiesContent.length === 0 && servicesContent.length === 0) {
                 console.warn('Dynamic sections shown but no content rendered!');
             }
         } else {
-            console.log('Dynamic sections container not found');
         }
     }
 
     hideDynamicSections() {
-        console.log('=== hideDynamicSections called ===');
         if (this.dynamicSections) {
-            console.log('Hiding dynamic sections container');
             this.dynamicSections.style.display = 'none';
         } else {
-            console.log('Dynamic sections container not found');
         }
         
         // Add a timeout to prevent immediate clearing race conditions
         setTimeout(() => {
-            console.log('Clearing containers after timeout');
             this.clearContainers();
         }, 50);
     }
@@ -445,7 +701,6 @@ class DynamicFormSections {
         if (this.currentCaseType) {
             const currentConfig = this.findCaseTypeConfig(this.currentCaseType);
             if (currentConfig) {
-                console.log('Preserving current dynamic form state for case type:', this.currentCaseType);
                 // Store current form values
                 const formData = {};
                 const dynamicFields = this.getAllDynamicFieldNames();
@@ -461,7 +716,6 @@ class DynamicFormSections {
                 });
                 this.preservedFormData = formData;
                 this.preservedCaseType = this.currentCaseType;
-                console.log('Preserved form data:', formData);
             }
         }
     }
@@ -469,7 +723,6 @@ class DynamicFormSections {
     // Method to restore preserved state
     restorePreservedState() {
         if (this.preservedFormData && this.preservedCaseType === this.currentCaseType) {
-            console.log('Restoring preserved form state:', this.preservedFormData);
             setTimeout(() => {
                 Object.keys(this.preservedFormData).forEach(fieldName => {
                     const field = document.querySelector(`[name="${fieldName}"]`);
@@ -479,7 +732,6 @@ class DynamicFormSections {
                         } else {
                             field.value = this.preservedFormData[fieldName];
                         }
-                        console.log(`Restored field ${fieldName}:`, this.preservedFormData[fieldName]);
                     }
                 });
                 // Clear preserved data after restoration
@@ -490,13 +742,10 @@ class DynamicFormSections {
     }
 
     clearContainers() {
-        console.log('=== clearContainers called ===');
         if (this.partiesContainer) {
-            console.log('Clearing parties container');
             this.partiesContainer.innerHTML = '';
         }
         if (this.servicesContainer) {
-            console.log('Clearing services container');
             this.servicesContainer.innerHTML = '';
         }
     }
@@ -508,11 +757,9 @@ class DynamicFormSections {
             const form = document.querySelector('#expertForm');
             if (form) {
                 window.formValidation.requiredFields = form.querySelectorAll('[required]');
-                console.log('Updated required fields count:', window.formValidation.requiredFields.length);
                 
                 // Populate dynamic fields if restoration data is available
                 if (window.formValidation.restorationData) {
-                    console.log('Triggering dynamic field population after rendering');
                     setTimeout(() => {
                         this.populateRenderedFields(window.formValidation.restorationData);
                     }, 100);
@@ -522,8 +769,11 @@ class DynamicFormSections {
     }
 
     populateRenderedFields(data) {
+        
         // Get all dynamic fields that were just rendered
         const dynamicFields = this.getAllDynamicFieldNames();
+        
+        let fieldsPopulated = 0;
         
         dynamicFields.forEach(key => {
             if (data[key]) {
@@ -533,13 +783,38 @@ class DynamicFormSections {
                         field.checked = Array.isArray(data[key]) ? 
                             data[key].includes(field.value) : 
                             data[key] === field.value;
+                    } else if (field.classList.contains('party-type-dropdown')) {
+                        // For party type dropdowns, we may need to wait for options to load
+                        const setDropdownValue = () => {
+                            // Check if the option exists
+                            const option = field.querySelector(`option[value="${data[key]}"]`);
+                            if (option) {
+                                field.value = data[key];
+                                
+                                // Add visual validation feedback after successful population
+                                field.classList.remove('is-invalid');
+                                field.classList.add('is-valid');
+                            } else if (field.options.length <= 1) {
+                                // Options haven't loaded yet, wait a bit longer
+                                setTimeout(setDropdownValue, 500);
+                            } 
+                        };
+                        setDropdownValue();
                     } else {
                         field.value = data[key];
                     }
-                    console.log(`Populated dynamic field ${key}: ${data[key]}`);
-                }
+                    fieldsPopulated++;
+                    
+                    // Add visual validation feedback (but not for dropdowns until they're populated)
+                    if (field.value && field.value.trim() && !field.classList.contains('party-type-dropdown')) {
+                        field.classList.remove('is-invalid');
+                        field.classList.add('is-valid');
+                    }
+                } 
             }
         });
+        
+        return fieldsPopulated;
     }
 
     getAllDynamicFieldNames() {
@@ -558,17 +833,29 @@ class DynamicFormSections {
         
         return [...new Set(allFields)]; // Remove duplicates
     }
+
+    // Method to be called from form validation when restoration data is available
+    restoreDynamicFieldData(data) {
+        
+        if (!data || Object.keys(data).length === 0) {
+            return;
+        }
+
+        // Store the data for later restoration
+        this.restorationData = data;
+        
+        // If dynamic sections are already visible, populate immediately
+        if (this.dynamicSections && this.dynamicSections.style.display === 'block') {
+            this.populateRenderedFields(data);
+        }
+    }
 }
 
 // Initialize when DOM is loaded
 function initializeDynamicFormSections() {
     if (!window.dynamicFormSections) {
-        console.log('Initializing DynamicFormSections');
         window.dynamicFormSections = new DynamicFormSections();
-        console.log('DynamicFormSections initialized and available globally');
-    } else {
-        console.log('DynamicFormSections already initialized');
-    }
+    } 
 }
 
 // Try multiple initialization approaches
@@ -582,45 +869,6 @@ if (document.readyState === 'loading') {
 
 // Also make the class available globally for manual instantiation
 window.DynamicFormSections = DynamicFormSections;
-
-// Add a global test function for debugging
-window.testDynamicFormSections = function() {
-    console.log('=== Testing Dynamic Form Sections ===');
-    console.log('window.dynamicFormSections exists:', !!window.dynamicFormSections);
-    
-    if (window.dynamicFormSections) {
-        console.log('Config loaded:', !!window.dynamicFormSections.config);
-        console.log('Containers found:', {
-            parties: !!window.dynamicFormSections.partiesContainer,
-            services: !!window.dynamicFormSections.servicesContainer,
-            dynamic: !!window.dynamicFormSections.dynamicSections
-        });
-        
-        // Test with mock case type selection
-        const caseTypeSelect = document.getElementById('case_type');
-        if (caseTypeSelect) {
-            console.log('case_type dropdown found');
-            console.log('Current value:', caseTypeSelect.value);
-            console.log('Current text:', caseTypeSelect.options[caseTypeSelect.selectedIndex]?.text);
-            
-            // Manually trigger the handler
-            console.log('Manually triggering handleCaseTypeChange...');
-            window.dynamicFormSections.handleCaseTypeChange();
-        } else {
-            console.log('case_type dropdown not found');
-        }
-    } else {
-        console.log('dynamicFormSections not initialized');
-        console.log('Attempting manual initialization...');
-        try {
-            window.dynamicFormSections = new DynamicFormSections();
-            console.log('Manual initialization successful');
-        } catch (error) {
-            console.error('Manual initialization failed:', error);
-        }
-    }
-    console.log('=== Test completed ===');
-};
 
 // Export for use in other modules
 if (typeof module !== 'undefined' && module.exports) {

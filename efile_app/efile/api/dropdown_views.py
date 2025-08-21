@@ -527,6 +527,73 @@ class DropdownAPIViews(APIResponseMixin):
                 
         except Exception as e:
             return DropdownAPIViews.error_response(f"Error: {str(e)}")
+    
+    @staticmethod
+    @require_http_methods(["GET"])
+    def get_party_types(request):
+        """Get available party types from Suffolk LIT Lab API based on case type"""
+        try:
+            auth_tokens = get_auth_tokens(request)
+            
+            # Get required parameters
+            court_code = request.GET.get('court')
+            case_type_code = request.GET.get('case_type') 
+            jurisdiction = request.GET.get('jurisdiction', 'illinois')
+            
+            if not court_code or not case_type_code:
+                return DropdownAPIViews.error_response("Missing required court or case_type parameters")
+            
+            # Make API call to external party types endpoint
+            api_url = f"https://efile-test.suffolklitlab.org/jurisdictions/{jurisdiction}/codes/courts/{court_code}/case_types/{case_type_code}/party_types"
+            
+            # Make the API request with auth tokens if available
+            headers = {}
+            if auth_tokens and 'token' in auth_tokens:
+                headers['Authorization'] = f"Bearer {auth_tokens['token']}"
+            
+            response = requests.get(api_url, headers=headers, timeout=10)
+            
+            if response.status_code == 200:
+                # Parse the API response - expecting list of party type objects
+                api_data = response.json()
+                
+                # Transform API data to our dropdown format
+                party_types = []
+                if isinstance(api_data, list):
+                    for party_type in api_data:
+                        if (isinstance(party_type, dict) and 
+                            'code' in party_type and 
+                            'name' in party_type):
+                            # Include all party types for now (no filtering)
+                            
+                            party_types.append({
+                                'value': party_type['code'],
+                                'text': party_type['name'],
+                                'code': party_type['code'],
+                                'name': party_type['name'],
+                                'isRequired': party_type.get('isrequired', False),
+                                'isAvailableForNewParties': party_type.get('isAvailableForNewParties', True)
+                            })
+                    
+                    # Sort alphabetically by name
+                    party_types.sort(key=lambda x: x['name'])
+                
+                return DropdownAPIViews.success_response({
+                    'party_types': party_types,
+                    'count': len(party_types),
+                    'source': 'suffolk_api',
+                    'court': court_code,
+                    'case_type': case_type_code
+                })
+            else:
+                # Log the error but don't expose sensitive details
+                error_msg = f"External API returned status {response.status_code}"
+                return DropdownAPIViews.error_response(error_msg)
+                
+        except requests.RequestException as e:
+            return DropdownAPIViews.error_response(f"Network error: Failed to fetch party types")
+        except Exception as e:
+            return DropdownAPIViews.error_response(f"Unexpected error: {str(e)}")
 
 
 # Individual view functions for URL mapping
@@ -536,3 +603,4 @@ get_filing_types = DropdownAPIViews.get_filing_types
 get_courts = DropdownAPIViews.get_courts
 get_document_types = DropdownAPIViews.get_document_types
 get_optional_services = DropdownAPIViews.get_optional_services
+get_party_types = DropdownAPIViews.get_party_types

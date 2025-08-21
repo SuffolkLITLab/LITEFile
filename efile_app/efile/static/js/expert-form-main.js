@@ -28,7 +28,6 @@ class ExpertForm {
             // Note: Auto-save removed - drafts are now only saved when user clicks "Save Draft" button
             
             this.initialized = true;
-            console.log('ExpertForm initialized successfully');
             
         } catch (error) {
             console.error('Error initializing ExpertForm:', error);

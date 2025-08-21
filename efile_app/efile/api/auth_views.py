@@ -44,7 +44,11 @@ class AuthAPIViews(APIResponseMixin):
         
         auth_tokens = request.session.get('auth_tokens', {})
         print(f"Auth tokens in session: {auth_tokens}")
-        tyler_token = auth_tokens.get(f'TYLER-TOKEN-{state.upper()}')
+        
+        # Try different Tyler token key formats
+        tyler_token = (auth_tokens.get(f'TYLER-TOKEN-{state.upper()}') or 
+                      auth_tokens.get(f'tyler_token_{state}') or
+                      auth_tokens.get(f'tyler-token-{state}'))
         
         if tyler_token:
             return tyler_token
@@ -127,25 +131,40 @@ class AuthAPIViews(APIResponseMixin):
                     external_data = api_response.json()
                     print(f"External data retrieved: {external_data}")
                     
+                    # Extract address information from external API response
+                    address_info = external_data.get('address', {})
+                    address_line1 = address_info.get('addressLine1', '')
+                    address_line2 = address_info.get('addressLine2', '')
+                    city = address_info.get('city', '')
+                    state = address_info.get('state', 'IL')
+                    zip_code = address_info.get('zipCode', '60601')
+                    phone_number = external_data.get('phoneNumber', '')
+                    
                     # Build user profile data combining local and external data
                     user_data = {
                         'external_firm_data': external_data,
                         # Local user data (if authenticated)
                         'id': request.user.id if request.user.is_authenticated else None,
                         'username': request.user.username if request.user.is_authenticated else 'guest',
-                        'email': request.user.email if request.user.is_authenticated else None,
+                        'email': request.user.email if request.user.is_authenticated else request.session.get('user_email'),
                         'first_name': request.user.first_name if request.user.is_authenticated else 'Demo',
                         'last_name': request.user.last_name if request.user.is_authenticated else 'User',
                         'date_joined': request.user.date_joined.isoformat() if request.user.is_authenticated else None,
                         'last_login': request.user.last_login.isoformat() if (request.user.is_authenticated and request.user.last_login) else None,
+                        # Address information from external API
+                        'address': address_line1,
+                        'address_line2': address_line2,
+                        'city': city,
+                        'state': state,
+                        'zip': zip_code,
+                        'phone': phone_number,
                         # Default location information
                         'preferred_county': 'cook',
-                        'zip_code': '60601',  # Downtown Chicago zip for demo
-                        'state': 'IL',
+                        'zip_code': zip_code,  # Use actual zip from API
                         'location': {
                             'county': 'Cook County',
                             'state': 'Illinois',
-                            'zip_code': '60601',
+                            'zip_code': zip_code,
                             'available_counties': ['cook', 'dupage', 'kane', 'lake', 'mchenry', 'will']
                         }
                     }
@@ -158,12 +177,18 @@ class AuthAPIViews(APIResponseMixin):
                         'note': 'Suffolk eFile API requires authentication. Using demo data.',
                         'id': request.user.id if request.user.is_authenticated else None,
                         'username': request.user.username if request.user.is_authenticated else 'demo_user',
-                        'email': request.user.email if request.user.is_authenticated else 'demo@example.com',
+                        'email': request.user.email if request.user.is_authenticated else request.session.get('user_email', 'demo@example.com'),
                         'first_name': request.user.first_name if request.user.is_authenticated else 'John',
                         'last_name': request.user.last_name if request.user.is_authenticated else 'Doe',
+                        # Default address information for demo
+                        'address': '123 Main St',
+                        'address_line2': '',
+                        'city': 'Chicago',
+                        'state': 'IL',
+                        'zip': '60601',
+                        'phone': '(312) 555-1234',
                         'preferred_county': 'cook',
                         'zip_code': '60601',  # Downtown Chicago zip for demo
-                        'state': 'IL',
                         'location': {
                             'county': 'Cook County',
                             'state': 'Illinois',
@@ -194,12 +219,18 @@ class AuthAPIViews(APIResponseMixin):
                         'response_text': api_response.text[:200] if api_response.text else 'No response body',
                         'id': request.user.id if request.user.is_authenticated else None,
                         'username': request.user.username if request.user.is_authenticated else 'guest',
-                        'email': request.user.email if request.user.is_authenticated else None,
+                        'email': request.user.email if request.user.is_authenticated else request.session.get('user_email'),
                         'first_name': request.user.first_name if request.user.is_authenticated else 'Demo',
                         'last_name': request.user.last_name if request.user.is_authenticated else 'User',
+                        # Default address information
+                        'address': '123 Main St',
+                        'address_line2': '',
+                        'city': 'Chicago',
+                        'state': 'IL',
+                        'zip': '60601',
+                        'phone': '(312) 555-1234',
                         'preferred_county': 'cook',
                         'zip_code': '60601',  # Downtown Chicago zip for demo
-                        'state': 'IL',
                         'location': {
                             'county': 'Cook County',
                             'state': 'Illinois',
@@ -217,12 +248,18 @@ class AuthAPIViews(APIResponseMixin):
                     'external_api_error': f"Could not connect to Suffolk API: {str(e)}",
                     'id': request.user.id if request.user.is_authenticated else None,
                     'username': request.user.username if request.user.is_authenticated else 'guest',
-                    'email': request.user.email if request.user.is_authenticated else None,
+                    'email': request.user.email if request.user.is_authenticated else request.session.get('user_email'),
                     'first_name': request.user.first_name if request.user.is_authenticated else 'Demo',
                     'last_name': request.user.last_name if request.user.is_authenticated else 'User',
+                    # Default address information
+                    'address': '123 Main St',
+                    'address_line2': '',
+                    'city': 'Chicago',
+                    'state': 'IL',
+                    'zip': '60601',
+                    'phone': '(312) 555-1234',
                     'preferred_county': 'cook',
                     'zip_code': '60601',  # Downtown Chicago zip for demo
-                    'state': 'IL',
                     'location': {
                         'county': 'Cook County',
                         'state': 'Illinois',
@@ -322,6 +359,73 @@ class AuthAPIViews(APIResponseMixin):
         except Exception as e:
             return AuthAPIViews.error_response(f"Error: {str(e)}")
 
+    @staticmethod
+    @require_http_methods(["GET"])
+    def tyler_token(request):
+        """Get Tyler token and API key for external form submissions"""
+        try:
+            # Get state and Tyler token dynamically
+            state = AuthAPIViews.get_state_from_request(request)
+            tyler_token = AuthAPIViews.get_tyler_token(request, state)
+            api_key = getattr(settings, "SUFFOLK_EFILE_API_KEY", None)
+
+            return AuthAPIViews.success_response({
+                    'tyler_token': tyler_token,
+                    'api_key': api_key,
+                    'state': state
+                })
+        except Exception as e:
+            return AuthAPIViews.error_response(f"Error: {str(e)}")
+
+    @staticmethod
+    @require_http_methods(["GET"])
+    def payment_accounts(request):
+        """Get payment accounts from Suffolk eFile API with proper authentication"""
+        try:
+            # Get state and Tyler token dynamically
+            state = AuthAPIViews.get_state_from_request(request)
+            tyler_token = AuthAPIViews.get_tyler_token(request, state)
+            api_key = getattr(settings, "SUFFOLK_EFILE_API_KEY", None)
+            
+            headers = {
+                'Content-Type': 'application/json',
+                'User-Agent': f'{state.title()}-eFile-Client/1.0',
+                'X-API-Key': api_key if api_key else '',
+            }
+            
+            # Add Tyler token if available
+            if tyler_token:
+                headers[f'tyler-token-{state}'] = tyler_token
+            else:
+                # Log that no token was found for debugging
+                print(f"Warning: No Tyler token found for state '{state}' in Suffolk eFile payment accounts request")
+            
+            api_response = requests.get(
+                f'https://efile-test.suffolklitlab.org/jurisdictions/{state}/payments/payment-accounts/',
+                headers=headers,
+                timeout=10
+            )
+            
+            if api_response.status_code == 200:
+                payment_accounts = api_response.json()
+                return AuthAPIViews.success_response(payment_accounts)
+            elif api_response.status_code == 401:
+                # Return empty list for unauthorized - frontend will show "add new payment method"
+                return AuthAPIViews.success_response([])
+            else:
+                # Return error with status info
+                return AuthAPIViews.error_response(
+                    f"Payment accounts API returned status {api_response.status_code}: {api_response.text[:200]}", 
+                    api_response.status_code
+                )
+                
+        except requests.exceptions.Timeout:
+            return AuthAPIViews.error_response("Payment accounts API request timed out", 408)
+        except requests.exceptions.RequestException as e:
+            return AuthAPIViews.error_response(f"Could not connect to payment accounts API: {str(e)}", 503)
+        except Exception as e:
+            return AuthAPIViews.error_response(f"Error: {str(e)}")
+
 
 # Individual view functions for URL mapping
 user_login = AuthAPIViews.user_login
@@ -329,3 +433,5 @@ user_logout = AuthAPIViews.user_logout
 user_profile = AuthAPIViews.user_profile
 external_auth = AuthAPIViews.external_auth
 external_profile = AuthAPIViews.external_profile
+payment_accounts = AuthAPIViews.payment_accounts
+tyler_token = AuthAPIViews.tyler_token

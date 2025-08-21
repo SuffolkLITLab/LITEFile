@@ -7,6 +7,30 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
+class GetCaseDataView(View):
+    """API endpoint to retrieve case data from session."""
+    
+    def get(self, request):
+        try:
+            # Get case data from session
+            case_data = request.session.get('case_data', {})
+            
+            print(f"Retrieved case data from session: {case_data}")
+            
+            return JsonResponse({
+                'success': True,
+                'data': case_data
+            })
+            
+        except Exception as e:
+            print(f"Error retrieving case data: {e}")
+            return JsonResponse({
+                'success': False,
+                'error': 'Server error occurred'
+            }, status=500)
+
+
+@method_decorator(ensure_csrf_cookie, name='dispatch')
 class SaveCaseDataView(View):
     """API endpoint to save case data to session."""
     
@@ -24,8 +48,10 @@ class SaveCaseDataView(View):
                 'petitioner_first_name': data.get('petitioner_first_name', ''),
                 'petitioner_last_name': data.get('petitioner_last_name', ''),
                 'petitioner_address': data.get('petitioner_address', ''),
+                'petitioner_party_type': data.get('petitioner_party_type', ''),  # Add party type
                 'new_first_name': data.get('new_first_name', ''),
                 'new_last_name': data.get('new_last_name', ''),
+                'new_name_party_type': data.get('new_name_party_type', ''),  # Add party type
                 'optional_services': data.get('optional_services', []),
             }
             
@@ -75,4 +101,5 @@ class SaveCaseDataView(View):
 
 
 # Function-based view wrapper for easy URL mapping
+get_case_data = GetCaseDataView.as_view()
 save_case_data = SaveCaseDataView.as_view()

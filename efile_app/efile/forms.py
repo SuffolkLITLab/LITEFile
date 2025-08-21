@@ -96,19 +96,6 @@ class EFileRegistrationForm(forms.Form):
     zip_code = forms.CharField(
         max_length=10, widget=forms.TextInput(attrs={"class": "form-control", "id": "zip", "required": "required"})
     )
-    county = forms.CharField(
-        max_length=100,
-        widget=forms.TextInput(
-            attrs={
-                "class": "form-control",
-                "id": "county",
-                "autocomplete": "off",
-                "placeholder": "Type or select county",
-                "required": "required",
-            }
-        ),
-        label="County",
-    )
     # Contact Information
     email = forms.EmailField(
         widget=forms.EmailInput(attrs={
@@ -132,14 +119,6 @@ class EFileRegistrationForm(forms.Form):
     )
     confirm_password = forms.CharField(
         widget=forms.PasswordInput(attrs={"class": "form-control", "id": "confirmPassword", "required": True})
-    )
-    COMM_CHOICES = [
-        ("yes", "Yes, you may leave sensitive information in voicemail or text message."),
-        ("no", "No, please do not leave sensitive information in voicemail or text messages."),
-    ]
-
-    commPreference = forms.ChoiceField(
-        choices=COMM_CHOICES, widget=forms.RadioSelect, label="Communication Preference", required=True
     )
 
     def clean_email(self):

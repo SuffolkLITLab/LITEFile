@@ -5,9 +5,16 @@ from ..utils.case_data_utils import get_case_data, get_petitioner_info, get_name
 
 def case_review(request):
     """Review view for case details before final submission."""
+   
     
     # Get case data from session
     case_data = get_case_data(request)
+    print(case_data)
+    
+    # Add user email from session if available and not already in case_data
+    user_email = request.session.get('user_email')
+    if user_email and not case_data.get('email'):
+        case_data['email'] = user_email
     
     # If no case data exists, redirect back to expert form
     if not case_data:

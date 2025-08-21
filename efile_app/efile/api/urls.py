@@ -8,14 +8,17 @@ from .dropdown_views import (
     get_filing_types,
     get_courts,
     get_document_types,
-    get_optional_services
+    get_optional_services,
+    get_party_types
 )
 from .auth_views import (
     user_login,
     user_logout,
     user_profile,
     external_auth,
-    external_profile
+    external_profile,
+    payment_accounts,
+    tyler_token
 )
 from .filing_views import (
     get_filings,
@@ -39,6 +42,7 @@ urlpatterns = [
     path('dropdowns/courts/', get_courts, name='courts'),
     path('dropdowns/document-types/', get_document_types, name='document_types'),
     path('dropdowns/optional-services/', get_optional_services, name='optional_services'),
+    path('dropdowns/party-types/', get_party_types, name='party_types'),
     
     # Form configuration endpoints
     path('form-config/', get_form_config, name='form_config'),
@@ -50,6 +54,10 @@ urlpatterns = [
     path('auth/profile/', user_profile, name='profile'),
     path('auth/external/', external_auth, name='external_auth'),
     path('auth/external-profile/', external_profile, name='external_profile'),
+    path('auth/tyler-token/', tyler_token, name='tyler_token'),
+    
+    # Payment API endpoints
+    path('payment-accounts/', payment_accounts, name='payment_accounts'),
     
     # Filing API endpoints
     path('filings/', get_filings, name='filings_list'),

@@ -40,18 +40,14 @@ class CascadingDropdowns {
     }
 
     async loadCourtsWithUserContext() {
-        console.log('=== Loading courts with user context ===');
         const params = {};
         if (this.userProfile) {
-            console.log('User profile available for courts loading:', this.userProfile);
             // Pass user location info to courts API
             if (this.userProfile.preferred_county) {
                 params.user_county = this.userProfile.preferred_county;
-                console.log('Adding user_county:', this.userProfile.preferred_county);
             }
             if (this.userProfile.zip_code) {
                 params.user_zip = this.userProfile.zip_code;
-                console.log('Adding user_zip:', this.userProfile.zip_code);
             }
             // Add jurisdiction if available
             if (this.userProfile.state) {
@@ -60,25 +56,20 @@ class CascadingDropdowns {
                     'Illinois': 'illinois'
                 };
                 params.jurisdiction = jurisdictionMap[this.userProfile.state] || 'illinois';
-                console.log('Adding jurisdiction from state:', this.userProfile.state, '->', params.jurisdiction);
             }
         } else {
-            console.log('No user profile available for courts loading');
+            console.warn('No user profile available for courts loading');
         }
         
         // Always set default jurisdiction if not provided
         if (!params.jurisdiction) {
             params.jurisdiction = 'illinois';
-            console.log('Setting default jurisdiction: illinois');
         }
         
-        console.log('Final courts API params:', params);
         await this.loadDropdownData('court', '/api/dropdowns/courts/', params);
-        console.log('=== Courts loading completed ===');
     }
 
     async loadUserProfile() {
-        console.log('=== Loading user profile ===');
         const statusElement = document.getElementById('userProfileStatus');
         
         try {
@@ -88,17 +79,12 @@ class CascadingDropdowns {
             }
             
             const response = await this.makeRequest('/api/auth/profile/');
-            console.log('User profile API response:', response);
             
             if (response.success) {
                 if (statusElement) {
                     statusElement.style.display = 'none';
                 }
                 this.userProfile = response.data;
-                console.log('✅ User profile loaded successfully:', this.userProfile);
-                console.log('User preferred county:', this.userProfile.preferred_county);
-                console.log('User ZIP code:', this.userProfile.zip_code);
-                console.log('User state:', this.userProfile.state);
             } else {
                 console.warn('❌ Failed to load user profile:', response.error);
                 if (statusElement) {
@@ -120,7 +106,6 @@ class CascadingDropdowns {
             }
         }
         
-        console.log('=== User profile loading completed ===');
     }
 
     async fetchExternalUserInfo() {
@@ -129,7 +114,6 @@ class CascadingDropdowns {
             const response = await this.makeRequest('/api/auth/external-profile/');
             if (response.success) {
                 this.userProfile = { ...this.userProfile, ...response.data };
-                console.log('External user info loaded:', response.data);
             }
         } catch (error) {
             console.warn('Could not fetch external user info:', error);
@@ -147,14 +131,12 @@ class CascadingDropdowns {
         const loader = document.getElementById(`loading-${dropdown.dataset.level}`);
 
         try {
-            console.log(`Loading dropdown data for ${fieldId}:`, { endpoint, params });
             this.showLoader(loader);
             this.clearDropdown(dropdown);
             
             const response = await this.makeRequest(endpoint, params);
             
             if (response.success) {
-                console.log(`Dropdown data for ${fieldId}:`, response);
                 
                 // Check if we have valid data
                 if (response.data && Array.isArray(response.data) && response.data.length > 0) {
@@ -183,14 +165,12 @@ class CascadingDropdowns {
     handleDropdownChange(dropdown) {
         const fieldId = dropdown.id;
         const selectedValue = dropdown.value;
-        const mapping = this.dropdownMapping[fieldId];
-        
-        console.log(`=== Dropdown change: ${fieldId} = ${selectedValue} ===`);
-        console.log('Current selected values:', this.selectedValues);
-        
+        const mapping = this.dropdownMapping[fieldId];        
         // Store the selected value
         this.selectedValues[fieldId] = selectedValue;
-        console.log('Updated selected values:', this.selectedValues);
+        
+        // Reset all dependent dropdowns when this dropdown changes
+        this.resetDependentDropdowns(fieldId);
         
         // Reset optional services flag when filing type changes
         if (fieldId === 'filing_type' || fieldId === 'case_type' || fieldId === 'case_category' || fieldId === 'court') {
@@ -208,13 +188,11 @@ class CascadingDropdowns {
             if (fieldId === 'court') {
                 // When court is selected, load case categories for that court
                 params.court = selectedValue;
-                console.log(`Loading ${mapping.next} for court: ${selectedValue}`);
             } else if (fieldId === 'case_category') {
                 // Case category to case type
                 params.parent = selectedValue;  // Suffolk API expects parent parameter
                 if (this.selectedValues.court) {
                     params.court = this.selectedValues.court;
-                    console.log(`Loading ${mapping.next} for case_category: ${selectedValue}, court: ${this.selectedValues.court}`);
                 } else {
                     console.warn('No court selected when trying to load case types');
                     return;
@@ -223,7 +201,6 @@ class CascadingDropdowns {
                 params.parent = selectedValue;  // Suffolk API expects parent parameter for case_type
                 if (this.selectedValues.court) {
                     params.court = this.selectedValues.court;
-                    console.log(`Loading ${mapping.next} for case_type: ${selectedValue}, court: ${this.selectedValues.court}`);
                 } else {
                     console.warn('No court selected when trying to load filing types');
                     return;
@@ -232,14 +209,12 @@ class CascadingDropdowns {
                 params.parent = selectedValue;  // Suffolk API expects parent parameter for filing_type
                 if (this.selectedValues.court) {
                     params.court = this.selectedValues.court;
-                    console.log(`Loading ${mapping.next} for filing_type: ${selectedValue}, court: ${this.selectedValues.court}`);
                 } else {
                     console.warn('No court selected when trying to load document types');
                     return;
                 }
             }
             
-            console.log(`Loading next dropdown ${mapping.next} with params:`, params);
             
             // Validate required parameters before making API call
             if (this.validateParameters(fieldId, params)) {
@@ -273,6 +248,12 @@ class CascadingDropdowns {
             if (fieldId === 'case_type') {
                 this.triggerDynamicFormSections();
             }
+            
+            // Re-render dynamic form sections when court changes (if they already exist)
+            // This ensures conditional requirements are re-evaluated
+            if (fieldId === 'court' && this.selectedValues.case_type) {
+                this.triggerDynamicFormSections();
+            }
         } else if (mapping) {
             // Clear and disable the next dropdown if no value selected
             const nextDropdown = document.getElementById(mapping.next);
@@ -289,16 +270,14 @@ class CascadingDropdowns {
         if (fieldId === 'case_type') {
             this.clearDependentDropdowns(fieldId);
         } else {
-            console.log(`Skipping clearing dependent dropdowns for ${fieldId}`);
+            console.error(`Skipping clearing dependent dropdowns for ${fieldId}`);
         }
     }
 
     triggerDynamicFormSections() {
-        console.log('=== triggerDynamicFormSections called ===');
         
         // Check if dynamic form sections is available
         if (window.dynamicFormSections) {
-            console.log('Found dynamicFormSections, triggering handleCaseTypeChange');
             // Add a small delay to ensure the dropdown value is set
             setTimeout(() => {
                 window.dynamicFormSections.handleCaseTypeChange();
@@ -310,14 +289,12 @@ class CascadingDropdowns {
             setTimeout(() => {
                 const caseTypeSelect = document.getElementById('case_type');
                 if (caseTypeSelect && caseTypeSelect.value) {
-                    console.log('Manually triggering case type change event');
                     const changeEvent = new Event('change', { bubbles: true });
                     caseTypeSelect.dispatchEvent(changeEvent);
                 }
                 
                 // Also try to find and call the dynamic form sections directly
                 if (window.DynamicFormSections) {
-                    console.log('Attempting to create DynamicFormSections instance');
                     try {
                         const dynamicSections = new window.DynamicFormSections();
                         window.dynamicFormSections = dynamicSections;
@@ -333,36 +310,21 @@ class CascadingDropdowns {
     }
 
     async loadFormConfiguration() {
-        console.log('=== loadFormConfiguration called ===');
-        console.log('Current selected values:', this.selectedValues);
         
         if (!this.selectedValues.case_category || !this.selectedValues.case_type || !this.selectedValues.filing_type) {
-            console.log('Missing required values for form configuration:', {
-                case_category: this.selectedValues.case_category,
-                case_type: this.selectedValues.case_type,
-                filing_type: this.selectedValues.filing_type
-            });
             return;
         }
 
         try {
             // Load optional services from Suffolk API - this is the main feature users expect
-            console.log('Loading optional services...');
             await this.loadOptionalServices();
 
-            // Skip the form-config API call that's causing 400 error
-            // The dynamic form sections handle case-specific configuration
-            console.log('Form configuration loading completed (using dynamic sections instead of form-config API)');
         } catch (error) {
             console.error('Error loading form configuration:', error);
         }
     }
 
     async loadOptionalServices() {
-        console.log('=== loadOptionalServices called ===');
-        console.log('Court:', this.selectedValues.court);
-        console.log('Filing type:', this.selectedValues.filing_type);
-        console.log('Already loaded flag:', this.optionalServicesLoaded);
         
         if (!this.selectedValues.court || !this.selectedValues.filing_type) {
             console.warn('Missing required values for optional services');
@@ -371,11 +333,9 @@ class CascadingDropdowns {
 
         // Prevent duplicate loading
         if (this.optionalServicesLoaded) {
-            console.log('Optional services already loaded, skipping');
             return;
         }
 
-        console.log('Setting optionalServicesLoaded flag to true');
         this.optionalServicesLoaded = true; // Set flag immediately to prevent race conditions
 
         try {
@@ -385,13 +345,11 @@ class CascadingDropdowns {
                 jurisdiction: 'illinois'
             };
             
-            console.log('Loading optional services with params:', params);
 
             // Use your Django API endpoint instead of direct Suffolk API call
             const response = await this.makeRequest('/api/dropdowns/optional-services/', params);
 
             if (response.success && response.data) {
-                console.log('Optional services loaded successfully:', response.data);
                 this.updateOptionalServicesFromAPI(response.data);
             } else {
                 console.warn('Optional services API failed:', response.error || 'No data');
@@ -404,11 +362,9 @@ class CascadingDropdowns {
             this.showDefaultOptionalServices();
         }
         
-        console.log('=== loadOptionalServices completed ===');
     }
 
     updateOptionalServicesFromAPI(services) {
-        console.log('Updating optional services from API:', services);
         
         // AGGRESSIVE CLEANUP - Remove ALL possible optional services containers
         // This includes containers with different class names and IDs that might exist
@@ -425,7 +381,6 @@ class CascadingDropdowns {
                     const isTagged = container.dataset && container.dataset.createdBy === 'cascading-dropdowns';
                     const isNamed = container.id === 'optional-services-container' || container.classList.contains('optional-services-container');
                     if (isTagged || isNamed) {
-                        console.log('Removing existing optional services container (safe):', selector, container.id || container.className);
                         container.remove();
                     }
                 });
@@ -440,7 +395,6 @@ class CascadingDropdowns {
             if (heading.textContent && heading.textContent.includes('Optional Services')) {
                 const container = heading.closest('#optional-services-container, .optional-services-container, [data-created-by="cascading-dropdowns"]');
                 if (container) {
-                    console.log('Removing container with Optional Services heading (safe):', container.id || container.className);
                     container.remove();
                 }
             }
@@ -451,7 +405,6 @@ class CascadingDropdowns {
             // Create a fresh container
             let servicesContainer = null;
             
-            console.log('Creating new optional services container');
             
             // Try to find a specific placement location first
             const preferredLocations = [
@@ -483,7 +436,6 @@ class CascadingDropdowns {
                     servicesContainer = existing;
                     // Clear previous content safely
                     servicesContainer.innerHTML = '';
-                    console.log('Reusing existing optional services container to avoid duplicate');
                 } else {
                     servicesContainer = document.createElement('div');
                     servicesContainer.id = 'optional-services-container';
@@ -498,18 +450,13 @@ class CascadingDropdowns {
                     if (buttons && buttons.parentNode === formContainer) {
                         try {
                             formContainer.insertBefore(servicesContainer, buttons);
-                            console.log('Inserted optional services container before buttons');
                         } catch (error) {
                             console.warn('Could not insert before buttons, appending instead:', error);
                             formContainer.appendChild(servicesContainer);
-                            console.log('Appended optional services container to form');
                         }
                     } else {
                         formContainer.appendChild(servicesContainer);
-                        console.log('Appended optional services container to form');
                     }
-                 } else {
-                    console.log('Optional services container already present inside form container; reused in place');
                  }
              } else {
                  console.error('Could not find suitable container for optional services');
@@ -529,7 +476,6 @@ class CascadingDropdowns {
 
             // Create services list
             services.forEach((service, index) => {
-                console.log(`Processing service ${index}:`, service);
                 
                 const serviceDiv = document.createElement('div');
                 serviceDiv.className = 'form-check mb-2';
@@ -566,7 +512,6 @@ class CascadingDropdowns {
                 servicesContainer.appendChild(serviceDiv);
             });
             
-            console.log(`Successfully rendered ${services.length} optional services in container:`, servicesContainer.id);
             
             // Make sure the container is visible
             servicesContainer.style.display = 'block';
@@ -575,7 +520,6 @@ class CascadingDropdowns {
 
     showDefaultOptionalServices() {
         // Show basic optional services if API fails
-        console.log('Showing default optional services');
         
         let servicesContainer = document.querySelector('.optional-services-container') ||
                                document.querySelector('#optional-services-container') ||
@@ -629,13 +573,9 @@ class CascadingDropdowns {
             this.updateOptionalServices(config.optional_services);
         }
         
-        console.log('Form structure updated:', config);
     }
 
     updateRequiredParties(parties) {
-        // This would dynamically update the parties section based on configuration
-        console.log('Required parties configuration:', parties);
-        
         // Example: Show/hide party sections based on configuration
         const partySections = document.querySelectorAll('.party-section');
         partySections.forEach(section => {
@@ -645,12 +585,10 @@ class CascadingDropdowns {
 
     updateOptionalServices(services) {
         // This is the legacy method - now we prefer updateOptionalServicesFromAPI
-        console.log('Legacy optional services configuration called:', services);
         
         // Don't load optional services again if we already loaded them from the API
         // This prevents duplicate rendering
         if (this.optionalServicesLoaded) {
-            console.log('Optional services already loaded from API, skipping legacy method');
             return;
         }
         
@@ -713,7 +651,6 @@ class CascadingDropdowns {
         toClear.forEach(fieldId => {
             const dropdown = document.getElementById(fieldId);
             if (dropdown && fieldId !== this.dropdownMapping[changedFieldId]?.next) {
-                console.log(`Clearing dependent dropdown: ${fieldId} due to ${changedFieldId} change`);
                 
                 // Special handling for case_type - notify dynamic forms and preserve temporarily
                 if (fieldId === 'case_type') {
@@ -721,14 +658,8 @@ class CascadingDropdowns {
                     const currentCaseTypeValue = dropdown.value;
                     const currentCaseTypeText = dropdown.options[dropdown.selectedIndex]?.text || '';
                     
-                    console.log('Preserving case_type for dynamic forms:', {
-                        value: currentCaseTypeValue,
-                        text: currentCaseTypeText
-                    });
-                    
                     // Notify dynamic forms that case_type is being cleared programmatically
                     if (window.dynamicFormSections) {
-                        console.log('Notifying dynamic forms that case_type is being cleared programmatically');
                         window.dynamicFormSections.currentCaseType = null;
                         // Don't hide sections immediately - let the restoration process handle it
                     }
@@ -740,13 +671,11 @@ class CascadingDropdowns {
                     // If this was triggered by filing_type change and we have a case type,
                     // try to restore it after the dropdown gets repopulated
                     if (changedFieldId === 'filing_type' && currentCaseTypeValue) {
-                        console.log('Planning to restore case_type after filing_type cascade completes');
                         setTimeout(() => {
                             // Check if dropdown got repopulated
                             if (dropdown.options.length > 1) {
                                 const matchingOption = dropdown.querySelector(`option[value="${currentCaseTypeValue}"]`);
                                 if (matchingOption) {
-                                    console.log('Restoring case_type after filing_type change:', currentCaseTypeValue);
                                     dropdown.value = currentCaseTypeValue;
                                     dropdown.disabled = false;
                                     this.selectedValues.case_type = currentCaseTypeValue;
@@ -754,12 +683,9 @@ class CascadingDropdowns {
                                     // Re-trigger dynamic form sections
                                     setTimeout(() => {
                                         if (window.dynamicFormSections) {
-                                            console.log('Re-triggering dynamic form sections after case_type restoration');
                                             window.dynamicFormSections.handleCaseTypeChange();
                                         }
                                     }, 100);
-                                } else {
-                                    console.log('case_type option no longer available after filing_type change');
                                 }
                             }
                         }, 1500); // Give more time for dropdown to repopulate
@@ -774,7 +700,6 @@ class CascadingDropdowns {
     }
 
     populateDropdown(dropdown, options) {
-        console.log('=== Populating dropdown:', dropdown.id, 'with', options?.length, 'options ===');
         const placeholder = dropdown.querySelector('option[value=""]').textContent;
         dropdown.innerHTML = `<option value="">${placeholder}</option>`;
         
@@ -798,17 +723,13 @@ class CascadingDropdowns {
                 optionElement.style.fontWeight = 'bold';
                 recommendedOption = option.value || option.id;
                 selectedCount++;
-                console.log(`Found recommended option: ${optionElement.textContent} (${recommendedOption})`);
             }
             
             dropdown.appendChild(optionElement);
         });
 
-        console.log(`Populated ${dropdown.id} with ${options.length} options, ${selectedCount} recommended`);
-
         // Auto-select recommended court and trigger change event
         if (dropdown.id === 'court' && recommendedOption) {
-            console.log(`Auto-selecting recommended court: ${recommendedOption}`);
             dropdown.value = recommendedOption;
             this.selectedValues.court = recommendedOption;
             
@@ -817,7 +738,6 @@ class CascadingDropdowns {
             
             // Trigger change event to load dependent dropdowns
             setTimeout(() => {
-                console.log('Triggering change event for auto-selected court');
                 dropdown.dispatchEvent(new Event('change', { bubbles: true }));
             }, 500);
         }
@@ -827,13 +747,11 @@ class CascadingDropdowns {
             const preferredValue = this.userProfile.preferred_county;
             const preferredOption = dropdown.querySelector(`option[value="${preferredValue}"]`);
             if (preferredOption) {
-                console.log(`Auto-selecting user's preferred county: ${preferredValue}`);
                 dropdown.value = preferredValue;
                 this.selectedValues.court = preferredValue;
                 
                 // Trigger change event to load dependent dropdowns
                 setTimeout(() => {
-                    console.log('Triggering change event for preferred county');
                     dropdown.dispatchEvent(new Event('change', { bubbles: true }));
                 }, 500);
             }
@@ -856,6 +774,39 @@ class CascadingDropdowns {
                 notice.parentNode.removeChild(notice);
             }
         }, 4000);
+    }
+
+    resetDependentDropdowns(changedFieldId) {
+        // Define the hierarchy of dependent dropdowns
+        const hierarchy = ['court', 'case_category', 'case_type', 'filing_type', 'document_type'];
+        
+        // Find the index of the changed field in the hierarchy
+        const changedIndex = hierarchy.indexOf(changedFieldId);
+        
+        if (changedIndex === -1) return; // Field not in hierarchy
+        
+        // Reset all dropdowns that come after the changed field in the hierarchy
+        for (let i = changedIndex + 1; i < hierarchy.length; i++) {
+            const fieldToReset = hierarchy[i];
+            const dropdown = document.getElementById(fieldToReset);
+            
+            if (dropdown) {
+                // Clear the dropdown
+                this.clearDropdown(dropdown);
+                
+                // Reset the stored value
+                this.selectedValues[fieldToReset] = null;
+                
+            }
+        }
+        
+        // Also clear dynamic form sections when case_type is reset
+        if (changedIndex <= hierarchy.indexOf('case_type')) {
+            const dynamicSectionsContainer = document.getElementById('dynamic-sections');
+            if (dynamicSectionsContainer) {
+                dynamicSectionsContainer.innerHTML = '';
+            }
+        }
     }
 
     clearDropdown(dropdown) {

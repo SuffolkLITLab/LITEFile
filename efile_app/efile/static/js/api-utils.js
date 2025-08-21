@@ -9,13 +9,6 @@ class ApiUtils {
         this.cache = this.getCache();
         this.cacheExpiry = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
         
-        console.log('🚀 ApiUtils initialized:', {
-            baseUrl: this.baseUrl,
-            hasCSRFToken: !!this.csrfToken,
-            existingCacheEntries: Object.keys(this.cache).length,
-            cacheExpiry: this.cacheExpiry
-        });
-        
         // Clear expired cache entries on initialization
         this.clearExpiredCache();
     }
@@ -34,11 +27,6 @@ class ApiUtils {
         try {
             const cacheString = JSON.stringify(this.cache);
             localStorage.setItem('apiResponseCache', cacheString);
-            console.log('💾 Cache saved to localStorage:', {
-                entries: Object.keys(this.cache).length,
-                size: cacheString.length,
-                keys: Object.keys(this.cache).map(k => k.substring(0, 30) + '...')
-            });
         } catch (error) {
             console.error('❌ Error saving API cache:', error);
         }
@@ -66,19 +54,9 @@ class ApiUtils {
         
         if (this.isCacheValid(cacheEntry)) {
             const age = Date.now() - cacheEntry.timestamp;
-            console.log(`🟢 Cache HIT for ${endpoint}:`, {
-                params,
-                ageMinutes: Math.round(age / 60000),
-                cacheKey: cacheKey.substring(0, 50) + '...'
-            });
             return cacheEntry.data;
         }
-        
-        console.log(`🔴 Cache MISS for ${endpoint}:`, {
-            params,
-            reason: !cacheEntry ? 'No cache entry' : 'Cache expired',
-            cacheKey: cacheKey.substring(0, 50) + '...'
-        });
+
         return null;
     }
 
@@ -89,12 +67,6 @@ class ApiUtils {
             timestamp: Date.now()
         };
         this.saveCache();
-        console.log(`💾 Cached response for ${endpoint}:`, {
-            params,
-            dataSize: JSON.stringify(data).length,
-            cacheKey: cacheKey.substring(0, 50) + '...',
-            totalCacheEntries: Object.keys(this.cache).length
-        });
     }
 
     getCSRFToken() {
@@ -252,7 +224,6 @@ class ApiUtils {
     clearCache() {
         this.cache = {};
         localStorage.removeItem('apiResponseCache');
-        console.log('API cache cleared');
     }
 
     clearExpiredCache() {
@@ -269,7 +240,6 @@ class ApiUtils {
         
         if (cleared > 0) {
             this.saveCache();
-            console.log(`🧹 Cleared ${cleared} expired cache entries`);
         }
     }
 
@@ -307,34 +277,7 @@ class ApiUtils {
 
     logCacheStats() {
         const stats = this.getCacheStats();
-        console.log('📊 Cache Statistics:', stats);
         return stats;
-    }
-
-    // Method to test cache functionality
-    async testCache(endpoint = '/api/counties/', params = {}) {
-        console.log('🧪 Testing cache functionality...');
-        
-        // First call - should be a cache miss
-        console.log('Making first API call (should be cache MISS):');
-        const start1 = performance.now();
-        const result1 = await this.get(endpoint, params);
-        const time1 = performance.now() - start1;
-        
-        // Second call - should be a cache hit
-        console.log('Making second API call (should be cache HIT):');
-        const start2 = performance.now();
-        const result2 = await this.get(endpoint, params);
-        const time2 = performance.now() - start2;
-        
-        console.log('🧪 Cache Test Results:', {
-            firstCallTime: `${time1.toFixed(2)}ms`,
-            secondCallTime: `${time2.toFixed(2)}ms`,
-            speedup: `${(time1 / time2).toFixed(1)}x faster`,
-            dataMatches: JSON.stringify(result1) === JSON.stringify(result2)
-        });
-        
-        return { result1, result2, time1, time2 };
     }
 
     // Method to refresh CSRF token if needed
@@ -364,30 +307,11 @@ class ApiUtils {
 // Create global instance
 const apiUtils = new ApiUtils();
 
-// Test localStorage immediately
-console.log('🧪 Testing localStorage on load...');
-try {
-    localStorage.setItem('cacheTest', 'test');
-    const testValue = localStorage.getItem('cacheTest');
-    console.log('✅ localStorage is working:', testValue === 'test');
-    localStorage.removeItem('cacheTest');
-} catch (error) {
-    console.error('❌ localStorage is not available:', error);
-}
-
 // Global cache testing functions for browser console
-window.testCache = () => apiUtils.testCache();
 window.cacheStats = () => apiUtils.logCacheStats();
 window.clearCache = () => apiUtils.clearCache();
 window.getCacheData = () => apiUtils.cache;
 
-// Simple test to add something to cache manually
-window.testCacheManually = () => {
-    console.log('🧪 Manually testing cache...');
-    apiUtils.setCachedResponse('/test/endpoint', { test: 'param' }, { test: 'data' });
-    console.log('Cache after manual test:', apiUtils.cache);
-    console.log('LocalStorage after manual test:', localStorage.getItem('apiResponseCache'));
-};
 
 // Export for module use or make globally available
 if (typeof module !== 'undefined' && module.exports) {

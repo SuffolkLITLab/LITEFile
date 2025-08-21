@@ -1,0 +1,44 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title }}</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'efile/css/confirmation.css' %}">
+</head>
+<body>
+    <div class="container">
+        <div class="confirmation-container">
+            <div class="success-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            
+            <h1 class="h2 mb-3" style="color: #2c5aa0;">Filing Submitted Successfully!</h1>
+            
+            <div class="success-message">
+                {{ success_message }}
+            </div>
+            
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>What's Next?</strong><br>
+                You will receive email confirmation shortly. The court will review your filing and contact you if any additional information is needed.
+            </div>
+            
+            <div class="mt-4">
+                <a href="{% url 'efile_options' %}" class="btn btn-primary custom-confirm me-2">
+                    <i class="fas fa-plus me-2"></i>File Another Case
+                </a>
+                <a href="{% url 'efile_login' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-home me-2"></i>Return to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
