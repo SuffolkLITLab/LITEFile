@@ -1,11 +1,9 @@
 # views.py - Complete updated file for Illinois eFile system
+
 from django.contrib import messages
-from django.shortcuts import render, redirect
 from django.http import JsonResponse
+from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
-from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.decorators import login_required
-import json
 
 # Preserving original imports for when we un-comment all the other methods.
 # from django.contrib.auth import authenticate, login
@@ -183,26 +181,26 @@ def expert_form(request):
     """
     Display the expert form for case details and parties
     """
-    if request.method == 'POST':
+    if request.method == "POST":
         # Handle form submission
         # This would process the form data and save it
-        messages.success(request, 'Case details saved successfully!')
-        return redirect('dashboard')  # or next step
-    
+        messages.success(request, "Case details saved successfully!")
+        return redirect("dashboard")  # or next step
+
     # Get existing case data from session if available
-    from .utils.case_data_utils import get_case_data
+    from efile.utils.case_data_utils import get_case_data
+
     case_data = get_case_data(request)
-    
+
     print(f"Expert form view - case_data from session: {case_data}")
-    
-    context = {
-        'case_data': case_data
-    }
-    
-    return render(request, 'efile/expert_form.html', context)
+
+    context = {"case_data": case_data}
+
+    return render(request, "efile/expert_form.html", context)
 
 
 # API Endpoints for User Profile and Authentication
+
 
 @require_http_methods(["GET"])
 def api_user_profile(request):
@@ -212,23 +210,14 @@ def api_user_profile(request):
     try:
         # Mock user profile data - replace with actual user data
         profile_data = {
-            'username': 'john_doe',
-            'first_name': 'John',
-            'last_name': 'Doe',
-            'email': 'john.doe@example.com',
-            'preferred_county': 'cook',
-            'location': {
-                'county': 'Cook County',
-                'state': 'Illinois'
-            }
+            "username": "john_doe",
+            "first_name": "John",
+            "last_name": "Doe",
+            "email": "john.doe@example.com",
+            "preferred_county": "cook",
+            "location": {"county": "Cook County", "state": "Illinois"},
         }
-        
-        return JsonResponse({
-            'success': True,
-            'data': profile_data
-        })
+
+        return JsonResponse({"success": True, "data": profile_data})
     except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        }, status=500)
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
