@@ -1,35 +1,34 @@
-from django.contrib import messages
-from django.shortcuts import redirect, render
+from django.shortcuts import render
 
 
 def efile_expert_form(request):
     """Expert form view for creating filings with cascading dropdowns."""
     # Get auth tokens from session if available
-    auth_tokens = request.session.get('auth_tokens', None)
+    auth_tokens = request.session.get("auth_tokens", None)
     print(f"Auth Tokens: {auth_tokens}")
-    
+
     # Get existing case data from session to populate form
-    case_data = request.session.get('case_data', {})
-    
+    case_data = request.session.get("case_data", {})
+
     print(f"Case data from session: {case_data}")
-    
+
     # Check if we have all required data for upload
-    required_fields = ['court', 'case_category', 'case_type', 'filing_type', 'document_type']
+    required_fields = ["court", "case_category", "case_type", "filing_type", "document_type"]
     has_all_required = all(case_data.get(field) for field in required_fields)
-    
+
     # For name change cases, also check for party information
     has_party_info = True  # Default for non-name change cases
-    if has_all_required and 'name change' in case_data.get('case_type', '').lower():
-        party_fields = ['petitioner_first_name', 'petitioner_last_name', 'new_first_name', 'new_last_name']
+    if has_all_required and "name change" in case_data.get("case_type", "").lower():
+        party_fields = ["petitioner_first_name", "petitioner_last_name", "new_first_name", "new_last_name"]
         has_party_info = all(case_data.get(field) for field in party_fields)
-    
+
     # Display the form for data collection with existing data populated
     context = {
-        'case_data': case_data,
-        'auth_tokens': auth_tokens,
-        'can_proceed_to_upload': has_all_required and has_party_info,
-        'missing_required_fields': not has_all_required,
-        'missing_party_info': has_all_required and not has_party_info
+        "case_data": case_data,
+        "auth_tokens": auth_tokens,
+        "can_proceed_to_upload": has_all_required and has_party_info,
+        "missing_required_fields": not has_all_required,
+        "missing_party_info": has_all_required and not has_party_info,
     }
-    
-    return render(request, 'efile/expert_form.html', context)
+
+    return render(request, "efile/expert_form.html", context)

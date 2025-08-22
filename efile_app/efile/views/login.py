@@ -63,7 +63,7 @@ def efile_logout(request):
 
     # Clear any existing messages first
     storage = get_messages(request)
-    for message in storage:
+    for _message in storage:
         pass  # This consumes all messages
 
     logout(request)
