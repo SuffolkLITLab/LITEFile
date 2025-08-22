@@ -15,7 +15,7 @@ jobs:
     steps:
       # Common setup
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # NOTE: we manage uv and python directly right now, but we can DRY this up by using docker within the
       # GH actions workflow in the future. The direct method is supposed to be faster so we'll leave it for
