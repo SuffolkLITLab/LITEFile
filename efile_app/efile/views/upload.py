@@ -80,7 +80,19 @@ def create_filing(request):
 
         headers = {"Authorization": f"Bearer {auth_tokens['token']}", "Content-Type": "application/json"}
 
+        # Safe pre-request logging
+        logger.debug(
+            "POST %s with headers keys=%s payload keys=%s",
+            api_url,
+            list(headers.keys()),
+            list(filing_payload.keys()),
+        )
         response = requests.post(api_url, headers=headers, json=filing_payload, timeout=30)
+        logger.debug(
+            "Create filing response: status=%s content_type=%s",
+            response.status_code,
+            response.headers.get("Content-Type"),
+        )
 
         if response.status_code == 201:
             # Filing created successfully
@@ -239,12 +251,13 @@ def upload_documents(request):
             # Upload to S3
             upload_result = s3_handler.upload_file(uploaded_file, file_type=file_type, metadata=metadata)
 
+            logger.debug("S3 upload result: %s", upload_result)
+
             if not upload_result["success"]:
                 return JsonResponse(
                     {"success": False, "error": f"S3 upload failed for {uploaded_file.name}: {upload_result['error']}"},
                     status=500,
                 )
-                print(upload_result)  # Debugging line, can be removed later
             s3_upload_results.append(
                 {
                     "original_name": uploaded_file.name,
@@ -254,7 +267,7 @@ def upload_documents(request):
                     "size": upload_result["size"],
                 }
             )
-        print("DEBUG: S3 upload results:", s3_upload_results)
+        logger.debug("S3 upload results count=%d", len(s3_upload_results))
 
         # Now submit the S3 URLs to Suffolk API
         submitted_documents = []
@@ -272,7 +285,19 @@ def upload_documents(request):
 
             headers = {"Authorization": f"Bearer {auth_tokens['token']}", "Content-Type": "application/json"}
 
+            # Safe pre-request logging
+            logger.debug(
+                "POST %s with headers keys=%s payload keys=%s",
+                api_url,
+                list(headers.keys()),
+                list(document_payload.keys()),
+            )
             response = requests.post(api_url, headers=headers, json=document_payload, timeout=60)
+            logger.debug(
+                "Submit document response: status=%s content_type=%s",
+                response.status_code,
+                response.headers.get("Content-Type"),
+            )
 
             if response.status_code == 201:
                 document_data = response.json()
@@ -345,15 +370,17 @@ def test_s3_connection(request):
 def simple_s3_upload(request):
     """Simple S3 upload that just uploads files and returns URLs."""
     try:
-        # Debug logging
-        print(f"DEBUG: Request method: {request.method}")
-        print(f"DEBUG: Request FILES: {list(request.FILES.keys())}")
-        print(f"DEBUG: Request POST: {list(request.POST.keys())}")
+        logger.debug(
+            "simple_s3_upload method=%s file_keys=%s post_keys=%s",
+            request.method,
+            list(request.FILES.keys()),
+            list(request.POST.keys()),
+        )
 
         # Handle file uploads
         uploaded_files = request.FILES.getlist("documents")
 
-        print(f"DEBUG: Found {len(uploaded_files)} files")
+        logger.debug("simple_s3_upload found %d files", len(uploaded_files))
 
         if not uploaded_files:
             return JsonResponse({"success": False, "error": "No documents provided."}, status=400)

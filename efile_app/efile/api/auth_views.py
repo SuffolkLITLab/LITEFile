@@ -3,6 +3,7 @@ API views for authentication and user management
 """
 
 import json
+import logging
 
 import requests
 from django.conf import settings
@@ -12,6 +13,8 @@ from django.views.decorators.http import require_http_methods
 from requests.exceptions import RequestException, Timeout
 
 from .base import APIResponseMixin
+
+logger = logging.getLogger(__name__)
 
 
 class AuthAPIViews(APIResponseMixin):
@@ -44,7 +47,7 @@ class AuthAPIViews(APIResponseMixin):
             state = AuthAPIViews.get_state_from_request(request)
 
         auth_tokens = request.session.get("auth_tokens", {})
-        print(f"Auth tokens in session: {auth_tokens}")
+        logger.debug(f"Auth tokens in session: {auth_tokens}")
 
         # Try different Tyler token key formats
         tyler_token = (
@@ -120,17 +123,19 @@ class AuthAPIViews(APIResponseMixin):
                     headers[f"tyler-token-{state}"] = tyler_token
                 else:
                     # Log that no token was found for debugging
-                    print(f"Warning: No Tyler token found for state '{state}' in Suffolk eFile API request")
+                    logger.info("No Tyler token found for state '%s' in Suffolk eFile API request", state)
 
-                api_response = requests.get(
-                    f"https://efile-test.suffolklitlab.org/jurisdictions/{state}/firmattorneyservice/firm",
-                    headers=headers,
-                    timeout=10,
+                url = f"https://efile-test.suffolklitlab.org/jurisdictions/{state}/firmattorneyservice/firm"
+                logger.debug("GET %s header keys=%s", url, list(headers.keys()))
+                api_response = requests.get(url, headers=headers, timeout=10)
+                logger.debug(
+                    "User profile response: status=%s content_type=%s",
+                    api_response.status_code,
+                    api_response.headers.get("Content-Type"),
                 )
 
                 if api_response.status_code == 200:
                     external_data = api_response.json()
-                    print(f"External data retrieved: {external_data}")
 
                     # Extract address information from external API response
                     address_info = external_data.get("address", {})
@@ -389,12 +394,18 @@ class AuthAPIViews(APIResponseMixin):
                 headers[f"tyler-token-{state}"] = tyler_token
             else:
                 # Log that no token was found for debugging
-                print(f"Warning: No Tyler token found for state '{state}' in Suffolk eFile payment accounts request")
+                logger.info(
+                    "No Tyler token found for state '%s' in Suffolk eFile payment accounts request",
+                    state,
+                )
 
-            api_response = requests.get(
-                f"https://efile-test.suffolklitlab.org/jurisdictions/{state}/payments/payment-accounts/",
-                headers=headers,
-                timeout=10,
+            url = f"https://efile-test.suffolklitlab.org/jurisdictions/{state}/payments/payment-accounts/"
+            logger.debug("GET %s header keys=%s", url, list(headers.keys()))
+            api_response = requests.get(url, headers=headers, timeout=10)
+            logger.debug(
+                "Payment accounts response: status=%s content_type=%s",
+                api_response.status_code,
+                api_response.headers.get("Content-Type"),
             )
 
             if api_response.status_code == 200:

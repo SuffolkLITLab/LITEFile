@@ -36,10 +36,13 @@ class S3UploadHandler:
         # Check for required credentials
         if not all([self.access_key_id, self.secret_access_key, self.bucket_name]):
             if not self.credentials_checked:
-                print("Warning: AWS credentials not fully configured")
-                print(f"Access Key ID: {'Set' if self.access_key_id else 'Missing'}")
-                print(f"Secret Access Key: {'Set' if self.secret_access_key else 'Missing'}")
-                print(f"Bucket Name: {'Set' if self.bucket_name else 'Missing'}")
+                logger.warning("AWS credentials not fully configured")
+                logger.debug(
+                    "AWS credential presence - access_key_id: %s, secret_access_key: %s, bucket_name: %s",
+                    "Set" if self.access_key_id else "Missing",
+                    "Set" if self.secret_access_key else "Missing",
+                    "Set" if self.bucket_name else "Missing",
+                )
                 self.credentials_checked = True
             return False
         else:
@@ -59,20 +62,22 @@ class S3UploadHandler:
             # Test connection by attempting to list objects (limited test)
             try:
                 self.s3_client.list_objects_v2(Bucket=self.bucket_name, MaxKeys=1)
-                print(f"S3 connection successful to bucket: {self.bucket_name}")
+                logger.info("S3 connection successful to bucket: %s", self.bucket_name)
             except ClientError as e:
                 error_code = e.response["Error"]["Code"]
                 if error_code == "403":
-                    print(f"Warning: Access denied to S3 bucket {self.bucket_name}. Check credentials and permissions.")
+                    logger.warning(
+                        "Access denied to S3 bucket %s. Check credentials and permissions.", self.bucket_name
+                    )
                 elif error_code == "404":
-                    print(f"Warning: S3 bucket {self.bucket_name} not found.")
+                    logger.warning("S3 bucket %s not found.", self.bucket_name)
                 else:
-                    print(f"Warning: S3 bucket access test failed: {e}")
+                    logger.warning("S3 bucket access test failed: %s", e)
                 # Don't raise exception here, allow the client to be initialized
                 # so we can test credentials later with proper error handling
 
         except Exception as e:
-            print(f"Failed to initialize S3 client: {e}")
+            logger.error("Failed to initialize S3 client: %s", e)
             self.s3_client = None
 
     def upload_file(self, file_obj, file_type="document", metadata=None):
@@ -170,6 +175,8 @@ class S3UploadHandler:
             presigned_url = self.s3_client.generate_presigned_url(
                 "get_object", Params={"Bucket": self.bucket_name, "Key": s3_key}, ExpiresIn=expiration
             )
+
+            logger.debug("Generated presigned URL: %s for key: %s", presigned_url, s3_key)
 
             return presigned_url
 

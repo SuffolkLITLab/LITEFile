@@ -4,11 +4,15 @@ Handles cascading dropdowns for case categories, types, counties, etc.
 Uses GET requests to external APIs exclusively.
 """
 
+import logging
+
 import requests
 from django.views.decorators.http import require_http_methods
 
 from ..utils.zip_to_county_il import get_county_by_zip
 from .base import APIResponseMixin, get_auth_tokens
+
+logger = logging.getLogger(__name__)
 
 
 class DropdownAPIViews(APIResponseMixin):
@@ -36,7 +40,13 @@ class DropdownAPIViews(APIResponseMixin):
             if auth_tokens and "token" in auth_tokens:
                 headers["Authorization"] = f"Bearer {auth_tokens['token']}"
 
+            logger.debug("GET %s header keys=%s", api_url, list(headers.keys()))
             response = requests.get(api_url, headers=headers, timeout=10)
+            logger.debug(
+                "Categories response: status=%s content_type=%s",
+                response.status_code,
+                response.headers.get("Content-Type"),
+            )
 
             if response.status_code == 200:
                 # Parse the API response - expecting list of {name, code} objects
@@ -56,8 +66,10 @@ class DropdownAPIViews(APIResponseMixin):
                 return DropdownAPIViews.error_response(f"API request failed with status {response.status_code}")
 
         except (requests.RequestException, requests.Timeout) as api_error:
+            logger.warning("Categories API request failed: %s", api_error)
             return DropdownAPIViews.error_response(f"API request failed: {str(api_error)}")
         except Exception as e:
+            logger.exception("Unexpected error in get_case_categories")
             return DropdownAPIViews.error_response(f"Error: {str(e)}")
 
     @staticmethod
@@ -86,7 +98,13 @@ class DropdownAPIViews(APIResponseMixin):
             if auth_tokens and "token" in auth_tokens:
                 headers["Authorization"] = f"Bearer {auth_tokens['token']}"
 
+            logger.debug("GET %s header keys=%s", api_url, list(headers.keys()))
             response = requests.get(api_url, headers=headers, timeout=10)
+            logger.debug(
+                "Case types response: status=%s content_type=%s",
+                response.status_code,
+                response.headers.get("Content-Type"),
+            )
 
             if response.status_code == 200:
                 # Parse the API response - expecting list of {name, code} objects
@@ -184,7 +202,19 @@ class DropdownAPIViews(APIResponseMixin):
                 if auth_tokens and "token" in auth_tokens:
                     headers["Authorization"] = f"Bearer {auth_tokens['token']}"
 
+                logger.debug("GET %s header keys=%s", api_url, list(headers.keys()))
+                logger.debug("GET %s header keys=%s", api_url, list(headers.keys()))
                 response = requests.get(api_url, headers=headers, timeout=10)
+                logger.debug(
+                    "Optional services response: status=%s content_type=%s",
+                    response.status_code,
+                    response.headers.get("Content-Type"),
+                )
+                logger.debug(
+                    "Courts response: status=%s content_type=%s",
+                    response.status_code,
+                    response.headers.get("Content-Type"),
+                )
 
                 if response.status_code == 200:
                     # Parse the API response - expecting list of {name, code} objects
@@ -217,6 +247,7 @@ class DropdownAPIViews(APIResponseMixin):
 
             except (requests.RequestException, requests.Timeout):
                 # Fallback to comprehensive Illinois courts if API fails
+                logger.warning("Courts API failed; using fallback list")
                 fallback_courts = [
                     {"value": "PSUPCRT", "text": "Supreme Court of Illinois"},
                     {"value": "PAC1", "text": "Appellate Court – 1st District"},
@@ -338,14 +369,15 @@ class DropdownAPIViews(APIResponseMixin):
                     {"value": "whiteside", "text": "Whiteside County"},
                     {"value": "will", "text": "Will County"},
                     {"value": "williamson", "text": "Williamson County"},
-                    {"value": "winnebago", "text": "Winnebago County"},
                     {"value": "woodford", "text": "Woodford County"},
                 ]
+                logger.debug("Returning fallback courts")
                 return DropdownAPIViews.success_response(
                     DropdownAPIViews._prioritize_courts_by_location(fallback_courts, user_zip, user_county)
                 )
 
         except Exception as e:
+            logger.error("Error prioritizing courts by location: %s", str(e))
             return DropdownAPIViews.error_response(f"Error: {str(e)}")
 
     @staticmethod
@@ -430,7 +462,7 @@ class DropdownAPIViews(APIResponseMixin):
 
             # Make API call to external document types endpoint
             api_url = f"https://efile-test.suffolklitlab.org/jurisdictions/{jurisdiction}/codes/courts/{court_code}/filing_types/{filing_type_id}/document_types"
-            print(f"API URL: {api_url}")  # Debugging line
+            logger.debug("GET %s", api_url)
 
             # Make the API request with auth tokens if available
             headers = {}
@@ -521,7 +553,7 @@ class DropdownAPIViews(APIResponseMixin):
                         f"{response.status_code} for court {court_code}, "
                         f"filing type {filing_type_id}"
                     )
-                    print(msg)
+                    logger.info(msg)
                     return DropdownAPIViews.success_response([])
 
             except (requests.RequestException, requests.Timeout) as api_error:
@@ -530,7 +562,7 @@ class DropdownAPIViews(APIResponseMixin):
                     "Optional services API request failed for court "
                     f"{court_code}, filing type {filing_type_id}: {api_error}"
                 )
-                print(msg)
+                logger.warning(msg)
                 return DropdownAPIViews.success_response([])
 
         except Exception as e:
@@ -600,9 +632,11 @@ class DropdownAPIViews(APIResponseMixin):
                 error_msg = f"External API returned status {response.status_code}"
                 return DropdownAPIViews.error_response(error_msg)
 
-        except requests.RequestException:
+        except requests.RequestException as e:
+            logger.warning("Party types API request failed: %s", e)
             return DropdownAPIViews.error_response("Network error: Failed to fetch party types")
         except Exception as e:
+            logger.exception("Unexpected error in get_party_types")
             return DropdownAPIViews.error_response(f"Unexpected error: {str(e)}")
 
 

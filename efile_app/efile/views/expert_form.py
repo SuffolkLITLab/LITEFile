@@ -1,16 +1,24 @@
+import logging
+
 from django.shortcuts import render
+
+logger = logging.getLogger(__name__)
 
 
 def efile_expert_form(request):
     """Expert form view for creating filings with cascading dropdowns."""
     # Get auth tokens from session if available
     auth_tokens = request.session.get("auth_tokens", None)
-    print(f"Auth Tokens: {auth_tokens}")
+    # Log only presence/keys, not token values
+    if auth_tokens:
+        logger.debug("Auth tokens present with keys=%s", list(auth_tokens.keys()))
+    else:
+        logger.debug("No auth tokens in session")
 
     # Get existing case data from session to populate form
     case_data = request.session.get("case_data", {})
 
-    print(f"Case data from session: {case_data}")
+    logger.debug(f"Case data from session: {case_data}")
 
     # Check if we have all required data for upload
     required_fields = ["court", "case_category", "case_type", "filing_type", "document_type"]

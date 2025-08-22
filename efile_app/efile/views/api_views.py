@@ -1,9 +1,12 @@
 import json
+import logging
 
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import ensure_csrf_cookie
+
+logger = logging.getLogger(__name__)
 
 
 @method_decorator(ensure_csrf_cookie, name="dispatch")
@@ -15,12 +18,12 @@ class GetCaseDataView(View):
             # Get case data from session
             case_data = request.session.get("case_data", {})
 
-            print(f"Retrieved case data from session: {case_data}")
+            logger.debug(f"Retrieved case data from session: {case_data}")
 
             return JsonResponse({"success": True, "data": case_data})
 
-        except Exception as e:
-            print(f"Error retrieving case data: {e}")
+        except Exception:
+            logger.exception("Error retrieving case data: {e}")
             return JsonResponse({"success": False, "error": "Server error occurred"}, status=500)
 
 
@@ -70,14 +73,14 @@ class SaveCaseDataView(View):
             request.session["case_data"] = case_data
             request.session.modified = True
 
-            print(f"Saved case data to session: {case_data}")
+            logger.debug(f"Saved case data to session: {case_data}")
 
             return JsonResponse({"success": True, "message": "Case data saved successfully"})
 
         except json.JSONDecodeError:
             return JsonResponse({"success": False, "error": "Invalid JSON data"}, status=400)
-        except Exception as e:
-            print(f"Error saving case data: {e}")
+        except Exception:
+            logger.exception("Error saving case data: {e}")
             return JsonResponse({"success": False, "error": "Server error occurred"}, status=500)
 
 

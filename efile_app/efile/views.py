@@ -1,9 +1,12 @@
-# views.py - Complete updated file for Illinois eFile system
+import logging
 
+# views.py - Complete updated file for Illinois eFile system
 from django.contrib import messages
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
+
+logger = logging.getLogger(__name__)
 
 # Preserving original imports for when we un-comment all the other methods.
 # from django.contrib.auth import authenticate, login
@@ -192,7 +195,7 @@ def expert_form(request):
 
     case_data = get_case_data(request)
 
-    print(f"Expert form view - case_data from session: {case_data}")
+    logger.debug("Expert form view - case_data from session: {case_data}")
 
     context = {"case_data": case_data}
 

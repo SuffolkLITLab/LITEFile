@@ -1,7 +1,11 @@
+import logging
+
 from django.contrib import messages
 from django.shortcuts import redirect, render
 
 from ..forms import EFileLoginForm
+
+logger = logging.getLogger(__name__)
 
 
 def efile_login(request):
@@ -17,29 +21,27 @@ def efile_login(request):
                 password = login_form.cleaned_data["password"]
                 api_key = getattr(settings, "SUFFOLK_EFILE_API_KEY", None)
                 try:
-                    response = requests.post(
-                        "https://efile-test.suffolklitlab.org/authenticate",
-                        json={
-                            "api_key": api_key,
-                            "tyler-illinois": {
-                                "username": email,
-                                "password": password,
-                            },
+                    url = "https://efile-test.suffolklitlab.org/authenticate"
+                    payload = {
+                        "api_key": api_key,
+                        "tyler-illinois": {
+                            "username": email,
+                            "password": password,
                         },
-                        timeout=10,
-                    )
-                    print(response.text, response.status_code)
+                    }
+
+                    response = requests.post(url, json=payload, timeout=10)
+
+                    logger.debug(response.text, response.status_code)
+
                     if response.status_code == 200:
-                        print(response)
                         data = response.json()
-                        print(data)
                         if data.get("tokens"):
                             # Save tokens in session
                             request.session["auth_tokens"] = data["tokens"]
                             # Save user email for use in forms
                             request.session["user_email"] = email
-
-                            print(request)
+                            logger.info("User authenticated and session tokens stored")
                             messages.success(request, "Successfully logged in!")
                             return redirect("/options/")
                         else:
@@ -47,6 +49,7 @@ def efile_login(request):
                     else:
                         messages.error(request, "Login service error. Please try again later.")
                 except Exception as e:
+                    logger.exception("Login request failed")
                     messages.error(request, f"Login failed: {str(e)}")
     context = {
         "login_form": login_form,

@@ -2,12 +2,15 @@
 API views for form configuration based on case-type-forms.yaml
 """
 
+import logging
 import os
 
 import yaml
 from django.views.decorators.http import require_http_methods
 
 from .base import APIResponseMixin
+
+logger = logging.getLogger(__name__)
 
 
 class ConfigAPIViews(APIResponseMixin):
@@ -24,7 +27,7 @@ class ConfigAPIViews(APIResponseMixin):
             with open(config_path) as file:
                 return yaml.safe_load(file)
         except Exception as e:
-            print(f"Error loading case-type-forms.yaml: {e}")
+            logger.exception("Error loading case-type-forms.yaml: %s", e)
             return None
 
     @staticmethod

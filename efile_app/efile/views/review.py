@@ -1,7 +1,11 @@
+import logging
+
 from django.contrib import messages
 from django.shortcuts import redirect, render
 
 from ..utils.case_data_utils import get_case_classification, get_case_data, get_name_sought_info, get_petitioner_info
+
+logger = logging.getLogger(__name__)
 
 
 def case_review(request):
@@ -9,7 +13,7 @@ def case_review(request):
 
     # Get case data from session
     case_data = get_case_data(request)
-    print(case_data)
+    logger.debug("Review view case_data %s", case_data)
 
     # Add user email from session if available and not already in case_data
     user_email = request.session.get("user_email")

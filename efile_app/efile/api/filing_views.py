@@ -3,12 +3,15 @@ API views for filing operations and document management
 """
 
 import json
+import logging
 
 import requests
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from .base import APIResponseMixin, get_auth_tokens
+
+logger = logging.getLogger(__name__)
 
 
 class FilingAPIViews(APIResponseMixin):
@@ -24,9 +27,14 @@ class FilingAPIViews(APIResponseMixin):
                 return FilingAPIViews.error_response("Not authenticated", 401)
 
             # API call to get user's filings
-            response = requests.get(
-                "https://suffolkefile.com/api/filings",
-                headers={"Authorization": f"Bearer {auth_tokens['access_token']}"},
+            api_url = "https://suffolkefile.com/api/filings"
+            headers = {"Authorization": f"Bearer {auth_tokens['access_token']}"}
+            logger.debug("GET %s header keys=%s", api_url, list(headers.keys()))
+            response = requests.get(api_url, headers=headers, timeout=30)
+            logger.debug(
+                "Get filings response: status=%s content_type=%s",
+                response.status_code,
+                response.headers.get("Content-Type"),
             )
 
             if response.status_code == 200:
@@ -58,10 +66,14 @@ class FilingAPIViews(APIResponseMixin):
                 return FilingAPIViews.error_response(f"Missing required fields: {', '.join(missing_fields)}")
 
             # API call to create filing
-            response = requests.post(
-                "https://suffolkefile.com/api/filings",
-                json=data,
-                headers={"Authorization": f"Bearer {auth_tokens['access_token']}"},
+            api_url = "https://suffolkefile.com/api/filings"
+            headers = {"Authorization": f"Bearer {auth_tokens['access_token']}"}
+            logger.debug("POST %s header keys=%s payload keys=%s", api_url, list(headers.keys()), list(data.keys()))
+            response = requests.post(api_url, json=data, headers=headers, timeout=30)
+            logger.debug(
+                "Create filing response: status=%s content_type=%s",
+                response.status_code,
+                response.headers.get("Content-Type"),
             )
 
             if response.status_code == 201:
@@ -85,9 +97,14 @@ class FilingAPIViews(APIResponseMixin):
                 return FilingAPIViews.error_response("Not authenticated", 401)
 
             # API call to get filing details
-            response = requests.get(
-                f"https://suffolkefile.com/api/filings/{filing_id}",
-                headers={"Authorization": f"Bearer {auth_tokens['access_token']}"},
+            api_url = f"https://suffolkefile.com/api/filings/{filing_id}"
+            headers = {"Authorization": f"Bearer {auth_tokens['access_token']}"}
+            logger.debug("GET %s header keys=%s", api_url, list(headers.keys()))
+            response = requests.get(api_url, headers=headers, timeout=30)
+            logger.debug(
+                "Filing detail response: status=%s content_type=%s",
+                response.status_code,
+                response.headers.get("Content-Type"),
             )
 
             if response.status_code == 200:
@@ -114,10 +131,14 @@ class FilingAPIViews(APIResponseMixin):
             data = json.loads(request.body)
 
             # API call to update filing
-            response = requests.put(
-                f"https://suffolkefile.com/api/filings/{filing_id}",
-                json=data,
-                headers={"Authorization": f"Bearer {auth_tokens['access_token']}"},
+            api_url = f"https://suffolkefile.com/api/filings/{filing_id}"
+            headers = {"Authorization": f"Bearer {auth_tokens['access_token']}"}
+            logger.debug("PUT %s header keys=%s payload keys=%s", api_url, list(headers.keys()), list(data.keys()))
+            response = requests.put(api_url, json=data, headers=headers, timeout=30)
+            logger.debug(
+                "Update filing response: status=%s content_type=%s",
+                response.status_code,
+                response.headers.get("Content-Type"),
             )
 
             if response.status_code == 200:
@@ -144,9 +165,14 @@ class FilingAPIViews(APIResponseMixin):
                 return FilingAPIViews.error_response("Not authenticated", 401)
 
             # API call to delete filing
-            response = requests.delete(
-                f"https://suffolkefile.com/api/filings/{filing_id}",
-                headers={"Authorization": f"Bearer {auth_tokens['access_token']}"},
+            api_url = f"https://suffolkefile.com/api/filings/{filing_id}"
+            headers = {"Authorization": f"Bearer {auth_tokens['access_token']}"}
+            logger.debug("DELETE %s header keys=%s", api_url, list(headers.keys()))
+            response = requests.delete(api_url, headers=headers, timeout=30)
+            logger.debug(
+                "Delete filing response: status=%s content_type=%s",
+                response.status_code,
+                response.headers.get("Content-Type"),
             )
 
             if response.status_code == 204:
