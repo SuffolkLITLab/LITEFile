@@ -1,8 +1,12 @@
+import logging
+
 import requests
 from django.contrib import messages
 from django.shortcuts import redirect, render
 
 from ..forms import EFileRegistrationForm
+
+logger = logging.getLogger(__name__)
 
 
 def efile_register(request):
@@ -74,7 +78,7 @@ def efile_register(request):
         ]
         for field in required_fields:
             value = form.data.get(field, "").strip()
-            print(f"Checking field: {field}", value)
+            logger.debug("Checking field presence: %s has_value=%s", field, bool(value))
             if not value:
                 form.add_error(field, f"{field.replace('_', ' ').title()} is required.")
 
@@ -138,12 +142,23 @@ def efile_register(request):
                 api_key = getattr(settings, "SUFFOLK_EFILE_API_KEY", None)
                 headers = {"x-api-key": api_key} if api_key else {}
                 endpoint = f"https://efile-test.suffolklitlab.org/jurisdictions/{state_full}/adminusers/users"
-                print("[DEBUG] Endpoint:", endpoint)
-                print("[DEBUG] Headers:", headers)
-                print("[DEBUG] Payload:", data)
+
                 response = requests.post(endpoint, json=data, headers=headers, timeout=10)
-                print("[DEBUG] Response status:", response.status_code)
-                print("[DEBUG] Response body:", response.text)
+
+                logger.debug(
+                    "POST %s with header keys=%s payload keys=%s", endpoint, list(headers.keys()), list(data.keys())
+                )
+                logger.debug("Headers: %s", headers)
+                logger.debug("Payload: %s", data)
+
+                response = requests.post(endpoint, json=data, headers=headers, timeout=10)
+
+                logger.debug(
+                    "Registration response: status=%s content_type=%s",
+                    response.status_code,
+                    response.headers.get("Content-Type"),
+                )
+                logger.debug("Response body: %s", response.text)
                 if response.status_code == 201:
                     content_type = response.headers.get("Content-Type", "")
                     tokens = response.json().get("tokens") if content_type.startswith("application/json") else None
@@ -162,7 +177,7 @@ def efile_register(request):
                         error_msg = response.text
                     messages.error(request, f"Registration failed: {error_msg}")
             except Exception as e:
-                print("[DEBUG] Exception:", str(e))
+                logger.exception("Registration request failed")
                 messages.error(request, f"Registration failed: {str(e)}")
         else:
             messages.error(request, "Please correct the errors below.")

@@ -4,8 +4,12 @@ Uses base-case-types.yaml and state-specific overrides
 """
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
-from .base import APIResponseMixin, get_auth_tokens, validate_request
+from .base import APIResponseMixin
 from .case_form_views import CaseFormAPIViews
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class ConfigAPIViews(APIResponseMixin):
     """API views for form configuration - delegates to CaseFormAPIViews for jurisdiction-aware configs"""
@@ -85,9 +89,9 @@ class ConfigAPIViews(APIResponseMixin):
                 'description': case_config.get('description', ''),
                 'validation_rules': case_config.get('validation_rules', [])
             }
-            
+
             return ConfigAPIViews.success_response(config)
-                
+
         except Exception as e:
             return ConfigAPIViews.error_response(f"Error: {str(e)}")
 

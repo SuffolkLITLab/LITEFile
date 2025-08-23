@@ -12,22 +12,23 @@ repos:
     hooks:
       - id: ty
         name: ty (type check)
-        entry: uv run ty check
+        entry: bash -lc
         language: system
         types: [python]
-        stages: [pre-commit]
         pass_filenames: false
+        args:
+          - cd efile_app && uv run ty check
 
   # Run tests on pre-push to keep commits snappy
   - repo: local
     hooks:
       - id: pytest
         name: pytest (pre-push)
-        entry: uv run pytest
+        entry: bash -lc
         language: system
         stages: [pre-push]
         pass_filenames: false
         args:
-          - -q
+          - cd efile_app && uv run pytest -q
           # If needed, override Django settings here instead of pyproject:
           # - --ds=efile.settings

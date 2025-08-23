@@ -6,17 +6,22 @@ Provides case-specific form stru        case_type_name_lower = case_type_name.lo
         for case_types in case_types_sources:based on document type selection
 Uses jurisdiction-aware configuration system with base-case-types.yaml and state overrides
 """
-from django.http import JsonResponse
-from django.views.decorators.http import require_http_methods
-from .base import APIResponseMixin
-import yaml
+
+import logging
 import os
 from functools import lru_cache
+
+import yaml
+from django.views.decorators.http import require_http_methods
+
+from .base import APIResponseMixin
+
+logger = logging.getLogger(__name__)
 
 
 class CaseFormAPIViews(APIResponseMixin):
     """API views for dynamic case form configuration"""
-    
+
     @staticmethod
     @lru_cache(maxsize=32)
     def _load_base_configuration():
@@ -30,7 +35,7 @@ class CaseFormAPIViews(APIResponseMixin):
             with open(config_path, 'r', encoding='utf-8') as file:
                 return yaml.safe_load(file) or {}
         except Exception as e:
-            print(f"Error loading base-case-types.yaml: {e}")
+            logger.exception(f"Error loading base-case-types.yaml: {e}")
             return {}
     
     @staticmethod
@@ -56,7 +61,7 @@ class CaseFormAPIViews(APIResponseMixin):
             return CaseFormAPIViews._deep_merge_configs(base_config, jurisdiction_config)
             
         except Exception as e:
-            print(f"Error loading jurisdiction configuration for {jurisdiction}: {e}")
+            logger.exeception(f"Error loading jurisdiction configuration for {jurisdiction}: {e}")
             return CaseFormAPIViews._load_base_configuration()
     
     @staticmethod
@@ -198,9 +203,9 @@ class CaseFormAPIViews(APIResponseMixin):
                 'show_services_section': False,  # Services are handled separately via API
                 'validation_rules': case_config.get('validation_rules', [])
             }
-            
+
             return CaseFormAPIViews.success_response(form_config)
-            
+
         except Exception as e:
             return CaseFormAPIViews.error_response(f"Error retrieving case form configuration: {str(e)}")
     
@@ -266,5 +271,5 @@ class CaseFormAPIViews(APIResponseMixin):
             return sections
             
         except Exception as e:
-            print(f"Error applying court-specific config: {e}")
+            logger.exception(f"Error applying court-specific config: {e}")
             return sections

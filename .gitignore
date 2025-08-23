@@ -111,6 +111,10 @@ celerybeat.pid
 # Environments
 .env
 .venv
+.env.staging
+.env.prod
+.env.production
+.env.local
 env/
 venv/
 ENV/
@@ -150,3 +154,7 @@ cython_debug/
 
 # Logs
 *.log
+
+# Sqlite database files
+efile_app/db.sqlite3
+efile_app/db.sqlite3-journal

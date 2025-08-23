@@ -83,10 +83,7 @@
               >Name: <span class="text-danger">*</span></span
             >
             <div class="d-flex align-items-center w-100">
-              <span class="review-text" id="userNameText"
-                >{{ case_data.first_name|default:'' }}{% if case_data.last_name
-                %} {{ case_data.last_name }}{% endif %}</span
-              >
+              <span class="review-text" id="userNameText">{{ case_data.first_name|default:'' }}{% if case_data.last_name %} {{ case_data.last_name }}{% endif %}</span>
               <input
                 type="text"
                 id="userNameInput"
@@ -959,13 +956,11 @@
             caseData = JSON.parse(caseDataElement.textContent);
           }
 
-          // Get upload data and refresh URLs to ensure they're valid
+          // Get upload data to obtain PDF URL
           const uploadResponse = await fetch("/api/get-upload-data/");
           let uploadData = {};
           if (uploadResponse.ok) {
             uploadData = await uploadResponse.json();
-            // Refresh document URLs to ensure they're not expired
-            uploadData = await refreshDocumentUrls(uploadData);
           } else {
             // Upload data fetch failed
           }
@@ -1254,37 +1249,6 @@
       function hideMessages() {
         document.getElementById("errorMessage").style.display = "none";
         document.getElementById("successMessage").style.display = "none";
-      }
-
-      // Function to refresh document URLs to ensure they're not expired
-      async function refreshDocumentUrls(uploadData) {
-        try {
-          const response = await fetch("/api/refresh-document-urls/", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "X-CSRFToken": getCSRFToken(),
-            },
-            body: JSON.stringify(uploadData),
-          });
-
-          if (response.ok) {
-            const refreshedData = await response.json();
-            if (refreshedData.success) {
-              console.log("Document URLs refreshed successfully");
-              return refreshedData.data;
-            } else {
-              console.warn("Failed to refresh URLs:", refreshedData.error);
-              return uploadData; // Return original data as fallback
-            }
-          } else {
-            console.warn("URL refresh request failed, using original URLs");
-            return uploadData; // Return original data as fallback
-          }
-        } catch (error) {
-          console.warn("Error refreshing URLs:", error);
-          return uploadData; // Return original data as fallback
-        }
       }
     </script>
   </body>
