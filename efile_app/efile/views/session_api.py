@@ -1,7 +1,9 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
+from django.conf import settings
 import json
+import requests
 from ..utils.zip_to_county_il import get_county_by_zip
 
 
@@ -137,39 +139,154 @@ def submit_final_filing(request):
         # Get all data from session
         case_data = request.session.get('case_data', {})
         upload_data = request.session.get('upload_data', {})
+        auth_tokens = request.session.get('auth_tokens', {})
+        
+        print('Debug - Session data:')
+        print(f'  - case_data keys: {list(case_data.keys()) if case_data else "Empty"}')
+        print(f'  - upload_data keys: {list(upload_data.keys()) if upload_data else "Empty"}')
+        print(f'  - auth_tokens keys: {list(auth_tokens.keys()) if auth_tokens else "Empty"}')
         
         if not case_data:
             return JsonResponse({
                 'success': False,
-                'error': 'No case data found in session. Please go back and resubmit your case information.'
+                'error': 'No case data found in session. Please go back and resubmit your case information.',
+                'debug_info': 'Session case_data is empty'
             }, status=400)
         
         if not upload_data or not upload_data.get('files'):
             return JsonResponse({
                 'success': False,
-                'error': 'No upload data found in session. Please go back and resubmit your documents.'
+                'error': 'No upload data found in session. Please go back and resubmit your documents.',
+                'debug_info': f'Upload data: {upload_data}'
             }, status=400)
         
-        # TODO: Integrate with actual efile API submission
-        # This is where you would call the Suffolk LIT Lab efile API
-        # to actually submit the case with all the collected data
+        # Extract efile_data from the request
+        efile_data = data.get('efile_data', {})
+        if not efile_data:
+            return JsonResponse({
+                'success': False,
+                'error': 'No efile data provided in request'
+            }, status=400)
         
-        # For now, simulate successful submission
-        # In production, you'd replace this with actual API calls
+        # Log the complete request data for debugging
+        print('Complete request data received:')
+        print(f'  - confirm_submission: {data.get("confirm_submission")}')
+        print(f'  - efile_data keys: {list(efile_data.keys()) if isinstance(efile_data, dict) else "Not a dict"}')
+        print(f'  - efile_data: {json.dumps(efile_data, indent=2)}')
         
-        # Clear session data after successful submission
-        if 'case_data' in request.session:
-            del request.session['case_data']
-        if 'upload_data' in request.session:
-            del request.session['upload_data']
-        request.session.modified = True
+        # Validate required fields in efile_data
+        required_fields = ['al_court_bundle']  # Based on typical Suffolk API requirements
+        missing_fields = [field for field in required_fields if field not in efile_data]
+        if missing_fields:
+            return JsonResponse({
+                'success': False,
+                'error': f'Missing required fields in efile_data: {missing_fields}'
+            }, status=400)
         
-        return JsonResponse({
-            'success': True,
-            'message': 'Filing submitted successfully',
-            'redirect_url': '/filing-confirmation/',
-            'case_id': 'TEMP_' + str(hash(str(case_data)))[:8]  # Temporary case ID
-        })
+        # Get jurisdiction and court info from case data
+        jurisdiction_id = case_data.get('jurisdiction_id', 'illinois')  # Default to illinois
+        court_id = case_data.get('court', '')
+        
+        if not court_id:
+            return JsonResponse({
+                'success': False,
+                'error': 'Court ID is required for filing submission'
+            }, status=400)
+        
+        # Construct the Suffolk LIT Lab API endpoint
+        api_url = f"https://efile-test.suffolklitlab.org/jurisdictions/{jurisdiction_id}/filingreview/courts/{court_id}/filings"
+        
+        # Make the API call to Suffolk LIT Lab
+        import requests
+        
+        try:
+            # Get API key from Django settings
+            api_key = getattr(settings, 'SUFFOLK_EFILE_API_KEY', '')
+            
+            # Get Tyler token from session (similar to auth_views.py)
+            auth_tokens = request.session.get('auth_tokens', {})
+            tyler_token = (auth_tokens.get(f'TYLER-TOKEN-{jurisdiction_id.upper()}') or 
+                          auth_tokens.get(f'tyler_token_{jurisdiction_id}') or
+                          auth_tokens.get(f'tyler-token-{jurisdiction_id}'))
+            
+            headers = {
+                'Content-Type': 'application/json',
+                'User-Agent': f'{jurisdiction_id.title()}-eFile-Client/1.0',
+            }
+            
+            if api_key:
+                headers['X-API-Key'] = api_key
+                
+            # Add Tyler token if available (following auth_views.py pattern)
+            if tyler_token:
+                headers[f'TYLER-TOKEN-{jurisdiction_id.upper()}'] = tyler_token
+            else:
+                print(f"Warning: No Tyler token found for jurisdiction '{jurisdiction_id}' in filing submission")
+            
+            print('Submitting to Suffolk LIT Lab API at:', api_url)
+            print('With headers:', headers)
+            print('API Key present:', bool(api_key))
+            print('Tyler Token present:', bool(tyler_token))
+            print('Request payload:', json.dumps(efile_data, indent=2))
+            
+            response = requests.post(
+                api_url,
+                json=efile_data,
+                headers=headers,
+            )
+            
+            print(f'Response status code: {response.status_code}')
+            print(f'Response headers: {dict(response.headers)}')
+            print(f'Response content: {response.text}')
+            
+            if response.status_code == 200 or response.status_code == 201:
+                response_data = response.json()
+                
+                # Clear session data after successful submission
+                if 'case_data' in request.session:
+                    del request.session['case_data']
+                if 'upload_data' in request.session:
+                    del request.session['upload_data']
+                request.session.modified = True
+                
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Filing submitted successfully',
+                    'redirect_url': '/filing-confirmation/',
+                    'api_response': response_data
+                })
+            else:
+                # Handle API error responses
+                print(f'API Error - Status: {response.status_code}')
+                print(f'API Error - Response: {response.text}')
+                
+                try:
+                    error_data = response.json()
+                    error_message = error_data.get('error', f'API returned status {response.status_code}')
+                    
+                    # For 400 errors, include more details
+                    if response.status_code == 400:
+                        validation_errors = error_data.get('validation_errors', error_data.get('errors', []))
+                        if validation_errors:
+                            error_message += f' - Validation errors: {validation_errors}'
+                            
+                except json.JSONDecodeError:
+                    error_message = f'API returned status {response.status_code} - Response: {response.text}'
+                except Exception as parse_error:
+                    error_message = f'API returned status {response.status_code} - Could not parse response: {str(parse_error)}'
+                
+                return JsonResponse({
+                    'success': False,
+                    'error': f'Filing submission failed: {error_message}',
+                    'api_status_code': response.status_code,
+                    'api_response': response.text[:500] if response.text else 'No response body'
+                }, status=response.status_code)
+                
+        except requests.RequestException as e:
+            return JsonResponse({
+                'success': False,
+                'error': f'Network error during filing submission: {str(e)}'
+            }, status=500)
         
     except (json.JSONDecodeError, Exception) as e:
         return JsonResponse({

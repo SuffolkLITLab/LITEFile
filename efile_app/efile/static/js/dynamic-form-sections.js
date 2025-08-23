@@ -42,18 +42,69 @@ class DynamicFormSections {
                 attributes: true, 
                 attributeFilter: ['value'] 
             });
-        } 
+        }
+        
+        // Listen for court changes to reload configuration with court-specific modifications
+        const courtSelect = document.getElementById('court');
+        if (courtSelect) {
+            courtSelect.addEventListener('change', () => {
+                // If we have a case type selected, reload the configuration and re-render
+                if (caseTypeSelect && caseTypeSelect.value) {
+                    this.handleCaseTypeChange();
+                }
+            });
+        }
     }
 
     async loadConfiguration() {
         try {
-            const response = await fetch('/api/case-type-config/');
+            // Get current court selection to include in the request
+            const courtDropdown = document.getElementById('court');
+            const caseTypeDropdown = document.getElementById('case_type');
+            const court = courtDropdown ? courtDropdown.value : '';
+            const caseTypeValue = caseTypeDropdown ? caseTypeDropdown.value : '';
+            const caseTypeText = caseTypeDropdown && caseTypeDropdown.selectedIndex >= 0 
+                ? caseTypeDropdown.options[caseTypeDropdown.selectedIndex].text 
+                : '';
+            
+            // Only make API call if we have a case type (required parameter)
+            if (!caseTypeValue || !caseTypeText) {
+                this.config = this.getDefaultConfig();
+                return;
+            }
+            
+            // Use form-config endpoint which applies court-specific modifications
+            let url = '/api/form-config/';
+            const params = new URLSearchParams();
+            
+            params.append('case_type', caseTypeText); // Use text for keyword matching
+            if (court) {
+                params.append('court', court);
+            }
+            params.append('jurisdiction', 'illinois'); // Default to Illinois
+            
+            url += '?' + params.toString();
+            
+            const response = await fetch(url);
             const result = await response.json();
             
-            if (result.success) {
-                this.config = result.config;
+            if (result.success && result.data) {
+                // Transform the response to match the expected config structure
+                this.config = {
+                    case_types: {}
+                };
+                
+                // If we have sections, create a case type config structure
+                if (result.data.sections && Object.keys(result.data.sections).length > 0) {
+                    this.config.case_types[result.data.case_type_name || 'name_change'] = {
+                        keywords: ['name change', 'name petition'],
+                        sections: result.data.sections,
+                        description: result.data.description || '',
+                        validation_rules: result.data.validation_rules || []
+                    };
+                }
             } else {
-                console.error('Failed to load configuration:', result.error);
+                console.error('Failed to load configuration:', result.error || 'Unknown error');
                 this.config = this.getDefaultConfig();
             }
         } catch (error) {
@@ -127,14 +178,10 @@ class DynamicFormSections {
         };
     }
 
-    handleCaseTypeChange() {
+    async handleCaseTypeChange() {
         const caseTypeSelect = document.getElementById('case_type');
         
         if (!caseTypeSelect) {
-            return;
-        }
-        
-        if (!this.config) {
             return;
         }
         
@@ -161,6 +208,13 @@ class DynamicFormSections {
                 this.hideDynamicSections();
                 return;
             }
+        }
+        
+        // Reload configuration with current court and case type to get court-specific modifications
+        await this.loadConfiguration();
+        
+        if (!this.config) {
+            return;
         }
         
         const caseTypeConfig = this.findCaseTypeConfig(caseTypeText);

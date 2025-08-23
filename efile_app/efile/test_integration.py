@@ -110,13 +110,13 @@ class TestUtilityFunctions:
         """Test that case form configuration can be loaded."""
         try:
             from efile.api.case_form_views import CaseFormAPIViews
-            # Should be able to load case type forms without error
-            forms_config = CaseFormAPIViews._load_case_type_forms()
-            assert forms_config is not None
-            assert 'case_types' in forms_config
+            # Should be able to load jurisdiction configuration without error
+            config = CaseFormAPIViews._load_jurisdiction_configuration('illinois')
+            assert config is not None
+            assert ('case_types' in config or 'base_case_types' in config)
         except Exception:
-            # If case-type-forms.yaml doesn't exist, skip this test
-            pytest.skip("case-type-forms.yaml not found")
+            # If jurisdiction configuration doesn't exist, skip this test
+            pytest.skip("Jurisdiction configuration not found")
     
     def test_dropdown_api_views_can_be_imported(self):
         """Test that dropdown API views can be imported."""

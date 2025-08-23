@@ -1,0 +1,108 @@
+# Illinois-specific Case Type Configuration
+# This file extends the base configuration with Illinois-specific settings
+
+# State metadata
+state:
+  code: "IL"
+  name: "Illinois"
+  jurisdiction: "illinois"
+
+# Inherit from base case types and customize
+inherits_from: "base-case-types.yaml"
+
+# Illinois-specific overrides and extensions
+case_types:
+  name_change:
+    # Inherit from base but add Illinois-specific requirements
+    extends: "base_case_types.name_change"
+    
+    # Illinois-specific field modifications (this will be handled by court-specific logic)
+    # Don't override the sections here, let the base configuration provide the structure
+            
+    # Illinois-specific validation rules
+    validation_rules:
+      - field: "petitioner_first_name"
+        rule: "no_special_chars"
+        message: "First name cannot contain special characters"
+      - field: "new_last_name" 
+        rule: "max_length"
+        value: 50
+        message: "Last name cannot exceed 50 characters"
+
+  divorce:
+    extends: "base_case_types.divorce"
+    
+    # Illinois-specific additions
+    sections:
+      parties:
+        fields:
+          - section_title: "Children"
+            required: false
+            conditional_requirements:
+              show_when_field: "has_children"
+              show_when_value: true
+            fields:
+              - name: "has_children"
+                label: "Are there minor children of this marriage?"
+                type: "radio"
+                required: true
+                column_width: "col-12"
+                options:
+                  - value: true
+                    label: "Yes"
+                  - value: false
+                    label: "No"
+              - name: "child_count"
+                label: "Number of minor children"
+                type: "number"
+                required: true
+                column_width: "col-6"
+                min: 1
+                max: 10
+                conditional_display:
+                  show_when_field: "has_children"
+                  show_when_value: true
+
+# Illinois-specific court mappings
+court_specific_requirements:
+  "cook:cd1":  # Cook County Circuit Court - County Division
+    case_types:
+      name_change:
+        # Make "Name Sought" section required for Cook County CD1
+        field_modifications:
+          - field_group: "Name Sought"
+            modifications:
+              conditional_requirements:
+                required_for_courts: ["cook:cd1"]
+        additional_fields:
+          # - name: "reason_for_change"
+          #   label: "Reason for Name Change"
+          #   type: "textarea"
+          #   required: true
+          #   column_width: "col-12"
+          #   placeholder: "Please explain the reason for requesting this name change"
+
+  # For other Cook County courts, hide the "Name Sought" section
+  "cook:chd1":  # Cook County Circuit Court - Chancery Division
+    case_types:
+      name_change:
+        field_modifications:
+          - field_group: "Name Sought"
+            modifications:
+              hidden: true
+  
+  "cook:pr1":   # Cook County Circuit Court - Probate Division
+    case_types:
+      name_change:
+        field_modifications:
+          - field_group: "Name Sought"
+            modifications:
+              hidden: true
+
+  "cook:dr1":  # Cook County Circuit Court - Domestic Relations
+    case_types:
+      divorce:
+        additional_validation:
+          - field: "marriage_date"
+            rule: "required"
+            message: "Marriage date is required in Cook County Domestic Relations"

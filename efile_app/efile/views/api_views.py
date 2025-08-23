@@ -1,4 +1,5 @@
 import json
+import requests
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.utils.decorators import method_decorator
@@ -100,6 +101,55 @@ class SaveCaseDataView(View):
             }, status=500)
 
 
+@method_decorator(ensure_csrf_cookie, name='dispatch')
+class GetFilingComponentsView(View):
+    """API endpoint to get filing components from Suffolk LIT Lab API (proxy to avoid CORS)."""
+    
+    def get(self, request):
+        try:
+            # Get case data from session to determine court and filing type
+            case_data = request.session.get('case_data', {})
+            
+            # Extract court and filing_type_id from case data
+            court = case_data.get('court', 'cook:cd')
+            filing_type_id = case_data.get('filing_type', '78690')
+            
+            print(f"Getting filing components for court: {court}, filing_type: {filing_type_id}")
+            
+            # Build the Suffolk LIT Lab API URL
+            api_url = f"https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/{court}/filing_types/{filing_type_id}/filing_components"
+            
+            # Make the API request to Suffolk LIT Lab
+            response = requests.get(api_url, timeout=10)
+            
+            if response.status_code == 200:
+                filing_data = response.json()
+                return JsonResponse({
+                    'success': True,
+                    'data': filing_data
+                })
+            else:
+                print(f"Suffolk API error: {response.status_code} - {response.text}")
+                return JsonResponse({
+                    'success': False,
+                    'error': f'Failed to fetch filing components: {response.status_code}'
+                }, status=response.status_code)
+            
+        except requests.RequestException as e:
+            print(f"Request error: {e}")
+            return JsonResponse({
+                'success': False,
+                'error': 'Failed to connect to filing components API'
+            }, status=503)
+        except Exception as e:
+            print(f"Error getting filing components: {e}")
+            return JsonResponse({
+                'success': False,
+                'error': 'Server error occurred'
+            }, status=500)
+
+
 # Function-based view wrapper for easy URL mapping
 get_case_data = GetCaseDataView.as_view()
 save_case_data = SaveCaseDataView.as_view()
+get_filing_components = GetFilingComponentsView.as_view()

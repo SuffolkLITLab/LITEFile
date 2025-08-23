@@ -8,7 +8,8 @@ from .views.upload import efile_upload, create_filing, upload_documents, test_s3
 from .views.review import case_review
 from .views.confirmation import filing_confirmation
 from .views.session_api import save_form_data_to_session, save_upload_data_to_session, get_upload_data_from_session, submit_final_filing, clear_session_data, debug_session_data
-from .views.api_views import get_case_data
+from .views.api_views import get_case_data, get_filing_components
+from .views.jurisdiction import switch_jurisdiction, get_current_jurisdiction
 from . import views
 
 urlpatterns = [
@@ -23,6 +24,7 @@ urlpatterns = [
     
     # Session API endpoints
     path('api/get-case-data/', get_case_data, name='get_case_data_from_session'),
+    path('api/get-filing-components/', get_filing_components, name='get_filing_components'),
     path('api/save-case-data/', save_form_data_to_session, name='save_form_data_to_session'),
     path('api/save-upload-data/', save_upload_data_to_session, name='save_upload_data_to_session'),
     path('api/get-upload-data/', get_upload_data_from_session, name='get_upload_data_from_session'),
@@ -30,6 +32,10 @@ urlpatterns = [
     path('api/clear-session/', clear_session_data, name='clear_session_data'),
     path('api/debug-session/', debug_session_data, name='debug_session_data'),
     path('api/debug-session-data/', debug_session_data, name='debug_session_data'),
+    
+    # Jurisdiction management API
+    path('api/jurisdiction/switch/', switch_jurisdiction, name='switch_jurisdiction'),
+    path('api/jurisdiction/current/', get_current_jurisdiction, name='get_current_jurisdiction'),
     
     # API endpoints for upload functionality
     path('api/create-filing/', create_filing, name='create_filing'),

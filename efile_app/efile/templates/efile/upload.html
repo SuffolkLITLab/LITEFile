@@ -38,8 +38,19 @@
             <form id="uploadForm" enctype="multipart/form-data">
                 {% csrf_token %}
                 
+                <!-- Document Requirements -->
+                <div class="requirements-section mb-4">
+                    <h5>Document Requirements</h5>
+                    <div class="requirement-item">
+                        <strong>Format:</strong> All documents must be in PDF format with text that can be read clearly.
+                    </div>
+                    <div class="requirement-item">
+                        <strong>Size Limit:</strong> Each document must be under 10MB.
+                    </div>
+                </div>
+
                 <!-- Lead Document Section -->
-                <div class="document-section mb-4">
+                <div class="document-section mb-4" id="leadDocumentSection">
                     <label class="form-label document-label">
                         <strong>Lead Document</strong> <span class="required">*</span>
                     </label>
@@ -53,16 +64,36 @@
                         </div>
                         <input type="file" id="leadDocument" name="lead_document" accept=".pdf" class="file-input" required>
                     </div>
-                </div>
-
-                <!-- Document Requirements -->
-                <div class="requirements-section mb-4">
-                    <h5>Document Requirements</h5>
-                    <div class="requirement-item">
-                        <strong>Format:</strong> All documents must be in PDF format with text that can be read clearly.
-                    </div>
-                    <div class="requirement-item">
-                        <strong>Size Limit:</strong> Each document must be under 10MB.
+                    
+                    <!-- Filing Component for Lead Document -->
+                    <div class="document-options mt-3" id="leadDocumentOptions" style="display: none;">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="leadFilingComponent" class="form-label"><strong>Filing Component</strong> <span class="required">*</span></label>
+                                <select class="form-select filing-component-select" id="leadFilingComponent" name="lead_filing_component" required>
+                                    <option value="">Loading filing components...</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="leadCertifiedCopies" name="lead_certified_copies">
+                                    <label class="form-check-label" for="leadCertifiedCopies">
+                                        Request certified copies when filed
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="leadSealedConfidential" name="lead_sealed_confidential">
+                                    <label class="form-check-label" for="leadSealedConfidential">
+                                        Request documents be sealed/confidential
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -81,41 +112,10 @@
                         </div>
                         <input type="file" id="supportingDocuments" name="supporting_documents" accept=".pdf" class="file-input" multiple>
                     </div>
-                </div>
-
-                <!-- Document Options -->
-                <div class="document-options mb-4">
-                    <h5>Document Options</h5>
                     
-                    <div class="row">
-                        <div class="col-md-6">
-                            <label for="filingComponent" class="form-label"><strong>Filing Component</strong> <span class="required">*</span></label>
-                            <select class="form-select" id="filingComponent" name="filing_component" required>
-                                <option value="">Select a document type</option>
-                                <option value="lead">Lead Document</option>
-                                <option value="supporting">Supporting Document</option>
-                                <option value="exhibit">Exhibit</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="row mt-3">
-                        <div class="col-md-6">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="certifiedCopies" name="certified_copies">
-                                <label class="form-check-label" for="certifiedCopies">
-                                    Request certified copies when filed
-                                </label>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="sealedConfidential" name="sealed_confidential">
-                                <label class="form-check-label" for="sealedConfidential">
-                                    Request documents be sealed/confidential
-                                </label>
-                            </div>
-                        </div>
+                    <!-- Container for supporting document options (will be populated dynamically) -->
+                    <div id="supportingDocumentsOptions">
+                        <!-- Supporting document filing components will be added here dynamically -->
                     </div>
                 </div>
 
@@ -162,5 +162,173 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script src="{% static 'js/upload-handler.js' %}"></script>
+    
+    <script>
+        // Store filing components globally once loaded
+        let globalFilingComponents = [];
+
+        // Load filing components when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadFilingComponents();
+        });
+
+        async function loadFilingComponents() {
+            try {
+                // Use our backend API endpoint instead of direct Suffolk API call to avoid CORS
+                const response = await fetch('/api/get-filing-components/', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFToken()
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to load filing components: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                console.log('Filing components API response:', result);
+                
+                if (result.success && result.data) {
+                    globalFilingComponents = processFilingComponentsData(result.data);
+                    populateAllFilingComponentDropdowns();
+                } else {
+                    console.error('API returned error:', result.error);
+                    populateFilingComponentDropdownFallback();
+                }
+                
+            } catch (error) {
+                console.error('Error loading filing components:', error);
+                // Fallback to default options
+                populateFilingComponentDropdownFallback();
+            }
+        }
+
+        function processFilingComponentsData(data) {
+            let components = [];
+            
+            // Handle different possible API response structures
+            if (Array.isArray(data)) {
+                components = data;
+            } else if (data && typeof data === 'object') {
+                components = data.data || data.filing_components || data.components || data.results || [];
+                if (!Array.isArray(components) && typeof components === 'object') {
+                    // If components is an object, try to extract array values
+                    components = Object.values(components);
+                }
+            }
+            
+            console.log('Processing components:', components);
+            
+            // Process and normalize components
+            return components.map(component => {
+                // Try different possible field names for ID
+                const id = component.id || component.value || component.code || component.filing_component_id;
+                
+                // Try different possible field names for display text
+                const name = component.name || component.description || component.label || 
+                            component.display_name || component.filing_component_name || 
+                            component.text || `Component ${id}`;
+                
+                return { id, name };
+            });
+        }
+
+        function populateAllFilingComponentDropdowns() {
+            // Populate lead document dropdown
+            populateFilingComponentDropdown(document.getElementById('leadFilingComponent'));
+            
+            // Populate any existing supporting document dropdowns
+            const supportingDropdowns = document.querySelectorAll('.supporting-filing-component');
+            supportingDropdowns.forEach(dropdown => {
+                populateFilingComponentDropdown(dropdown);
+            });
+        }
+
+        function populateFilingComponentDropdown(dropdown) {
+            if (!dropdown) return;
+            
+            // Clear existing options
+            dropdown.innerHTML = '<option value="">Select a document type</option>';
+            
+            // Add options from global components
+            if (globalFilingComponents.length > 0) {
+                globalFilingComponents.forEach(component => {
+                    const option = document.createElement('option');
+                    option.value = component.id;
+                    option.textContent = component.name;
+                    dropdown.appendChild(option);
+                });
+                
+                console.log(`Added ${globalFilingComponents.length} filing components to dropdown`);
+            } else {
+                console.log('No valid components found in API response');
+                populateDropdownFallback(dropdown);
+            }
+        }
+
+        function populateDropdownFallback(dropdown) {
+            if (!dropdown) return;
+            
+            dropdown.innerHTML = `
+                <option value="">Select a document type</option>
+                <option value="lead">Lead Document</option>
+                <option value="supporting">Supporting Document</option>
+                <option value="exhibit">Exhibit</option>
+            `;
+        }
+
+        function populateFilingComponentDropdownFallback() {
+            const leadDropdown = document.getElementById('leadFilingComponent');
+            populateDropdownFallback(leadDropdown);
+            
+            const supportingDropdowns = document.querySelectorAll('.supporting-filing-component');
+            supportingDropdowns.forEach(dropdown => {
+                populateDropdownFallback(dropdown);
+            });
+        }
+
+        // Helper function to get CSRF token
+        function getCSRFToken() {
+            return document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                   document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        }
+
+        function createSupportingDocumentOptions(index, fileName) {
+            return `
+                <div class="document-options mt-3 supporting-document-options" id="supportingDocumentOptions${index}">
+                    <h6 class="mb-3"><strong>Options for: ${fileName}</strong></h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="supportingFilingComponent${index}" class="form-label"><strong>Filing Component</strong> <span class="required">*</span></label>
+                            <select class="form-select supporting-filing-component" id="supportingFilingComponent${index}" name="supporting_filing_component_${index}" required>
+                                <option value="">Select a document type</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="supportingCertifiedCopies${index}" name="supporting_certified_copies_${index}">
+                                <label class="form-check-label" for="supportingCertifiedCopies${index}">
+                                    Request certified copies when filed
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="supportingSealedConfidential${index}" name="supporting_sealed_confidential_${index}">
+                                <label class="form-check-label" for="supportingSealedConfidential${index}">
+                                    Request documents be sealed/confidential
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    </script>
 </body>
 </html>

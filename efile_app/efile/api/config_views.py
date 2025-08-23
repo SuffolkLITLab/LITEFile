@@ -1,52 +1,39 @@
 """
-API views for form configuration based on case-type-forms.yaml
+API views for form configuration based on jurisdiction-aware configuration system
+Uses base-case-types.yaml and state-specific overrides
 """
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from .base import APIResponseMixin, get_auth_tokens, validate_request
-import yaml
-import os
-
+from .case_form_views import CaseFormAPIViews
 
 class ConfigAPIViews(APIResponseMixin):
-    """API views for form configuration"""
+    """API views for form configuration - delegates to CaseFormAPIViews for jurisdiction-aware configs"""
     
     @staticmethod
-    def _load_case_type_forms():
-        """Load case type forms configuration from YAML"""
+    def _find_config_key_for_case_type(case_type_id, jurisdiction='illinois'):
+        """Find the config key (like 'name_change') that corresponds to a case type ID (like '78346')"""
         try:
-            config_path = os.path.join(
-                os.path.dirname(os.path.dirname(__file__)),
-                'static', 'config', 'case-type-forms.yaml'
-            )
+            config = CaseFormAPIViews._load_jurisdiction_configuration(jurisdiction)
+            case_types_sources = [
+                config.get('case_types', {}),
+                config.get('base_case_types', {})
+            ]
             
-            with open(config_path, 'r') as file:
-                return yaml.safe_load(file)
-        except Exception as e:
-            print(f"Error loading case-type-forms.yaml: {e}")
+            case_type_id_lower = case_type_id.lower()
+            
+            for case_types in case_types_sources:
+                for case_type_key, case_type_config in case_types.items():
+                    if 'keywords' in case_type_config:
+                        for keyword in case_type_config['keywords']:
+                            keyword_lower = keyword.lower()
+                            if (keyword_lower in case_type_id_lower or 
+                                case_type_id_lower in keyword_lower or 
+                                keyword_lower == case_type_id_lower):
+                                return case_type_key
             return None
-    
-    @staticmethod
-    def _find_case_type_by_keywords(case_type_name):
-        """Find case type configuration by matching keywords"""
-        forms_config = ConfigAPIViews._load_case_type_forms()
-        if not forms_config or 'case_types' not in forms_config:
+        except Exception:
             return None
-            
-        case_type_name_lower = case_type_name.lower()
-        
-        # Try exact match first
-        if case_type_name_lower in forms_config['case_types']:
-            return forms_config['case_types'][case_type_name_lower]
-            
-        # Try keyword matching
-        for case_type_key, case_type_config in forms_config['case_types'].items():
-            if 'keywords' in case_type_config:
-                for keyword in case_type_config['keywords']:
-                    if keyword.lower() in case_type_name_lower:
-                        return case_type_config
-        
-        return None
     
     @staticmethod
     @require_http_methods(["GET"])
@@ -57,14 +44,16 @@ class ConfigAPIViews(APIResponseMixin):
             category_id = request.GET.get('category')
             case_type_id = request.GET.get('case_type')
             filing_type_id = request.GET.get('filing_type')
+            court_code = request.GET.get('court')
+            jurisdiction = request.GET.get('jurisdiction') or request.session.get('jurisdiction', 'illinois')
             
             if not case_type_id:
                 return ConfigAPIViews.error_response(
                     "Missing required parameter: case_type"
                 )
             
-            # Try to find case type configuration using case_type_id as the name
-            case_config = ConfigAPIViews._find_case_type_by_keywords(case_type_id)
+            # Use the new jurisdiction-aware configuration system
+            case_config = CaseFormAPIViews._find_case_type_config(case_type_id, jurisdiction)
             
             # If no specific configuration found, return minimal structure
             if not case_config:
@@ -72,15 +61,29 @@ class ConfigAPIViews(APIResponseMixin):
                     'sections': {},
                     'is_name_change': 'name change' in case_type_id.lower(),
                     'case_type_name': case_type_id,
-                    'has_parties': False
+                    'has_parties': False,
+                    'jurisdiction': jurisdiction
                 })
             
-            # Structure the response based on case-type-forms.yaml format
+            # Apply court-specific customizations if they exist
+            sections = case_config.get('sections', {})
+            if court_code:
+                # For court-specific modifications, we need to use the config key (like "name_change")
+                # not the case type ID (like "78346"). Find the config key by reverse lookup.
+                case_config_key = ConfigAPIViews._find_config_key_for_case_type(case_type_id, jurisdiction)
+                sections = CaseFormAPIViews._apply_court_specific_config(
+                    sections, court_code, case_config_key or case_type_id, jurisdiction
+                )
+            
+            # Structure the response in the expected format
             config = {
-                'sections': case_config.get('sections', {}),
+                'sections': sections,
                 'is_name_change': 'name change' in case_type_id.lower(),
                 'case_type_name': case_type_id,
-                'has_parties': len(case_config.get('sections', {})) > 0
+                'has_parties': len(sections) > 0,
+                'jurisdiction': jurisdiction,
+                'description': case_config.get('description', ''),
+                'validation_rules': case_config.get('validation_rules', [])
             }
             
             return ConfigAPIViews.success_response(config)

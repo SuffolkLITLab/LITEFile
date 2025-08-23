@@ -36,8 +36,26 @@ class UploadHandler {
         
         this.setupEventListeners();
         this.setupDragAndDrop();
+        this.setupFilingComponentListeners();
         
         this.initialized = true;
+    }
+
+    setupFilingComponentListeners() {
+        // Listen for changes to lead filing component
+        const leadFilingComponent = document.getElementById('leadFilingComponent');
+        if (leadFilingComponent) {
+            leadFilingComponent.addEventListener('change', () => {
+                this.updateSubmitButton();
+            });
+        }
+
+        // Use event delegation for supporting filing components since they're added dynamically
+        document.addEventListener('change', (e) => {
+            if (e.target && e.target.classList.contains('supporting-filing-component')) {
+                this.updateSubmitButton();
+            }
+        });
     }
 
     async syncFormDataToSession() {
@@ -112,17 +130,30 @@ class UploadHandler {
                 }))
             };
 
-            // Also save any form options
-            const filingComponent = document.getElementById('filingComponent')?.value || '';
-            const certifiedCopies = document.getElementById('certifiedCopies')?.checked || false;
-            const sealedConfidential = document.getElementById('sealedConfidential')?.checked || false;
+            // Collect lead document options
+            const leadFilingComponent = document.getElementById('leadFilingComponent')?.value || '';
+            const leadCertifiedCopies = document.getElementById('leadCertifiedCopies')?.checked || false;
+            const leadSealedConfidential = document.getElementById('leadSealedConfidential')?.checked || false;
+
+            // Collect supporting document options
+            const supportingOptions = [];
+            this.uploadedFiles.supporting.forEach((file, index) => {
+                supportingOptions.push({
+                    filing_component: document.getElementById(`supportingFilingComponent${index}`)?.value || '',
+                    certified_copies: document.getElementById(`supportingCertifiedCopies${index}`)?.checked || false,
+                    sealed_confidential: document.getElementById(`supportingSealedConfidential${index}`)?.checked || false
+                });
+            });
 
             const uploadData = {
                 files: fileData,
                 options: {
-                    filing_component: filingComponent,
-                    certified_copies: certifiedCopies,
-                    sealed_confidential: sealedConfidential
+                    lead: {
+                        filing_component: leadFilingComponent,
+                        certified_copies: leadCertifiedCopies,
+                        sealed_confidential: leadSealedConfidential
+                    },
+                    supporting: supportingOptions
                 }
             };
 
@@ -336,6 +367,17 @@ class UploadHandler {
             area.appendChild(preview);
         });
 
+        // Show/hide document options based on whether files are uploaded
+        if (type === 'lead') {
+            const leadOptions = document.getElementById('leadDocumentOptions');
+            if (leadOptions) {
+                leadOptions.style.display = files.length > 0 ? 'block' : 'none';
+            }
+        } else if (type === 'supporting') {
+            // Update supporting documents options
+            this.updateSupportingDocumentsOptions(files);
+        }
+
         // Hide/show placeholder
         const placeholder = area.querySelector('.upload-placeholder');
         if (placeholder) {
@@ -376,7 +418,7 @@ class UploadHandler {
                 if (this.leadDocumentInput) {
                     this.leadDocumentInput.value = '';
                 }
-            } else {
+                } else {
                 // Find and remove the specific file from the array
                 const fileIndex = this.uploadedFiles.supporting.indexOf(file);
                 if (fileIndex > -1) {
@@ -394,9 +436,7 @@ class UploadHandler {
                         console.warn('Could not update native supporting input.files after removal:', err);
                     }
                 }
-            }
-            
-            this.updateSubmitButton();
+            }            this.updateSubmitButton();
             
             // Return false to ensure no further event processing
             return false;
@@ -408,6 +448,68 @@ class UploadHandler {
         }, true);
         
         return preview;
+    }
+
+    updateSupportingDocumentsOptions(files) {
+        const optionsContainer = document.getElementById('supportingDocumentsOptions');
+        if (!optionsContainer) return;
+        
+        // Clear existing options
+        optionsContainer.innerHTML = '';
+        
+        // Add options for each supporting document
+        files.forEach((file, index) => {
+            const optionsHTML = window.createSupportingDocumentOptions ? 
+                window.createSupportingDocumentOptions(index, file.name) :
+                this.createSupportingDocumentOptionsHTML(index, file.name);
+            
+            const div = document.createElement('div');
+            div.innerHTML = optionsHTML;
+            optionsContainer.appendChild(div.firstElementChild);
+        });
+        
+        // Populate dropdowns with filing components if available
+        if (window.globalFilingComponents && window.populateFilingComponentDropdown) {
+            const supportingDropdowns = optionsContainer.querySelectorAll('.supporting-filing-component');
+            supportingDropdowns.forEach(dropdown => {
+                window.populateFilingComponentDropdown(dropdown);
+            });
+        }
+    }
+
+    createSupportingDocumentOptionsHTML(index, fileName) {
+        return `
+            <div class="document-options mt-3 supporting-document-options" id="supportingDocumentOptions${index}">
+                <h6 class="mb-3"><strong>Options for: ${fileName}</strong></h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <label for="supportingFilingComponent${index}" class="form-label"><strong>Filing Component</strong> <span class="required">*</span></label>
+                        <select class="form-select supporting-filing-component" id="supportingFilingComponent${index}" name="supporting_filing_component_${index}" required>
+                            <option value="">Select a document type</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="supportingCertifiedCopies${index}" name="supporting_certified_copies_${index}">
+                            <label class="form-check-label" for="supportingCertifiedCopies${index}">
+                                Request certified copies when filed
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="supportingSealedConfidential${index}" name="supporting_sealed_confidential_${index}">
+                                <label class="form-check-label" for="supportingSealedConfidential${index}">
+                                Request documents be sealed/confidential
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
     }
 
     removeFile(type, index) {
@@ -441,13 +543,47 @@ class UploadHandler {
 
     updateSubmitButton() {
         const hasLeadDocument = this.uploadedFiles.lead !== null;
-        this.submitButton.disabled = !hasLeadDocument;
+        let hasAllFilingComponents = true;
+
+        // Check if lead document has filing component selected
+        if (hasLeadDocument) {
+            const leadFilingComponent = document.getElementById('leadFilingComponent');
+            if (leadFilingComponent && !leadFilingComponent.value) {
+                hasAllFilingComponents = false;
+            }
+        }
+
+        // Check if all supporting documents have filing components selected
+        this.uploadedFiles.supporting.forEach((file, index) => {
+            const supportingFilingComponent = document.getElementById(`supportingFilingComponent${index}`);
+            if (supportingFilingComponent && !supportingFilingComponent.value) {
+                hasAllFilingComponents = false;
+            }
+        });
+
+        this.submitButton.disabled = !hasLeadDocument || !hasAllFilingComponents;
     }
 
     async handleFormSubmission() {
         if (!this.uploadedFiles.lead) {
             this.showError('Please upload a lead document before continuing.');
             return;
+        }
+
+        // Validate that lead document has filing component selected
+        const leadFilingComponent = document.getElementById('leadFilingComponent')?.value;
+        if (!leadFilingComponent) {
+            this.showError('Please select a filing component for your lead document.');
+            return;
+        }
+
+        // Validate that all supporting documents have filing components selected
+        for (let i = 0; i < this.uploadedFiles.supporting.length; i++) {
+            const supportingFilingComponent = document.getElementById(`supportingFilingComponent${i}`)?.value;
+            if (!supportingFilingComponent) {
+                this.showError(`Please select a filing component for supporting document: ${this.uploadedFiles.supporting[i].name}`);
+                return;
+            }
         }
 
         this.showProgress();
@@ -464,9 +600,12 @@ class UploadHandler {
                     supporting: []
                 },
                 options: {
-                    filing_component: document.getElementById('filingComponent')?.value || '',
-                    certified_copies: document.getElementById('certifiedCopies')?.checked || false,
-                    sealed_confidential: document.getElementById('sealedConfidential')?.checked || false
+                    lead: {
+                        filing_component: leadFilingComponent,
+                        certified_copies: document.getElementById('leadCertifiedCopies')?.checked || false,
+                        sealed_confidential: document.getElementById('leadSealedConfidential')?.checked || false
+                    },
+                    supporting: []
                 }
             };
 
@@ -480,7 +619,8 @@ class UploadHandler {
                         size: leadDoc.size,
                         type: this.uploadedFiles.lead.type,
                         url: leadDoc.public_url,
-                        s3_key: leadDoc.key
+                        s3_key: leadDoc.key,
+                        filing_component: leadFilingComponent
                     };
                 }
 
@@ -488,12 +628,22 @@ class UploadHandler {
                 const supportingDocs = uploadResult.files.filter(f => f.type === 'supporting');
                 supportingDocs.forEach((doc, index) => {
                     const originalFile = this.uploadedFiles.supporting[index];
+                    const supportingFilingComponent = document.getElementById(`supportingFilingComponent${index}`)?.value || '';
+                    
                     uploadDataWithUrls.files.supporting.push({
                         name: doc.original_name,
                         size: doc.size,
                         type: originalFile?.type,
                         url: doc.public_url,
-                        s3_key: doc.key
+                        s3_key: doc.key,
+                        filing_component: supportingFilingComponent
+                    });
+
+                    // Also add to options array
+                    uploadDataWithUrls.options.supporting.push({
+                        filing_component: supportingFilingComponent,
+                        certified_copies: document.getElementById(`supportingCertifiedCopies${index}`)?.checked || false,
+                        sealed_confidential: document.getElementById(`supportingSealedConfidential${index}`)?.checked || false
                     });
                 });
             }

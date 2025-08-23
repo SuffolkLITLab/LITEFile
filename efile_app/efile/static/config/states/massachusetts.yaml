@@ -1,0 +1,108 @@
+# Massachusetts-specific Case Type Configuration
+# This file extends the base configuration with Massachusetts-specific settings
+
+# State metadata
+state:
+  code: "MA"
+  name: "Massachusetts"
+  jurisdiction: "massachusetts"
+
+# Inherit from base case types and customize
+inherits_from: "base-case-types.yaml"
+
+# Massachusetts-specific overrides and extensions
+case_types:
+  name_change:
+    # Inherit from base but add Massachusetts-specific requirements
+    extends: "base_case_types.name_change"
+    
+    # Override with Massachusetts terminology
+    sections:
+      parties:
+        title: "Parties to the Petition"  # Massachusetts uses "petition" terminology
+        sections:
+          - section_title: "Petitioner"
+            # Massachusetts uses different party type codes
+            party_type_filter: ["MA_5628"]  # Massachusetts petitioner code
+            
+          - section_title: "Requested Name"  # Different terminology
+            required: true  # Always required in Massachusetts
+            party_type_filter: ["MA_56354"]  # Massachusetts name sought code
+            fields:
+              - name: "new_name_party_type"
+                label: "Party Classification"  # Massachusetts terminology
+                type: "party_type_dropdown"
+                required: true
+                column_width: "col-12"
+                api_endpoint: "/api/dropdowns/party-types/"
+              - name: "new_first_name"
+                label: "Requested First Name"
+                type: "text"
+                required: true
+                column_width: "col-6"
+              - name: "new_last_name"
+                label: "Requested Last Name"
+                type: "text"
+                required: true
+                column_width: "col-6"
+              # Massachusetts requires middle name
+              - name: "new_middle_name"
+                label: "Requested Middle Name"
+                type: "text"
+                required: false
+                column_width: "col-6"
+    
+    # Massachusetts-specific additional sections
+    additional_sections:
+      background_check:
+        title: "Criminal Background Information"
+        required: true
+        fields:
+          - name: "criminal_background_check"
+            label: "Have you ever been convicted of a felony?"
+            type: "radio"
+            required: true
+            column_width: "col-12"
+            options:
+              - value: "yes"
+                label: "Yes"
+              - value: "no"
+                label: "No"
+          - name: "felony_details"
+            label: "If yes, please provide details"
+            type: "textarea"
+            required: false
+            column_width: "col-12"
+            conditional_display:
+              show_when_field: "criminal_background_check"
+              show_when_value: "yes"
+
+# Massachusetts court-specific requirements
+court_specific_requirements:
+  "suffolk:probate":  # Suffolk County Probate Court
+    case_types:
+      name_change:
+        additional_fields:
+          - name: "publication_notice"
+            label: "Do you request waiver of publication notice?"
+            type: "radio"
+            required: true
+            column_width: "col-12"
+            options:
+              - value: "yes"
+                label: "Yes, I request waiver"
+              - value: "no"
+                label: "No, I will publish notice"
+        
+        additional_validation:
+          - field: "petitioner_age"
+            rule: "min_value"
+            value: 18
+            message: "Petitioner must be at least 18 years old in Suffolk County"
+
+# Massachusetts-specific terminology overrides
+terminology:
+  case_title: "Complaint"
+  petitioner: "Plaintiff"
+  case_number: "Docket Number"
+  filing_fee: "Entry Fee"
