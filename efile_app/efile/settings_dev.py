@@ -33,25 +33,3 @@ if _DEV_DATABASE_URL:
         conn_max_age=0,  # no pooling for dev; immediate close on request end
         ssl_require=False,
     )
-
-# Verbose DEBUG logging in development
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "formatters": {
-        "dev": {
-            "format": "%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-        }
-    },
-    "handlers": {
-        "console": {
-            "class": "logging.StreamHandler",
-            "formatter": "dev",
-        }
-    },
-    "root": {"handlers": ["console"], "level": "DEBUG"},
-    "loggers": {
-        "django": {"handlers": ["console"], "level": "DEBUG", "propagate": False},
-        "efile": {"handlers": ["console"], "level": "DEBUG", "propagate": False},
-    },
-}

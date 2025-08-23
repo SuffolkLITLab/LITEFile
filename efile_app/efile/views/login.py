@@ -32,7 +32,7 @@ def efile_login(request):
 
                     response = requests.post(url, json=payload, timeout=10)
 
-                    logger.debug(response.text, response.status_code)
+                    logger.debug("Login response: %s, status_code: %s", response.text, response.status_code)
 
                     if response.status_code == 200:
                         data = response.json()
