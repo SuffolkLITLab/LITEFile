@@ -53,6 +53,18 @@ class CascadingDropdowns {
 
   async loadCourtsWithUserContext() {
     const params = {};
+    const currentJurisdiction = this.getCurrentJurisdiction();
+    
+    // Set the jurisdiction parameter
+    params.jurisdiction = currentJurisdiction;
+    
+    // For Massachusetts, skip location-based filtering and show all courts
+    if (currentJurisdiction === 'massachusetts') {
+      await this.loadDropdownData("court", "/api/dropdowns/courts/", params);
+      return;
+    }
+    
+    // For other jurisdictions (like Illinois), use location-based recommendations
     if (this.userProfile) {
       // Pass user location info to courts API
       if (this.userProfile.preferred_county) {
@@ -61,22 +73,20 @@ class CascadingDropdowns {
       if (this.userProfile.zip_code) {
         params.user_zip = this.userProfile.zip_code;
       }
-      // Add jurisdiction if available
+      // Add jurisdiction if available from profile
       if (this.userProfile.state) {
         const jurisdictionMap = {
           IL: "illinois",
           Illinois: "illinois",
         };
-        params.jurisdiction =
-          jurisdictionMap[this.userProfile.state] || "illinois";
+        const profileJurisdiction = jurisdictionMap[this.userProfile.state] || "illinois";
+        // Only override if current jurisdiction matches profile
+        if (currentJurisdiction === "illinois" || !currentJurisdiction) {
+          params.jurisdiction = profileJurisdiction;
+        }
       }
     } else {
       console.warn("No user profile available for courts loading");
-    }
-
-    // Always set default jurisdiction if not provided
-    if (!params.jurisdiction) {
-      params.jurisdiction = "illinois";
     }
 
     await this.loadDropdownData("court", "/api/dropdowns/courts/", params);
@@ -913,6 +923,47 @@ class CascadingDropdowns {
   showError(dropdown, message) {
     dropdown.innerHTML = `<option value="">Error: ${message}</option>`;
     dropdown.disabled = false;
+  }
+
+  /**
+   * Reload courts when jurisdiction changes
+   * Called when jurisdiction switch happens without page reload
+   */
+  async reloadCourtsForJurisdiction() {
+    console.log("Reloading courts for jurisdiction change");
+    
+    // Clear all dropdowns
+    this.clearAllDropdowns();
+    
+    // Reload courts with new jurisdiction context
+    await this.loadCourtsWithUserContext();
+  }
+
+  /**
+   * Clear all dropdowns and reset their state
+   */
+  clearAllDropdowns() {
+    const dropdownFields = ['court', 'case_category', 'case_type', 'filing_type', 'document_type'];
+    
+    dropdownFields.forEach(fieldId => {
+      const dropdown = document.getElementById(fieldId);
+      if (dropdown) {
+        this.clearDropdown(dropdown);
+        if (fieldId !== 'court') {
+          dropdown.disabled = true;
+        }
+      }
+      
+      // Reset selected values
+      this.selectedValues[fieldId] = null;
+    });
+    
+    // Hide dynamic sections
+    const dynamicSections = document.getElementById('dynamicSections');
+    if (dynamicSections) {
+      dynamicSections.style.display = 'none';
+      dynamicSections.innerHTML = '';
+    }
   }
 
   /**
