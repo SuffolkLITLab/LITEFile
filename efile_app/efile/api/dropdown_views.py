@@ -101,9 +101,9 @@ class DropdownAPIViews(APIResponseMixin):
             logger.debug("GET %s header keys=%s", api_url, list(headers.keys()))
             response = requests.get(api_url, headers=headers, timeout=10)
             logger.debug(
-                "Case types response: status=%s content_type=%s",
+                "Case types response: status=%s body=%s",
                 response.status_code,
-                response.headers.get("Content-Type"),
+                response.text,
             )
 
             if response.status_code == 200:
@@ -121,9 +121,8 @@ class DropdownAPIViews(APIResponseMixin):
 
                 return DropdownAPIViews.success_response(case_types)
 
-        except Exception as e:
+        except Exception:
             logger.exception("Unexpected error in get_case_types")
-    
 
     @staticmethod
     @require_http_methods(["GET"])
