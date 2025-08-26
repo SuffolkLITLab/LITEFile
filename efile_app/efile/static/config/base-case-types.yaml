@@ -72,3 +72,70 @@ base_case_types:
                 type: "text"
                 required: true
                 column_width: "col-6"
+
+  eviction_repossession:
+    keywords: ["eviction", "repossession", "restoration"]
+    description: "Eviction, repossession, and property restoration proceedings"
+    sections:
+      case_information:
+        title: "Case Information"
+        fields:
+          - section_title: "Case Details"
+            required: true
+            fields:
+              - name: "case_number"
+                label: "Case Number"
+                type: "text"
+                required: true
+                column_width: "col-6"
+                placeholder: "Enter the existing case number"
+                help_text: "This is required to respond to an existing case"
+              # - name: "case_type_detail"
+              #   label: "Case Type Detail"
+              #   type: "text"
+              #   required: false
+              #   column_width: "col-6"
+              #   placeholder: "Additional case type information"
+      parties:
+        title: "Required Parties"
+        api_endpoint: "/api/dropdowns/party-types/"
+        requires_params: ["court", "case_type"]
+        fields:
+          - section_title: "Petitioner/Plaintiff"
+            required: true
+            fields:
+              - name: "petitioner_party_type"
+                label: "Party Type"
+                type: "party_type_dropdown"
+                required: true
+                column_width: "col-12"
+                api_endpoint: "/api/dropdowns/party-types/"
+              - name: "petitioner_first_name"
+                label: "First Name"
+                type: "text"
+                required: true
+                column_width: "col-6"
+              - name: "petitioner_last_name"
+                label: "Last Name"
+                type: "text"
+                required: true
+                column_width: "col-6"
+          - section_title: "Respondent/Defendant"
+            required: false
+            fields:
+              - name: "respondent_party_type"
+                label: "Party Type"
+                type: "party_type_dropdown"
+                required: false
+                column_width: "col-12"
+                api_endpoint: "/api/dropdowns/party-types/"
+              - name: "respondent_first_name"
+                label: "First Name"
+                type: "text"
+                required: false
+                column_width: "col-6"
+              - name: "respondent_last_name"
+                label: "Last Name"
+                type: "text"
+                required: false
+                column_width: "col-6"

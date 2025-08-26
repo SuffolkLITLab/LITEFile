@@ -120,13 +120,10 @@ class DropdownAPIViews(APIResponseMixin):
                             )
 
                 return DropdownAPIViews.success_response(case_types)
-            else:
-                return DropdownAPIViews.error_response(f"API request failed with status {response.status_code}")
 
-        except (requests.RequestException, requests.Timeout) as api_error:
-            return DropdownAPIViews.error_response(f"API request failed: {str(api_error)}")
         except Exception as e:
-            return DropdownAPIViews.error_response(f"Error: {str(e)}")
+            logger.exception("Unexpected error in get_case_types")
+    
 
     @staticmethod
     @require_http_methods(["GET"])

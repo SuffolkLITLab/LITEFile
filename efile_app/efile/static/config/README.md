@@ -316,6 +316,23 @@ base_case_types:
                 type: "text"
                 required: true
                 column_width: "col-6"
+                
+  eviction_repossession:
+    keywords: ["eviction", "repossession", "restoration", "unlawful detainer", "forcible entry", "foreclosure"]
+    description: "Eviction, repossession, and property restoration proceedings"
+    sections:
+      case_information:
+        title: "Case Information"
+        fields:
+          - section_title: "Case Details"
+            required: true
+            fields:
+              - name: "case_number"
+                label: "Case Number"
+                type: "text"
+                required: true
+                column_width: "col-6"
+                help_text: "This is required for eviction, repossession, and restoration cases"
 ```
 
 **Illinois Override** (`states/illinois.yaml`):
@@ -354,6 +371,26 @@ The system generates a form with:
 - Cook County requirement (reason for change)
 
 ## Configuration Schema Reference
+
+### Keyword Matching
+
+The system uses intelligent keyword matching to determine which configuration to use based on the case type selected by the user. Keywords are matched using substring matching in both directions.
+
+#### Example Keywords and Matches:
+```yaml
+# Name change case type
+keywords: ["name change", "name petition", "change of name"]
+# Matches: "Name Change Petition", "Legal Name Change", "Petition for Change of Name"
+
+# Eviction/repossession case type  
+keywords: ["eviction", "repossession", "restoration"]
+# Matches: "Eviction Proceedings", "Unlawful Detainer Action", "Property Restoration", "Foreclosure Action"
+```
+
+#### Matching Logic:
+1. **Exact match**: "name change" exactly matches "name change"
+2. **Substring (keyword in case type)**: "eviction" matches "Eviction Proceedings"  
+3. **Substring (case type in keyword)**: "restoration" matches "Property Restoration"
 
 ### Field Types
 
@@ -408,6 +445,10 @@ validation_rules:
   - field: "field_name"
     rule: "no_special_chars"
     message: "No special characters allowed"
+  - field: "case_number"
+    rule: "pattern"
+    value: "^[A-Z0-9\\-]+$"
+    message: "Case number must contain only letters, numbers, and hyphens"
 ```
 
 ## Troubleshooting
