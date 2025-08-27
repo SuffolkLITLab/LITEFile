@@ -1,10 +1,10 @@
 from django.urls import include, path
 
-from .views.api_views import get_case_data, get_filing_components
+from .views.api_views import get_filing_components
 from .views.case_details import case_details
 from .views.confirmation import filing_confirmation
 from .views.expert_form import efile_expert_form
-from .views.jurisdiction import switch_jurisdiction, get_current_jurisdiction
+from .views.jurisdiction import get_current_jurisdiction, switch_jurisdiction
 from .views.login import efile_login, efile_logout
 from .views.options import efile_options
 from .views.register import efile_register
@@ -16,7 +16,6 @@ from .views.session_api import (
     debug_session_data,
     fetch_and_save_party_type,
     get_upload_data_from_session,
-    save_form_data_to_session,
     save_upload_data_to_session,
     submit_final_filing,
 )
@@ -40,21 +39,19 @@ urlpatterns = [
     path("review/", case_review, name="case_review"),
     path("filing-confirmation/", filing_confirmation, name="filing_confirmation"),
     # Session API endpoints
-    path('api/get-case-data/', api_get_case_data, name='get_case_data_api'),
-    path('api/get-filing-components/', get_filing_components, name='get_filing_components'),
-    path('api/save-case-data/', api_save_case_data, name='save_case_data_api'),
-    path('api/fetch-party-type/', fetch_and_save_party_type, name='fetch_and_save_party_type'),
-    path('api/save-upload-data/', save_upload_data_to_session, name='save_upload_data_to_session'),
-    path('api/get-upload-data/', get_upload_data_from_session, name='get_upload_data_from_session'),
-    path('api/submit-final-filing/', submit_final_filing, name='submit_final_filing'),
-    path('api/clear-session/', clear_session_data, name='clear_session_data'),
-    path('api/debug-session/', debug_session_data, name='debug_session_data'),
-    path('api/debug-session-data/', debug_session_data, name='debug_session_data'),
-    
+    path("api/get-case-data/", api_get_case_data, name="get_case_data_api"),
+    path("api/get-filing-components/", get_filing_components, name="get_filing_components"),
+    path("api/save-case-data/", api_save_case_data, name="save_case_data_api"),
+    path("api/fetch-party-type/", fetch_and_save_party_type, name="fetch_and_save_party_type"),
+    path("api/save-upload-data/", save_upload_data_to_session, name="save_upload_data_to_session"),
+    path("api/get-upload-data/", get_upload_data_from_session, name="get_upload_data_from_session"),
+    path("api/submit-final-filing/", submit_final_filing, name="submit_final_filing"),
+    path("api/clear-session/", clear_session_data, name="clear_session_data"),
+    path("api/debug-session/", debug_session_data, name="debug_session_data"),
+    path("api/debug-session-data/", debug_session_data, name="debug_session_data"),
     # Jurisdiction management API
-    path('api/jurisdiction/switch/', switch_jurisdiction, name='switch_jurisdiction'),
-    path('api/jurisdiction/current/', get_current_jurisdiction, name='get_current_jurisdiction'),
-    
+    path("api/jurisdiction/switch/", switch_jurisdiction, name="switch_jurisdiction"),
+    path("api/jurisdiction/current/", get_current_jurisdiction, name="get_current_jurisdiction"),
     # API endpoints for upload functionality
     path("api/create-filing/", create_filing, name="create_filing"),
     path("api/upload-documents/", upload_documents, name="upload_documents"),
