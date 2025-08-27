@@ -73,6 +73,35 @@ base_case_types:
                 required: true
                 column_width: "col-6"
 
+  order_of_protection:
+    keywords: ["order of protection"]
+    description: "Order of Protection"
+    sections:
+      parties:
+        title: "Required Parties"
+        api_endpoint: "/api/dropdowns/party-types/"
+        requires_params: ["court", "case_type"]
+        fields:
+          - section_title: "Respondent"
+            required: true
+            fields:
+              - name: "respondent_name_party_type"
+                label: "Party Type"
+                type: "party_type_dropdown"
+                required: true
+                column_width: "col-12"
+                api_endpoint: "/api/dropdowns/party-types/"
+              - name: "respondent_first_name"
+                label: "First Name"
+                type: "text"
+                required: true
+                column_width: "col-6"
+              - name: "respondent_last_name"
+                label: "Last Name"
+                type: "text"
+                required: true
+                column_width: "col-6"
+
   # eviction_repossession:
   #   keywords: ["eviction", "repossession", "restoration"]
   #   description: "Eviction, repossession, and property restoration proceedings"

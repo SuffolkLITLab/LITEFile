@@ -1197,6 +1197,26 @@
             });
           }
 
+          // Only add second user (Respondent) if respondent_name_party_type exists
+          if (caseData.respondent_name_party_type) {
+            users.push({
+              //address: {
+              //  city: city,
+              //  state: state,
+              //  country: "US",
+              //},
+              party_type: caseData.respondent_name_party_type,
+              is_form_filler: false,
+              name: {
+                first: caseData.respondent_first_name || firstName,
+                middle: caseData.respondent_middle_name || middleName,
+                last: caseData.respondent_last_name || lastName,
+                suffix: caseData.respondent_suffix || "",
+              },
+              is_new: true,
+            });
+          }
+
           // Build eFiling payload
           const efilingData = {
             efile_case_category: caseData.case_category,
