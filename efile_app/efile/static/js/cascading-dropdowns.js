@@ -230,6 +230,12 @@ class CascadingDropdowns {
           console.warn("No court selected when trying to load filing types");
           return;
         }
+        
+        // Add both existing_case and initial parameters for filing type endpoint
+        const existingCase = sessionStorage.getItem('existing_case') || 'no';
+        const isInitialFiling = existingCase === 'no';
+        params.existing_case = existingCase; // Pass existing_case to Django API
+        params.initial = isInitialFiling ? 'true' : 'false'; // Pass initial to Suffolk API
       } else if (fieldId === "filing_type") {
         params.parent = selectedValue; // Suffolk API expects parent parameter for filing_type
         if (this.selectedValues.court) {
@@ -711,6 +717,13 @@ class CascadingDropdowns {
   }
 
   populateDropdown(dropdown, options) {
+    // Special handling for filing type search dropdown
+    if (dropdown.id === 'filing_type' && window.filingTypeSearch) {
+      window.filingTypeSearch.updateOptions(options);
+      window.filingTypeSearch.enable();
+      return;
+    }
+    
     const placeholder = dropdown.querySelector('option[value=""]').textContent;
 
     // Clear dropdown and remove any visual selection indicators
@@ -888,6 +901,13 @@ class CascadingDropdowns {
   }
 
   clearDropdown(dropdown) {
+    // Special handling for filing type search dropdown
+    if (dropdown.id === 'filing_type' && window.filingTypeSearch) {
+      window.filingTypeSearch.reset();
+      window.filingTypeSearch.disable();
+      return;
+    }
+    
     let placeholder =
       dropdown.querySelector('option[value=""]')?.textContent ||
       "Please select...";
@@ -925,16 +945,20 @@ class CascadingDropdowns {
     dropdown.disabled = false;
   }
 
+  enableDropdown(fieldId) {
+    const dropdown = document.getElementById(fieldId);
+    if (dropdown) {
+      dropdown.disabled = false;
+    }
+  }
+
   /**
    * Reload courts when jurisdiction changes
    * Called when jurisdiction switch happens without page reload
    */
   async reloadCourtsForJurisdiction() {
-    console.log("Reloading courts for jurisdiction change");
-    
-    // Clear all dropdowns
     this.clearAllDropdowns();
-    
+
     // Reload courts with new jurisdiction context
     await this.loadCourtsWithUserContext();
   }

@@ -15,6 +15,32 @@
       rel="stylesheet"
     />
     <link href="{% static 'efile/css/expert_form.css' %}" rel="stylesheet" />
+    <link href="{% static 'css/components/search-dropdown.css' %}" rel="stylesheet" />
+    <style>
+      /* Custom styles for better spacing and required field styling */
+      .required {
+        color: #dc3545 !important;
+        font-weight: bold;
+      }
+      
+      .subsection-header {
+        margin-top: 3.5rem !important;
+        margin-bottom: 1rem !important;
+      }
+      
+      .subsection-header:first-of-type {
+        margin-top: 2rem !important;
+      }
+      
+      /* Add spacing after main section header */
+      .section-header {
+        margin-bottom: 1rem !important;
+      }
+      
+      .section-description {
+        margin-bottom: 2rem !important;
+      }
+    </style>
   </head>
   <body>
     {% include 'efile/components/profile_header.html' %}
@@ -108,26 +134,7 @@
             </div>
           </div>
 
-          <div class="row mb-3">
-            <div class="col-md-6">
-              <label for="filing_type" class="form-label"
-                >Filing Type <span class="required">*</span></label
-              >
-              <select
-                class="form-select dropdown-field"
-                id="filing_type"
-                name="filing_type"
-                data-level="2"
-                required
-                disabled
-              >
-                <option value="">Select Filing Type</option>
-              </select>
-              <div class="loading-spinner" id="loading-2" style="display: none">
-                <i class="fas fa-spinner fa-spin"></i> Loading filing types...
-              </div>
-            </div>
-          </div>
+          {% include 'efile/components/search_dropdown.html' with field_id="filing_type" field_name="filing_type" label_text="Filing Type" is_required=True placeholder="Search filing types..." data_level="2" disabled=True %}
 
           <div class="row mb-3">
             <div class="col-md-6">
@@ -171,14 +178,396 @@
     <!-- Pass case data to JavaScript -->
     {{ case_data|json_script:"case-data" }}
     <script>
+      // Check for cache clearing parameters first, before loading any data
+      function shouldClearCache() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const clearCache = urlParams.get('clear_cache');
+        const fromOptions = urlParams.get('from_options');
+        
+        // Only clear cache if both parameters are present and true
+        return clearCache === 'true' && fromOptions === 'true';
+      }
+
+      // Clear all eFiling related data if coming from options
+      if (shouldClearCache()) {        
+        // Clear all eFiling related session storage
+        const keysToRemove = [];
+        for (let i = 0; i < sessionStorage.length; i++) {
+          const key = sessionStorage.key(i);
+          if (key && (
+            key.includes('case_') ||
+            key.includes('efile_') ||
+            key.includes('filing_') ||
+            key.includes('document_') ||
+            key.includes('upload_') ||
+            key === 'existing_case' ||
+            key === 'form_data' ||
+            key === 'case_data'
+          )) {
+            keysToRemove.push(key);
+          }
+        }
+        
+        // Remove the identified keys
+        keysToRemove.forEach(key => {
+          sessionStorage.removeItem(key);
+        });
+        
+        // Clear window.caseData to ensure fresh start
+        window.caseData = {};
+        
+      }
+
+      // Extract case data from Django template and make it available globally
       const caseDataElement = document.getElementById("case-data");
-      window.caseData = caseDataElement
-        ? JSON.parse(caseDataElement.textContent)
-        : null;
-      console.log("Parsed case data:", window.caseData);
+      let caseData = {};
+      
+      if (caseDataElement && !shouldClearCache()) {
+        try {
+          caseData = JSON.parse(caseDataElement.textContent);
+          // Make case data available globally for FormValidation
+          window.caseData = caseData;
+        } catch (error) {
+          console.warn("Failed to parse case data from Django context:", error);
+          window.caseData = {};
+        }
+      } else {
+        window.caseData = {};
+      }
+
+      // Check for existing_case parameter from URL or session storage
+      function initializeExistingCaseSelection() {
+        // If cache was cleared, start fresh with no existing case
+        if (shouldClearCache()) {
+          sessionStorage.setItem('existing_case', 'no');
+          return; // Exit early, don't try to pre-populate anything
+        }
+
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        let existingCase = urlParams.get('existing_case');
+        
+        // Check Django context case data first (highest priority)
+        if (!existingCase && window.caseData && window.caseData.existing_case) {
+          existingCase = window.caseData.existing_case;
+        }
+        
+        // Fallback to session storage if not in URL or Django context
+        if (!existingCase) {
+          existingCase = sessionStorage.getItem('existing_case');
+        }
+        
+        // Check for case data in session storage
+        const caseDataString = sessionStorage.getItem('case_data');
+        let caseData = null;
+        if (caseDataString) {
+          try {
+            caseData = JSON.parse(caseDataString);
+            // If case data has existing_case, use it; otherwise fallback to separate storage
+            if (caseData.existing_case) {
+              existingCase = caseData.existing_case;
+            }
+          } catch (e) {
+            console.warn('Failed to parse case data from session storage:', e);
+          }
+        }
+        
+        
+        // If we have case data from case details page, pre-populate and disable fields
+        if (caseData && caseData.from_case_details) {
+          // Store case data globally so other scripts can access it
+          window.caseDetailsData = caseData;
+          
+          // Since we have case data from case details, this is an existing case
+          existingCase = 'yes';
+          
+          // Save the existing_case status to session storage for other parts of the app
+          sessionStorage.setItem('existing_case', existingCase);
+          
+          // Function to wait for an element to have options loaded
+          function waitForDropdownOptions(elementId, minOptions = 2) {
+            return new Promise((resolve) => {
+              const element = document.getElementById(elementId);
+              if (!element) {
+                resolve(false);
+                return;
+              }
+              
+              // Check if already loaded
+              if (element.options.length >= minOptions) {
+                resolve(true);
+                return;
+              }
+              
+              // Watch for changes
+              const observer = new MutationObserver(() => {
+                if (element.options.length >= minOptions) {
+                  observer.disconnect();
+                  resolve(true);
+                }
+              });
+              
+              observer.observe(element, {
+                childList: true,
+                subtree: true
+              });
+              
+              // Also listen for change events as backup
+              const changeListener = () => {
+                if (element.options.length >= minOptions) {
+                  element.removeEventListener('change', changeListener);
+                  observer.disconnect();
+                  resolve(true);
+                }
+              };
+              element.addEventListener('change', changeListener);
+              
+              // Timeout as fallback (but much shorter)
+              setTimeout(() => {
+                observer.disconnect();
+                element.removeEventListener('change', changeListener);
+                resolve(element.options.length >= minOptions);
+              }, 1000);
+            });
+          }
+          
+          // Function to wait for cascading dropdowns to be ready
+          function waitForCascadingDropdowns() {
+            return new Promise((resolve) => {
+              if (window.cascadingDropdowns) {
+                resolve();
+                return;
+              }
+              
+              // Watch for the cascading dropdowns to be loaded
+              const checkInterval = setInterval(() => {
+                if (window.cascadingDropdowns) {
+                  clearInterval(checkInterval);
+                  resolve();
+                }
+              }, 50);
+              
+              // Timeout after 10 seconds
+              setTimeout(() => {
+                clearInterval(checkInterval);
+                resolve();
+              }, 2000);
+            });
+          }
+          
+          // Helper function to directly populate filing types
+          async function populateFilingTypesDirectly(typeDropdown, categoryDropdown, caseData, existingCase) {
+            // Small delay to ensure DOM is stable
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            const filingTypeDropdown = document.getElementById('filing_type');
+            const filingTypeSearch = window.filingTypeSearch;
+            if (!filingTypeDropdown || !filingTypeSearch) return;
+            
+            try {
+              // Validate that we have the required values
+              if (!typeDropdown.value) {
+                console.error('Case type not selected, cannot populate filing types');
+                return;
+              }
+              
+              const params = new URLSearchParams({
+                court: caseData.court,
+                case_category: categoryDropdown.value,
+                case_type: typeDropdown.value,
+                existing_case: existingCase || 'no',
+              });
+              
+              // Show loading spinner
+              const loadingSpinner = document.getElementById('loading-2');
+              if (loadingSpinner) loadingSpinner.style.display = 'block';
+              
+              // Make API call to get filing types
+              const response = await fetch(`/api/dropdowns/filing-types/?${params.toString()}`);
+              const result = await response.json();
+              
+              // Hide loading spinner
+              if (loadingSpinner) loadingSpinner.style.display = 'none';
+              
+              if (result.success && result.data) {
+                // Update the search dropdown with the new options
+                filingTypeSearch.updateOptions(result.data);
+                
+                // Enable the search dropdown
+                filingTypeSearch.enable();
+
+              } else {
+                console.error('Failed to load filing types:', result.error);
+                filingTypeSearch.reset();
+                filingTypeSearch.disable();
+              }
+              
+            } catch (error) {
+              console.error('Error populating filing types:', error);
+              filingTypeSearch.reset();
+              filingTypeSearch.disable();
+            }
+          }
+          
+          // Main pre-population flow
+          async function prePopulateFields() {
+            // Wait for cascading dropdowns to be ready
+            await waitForCascadingDropdowns();
+            
+            // Pre-populate and trigger court dropdown
+            if (caseData.court) {
+              const courtDropdown = document.getElementById('court');
+              if (courtDropdown) {
+                courtDropdown.value = caseData.court;
+                
+                // Disable if specified
+                if (caseData.disable_fields && caseData.disable_fields.includes('court')) {
+                  courtDropdown.disabled = true;
+                  courtDropdown.style.backgroundColor = '#f8f9fa';
+                }
+                
+                // Trigger court change event to populate categories
+                const changeEvent = new Event('change', { bubbles: true });
+                courtDropdown.dispatchEvent(changeEvent);
+              }
+            }
+            
+            // Wait for case categories to be populated by the cascading system
+            const categoriesLoaded = await waitForDropdownOptions('case_category', 2);
+            
+            if (categoriesLoaded && caseData.case_category) {
+              const categoryDropdown = document.getElementById('case_category');
+              
+              // Trigger the change event first to populate case types, but don't select yet
+              const categoryChangeEvent = new Event('change', { bubbles: true });
+              categoryDropdown.dispatchEvent(categoryChangeEvent);
+              
+              // Wait for case types to be populated
+              const typesLoaded = await waitForDropdownOptions('case_type', 2);
+              
+              // Add a delay to ensure all cascading operations are complete
+              await new Promise(resolve => setTimeout(resolve, 200));
+
+              // Find and select matching option
+              let foundMatch = false;
+              let selectedCategoryValue = null;
+              const searchText = caseData.case_category.toLowerCase();
+              
+              for (let option of categoryDropdown.options) {
+                const optionText = option.text.toLowerCase();
+                if (optionText.includes(searchText) || searchText.includes(optionText)) {
+                  categoryDropdown.value = option.value;
+                  selectedCategoryValue = option.value;
+                  foundMatch = true;
+                  break;
+                }
+              }
+              
+              // Broader matching if needed
+              if (!foundMatch) {
+                for (let option of categoryDropdown.options) {
+                  const optionText = option.text.toLowerCase();
+                  if ((searchText.includes('evict') && optionText.includes('evict')) ||
+                      (searchText.includes('civil') && optionText.includes('civil'))) {
+                    categoryDropdown.value = option.value;
+                    selectedCategoryValue = option.value;
+                    foundMatch = true;
+                    break;
+                  }
+                }
+              }
+              
+              if (foundMatch) {
+                
+                // Disable if specified
+                if (caseData.disable_fields && caseData.disable_fields.includes('case_category')) {
+                  categoryDropdown.disabled = true;
+                  categoryDropdown.style.backgroundColor = '#f8f9fa';
+                }
+                
+                // Now that category is selected, trigger another change to update case types for this category
+                const finalCategoryChangeEvent = new Event('change', { bubbles: true });
+                categoryDropdown.dispatchEvent(finalCategoryChangeEvent);
+                
+                // Wait for case types to be updated for the selected category
+                const finalTypesLoaded = await waitForDropdownOptions('case_type', 2);
+                
+                if (finalTypesLoaded && caseData.case_type) {
+                  // Small delay to ensure types are fully loaded
+                  await new Promise(resolve => setTimeout(resolve, 100));
+                  
+                  const typeDropdown = document.getElementById('case_type');
+                  
+                  // Find and select matching case type
+                  let typeFound = false;
+                  for (let option of typeDropdown.options) {
+                    if (option.text.toLowerCase().includes(caseData.case_type.toLowerCase()) ||
+                        caseData.case_type.toLowerCase().includes(option.text.toLowerCase())) {
+                      typeDropdown.value = option.value;
+                      typeFound = true;
+                      break;
+                    }
+                  }
+                  
+                  // Disable case type if specified (same pattern as court and case_category)
+                  if (caseData.disable_fields && caseData.disable_fields.includes('case_type')) {
+                    typeDropdown.disabled = true;
+                    typeDropdown.style.backgroundColor = '#f8f9fa';
+                  } 
+
+                  // Small delay to ensure case type selection is fully processed
+                  await new Promise(resolve => setTimeout(resolve, 200));
+                  
+                  // Directly populate filing types with case info
+                  await populateFilingTypesDirectly(typeDropdown, categoryDropdown, caseData, existingCase);
+                }
+              }
+            }
+            
+            // Store case number for later use
+            if (caseData.case_number) {
+              sessionStorage.setItem('existing_case_number', caseData.case_number);
+            }
+          }
+          
+          // Start the pre-population process
+          prePopulateFields().catch(error => {
+            console.error('Error during pre-population:', error);
+          });
+        } else {
+          // No case data from case details, this is a new case
+          existingCase = 'no';          
+          // Save the existing_case status to session storage for other parts of the app
+          sessionStorage.setItem('existing_case', existingCase);
+        }
+      }
+
+      // Initialize when DOM is ready
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeExistingCaseSelection);
+      } else {
+        initializeExistingCaseSelection();
+      }
+    </script>
+
+    <!-- Initialize Search Dropdown Component -->
+    <script>
+      // Initialize the search dropdown when the page loads
+      let filingTypeSearch = null;
+      
+      document.addEventListener('DOMContentLoaded', function() {
+        filingTypeSearch = new SearchDropdown('filing_type', {
+          placeholder: 'Search filing types...',
+          noResultsText: 'No filing types available'
+        });
+        
+        // Make it globally accessible
+        window.filingTypeSearch = filingTypeSearch;
+      });
     </script>
 
     <!-- Form JavaScript Modules -->
+    <script src="{% static 'js/components/search-dropdown.js' %}"></script>
     <script src="{% static 'js/api-utils.js' %}"></script>
     <script src="{% static 'js/cascading-dropdowns.js' %}"></script>
     <script src="{% static 'js/dynamic-form-sections.js' %}"></script>

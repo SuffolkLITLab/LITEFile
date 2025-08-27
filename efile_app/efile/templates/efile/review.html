@@ -83,13 +83,13 @@
               >Name: <span class="text-danger">*</span></span
             >
             <div class="d-flex align-items-center w-100">
-              <span class="review-text" id="userNameText">{{ case_data.first_name|default:'' }}{% if case_data.last_name %} {{ case_data.last_name }}{% endif %}</span>
+              <span class="review-text" id="userNameText">Loading...</span>
               <input
                 type="text"
                 id="userNameInput"
                 class="form-control form-control-sm"
                 style="max-width: 400px; display: none"
-                value="{{ case_data.first_name|default:'' }} {% if case_data.last_name %}{{ case_data.last_name }}{% endif %}"
+                value=""
                 required
                 aria-required="true"
               />
@@ -108,14 +108,14 @@
             >
             <div class="d-flex align-items-center w-100">
               <span class="review-text" id="userAddressLine1Text"
-                >{{ case_data.address|default:'' }}</span
+                >Loading...</span
               >
               <input
                 type="text"
                 id="userAddressLine1Input"
                 class="form-control form-control-sm"
                 style="max-width: 400px; display: none"
-                value="{{ case_data.address|default:'' }}"
+                value=""
                 required
                 aria-required="true"
               />
@@ -132,14 +132,14 @@
             <span class="review-label">Address Line 2:</span>
             <div class="d-flex align-items-center w-100">
               <span class="review-text" id="userAddressLine2Text"
-                >{{ case_data.address_line2|default:'' }}</span
+                >Loading...</span
               >
               <input
                 type="text"
                 id="userAddressLine2Input"
                 class="form-control form-control-sm"
                 style="max-width: 400px; display: none"
-                value="{{ case_data.address_line2|default:'' }}"
+                value=""
               />
               <button
                 class="edit-btn ms-3"
@@ -156,14 +156,14 @@
             >
             <div class="d-flex align-items-center w-100">
               <span class="review-text" id="userCityText"
-                >{{ case_data.city|default:'' }}</span
+                >Loading...</span
               >
               <input
                 type="text"
                 id="userCityInput"
                 class="form-control form-control-sm"
                 style="max-width: 400px; display: none"
-                value="{{ case_data.city|default:'' }}"
+                value=""
                 required
                 aria-required="true"
               />
@@ -182,14 +182,14 @@
             >
             <div class="d-flex align-items-center w-100">
               <span class="review-value" id="userStateText"
-                >{{ case_data.state|default:'' }}</span
+                >Loading...</span
               >
               <input
                 type="text"
                 id="userStateInput"
                 class="form-control form-control-sm"
                 style="max-width: 400px; display: none"
-                value="{{ case_data.state|default:'' }}"
+                value=""
                 required
                 aria-required="true"
               />
@@ -208,14 +208,14 @@
             >
             <div class="d-flex align-items-center w-100">
               <span class="review-text" id="userZipText"
-                >{{ case_data.zip|default:'' }}</span
+                >Loading...</span
               >
               <input
                 type="text"
                 id="userZipInput"
                 class="form-control form-control-sm"
                 style="max-width: 400px; display: none"
-                value="{{ case_data.zip|default:'' }}"
+                value=""
                 required
                 aria-required="true"
               />
@@ -234,14 +234,14 @@
             >
             <div class="d-flex align-items-center w-100">
               <span class="review-text" id="userEmailText"
-                >{{ case_data.email|default:'' }}</span
+                >Loading...</span
               >
               <input
                 type="email"
                 id="userEmailInput"
                 class="form-control form-control-sm"
                 style="max-width: 400px; display: none"
-                value="{{ case_data.email|default:'' }}"
+                value=""
                 required
                 aria-required="true"
               />
@@ -260,14 +260,14 @@
             >
             <div class="d-flex align-items-center w-100">
               <span class="review-text" id="userPhoneText"
-                >{{ case_data.phone|default:'' }}</span
+                >Loading...</span
               >
               <input
                 type="text"
                 id="userPhoneInput"
                 class="form-control form-control-sm"
                 style="max-width: 400px; display: none"
-                value="{{ case_data.phone|default:'' }}"
+                value=""
                 required
                 aria-required="true"
               />
@@ -343,9 +343,9 @@
       // Load all review data when page loads
       document.addEventListener("DOMContentLoaded", function () {
         loadReviewData();
-        loadPaymentInfo();
         loadPaymentAccounts();
         handlePaymentStatusCallback();
+        fetchAndSavePartyType(); // Fetch party type on page load
       });
 
       function handlePaymentStatusCallback() {
@@ -371,6 +371,44 @@
           // Clean up URL
           const cleanUrl = window.location.pathname;
           window.history.replaceState({}, document.title, cleanUrl);
+        }
+      }
+
+      async function fetchAndSavePartyType() {
+        try {
+          // Get case data from template
+          const caseDataElement = document.getElementById("case-data");
+          let caseData = {};
+          if (caseDataElement) {
+            caseData = JSON.parse(caseDataElement.textContent);
+          }
+
+          if (caseData.court && caseData.case_type) {
+            const response = await fetch('/api/fetch-party-type/', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken(),
+              },
+              body: JSON.stringify({
+                court: caseData.court,
+                case_type: caseData.case_type,
+                filing_type: caseData.filing_type,
+                existing_case: caseData.existing_case,
+                jurisdiction: 'illinois'
+              })
+            });
+
+            if (response.ok) {
+              const result = await response.json();
+              if (result.success) {
+                // Party type is now saved to session and will be available for submission
+                console.log('Party type determined and saved:', result.party_type);
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Failed to fetch party type:', error);
         }
       }
 
@@ -495,90 +533,119 @@
         fetch("/api/auth/profile/")
           .then((response) => response.json())
           .then((data) => {
+            // Get case data as fallback
+            const caseDataElement = document.getElementById("case-data");
+            let caseData = {};
+            if (caseDataElement) {
+              caseData = JSON.parse(caseDataElement.textContent);
+            }
+
+            // Helper to set both the hidden input and the visible text span
+            const setField = (inputId, textId, apiValue) => {
+              const input = document.getElementById(inputId);
+              const text = document.getElementById(textId);
+              
+              // Use API value if available
+              const value = apiValue || "";
+              const displayText = apiValue || "";
+              
+              if (input) {
+                input.value = value;
+              }
+              if (text) {
+                text.textContent = displayText;
+              }
+            };
+
             if (data && data.success && data.data) {
               const profile = data.data;
 
-              // Helper to set both the hidden input and the visible text span
-              const setField = (inputId, textId, value) => {
-                if (!value && value !== 0) return;
-                const input = document.getElementById(inputId);
-                const text = document.getElementById(textId);
-
-                if (input && (!input.value || !input.value.trim())) {
-                  input.value = value;
-                }
-
-                if (text && (!text.textContent || !text.textContent.trim())) {
-                  text.textContent = value;
-                }
-              };
-
-              // Populate name (combine first and last)
-              const fullName = [profile.first_name, profile.last_name]
+              // Populate name (combine first and last from API)
+              const apiFullName = [profile.first_name, profile.last_name]
                 .filter((n) => n)
                 .join(" ");
-              if (fullName) {
-                setField("userNameInput", "userNameText", fullName);
-              }
-
-              setField(
-                "userAddressLine1Input",
-                "userAddressLine1Text",
-                profile.address
-              );
-              setField(
-                "userAddressLine2Input",
-                "userAddressLine2Text",
-                profile.address_line2
-              );
+              
+              setField("userNameInput", "userNameText", apiFullName);
+              setField("userAddressLine1Input", "userAddressLine1Text", profile.address);
+              setField("userAddressLine2Input", "userAddressLine2Text", profile.address_line2);
               setField("userCityInput", "userCityText", profile.city);
               setField("userStateInput", "userStateText", profile.state);
               setField("userZipInput", "userZipText", profile.zip);
               setField("userEmailInput", "userEmailText", profile.email);
               setField("userPhoneInput", "userPhoneText", profile.phone);
             } else {
-              // Continue without user profile data
+              // API failed or returned no data - show "Please provide" for all fields
+              setField("userNameInput", "userNameText", "");
+              setField("userAddressLine1Input", "userAddressLine1Text", "");
+              setField("userAddressLine2Input", "userAddressLine2Text", "");
+              setField("userCityInput", "userCityText", "");
+              setField("userStateInput", "userStateText", "");
+              setField("userZipInput", "userZipText", "");
+              setField("userEmailInput", "userEmailText", "");
+              setField("userPhoneInput", "userPhoneText", "");
             }
           })
           .catch((error) => {
-            // Continue without user profile data
+            console.error("Error loading user profile:", error);
+            
+            // API error - show "Please provide" for all fields since case data doesn't contain user info
+            const setErrorField = (inputId, textId) => {
+              const input = document.getElementById(inputId);
+              const text = document.getElementById(textId);
+              
+              if (input) {
+                input.value = "";
+              }
+              if (text) {
+                text.textContent = "Please provide";
+              }
+            };
+            
+            setErrorField("userNameInput", "userNameText");
+            setErrorField("userAddressLine1Input", "userAddressLine1Text");
+            setErrorField("userAddressLine2Input", "userAddressLine2Text");
+            setErrorField("userCityInput", "userCityText");
+            setErrorField("userStateInput", "userStateText");
+            setErrorField("userZipInput", "userZipText");
+            setErrorField("userEmailInput", "userEmailText");
+            setErrorField("userPhoneInput", "userPhoneText");
           });
       }
 
-      async function loadPaymentInfo() {
-        try {
-          // Get case data from template
-          const caseDataElement = document.getElementById("case-data");
-          let caseData = {};
+      // async function loadPaymentInfo() {
+      //   try {
+      //     // Get case data from template
+      //     const caseDataElement = document.getElementById("case-data");
+      //     let caseData = {};
 
-          if (caseDataElement) {
-            caseData = JSON.parse(caseDataElement.textContent);
-          }
+      //     if (caseDataElement) {
+      //       caseData = JSON.parse(caseDataElement.textContent);
+      //     }
 
-          if (Object.keys(caseData).length > 0) {
-            const response = await fetch("/api/calculate-filing-fees/", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": getCSRFToken(),
-              },
-              body: JSON.stringify(caseData),
-            });
+      //     if (Object.keys(caseData).length > 0) {
+      //       const response = await fetch("/api/calculate-filing-fees/", {
+      //         method: "POST",
+      //         headers: {
+      //           "Content-Type": "application/json",
+      //           "X-CSRFToken": getCSRFToken(),
+      //         },
+      //         body: JSON.stringify(caseData),
+      //       });
 
-            if (response.ok) {
-              const paymentData = await response.json();
-              updatePaymentSection(paymentData);
-            }
-          }
-        } catch (error) {
-          console.error("Error loading payment info:", error);
-          // Show payment section with placeholder if API fails
-          document.getElementById("paymentSection").style.display = "block";
-          document.getElementById("paymentInfo").innerHTML = `
-                    <div class="text-muted">Filing fees will be calculated during submission.</div>
-                `;
-        }
-      }
+      //       if (response.ok) {
+      //         const paymentData = await response.json();
+      //         updatePaymentSection(paymentData);
+      //       }
+      //     }
+      //   } catch (error) {
+      //     console.error("Error loading payment info:", error);
+      //     // Show payment section with placeholder if API fails
+      //     document.getElementById("paymentSection").style.display = "block";
+      //     document.getElementById("paymentInfo").innerHTML = `
+      //               <div class="text-muted">Filing fees will be calculated during submission.</div>
+      //           `;
+      //   }
+      // }
 
       async function loadPaymentAccounts() {
         try {
@@ -956,6 +1023,7 @@
             caseData = JSON.parse(caseDataElement.textContent);
           }
 
+
           // Get upload data to obtain PDF URL
           const uploadResponse = await fetch("/api/get-upload-data/");
           let uploadData = {};
@@ -977,7 +1045,6 @@
           let pdfUrl = "";
 
           if (uploadData.files && uploadData.files.lead) {
-            console.log(uploadData.files.lead);
 
             if (uploadData.files.lead.url) {
               pdfUrl = uploadData.files.lead.url;
@@ -1030,6 +1097,52 @@
             : "";
           console.log(caseData);
 
+          // Function to determine party type code for existing cases (fallback)
+          function determinePartyTypeForExistingCase(caseData) {
+            const caseType = (caseData.case_type || '').toLowerCase();
+            const filingType = (caseData.filing_type || '').toLowerCase();
+            
+            // Return API codes based on case and filing types
+            if (caseType.includes('criminal')) {
+              return 'DEF'; // Defendant
+            } else if (caseType.includes('civil') || caseType.includes('family')) {
+              // In civil and family cases, the responding party is often a respondent
+              if (filingType.includes('answer') || filingType.includes('response')) {
+                return 'RES'; // Respondent
+              } else {
+                return 'DEF'; // Defendant
+              }
+            } else if (caseType.includes('probate')) {
+              return 'INT'; // Interested Party
+            } else {
+              // Default to defendant for most other cases
+              return 'DEF';
+            }
+          }
+
+          // Function to determine party type code for new cases (fallback)
+          function determinePartyTypeForNewCase(caseData) {
+            const caseType = (caseData.case_type || '').toLowerCase();
+            
+            // Return API codes based on case type
+            if (caseType.includes('name change') || caseType.includes('family') || caseType.includes('probate')) {
+              return 'PET'; // Petitioner
+            } else if (caseType.includes('civil')) {
+              return 'PLA'; // Plaintiff
+            } else {
+              return 'PET'; // Default to Petitioner
+            }
+          }
+
+          // Determine appropriate party type using session data first, then fallback
+          let partyType = caseData.determined_party_type || caseData.petitioner_party_type || caseData.party_type;
+          
+          if (!partyType && caseData.existing_case === 'yes') {
+            partyType = determinePartyTypeForExistingCase(caseData);
+          } else if (!partyType) {
+            partyType = determinePartyTypeForNewCase(caseData);
+          }
+
           // Build users array - always include petitioner
           const users = [
             {
@@ -1044,7 +1157,7 @@
                 country: "US",
               },
               email: email,
-              party_type: caseData.petitioner_party_type, // Petitioner
+              party_type: partyType, // Use determined party type
               date_of_birth: "", // Not collected in current form
               is_form_filler: true,
               name: {

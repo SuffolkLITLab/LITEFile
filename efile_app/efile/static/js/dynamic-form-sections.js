@@ -49,6 +49,14 @@ class DynamicFormSections {
       });
     }
 
+    // Listen for existing case changes to show/hide case information
+    const existingCaseSelect = document.getElementById("existing_case");
+    if (existingCaseSelect) {
+      existingCaseSelect.addEventListener("change", () => {
+        this.handleExistingCaseChange();
+      });
+    }
+
     // Listen for court changes to reload configuration with court-specific modifications
     const courtSelect = document.getElementById("court");
     if (courtSelect) {
@@ -174,44 +182,8 @@ class DynamicFormSections {
       if (response.ok) {
         const yamlText = await response.text();
         // This is a simplified YAML parser - in production you'd want a proper YAML library
-        // For now, just ensure we have the eviction configuration available
+        // For now, just ensure we have the base case types available
         this.config.base_case_types = this.config.base_case_types || {};
-        this.config.base_case_types.eviction_repossession = {
-          keywords: ["eviction", "repossession", "restoration"],
-          sections: {
-            case_information: {
-              title: "Case Information",
-              fields: [
-                {
-                  section_title: "Case Details",
-                  required: true,
-                  fields: [
-                    {
-                      name: "case_number",
-                      type: "text",
-                      label: "Case Number",
-                      required: true,
-                      placeholder: "Enter the existing case number",
-                      column_width: "col-6",
-                      help_text:
-                        "This is required to respond to an existing case",
-                    },
-                    {
-                      name: "case_type_detail",
-                      type: "text",
-                      label: "Case Type Detail",
-                      required: false,
-                      placeholder: "Additional case type information",
-                      column_width: "col-6",
-                      help_text: "Optional additional information",
-                    },
-                  ],
-                },
-              ],
-            },
-          },
-          description: "Eviction and Property Repossession Cases",
-        };
       }
     } catch (error) {
       console.warn("Could not load static base configuration:", error);
@@ -284,44 +256,7 @@ class DynamicFormSections {
           },
         },
       },
-      base_case_types: {
-        eviction_repossession: {
-          keywords: ["eviction", "repossession", "restoration"],
-          sections: {
-            case_information: {
-              title: "Case Information",
-              fields: [
-                {
-                  section_title: "Case Details",
-                  required: true,
-                  fields: [
-                    {
-                      name: "case_number",
-                      type: "text",
-                      label: "Case Number",
-                      required: true,
-                      placeholder: "Enter the existing case number",
-                      column_width: "col-6",
-                      help_text:
-                        "This is required to respond to an existing case",
-                    },
-                    {
-                      name: "case_type_detail",
-                      type: "text",
-                      label: "Case Type Detail",
-                      required: false,
-                      placeholder: "Additional case type information",
-                      column_width: "col-6",
-                      help_text: "Optional additional information",
-                    },
-                  ],
-                },
-              ],
-            },
-          },
-          description: "Eviction and Property Repossession Cases",
-        },
-      },
+      base_case_types: {},
     };
   }
 
@@ -374,6 +309,36 @@ class DynamicFormSections {
       this.showDynamicSections();
     } else {
       this.hideDynamicSections();
+    }
+  }
+
+  handleExistingCaseChange() {
+    const existingCaseSelect = document.getElementById("existing_case");
+    if (!existingCaseSelect) {
+      return;
+    }
+
+    const existingCaseValue = existingCaseSelect.value;
+    
+    // Show/hide case information section based on existing case selection
+    if (this.caseInfoContainer) {
+      if (existingCaseValue === "yes") {
+        // Show case information section
+        this.caseInfoContainer.style.display = "block";
+        // Also show the header if it exists
+        const caseInfoHeader = this.caseInfoContainer.previousElementSibling;
+        if (caseInfoHeader && caseInfoHeader.tagName === "H3") {
+          caseInfoHeader.style.display = "block";
+        }
+      } else {
+        // Hide case information section
+        this.caseInfoContainer.style.display = "none";
+        // Also hide the header if it exists
+        const caseInfoHeader = this.caseInfoContainer.previousElementSibling;
+        if (caseInfoHeader && caseInfoHeader.tagName === "H3") {
+          caseInfoHeader.style.display = "none";
+        }
+      }
     }
   }
 
@@ -467,6 +432,12 @@ class DynamicFormSections {
     // Restore preserved state after rendering
     this.restorePreservedState();
 
+    // Load party type dropdowns after all sections are rendered
+    this.loadPartyTypeDropdowns();
+
+    // Update form validation after rendering
+    this.updateFormValidation();
+
     // Check if there's restoration data from form validation that needs to be applied
     if (this.restorationData) {
       setTimeout(() => {
@@ -482,6 +453,9 @@ class DynamicFormSections {
           window.formValidation.restorationData
         );
       }
+      
+      // Check existing case selection to show/hide case information appropriately
+      this.handleExistingCaseChange();
     }, 100);
   }
 
@@ -504,6 +478,10 @@ class DynamicFormSections {
         this.dynamicSections.appendChild(header);
         this.dynamicSections.appendChild(containerDiv);
         this.caseInfoContainer = containerDiv;
+
+        // Initially hide case information section - only show when existing_case = "yes"
+        header.style.display = "none";
+        containerDiv.style.display = "none";
       }
     } else if (sectionType === "parties") {
       if (!this.partiesContainer) {
@@ -547,11 +525,8 @@ class DynamicFormSections {
 
     container.innerHTML = html;
 
-    // Load party type dropdowns after rendering
-    this.loadPartyTypeDropdowns();
-
-    // Update form validation after rendering
-    this.updateFormValidation();
+    // Note: loadPartyTypeDropdowns() and updateFormValidation() are called 
+    // once after all sections are rendered in renderCaseTypeForm()
   }
 
   renderCaseInformationSection(sectionConfig) {
@@ -1118,6 +1093,9 @@ class DynamicFormSections {
   }
 
   clearContainers() {
+    if (this.caseInfoContainer) {
+      this.caseInfoContainer.innerHTML = "";
+    }
     if (this.partiesContainer) {
       this.partiesContainer.innerHTML = "";
     }
@@ -1202,6 +1180,11 @@ class DynamicFormSections {
   getAllDynamicFieldNames() {
     // Get all field names from currently rendered dynamic content
     const allFields = [];
+
+    if (this.caseInfoContainer) {
+      const fields = this.caseInfoContainer.querySelectorAll("[name]");
+      fields.forEach((field) => allFields.push(field.name));
+    }
 
     if (this.partiesContainer) {
       const fields = this.partiesContainer.querySelectorAll("[name]");

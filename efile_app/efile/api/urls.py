@@ -25,6 +25,7 @@ from .dropdown_views import (
     get_party_types,
 )
 from .filing_views import create_filing, delete_filing, get_filing_detail, get_filings, update_filing
+from .suffolk_api_views import lookup_case
 
 app_name = "api"
 
@@ -40,6 +41,8 @@ urlpatterns = [
     # Form configuration endpoints
     path("form-config/", get_form_config, name="form_config"),
     path("case-type-config/", get_case_type_config, name="case_type_config"),
+    # Suffolk API endpoints
+    path("suffolk/lookup-case/", lookup_case, name="lookup_case"),
     # Authentication API endpoints
     path("auth/login/", user_login, name="login"),
     path("auth/logout/", user_logout, name="logout"),

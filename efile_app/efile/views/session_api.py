@@ -9,6 +9,118 @@ import requests
 from ..utils.zip_to_county_il import get_county_by_zip
 
 
+def get_party_type_code_from_api(court_code, case_type_code, jurisdiction="illinois", target_party_name=None):
+    """
+    Fetch party type codes from the Suffolk LIT Lab API and return the appropriate code.
+    """
+    try:
+        api_url = f"https://efile-test.suffolklitlab.org/jurisdictions/{jurisdiction}/codes/courts/{court_code}/case_types/{case_type_code}/party_types"
+        
+        print(f"Fetching party types from: {api_url}")
+        print(f"Looking for target party name: {target_party_name}")
+        
+        response = requests.get(api_url, timeout=10)
+        
+        if response.status_code == 200:
+            party_types = response.json()
+            print(f"API returned {len(party_types)} party types:")
+            for pt in party_types:
+                print(f"  - {pt.get('name', 'No name')} ({pt.get('code', 'No code')})")
+            
+            if target_party_name:
+                # Look for a specific party type by name (case-insensitive)
+                target_lower = target_party_name.lower()
+                print(f"Searching for target: '{target_lower}'")
+                
+                for party_type in party_types:
+                    if isinstance(party_type, dict) and "name" in party_type and "code" in party_type:
+                        party_name_lower = party_type["name"].lower()
+                        print(f"  Checking: '{party_name_lower}' contains '{target_lower}'?")
+                        
+                        # Improved matching - check for exact words, not just substrings
+                        if (target_lower in party_name_lower or 
+                            party_name_lower in target_lower or
+                            any(word in party_name_lower for word in target_lower.split()) or
+                            any(word in target_lower for word in party_name_lower.split())):
+                            print(f"  Found match: {party_type['name']} ({party_type['code']})")
+                            return party_type["code"]
+            
+            # If no specific match found, return the first available party type code
+            if party_types and isinstance(party_types[0], dict) and "code" in party_types[0]:
+                first_code = party_types[0]["code"]
+                print(f"No specific match found, using first party type: {party_types[0].get('name', 'Unknown')} ({first_code})")
+                return first_code
+        else:
+            print(f"API request failed with status: {response.status_code}")
+                
+    except Exception as e:
+        print(f"Failed to fetch party types from API: {e}")
+    
+    # Fallback to default codes if API call fails
+    print("API call failed, returning None for fallback handling")
+    return None
+
+
+def determine_party_type_for_existing_case(case_data):
+    """
+    Determine the appropriate party type when responding to an existing case.
+    This fetches actual party type codes from the API.
+    """
+    court_code = case_data.get('court')
+    case_type_code = case_data.get('case_type')
+    case_type = case_data.get('case_type', '').lower()
+    filing_type = case_data.get('filing_type', '').lower()
+    
+    print(f"Determining party type for existing case:")
+    print(f"  Court: {court_code}")
+    print(f"  Case type code: {case_type_code}")
+    print(f"  Case type: {case_type}")
+    print(f"  Filing type: {filing_type}")
+    
+    if not court_code or not case_type_code:
+        print("Missing court or case_type for party type determination")
+        return 'DEF'  # Default fallback code
+    
+    # Determine target party type name based on case and filing type
+    target_party_name = None
+    
+    if 'criminal' in case_type:
+        target_party_name = 'defendant'
+    elif 'civil' in case_type or 'family' in case_type:
+        if 'answer' in filing_type or 'response' in filing_type:
+            target_party_name = 'respondent'
+        else:
+            target_party_name = 'defendant'
+    elif 'probate' in case_type:
+        target_party_name = 'interested party'
+    else:
+        target_party_name = 'defendant'
+    
+    print(f"  Determined target party name: {target_party_name}")
+    
+    # Get the actual party type code from API
+    party_code = get_party_type_code_from_api(court_code, case_type_code, target_party_name=target_party_name)
+    
+    print(f"API returned party code: {party_code}")
+    
+    # Fallback codes if API call fails
+    if not party_code:
+        print("Using fallback codes since API call failed")
+        if target_party_name == 'defendant':
+            fallback = 'DEF'
+        elif target_party_name == 'respondent':
+            fallback = 'RES'
+        elif target_party_name == 'interested party':
+            fallback = 'INT'
+        else:
+            fallback = 'DEF'
+        print(f"Fallback code: {fallback}")
+        return fallback
+    
+    print(f"Using API code: {party_code}")
+    return party_code
+
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def save_form_data_to_session(request):
@@ -314,3 +426,182 @@ def debug_session_data(request):
         "session_items": dict(request.session.items()),
     }
     return JsonResponse(session_data, safe=False)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def api_save_case_data(request):
+    """
+    API endpoint to save case data to session
+    """
+    try:
+        data = json.loads(request.body)
+
+        # Handle two different data structures:
+        # 1. From form-validation.js: { data: { form_fields... } }
+        # 2. From case_details.html: { existing_case: 'yes', case_tracking_id: '...', ... }
+        
+        if 'data' in data:
+            # Structure from form-validation.js (expert form)
+            form_data = data.get('data', {})
+            existing_case = form_data.get('existing_case')
+        else:
+            # Structure from case_details.html (direct fields)
+            form_data = data
+            existing_case = data.get('existing_case')
+        
+        # Save existing_case to session if provided
+        if existing_case:
+            request.session['existing_case'] = existing_case
+        
+        # Always save all form data to case_data for upload view compatibility
+        case_data = request.session.get('case_data', {})
+        case_data.update(form_data)
+        
+        # Ensure existing_case status is available in case_data
+        if existing_case:
+            case_data['existing_case'] = existing_case
+        
+        # Map case details fields to standard names for eFiling
+        if 'case_docket_id' in form_data:
+            case_data['docket_number'] = form_data['case_docket_id']
+        if 'case_tracking_id' in form_data:
+            case_data['previous_case_id'] = form_data['case_tracking_id']
+        
+        # Determine party type for existing cases - typically defendant/respondent when responding to existing case
+        if existing_case == 'yes':
+            # For existing cases, we need to determine the appropriate party type
+            # This depends on the case type and filing type
+            party_type = determine_party_type_for_existing_case(form_data)
+            if not case_data.get('party_type'):
+                case_data['party_type'] = party_type
+            if not case_data.get('petitioner_party_type'):
+                case_data['petitioner_party_type'] = party_type
+            
+        request.session['case_data'] = case_data
+        request.session.modified = True
+        
+        return JsonResponse({
+            "success": True, 
+            "data": {"existing_case": existing_case, "saved_fields": list(form_data.keys())}
+        })
+        
+    except json.JSONDecodeError:
+        return JsonResponse({
+            "success": False, 
+            "error": "Invalid JSON data"
+        }, status=400)
+    except Exception as e:
+        return JsonResponse({
+            "success": False, 
+            "error": str(e)
+        }, status=500)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def fetch_and_save_party_type(request):
+    """
+    Fetch party type code from Suffolk LIT Lab API and save to session
+    """
+    try:
+        data = json.loads(request.body)
+        court_code = data.get('court')
+        case_type_code = data.get('case_type')
+        existing_case = data.get('existing_case')
+        jurisdiction = data.get('jurisdiction', 'illinois')
+        
+        print(f"Fetching party type with data: {data}")
+        
+        if not court_code or not case_type_code:
+            return JsonResponse({
+                "success": False,
+                "error": "Court and case_type are required"
+            }, status=400)
+        
+        # Determine target party type based on existing case status
+        if existing_case == 'yes':
+            print("Determining party type for existing case")
+            party_type_code = determine_party_type_for_existing_case({
+                'court': court_code,
+                'case_type': case_type_code,
+                'filing_type': data.get('filing_type', ''),
+                'existing_case': existing_case
+            })
+        else:
+            print("Determining party type for new case")
+            # For new cases, determine appropriate party type
+            case_type = case_type_code.lower()
+            print(f"Case type (lowercase): {case_type}")
+            
+            if 'name change' in case_type or 'family' in case_type or 'probate' in case_type:
+                print("Looking for petitioner party type")
+                party_type_code = get_party_type_code_from_api(court_code, case_type_code, target_party_name='petitioner')
+            elif 'civil' in case_type:
+                print("Looking for plaintiff party type")
+                party_type_code = get_party_type_code_from_api(court_code, case_type_code, target_party_name='plaintiff')
+            else:
+                print("Default: Looking for petitioner party type")
+                party_type_code = get_party_type_code_from_api(court_code, case_type_code, target_party_name='petitioner')
+            
+            # Fallback to default codes if API call failed
+            if not party_type_code:
+                print("API call failed, using fallback codes")
+                if 'civil' in case_type:
+                    party_type_code = 'PLA'
+                    print("Using fallback: PLA (Plaintiff)")
+                else:
+                    party_type_code = 'PET'
+                    print("Using fallback: PET (Petitioner)")
+        
+        print(f"Final party type code: {party_type_code}")
+        
+        # Save to session
+        case_data = request.session.get('case_data', {})
+        case_data['determined_party_type'] = party_type_code
+        case_data['party_type'] = party_type_code
+        case_data['petitioner_party_type'] = party_type_code
+        request.session['case_data'] = case_data
+        request.session.modified = True
+        
+        print(f"Saved party type to session: {party_type_code}")
+        
+        return JsonResponse({
+            "success": True,
+            "party_type": party_type_code
+        })
+        
+    except json.JSONDecodeError:
+        return JsonResponse({
+            "success": False,
+            "error": "Invalid JSON data"
+        }, status=400)
+    except Exception as e:
+        return JsonResponse({
+            "success": False,
+            "error": str(e)
+        }, status=500)
+
+
+@require_http_methods(["GET"])
+def api_get_case_data(request):
+    """
+    API endpoint to retrieve saved case data from session
+    """
+    try:
+        existing_case = request.session.get('existing_case')
+        
+        data = {}
+        if existing_case:
+            data['existing_case'] = existing_case
+        
+        return JsonResponse({
+            "success": True, 
+            "data": data
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            "success": False, 
+            "error": str(e)
+        }, status=500)

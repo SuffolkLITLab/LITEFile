@@ -132,30 +132,43 @@ class DropdownAPIViews(APIResponseMixin):
         try:
             auth_tokens = get_auth_tokens(request)
 
-            # Get required parameters
+            # Get required parameters - support both parameter names for flexibility
             court_code = request.GET.get("court")
-            casetype_id = request.GET.get("parent")
+            case_type_id = request.GET.get("case_type") or request.GET.get("parent")  # Support both flows
             jurisdiction = request.GET.get("jurisdiction", "illinois")
-            current_case_id = request.GET.get("current_case_id")
+            existing_case = request.GET.get("existing_case")
 
-            # Set initial flag: True if no current case, False if there is a current case
-            initial = "True" if not current_case_id else "False"
+            # Set initial flag based on existing_case parameter:
+            # - "yes" means existing case, so initial=False (not an initial filing)  
+            # - "no" means new case, so initial=True (is an initial filing)
+            # - Default to True if not specified
+            if existing_case == "yes":
+                initial = "false"
+            else:
+                initial = "true"
 
             if not court_code:
                 return DropdownAPIViews.error_response("Missing required court parameter")
 
-            if not casetype_id:
-                return DropdownAPIViews.error_response("Missing required case type parameter")
+            if not case_type_id:
+                return DropdownAPIViews.error_response("Missing required case_type parameter")
 
-            # Make API call to external filing types endpoint
-            api_url = f"https://efile-test.suffolklitlab.org/jurisdictions/{jurisdiction}/codes/courts/{court_code}/filing_types/?initial={initial}&category_id={casetype_id}"
+            # Make API call to external filing types endpoint - use case_type_id as category_id
+            api_url = f"https://efile-test.suffolklitlab.org/jurisdictions/{jurisdiction}/codes/courts/{court_code}/filing_types/?initial={initial}&category_id={case_type_id}"
+            logger.debug("Final API URL: %s", api_url)
 
             # Make the API request with auth tokens if available
             headers = {}
             if auth_tokens and "token" in auth_tokens:
                 headers["Authorization"] = f"Bearer {auth_tokens['token']}"
 
+            logger.debug("GET %s header keys=%s", api_url, list(headers.keys()))
             response = requests.get(api_url, headers=headers, timeout=10)
+            logger.debug(
+                "Filing types response: status=%s content_type=%s",
+                response.status_code,
+                response.headers.get("Content-Type"),
+            )
 
             if response.status_code == 200:
                 # Parse the API response - expecting list of {name, code} objects

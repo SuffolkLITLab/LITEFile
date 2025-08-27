@@ -133,6 +133,7 @@ class FormValidation {
   async handleFormSubmission(e) {
     e.preventDefault(); // Prevent default form submission
     e.stopPropagation(); // Stop event bubbling
+    e.stopImmediatePropagation(); // Stop any other handlers
 
     // Refresh required fields list to include any dynamically added fields
     this.requiredFields = this.form.querySelectorAll("[required]");
@@ -145,6 +146,9 @@ class FormValidation {
         isValid = false;
         field.classList.add("is-invalid");
         invalidFields.push(field.labels[0]?.textContent || field.name);
+      } else {
+        field.classList.remove("is-invalid");
+        field.classList.add("is-valid");
       }
     });
 
@@ -153,12 +157,13 @@ class FormValidation {
       this.scrollToFirstError();
       return false;
     }
-
+    
     // Collect form data and add friendly names
     const formData = this.collectFormData();
     const enhancedFormData = this.addFriendlyNames(formData);
 
-    try {
+
+    try {      
       // Save case data to session via API
       const response = await fetch("/api/save-case-data/", {
         method: "POST",
@@ -170,17 +175,17 @@ class FormValidation {
         body: JSON.stringify({ data: enhancedFormData }),
       });
 
+
       if (response.ok) {
         const result = await response.json();
         this.showNotification("Case data saved successfully!", "success");
 
-        // Wait a moment for the notification to show, then redirect
-        setTimeout(() => {
-          window.location.href = "/upload/";
-        }, 1000);
+
+        window.location.replace("/upload/");
       } else {
         const error = await response.json();
-        console.error("Failed to save case data:", error);
+        console.error("Failed to save case data - Status:", response.status);
+        console.error("Failed to save case data - Error:", error);
         this.showNotification(`Error: ${error.error}`, "error");
       }
     } catch (error) {
@@ -247,6 +252,14 @@ class FormValidation {
         data[key] = value;
       }
     }
+
+    // Also collect disabled fields manually since FormData excludes them
+    const disabledFields = this.form.querySelectorAll('input[disabled], select[disabled], textarea[disabled]');
+    disabledFields.forEach(field => {
+      if (field.name && field.value) {
+        data[field.name] = field.value;
+      }
+    });
 
     return data;
   }
@@ -648,7 +661,19 @@ class FormValidation {
       return;
     }
 
-    // Check if the option exists
+    // Special handling for filing_type search dropdown
+    if (dropdownName === "filing_type" && window.filingTypeSearch) {
+      const option = dropdown.querySelector(`option[value="${value}"]`);
+      if (option) {
+        // Use the search dropdown's setValue method to properly update both the hidden select and the UI
+        window.filingTypeSearch.setValue(value, false); // Don't trigger change event to avoid cascading
+      } else {
+        console.warn(`Filing type option not found: ${value}`);
+      }
+      return;
+    }
+
+    // Check if the option exists for regular dropdowns
     const option = dropdown.querySelector(`option[value="${value}"]`);
     if (option) {
       dropdown.value = value;
