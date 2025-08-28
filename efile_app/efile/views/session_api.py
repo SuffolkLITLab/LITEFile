@@ -1,4 +1,5 @@
 import json
+import logging
 
 import requests
 from django.conf import settings
@@ -7,6 +8,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from ..utils.zip_to_county_il import get_county_by_zip
+
+logger = logging.getLogger(__name__)
 
 
 def get_party_type_code_from_api(court_code, case_type_code, jurisdiction="illinois", target_party_name=None):
@@ -19,26 +22,26 @@ def get_party_type_code_from_api(court_code, case_type_code, jurisdiction="illin
             f"/case_types/{case_type_code}/party_types"
         )
 
-        print(f"Fetching party types from: {api_url}")
-        print(f"Looking for target party name: {target_party_name}")
+        logger.debug(f"Fetching party types from: {api_url}")
+        logger.debug(f"Looking for target party name: {target_party_name}")
 
         response = requests.get(api_url, timeout=10)
 
         if response.status_code == 200:
             party_types = response.json()
-            print(f"API returned {len(party_types)} party types:")
+            logger.debug(f"API returned {len(party_types)} party types")
             for pt in party_types:
-                print(f"  - {pt.get('name', 'No name')} ({pt.get('code', 'No code')})")
+                logger.debug(f"Party type: {pt.get('name', 'No name')} ({pt.get('code', 'No code')})")
 
             if target_party_name:
                 # Look for a specific party type by name (case-insensitive)
                 target_lower = target_party_name.lower()
-                print(f"Searching for target: '{target_lower}'")
+                logger.debug(f"Searching for target: '{target_lower}'")
 
                 for party_type in party_types:
                     if isinstance(party_type, dict) and "name" in party_type and "code" in party_type:
                         party_name_lower = party_type["name"].lower()
-                        print(f"  Checking: '{party_name_lower}' contains '{target_lower}'?")
+                        logger.debug(f"Checking if '{party_name_lower}' contains '{target_lower}'")
 
                         # Improved matching - check for exact words, not just substrings
                         if (
@@ -47,25 +50,25 @@ def get_party_type_code_from_api(court_code, case_type_code, jurisdiction="illin
                             or any(word in party_name_lower for word in target_lower.split())
                             or any(word in target_lower for word in party_name_lower.split())
                         ):
-                            print(f"  Found match: {party_type['name']} ({party_type['code']})")
+                            logger.info(f"Found party type match: {party_type['name']} ({party_type['code']})")
                             return party_type["code"]
 
             # If no specific match found, return the first available party type code
             if party_types and isinstance(party_types[0], dict) and "code" in party_types[0]:
                 first_code = party_types[0]["code"]
-                print(
-                    f"No specific match found, using first party type:"
-                    f" {party_types[0].get('name', 'Unknown')} ({first_code})"
+                logger.info(
+                    f"No specific match found, using first party type: "
+                    f"{party_types[0].get('name', 'Unknown')} ({first_code})"
                 )
                 return first_code
         else:
-            print(f"API request failed with status: {response.status_code}")
+            logger.error(f"API request failed with status: {response.status_code}")
 
-    except Exception as e:
-        print(f"Failed to fetch party types from API: {e}")
+    except Exception:
+        logger.exception("Failed to fetch party types from API")
 
     # Fallback to default codes if API call fails
-    print("API call failed, returning None for fallback handling")
+    logger.warning("API call failed, returning None for fallback handling")
     return None
 
 
@@ -79,14 +82,14 @@ def determine_party_type_for_existing_case(case_data):
     case_type = case_data.get("case_type", "").lower()
     filing_type = case_data.get("filing_type", "").lower()
 
-    print("Determining party type for existing case:")
-    print(f"  Court: {court_code}")
-    print(f"  Case type code: {case_type_code}")
-    print(f"  Case type: {case_type}")
-    print(f"  Filing type: {filing_type}")
+    logger.debug("Determining party type for existing case:")
+    logger.debug(f"  Court: {court_code}")
+    logger.debug(f"  Case type code: {case_type_code}")
+    logger.debug(f"  Case type: {case_type}")
+    logger.debug(f"  Filing type: {filing_type}")
 
     if not court_code or not case_type_code:
-        print("Missing court or case_type for party type determination")
+        logger.warning("Missing court or case_type for party type determination")
         return "DEF"  # Default fallback code
 
     # Determine target party type name based on case and filing type
@@ -104,16 +107,16 @@ def determine_party_type_for_existing_case(case_data):
     else:
         target_party_name = "defendant"
 
-    print(f"  Determined target party name: {target_party_name}")
+    logger.debug(f"Determined target party name: {target_party_name}")
 
     # Get the actual party type code from API
     party_code = get_party_type_code_from_api(court_code, case_type_code, target_party_name=target_party_name)
 
-    print(f"API returned party code: {party_code}")
+    logger.debug(f"API returned party code: {party_code}")
 
     # Fallback codes if API call fails
     if not party_code:
-        print("Using fallback codes since API call failed")
+        logger.warning("Using fallback codes since API call failed")
         if target_party_name == "defendant":
             fallback = "DEF"
         elif target_party_name == "respondent":
@@ -122,10 +125,10 @@ def determine_party_type_for_existing_case(case_data):
             fallback = "INT"
         else:
             fallback = "DEF"
-        print(f"Fallback code: {fallback}")
+        logger.info(f"Using fallback party type code: {fallback}")
         return fallback
 
-    print(f"Using API code: {party_code}")
+    logger.info(f"Selected party type code: {party_code}")
     return party_code
 
 
@@ -226,11 +229,11 @@ def save_form_data_to_session(request):
 def save_upload_data_to_session(request):
     """Save upload data and file information to Django session for review."""
     try:
-        print("Received POST request to save upload data")
-        print(f"Request body: {request.body.decode('utf-8')}")
+        logger.debug("Received POST request to save upload data")
+        logger.debug(f"Request body: {request.body.decode('utf-8')}")
 
         data = json.loads(request.body)
-        print(f"Parsed data: {data}")
+        logger.debug("Parsed upload data")
 
         upload_data = {
             "files": data.get("files", {}),
@@ -246,20 +249,17 @@ def save_upload_data_to_session(request):
             "supporting_documents": data.get("supporting_documents", []),
         }
 
-        print(f"Processed upload data: {upload_data}")
+        logger.debug("Processed upload data")
 
         # Save to session
         request.session["upload_data"] = upload_data
         request.session.modified = True
 
-        print("Saved upload data to session successfully")
+        logger.info("Successfully saved upload data to session")
         return JsonResponse({"success": True, "message": "Upload data saved to session"})
 
     except Exception as e:
-        print(f"Error saving upload data to session: {str(e)}")
-        import traceback
-
-        traceback.print_exc()
+        logger.exception("Error saving upload data to session")
         return JsonResponse({"success": False, "error": str(e)}, status=500)
 
 
@@ -285,10 +285,10 @@ def submit_final_filing(request):
         upload_data = request.session.get("upload_data", {})
         auth_tokens = request.session.get("auth_tokens", {})
 
-        print("Debug - Session data:")
-        print(f"  - case_data keys: {list(case_data.keys()) if case_data else 'Empty'}")
-        print(f"  - upload_data keys: {list(upload_data.keys()) if upload_data else 'Empty'}")
-        print(f"  - auth_tokens keys: {list(auth_tokens.keys()) if auth_tokens else 'Empty'}")
+        logger.debug("Session data contents:")
+        logger.debug(f"  - case_data keys: {list(case_data.keys()) if case_data else 'Empty'}")
+        logger.debug(f"  - upload_data keys: {list(upload_data.keys()) if upload_data else 'Empty'}")
+        logger.debug(f"  - auth_tokens keys: {list(auth_tokens.keys()) if auth_tokens else 'Empty'}")
 
         if not case_data:
             return JsonResponse(
@@ -316,10 +316,11 @@ def submit_final_filing(request):
             return JsonResponse({"success": False, "error": "No efile data provided in request"}, status=400)
 
         # Log the complete request data for debugging
-        print("Complete request data received:")
-        print(f"  - confirm_submission: {data.get('confirm_submission')}")
-        print(f"  - efile_data keys: {list(efile_data.keys()) if isinstance(efile_data, dict) else 'Not a dict'}")
-        print(f"  - efile_data: {json.dumps(efile_data, indent=2)}")
+        logger.debug("Complete request data received")
+        logger.debug(f"  - confirm_submission: {data.get('confirm_submission')}")
+        logger.debug(
+            f"  - efile_data keys: {list(efile_data.keys()) if isinstance(efile_data, dict) else 'Not a dict'}"
+        )
 
         # Validate required fields in efile_data
         required_fields = ["al_court_bundle"]  # Based on typical Suffolk API requirements
@@ -366,13 +367,13 @@ def submit_final_filing(request):
             if tyler_token:
                 headers[f"TYLER-TOKEN-{jurisdiction_id.upper()}"] = tyler_token
             else:
-                print(f"Warning: No Tyler token found for jurisdiction '{jurisdiction_id}' in filing submission")
+                logger.warning(f"No Tyler token found for jurisdiction '{jurisdiction_id}' in filing submission")
 
-            print("Submitting to Suffolk LIT Lab API at:", api_url)
-            print("With headers:", headers)
-            print("API Key present:", bool(api_key))
-            print("Tyler Token present:", bool(tyler_token))
-            print("Request payload:", json.dumps(efile_data, indent=2))
+            logger.info(f"Submitting to Suffolk LIT Lab API at: {api_url}")
+            logger.debug(f"Headers: {headers}")
+            logger.debug(f"API Key present: {bool(api_key)}")
+            logger.debug(f"Tyler Token present: {bool(tyler_token)}")
+            logger.debug(f"Request payload: {json.dumps(efile_data, indent=2)}")
 
             response = requests.post(
                 api_url,
@@ -380,9 +381,9 @@ def submit_final_filing(request):
                 headers=headers,
             )
 
-            print(f"Response status code: {response.status_code}")
-            print(f"Response headers: {dict(response.headers)}")
-            print(f"Response content: {response.text}")
+            logger.debug(f"Response status code: {response.status_code}")
+            logger.debug(f"Response headers: {dict(response.headers)}")
+            logger.debug(f"Response content: {response.text}")
 
             if response.status_code == 200 or response.status_code == 201:
                 response_data = response.json()
@@ -404,8 +405,8 @@ def submit_final_filing(request):
                 )
             else:
                 # Handle API error responses
-                print(f"API Error - Status: {response.status_code}")
-                print(f"API Error - Response: {response.text}")
+                logger.error(f"API Error - Status: {response.status_code}")
+                logger.error(f"API Error - Response: {response.text}")
 
                 try:
                     error_data = response.json()
@@ -454,6 +455,8 @@ def clear_session_data(request):
 @require_http_methods(["GET"])
 def debug_session_data(request):
     """Debug endpoint to view session contents."""
+    logger.debug("Session data dump:")
+    logger.debug(json.dumps(dict(request.session), indent=2, default=str))
     session_data = {
         "case_data": request.session.get("case_data", {}),
         "upload_data": request.session.get("upload_data", {}),
@@ -539,14 +542,14 @@ def fetch_and_save_party_type(request):
         existing_case = data.get("existing_case")
         _jurisdiction = data.get("jurisdiction", "illinois")
 
-        print(f"Fetching party type with data: {data}")
+        logger.debug("Fetching party type with data")
 
         if not court_code or not case_type_code:
             return JsonResponse({"success": False, "error": "Court and case_type are required"}, status=400)
 
         # Determine target party type based on existing case status
         if existing_case == "yes":
-            print("Determining party type for existing case")
+            logger.debug("Determining party type for existing case")
             party_type_code = determine_party_type_for_existing_case(
                 {
                     "court": court_code,
@@ -556,30 +559,30 @@ def fetch_and_save_party_type(request):
                 }
             )
         else:
-            print("Determining party type for new case")
+            logger.debug("Determining party type for new case")
             # For new cases, determine appropriate party type
             case_type = case_type_code.lower()
-            print(f"Case type (lowercase): {case_type}")
+            logger.debug(f"Case type (lowercase): {case_type}")
 
             if "name change" in case_type or "family" in case_type or "probate" in case_type:
-                print("Looking for petitioner party type")
+                logger.debug("Looking for petitioner party type")
                 party_type_code = get_party_type_code_from_api(
                     court_code, case_type_code, target_party_name="petitioner"
                 )
             elif "civil" in case_type:
-                print("Looking for plaintiff party type")
+                logger.debug("Looking for plaintiff party type")
                 party_type_code = get_party_type_code_from_api(
                     court_code, case_type_code, target_party_name="plaintiff"
                 )
             else:
-                print("Default: Looking for petitioner party type")
+                logger.debug("Default: Looking for petitioner party type")
                 party_type_code = get_party_type_code_from_api(
                     court_code, case_type_code, target_party_name="petitioner"
                 )
 
             # If API call failed, return error instead of using fallback codes
             if not party_type_code:
-                print("API call failed, no party type could be determined from Suffolk API")
+                logger.warning("API call failed, no party type could be determined from Suffolk API")
                 return JsonResponse(
                     {
                         "success": False,
@@ -589,7 +592,7 @@ def fetch_and_save_party_type(request):
                     status=400,
                 )
 
-        print(f"Final party type code: {party_type_code}")
+        logger.debug(f"Final party type code: {party_type_code}")
 
         # Save to session
         case_data = request.session.get("case_data", {})
@@ -599,7 +602,7 @@ def fetch_and_save_party_type(request):
         request.session["case_data"] = case_data
         request.session.modified = True
 
-        print(f"Saved party type to session: {party_type_code}")
+        logger.debug(f"Saved party type to session: {party_type_code}")
 
         return JsonResponse({"success": True, "party_type": party_type_code})
 
@@ -632,7 +635,7 @@ def save_party_type_to_session(request):
         request.session["case_data"] = case_data
         request.session.modified = True
 
-        print(f"Saved party type to session: {party_type}")
+        logger.debug(f"Saved party type to session: {party_type}")
 
         return JsonResponse({"success": True, "party_type": party_type})
 
@@ -661,17 +664,17 @@ def get_party_types_from_suffolk_api(request):
             f"{settings.EFSP_URL}/jurisdictions/{jurisdiction}/codes/courts/{court}/case_types/{case_type}/party_types"
         )
 
-        print(f"Fetching party types from Suffolk API: {suffolk_api_url}")
-        print(f"Existing case: {existing_case}")
+        logger.debug(f"Fetching party types from Suffolk API: {suffolk_api_url}")
+        logger.debug(f"Existing case: {existing_case}")
 
         # Make request to Suffolk API
         response = requests.get(suffolk_api_url, timeout=10)
 
         if response.status_code == 200:
             party_types = response.json()
-            print(f"Suffolk API returned {len(party_types)} party types:")
+            logger.debug(f"Suffolk API returned {len(party_types)} party types:")
             for pt in party_types:
-                print(f"  - {pt.get('name', 'No name')} ({pt.get('code', 'No code')})")
+                logger.debug(f"  - {pt.get('name', 'No name')} ({pt.get('code', 'No code')})")
 
             if party_types and len(party_types) > 0:
                 # Determine appropriate party type based on case status
@@ -679,7 +682,7 @@ def get_party_types_from_suffolk_api(request):
 
                 if existing_case == "yes":
                     # For existing cases, look for defendant party type
-                    print("Looking for defendant party type for existing case")
+                    logger.debug("Looking for defendant party type for existing case")
                     for party_type in party_types:
                         if isinstance(party_type, dict) and "name" in party_type and "code" in party_type:
                             party_name_lower = party_type["name"].lower()
@@ -689,14 +692,14 @@ def get_party_types_from_suffolk_api(request):
                                 or "def" in party_name_lower
                             ):
                                 selected_party_type = party_type["code"]
-                                print(
+                                logger.info(
                                     f"Found defendant/respondent party type: "
                                     f"{party_type['name']} ({selected_party_type})"
                                 )
                                 break
                 else:
                     # For new cases, look for petitioner or plaintiff party type
-                    print("Looking for petitioner/plaintiff party type for new case")
+                    logger.debug("Looking for petitioner/plaintiff party type for new case")
                     case_type_lower = case_type.lower()
 
                     target_names = []
@@ -713,7 +716,7 @@ def get_party_types_from_suffolk_api(request):
                                 party_name_lower = party_type["name"].lower()
                                 if target_name in party_name_lower:
                                     selected_party_type = party_type["code"]
-                                    print(
+                                    logger.info(
                                         f"Found {target_name} party type: {party_type['name']} ({selected_party_type})"
                                     )
                                     break
@@ -723,7 +726,7 @@ def get_party_types_from_suffolk_api(request):
                 # If no specific match found, use the first available party type
                 if not selected_party_type:
                     selected_party_type = party_types[0].get("code")
-                    print(
+                    logger.info(
                         f"No specific match found, using first party type: "
                         f"{party_types[0].get('name', 'Unknown')} ({selected_party_type})"
                     )
