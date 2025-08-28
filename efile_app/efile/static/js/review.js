@@ -591,6 +591,20 @@ const FilingHandler = {
       });
     }
 
+    // Add second user if needed for name changes
+    if (caseData.respondent_name_party_type) {
+      users.push({
+        party_type: caseData.respondent_name_party_type,
+        name: {
+          first: caseData.respondent_first_name || "",
+          middle: caseData.respondent_middle_name || "",
+          last: caseData.respondent_last_name || "",
+          suffix: caseData.respondent_suffix || ""
+        },
+        is_new: true,
+      });
+    }
+
     const efilingData = {
       efile_case_category: caseData.case_category,
       efile_case_type: caseData.case_type,

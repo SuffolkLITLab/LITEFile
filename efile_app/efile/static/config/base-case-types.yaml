@@ -121,7 +121,7 @@ base_case_types:
                 column_width: "col-6"
 
   order_of_protection:
-    keywords: ["order of protection"]
+    keywords: ["order of protection", "stalking no contact order"]
     description: "Order of Protection"
     sections:
       parties:

@@ -92,35 +92,37 @@ class GetFilingComponentsView(View):
     def get(self, request):
         try:
             # Get parameters from query string or fallback to session data
-            court = request.GET.get('court')
-            filing_type_id = request.GET.get('filing_type')
-            
+            court = request.GET.get("court")
+            filing_type_id = request.GET.get("filing_type")
+
             # If not provided in query, try to get from session
             if not court or not filing_type_id:
-                case_data = request.session.get('case_data', {})
-                court = court or case_data.get('court', 'cook:cd')
-                filing_type_id = filing_type_id or case_data.get('filing_type')
-            
-            # If we still don't have filing_type_id, try to get all filing components 
+                case_data = request.session.get("case_data", {})
+                court = court or case_data.get("court", "cook:cd")
+                filing_type_id = filing_type_id or case_data.get("filing_type")
+
+            # If we still don't have filing_type_id, try to get all filing components
             # by using a generic endpoint or a common filing type
             if not filing_type_id:
                 # Try to get a list of filing types first to get any filing type ID
-                filing_types_url = f"https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/{court}/filing_types"
+                filing_types_url = (
+                    f"https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/{court}/filing_types"
+                )
                 filing_types_response = requests.get(filing_types_url, timeout=10)
                 if filing_types_response.status_code == 200:
                     filing_types_data = filing_types_response.json()
                     # Use the first available filing type to get components
                     if filing_types_data and len(filing_types_data) > 0:
-                        filing_type_id = filing_types_data[0].get('value') or filing_types_data[0].get('code')
+                        filing_type_id = filing_types_data[0].get("value") or filing_types_data[0].get("code")
                         print(f"Using first available filing type: {filing_type_id}")
                     else:
                         # Fallback to a common filing type ID
-                        filing_type_id = '78690'
+                        filing_type_id = "78690"
                         print(f"Using fallback filing type: {filing_type_id}")
                 else:
-                    filing_type_id = '78690'  # Fallback
+                    filing_type_id = "78690"  # Fallback
                     print(f"Failed to get filing types, using fallback: {filing_type_id}")
-            
+
             print(f"Getting filing components for court: {court}, filing_type: {filing_type_id}")
 
             # Build the Suffolk LIT Lab API URL
