@@ -9,6 +9,9 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from ..utils.case_data_utils import get_case_classification, get_case_data, get_name_sought_info, get_petitioner_info
+from ..utils.s3_upload import s3_handler
+
+logger = logging.getLogger(__name__)
 
 
 def get_party_type_code_from_api(court_code, case_type_code, jurisdiction="illinois", target_party_name=None):
@@ -17,26 +20,26 @@ def get_party_type_code_from_api(court_code, case_type_code, jurisdiction="illin
     """
     try:
         api_url = f"https://efile-test.suffolklitlab.org/jurisdictions/{jurisdiction}/codes/courts/{court_code}/case_types/{case_type_code}/party_types"
-        
+
         response = requests.get(api_url, timeout=10)
-        
+
         if response.status_code == 200:
             party_types = response.json()
-            
+
             if target_party_name:
                 # Look for a specific party type by name (case-insensitive)
                 for party_type in party_types:
                     if isinstance(party_type, dict) and "name" in party_type and "code" in party_type:
                         if target_party_name.lower() in party_type["name"].lower():
                             return party_type["code"]
-            
+
             # If no specific match found, return the first available party type code
             if party_types and isinstance(party_types[0], dict) and "code" in party_types[0]:
                 return party_types[0]["code"]
-                
+
     except Exception as e:
         logger.error(f"Failed to fetch party types from API: {e}")
-    
+
     # Fallback to default codes if API call fails
     return None
 
@@ -46,40 +49,40 @@ def determine_party_type_for_new_case(case_data):
     Determine the appropriate party type for a new case.
     This fetches actual party type codes from the API.
     """
-    court_code = case_data.get('court')
-    case_type_code = case_data.get('case_type')
-    case_type = case_data.get('case_type', '').lower()
-    
+    court_code = case_data.get("court")
+    case_type_code = case_data.get("case_type")
+    case_type = case_data.get("case_type", "").lower()
+
     if not court_code or not case_type_code:
         logger.warning("Missing court or case_type for party type determination")
-        return 'PET'  # Default fallback code for petitioner
-    
+        return "PET"  # Default fallback code for petitioner
+
     # Determine target party type name based on case type
     target_party_name = None
-    
-    if 'name change' in case_type:
-        target_party_name = 'petitioner'
-    elif 'civil' in case_type:
-        target_party_name = 'plaintiff'
-    elif 'family' in case_type:
-        target_party_name = 'petitioner'
-    elif 'probate' in case_type:
-        target_party_name = 'petitioner'
+
+    if "name change" in case_type:
+        target_party_name = "petitioner"
+    elif "civil" in case_type:
+        target_party_name = "plaintiff"
+    elif "family" in case_type:
+        target_party_name = "petitioner"
+    elif "probate" in case_type:
+        target_party_name = "petitioner"
     else:
-        target_party_name = 'petitioner'
-    
+        target_party_name = "petitioner"
+
     # Get the actual party type code from API
     party_code = get_party_type_code_from_api(court_code, case_type_code, target_party_name=target_party_name)
-    
+
     # Fallback codes if API call fails
     if not party_code:
-        if target_party_name == 'plaintiff':
-            return 'PLA'
-        elif target_party_name == 'petitioner':
-            return 'PET'
+        if target_party_name == "plaintiff":
+            return "PLA"
+        elif target_party_name == "petitioner":
+            return "PET"
         else:
-            return 'PET'
-    
+            return "PET"
+
     return party_code
 
 
@@ -88,48 +91,45 @@ def determine_party_type_for_existing_case(case_data):
     Determine the appropriate party type when responding to an existing case.
     This fetches actual party type codes from the API.
     """
-    court_code = case_data.get('court')
-    case_type_code = case_data.get('case_type')
-    case_type = case_data.get('case_type', '').lower()
-    filing_type = case_data.get('filing_type', '').lower()
-    
+    court_code = case_data.get("court")
+    case_type_code = case_data.get("case_type")
+    case_type = case_data.get("case_type", "").lower()
+    filing_type = case_data.get("filing_type", "").lower()
+
     if not court_code or not case_type_code:
         logger.warning("Missing court or case_type for party type determination")
-        return 'DEF'  # Default fallback code
-    
+        return "DEF"  # Default fallback code
+
     # Determine target party type name based on case and filing type
     target_party_name = None
-    
-    if 'criminal' in case_type:
-        target_party_name = 'defendant'
-    elif 'civil' in case_type or 'family' in case_type:
-        if 'answer' in filing_type or 'response' in filing_type:
-            target_party_name = 'respondent'
+
+    if "criminal" in case_type:
+        target_party_name = "defendant"
+    elif "civil" in case_type or "family" in case_type:
+        if "answer" in filing_type or "response" in filing_type:
+            target_party_name = "respondent"
         else:
-            target_party_name = 'defendant'
-    elif 'probate' in case_type:
-        target_party_name = 'interested party'
+            target_party_name = "defendant"
+    elif "probate" in case_type:
+        target_party_name = "interested party"
     else:
-        target_party_name = 'defendant'
-    
+        target_party_name = "defendant"
+
     # Get the actual party type code from API
     party_code = get_party_type_code_from_api(court_code, case_type_code, target_party_name=target_party_name)
-    
+
     # Fallback codes if API call fails
     if not party_code:
-        if target_party_name == 'defendant':
-            return 'DEF'
-        elif target_party_name == 'respondent':
-            return 'RES'
-        elif target_party_name == 'interested party':
-            return 'INT'
+        if target_party_name == "defendant":
+            return "DEF"
+        elif target_party_name == "respondent":
+            return "RES"
+        elif target_party_name == "interested party":
+            return "INT"
         else:
-            return 'DEF'
-    
-    return party_code
-from ..utils.s3_upload import s3_handler
+            return "DEF"
 
-logger = logging.getLogger(__name__)
+    return party_code
 
 
 def efile_upload(request):
@@ -281,7 +281,7 @@ def transform_case_data_to_filing_payload(case_data, request=None):
             party_type = case_data.get("petitioner_party_type")
             if not party_type:
                 party_type = determine_party_type_for_new_case(case_data)
-            
+
             petitioner = {
                 "party_type": party_type,
                 "name": {
@@ -301,33 +301,31 @@ def transform_case_data_to_filing_payload(case_data, request=None):
             # Determine party type based on existing case status
             existing_case = None
             if request:
-                existing_case = request.session.get('existing_case')
-            
+                existing_case = request.session.get("existing_case")
+
             # Also check if existing_case is stored in case_data
             if not existing_case:
-                existing_case = case_data.get('existing_case')
-            
-            if existing_case == 'yes':
+                existing_case = case_data.get("existing_case")
+
+            if existing_case == "yes":
                 # When responding to existing case, use intelligent party type determination
                 party_type = case_data.get("party_type") or determine_party_type_for_existing_case(case_data)
             else:
                 # For new cases, use intelligent party type determination
                 party_type = case_data.get("party_type") or determine_party_type_for_new_case(case_data)
-            
+
             # Determine role name for display (keep as readable text)
-            if existing_case == 'yes':
+            if existing_case == "yes":
                 role_name = "Defendant" if "DEF" in party_type else "Respondent" if "RES" in party_type else "Party"
             else:
                 role_name = "Petitioner" if "PET" in party_type else "Plaintiff" if "PLA" in party_type else "Party"
-            
+
             party = {
                 "party_type": party_type,
                 "name": {
                     "first": case_data.get("first_name", ""),
                     "last": case_data.get("last_name", ""),
-                    "full": (
-                        f"{case_data.get('first_name', '')} {case_data.get('last_name', '')}"
-                    ).strip(),
+                    "full": (f"{case_data.get('first_name', '')} {case_data.get('last_name', '')}").strip(),
                 },
                 "address": case_data.get("address", ""),
                 "role": role_name,

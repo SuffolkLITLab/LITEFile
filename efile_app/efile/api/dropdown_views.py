@@ -138,7 +138,7 @@ class DropdownAPIViews(APIResponseMixin):
             existing_case = request.GET.get("existing_case")
 
             # Set initial flag based on existing_case parameter:
-            # - "yes" means existing case, so initial=False (not an initial filing)  
+            # - "yes" means existing case, so initial=False (not an initial filing)
             # - "no" means new case, so initial=True (is an initial filing)
             # - Default to True if not specified
             if existing_case == "yes":

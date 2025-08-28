@@ -1,10 +1,10 @@
 from django.urls import include, path
 
-from .views.api_views import get_case_data, get_filing_components
+from .views.api_views import get_filing_components
 from .views.case_details import case_details
 from .views.confirmation import filing_confirmation
 from .views.expert_form import efile_expert_form
-from .views.jurisdiction import switch_jurisdiction, get_current_jurisdiction
+from .views.jurisdiction import get_current_jurisdiction, switch_jurisdiction
 from .views.login import efile_login, efile_logout
 from .views.options import efile_options
 from .views.register import efile_register
@@ -56,9 +56,8 @@ urlpatterns = [
     path('api/debug-session-data/', debug_session_data, name='debug_session_data'),
     
     # Jurisdiction management API
-    path('api/jurisdiction/switch/', switch_jurisdiction, name='switch_jurisdiction'),
-    path('api/jurisdiction/current/', get_current_jurisdiction, name='get_current_jurisdiction'),
-    
+    path("api/jurisdiction/switch/", switch_jurisdiction, name="switch_jurisdiction"),
+    path("api/jurisdiction/current/", get_current_jurisdiction, name="get_current_jurisdiction"),
     # API endpoints for upload functionality
     path("api/create-filing/", create_filing, name="create_filing"),
     path("api/upload-documents/", upload_documents, name="upload_documents"),

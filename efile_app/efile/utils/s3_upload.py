@@ -192,13 +192,11 @@ class S3UploadHandler:
         if self.s3_client:
             try:
                 return self.s3_client.generate_presigned_url(
-                    "get_object", 
-                    Params={"Bucket": self.bucket_name, "Key": s3_key}, 
-                    ExpiresIn=expiration
+                    "get_object", Params={"Bucket": self.bucket_name, "Key": s3_key}, ExpiresIn=expiration
                 )
             except ClientError as e:
                 logger.error(f"Failed to generate presigned URL for public access: {e}")
-        
+
         # Fallback to direct URL (will return 403 with current bucket policy)
         return f"https://{self.bucket_name}.s3.{self.region_name}.amazonaws.com/{s3_key}"
 
