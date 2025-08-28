@@ -15,7 +15,6 @@
       rel="stylesheet"
     />
     <link href="{% static 'efile/css/expert_form.css' %}" rel="stylesheet" />
-    <link href="{% static 'css/components/search-dropdown.css' %}" rel="stylesheet" />
     <style>
       /* Custom styles for better spacing and required field styling */
       .required {
@@ -130,29 +129,6 @@
               </select>
               <div class="loading-spinner" id="loading-1" style="display: none">
                 <i class="fas fa-spinner fa-spin"></i> Loading case types...
-              </div>
-            </div>
-          </div>
-
-          {% include 'efile/components/search_dropdown.html' with field_id="filing_type" field_name="filing_type" label_text="Filing Type" is_required=True placeholder="Search filing types..." data_level="2" disabled=True %}
-
-          <div class="row mb-3">
-            <div class="col-md-6">
-              <label for="document_type" class="form-label"
-                >Document Type <span class="required">*</span></label
-              >
-              <select
-                class="form-select dropdown-field"
-                id="document_type"
-                name="document_type"
-                data-level="4"
-                required
-                disabled
-              >
-                <option value="">Select Document Type</option>
-              </select>
-              <div class="loading-spinner" id="loading-4" style="display: none">
-                <i class="fas fa-spinner fa-spin"></i> Loading document types...
               </div>
             </div>
           </div>
@@ -355,60 +331,6 @@
             });
           }
           
-          // Helper function to directly populate filing types
-          async function populateFilingTypesDirectly(typeDropdown, categoryDropdown, caseData, existingCase) {
-            // Small delay to ensure DOM is stable
-            await new Promise(resolve => setTimeout(resolve, 100));
-            
-            const filingTypeDropdown = document.getElementById('filing_type');
-            const filingTypeSearch = window.filingTypeSearch;
-            if (!filingTypeDropdown || !filingTypeSearch) return;
-            
-            try {
-              // Validate that we have the required values
-              if (!typeDropdown.value) {
-                console.error('Case type not selected, cannot populate filing types');
-                return;
-              }
-              
-              const params = new URLSearchParams({
-                court: caseData.court,
-                case_category: categoryDropdown.value,
-                case_type: typeDropdown.value,
-                existing_case: existingCase || 'no',
-              });
-              
-              // Show loading spinner
-              const loadingSpinner = document.getElementById('loading-2');
-              if (loadingSpinner) loadingSpinner.style.display = 'block';
-              
-              // Make API call to get filing types
-              const response = await fetch(`/api/dropdowns/filing-types/?${params.toString()}`);
-              const result = await response.json();
-              
-              // Hide loading spinner
-              if (loadingSpinner) loadingSpinner.style.display = 'none';
-              
-              if (result.success && result.data) {
-                // Update the search dropdown with the new options
-                filingTypeSearch.updateOptions(result.data);
-                
-                // Enable the search dropdown
-                filingTypeSearch.enable();
-
-              } else {
-                console.error('Failed to load filing types:', result.error);
-                filingTypeSearch.reset();
-                filingTypeSearch.disable();
-              }
-              
-            } catch (error) {
-              console.error('Error populating filing types:', error);
-              filingTypeSearch.reset();
-              filingTypeSearch.disable();
-            }
-          }
-          
           // Main pre-population flow
           async function prePopulateFields() {
             // Wait for cascading dropdowns to be ready
@@ -518,8 +440,7 @@
                   // Small delay to ensure case type selection is fully processed
                   await new Promise(resolve => setTimeout(resolve, 200));
                   
-                  // Directly populate filing types with case info
-                  await populateFilingTypesDirectly(typeDropdown, categoryDropdown, caseData, existingCase);
+                  // Case type selection is complete - filing types will be handled on upload page
                 }
               }
             }
@@ -550,24 +471,7 @@
       }
     </script>
 
-    <!-- Initialize Search Dropdown Component -->
-    <script>
-      // Initialize the search dropdown when the page loads
-      let filingTypeSearch = null;
-      
-      document.addEventListener('DOMContentLoaded', function() {
-        filingTypeSearch = new SearchDropdown('filing_type', {
-          placeholder: 'Search filing types...',
-          noResultsText: 'No filing types available'
-        });
-        
-        // Make it globally accessible
-        window.filingTypeSearch = filingTypeSearch;
-      });
-    </script>
-
     <!-- Form JavaScript Modules -->
-    <script src="{% static 'js/components/search-dropdown.js' %}"></script>
     <script src="{% static 'js/api-utils.js' %}"></script>
     <script src="{% static 'js/cascading-dropdowns.js' %}"></script>
     <script src="{% static 'js/dynamic-form-sections.js' %}"></script>

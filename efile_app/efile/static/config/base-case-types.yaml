@@ -72,6 +72,53 @@ base_case_types:
                 type: "text"
                 required: true
                 column_width: "col-6"
+  divorce:
+    keywords: ["divorce", "dissolution of marriage", "annulment", "dissolution"]
+    description: "Legal dissolution of marriage proceedings"
+    sections:
+      parties:
+        title: "Required Parties"
+        api_endpoint: "/api/dropdowns/party-types/"
+        requires_params: ["court", "case_type"]
+        fields:
+          - section_title: "Petitioner"
+            required: true
+            fields:
+              - name: "petitioner_party_type"
+                label: "Party Type"
+                type: "party_type_dropdown"
+                required: true
+                column_width: "col-12"
+                api_endpoint: "/api/dropdowns/party-types/"
+              - name: "petitioner_first_name"
+                label: "First Name"
+                type: "text"
+                required: true
+                column_width: "col-6"
+              - name: "petitioner_last_name"
+                label: "Last Name"
+                type: "text"
+                required: true
+                column_width: "col-6"
+          - section_title: "Defendant"
+            required: true
+            fields:
+              - name: "new_name_party_type"
+                label: "Party Type"
+                type: "party_type_dropdown"
+                required: true
+                column_width: "col-12"
+                api_endpoint: "/api/dropdowns/party-types/"
+              - name: "new_first_name"
+                label: "First Name"
+                type: "text"
+                required: true
+                column_width: "col-6"
+              - name: "new_last_name"
+                label: "Last Name"
+                type: "text"
+                required: true
+                column_width: "col-6"
 
   # eviction_repossession:
   #   keywords: ["eviction", "repossession", "restoration"]

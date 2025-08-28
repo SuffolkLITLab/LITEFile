@@ -85,7 +85,7 @@ class UploadHandler {
     }
 
     async saveUploadDataToSession(uploadData) {
-        try {
+        try {            
             const response = await fetch('/api/save-upload-data/', {
                 method: 'POST',
                 headers: {
@@ -104,7 +104,7 @@ class UploadHandler {
                 throw new Error(errText);
             }
 
-            const result = await response.json();
+            const result = await response.json();            
             if (!result.success) {
                 throw new Error(result.error || 'Failed to save upload data to session');
             }
@@ -468,11 +468,88 @@ class UploadHandler {
             optionsContainer.appendChild(div.firstElementChild);
         });
         
+        // Initialize search dropdowns for supporting documents
+        this.initializeSupportingFilingTypeDropdowns(files);
+        
         // Populate dropdowns with filing components if available
         if (window.globalFilingComponents && window.populateFilingComponentDropdown) {
             const supportingDropdowns = optionsContainer.querySelectorAll('.supporting-filing-component');
             supportingDropdowns.forEach(dropdown => {
                 window.populateFilingComponentDropdown(dropdown);
+            });
+        }
+    }
+
+    async initializeSupportingFilingTypeDropdowns(files) {        
+        // Use global filing types data if available, otherwise wait for it to load
+        const checkGlobalData = () => {
+            if (window.globalFilingTypes && window.globalFilingTypes.length > 0) {
+                // Initialize each supporting document's filing type dropdown
+                files.forEach((file, index) => {
+                    const filingTypeDropdown = document.getElementById(`supportingFilingType${index}_search`);
+                    if (filingTypeDropdown && window.SearchDropdown) {
+                        const searchDropdown = new window.SearchDropdown(`supportingFilingType${index}`, {
+                            placeholder: 'Search filing types...'
+                        });
+                        searchDropdown.updateOptions(window.globalFilingTypes);
+                        
+                        // Store reference for later use
+                        window[`supportingFilingType${index}Dropdown`] = searchDropdown;
+                    } else {
+                        console.warn(`Dropdown element not found for supportingFilingType${index}_search`);
+                    }
+                    
+                    // Setup cascading dropdown logic
+                    this.setupSupportingDocumentCascading(index);
+                });
+            } else {
+                // Wait a bit and try again
+                setTimeout(checkGlobalData, 100);
+            }
+        };
+        
+        checkGlobalData();
+    }
+
+    getCSRFToken() {
+        return (
+            document.querySelector("[name=csrfmiddlewaretoken]")?.value ||
+            document
+                .querySelector('meta[name="csrf-token"]')
+                ?.getAttribute("content") ||
+            ""
+        );
+    }
+
+    setupSupportingDocumentCascading(index) {
+        const filingTypeSelect = document.getElementById(`supportingFilingType${index}`);
+        const documentTypeSelect = document.getElementById(`supportingDocumentType${index}`);
+        const filingComponentSelect = document.getElementById(`supportingFilingComponent${index}`);
+
+        if (filingTypeSelect && documentTypeSelect && filingComponentSelect) {
+            filingTypeSelect.addEventListener('change', async () => {
+                const selectedFilingTypeId = filingTypeSelect.value;                
+                if (selectedFilingTypeId) {
+                    await window.populateDocumentTypes(selectedFilingTypeId, documentTypeSelect);
+                    filingComponentSelect.innerHTML = '<option value="">Select document type first</option>';
+                } else {
+                    documentTypeSelect.innerHTML = '<option value="">Select filing type first</option>';
+                    filingComponentSelect.innerHTML = '<option value="">Select document type first</option>';
+                }
+            });
+
+            documentTypeSelect.addEventListener('change', () => {
+                const selectedDocumentType = documentTypeSelect.value;
+                
+                if (selectedDocumentType) {
+                    window.populateFilingComponents(selectedDocumentType, filingComponentSelect);
+                } else {
+                    filingComponentSelect.innerHTML = '<option value="">Select document type first</option>';
+                }
+            });
+
+            filingComponentSelect.addEventListener('change', () => {
+                const selectedComponent = filingComponentSelect.value;
             });
         }
     }
@@ -593,6 +670,43 @@ class UploadHandler {
             // Upload documents directly to S3 and get URLs
             const uploadResult = await this.uploadToS3();
 
+            // Collect dropdown values for lead document
+            const leadFilingTypeSelect = document.getElementById('leadFilingType');
+            const leadDocumentTypeSelect = document.getElementById('leadDocumentType');
+            const leadFilingComponentSelect = document.getElementById('leadFilingComponent');
+            
+            const leadFilingType = leadFilingTypeSelect ? leadFilingTypeSelect.value : '';
+            const leadFilingTypeName = leadFilingTypeSelect && leadFilingTypeSelect.selectedOptions[0] ? leadFilingTypeSelect.selectedOptions[0].text : '';
+            const leadDocumentType = leadDocumentTypeSelect ? leadDocumentTypeSelect.value : '';
+            const leadDocumentTypeName = leadDocumentTypeSelect && leadDocumentTypeSelect.selectedOptions[0] ? leadDocumentTypeSelect.selectedOptions[0].text : '';
+            const leadFilingComponentValue = leadFilingComponentSelect ? leadFilingComponentSelect.value : '';
+            const leadFilingComponentName = leadFilingComponentSelect && leadFilingComponentSelect.selectedOptions[0] ? leadFilingComponentSelect.selectedOptions[0].text : '';
+
+            // Collect supporting document dropdown values
+            const supportingDocuments = [];
+            const supportingDropdowns = document.querySelectorAll('[id*="supportingFilingType"]:not([id*="_search"])');
+            supportingDropdowns.forEach((dropdown, index) => {
+                const filingType = dropdown.value;
+                const filingTypeName = dropdown.selectedOptions[0]?.text || '';
+                const docTypeSelect = document.getElementById(`supportingDocumentType${index}`);
+                const docType = docTypeSelect?.value || '';
+                const docTypeName = docTypeSelect?.selectedOptions[0]?.text || '';
+                const componentSelect = document.getElementById(`supportingFilingComponent${index}`);
+                const component = componentSelect?.value || '';
+                const componentName = componentSelect?.selectedOptions[0]?.text || '';
+                
+                const supportingDoc = {
+                    filing_type: filingType,
+                    filing_type_name: filingTypeName,
+                    document_type: docType,
+                    document_type_name: docTypeName,
+                    filing_component: component,
+                    filing_component_name: componentName
+                };
+                
+                supportingDocuments.push(supportingDoc);
+            });
+
             // Now save the complete upload data (including URLs) to session
             const uploadDataWithUrls = {
                 files: {
@@ -606,7 +720,16 @@ class UploadHandler {
                         sealed_confidential: document.getElementById('leadSealedConfidential')?.checked || false
                     },
                     supporting: []
-                }
+                },
+                // Add dropdown data for lead document
+                lead_filing_type: leadFilingType,
+                lead_filing_type_name: leadFilingTypeName,
+                lead_document_type: leadDocumentType,
+                lead_document_type_name: leadDocumentTypeName,
+                lead_filing_component: leadFilingComponentValue,
+                lead_filing_component_name: leadFilingComponentName,
+                // Add supporting documents dropdown data
+                supporting_documents: supportingDocuments
             };
 
             // Process uploaded files and extract URLs

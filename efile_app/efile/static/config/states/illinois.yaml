@@ -39,8 +39,8 @@ case_types:
           - section_title: "Children"
             required: false
             conditional_requirements:
-              show_when_field: "has_children"
-              show_when_value: true
+              # show_when_field: "has_children"
+              # show_when_value: true
             fields:
               - name: "has_children"
                 label: "Are there minor children of this marriage?"
@@ -60,8 +60,8 @@ case_types:
                 min: 1
                 max: 10
                 conditional_display:
-                  show_when_field: "has_children"
-                  show_when_value: true
+                  # show_when_field: "has_children"
+                  # show_when_value: true
 
 # Illinois-specific court mappings
 court_specific_requirements:
@@ -81,28 +81,3 @@ court_specific_requirements:
           #   required: true
           #   column_width: "col-12"
           #   placeholder: "Please explain the reason for requesting this name change"
-
-  # For other Cook County courts, hide the "Name Sought" section
-  "cook:chd1":  # Cook County Circuit Court - Chancery Division
-    case_types:
-      name_change:
-        field_modifications:
-          - field_group: "Name Sought"
-            modifications:
-              hidden: true
-  
-  "cook:pr1":   # Cook County Circuit Court - Probate Division
-    case_types:
-      name_change:
-        field_modifications:
-          - field_group: "Name Sought"
-            modifications:
-              hidden: true
-
-  "cook:dr1":  # Cook County Circuit Court - Domestic Relations
-    case_types:
-      divorce:
-        additional_validation:
-          - field: "marriage_date"
-            rule: "required"
-            message: "Marriage date is required in Cook County Domestic Relations"

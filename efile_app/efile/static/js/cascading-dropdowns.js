@@ -14,12 +14,8 @@ class CascadingDropdowns {
         endpoint: "/api/dropdowns/case-types/",
       },
       case_type: {
-        next: "filing_type",
-        endpoint: "/api/dropdowns/filing-types/",
-      },
-      filing_type: {
-        next: "document_type",
-        endpoint: "/api/dropdowns/document-types/",
+        next: null, // Case type is now the final dropdown on expert form
+        endpoint: null,
       },
     };
 
@@ -28,8 +24,6 @@ class CascadingDropdowns {
       court: null,
       case_category: null,
       case_type: null,
-      filing_type: null,
-      document_type: null,
     };
     this.optionalServicesLoaded = false;
 
@@ -192,9 +186,8 @@ class CascadingDropdowns {
     // Reset all dependent dropdowns when this dropdown changes
     this.resetDependentDropdowns(fieldId);
 
-    // Reset optional services flag when filing type changes
+    // Reset optional services flag when case type changes
     if (
-      fieldId === "filing_type" ||
       fieldId === "case_type" ||
       fieldId === "case_category" ||
       fieldId === "court"
@@ -236,14 +229,6 @@ class CascadingDropdowns {
         const isInitialFiling = existingCase === 'no';
         params.existing_case = existingCase; // Pass existing_case to Django API
         params.initial = isInitialFiling ? 'true' : 'false'; // Pass initial to Suffolk API
-      } else if (fieldId === "filing_type") {
-        params.parent = selectedValue; // Suffolk API expects parent parameter for filing_type
-        if (this.selectedValues.court) {
-          params.court = this.selectedValues.court;
-        } else {
-          console.warn("No court selected when trying to load document types");
-          return;
-        }
       }
 
       // Validate required parameters before making API call
@@ -280,12 +265,6 @@ class CascadingDropdowns {
             placeholder.textContent = "Select Case Category";
           }
         }
-      }
-
-      // Handle special case for when filing type is selected - update parties and services
-      // But only if we have all required values (prevent premature API calls)
-      if (fieldId === "filing_type" && this.selectedValues.court) {
-        this.loadFormConfiguration();
       }
 
       // Trigger dynamic form sections when case type changes
@@ -353,10 +332,11 @@ class CascadingDropdowns {
   }
 
   async loadFormConfiguration() {
+    // Since filing types are now handled on upload page, we can load form configuration
+    // when we have case type selected
     if (
       !this.selectedValues.case_category ||
-      !this.selectedValues.case_type ||
-      !this.selectedValues.filing_type
+      !this.selectedValues.case_type
     ) {
       return;
     }
@@ -370,7 +350,7 @@ class CascadingDropdowns {
   }
 
   async loadOptionalServices() {
-    if (!this.selectedValues.court || !this.selectedValues.filing_type) {
+    if (!this.selectedValues.court || !this.selectedValues.case_type) {
       console.warn("Missing required values for optional services");
       return;
     }
@@ -385,7 +365,7 @@ class CascadingDropdowns {
     try {
       const params = {
         court: this.selectedValues.court,
-        filing_type_id: this.selectedValues.filing_type,
+        case_type_id: this.selectedValues.case_type,
         jurisdiction: "illinois",
       };
 
@@ -639,8 +619,6 @@ class CascadingDropdowns {
       court: ["jurisdiction"],
       case_category: ["jurisdiction", "court"],
       case_type: ["jurisdiction", "parent"], // parent = category_id
-      filing_type: ["jurisdiction", "parent"], // parent = case_type_id
-      document_type: ["jurisdiction", "parent"], // parent = filing_type_id
     };
 
     const required = requiredParams[fieldId] || [];
@@ -656,10 +634,9 @@ class CascadingDropdowns {
 
   clearDependentDropdowns(changedFieldId) {
     const dependencies = {
-      court: ["case_category", "case_type", "filing_type", "document_type"],
-      case_category: ["case_type", "filing_type", "document_type"],
-      case_type: ["filing_type", "document_type"],
-      filing_type: ["document_type"], // Don't clear case_type when filing_type changes - preserve for dynamic forms
+      court: ["case_category", "case_type"],
+      case_category: ["case_type"],
+      case_type: [], // case_type is now the final dropdown on expert form
     };
 
     const toClear = dependencies[changedFieldId] || [];
