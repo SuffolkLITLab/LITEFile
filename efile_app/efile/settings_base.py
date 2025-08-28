@@ -89,6 +89,10 @@ LOGIN_REDIRECT_URL = "/dashboard/"
 LOGOUT_REDIRECT_URL = "/login/"
 SUFFOLK_EFILE_API_KEY = os.getenv("SUFFOLK_EFILE_API_KEY", "")
 
+# Base URL for EFSP-compatible APIs (Suffolk LIT Lab by default)
+# Override per environment with EFSP_URL env var
+EFSP_URL = os.getenv("EFSP_URL", "https://efile-test.suffolklitlab.org")
+
 # AWS S3 Configuration
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID", "")
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY", "")

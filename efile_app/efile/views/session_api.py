@@ -14,7 +14,10 @@ def get_party_type_code_from_api(court_code, case_type_code, jurisdiction="illin
     Fetch party type codes from the Suffolk LIT Lab API and return the appropriate code.
     """
     try:
-        api_url = f"https://efile-test.suffolklitlab.org/jurisdictions/{jurisdiction}/codes/courts/{court_code}/case_types/{case_type_code}/party_types"
+        api_url = (
+            f"{settings.EFSP_URL}/jurisdictions/{jurisdiction}/codes/courts/{court_code}"
+            f"/case_types/{case_type_code}/party_types"
+        )
 
         print(f"Fetching party types from: {api_url}")
         print(f"Looking for target party name: {target_party_name}")
@@ -334,7 +337,7 @@ def submit_final_filing(request):
             return JsonResponse({"success": False, "error": "Court ID is required for filing submission"}, status=400)
 
         # Construct the Suffolk LIT Lab API endpoint
-        api_url = f"https://efile-test.suffolklitlab.org/jurisdictions/{jurisdiction_id}/filingreview/courts/{court_id}/filings"
+        api_url = f"{settings.EFSP_URL}/jurisdictions/{jurisdiction_id}/filingreview/courts/{court_id}/filings"
 
         # Make the API call to Suffolk LIT Lab
         import requests
@@ -654,7 +657,9 @@ def get_party_types_from_suffolk_api(request):
             return JsonResponse({"success": False, "error": "Court and case_type parameters are required"}, status=400)
 
         # Construct Suffolk API URL
-        suffolk_api_url = f"https://efile-test.suffolklitlab.org/jurisdictions/{jurisdiction}/codes/courts/{court}/case_types/{case_type}/party_types"
+        suffolk_api_url = (
+            f"{settings.EFSP_URL}/jurisdictions/{jurisdiction}/codes/courts/{court}/case_types/{case_type}/party_types"
+        )
 
         print(f"Fetching party types from Suffolk API: {suffolk_api_url}")
         print(f"Existing case: {existing_case}")
