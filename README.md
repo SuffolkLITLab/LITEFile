@@ -129,6 +129,70 @@ Notes:
 - `DJANGO_SETTINGS_MODULE` is set to `efile.settings` in `[tool.pytest.ini_options]`.
 - Tests are discovered under `mysite/`. An example smoke test lives at `mysite/efile/tests/test_smoke.py`.
 
+## End-to-End Testing (Playwright)
+
+Playwright tests are located in `efile_app/tests/` and provide browser-based testing of the complete user workflow. These are intended to be run manually and are not part of the CI/CD pipeline because they produce
+side-effects (e.g. filing new cases in EFSP) and rely on external APIs (e.g. EFSP again). The tests stop short
+of the document upload step as that would touch S3. We also wanted to avoid filing new cases into Tyler as part
+of the current end-to-end testing.
+
+### Setup
+
+- __Install Playwright__ (one-time):
+  ```bash
+  npm install -g playwright
+  playwright install
+  ```
+
+- __Environment variables__: Create a `.env` file in the project root with:
+  ```bash
+  E2E_TEST_USERNAME=your_test_email@example.com
+  E2E_TEST_PASSWORD=your_test_password
+  E2E_TEST_BASE_URL=http://localhost:8000  # optional, defaults to localhost:8000
+  ```
+
+### Running Tests
+
+- __Start the Django server__ first:
+  ```bash
+  cd efile_app
+  uv run python manage.py runserver
+  ```
+
+- __Run all Playwright tests__:
+  ```bash
+  cd efile_app
+  npx playwright test
+  ```
+
+- __Run specific tests__:
+  ```bash
+  npx playwright test expert-form-name-change
+  npx playwright test expert-form-order-of-protection
+  npx playwright test expert-form-forfeiture-of-seized-property
+  ```
+
+- __Run with UI mode__ (interactive):
+  ```bash
+  npx playwright test --ui
+  ```
+
+### Available Tests
+
+- **`expert-form-name-change`**: Tests the complete workflow for filing a name change case
+- **`expert-form-order-of-protection`**: Tests the complete workflow for filing an order of protection case
+- **`expert-form-forfeiture-of-seized-property`**: Tests the complete workflow for filing a forfeiture of seized property case
+
+All tests:
+1. Log in with provided credentials
+2. Navigate to the expert form
+3. Fill out court selection and case details
+4. Complete required party information
+5. Verify the document upload page loads correctly
+6. Take screenshots for visual verification
+
+Screenshots are saved to `screenshots/` directory.
+
 ## Type checking (Ty)
 
 Ty (a Rust-based type checker) is configured in `pyproject.toml` under `[tool.ty.src]`.

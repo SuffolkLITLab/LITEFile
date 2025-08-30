@@ -158,3 +158,10 @@ cython_debug/
 # Sqlite database files
 efile_app/db.sqlite3
 efile_app/db.sqlite3-journal
+
+# Node.js dependencies
+node_modules/
+
+# Playwright
+test-results/
+efile_app/screenshots

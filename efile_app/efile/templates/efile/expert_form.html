@@ -14,7 +14,7 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
       rel="stylesheet"
     />
-    <link href="{% static 'efile/css/expert_form.css' %}" rel="stylesheet" />
+    <link href="{% static 'css/expert_form.css' %}" rel="stylesheet" />
     <style>
       /* Custom styles for better spacing and required field styling */
       .required {
@@ -303,7 +303,7 @@
                 observer.disconnect();
                 element.removeEventListener('change', changeListener);
                 resolve(element.options.length >= minOptions);
-              }, 1000);
+              }, 5000);
             });
           }
           
@@ -339,6 +339,10 @@
             // Pre-populate and trigger court dropdown
             if (caseData.court) {
               const courtDropdown = document.getElementById('court');
+
+              // Wait for court options to be loaded
+              await waitForDropdownOptions('court', 2);
+
               if (courtDropdown) {
                 courtDropdown.value = caseData.court;
                 
@@ -347,10 +351,11 @@
                   courtDropdown.disabled = true;
                   courtDropdown.style.backgroundColor = '#f8f9fa';
                 }
-                
+
+                // NOTE: this change event seems unnecessary and causes the race condition.
                 // Trigger court change event to populate categories
-                const changeEvent = new Event('change', { bubbles: true });
-                courtDropdown.dispatchEvent(changeEvent);
+                //const changeEvent = new Event('change', { bubbles: true });
+                //courtDropdown.dispatchEvent(changeEvent);
               }
             }
             
@@ -359,16 +364,17 @@
             
             if (categoriesLoaded && caseData.case_category) {
               const categoryDropdown = document.getElementById('case_category');
+
+              // NOTE: this block of logic seems unnecessary and might cause a race condition.
+              // // Trigger the change event first to populate case types, but don't select yet
+              //const categoryChangeEvent = new Event('change', { bubbles: true });
+              //categoryDropdown.dispatchEvent(categoryChangeEvent);
               
-              // Trigger the change event first to populate case types, but don't select yet
-              const categoryChangeEvent = new Event('change', { bubbles: true });
-              categoryDropdown.dispatchEvent(categoryChangeEvent);
+              // // Wait for case types to be populated
+              // const typesLoaded = await waitForDropdownOptions('case_type', 2);
               
-              // Wait for case types to be populated
-              const typesLoaded = await waitForDropdownOptions('case_type', 2);
-              
-              // Add a delay to ensure all cascading operations are complete
-              await new Promise(resolve => setTimeout(resolve, 200));
+              // // Add a delay to ensure all cascading operations are complete
+              //await new Promise(resolve => setTimeout(resolve, 200));
 
               // Find and select matching option
               let foundMatch = false;
@@ -408,12 +414,12 @@
                 }
                 
                 // Now that category is selected, trigger another change to update case types for this category
-                const finalCategoryChangeEvent = new Event('change', { bubbles: true });
+                const finalCategoryChangeEvent = new Event('change', { bubbles: true});
                 categoryDropdown.dispatchEvent(finalCategoryChangeEvent);
                 
                 // Wait for case types to be updated for the selected category
                 const finalTypesLoaded = await waitForDropdownOptions('case_type', 2);
-                
+
                 if (finalTypesLoaded && caseData.case_type) {
                   // Small delay to ensure types are fully loaded
                   await new Promise(resolve => setTimeout(resolve, 100));
@@ -430,7 +436,7 @@
                       break;
                     }
                   }
-                  
+
                   // Disable case type if specified (same pattern as court and case_category)
                   if (caseData.disable_fields && caseData.disable_fields.includes('case_type')) {
                     typeDropdown.disabled = true;

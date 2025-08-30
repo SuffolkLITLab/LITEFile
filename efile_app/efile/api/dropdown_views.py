@@ -43,9 +43,9 @@ class DropdownAPIViews(APIResponseMixin):
             logger.debug("GET %s header keys=%s", api_url, list(headers.keys()))
             response = requests.get(api_url, headers=headers, timeout=10)
             logger.debug(
-                "Categories response: status=%s content_type=%s",
+                "Categories response: status=%s body=%s",
                 response.status_code,
-                response.headers.get("Content-Type"),
+                response.content,
             )
 
             if response.status_code == 200:
