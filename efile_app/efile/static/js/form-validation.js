@@ -316,14 +316,14 @@ class FormValidation {
     document.body.appendChild(notification);
 
     // Auto-remove after 5 seconds
-    setTimeout(() => {
-      if (notification.parentNode) {
-        notification.style.animation = "slideOut 0.3s ease-in";
-        setTimeout(() => {
-          notification.remove();
-        }, 300);
-      }
-    }, 5000);
+    // setTimeout(() => {
+    //   if (notification.parentNode) {
+    //     notification.style.animation = "slideOut 0.3s ease-in";
+    //     setTimeout(() => {
+    //       notification.remove();
+    //     }, 300);
+    //   }
+    // }, 5000);
 
     // Add click to dismiss
     notification.querySelector(".btn-close")?.addEventListener("click", () => {

@@ -17,8 +17,7 @@ case_types:
     extends: "base_case_types.name_change"
     
     # Illinois-specific field modifications (this will be handled by court-specific logic)
-    # Don't override the sections here, let the base configuration provide the structure
-            
+
     # Illinois-specific validation rules
     validation_rules:
       - field: "petitioner_first_name"
@@ -79,7 +78,7 @@ court_specific_requirements:
               conditional_requirements:
                 required_for_courts: ["cook:cd1"]
   
-  "bond":  # Bond Court (correct court code)
+  "bond":  # Bond Court 
     case_types:
       name_change:
         # Hide both sections for Bond Court

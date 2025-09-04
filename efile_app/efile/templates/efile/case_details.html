@@ -14,6 +14,14 @@
       rel="stylesheet"
     />
     <link href="{% static 'css/expert_form.css' %}" rel="stylesheet" />
+    <style>
+      .section-header {
+        color: #2c3e50;
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+      }
+    </style>
   </head>
   <body>
     {% include 'efile/components/profile_header.html' %}
@@ -23,13 +31,17 @@
         <form id="caseDetailsForm" onsubmit="return false;">
           {% csrf_token %}
 
-          <h2 class="section-header">Existing Case Information</h2>
+          <h2 class="section-header">
+            Existing Case Information
+          </h2>
           <p class="section-description">
             Please provide the case number and select the court for the existing case you want to respond to.
           </p>
 
           <!-- Case Information Section -->
-          <h3 class="subsection-header">Case Details</h3>
+          <h3 class="subsection-header">
+            Case Details
+          </h3>
 
           <div
             class="alert alert-info"

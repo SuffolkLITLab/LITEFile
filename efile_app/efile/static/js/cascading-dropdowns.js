@@ -26,6 +26,7 @@ class CascadingDropdowns {
       case_type: null,
     };
     this.optionalServicesLoaded = false;
+    this.isAutomaticSelection = false; // Track if selection is automatic
 
     this.init();
   }
@@ -177,8 +178,14 @@ class CascadingDropdowns {
     const selectedValue = dropdown.value;
     const mapping = this.dropdownMapping[fieldId];
 
-    // Clear any existing recommendation notices when any dropdown changes
-    this.clearAllRecommendationNotices();
+    // Only clear recommendation notices if the court dropdown is manually changed by user
+    // Preserve notices for automatic selections and when other dropdowns change
+    if (fieldId === "court" && !this.isAutomaticSelection) {
+      this.clearAllRecommendationNotices();
+    }
+
+    // Reset the automatic selection flag after handling
+    this.isAutomaticSelection = false;
 
     // Store the selected value
     this.selectedValues[fieldId] = selectedValue;
@@ -253,8 +260,8 @@ class CascadingDropdowns {
             '<i class="fas fa-user-check"></i> Loading your information...';
         }
 
-        // Clear any existing recommendation notices (green success alerts)
-        this.clearAllRecommendationNotices();
+        // Only clear recommendation notices and visual indicators if the user manually changed the court
+        // We'll preserve these for auto-selections
         this.clearAllDropdownVisualIndicators();
 
         const caseCategoryDropdown = document.getElementById("case_category");
@@ -741,6 +748,7 @@ class CascadingDropdowns {
 
     // Auto-select recommended court and trigger change event
     if (dropdown.id === "court" && recommendedOption) {
+      this.isAutomaticSelection = true; // Mark as automatic selection
       dropdown.value = recommendedOption;
       this.selectedValues.court = recommendedOption;
 
@@ -760,6 +768,7 @@ class CascadingDropdowns {
       this.userProfile &&
       this.userProfile.preferred_county
     ) {
+      this.isAutomaticSelection = true; // Mark as automatic selection
       const preferredValue = this.userProfile.preferred_county;
       const preferredOption = dropdown.querySelector(
         `option[value="${preferredValue}"]`
@@ -767,6 +776,9 @@ class CascadingDropdowns {
       if (preferredOption) {
         dropdown.value = preferredValue;
         this.selectedValues.court = preferredValue;
+
+        // Show notice for this selection too
+        this.showRecommendationNotice(dropdown, "court");
 
         // Trigger change event to load dependent dropdowns
         setTimeout(() => {
@@ -777,22 +789,32 @@ class CascadingDropdowns {
   }
 
   showRecommendationNotice(dropdown, type) {
-    // Create a temporary notice to show the user why this option was selected
+    // Remove any existing recommendation notice for this dropdown first
+    const existingNotice = dropdown.parentNode.querySelector('.recommendation-notice');
+    if (existingNotice) {
+      existingNotice.remove();
+    }
+
+    // Create a persistent notice to show the user why this option was selected
     const notice = document.createElement("div");
     notice.className = "alert alert-success recommendation-notice";
     notice.style.cssText =
-      "position: absolute; z-index: 1000; margin-top: 5px; padding: 8px 12px; font-size: 0.875rem; border-radius: 4px;";
+      "position: relative; z-index: 1000; margin-top: 5px; margin-bottom: 10px; padding: 8px 12px; font-size: 0.875rem; border-radius: 4px;";
     notice.innerHTML = `<i class="fas fa-star"></i> We've pre-selected the ${type} for your area based on your location.`;
 
-    // Insert the notice after the dropdown
-    dropdown.parentNode.insertBefore(notice, dropdown.nextSibling);
+    // Find the label for this dropdown to insert the notice above it
+    const dropdownLabel = dropdown.parentNode.querySelector(`label[for="${dropdown.id}"]`);
+    
+    if (dropdownLabel) {
+      // Insert the notice before the label (above the title)
+      dropdownLabel.parentNode.insertBefore(notice, dropdownLabel);
+    } else {
+      // Fallback: insert before the dropdown if no label is found
+      dropdown.parentNode.insertBefore(notice, dropdown);
+    }
 
-    // Remove the notice after 4 seconds
-    setTimeout(() => {
-      if (notice.parentNode) {
-        notice.parentNode.removeChild(notice);
-      }
-    }, 4000);
+    // The notice will now persist until the court dropdown changes or page reloads
+    // No automatic removal timeout
   }
 
   clearAllRecommendationNotices() {
