@@ -1,0 +1,172 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ jurisdiction_config.name }}</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{% static 'css/options.css' %}" />
+  </head>
+  <body>
+    {% include 'efile/components/profile_header.html' %}
+
+    <div class="container">
+      <h2 class="section-title">eFiling Options</h2>
+      <div class="row justify-content-center">
+        <div class="col-lg-8 col-xl-7">
+          <div class="option-card">
+            <div class="d-flex align-items-center mb-3">
+              <div class="option-icon">
+                <i class="fas fa-university"></i>
+              </div>
+              <div class="option-content">
+                <h3>File a New Case</h3>
+                <p>Begin a NEW case by efiling your form and documents.</p>
+              </div>
+            </div>
+            <div class="button-group">
+              <button class="btn btn-outline-primary" onclick="goToSimpleForm('new')">
+                 Simple Form
+              </button>
+              <button class="btn btn-primary" onclick="goToExpertForm('new')">
+                 Expert Form
+              </button>
+            </div>
+          </div>
+
+          <div class="option-card">
+            <div class="d-flex align-items-center mb-3">
+              <div class="option-icon">
+                <i class="fas fa-reply"></i>
+              </div>
+              <div class="option-content">
+                <h3>Respond</h3>
+                <p>If you have been served and need to file a response.</p>
+              </div>
+            </div>
+            <div class="button-group">
+              <button class="btn btn-outline-primary" onclick="goToSimpleForm('response')">
+                 Simple Form
+              </button>
+              <button class="btn btn-primary" onclick="goToExpertForm('response')">
+                Expert Form
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+      // Function to save existing_case data and redirect to simple form
+      function goToSimpleForm(caseType) {
+        const existingCase = caseType === 'response' ? 'yes' : 'no';
+        
+        // Save the existing_case selection to session storage or make an API call
+        saveExistingCaseData(existingCase).then(() => {
+          // For now, alert - replace with actual simple form URL when available
+          alert(`Redirecting to Simple Form with existing_case: ${existingCase}`);
+          // window.location.href = "/simple-form/";
+        });
+      }
+
+      // Function to save existing_case data and redirect to expert form or case details
+      function goToExpertForm(caseType) {
+        const existingCase = caseType === 'response' ? 'yes' : 'no';
+        
+        // Save the existing_case selection
+        saveExistingCaseData(existingCase).then(() => {
+          if (caseType === 'response') {
+            // For responses, redirect to case details page first (with options page flag)
+            window.location.href = '/case-details/?clear_cache=true&from_options=true';
+          } else {
+            // For new cases, go directly to expert form with cache clearing and options page flag
+            window.location.href = `/expert_form/?existing_case=${existingCase}&clear_cache=true&from_options=true`;
+          }
+        });
+      }
+
+      // Function to save existing_case data to the session
+      async function saveExistingCaseData(existingCase) {
+        try {
+          // Save to session storage as immediate fallback
+          sessionStorage.setItem('existing_case', existingCase);
+          
+          // Also make an API call to save server-side if needed
+          const response = await fetch('/api/save-case-data/', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': getCsrfToken(),
+            },
+            body: JSON.stringify({
+              existing_case: existingCase
+            })
+          });
+          
+          if (!response.ok) {
+            console.warn('Failed to save case data server-side, using session storage');
+          }
+        } catch (error) {
+          console.warn('Error saving case data:', error);
+          // Session storage fallback is already in place
+        }
+      }
+
+      // Helper function to get CSRF token
+      function getCsrfToken() {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+          const [name, value] = cookie.trim().split('=');
+          if (name === 'csrftoken') {
+            return value;
+          }
+        }
+        return '';
+      }
+
+      // Legacy functions for backward compatibility (if needed elsewhere)
+      function fileNewCase() {
+        goToExpertForm('new');
+      }
+
+      function respondToCase() {
+        goToExpertForm('response');
+      }
+
+      function addToCase() {
+        alert("Redirecting to Add Documents...");
+        // In a real application, this would redirect to the document addition form
+      }
+
+      function addToExpertForm() {
+        window.location.href = "/expert-form/";
+      }
+
+      // Add keyboard navigation
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+          const focusedElement = document.activeElement;
+          if (focusedElement.classList.contains("btn")) {
+            focusedElement.click();
+          }
+        }
+      });
+
+      // Make buttons focusable for accessibility
+      document.querySelectorAll(".btn").forEach((btn) => {
+        btn.setAttribute("tabindex", "0");
+      });
+    </script>
+  </body>
+</html>

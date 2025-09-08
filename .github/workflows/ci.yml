@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        check: [ruff, type, tests]
+    name: "${{ matrix.check }}"
+    steps:
+      # Common setup
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      # NOTE: we manage uv and python directly right now, but we can DRY this up by using docker within the
+      # GH actions workflow in the future. The direct method is supposed to be faster so we'll leave it for
+      # now. When we start to have more complex dependencies within the dockerfile we can swap over.
+      # Sample run commands:
+      # docker build -t form-submission-mvp:ci .
+      # docker run --rm form-submission-mvp:ci uv run pytest -q
+      - name: Install uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
+      - name: Add uv to PATH
+        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Ensure Python 3.12 and sync deps (dev)
+        working-directory: efile_app
+        run: |
+          uv python install 3.12
+          uv sync --group dev
+
+      # No per-check installs needed; everything is managed by uv
+
+      # ruff
+      - name: Ruff format (check only)
+        if: matrix.check == 'ruff'
+        working-directory: efile_app
+        run: uv run ruff format --check .
+
+      - name: Ruff lint
+        if: matrix.check == 'ruff'
+        working-directory: efile_app
+        run: uv run ruff check .
+
+      # type checking
+      - name: Type check (ty)
+        if: matrix.check == 'type'
+        working-directory: efile_app
+        run: uv run ty check
+
+      # tests
+      - name: Run tests
+        if: matrix.check == 'tests'
+        env:
+          DJANGO_SETTINGS_MODULE: efile.settings
+        working-directory: efile_app
+        run: uv run pytest -q

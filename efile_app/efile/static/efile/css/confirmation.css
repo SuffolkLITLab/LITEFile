@@ -1,0 +1,29 @@
+.confirmation-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 2rem;
+    text-align: center;
+}
+.success-icon {
+    color: #28a745;
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+.success-message {
+    color: #155724;
+    font-size: 1.25rem;
+    margin-bottom: 2rem;
+}
+.btn-primary.custom-confirm {
+    background: #2c5aa0;
+    border-color: #2c5aa0;
+}
+.btn-primary.custom-confirm:hover {
+    background: #1e3d6f;
+    border-color: #1e3d6f;
+}
+
+@media (max-width: 576px) {
+    .confirmation-container { padding: 1rem; }
+    .success-icon { font-size: 3rem; }
+}

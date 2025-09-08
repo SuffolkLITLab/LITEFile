@@ -1,0 +1,224 @@
+.form-select#state option {
+    font-size: 1.15rem;
+}
+body {
+    background-color: #f8f9fa;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+.alert-warning {
+    background-color: #fef3c7;
+    border: 1px solid #f59e0b;
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+}
+.alert-warning p {
+    color: #92400e;
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+.alert-warning strong {
+    color: #92400e;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+.brand-header {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2c5aa0 100%);
+    color: white;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+}
+.brand-title {
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin: 0;
+}
+.btn-back {
+    background: linear-gradient(135deg, #6b7280 0%, #9ca3af 100%);
+    border: none;
+    border-radius: 25px;
+    padding: 0.75rem 2.5rem;
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: white;
+    transition: all 0.3s ease;
+    min-width: 150px;
+}
+.btn-back:hover {
+    background: linear-gradient(135deg, #4b5563 0%, #6b7280 100%);
+    transform: translateY(-1px);
+    color: white;
+}
+.btn-container {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+}
+.btn-register {
+    background: #1e3a5f;
+    border: none;
+    border-radius: 25px;
+    padding: 0.75rem 2.5rem;
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: white;
+    transition: all 0.3s ease;
+    min-width: 150px;
+}
+.btn-register:hover {
+    background: #1e3a5f;
+    filter: brightness(1.5);
+    transform: translateY(-1px);
+    color: white;
+}
+.checkbox-section {
+    background-color: #f9fafb;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+}
+.form-check {
+    margin-bottom: 1rem;
+}
+.form-check-input {
+    margin-top: 0.1rem;
+}
+.form-check-label {
+    font-size: 0.9rem;
+    line-height: 1.4;
+    color: #374151;
+}
+.form-control, .form-select {
+    border: 2px solid #d1d5db;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    transition: border-color 0.3s ease;
+    margin-bottom: 0.5rem;
+}
+.form-control:focus, .form-select:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
+}
+.form-control::placeholder {
+    color: #9ca3af;
+    font-size: 0.9rem;
+}
+.form-label {
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+.main-container {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+.page-title {
+    color: #374151;
+    font-weight: 700;
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+}
+.password-input-group {
+    position: relative;
+}
+.password-section {
+    background-color: #f0f9ff;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+}
+.password-strength {
+    display: flex;
+    gap: 4px;
+    margin-top: 0.5rem;
+}
+.password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #6b7280;
+    cursor: pointer;
+    padding: 0;
+    font-size: 1rem;
+}
+.password-toggle:hover {
+    color: #3b82f6;
+}
+.phone-example {
+    color: #6b7280;
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+.register-card {
+    background-color: white;
+    border-radius: 25px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+.register-content {
+    padding: 2rem;
+}
+.required {
+    color: #ef4444;
+}
+.scales-icon {
+    font-size: 1.5rem;
+    margin-right: 0.75rem;
+}
+.section-title {
+    color: #374151;
+    font-weight: 600;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    margin-top: 2rem;
+}
+.section-title-tight {
+    margin-top: 0 !important;
+    margin-bottom: 1rem !important;
+}
+.section-title:first-of-type {
+    margin-top: 0;
+}
+.strength-bar {
+    height: 4px;
+    flex: 1;
+    background-color: #e5e7eb;
+    border-radius: 2px;
+    transition: background-color 0.3s ease;
+}
+.strength-bar.active {
+    background-color: #10b981;
+}
+.strength-bar.medium {
+    background-color: #f59e0b;
+}
+.strength-bar.weak {
+    background-color: #ef4444;
+}
+@media (max-width: 768px) {
+    .main-container {
+        margin: 1rem auto;
+        padding: 0 0.5rem;
+    }
+    .register-content {
+        padding: 1.5rem;
+    }
+    .btn-container {
+        flex-direction: column;
+        align-items: center;
+    }
+    .btn-register, .btn-back {
+        width: 100%;
+        max-width: 300px;
+    }
+}

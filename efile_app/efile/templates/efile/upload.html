@@ -1,0 +1,772 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Upload Your Documents</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link href="{% static 'efile/css/upload.css' %}" rel="stylesheet" />
+    <link
+      href="{% static 'css/components/search-dropdown.css' %}"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    {% include 'efile/components/profile_header.html' %}
+
+    <div class="container">
+      <div class="upload-container">
+        <h2 class="section-header">Upload your documents</h2>
+        <p class="section-description">
+          Upload your petition and any supporting documents. All documents must
+          be in PDF format and clearly legible.
+        </p>
+
+        <!-- Case Information Summary -->
+        <div class="case-summary mb-4">
+          <h5 class="case-summary-header">My case</h5>
+          <div class="row">
+            <div class="col-md-6">
+              <strong>Case type:</strong> {{ case_type }}
+            </div>
+            <div class="col-md-6"><strong>County:</strong> {{ court }}</div>
+          </div>
+        </div>
+
+        <form id="uploadForm" enctype="multipart/form-data">
+          {% csrf_token %}
+
+          <!-- Document Requirements -->
+          <div class="alert alert-info mb-4">
+            <h6><i class="fas fa-info-circle me-2"></i><strong>Document requirements</strong></h6>
+            <div class="mb-2">
+              <strong>Format:</strong> All documents must be in PDF format with
+              text that can be read clearly.
+            </div>
+            <div class="mb-0">
+              <strong>Size Limit:</strong> Each document must be under 10MB.
+            </div>
+          </div>
+
+          <!-- Lead Document Section -->
+          <div class="document-section mb-4" id="leadDocumentSection">
+            <label class="form-label document-label">
+              <strong>Lead document</strong> <span class="required">*</span>
+            </label>
+            <p class="text-muted">
+              Your main petition document - this is the primary filing for your
+              case.
+            </p>
+
+            <div class="upload-area" id="leadDocumentArea">
+              <div class="upload-placeholder">
+                <i class="fas fa-file-pdf fa-3x text-muted mb-3"></i>
+                <p class="mb-2">
+                  <strong>Click to upload or drag and drop</strong>
+                </p>
+                <p class="text-muted small">PDF files only, maximum 10MB</p>
+              </div>
+              <input
+                type="file"
+                id="leadDocument"
+                name="lead_document"
+                accept=".pdf"
+                class="file-input"
+                required
+              />
+            </div>
+
+            <!-- Filing Component for Lead Document -->
+            <div
+              class="document-options mt-3"
+              id="leadDocumentOptions"
+              style="display: none"
+            >
+              <div class="row">
+                <div class="col-md-6">
+                  <label for="leadFilingType" class="form-label"
+                    ><strong>Filing type</strong>
+                    <span class="required">*</span></label
+                  >
+                  <div
+                    class="search-dropdown-container"
+                    id="leadFilingType-container"
+                  >
+                    <input
+                      type="text"
+                      class="form-control search-dropdown-input"
+                      id="leadFilingType_search"
+                      name="leadFilingType_search"
+                      placeholder="Search filing types..."
+                      autocomplete="off"
+                      required
+                    />
+
+                    <select
+                      class="form-select dropdown-field d-none"
+                      id="leadFilingType"
+                      name="lead_filing_type"
+                      required
+                    >
+                      <option value="">Select filing type</option>
+                    </select>
+
+                    <div
+                      class="search-dropdown-results"
+                      id="leadFilingType-results"
+                      style="display: none"
+                    >
+                      <div class="search-no-results">
+                        No matching options found
+                      </div>
+                    </div>
+
+                    <div
+                      class="search-dropdown-selected"
+                      id="leadFilingType-selected"
+                      style="display: none"
+                    >
+                      <span class="selected-text"></span>
+                      <button
+                        type="button"
+                        class="btn-clear"
+                        aria-label="Clear selection"
+                      >
+                        &times;
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <label for="leadDocumentType" class="form-label"
+                    ><strong>Document type</strong>
+                    <span class="required">*</span></label
+                  >
+                  <select
+                    class="form-select document-type-select"
+                    id="leadDocumentType"
+                    name="lead_document_type"
+                    required
+                  >
+                    <option value="">Select filing type first</option>
+                  </select>
+                </div>
+              </div>
+              <div class="row mt-3">
+                <div class="col-md-6">
+                  <label for="leadFilingComponent" class="form-label"
+                    ><strong>Filing component</strong>
+                    <span class="required">*</span></label
+                  >
+                  <select
+                    class="form-select filing-component-select"
+                    id="leadFilingComponent"
+                    name="lead_filing_component"
+                    required
+                  >
+                    <option value="">Select a filing component</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="row mt-3">
+                <div class="col-md-6">
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="leadCertifiedCopies"
+                      name="lead_certified_copies"
+                    />
+                    <label class="form-check-label" for="leadCertifiedCopies">
+                      Request certified copies when filed
+                    </label>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="leadSealedConfidential"
+                      name="lead_sealed_confidential"
+                    />
+                    <label
+                      class="form-check-label"
+                      for="leadSealedConfidential"
+                    >
+                      Request documents be sealed/confidential
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Supporting Documents Section -->
+          <div class="document-section mb-4">
+            <label class="form-label document-label">
+              <strong>Supporting documents</strong>
+            </label>
+            <p class="text-muted">
+              Optional additional documents that support your petition (birth
+              certificates, marriage certificates, etc.)
+            </p>
+
+            <div class="upload-area" id="supportingDocumentsArea">
+              <div class="upload-placeholder">
+                <i class="fas fa-file-upload fa-3x text-muted mb-3"></i>
+                <p class="mb-2">
+                  <strong>Click to upload or drag and drop</strong>
+                </p>
+                <p class="text-muted small">
+                  PDF files only, maximum 10MB each
+                </p>
+              </div>
+              <input
+                type="file"
+                id="supportingDocuments"
+                name="supporting_documents"
+                accept=".pdf"
+                class="file-input"
+                multiple
+              />
+            </div>
+
+            <!-- Container for supporting document options (will be populated dynamically) -->
+            <div id="supportingDocumentsOptions">
+              <!-- Supporting document filing components will be added here dynamically -->
+            </div>
+          </div>
+
+          <!-- Before You Continue Section -->
+          <div class="alert alert-warning">
+            <h6><strong>Before you continue</strong></h6>
+            <p class="mb-2">
+              <strong>Review your documents:</strong> Make sure all text is
+              legible and all required information is complete.
+            </p>
+            <p class="mb-2">
+              <strong>File names:</strong> Your documents will be renamed
+              according to court standards when filed.
+            </p>
+            <p class="mb-0">
+              <strong>Cannot be changed:</strong> Once submitted, you cannot
+              modify these documents without filing additional motions.
+            </p>
+          </div>
+
+          <!-- Progress and Loading -->
+          <div
+            class="upload-progress"
+            id="uploadProgress"
+            style="display: none"
+          >
+            <div class="progress mb-3">
+              <div
+                class="progress-bar"
+                role="progressbar"
+                style="width: 0%"
+              ></div>
+            </div>
+            <p class="text-center">
+              Creating filing and uploading documents...
+            </p>
+          </div>
+
+          <!-- Error Messages -->
+          <div class="alert alert-danger" id="errorAlert" style="display: none">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <span id="errorMessage"></span>
+          </div>
+
+          <!-- Success Messages -->
+          <div
+            class="alert alert-success"
+            id="successAlert"
+            style="display: none"
+          >
+            <i class="fas fa-check-circle me-2"></i>
+            <span id="successMessage"></span>
+          </div>
+
+          <!-- Form Buttons -->
+          <div
+            class="d-flex flex-column flex-md-row justify-content-between gap-3 mt-4"
+          >
+            <button
+              type="button"
+              onclick="window.location.href='{% url 'expert_form' %}'"
+              class="btn btn-outline-secondary px-4"
+            >
+              <i class="fas fa-arrow-left me-2"></i>Back to case details
+            </button>
+            <button
+              type="submit"
+              class="btn btn-primary px-4"
+              id="submitButton"
+            >
+              <i class="fas fa-upload me-2"></i>Continue to review & pay
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/components/search-dropdown.js' %}"></script>
+    <script src="{% static 'js/upload-handler.js' %}"></script>
+
+    <script>
+      // Store filing components globally once loaded
+      let globalFilingComponents = [];
+
+      // Load filing components when page loads
+      document.addEventListener("DOMContentLoaded", function () {
+        loadFilingComponents();
+        initializeSearchDropdowns();
+        setupCascadingDropdowns();
+      });
+
+      // Store global filing types data to reuse for multiple dropdowns
+      window.globalFilingTypes = [];
+
+      async function initializeSearchDropdowns() {
+        // Get case data from Django context (passed from the view)
+        const court =
+          "{{ court_raw|escapejs }}" ||
+          sessionStorage.getItem("selected_court");
+        const caseType =
+          "{{ case_type_raw|escapejs }}" ||
+          sessionStorage.getItem("selected_case_type");
+        const existingCase = sessionStorage.getItem("existing_case") || "no";
+
+        if (!court || !caseType) {
+          console.warn(
+            "Missing court or case_type for filing type dropdown initialization"
+          );
+          return;
+        }
+
+        // Fetch filing types data only once
+        if (window.globalFilingTypes.length === 0) {
+          try {
+            const apiUrl = `/api/dropdowns/filing-types/?court=${encodeURIComponent(
+              court
+            )}&case_type=${encodeURIComponent(
+              caseType
+            )}&existing_case=${existingCase}`;
+
+            const response = await fetch(apiUrl, {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCSRFToken(),
+              },
+            });
+
+            if (!response.ok) {
+              throw new Error(
+                `Failed to load filing types: ${response.status}`
+              );
+            }
+
+            const result = await response.json();
+            if (result.success && result.data) {
+              window.globalFilingTypes = result.data.map((item, index) => {
+                const processedItem = {
+                  value: item.value || item.code || item.id,
+                  text: item.text || item.name || item.description,
+                };
+                return processedItem;
+              });
+            } else {
+              console.error("API returned error:", result.error);
+              return;
+            }
+          } catch (error) {
+            console.error("Error loading filing types:", error);
+            return;
+          }
+        }
+
+        // Initialize all existing filing type search dropdowns
+        initializeFilingTypeDropdowns();
+      }
+
+      function initializeFilingTypeDropdowns() {
+        // Initialize filing type search dropdowns
+        const filingTypeDropdowns = document.querySelectorAll(
+          '[id*="FilingType_search"]'
+        );
+
+        filingTypeDropdowns.forEach((dropdown) => {
+          // Extract the base field ID from the search input ID
+          const fieldId = dropdown.id.replace("_search", "");
+
+          const searchDropdown = new SearchDropdown(fieldId, {
+            placeholder: "Search filing types...",
+          });
+          searchDropdown.updateOptions(window.globalFilingTypes);
+
+          // Store reference for later use
+          window[`${fieldId}Dropdown`] = searchDropdown;
+        });
+      }
+
+      // Function to initialize filing type dropdowns for new supporting documents
+      window.initializeNewFilingTypeDropdown = function (fieldId) {
+        if (window.globalFilingTypes.length > 0) {
+          const searchDropdown = new SearchDropdown(fieldId, {
+            placeholder: "Search filing types...",
+          });
+          searchDropdown.updateOptions(window.globalFilingTypes);
+          return searchDropdown;
+        }
+        return null;
+      };
+
+      function setupCascadingDropdowns() {
+        // Lead document cascading dropdowns
+        const leadFilingTypeSelect = document.getElementById("leadFilingType");
+        const leadDocumentTypeSelect =
+          document.getElementById("leadDocumentType");
+        const leadFilingComponentSelect = document.getElementById(
+          "leadFilingComponent"
+        );
+
+        if (leadFilingTypeSelect) {
+          leadFilingTypeSelect.addEventListener("change", function () {
+            const selectedFilingTypeId = this.value;
+
+            if (selectedFilingTypeId) {
+              populateDocumentTypes(
+                selectedFilingTypeId,
+                leadDocumentTypeSelect
+              );
+              // Don't reset filing components - they should remain available
+            }
+          });
+        }
+
+        if (leadDocumentTypeSelect) {
+          leadDocumentTypeSelect.addEventListener("change", function () {
+            const selectedDocumentType = this.value;
+            // Filing components are already loaded and available - no need to reload them
+          });
+        }
+
+        if (leadFilingComponentSelect) {
+          leadFilingComponentSelect.addEventListener("change", function () {
+            const selectedComponent = this.value;
+          });
+        }
+      }
+
+      async function populateDocumentTypes(filingTypeId, documentTypeSelect) {
+        try {
+          // Get court data from Django context to pass required parameters
+          const court =
+            "{{ court_raw|escapejs }}" ||
+            sessionStorage.getItem("selected_court");
+
+          if (!court) {
+            console.error("Missing court parameter for document types API");
+            documentTypeSelect.innerHTML =
+              '<option value="">Missing court data</option>';
+            return;
+          }
+
+          const response = await fetch(
+            `/api/dropdowns/document-types/?court=${encodeURIComponent(
+              court
+            )}&parent=${encodeURIComponent(filingTypeId)}`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCSRFToken(),
+              },
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error(
+              `Failed to load document types: ${response.status}`
+            );
+          }
+
+          const result = await response.json();
+          if (result.success && result.data) {
+            documentTypeSelect.innerHTML =
+              '<option value="">Select a document type</option>';
+            result.data.forEach((docType) => {
+              const option = document.createElement("option");
+              option.value = docType.value || docType.code || docType.id;
+              option.textContent =
+                docType.text || docType.name || docType.description;
+              documentTypeSelect.appendChild(option);
+            });
+          } else {
+            console.error("API returned error:", result.error);
+            documentTypeSelect.innerHTML =
+              '<option value="">Error loading document types</option>';
+          }
+        } catch (error) {
+          console.error("Error loading document types:", error);
+          documentTypeSelect.innerHTML =
+            '<option value="">Error loading document types</option>';
+        }
+      }
+
+      // Removed populateFilingComponents function - filing components are loaded immediately on page load
+
+      async function loadFilingComponents() {
+        try {
+          // Use our backend API endpoint instead of direct Suffolk API call to avoid CORS
+          const response = await fetch("/api/get-filing-components/", {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": getCSRFToken(),
+            },
+          });
+
+          if (!response.ok) {
+            throw new Error(
+              `Failed to load filing components: ${response.status}`
+            );
+          }
+
+          const result = await response.json();
+          if (result.success && result.data) {
+            globalFilingComponents = processFilingComponentsData(result.data);
+            // Immediately populate all filing component dropdowns - no waiting for document type
+            populateAllFilingComponentDropdowns();
+          } else {
+            console.error("API returned error:", result.error);
+            populateFilingComponentDropdownFallback();
+          }
+        } catch (error) {
+          console.error("Error loading filing components:", error);
+          // Fallback to default options
+          populateFilingComponentDropdownFallback();
+        }
+      }
+
+      function processFilingComponentsData(data) {
+        let components = [];
+
+        // Handle different possible API response structures
+        if (Array.isArray(data)) {
+          components = data;
+        } else if (data && typeof data === "object") {
+          components =
+            data.data ||
+            data.filing_components ||
+            data.components ||
+            data.results ||
+            [];
+          if (!Array.isArray(components) && typeof components === "object") {
+            // If components is an object, try to extract array values
+            components = Object.values(components);
+          }
+        }
+
+        // Process and normalize components
+        return components.map((component) => {
+          // Try different possible field names for ID
+          const id =
+            component.id ||
+            component.value ||
+            component.code ||
+            component.filing_component_id;
+
+          // Try different possible field names for display text
+          const name =
+            component.name ||
+            component.description ||
+            component.label ||
+            component.display_name ||
+            component.filing_component_name ||
+            component.text ||
+            `Component ${id}`;
+
+          return { id, name };
+        });
+      }
+
+      function populateAllFilingComponentDropdowns() {
+        // Populate lead document dropdown
+        populateFilingComponentDropdown(
+          document.getElementById("leadFilingComponent")
+        );
+
+        // Populate any existing supporting document dropdowns
+        const supportingDropdowns = document.querySelectorAll(
+          ".supporting-filing-component"
+        );
+        supportingDropdowns.forEach((dropdown) => {
+          populateFilingComponentDropdown(dropdown);
+        });
+      }
+
+      function populateFilingComponentDropdown(dropdown) {
+        if (!dropdown) return;
+
+        // Clear existing options
+        dropdown.innerHTML =
+          '<option value="">Select a filing component</option>';
+
+        // Show ALL filing components from the API - no filtering whatsoever
+        if (globalFilingComponents.length > 0) {
+          globalFilingComponents.forEach((component) => {
+            const option = document.createElement("option");
+            option.value = component.id;
+            option.textContent = component.name;
+            dropdown.appendChild(option);
+          });
+        } else {
+          dropdown.innerHTML =
+            '<option value="">No filing components available</option>';
+        }
+      }
+
+      function populateDropdownFallback(dropdown) {
+        if (!dropdown) return;
+
+        dropdown.innerHTML = `
+                <option value="">Select a document type</option>
+                <option value="lead">Lead Document</option>
+                <option value="supporting">Supporting Document</option>
+                <option value="exhibit">Exhibit</option>
+            `;
+      }
+
+      function populateFilingComponentDropdownFallback() {
+        const leadDropdown = document.getElementById("leadFilingComponent");
+        populateDropdownFallback(leadDropdown);
+
+        const supportingDropdowns = document.querySelectorAll(
+          ".supporting-filing-component"
+        );
+        supportingDropdowns.forEach((dropdown) => {
+          populateDropdownFallback(dropdown);
+        });
+      }
+
+      // Helper function to get CSRF token
+      function getCSRFToken() {
+        return (
+          document.querySelector("[name=csrfmiddlewaretoken]")?.value ||
+          document
+            .querySelector('meta[name="csrf-token"]')
+            ?.getAttribute("content") ||
+          ""
+        );
+      }
+
+      // Expose functions and data globally for upload handler
+      window.populateDocumentTypes = populateDocumentTypes;
+      window.populateFilingComponentDropdown = populateFilingComponentDropdown;
+      window.globalFilingComponents = globalFilingComponents;
+      window.createSupportingDocumentOptions = createSupportingDocumentOptions;
+
+      function createSupportingDocumentOptions(index, fileName) {
+        const html = `
+                <div class="document-options mt-3 supporting-document-options" id="supportingDocumentOptions${index}">
+                    <h6 class="mb-3"><strong>Options for: ${fileName}</strong></h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="supportingFilingType${index}" class="form-label"><strong>Filing Type</strong> <span class="required">*</span></label>
+                            <div class="search-dropdown-container" id="supportingFilingType${index}-container">
+                                <input
+                                  type="text"
+                                  class="form-control search-dropdown-input"
+                                  id="supportingFilingType${index}_search"
+                                  name="supportingFilingType${index}_search"
+                                  placeholder="Search filing types..."
+                                  autocomplete="off"
+                                  required
+                                />
+                                
+                                <select
+                                  class="form-select dropdown-field d-none"
+                                  id="supportingFilingType${index}"
+                                  name="supporting_filing_type_${index}"
+                                  required
+                                >
+                                  <option value="">Select Filing Type</option>
+                                </select>
+                                
+                                <div class="search-dropdown-results" id="supportingFilingType${index}-results" style="display: none;">
+                                  <div class="search-no-results">No matching options found</div>
+                                </div>
+                                
+                                <div class="search-dropdown-selected" id="supportingFilingType${index}-selected" style="display: none;">
+                                  <span class="selected-text"></span>
+                                  <button type="button" class="btn-clear" aria-label="Clear selection">&times;</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="supportingDocumentType${index}" class="form-label"><strong>Document Type</strong> <span class="required">*</span></label>
+                            <select class="form-select document-type-select" id="supportingDocumentType${index}" name="supporting_document_type_${index}" required>
+                                <option value="">Select filing type first</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <label for="supportingFilingComponent${index}" class="form-label"><strong>Filing Component</strong> <span class="required">*</span></label>
+                            <select class="form-select supporting-filing-component" id="supportingFilingComponent${index}" name="supporting_filing_component_${index}" required>
+                                <option value="">Select a filing component</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="supportingCertifiedCopies${index}" name="supporting_certified_copies_${index}">
+                                <label class="form-check-label" for="supportingCertifiedCopies${index}">
+                                    Request certified copies when filed
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="supportingSealedConfidential${index}" name="supporting_sealed_confidential_${index}">
+                                <label class="form-check-label" for="supportingSealedConfidential${index}">
+                                    Request documents be sealed/confidential
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+        // After creating the HTML, make sure to populate the filing components dropdown
+        setTimeout(() => {
+          const dropdown = document.getElementById(
+            `supportingFilingComponent${index}`
+          );
+          if (dropdown) {
+            populateFilingComponentDropdown(dropdown);
+          }
+        }, 100);
+
+        return html;
+      }
+    </script>
+  </body>
+</html>

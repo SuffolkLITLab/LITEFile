@@ -1,0 +1,513 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Case Details & Parties</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link href="{% static 'css/expert_form.css' %}" rel="stylesheet" />
+    <style>
+      /* Custom styles for better spacing and required field styling */
+      .required {
+        color: #dc3545 !important;
+        font-weight: bold;
+      }
+      
+      .subsection-header {
+        margin-top: 3.5rem !important;
+        margin-bottom: 1rem !important;
+      }
+      
+      .subsection-header:first-of-type {
+        margin-top: 2rem !important;
+      }
+      
+      /* Add spacing after main section header */
+      .section-header {
+        color: #2c3e50;
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+      }
+      
+      .section-description {
+        color: #6c757d;
+        font-size: 1.1rem;
+        margin-bottom: 2rem;
+      }
+      
+      /* Increase spacing between form rows */
+      .row.mb-3 {
+        margin-bottom: 2.5rem !important;
+      }
+      
+      /* Add more space before the button section */
+      .d-flex.justify-content-between.mt-4 {
+        margin-top: 4rem !important;
+        padding-top: 1rem;
+        border-top: 1px solid #e9ecef;
+      }
+    </style>
+  </head>
+  <body>
+    {% include 'efile/components/profile_header.html' %}
+
+    <div class="container">
+      <div class="form-container">
+        <form id="expertForm" onsubmit="return false;">
+          {% csrf_token %}
+
+          <h2 class="section-header">Case details & parties</h2>
+          <p class="section-description">
+            Please provide the basic information about your case and all parties
+            involved. Required fields are marked with a red asterisk (<span
+              class="required"
+              >*</span
+            >).
+          </p>
+
+          <!-- Case Classification Section -->
+          <h3 class="subsection-header">Case classification</h3>
+
+          <div
+            class="alert alert-info"
+            id="userProfileStatus"
+            style="display: none"
+          >
+            <i class="fas fa-user-check"></i> Loading your information...
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-md-6 court-container">
+              <label for="court" class="form-label"
+                >Court <span class="required">*</span></label
+              >
+              <small class="form-text text-muted mb-2 d-block">
+                This is the court you will be filing in
+              </small>
+              <select
+                class="form-select dropdown-field"
+                id="court"
+                name="court"
+                data-level="3"
+                data-endpoint="/api/dropdowns/courts/"
+                required
+              >
+                <option value="">Select Court</option>
+              </select>
+              <div class="loading-spinner" id="loading-3" style="display: none">
+                <i class="fas fa-spinner fa-spin"></i> Loading courts...
+              </div>
+            </div>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="case_category" class="form-label"
+                >Case category <span class="required">*</span></label
+              >
+              <small class="form-text text-muted mb-2 d-block">
+                This is the case category
+              </small>
+              <select
+                class="form-select dropdown-field"
+                id="case_category"
+                name="case_category"
+                data-level="0"
+                data-endpoint="/api/dropdowns/case-categories/"
+                required
+                disabled
+              >
+                <option value="">First select a court</option>
+              </select>
+              <div class="loading-spinner" id="loading-0" style="display: none">
+                <i class="fas fa-spinner fa-spin"></i> Loading categories...
+              </div>
+            </div>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="case_type" class="form-label"
+                >Case type <span class="required">*</span></label
+              >
+              <small class="form-text text-muted mb-2 d-block">
+                This is the case type you will use
+              </small>
+              <select
+                class="form-select dropdown-field"
+                id="case_type"
+                name="case_type"
+                data-level="1"
+                required
+                disabled
+              >
+                <option value="">Select case type</option>
+              </select>
+              <div class="loading-spinner" id="loading-1" style="display: none">
+                <i class="fas fa-spinner fa-spin"></i> Loading case types...
+              </div>
+            </div>
+          </div>
+
+          <!-- Dynamic Case-Specific Sections -->
+          <div id="dynamicSections" style="display: none"></div>
+
+          <!-- Form Buttons -->
+          <div class="d-flex justify-content-between mt-4">
+            <button type="button" id="saveDraftBtn" class="btn btn-outline-secondary px-4">
+              Save draft
+            </button>
+            <button type="submit" class="btn btn-primary px-4">
+              Continue to documents
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Pass case data to JavaScript -->
+    {{ case_data|json_script:"case-data" }}
+    <script>
+      // Check for cache clearing parameters first, before loading any data
+      function shouldClearCache() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const clearCache = urlParams.get('clear_cache');
+        const fromOptions = urlParams.get('from_options');
+        
+        // Only clear cache if both parameters are present and true
+        return clearCache === 'true' && fromOptions === 'true';
+      }
+
+      // Clear all eFiling related data if coming from options
+      if (shouldClearCache()) {        
+        // Clear all eFiling related session storage
+        const keysToRemove = [];
+        for (let i = 0; i < sessionStorage.length; i++) {
+          const key = sessionStorage.key(i);
+          if (key && (
+            key.includes('case_') ||
+            key.includes('efile_') ||
+            key.includes('filing_') ||
+            key.includes('document_') ||
+            key.includes('upload_') ||
+            key === 'existing_case' ||
+            key === 'form_data' ||
+            key === 'case_data'
+          )) {
+            keysToRemove.push(key);
+          }
+        }
+        
+        // Remove the identified keys
+        keysToRemove.forEach(key => {
+          sessionStorage.removeItem(key);
+        });
+        
+        // Clear window.caseData to ensure fresh start
+        window.caseData = {};
+        
+      }
+
+      // Extract case data from Django template and make it available globally
+      const caseDataElement = document.getElementById("case-data");
+      let caseData = {};
+      
+      if (caseDataElement && !shouldClearCache()) {
+        try {
+          caseData = JSON.parse(caseDataElement.textContent);
+          // Make case data available globally for FormValidation
+          window.caseData = caseData;
+        } catch (error) {
+          console.warn("Failed to parse case data from Django context:", error);
+          window.caseData = {};
+        }
+      } else {
+        window.caseData = {};
+      }
+
+      // Check for existing_case parameter from URL or session storage
+      function initializeExistingCaseSelection() {
+        // If cache was cleared, start fresh with no existing case
+        if (shouldClearCache()) {
+          sessionStorage.setItem('existing_case', 'no');
+          return; // Exit early, don't try to pre-populate anything
+        }
+
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        let existingCase = urlParams.get('existing_case');
+        
+        // Check Django context case data first (highest priority)
+        if (!existingCase && window.caseData && window.caseData.existing_case) {
+          existingCase = window.caseData.existing_case;
+        }
+        
+        // Fallback to session storage if not in URL or Django context
+        if (!existingCase) {
+          existingCase = sessionStorage.getItem('existing_case');
+        }
+        
+        // Check for case data in session storage
+        const caseDataString = sessionStorage.getItem('case_data');
+        let caseData = null;
+        if (caseDataString) {
+          try {
+            caseData = JSON.parse(caseDataString);
+            // If case data has existing_case, use it; otherwise fallback to separate storage
+            if (caseData.existing_case) {
+              existingCase = caseData.existing_case;
+            }
+          } catch (e) {
+            console.warn('Failed to parse case data from session storage:', e);
+          }
+        }
+        
+        
+        // If we have case data from case details page, pre-populate and disable fields
+        if (caseData && caseData.from_case_details) {
+          // Store case data globally so other scripts can access it
+          window.caseDetailsData = caseData;
+          
+          // Since we have case data from case details, this is an existing case
+          existingCase = 'yes';
+          
+          // Save the existing_case status to session storage for other parts of the app
+          sessionStorage.setItem('existing_case', existingCase);
+          
+          // Function to wait for an element to have options loaded
+          function waitForDropdownOptions(elementId, minOptions = 2) {
+            return new Promise((resolve) => {
+              const element = document.getElementById(elementId);
+              if (!element) {
+                resolve(false);
+                return;
+              }
+              
+              // Check if already loaded
+              if (element.options.length >= minOptions) {
+                resolve(true);
+                return;
+              }
+              
+              // Watch for changes
+              const observer = new MutationObserver(() => {
+                if (element.options.length >= minOptions) {
+                  observer.disconnect();
+                  resolve(true);
+                }
+              });
+              
+              observer.observe(element, {
+                childList: true,
+                subtree: true
+              });
+              
+              // Also listen for change events as backup
+              const changeListener = () => {
+                if (element.options.length >= minOptions) {
+                  element.removeEventListener('change', changeListener);
+                  observer.disconnect();
+                  resolve(true);
+                }
+              };
+              element.addEventListener('change', changeListener);
+              
+              // Timeout as fallback (but much shorter)
+              setTimeout(() => {
+                observer.disconnect();
+                element.removeEventListener('change', changeListener);
+                resolve(element.options.length >= minOptions);
+              }, 5000);
+            });
+          }
+          
+          // Function to wait for cascading dropdowns to be ready
+          function waitForCascadingDropdowns() {
+            return new Promise((resolve) => {
+              if (window.cascadingDropdowns) {
+                resolve();
+                return;
+              }
+              
+              // Watch for the cascading dropdowns to be loaded
+              const checkInterval = setInterval(() => {
+                if (window.cascadingDropdowns) {
+                  clearInterval(checkInterval);
+                  resolve();
+                }
+              }, 50);
+              
+              // Timeout after 10 seconds
+              setTimeout(() => {
+                clearInterval(checkInterval);
+                resolve();
+              }, 2000);
+            });
+          }
+          
+          // Main pre-population flow
+          async function prePopulateFields() {
+            // Wait for cascading dropdowns to be ready
+            await waitForCascadingDropdowns();
+            
+            // Pre-populate and trigger court dropdown
+            if (caseData.court) {
+              const courtDropdown = document.getElementById('court');
+
+              // Wait for court options to be loaded
+              await waitForDropdownOptions('court', 2);
+
+              if (courtDropdown) {
+                courtDropdown.value = caseData.court;
+                
+                // Disable if specified
+                if (caseData.disable_fields && caseData.disable_fields.includes('court')) {
+                  courtDropdown.disabled = true;
+                  courtDropdown.style.backgroundColor = '#f8f9fa';
+                }
+
+                // NOTE: this change event seems unnecessary and causes the race condition.
+                // Trigger court change event to populate categories
+                //const changeEvent = new Event('change', { bubbles: true });
+                //courtDropdown.dispatchEvent(changeEvent);
+              }
+            }
+            
+            // Wait for case categories to be populated by the cascading system
+            const categoriesLoaded = await waitForDropdownOptions('case_category', 2);
+            
+            if (categoriesLoaded && caseData.case_category) {
+              const categoryDropdown = document.getElementById('case_category');
+
+              // NOTE: this block of logic seems unnecessary and might cause a race condition.
+              // // Trigger the change event first to populate case types, but don't select yet
+              //const categoryChangeEvent = new Event('change', { bubbles: true });
+              //categoryDropdown.dispatchEvent(categoryChangeEvent);
+              
+              // // Wait for case types to be populated
+              // const typesLoaded = await waitForDropdownOptions('case_type', 2);
+              
+              // // Add a delay to ensure all cascading operations are complete
+              //await new Promise(resolve => setTimeout(resolve, 200));
+
+              // Find and select matching option
+              let foundMatch = false;
+              let selectedCategoryValue = null;
+              const searchText = caseData.case_category.toLowerCase();
+              
+              for (let option of categoryDropdown.options) {
+                const optionText = option.text.toLowerCase();
+                if (optionText.includes(searchText) || searchText.includes(optionText)) {
+                  categoryDropdown.value = option.value;
+                  selectedCategoryValue = option.value;
+                  foundMatch = true;
+                  break;
+                }
+              }
+              
+              // Broader matching if needed
+              if (!foundMatch) {
+                for (let option of categoryDropdown.options) {
+                  const optionText = option.text.toLowerCase();
+                  if ((searchText.includes('evict') && optionText.includes('evict')) ||
+                      (searchText.includes('civil') && optionText.includes('civil'))) {
+                    categoryDropdown.value = option.value;
+                    selectedCategoryValue = option.value;
+                    foundMatch = true;
+                    break;
+                  }
+                }
+              }
+              
+              if (foundMatch) {
+                
+                // Disable if specified
+                if (caseData.disable_fields && caseData.disable_fields.includes('case_category')) {
+                  categoryDropdown.disabled = true;
+                  categoryDropdown.style.backgroundColor = '#f8f9fa';
+                }
+                
+                // Now that category is selected, trigger another change to update case types for this category
+                const finalCategoryChangeEvent = new Event('change', { bubbles: true});
+                categoryDropdown.dispatchEvent(finalCategoryChangeEvent);
+                
+                // Wait for case types to be updated for the selected category
+                const finalTypesLoaded = await waitForDropdownOptions('case_type', 2);
+
+                if (finalTypesLoaded && caseData.case_type) {
+                  // Small delay to ensure types are fully loaded
+                  await new Promise(resolve => setTimeout(resolve, 100));
+                  
+                  const typeDropdown = document.getElementById('case_type');
+                  
+                  // Find and select matching case type
+                  let typeFound = false;
+                  for (let option of typeDropdown.options) {
+                    if (option.text.toLowerCase().includes(caseData.case_type.toLowerCase()) ||
+                        caseData.case_type.toLowerCase().includes(option.text.toLowerCase())) {
+                      typeDropdown.value = option.value;
+                      typeFound = true;
+                      break;
+                    }
+                  }
+
+                  // Disable case type if specified (same pattern as court and case_category)
+                  if (caseData.disable_fields && caseData.disable_fields.includes('case_type')) {
+                    typeDropdown.disabled = true;
+                    typeDropdown.style.backgroundColor = '#f8f9fa';
+                  } 
+
+                  // Small delay to ensure case type selection is fully processed
+                  await new Promise(resolve => setTimeout(resolve, 200));
+                  
+                  // Case type selection is complete - filing types will be handled on upload page
+                }
+              }
+            }
+            
+            // Store case number for later use
+            if (caseData.case_number) {
+              sessionStorage.setItem('existing_case_number', caseData.case_number);
+            }
+          }
+          
+          // Start the pre-population process
+          prePopulateFields().catch(error => {
+            console.error('Error during pre-population:', error);
+          });
+        } else {
+          // No case data from case details, this is a new case
+          existingCase = 'no';          
+          // Save the existing_case status to session storage for other parts of the app
+          sessionStorage.setItem('existing_case', existingCase);
+        }
+      }
+
+      // Initialize when DOM is ready
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeExistingCaseSelection);
+      } else {
+        initializeExistingCaseSelection();
+      }
+    </script>
+
+    <!-- Form JavaScript Modules -->
+    <script src="{% static 'js/api-utils.js' %}"></script>
+    <script src="{% static 'js/cascading-dropdowns.js' %}"></script>
+    <script src="{% static 'js/dynamic-form-sections.js' %}"></script>
+    <script src="{% static 'js/form-validation.js' %}"></script>
+    <script src="{% static 'js/expert-form-main.js' %}"></script>
+  </body>
+</html>

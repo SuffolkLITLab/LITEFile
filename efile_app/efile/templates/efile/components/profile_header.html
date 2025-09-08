@@ -1,0 +1,161 @@
+{% load static %}
+<link href="{% static 'css/header.css' %}" rel="stylesheet" />
+<div class="header">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center">
+        <i class="{{ jurisdiction_config.icon }} scales-icon"></i>
+        <h1>{{ jurisdiction_config.name }}</h1>
+      </div>
+      <div class="d-flex align-items-center gap-3">
+        <!-- Jurisdiction Selector -->
+        <div class="jurisdiction-selector">
+          <select id="jurisdictionSelect" class="form-select form-select-sm" onchange="switchJurisdiction(this.value)">
+            {% for code, config in available_jurisdictions.items %}
+            <option value="{{ code }}" {% if current_jurisdiction == code %}selected{% endif %}>
+              {{ config.display_name }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="profile-icon" id="profileIcon" style="cursor: pointer">
+          <i class="fas fa-user"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Profile Modal -->
+<div
+  class="modal fade"
+  id="profileModal"
+  tabindex="-1"
+  aria-labelledby="profileModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="profileModalLabel">Profile Info</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <p>
+          Welcome to {{ jurisdiction_config.name }}. Here you can manage your filings and
+          account.
+        </p>
+        <div class="mb-3">
+          <label for="profileJurisdictionSelect" class="form-label">Current Jurisdiction:</label>
+          <select id="profileJurisdictionSelect" class="form-select" onchange="switchJurisdiction(this.value)">
+            {% for code, config in available_jurisdictions.items %}
+            <option value="{{ code }}" {% if current_jurisdiction == code %}selected{% endif %}>
+              {{ config.display_name }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <button
+          type="button"
+          class="btn btn-danger w-100"
+          onclick="logout()"
+        >
+          Logout
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    var profileIcon = document.getElementById("profileIcon");
+    if (profileIcon) {
+      profileIcon.addEventListener("click", function () {
+        var modal = new bootstrap.Modal(
+          document.getElementById("profileModal")
+        );
+        modal.show();
+      });
+    }
+  });
+
+  async function switchJurisdiction(jurisdiction) {
+    try {
+      const response = await fetch('/api/jurisdiction/switch/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({ jurisdiction: jurisdiction })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        // Show success message
+        showMessage(data.message, 'success');
+        // Reload page to reflect jurisdiction change
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      } else {
+        const error = await response.json();
+        showMessage(error.error || 'Failed to switch jurisdiction', 'error');
+      }
+    } catch (error) {
+      console.error('Error switching jurisdiction:', error);
+      showMessage('Failed to switch jurisdiction', 'error');
+    }
+  }
+
+  function showMessage(message, type) {
+    // Create and show bootstrap alert
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+      ${message}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    // Insert at top of container
+    const container = document.querySelector('.container');
+    container.insertBefore(alertDiv, container.firstChild);
+    
+    // Auto-dismiss after 3 seconds
+    setTimeout(() => {
+      alertDiv.remove();
+    }, 3000);
+  }
+
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  function logout() {
+    // Clear any messages first, then redirect to logout endpoint
+    fetch('/logout/', {
+      method: 'GET',
+      credentials: 'same-origin'
+    }).then(function() {
+      window.location.href = '/login/';
+    }).catch(function() {
+      // Fallback if fetch fails
+      window.location.href = '/logout/';
+    });
+  }
+</script>

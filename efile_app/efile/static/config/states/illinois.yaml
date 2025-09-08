@@ -1,0 +1,94 @@
+# Illinois-specific Case Type Configuration
+# This file extends the base configuration with Illinois-specific settings
+
+# State metadata
+state:
+  code: "IL"
+  name: "Illinois"
+  jurisdiction: "illinois"
+
+# Inherit from base case types and customize
+inherits_from: "base-case-types.yaml"
+
+# Illinois-specific overrides and extensions
+case_types:
+  name_change:
+    # Inherit from base but add Illinois-specific requirements
+    extends: "base_case_types.name_change"
+    
+    # Illinois-specific field modifications (this will be handled by court-specific logic)
+    # Don't override the sections here, let the base configuration provide the structure
+            
+    # Illinois-specific validation rules
+    validation_rules:
+      - field: "petitioner_first_name"
+        rule: "no_special_chars"
+        message: "First name cannot contain special characters"
+      - field: "new_last_name" 
+        rule: "max_length"
+        value: 50
+        message: "Last name cannot exceed 50 characters"
+
+  divorce:
+    extends: "base_case_types.divorce"
+    
+    # Illinois-specific additions
+    sections:
+      parties:
+        fields:
+          - section_title: "Children"
+            required: false
+            conditional_requirements:
+              # show_when_field: "has_children"
+              # show_when_value: true
+            fields:
+              - name: "has_children"
+                label: "Are there minor children of this marriage?"
+                type: "radio"
+                required: true
+                column_width: "col-12"
+                options:
+                  - value: true
+                    label: "Yes"
+                  - value: false
+                    label: "No"
+              - name: "child_count"
+                label: "Number of minor children"
+                type: "number"
+                required: true
+                column_width: "col-6"
+                min: 1
+                max: 10
+                conditional_display:
+                  # show_when_field: "has_children"
+                  # show_when_value: true
+
+# Illinois-specific court mappings
+court_specific_requirements:
+  "cook:cd1":  # Cook County Circuit Court - County Division
+    case_types:
+      name_change:
+        # Cook County specific requirements - both sections show
+        field_modifications:
+          - field_group: "Petitioner"
+            modifications:
+              conditional_requirements:
+                required_for_courts: ["cook:cd1"]
+          - field_group: "Name Sought"
+            modifications:
+              conditional_requirements:
+                required_for_courts: ["cook:cd1"]
+  
+  "bond":  # Bond Court (correct court code)
+    case_types:
+      name_change:
+        # Hide both sections for Bond Court
+        field_modifications:
+          - field_group: "Petitioner"
+            modifications:
+              conditional_requirements:
+                hidden_for_courts: ["bond"]
+          - field_group: "Name Sought"
+            modifications:
+              conditional_requirements:
+                hidden_for_courts: ["bond"]

@@ -1,0 +1,198 @@
+# Base Case Type Configuration
+# This file defines the common structure that can be inherited by state-specific configs
+
+# Global defaults that apply to all states unless overridden
+defaults:
+  field_types:
+    text:
+      class: "form-control"
+      validation: "required"
+    textarea:
+      class: "form-control"
+      rows: 3
+    number:
+      class: "form-control"
+      validation: "numeric"
+    party_type_dropdown:
+      class: "form-control dropdown-field"
+      validation: "required"
+
+  column_widths:
+    full: "col-12"
+    half: "col-6"
+    third: "col-4"
+    two_thirds: "col-8"
+
+# Base case type templates that states can inherit from
+base_case_types:
+  name_change:
+    keywords: ["name change", "name petition", "change of name"]
+    description: "Legal name change proceedings"
+    sections:
+      parties:
+        title: "Required Parties"
+        api_endpoint: "/api/dropdowns/party-types/"
+        requires_params: ["court", "case_type"]
+        fields:
+          - section_title: "Petitioner"
+            required: true
+            conditional_requirements:
+              # Default: show for all courts except those explicitly hidden
+              required_for_courts: []
+              optional_for_courts: []
+              hidden_for_courts: []
+            fields:
+              - name: "petitioner_party_type"
+                label: "Party Type"
+                type: "party_type_dropdown"
+                required: true
+                column_width: "col-12"
+                api_endpoint: "/api/dropdowns/party-types/"
+              - name: "petitioner_first_name"
+                label: "First Name"
+                type: "text"
+                required: true
+                column_width: "col-6"
+              - name: "petitioner_last_name"
+                label: "Last Name"
+                type: "text"
+                required: true
+                column_width: "col-6"
+          - section_title: "Name Sought"
+            required: false
+            conditional_requirements:
+              # Default: hidden for all courts except those explicitly required
+              required_for_courts: []
+              optional_for_courts: []
+              hidden_for_courts: []
+            fields:
+              - name: "new_name_party_type"
+                label: "Party Type"
+                type: "party_type_dropdown"
+                required: true
+                column_width: "col-12"
+                api_endpoint: "/api/dropdowns/party-types/"
+              - name: "new_first_name"
+                label: "First Name"
+                type: "text"
+                required: true
+                column_width: "col-6"
+              - name: "new_last_name"
+                label: "Last Name"
+                type: "text"
+                required: true
+                column_width: "col-6"
+  divorce:
+    keywords: ["divorce", "dissolution of marriage", "annulment", "dissolution"]
+    description: "Legal dissolution of marriage proceedings"
+    sections:
+      parties:
+        title: "Required Parties"
+        api_endpoint: "/api/dropdowns/party-types/"
+        requires_params: ["court", "case_type"]
+        fields:
+          - section_title: "Petitioner"
+            required: true
+            fields:
+              - name: "petitioner_party_type"
+                label: "Party Type"
+                type: "party_type_dropdown"
+                required: true
+                column_width: "col-12"
+                api_endpoint: "/api/dropdowns/party-types/"
+              - name: "petitioner_first_name"
+                label: "First Name"
+                type: "text"
+                required: true
+                column_width: "col-6"
+              - name: "petitioner_last_name"
+                label: "Last Name"
+                type: "text"
+                required: true
+                column_width: "col-6"
+          - section_title: "Defendant"
+            required: true
+            fields:
+              - name: "new_name_party_type"
+                label: "Party Type"
+                type: "party_type_dropdown"
+                required: true
+                column_width: "col-12"
+                api_endpoint: "/api/dropdowns/party-types/"
+              - name: "new_first_name"
+                label: "First Name"
+                type: "text"
+                required: true
+                column_width: "col-6"
+              - name: "new_last_name"
+                label: "Last Name"
+                type: "text"
+                required: true
+                column_width: "col-6"
+
+  # eviction_repossession:
+  #   keywords: ["eviction", "repossession", "restoration"]
+  #   description: "Eviction, repossession, and property restoration proceedings"
+  #   sections:
+  #     case_information:
+  #       title: "Case Information"
+  #       fields:
+  #         - section_title: "Case Details"
+  #           required: true
+  #           fields:
+  #             - name: "case_number"
+  #               label: "Case Number"
+  #               type: "text"
+  #               required: true
+  #               column_width: "col-6"
+  #               placeholder: "Enter the existing case number"
+  #               help_text: "This is required to respond to an existing case"
+              # - name: "case_type_detail"
+              #   label: "Case Type Detail"
+              #   type: "text"
+              #   required: false
+              #   column_width: "col-6"
+              #   placeholder: "Additional case type information"
+      # parties:
+      #   title: "Required Parties"
+      #   api_endpoint: "/api/dropdowns/party-types/"
+      #   requires_params: ["court", "case_type"]
+      #   fields:
+      #     - section_title: "Petitioner/Plaintiff"
+      #       required: true
+      #       fields:
+      #         - name: "petitioner_party_type"
+      #           label: "Party Type"
+      #           type: "party_type_dropdown"
+      #           required: true
+      #           column_width: "col-12"
+      #           api_endpoint: "/api/dropdowns/party-types/"
+      #         - name: "petitioner_first_name"
+      #           label: "First Name"
+      #           type: "text"
+      #           required: true
+      #           column_width: "col-6"
+      #         - name: "petitioner_last_name"
+      #           label: "Last Name"
+      #           type: "text"
+      #           required: true
+      #           column_width: "col-6"
+      #     - section_title: "Respondent/Defendant"
+      #       required: false
+      #       fields:
+      #         - name: "respondent_party_type"
+      #           label: "Party Type"
+      #           type: "party_type_dropdown"
+      #           required: false
+      #           column_width: "col-12"
+      #           api_endpoint: "/api/dropdowns/party-types/"
+      #         - name: "respondent_first_name"
+      #           label: "First Name"
+      #           type: "text"
+      #           required: false
+      #           column_width: "col-6"
+      #         - name: "respondent_last_name"
+      #           label: "Last Name"
+      #           type: "text"
+      #           required: false
+      #           column_width: "col-6"

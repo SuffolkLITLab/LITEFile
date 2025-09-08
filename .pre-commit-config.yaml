@@ -1,0 +1,34 @@
+repos:
+  # Ruff: format + lint (fast)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.5.7
+    hooks:
+      - id: ruff-format
+      - id: ruff
+        args: ["--fix"]
+
+  # Ty: Rust-based Python type checker (configured in pyproject.toml under [tool.ty])
+  - repo: local
+    hooks:
+      - id: ty
+        name: ty (type check)
+        entry: bash -lc
+        language: system
+        types: [python]
+        pass_filenames: false
+        args:
+          - cd efile_app && uv run ty check
+
+  # Run tests on pre-push to keep commits snappy
+  - repo: local
+    hooks:
+      - id: pytest
+        name: pytest (pre-push)
+        entry: bash -lc
+        language: system
+        stages: [pre-push]
+        pass_filenames: false
+        args:
+          - cd efile_app && uv run pytest -q
+          # If needed, override Django settings here instead of pyproject:
+          # - --ds=efile.settings
