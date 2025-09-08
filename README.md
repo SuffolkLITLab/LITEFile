@@ -29,7 +29,7 @@ A minimal Django app for form submission and review. The Django project lives un
 
 - __2) Initialize the database__
   ```bash
-  cd mysite
+  cd efile_app
   uv run python manage.py migrate
   ```
 
@@ -54,7 +54,7 @@ A minimal Django app for form submission and review. The Django project lives un
 - Windows (PowerShell):
   ```powershell
   .venv\Scripts\Activate.ps1
-  cd mysite
+  cd efile_app
   python manage.py migrate
   python manage.py runserver
   ```
@@ -109,9 +109,9 @@ Pytest is configured via `pyproject.toml` to use `pytest-django`.
 
 - __Select tests__:
   ```bash
-  pytest mysite/efile/ -q                 # only the efile app
+  pytest efile_app/efile/ -q                 # only the efile app
   pytest -k "login and not slow" -q       # expression match
-  pytest mysite/efile/tests/test_smoke.py::test_login_page_renders -q
+  pytest efile_app/efile/tests/test_smoke.py::test_login_page_renders -q
   ```
 
 - __Speed tips__:
@@ -122,12 +122,12 @@ Pytest is configured via `pyproject.toml` to use `pytest-django`.
 
 - __Coverage__ (optional):
   ```bash
-  pytest --cov=mysite --cov-report=term-missing
+  pytest --cov=efile_app --cov-report=term-missing
   ```
 
 Notes:
 - `DJANGO_SETTINGS_MODULE` is set to `efile.settings` in `[tool.pytest.ini_options]`.
-- Tests are discovered under `mysite/`. An example smoke test lives at `mysite/efile/tests/test_smoke.py`.
+- Tests are discovered under `efile_app/`. An example smoke test lives at `efile_app/efile/tests/test_smoke.py`.
 
 ## End-to-End Testing (Playwright)
 
@@ -265,11 +265,11 @@ Pre-commit hooks are configured in `.pre-commit-config.yaml` to run Ruff formatt
 
 ## Project Layout
 
-- `mysite/manage.py` — Django management script
-- `mysite/efile/settings.py` — Project settings (uses SQLite by default; DB file at `mysite/db.sqlite3`)
-- `mysite/efile/urls.py` — URL routing
-- `mysite/efile/templates/` — HTML templates
-- `mysite/efile/static/` — Static assets
+- `efile_app/manage.py` — Django management script
+- `efile_app/efile/settings.py` — Project settings (uses SQLite by default; DB file at `efile_app/db.sqlite3`)
+- `efile_app/efile/urls.py` — URL routing
+- `efile_app/efile/templates/` — HTML templates
+- `efile_app/efile/static/` — Static assets
 
 ## Notes
 
