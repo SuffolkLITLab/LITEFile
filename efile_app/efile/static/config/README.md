@@ -575,3 +575,6 @@ keywords: ["name change", "name petition", "change of name"]
 - **Field conditional display**: Requires JavaScript enhancement in `dynamic-form-sections.js` when additional case types are implemented
 - **Additional case types**: Available in YAML but not enabled for production use
 - **Court customizations**: Working system demonstrated with Cook County name change variations
+
+### To-Do's
+- **Changing sections to array data structure**: Consider making changes to how we injest sections and instead of using keys can possibly use arrays for more flexible dyanmic sections. 
