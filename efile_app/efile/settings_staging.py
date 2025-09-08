@@ -62,16 +62,25 @@ LOGGING = {
     },
     "root": {
         "handlers": ["console"],
-        "level": "DEBUG",
+        "level": "INFO",
     },
     "loggers": {
-        "django": {"handlers": ["console"], "level": "DEBUG", "propagate": False},
-        "django.request": {"handlers": ["console"], "level": "DEBUG", "propagate": False},
-        "uvicorn": {"handlers": ["console"], "level": "DEBUG", "propagate": False},
-        "gunicorn": {"handlers": ["console"], "level": "DEBUG", "propagate": False},
-        "whitenoise": {"handlers": ["console"], "level": "DEBUG", "propagate": False},
+        "django": {"handlers": ["console"], "level": "INFO", "propagate": False},
+        "django.request": {"handlers": ["console"], "level": "INFO", "propagate": False},
+        "uvicorn": {"handlers": ["console"], "level": "INFO", "propagate": False},
+        "gunicorn": {"handlers": ["console"], "level": "INFO", "propagate": False},
+        "whitenoise": {"handlers": ["console"], "level": "INFO", "propagate": False},
     },
 }
+# NOTE: Papertrail integration has not been tested, but an example configuration is provided below.
+# This would be used in place of, or in addition to, the console handler above, by updating the loggers
+# to reference the new handler (or defining an inheritable handler and using propagate=True).
+# LOGGING["handlers"]["papertrail"] = {
+#     "class": "logging.handlers.SysLogHandler",
+#     "address": ("<PAPERTRAIL_HOST>", <PAPERTRAIL_PORT>),
+#     "formatter": "verbose",
+# }
+# LOGGING["root"]["handlers"].append("papertrail")
 
 # Database: require DATABASE_URL and configure Postgres with pooling and SSL
 DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
