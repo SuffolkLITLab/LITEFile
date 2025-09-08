@@ -73,6 +73,85 @@ Deactivate with `deactivate` when you're done.
 - __Static files__
   During development, static files are served automatically. No `collectstatic` is needed.
 
+## AWS S3 Setup (Required for File Uploads)
+
+The application uses AWS S3 for document storage and file uploads. Follow these steps to set up your S3 bucket:
+
+### 1. Create an S3 Bucket
+
+- Log into the AWS Console and navigate to S3
+- Create a new bucket (e.g., `forms-mvp-your-suffix`)
+- Choose your preferred region (default: `us-east-1`)
+- Keep the bucket private - the application uses pre-signed URLs to grant access to Tyler (no need to make the bucket public)
+
+### 2. Configure Bucket Permissions
+
+Apply this bucket policy to allow public read access for Tyler to download documents:
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "PublicReadGetObject",
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": "s3:GetObject",
+            "Resource": "arn:aws:s3:::YOUR-BUCKET-NAME/*"
+        }
+    ]
+}
+```
+
+Replace `YOUR-BUCKET-NAME` with your actual bucket name.
+
+### 3. Create IAM User and Permissions
+
+Create an IAM user with the following policy for application access:
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:PutObject",
+                "s3:PutObjectAcl",
+                "s3:GetObject"
+            ],
+            "Resource": "arn:aws:s3:::YOUR-BUCKET-NAME/*"
+        },
+        {
+            "Sid": "VisualEditor1",
+            "Effect": "Allow",
+            "Action": "s3:*",
+            "Resource": "arn:aws:s3:::YOUR-BUCKET-NAME"
+        }
+    ]
+}
+```
+
+### 4. Configure Environment Variables
+
+Copy the example environment file and update the S3 settings:
+
+```bash
+cp efile_app/.env.example efile_app/.env
+```
+
+Edit `efile_app/.env` with your AWS credentials:
+
+```bash
+# AWS S3 Configuration
+AWS_ACCESS_KEY_ID = "your-aws-access-key-id-here"
+AWS_SECRET_ACCESS_KEY = "your-aws-secret-access-key-here"
+AWS_S3_BUCKET_NAME = "your-bucket-name-here"
+AWS_S3_REGION_NAME = "us-east-1"
+```
+
+**Note**: The application generates pre-signed URLs for secure document access, so there's no need to make your S3 bucket public. The bucket policy above allows Tyler's systems to download documents when needed.
+
 ## Development: dev dependencies and Ruff
 
 Ruff is configured in `pyproject.toml` under `[tool.ruff]`.
