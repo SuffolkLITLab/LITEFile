@@ -82,7 +82,9 @@ The application uses AWS S3 for document storage and file uploads. Follow these 
 - Log into the AWS Console and navigate to S3
 - Create a new bucket (e.g., `forms-mvp-your-suffix`)
 - Choose your preferred region (default: `us-east-1`)
-- Keep the bucket private - the application uses pre-signed URLs to grant access to Tyler (no need to make the bucket public)
+- Initially, turn off "Block all public access" in the S3 bucket settings. We will need this off initially so that the bucket policy can be applied. After we have created the bucket policy, we will block all public access by toggling back on "Block all public access".
+- Tags can be created to help track ownership of resources and is useful for cost tracking, environment tracking, etc.
+- Default encryption settings should be fine
 
 ### 2. Configure Bucket Permissions
 
@@ -132,7 +134,14 @@ Create an IAM user with the following policy for application access:
 }
 ```
 
-### 4. Configure Environment Variables
+### 4. Disable Public Access to the S3 Bucket
+
+You can now turn on "Block all public access" in the S3 bucket settings. Go to Permissions. Click on the Edit button in the "Block public access (bucket settings)" section. Toggle on "Block all public access". Click "Save Changes" and confirm the action.
+
+This will keep the existing policy, which we use to generate the pre-signed URLs to Tyler access, but restrict the files from being made publicly accessible in other ways.
+
+
+### 5. Configure Environment Variables
 
 Copy the example environment file and update the S3 settings:
 
