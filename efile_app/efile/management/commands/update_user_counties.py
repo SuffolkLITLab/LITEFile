@@ -78,12 +78,10 @@ class Command(BaseCommand):
         if dry_run:
             self.stdout.write(
                 self.style.WARNING(
-                    f"\nDRY RUN SUMMARY: Would update {updated_count} users, " f"{failed_count} could not be updated."
+                    f"\nDRY RUN SUMMARY: Would update {updated_count} users, {failed_count} could not be updated."
                 )
             )
         else:
             self.stdout.write(
-                self.style.SUCCESS(
-                    f"\nSUMMARY: Updated {updated_count} users, " f"{failed_count} could not be updated."
-                )
+                self.style.SUCCESS(f"\nSUMMARY: Updated {updated_count} users, {failed_count} could not be updated.")
             )
