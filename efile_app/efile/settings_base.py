@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "efile",  # Add the efile app
 ]
 
 MIDDLEWARE = [
@@ -76,6 +77,23 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
+# Authentication backends
+AUTHENTICATION_BACKENDS = [
+    "efile.authentication.SuffolkEFileBackend",  # Custom Suffolk API backend
+    "django.contrib.auth.backends.ModelBackend",  # Default Django backend
+]
+
+# Session settings
+SESSION_COOKIE_AGE = 86400  # 24 hours
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+
+# Login/Logout URLs
+LOGIN_URL = "/login/"
+LOGOUT_URL = "/logout/"
+LOGIN_REDIRECT_URL = "/options/"
+LOGOUT_REDIRECT_URL = "/login/"
+
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
 USE_I18N = True
@@ -85,8 +103,7 @@ STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "efile/static"]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-LOGIN_REDIRECT_URL = "/dashboard/"
-LOGOUT_REDIRECT_URL = "/login/"
+
 SUFFOLK_EFILE_API_KEY = os.getenv("SUFFOLK_EFILE_API_KEY", "")
 
 # Base URL for EFSP-compatible APIs (Suffolk LIT Lab by default)

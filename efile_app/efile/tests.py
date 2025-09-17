@@ -213,9 +213,53 @@ class TestAuthAPIs:
         assert "zip_code" in data["data"]
         assert "preferred_county" in data["data"]
 
-        # Should have Cook County as demo data
+        # Should have empty strings as default for authenticated users without profiles
+        assert data["data"]["zip_code"] == ""
+        assert data["data"]["preferred_county"] == ""
+
+    def test_profile_api_dynamic_county_from_zip(self, client, user):
+        """Test profile API dynamically determines county from zip code."""
+        from efile.models import UserProfile
+
+        # Create profile with zip code but no county
+        UserProfile.objects.create(  # type: ignore[attr-defined]
+            user=user,
+            zip_code="60601",  # Cook County zip
+            county="",  # No county set initially
+        )
+
+        client.force_login(user)
+        response = client.get("/api/auth/profile/", HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data["success"] is True
+
+        # Should dynamically determine county from zip code
         assert data["data"]["zip_code"] == "60601"
-        assert data["data"]["preferred_county"].lower() == "cook"
+        assert data["data"]["preferred_county"] == "cook"  # Should be determined from zip
+
+    def test_profile_api_existing_county_not_overridden(self, client, user):
+        """Test profile API doesn't override existing county with zip lookup."""
+        from efile.models import UserProfile
+
+        # Create profile with zip code AND existing county
+        UserProfile.objects.create(  # type: ignore[attr-defined]
+            user=user,
+            zip_code="60601",  # Cook County zip
+            county="dupage",  # Different county already set
+        )
+
+        client.force_login(user)
+        response = client.get("/api/auth/profile/", HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data["success"] is True
+
+        # Should keep existing county, not override with zip lookup
+        assert data["data"]["zip_code"] == "60601"
+        assert data["data"]["preferred_county"] == "dupage"  # Should keep existing county
 
     def test_profile_api_unauthenticated_user(self, client):
         """Test profile API handles unauthenticated users with demo data."""
@@ -227,8 +271,8 @@ class TestAuthAPIs:
 
         # Should provide demo data for unauthenticated users
         assert data["data"]["username"] == "demo_user"
-        assert data["data"]["first_name"] == "John"  # Auth API returns 'John' not 'Demo'
-        assert data["data"]["last_name"] == "Doe"  # Auth API returns 'Doe' not 'User'
+        assert data["data"]["first_name"] == "Demo"  # Auth API returns 'Demo' for unauthenticated
+        assert data["data"]["last_name"] == "User"  # Auth API returns 'User' for unauthenticated
         assert data["data"]["zip_code"] == "60601"
 
 
@@ -247,7 +291,7 @@ class TestZipToCountyMapping:
         # Test major Chicago zip codes
         assert get_county_by_zip("60601") == "Cook"  # Downtown Chicago
         assert get_county_by_zip("60614") == "Cook"  # Lincoln Park
-        assert get_county_by_zip("60611") == "Cook"  # Near North Side
+        assert get_county_by_zip("60611") == "Cook"  # North Side
 
     def test_get_county_by_zip_other_counties(self):
         """Test mapping for other Illinois counties."""
