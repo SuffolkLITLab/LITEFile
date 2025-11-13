@@ -1,3 +1,7 @@
+## Temp testing stuff
+testing/docker-compose.yml
+testing/volume
+
 # macOS
 .DS_Store
 .AppleDouble
