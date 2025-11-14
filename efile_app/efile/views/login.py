@@ -3,8 +3,9 @@ import logging
 from django.contrib import messages
 from django.shortcuts import redirect, render
 
-from ..forms import EFileLoginForm
 from efile.utils.config_loader import config_loader
+
+from ..forms import EFileLoginForm
 
 logger = logging.getLogger(__name__)
 
@@ -57,11 +58,7 @@ def efile_login(request, jurisdiction):
                     logger.exception("Login request failed")
                     messages.error(request, f"Login failed: {str(e)}")
     jurisdiction_config = config_loader.get_short_jurisdiction_config(jurisdiction)
-    context = {
-        "login_form": login_form,
-        "jurisdiction": jurisdiction,
-        "jurisdiction_config": jurisdiction_config
-    }
+    context = {"login_form": login_form, "jurisdiction": jurisdiction, "jurisdiction_config": jurisdiction_config}
     return render(request, "efile/login.html", context)
 
 

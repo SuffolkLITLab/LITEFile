@@ -7,6 +7,8 @@ import logging
 from django.shortcuts import render
 from django.views.decorators.http import require_http_methods
 
+from efile.utils.config_loader import config_loader
+
 logger = logging.getLogger(__name__)
 
 
@@ -54,10 +56,7 @@ def case_details(request, jurisdiction):
         # Get jurisdiction config (can be expanded later for other jurisdictions)
         jurisdiction_config = config_loader.get_short_jurisdiction_config(jurisdiction)
 
-        context = {
-            "jurisdiction_config": jurisdiction_config,
-            "jurisdiction": jurisdiction
-        }
+        context = {"jurisdiction_config": jurisdiction_config, "jurisdiction": jurisdiction}
 
         return render(request, "efile/case_details.html", context)
 

@@ -1,5 +1,5 @@
-from django.urls import include, path
 from django.shortcuts import redirect
+from django.urls import include, path
 
 from .views.api_views import get_filing_components
 from .views.case_details import case_details
@@ -31,8 +31,10 @@ from .views.upload import (
     upload_documents,
 )
 
+
 def homepage(request):
     return redirect("efile_login", jurisdiction="illinois")
+
 
 urlpatterns = [
     path("", homepage, name="home"),

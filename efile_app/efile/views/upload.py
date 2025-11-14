@@ -10,8 +10,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from ..utils.case_data_utils import get_case_classification, get_case_data, get_name_sought_info, get_petitioner_info
-from ..utils.s3_upload import s3_handler
 from ..utils.config_loader import config_loader
+from ..utils.s3_upload import s3_handler
 
 logger = logging.getLogger(__name__)
 

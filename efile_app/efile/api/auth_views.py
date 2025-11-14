@@ -97,7 +97,7 @@ class AuthAPIViews(APIResponseMixin):
                 jurisdiction = AuthAPIViews.get_jurisdiction_from_request(request)
                 tyler_token = AuthAPIViews.get_tyler_token(request, jurisdiction)
                 api_key = getattr(settings, "SUFFOLK_EFILE_API_KEY", None)
-                
+
                 headers = {
                     "Content-Type": "application/json",
                     "User-Agent": f"{jurisdiction.title()}-eFile-Client/1.0",
@@ -355,7 +355,9 @@ class AuthAPIViews(APIResponseMixin):
             tyler_token = AuthAPIViews.get_tyler_token(request, jurisdiction)
             api_key = getattr(settings, "SUFFOLK_EFILE_API_KEY", None)
 
-            return AuthAPIViews.success_response({"tyler_token": tyler_token, "api_key": api_key, "state": jurisdiction})
+            return AuthAPIViews.success_response(
+                {"tyler_token": tyler_token, "api_key": api_key, "state": jurisdiction}
+            )
         except Exception as e:
             return AuthAPIViews.error_response(f"Error: {str(e)}")
 
