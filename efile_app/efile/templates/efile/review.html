@@ -58,7 +58,7 @@
               <span class="review-value" id="caseTypeValue"
                 >{{ friendly_names.case_type|default:"Loading..." }}</span
               >
-              <a href="{% url 'expert_form' %}" class="edit-btn ms-3">Edit</a>
+              <a href="{% url 'expert_form' jurisdiction %}" class="edit-btn ms-3">Edit</a>
             </div>
           </div>
 
@@ -68,7 +68,7 @@
               <span class="review-value" id="courtValue"
                 >{{ friendly_names.court|default:"Loading..." }}</span
               >
-              <a href="{% url 'expert_form' %}" class="edit-btn ms-3">Edit</a>
+              <a href="{% url 'expert_form' jurisdiction %}" class="edit-btn ms-3">Edit</a>
             </div>
           </div>
         </div>
@@ -351,6 +351,7 @@
     {{ friendly_names|json_script:"friendly-names" }}
 
     <!-- Review page JavaScript -->
+    <script src="{% static 'js/api-utils.js' %}"></script>
     <script src="{% static 'js/review.js' %}"></script>
     
     <!-- Disclaimer checkbox functionality -->

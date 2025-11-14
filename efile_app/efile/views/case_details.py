@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 @require_http_methods(["GET"])
-def case_details(request):
+def case_details(request, jurisdiction):
     """
     Display the case details form for existing case responses
     """
@@ -52,10 +52,11 @@ def case_details(request):
             logger.debug("Cache NOT cleared - preserving existing session data")
 
         # Get jurisdiction config (can be expanded later for other jurisdictions)
-        jurisdiction_config = {"name": "Illinois eFiling System", "jurisdiction": "illinois"}
+        jurisdiction_config = config_loader.get_short_jurisdiction_config(jurisdiction)
 
         context = {
             "jurisdiction_config": jurisdiction_config,
+            "jurisdiction": jurisdiction
         }
 
         return render(request, "efile/case_details.html", context)

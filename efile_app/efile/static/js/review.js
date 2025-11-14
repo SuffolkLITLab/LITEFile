@@ -5,7 +5,6 @@
 
 // Configuration constants
 const CONFIG = {
-  JURISDICTION: 'illinois',
   VALIDATION: {
     EMAIL_REGEX: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
     ZIP_REGEX: /^\d{5}(-\d{4})?$/,
@@ -18,9 +17,9 @@ const CONFIG = {
     PAYMENT_ACCOUNTS: '/api/payment-accounts/',
     TYLER_TOKEN: '/api/auth/tyler-token/',
     SUBMIT_FILING: '/api/submit-final-filing/',
-    UPLOAD_PAGE: '/upload/'
   }
 };
+
 
 // Utility functions
 const Utils = {
@@ -229,7 +228,7 @@ const APIHandlers = {
     if (!caseData.court || !caseData.case_type) return;
 
     const params = new URLSearchParams({
-      jurisdiction: CONFIG.JURISDICTION,
+      jurisdiction: apiUtils.getCurrentJurisdiction(),
       court: caseData.court,
       case_type: caseData.case_type,
       existing_case: caseData.existing_case || 'no'
@@ -246,7 +245,10 @@ const APIHandlers = {
   },
 
   async loadUserInfo() {
-    const data = await DataManager.fetchJSON(CONFIG.URLS.PROFILE);
+    const params = new URLSearchParams({
+      jurisdiction: apiUtils.getCurrentJurisdiction(),
+    });
+    const data = await DataManager.fetchJSON(`${CONFIG.URLS.PROFILE}?${params}`);
     
     if (data?.success && data.data) {
       const profile = data.data;
@@ -280,7 +282,10 @@ const APIHandlers = {
   },
 
   async loadPaymentAccounts() {
-    const result = await DataManager.fetchJSON(CONFIG.URLS.PAYMENT_ACCOUNTS);
+    const params = new URLSearchParams({
+      jurisdiction: apiUtils.getCurrentJurisdiction(),
+    });
+    const result = await DataManager.fetchJSON(`${CONFIG.URLS.PAYMENT_ACCOUNTS}?${params}`);
     
     if (result?.success && result.data) {
       UIUpdater.updatePaymentMethodsSection(result.data);
@@ -409,7 +414,10 @@ const UIUpdater = {
 const PaymentHandler = {
   async addNewPaymentMethod() {
     try {
-      const authData = await DataManager.fetchJSON(CONFIG.URLS.TYLER_TOKEN);
+      const params = new URLSearchParams({
+        jurisdiction: apiUtils.getCurrentJurisdiction(),
+      });
+      const authData = await DataManager.fetchJSON(`${CONFIG.URLS.TYLER_TOKEN}?${params}`);
       
       if (!authData?.success || !authData.data?.tyler_token) {
         Messages.showError("Authentication failed. Please try again.");
@@ -418,6 +426,7 @@ const PaymentHandler = {
 
       this.redirectToPaymentForm(authData.data);
     } catch (error) {
+      console.log("Create payment error: %o", error);
       Messages.showError("Failed to create payment method. Please try again.");
     }
   },
@@ -426,17 +435,17 @@ const PaymentHandler = {
     const form = document.createElement("form");
     form.method = "post";
     
-    const state = authData.state || CONFIG.JURISDICTION;
+    const jurisdiction = authData.state || apiUtils.getCurrentJurisdiction();
     // TODO: we should revisit this hardcoded value in the future too
-    form.action = `https://efile-test.suffolklitlab.org/jurisdictions/${encodeURIComponent(state)}/payments/new-toga-account`;
+    form.action = `http://localhost:9100/jurisdictions/${encodeURIComponent(jurisdiction)}/payments/new-toga-account`;
 
     const fields = [
       ['account_name', 'Default Payment Account'],
       ['global', 'true'],
       ['type_code', 'CC'],
       ['tyler_info', authData.tyler_token],
-      ['original_url', `${window.location.origin}/review/?payment_status=success`],
-      ['error_url', `${window.location.origin}/review/?payment_status=failure`]
+      ['original_url', `${window.location.origin}/${jurisdiction}/review/?payment_status=success`],
+      ['error_url', `${window.location.origin}/${jurisdiction}/review/?payment_status=failure`]
     ];
 
     fields.forEach(([name, value]) => {
@@ -468,11 +477,11 @@ const PaymentHandler = {
 // Navigation
 const Navigation = {
   goBack() {
-    window.location.href = CONFIG.URLS.UPLOAD_PAGE;
+    window.location.href = `/${apiUtils.getCurrentJurisdiction()}/upload`;
   },
 
   changeDocument(type) {
-    window.location.href = CONFIG.URLS.UPLOAD_PAGE;
+    window.location.href = `/${apiUtils.getCurrentJurisdiction()}/upload`;
   }
 };
 
@@ -500,6 +509,7 @@ const FilingHandler = {
       const result = await this.processSubmission(userData, selectedPaymentMethod.value);
       this.handleSubmissionResult(result);
     } catch (error) {
+      console.log("Error on submission: %o", error)
       Messages.showError("An unexpected error occurred. Please try again.");
       this.setSubmissionState(false);
     }
@@ -697,7 +707,8 @@ const FilingHandler = {
     if (result?.success) {
       Messages.showSuccess("Filing submitted successfully! You will be redirected to the confirmation page.");
       setTimeout(() => {
-        window.location.href = result.redirect_url || "/filing-confirmation/";
+        const jurisdiction = apiUtils.getCurrentJurisdiction();
+        window.location.href = result.redirect_url || `/${jurisdiction}/filing-confirmation/`;
       }, 2000);
     } else {
       Messages.showError(result?.error || "An error occurred during submission.");

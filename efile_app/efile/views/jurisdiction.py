@@ -40,7 +40,7 @@ def get_current_jurisdiction(request):
 
     return JsonResponse(
         {
-            "current_jurisdiction": current_jurisdiction,
+            "jurisdiction": current_jurisdiction,
             "config": config_loader.get_short_jurisdiction_config(current_jurisdiction),
         }
     )

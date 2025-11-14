@@ -13,6 +13,32 @@ class ApiUtils {
         this.clearExpiredCache();
     }
 
+    /**
+     * Get current jurisdiction from session or default to Illinois
+     * @returns {string} Current jurisdiction code
+     */
+    getCurrentJurisdiction() {
+      // TODO(brycew): should we make a server query? Probably not necessary?
+      //const response = await fetch('/api/jurisdiction/current/');
+      //const result = await response.json();
+          
+      // Try to get from jurisdiction selector first
+      const jurisdictionSelect = document.getElementById("jurisdictionSelect");
+      if (jurisdictionSelect && jurisdictionSelect.value) {
+        return jurisdictionSelect.value;
+      }
+
+      // Try to get from profile modal selector
+      const profileSelect = document.getElementById("profileJurisdictionSelect");
+      if (profileSelect && profileSelect.value) {
+        return profileSelect.value;
+      }
+
+      // Default to Illinois if nothing found
+      console.log("Returning illinois for current, likely shouldn't")
+      return "illinois";
+    }
+
     getCache() {
         try {
             const cached = localStorage.getItem('apiResponseCache');
@@ -166,7 +192,7 @@ class ApiUtils {
                 case '500':
                     return new Error('Server error. Please try again later.');
                 default:
-                    return new Error('An unexpected error occurred.');
+                    return new Error(`An unexpected error occurred (${status}).`);
             }
         }
         return error;

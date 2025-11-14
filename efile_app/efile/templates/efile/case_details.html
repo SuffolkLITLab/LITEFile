@@ -132,6 +132,7 @@
       </div>
     </div>
 
+    <script src="{% static 'js/api-utils.js' %}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     
     <script>
@@ -147,30 +148,6 @@
         document.getElementById('case_number').addEventListener('input', autoLookupIfReady);
       });
 
-      // Helper function to get current jurisdiction
-      async function getCurrentJurisdiction() {
-        try {
-          const response = await fetch('/api/jurisdiction/current/');
-          const result = await response.json();
-          
-          if (result.success && result.jurisdiction) {
-            return result.jurisdiction;
-          }
-          
-          // Fallback to checking global jurisdiction dropdown if API fails
-          const jurisdictionSelect = document.querySelector('[data-jurisdiction-selector]');
-          if (jurisdictionSelect && jurisdictionSelect.value) {
-            return jurisdictionSelect.value;
-          }
-          
-          // Final fallback to illinois
-          return 'illinois';
-        } catch (error) {
-          console.warn('Failed to get current jurisdiction, using illinois as fallback:', error);
-          return 'illinois';
-        }
-      }
-
       // Load courts dropdown
       async function loadCourts() {
         const courtSelect = document.getElementById('court');
@@ -180,7 +157,7 @@
           loadingSpinner.style.display = 'block';
           
           // Get current jurisdiction from global dropdown
-          const currentJurisdiction = await getCurrentJurisdiction();
+          const currentJurisdiction = apiUtils.getCurrentJurisdiction();
           
           const response = await fetch(`/api/dropdowns/courts/?jurisdiction=${currentJurisdiction}`);
           const result = await response.json();
@@ -241,7 +218,7 @@
           caseInfoDisplay.style.display = 'none';
           
           // Get current jurisdiction for the API call
-          const currentJurisdiction = await getCurrentJurisdiction();
+          const currentJurisdiction = apiUtils.getCurrentJurisdiction();
           
           // Make API call to our Suffolk case lookup endpoint with current jurisdiction
           const apiUrl = `/api/suffolk/lookup-case/?court=${encodeURIComponent(court)}&caseNumber=${encodeURIComponent(caseNumber)}&jurisdiction=${encodeURIComponent(currentJurisdiction)}`;

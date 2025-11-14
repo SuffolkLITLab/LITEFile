@@ -11,6 +11,7 @@ from django.views.decorators.http import require_http_methods
 
 from ..utils.case_data_utils import get_case_classification, get_case_data, get_name_sought_info, get_petitioner_info
 from ..utils.s3_upload import s3_handler
+from ..utils.config_loader import config_loader
 
 logger = logging.getLogger(__name__)
 
@@ -134,12 +135,12 @@ def determine_party_type_for_existing_case(case_data):
     return party_code
 
 
-def efile_upload(request):
+def efile_upload(request, jurisdiction):
     """Upload view for document submission and filing creation."""
 
     # Check if user is authenticated first
     if not request.session.get("auth_tokens"):
-        return redirect("efile_login")
+        return redirect("efile_login", jurisdiction=jurisdiction)
 
     # Get case data from session
     case_data = get_case_data(request)
@@ -147,7 +148,7 @@ def efile_upload(request):
     # If no case data exists, redirect back to options page
     if not case_data:
         messages.error(request, "Please complete the case details first.")
-        return redirect("efile_options")
+        return redirect("efile_options", jurisdiction=jurisdiction)
 
     # Get organized case information
     petitioner_info = get_petitioner_info(request)
@@ -159,7 +160,11 @@ def efile_upload(request):
     friendly_filing_type = case_data.get("filing_type_name", case_classification["filing_type"])
     friendly_court = case_data.get("court_name", case_classification["court"])
 
+    jurisdiction_config = config_loader.get_short_jurisdiction_config(jurisdiction)
+
     context = {
+        "jurisdiction": jurisdiction,
+        "jurisdiction_config": jurisdiction_config,
         "case_data": case_data,
         "petitioner_info": petitioner_info,
         "name_sought_info": name_sought_info,
@@ -168,6 +173,7 @@ def efile_upload(request):
         "filing_type": friendly_filing_type,
         "court": friendly_court,
         "case_type_raw": case_classification["case_type"],
+        "category_type_raw": case_classification["case_category"],
         "filing_type_raw": case_classification["filing_type"],
         "court_raw": case_classification["court"],
     }

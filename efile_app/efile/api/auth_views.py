@@ -21,45 +21,31 @@ class AuthAPIViews(APIResponseMixin):
     """API views for authentication"""
 
     @staticmethod
-    def get_state_from_request(request):
-        """Extract state from request URL or parameters"""
-        # Try to get state from query parameters first
-        state = request.GET.get("state")
-        if state:
-            return state.lower()
-
-        # Try to extract from URL path (e.g., /jurisdictions/illinois/)
-        path = request.path
-        if "/jurisdictions/" in path:
-            path_parts = path.split("/jurisdictions/")
-            if len(path_parts) > 1:
-                state_part = path_parts[1].split("/")[0]
-                if state_part:
-                    return state_part.lower()
-
-        # Default to Illinois if no state found
-        return "illinois"
+    def get_jurisdiction_from_request(request):
+        """Extract jurisdiction from request URL or parameters"""
+        # Try to get jurisdiction from query parameters first
+        jurisdiction = request.GET.get("jurisdiction")
+        if jurisdiction:
+            return jurisdiction.lower()
+        return None
 
     @staticmethod
-    def get_tyler_token(request, state=None):
+    def get_tyler_token(request, jurisdiction=None):
         """Helper method to retrieve Tyler token from various sources"""
-        if state is None:
-            state = AuthAPIViews.get_state_from_request(request)
+        if jurisdiction is None:
+            jurisdiction = AuthAPIViews.get_jurisdiction_from_request(request)
 
         auth_tokens = request.session.get("auth_tokens", {})
         logger.debug(f"Auth tokens in session: {auth_tokens}")
 
         # Try different Tyler token key formats
         tyler_token = (
-            auth_tokens.get(f"TYLER-TOKEN-{state.upper()}")
-            or auth_tokens.get(f"tyler_token_{state}")
-            or auth_tokens.get(f"tyler-token-{state}")
+            auth_tokens.get(f"TYLER-TOKEN-{jurisdiction.upper()}")
+            or auth_tokens.get(f"tyler_token_{jurisdiction}")
+            or auth_tokens.get(f"tyler-token-{jurisdiction}")
         )
 
-        if tyler_token:
-            return tyler_token
-
-        return None
+        return tyler_token
 
     @staticmethod
     @require_http_methods(["POST"])
@@ -107,25 +93,25 @@ class AuthAPIViews(APIResponseMixin):
         """Get current user profile from external Suffolk eFile API"""
         try:
             try:
-                # Get state and Tyler token dynamically
-                state = AuthAPIViews.get_state_from_request(request)
-                tyler_token = AuthAPIViews.get_tyler_token(request, state)
+                # Get jurisdiction and Tyler token dynamically
+                jurisdiction = AuthAPIViews.get_jurisdiction_from_request(request)
+                tyler_token = AuthAPIViews.get_tyler_token(request, jurisdiction)
                 api_key = getattr(settings, "SUFFOLK_EFILE_API_KEY", None)
-
+                
                 headers = {
                     "Content-Type": "application/json",
-                    "User-Agent": f"{state.title()}-eFile-Client/1.0",
+                    "User-Agent": f"{jurisdiction.title()}-eFile-Client/1.0",
                     "X-API-Key": api_key if api_key else "",
                 }
 
                 # Add Tyler token if available
                 if tyler_token:
-                    headers[f"tyler-token-{state}"] = tyler_token
+                    headers[f"tyler-token-{jurisdiction}"] = tyler_token
                 else:
                     # Log that no token was found for debugging
-                    logger.info("No Tyler token found for state '%s' in Suffolk eFile API request", state)
+                    logger.info("No Tyler token found for state '%s' in Suffolk eFile API request", jurisdiction)
 
-                url = f"{settings.EFSP_URL}/jurisdictions/{state}/firmattorneyservice/firm"
+                url = f"{settings.EFSP_URL}/jurisdictions/{jurisdiction}/firmattorneyservice/firm"
                 logger.debug("GET %s header keys=%s", url, list(headers.keys()))
                 api_response = requests.get(url, headers=headers, timeout=10)
                 logger.debug(
@@ -293,11 +279,11 @@ class AuthAPIViews(APIResponseMixin):
                 return AuthAPIViews.error_response("Username and password required")
 
             # Authenticate with Suffolk eFile API
-            state = AuthAPIViews.get_state_from_request(request)
+            jurisdiction = AuthAPIViews.get_jurisdiction_from_request(request)
             auth_response = requests.post(
-                f"{settings.EFSP_URL}/jurisdictions/{state}/auth/login",
+                f"{settings.EFSP_URL}/jurisdictions/{jurisdiction}/auth/login",
                 json={"username": username, "password": password},
-                headers={"Content-Type": "application/json", "User-Agent": f"{state.title()}-eFile-Client/1.0"},
+                headers={"Content-Type": "application/json", "User-Agent": f"{jurisdiction.title()}-eFile-Client/1.0"},
             )
 
             if auth_response.status_code == 200:
@@ -307,17 +293,17 @@ class AuthAPIViews(APIResponseMixin):
                 request.session["auth_tokens"] = {
                     "access_token": auth_data.get("access_token"),
                     "refresh_token": auth_data.get("refresh_token"),
-                    f"tyler_token_{state}": auth_data.get(f"tyler_token_{state}"),
+                    f"tyler_token_{jurisdiction}": auth_data.get(f"tyler_token_{jurisdiction}"),
                     "expires_in": auth_data.get("expires_in"),
-                    "state": state,  # Store the state for future reference
+                    "state": jurisdiction,  # Store the state for future reference
                 }
 
                 return AuthAPIViews.success_response(
                     {
                         "authenticated": True,
                         "user": auth_data.get("user", {}),
-                        "state": state,
-                        "has_tyler_token": f"tyler_token_{state}" in auth_data,
+                        "state": jurisdiction,
+                        "has_tyler_token": f"tyler_token_{jurisdiction}" in auth_data,
                     },
                     "External authentication successful",
                 )
@@ -364,12 +350,12 @@ class AuthAPIViews(APIResponseMixin):
     def tyler_token(request):
         """Get Tyler token and API key for external form submissions"""
         try:
-            # Get state and Tyler token dynamically
-            state = AuthAPIViews.get_state_from_request(request)
-            tyler_token = AuthAPIViews.get_tyler_token(request, state)
+            # Get jurisdiction and Tyler token dynamically
+            jurisdiction = AuthAPIViews.get_jurisdiction_from_request(request)
+            tyler_token = AuthAPIViews.get_tyler_token(request, jurisdiction)
             api_key = getattr(settings, "SUFFOLK_EFILE_API_KEY", None)
 
-            return AuthAPIViews.success_response({"tyler_token": tyler_token, "api_key": api_key, "state": state})
+            return AuthAPIViews.success_response({"tyler_token": tyler_token, "api_key": api_key, "state": jurisdiction})
         except Exception as e:
             return AuthAPIViews.error_response(f"Error: {str(e)}")
 
@@ -378,28 +364,28 @@ class AuthAPIViews(APIResponseMixin):
     def payment_accounts(request):
         """Get payment accounts from Suffolk eFile API with proper authentication"""
         try:
-            # Get state and Tyler token dynamically
-            state = AuthAPIViews.get_state_from_request(request)
-            tyler_token = AuthAPIViews.get_tyler_token(request, state)
+            # Get jurisdiction and Tyler token dynamically
+            jurisdiction = AuthAPIViews.get_jurisdiction_from_request(request)
+            tyler_token = AuthAPIViews.get_tyler_token(request, jurisdiction)
             api_key = getattr(settings, "SUFFOLK_EFILE_API_KEY", None)
 
             headers = {
                 "Content-Type": "application/json",
-                "User-Agent": f"{state.title()}-eFile-Client/1.0",
+                "User-Agent": f"{jurisdiction.title()}-eFile-Client/1.0",
                 "X-API-Key": api_key if api_key else "",
             }
 
             # Add Tyler token if available
             if tyler_token:
-                headers[f"tyler-token-{state}"] = tyler_token
+                headers[f"tyler-token-{jurisdiction}"] = tyler_token
             else:
                 # Log that no token was found for debugging
                 logger.info(
                     "No Tyler token found for state '%s' in Suffolk eFile payment accounts request",
-                    state,
+                    jurisdiction,
                 )
 
-            url = f"{settings.EFSP_URL}/jurisdictions/{state}/payments/payment-accounts/"
+            url = f"{settings.EFSP_URL}/jurisdictions/{jurisdiction}/payments/payment-accounts/"
             logger.debug("GET %s header keys=%s", url, list(headers.keys()))
             api_response = requests.get(url, headers=headers, timeout=10)
             logger.debug(
