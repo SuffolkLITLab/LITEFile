@@ -2,28 +2,65 @@
 Jurisdiction-aware configuration loader for case types and form structures
 """
 
-import os
+import logging
+from copy import deepcopy
+from pathlib import Path
 
 import yaml
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
 
 
 class JurisdictionConfigLoader:
     """Load and merge YAML configuration files based on jurisdiction"""
 
-    def __init__(self):
-        self.config_dir = os.path.join(settings.BASE_DIR, "efile", "static", "config")
-        self.states_dir = os.path.join(self.config_dir, "states")
+    def __init__(self, config_dir=None):
+        """
+        Args:
+            config_dir (str, optional): Path to configuration directory.
+                                        Defaults to static/config/.
+        """
+        if config_dir is None:
+            self.config_dir = settings.BASE_DIR / "efile" / "static" / "config"
+        else:
+            self.config_dir = Path(config_dir)
+        self.states_dir = self.config_dir / "states"
+
+        # Make sure directories exist
+        self.states_dir.mkdir(parents=True, exist_ok=True)
+
         self.base_config = self._load_base_config()
+        # Using in object cache because `@lru_cache` can cause
+        # memory leaks when used on objects.
+        self._jurisdiction_cache = {}
 
     def _load_base_config(self):
         """Load the base configuration file"""
-        base_path = os.path.join(self.config_dir, "base-case-types.yaml")
+        base_path = self.config_dir / "base-case-types.yaml"
         try:
             with open(base_path) as f:
                 return yaml.safe_load(f)
-        except FileNotFoundError:
+        except FileNotFoundError as e:
+            logger.exception(f"Error loading base-case-types.yaml: {e}")
             return {}
+
+    def get_available_jurisdictions(self):
+        """
+        Get list of available jurisdiction configurations.
+
+        Returns:
+            list: List of available codes
+        """
+        if not self.states_dir.exists():
+            return []
+
+        states = []
+        for state_file in self.states_dir.glob("*.yaml"):
+            state_code = state_file.stem
+            states.append(state_code)
+
+        return sorted(states)
 
     def load_jurisdiction_config(self, jurisdiction):
         """
@@ -35,22 +72,42 @@ class JurisdictionConfigLoader:
         Returns:
             dict: Merged configuration
         """
-        jurisdiction_file = f"{jurisdiction}.yaml"
-        jurisdiction_path = os.path.join(self.states_dir, jurisdiction_file)
+        if jurisdiction in self._jurisdiction_cache:
+            return self._jurisdiction_cache[jurisdiction]
 
+        jurisdiction_path = self.states_dir / f"{jurisdiction}.yaml"
         try:
             with open(jurisdiction_path) as f:
                 jurisdiction_config = yaml.safe_load(f)
 
             # Merge with base configuration
-            return self._deep_merge(self.base_config.copy(), jurisdiction_config)
+            merged = JurisdictionConfigLoader._deep_merge(self.base_config, jurisdiction_config)
+            if not merged.get("case_types"):
+                merged["case_types"] = {}
+            for case_name, case_config in merged["case_types"].items():
+                if "extends" in case_config:
+                    extends_ref = case_config["extends"]
+                    base = None
+
+                    # Parse the extends reference (e.g., "base_case_types.name_change")
+                    if "." in extends_ref:
+                        section, key = extends_ref.split(".", 1)
+                        if section in merged and key in merged[section]:
+                            base = merged[section][key]
+
+                    if base:
+                        # Deep merge base config with the current config
+                        merged["case_types"][case_name] = JurisdictionConfigLoader._deep_merge(base, case_config)
+            self._jurisdiction_cache[jurisdiction] = merged
+            return merged
 
         except FileNotFoundError:
             # If jurisdiction file not found, return base config with warning
-            print(f"Warning: Configuration file not found for {jurisdiction}, using base config")
+            logger.warning(f"Configuration file not found for {jurisdiction}, using base config")
             return self.base_config
 
-    def _deep_merge(self, base, overlay):
+    @staticmethod
+    def _deep_merge(base, overlay):
         """
         Deep merge two dictionaries, with overlay taking precedence
 
@@ -61,70 +118,149 @@ class JurisdictionConfigLoader:
         Returns:
             dict: Merged configuration
         """
-        for key, value in overlay.items():
-            if key in base and isinstance(base[key], dict) and isinstance(value, dict):
-                base[key] = self._deep_merge(base[key], value)
-            else:
-                base[key] = value
-        return base
+        if not isinstance(base, dict) or not isinstance(overlay, dict):
+            return overlay
 
-    def get_case_type_config(self, jurisdiction, case_type):
+        result = deepcopy(base)
+
+        for key, value in overlay.items():
+            if key in result and isinstance(result[key], dict) and isinstance(value, dict):
+                result[key] = JurisdictionConfigLoader._deep_merge(result[key], value)
+            else:
+                result[key] = deepcopy(value)
+        return result
+
+    def get_short_jurisdiction_config(self, jurisdiction):
+        return self.load_jurisdiction_config(jurisdiction)["jurisdiction"]
+
+    def _find_with_keywords(self, key, entries):
+        """
+        Given a dictionary with keys and keywords (as a list in the key's value),
+        return the value that the key matches (for the dict or the keyword).
+        """
+        if key in entries:
+            return entries[key]
+
+        for value in entries.values():
+            if "keywords" in value and key in value["keywords"]:
+                return value
+
+        return None
+
+    def get_case_type_config(self, jurisdiction, case_type, court=None):
         """
         Get configuration for a specific case type in a jurisdiction
 
         Args:
             jurisdiction (str): The jurisdiction code
             case_type (str): The case type identifier
+            court (str, optional): Specific court for court-specific requirements
 
         Returns:
             dict: Case type configuration or None if not found
         """
-        config = self.load_jurisdiction_config(jurisdiction)
+        jurisdiction = self.load_jurisdiction_config(jurisdiction)
 
-        # Look in jurisdiction-specific case types first
-        if "case_types" in config and case_type in config["case_types"]:
-            return config["case_types"][case_type]
+        case_type = case_type.lower()
+        case_types_sources = [jurisdiction.get("case_types", {}), jurisdiction.get("base_case_types", {})]
 
-        # Fall back to base case types
-        if "base_case_types" in config and case_type in config["base_case_types"]:
-            return config["base_case_types"][case_type]
+        case_config = None
+        for case_types in case_types_sources:
+            case_config = self._find_with_keywords(case_type, case_types)
+            if case_config:
+                break
+        if case_config is None:
+            return None
 
-        return None
+        case_config = deepcopy(case_config)
 
-    def get_party_types(self, jurisdiction, court=None, case_type=None):
+        # Apply court-specific requirements if specified
+        if court and "court_specific_requirements" in jurisdiction:
+            court_requirements = jurisdiction["court_specific_requirements"].get(court, {})
+            if "case_types" in court_requirements and case_type in court_requirements["case_types"]:
+                court_case_specific = court_requirements["case_types"][case_type]
+                case_config = JurisdictionConfigLoader._deep_merge(case_config, court_case_specific)
+                if "sections" not in case_config:
+                    case_config["sections"] = {}
+                sections = case_config["sections"]
+                # Apply field modifications first
+                field_modifications = court_case_specific.get("field_modifications", [])
+                for modification in field_modifications:
+                    field_group_name = modification.get("field_group")
+                    modifications = modification.get("modifications", {})
+
+                    # Apply modifications to the matching field group
+                    if "parties" in sections and "fields" in sections["parties"]:
+                        # Use a copy of the list to avoid modification during iteration
+                        fields_list = sections["parties"]["fields"][:]
+                        for field_group in fields_list:
+                            if field_group.get("section_title") == field_group_name:
+                                # Apply modifications to this field group
+                                for key, value in modifications.items():
+                                    if key == "hidden" and value:
+                                        # Remove this field group entirely if hidden
+                                        if field_group in sections["parties"]["fields"]:
+                                            sections["parties"]["fields"].remove(field_group)
+                                        break
+                                    elif key == "required":
+                                        field_group["required"] = value
+                                    elif key == "conditional_requirements":
+                                        field_group["conditional_requirements"] = value
+                                break
+                # Apply additional fields
+                additional_fields = court_case_specific.get("additional_fields", [])
+                if additional_fields and "parties" in sections and "fields" in sections["parties"]:
+                    # Add additional fields to the first section of parties
+                    if sections["parties"]["fields"]:
+                        first_section = sections["parties"]["fields"][0]
+                        if "fields" in first_section:
+                            # Check for existing fields to prevent duplicates
+                            existing_field_names = {field.get("name") for field in first_section["fields"]}
+
+                            # Only add fields that don't already exist
+                            new_fields = []
+                            for field in additional_fields:
+                                field_name = field.get("name")
+                                if field_name and field_name not in existing_field_names:
+                                    new_fields.append(field)
+
+                            if new_fields:
+                                first_section["fields"].extend(new_fields)
+
+        return case_config
+
+    # TODO(brycew): get this up to par
+    def validate_configuration(self, jurisdiction, case_type):
         """
-        Get available party types for a jurisdiction, optionally filtered by court/case type
+        Validate that a configuration is properly structured.
 
         Args:
-            jurisdiction (str): The jurisdiction code
-            court (str, optional): Court identifier for filtering
-            case_type (str, optional): Case type for filtering
+            jurisdiction (str): jurisdiction code
+            case_type (str): Case type
 
         Returns:
-            dict: Available party types
+            dict: Validation results with any errors or warnings
         """
-        config = self.load_jurisdiction_config(jurisdiction)
+        validation_results = {"valid": True, "errors": [], "warnings": []}
 
-        if "party_types" not in config:
-            return {}
-
-        party_types = config["party_types"]
-
-        # Apply court-specific filtering if specified
-        if court and "courts" in config and court in config["courts"]:
-            court_config = config["courts"][court]
-            if "allowed_party_types" in court_config:
-                allowed_types = court_config["allowed_party_types"]
-                party_types = {k: v for k, v in party_types.items() if k in allowed_types}
-
-        # Apply case type filtering if specified
-        if case_type:
+        try:
             case_config = self.get_case_type_config(jurisdiction, case_type)
-            if case_config and "allowed_party_types" in case_config:
-                allowed_types = case_config["allowed_party_types"]
-                party_types = {k: v for k, v in party_types.items() if k in allowed_types}
 
-        return party_types
+            if not case_config:
+                validation_results["valid"] = False
+                validation_results["errors"].append(f"No configuration found for {jurisdiction}:{case_type}")
+                return validation_results
+
+            # Check for required fields
+            if "sections" not in case_config:
+                validation_results["errors"].append("Missing 'sections' in case type configuration")
+                validation_results["valid"] = False
+
+        except Exception as e:
+            validation_results["valid"] = False
+            validation_results["errors"].append(f"Configuration validation error: {str(e)}")
+
+        return validation_results
 
 
 # Global instance

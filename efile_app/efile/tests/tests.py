@@ -6,6 +6,8 @@ from django.contrib.auth.models import User
 from django.test import Client
 from django.urls import reverse
 
+from efile.utils.config_loader import config_loader
+
 
 @pytest.mark.django_db(False)
 def test_settings_are_wired(settings):
@@ -584,9 +586,7 @@ class TestYAMLConfigurationLoading:
 
     def test_load_base_case_types_config(self):
         """Test loading base case types configuration."""
-        from efile.api.case_form_views import CaseFormAPIViews
-
-        config = CaseFormAPIViews._load_base_configuration()
+        config = config_loader._load_base_config()
 
         assert config is not None
         assert "base_case_types" in config
@@ -603,9 +603,7 @@ class TestYAMLConfigurationLoading:
 
     def test_load_illinois_jurisdiction_config(self):
         """Test loading Illinois-specific configuration."""
-        from efile.api.case_form_views import CaseFormAPIViews
-
-        config = CaseFormAPIViews._load_jurisdiction_configuration("illinois")
+        config = config_loader.load_jurisdiction_config("illinois")
 
         assert config is not None
         assert "state" in config
@@ -614,10 +612,8 @@ class TestYAMLConfigurationLoading:
 
     def test_merge_court_specific_requirements(self):
         """Test merging court-specific requirements into base configuration."""
-        from efile.api.case_form_views import CaseFormAPIViews
-
-        base_config = CaseFormAPIViews._load_base_configuration()
-        jurisdiction_config = CaseFormAPIViews._load_jurisdiction_configuration("illinois")
+        base_config = config_loader._load_base_config()
+        jurisdiction_config = config_loader.load_jurisdiction_config("illinois")
 
         # Test that both configurations load successfully
         assert base_config is not None
@@ -625,11 +621,11 @@ class TestYAMLConfigurationLoading:
         assert "base_case_types" in base_config
         assert "state" in jurisdiction_config
 
-    def test_apply_court_specific_modifications(self):
-        """Test applying court-specific modifications to configuration."""
-        from efile.api.case_form_views import CaseFormAPIViews
-
-        config = CaseFormAPIViews._load_jurisdiction_configuration("illinois")
+    def test_court_specific_modifications_exist(self):
+        """Test that court-specific modifications exist in configuration."""
+        # TODO(brycew): I question the necessity of this test, but don't want to
+        # remove any tests until I'm further along in working with this
+        config = config_loader.load_jurisdiction_config("illinois")
 
         # Test that configuration loads and contains expected structure
         assert config is not None
@@ -1015,10 +1011,8 @@ class TestEdgeCasesAndErrorHandling:
 
     def test_yaml_configuration_file_missing(self):
         """Test behavior when YAML configuration files are missing."""
-        from efile.api.case_form_views import CaseFormAPIViews
-
         # Test with non-existent jurisdiction - the implementation may fall back to base config
-        config = CaseFormAPIViews._load_jurisdiction_configuration("nonexistent")
+        config = config_loader.load_jurisdiction_config("nonexistent")
 
         # The implementation may return base config as fallback rather than None
         assert config is not None
@@ -1099,13 +1093,11 @@ class TestPerformanceAndCaching:
         """Test that repeated configuration loading doesn't cause performance issues."""
         import time
 
-        from efile.api.case_form_views import CaseFormAPIViews
-
         start_time = time.time()
 
         # Load configuration multiple times
         for _ in range(10):
-            config = CaseFormAPIViews._load_base_configuration()
+            config = config_loader._load_base_config()
             assert config is not None
 
         end_time = time.time()

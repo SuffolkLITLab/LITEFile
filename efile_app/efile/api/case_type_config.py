@@ -1,6 +1,6 @@
 from django.http import JsonResponse
 
-from .case_form_views import CaseFormAPIViews
+from ..utils.config_loader import JurisdictionConfigLoader, config_loader
 
 
 def get_case_type_config(request):
@@ -11,11 +11,13 @@ def get_case_type_config(request):
         jurisdiction = request.GET.get("jurisdiction") or request.session.get("jurisdiction", "illinois")
 
         # Use the new jurisdiction-aware configuration loader
-        config_data = CaseFormAPIViews._load_jurisdiction_configuration(jurisdiction)
+        config_data = config_loader.load_jurisdiction_config(jurisdiction)
 
         # Process case types to ensure proper inheritance from base_case_types
         processed_case_types = {}
 
+        # TODO(brycew): decide if jurisdictions get all from base_case_types, or
+        # just the listed ones. Remove this if it's the latter.
         # First, add all base case types
         if "base_case_types" in config_data:
             for key, value in config_data["base_case_types"].items():
@@ -30,7 +32,7 @@ def get_case_type_config(request):
                     jurisdiction_config = value.copy()
 
                     # Deep merge the configurations
-                    merged_config = CaseFormAPIViews._deep_merge_configs(base_config, jurisdiction_config)
+                    merged_config = JurisdictionConfigLoader._deep_merge(base_config, jurisdiction_config)
                     processed_case_types[key] = merged_config
                 else:
                     # New case type not in base

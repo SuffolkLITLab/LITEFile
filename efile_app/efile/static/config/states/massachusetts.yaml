@@ -3,6 +3,13 @@
 # Massachusetts-specific Case Type Configuration
 # This file extends the base configuration with Massachusetts-specific settings
 
+jurisdiction:
+  name: "Massachusetts eFile"
+  code: "massachusetts"
+  display_name: "Massachusetts"
+  icon: "fas fa-balance-scale"
+  api_endpoint: "/api/massachusetts"
+
 # State metadata
 state:
   code: "MA"
