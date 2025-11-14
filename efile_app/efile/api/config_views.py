@@ -7,38 +7,14 @@ import logging
 
 from django.views.decorators.http import require_http_methods
 
+from ..utils.config_loader import config_loader
 from .base import APIResponseMixin
-from .case_form_views import CaseFormAPIViews
 
 logger = logging.getLogger(__name__)
 
 
 class ConfigAPIViews(APIResponseMixin):
-    """API views for form configuration - delegates to CaseFormAPIViews for jurisdiction-aware configs"""
-
-    @staticmethod
-    def _find_config_key_for_case_type(case_type_id, jurisdiction="illinois"):
-        """Find the config key (like 'name_change') that corresponds to a case type ID (like '78346')"""
-        try:
-            config = CaseFormAPIViews._load_jurisdiction_configuration(jurisdiction)
-            case_types_sources = [config.get("case_types", {}), config.get("base_case_types", {})]
-
-            case_type_id_lower = case_type_id.lower()
-
-            for case_types in case_types_sources:
-                for case_type_key, case_type_config in case_types.items():
-                    if "keywords" in case_type_config:
-                        for keyword in case_type_config["keywords"]:
-                            keyword_lower = keyword.lower()
-                            if (
-                                keyword_lower in case_type_id_lower
-                                or case_type_id_lower in keyword_lower
-                                or keyword_lower == case_type_id_lower
-                            ):
-                                return case_type_key
-            return None
-        except Exception:
-            return None
+    """API views for form configuration - delegates to config_loader for jurisdiction-aware configs"""
 
     @staticmethod
     @require_http_methods(["GET"])
@@ -62,7 +38,7 @@ class ConfigAPIViews(APIResponseMixin):
                 return ConfigAPIViews.error_response("Missing required parameter: case_type")
 
             # Use the new jurisdiction-aware configuration system
-            case_config = CaseFormAPIViews._find_case_type_config(case_type_id, jurisdiction)
+            case_config = config_loader.get_case_type_config(jurisdiction, case_type_id, court=court_code)
 
             # If no specific configuration found, return minimal structure
             if not case_config:
@@ -76,15 +52,7 @@ class ConfigAPIViews(APIResponseMixin):
                     }
                 )
 
-            # Apply court-specific customizations if they exist
             sections = case_config.get("sections", {})
-            if court_code:
-                # For court-specific modifications, we need to use the config key (like "name_change")
-                # not the case type ID (like "78346"). Find the config key by reverse lookup.
-                case_config_key = ConfigAPIViews._find_config_key_for_case_type(case_type_id, jurisdiction)
-                sections = CaseFormAPIViews._apply_court_specific_config(
-                    sections, court_code, case_config_key or case_type_id, jurisdiction
-                )
 
             # Structure the response in the expected format
             config = {

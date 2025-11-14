@@ -2,32 +2,21 @@
 Context processors for jurisdiction-aware templates
 """
 
+from .utils.config_loader import config_loader
+
 
 def jurisdiction_context(request):
     """Add current jurisdiction to all template contexts"""
     current_jurisdiction = request.session.get("jurisdiction", "illinois")
 
-    jurisdiction_configs = {
-        "illinois": {
-            "name": "Illinois eFile",
-            "code": "illinois",
-            "display_name": "Illinois",
-            "icon": "fas fa-balance-scale",
-            "api_endpoint": "/api/illinois/",
-            "config_file": "illinois.yaml",
-        },
-        "massachusetts": {
-            "name": "Massachusetts eFile",
-            "code": "massachusetts",
-            "display_name": "Massachusetts",
-            "icon": "fas fa-balance-scale",
-            "api_endpoint": "/api/massachusetts/",
-            "config_file": "massachusetts.yaml",
-        },
+    config = config_loader.get_short_jurisdiction_config(current_jurisdiction)
+    short_configs = {
+        code: config_loader.get_short_jurisdiction_config(code) for code in config_loader.get_available_jurisdictions()
     }
 
     return {
         "current_jurisdiction": current_jurisdiction,
-        "jurisdiction_config": jurisdiction_configs.get(current_jurisdiction, jurisdiction_configs["illinois"]),
-        "available_jurisdictions": jurisdiction_configs,
+        # Returns just a subset of the keys in the config
+        "jurisdiction_config": config,
+        "available_jurisdictions": short_configs,
     }

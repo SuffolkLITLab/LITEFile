@@ -1,7 +1,15 @@
 # Illinois-specific Case Type Configuration
 # This file extends the base configuration with Illinois-specific settings
 
-# State metadata
+# High level metadata
+jurisdiction:
+  name: "Illinois eFile"
+  code: "illinois"
+  display_name: "Illinois"
+  icon: "fas fa-balance-scale"
+  api_endpoint: "/api/illinois"
+
+# State metadata, for the address
 state:
   code: "IL"
   name: "Illinois"

@@ -7,6 +7,8 @@ import json
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 
+from ..utils.config_loader import config_loader
+
 
 @require_POST
 def switch_jurisdiction(request):
@@ -16,7 +18,7 @@ def switch_jurisdiction(request):
         jurisdiction = data.get("jurisdiction")
 
         # Validate jurisdiction
-        valid_jurisdictions = ["illinois", "massachusetts"]
+        valid_jurisdictions = config_loader.get_available_jurisdictions()
         if jurisdiction not in valid_jurisdictions:
             return JsonResponse({"error": "Invalid jurisdiction"}, status=400)
 
@@ -36,11 +38,9 @@ def get_current_jurisdiction(request):
     """Get current jurisdiction info"""
     current_jurisdiction = request.session.get("jurisdiction", "illinois")
 
-    jurisdiction_configs = {
-        "illinois": {"name": "Illinois eFile", "code": "illinois", "display_name": "Illinois"},
-        "massachusetts": {"name": "Massachusetts eFile", "code": "massachusetts", "display_name": "Massachusetts"},
-    }
-
     return JsonResponse(
-        {"current_jurisdiction": current_jurisdiction, "config": jurisdiction_configs.get(current_jurisdiction)}
+        {
+            "current_jurisdiction": current_jurisdiction,
+            "config": config_loader.get_short_jurisdiction_config(current_jurisdiction),
+        }
     )

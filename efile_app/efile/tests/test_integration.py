@@ -9,6 +9,8 @@ import pytest
 from django.contrib.auth.models import User
 from django.test import Client
 
+from efile.utils.config_loader import config_loader
+
 
 class TestBasicFunctionality:
     """Test basic functionality that doesn't depend on external services."""
@@ -106,10 +108,8 @@ class TestUtilityFunctions:
     def test_case_form_config_exists(self):
         """Test that case form configuration can be loaded."""
         try:
-            from efile.api.case_form_views import CaseFormAPIViews
-
             # Should be able to load jurisdiction configuration without error
-            config = CaseFormAPIViews._load_jurisdiction_configuration("illinois")
+            config = config_loader.load_jurisdiction_config("illinois")
             assert config is not None
             assert "case_types" in config or "base_case_types" in config
         except Exception:
