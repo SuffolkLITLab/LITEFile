@@ -3,17 +3,17 @@ import logging
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import BaseBackend
 
+from efile.utils.jurisdiction_stuff import get_jurisdiction_from_request
 from efile.utils.proxy_connection import auth_with_tyler_api
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
 
-
 class SuffolkEFileBackend(BaseBackend):
     def authenticate(self, request, username=None, password=None, **kwargs):
         logger.info("Trying auth?")
 
-        jurisdiction = kwargs.get("jurisdiction", self._get_jurisdiction_from_request(request))
+        jurisdiction = kwargs.get("jurisdiction", get_jurisdiction_from_request(request))
         if not username or not password or not jurisdiction:
             return None
 
@@ -43,16 +43,6 @@ class SuffolkEFileBackend(BaseBackend):
             return User.objects.get(pk=user_id)
         except User.DoesNotExist:
             return None
-
-    def _get_jurisdiction_from_request(self, request):
-        jurisdiction = request.GET.get("jurisdiction")
-        if jurisdiction:
-            return jurisdiction.lower()
-        segments = request.path.split("/")
-        # TODO(brycew): okay, maybe it makes sense to add an extra segment to the path...
-        if len(segments) >= 2 and segments[1] not in ["api", "options", "login", "register", "upload", "review"]:
-            return segments[1].lower()
-        return None
 
     def _get_or_create_user(self, username, auth_data, jurisdiction):
         try:

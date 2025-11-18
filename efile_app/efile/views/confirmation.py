@@ -8,7 +8,6 @@ def filing_confirmation(request, jurisdiction):
     # or from database if you're storing submitted filings
 
     context = {
-        "jurisdiction": jurisdiction,
         "page_title": "Filing Confirmation",
         "success_message": "Your filing has been successfully submitted!",
     }

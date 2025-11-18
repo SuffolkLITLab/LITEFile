@@ -64,7 +64,7 @@ def efile_register(request, jurisdiction=None):
             )
 
         if form.errors:
-            return render(request, "efile/register.html", {"form": form, "jurisdiction": jurisdiction})
+            return render(request, "efile/register.html", {"form": form})
 
         if form.is_valid():
             state_abbr = form.cleaned_data["state"]
@@ -131,4 +131,4 @@ def efile_register(request, jurisdiction=None):
     else:
         # Always show a blank form on reload
         form = EFileRegistrationForm()
-    return render(request, "efile/register.html", {"form": form, "jurisdiction": jurisdiction})
+    return render(request, "efile/register.html", {"form": form})

@@ -47,8 +47,7 @@ def efile_login(request, jurisdiction):
                 except Exception as e:
                     logger.exception("Login request failed")
                     messages.error(request, f"Login failed: {str(e)}")
-    jurisdiction_config = config_loader.get_short_jurisdiction_config(jurisdiction)
-    context = {"login_form": login_form, "jurisdiction": jurisdiction, "jurisdiction_config": jurisdiction_config}
+    context = {"login_form": login_form}
     return render(request, "efile/login.html", context)
 
 

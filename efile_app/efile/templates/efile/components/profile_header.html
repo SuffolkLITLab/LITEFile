@@ -4,20 +4,10 @@
   <div class="container">
     <div class="d-flex justify-content-between align-items-center">
       <div class="d-flex align-items-center">
-        <i class="{{ jurisdiction_config.icon }} scales-icon"></i>
-        <h1>{{ jurisdiction_config.name }}</h1>
+        <i class="{{ config.jurisdiction.icon }} scales-icon"></i>
+        <h1>{{ config.jurisdiction.name }}</h1>
       </div>
       <div class="d-flex align-items-center gap-3">
-        <!-- Jurisdiction Selector>
-        <div class="jurisdiction-selector">
-          <select id="jurisdictionSelect" class="form-select form-select-sm" onchange="switchJurisdiction(this.value)">
-            {% for code, config in available_jurisdictions.items %}
-            <option value="{{ code }}" {% if current_jurisdiction == code %}selected{% endif %}>
-              {{ config.display_name }}
-            </option>
-            {% endfor %}
-          </select>
-        </div-->
         <div class="profile-icon" id="profileIcon" style="cursor: pointer">
           <i class="fas fa-user"></i>
         </div>
@@ -46,21 +36,14 @@
       </div>
       <div class="modal-body">
         <p>
-          Welcome to {{ jurisdiction_config.name }}. Here you can manage your filings and
+          Welcome to {{ config.jurisdiction.name }}. Here you can manage your filings and
           account.
         </p>
         <div class="mb-3">
           <span class="form-label">Current email</span>: {{profile_info.email}}
         </div>
         <div class="mb-3">
-          <label for="profileJurisdictionSelect" class="form-label">Current Jurisdiction:</label>
-          <select id="profileJurisdictionSelect" class="form-select" onchange="switchJurisdiction(this.value)">
-            {% for code, config in available_jurisdictions.items %}
-            <option value="{{ code }}" {% if jurisdiction == code %}selected{% endif %}>
-              {{ config.display_name }}
-            </option>
-            {% endfor %}
-          </select>
+          <span class="form-label">Current Jurisdiction</span>: {{jurisdiction}}
         </div>
         <button
           type="button"
