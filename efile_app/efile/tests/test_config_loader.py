@@ -10,7 +10,7 @@ class TestJurisdictionConfigLoader:
 
     def test_get_available_states(self):
         loader = JurisdictionConfigLoader()
-        assert loader.get_available_jurisdictions() == ["illinois", "massachusetts"]
+        assert loader.get_available_jurisdictions() == ["illinois", "massachusetts", "vermont"]
 
     def test_get_case_type_config(self):
         loader = JurisdictionConfigLoader()

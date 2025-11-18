@@ -64,7 +64,7 @@ def efile_register(request, jurisdiction=None):
             )
 
         if form.errors:
-            return render(request, "efile/register.html", {"form": form, "jurisdiciton": jurisdiction})
+            return render(request, "efile/register.html", {"form": form, "jurisdiction": jurisdiction})
 
         if form.is_valid():
             state_abbr = form.cleaned_data["state"]

@@ -4,25 +4,8 @@ from unittest.mock import Mock, patch
 import pytest
 from django.contrib.auth.models import User
 from django.test import Client
-from django.urls import reverse
 
 from efile.utils.config_loader import config_loader
-
-
-@pytest.mark.django_db(False)
-def test_settings_are_wired(settings):
-    """pytest-django should expose Django settings fixture."""
-    assert settings.ROOT_URLCONF == "efile.urls"
-
-
-def test_login_page_renders(client):
-    """Basic smoke test: GET /login/ should render the login page (200)."""
-    url = reverse("efile_login")
-    resp = client.get(url)
-    assert resp.status_code == 200
-    # Optional sanity check that template contains 'login' somewhere
-    assert b"login" in resp.content.lower()
-
 
 # ============================================================================
 # DROPDOWN API TESTS
@@ -192,7 +175,9 @@ class TestAuthAPIs:
         """Test profile API returns user data when authenticated."""
         client.force_login(user)
 
-        response = client.get("/api/auth/profile/", HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+        response = client.get(
+            "/api/auth/profile/", {"jurisdiction": "illinois"}, HTTP_X_REQUESTED_WITH="XMLHttpRequest"
+        )
 
         assert response.status_code == 200
         data = json.loads(response.content)
@@ -205,7 +190,9 @@ class TestAuthAPIs:
         """Test profile API includes location and county mapping."""
         client.force_login(user)
 
-        response = client.get("/api/auth/profile/", HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+        response = client.get(
+            "/api/auth/profile/", {"jurisdiction": "illinois"}, HTTP_X_REQUESTED_WITH="XMLHttpRequest"
+        )
 
         assert response.status_code == 200
         data = json.loads(response.content)
@@ -221,7 +208,9 @@ class TestAuthAPIs:
 
     def test_profile_api_unauthenticated_user(self, client):
         """Test profile API handles unauthenticated users with demo data."""
-        response = client.get("/api/auth/profile/", HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+        response = client.get(
+            "/api/auth/profile/", {"jurisdiction": "illinois"}, HTTP_X_REQUESTED_WITH="XMLHttpRequest"
+        )
 
         assert response.status_code == 200
         data = json.loads(response.content)
@@ -380,7 +369,7 @@ class TestExpertFormIntegration:
 
     def test_expert_form_page_loads(self, authenticated_client):
         """Test that the expert form page loads correctly."""
-        response = authenticated_client.get("/expert_form/")
+        response = authenticated_client.get("/illinois/expert_form/")
 
         assert response.status_code == 200
         assert b"Case Details & Parties" in response.content or b"Expert Form" in response.content
@@ -417,12 +406,14 @@ class TestExpertFormIntegration:
 
         # Test case categories API with court
         response = authenticated_client.get(
-            "/api/dropdowns/case-categories/", {"court": "cook:law1"}, HTTP_X_REQUESTED_WITH="XMLHttpRequest"
+            "/api/dropdowns/case-categories/",
+            {"jurisdiction": "illinois", "court": "cook:law1"},
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
         )
         assert response.status_code == 200  # Test case types API with category
         response = authenticated_client.get(
             "/api/dropdowns/case-types/",
-            {"parent": "civil", "court": "cook:law1"},  # Use 'parent' not 'category'
+            {"parent": "civil", "jurisdiction": "illinois", "court": "cook:law1"},  # Use 'parent' not 'category'
             HTTP_X_REQUESTED_WITH="XMLHttpRequest",
         )
         assert response.status_code == 200
@@ -430,7 +421,7 @@ class TestExpertFormIntegration:
     def test_form_submission_validation(self, authenticated_client):
         """Test form submission with validation."""
         response = authenticated_client.post(
-            "/expert_form/",
+            "/illinois/expert_form/",
             {
                 "court": "cook:law1",
                 "case_category": "civil",
@@ -458,7 +449,7 @@ class TestErrorHandling:
 
     def test_api_without_ajax_header(self, client):
         """Test API endpoints work without AJAX headers (currently allowed)."""
-        response = client.get("/api/dropdowns/courts/")
+        response = client.get("/api/dropdowns/courts/?jurisdiction=illinois")
 
         # Currently the API allows non-AJAX requests
         assert response.status_code == 200
@@ -472,7 +463,9 @@ class TestErrorHandling:
         """Test handling of external API timeouts."""
         mock_get.side_effect = Exception("Connection timeout")
 
-        response = client.get("/api/dropdowns/courts/", HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+        response = client.get(
+            "/api/dropdowns/courts/", {"jurisdiction": "illinois"}, HTTP_X_REQUESTED_WITH="XMLHttpRequest"
+        )
 
         # The API should return a 400 error status for timeout
         assert response.status_code == 400
@@ -970,7 +963,9 @@ class TestEdgeCasesAndErrorHandling:
         results = []
 
         def make_api_call():
-            response = api_client.get("/api/auth/profile/", HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+            response = api_client.get(
+                "/api/auth/profile/", {"jurisdiction": "illinois"}, HTTP_X_REQUESTED_WITH="XMLHttpRequest"
+            )
             results.append(response.status_code)
 
         # Create multiple threads to make simultaneous calls
@@ -1111,7 +1106,9 @@ class TestPerformanceAndCaching:
         responses = []
 
         for _ in range(3):
-            response = api_client.get("/api/auth/profile/", HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+            response = api_client.get(
+                "/api/auth/profile/", {"jurisdiction": "illinois"}, HTTP_X_REQUESTED_WITH="XMLHttpRequest"
+            )
             assert response.status_code == 200
             data = json.loads(response.content)
             responses.append(data)

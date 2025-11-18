@@ -10,7 +10,7 @@ def test_settings_are_wired(settings):
 
 def test_login_page_renders(client):
     """Basic smoke test: GET /login/ should render the login page (200)."""
-    url = reverse("efile_login")
+    url = reverse("efile_login", kwargs={"jurisdiction": "illinois"})
     resp = client.get(url)
     assert resp.status_code == 200
     # Optional sanity check that template contains 'login' somewhere

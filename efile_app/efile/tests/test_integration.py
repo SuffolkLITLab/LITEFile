@@ -47,7 +47,9 @@ class TestBasicFunctionality:
         client.force_login(user)
 
         # Test authenticated request
-        response = client.get("/api/auth/profile/", HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+        response = client.get(
+            "/api/auth/profile/", {"jurisdiction": "illinois"}, HTTP_X_REQUESTED_WITH="XMLHttpRequest"
+        )
 
         assert response.status_code == 200
         data = json.loads(response.content)
@@ -67,7 +69,9 @@ class TestBasicFunctionality:
 
         # Case categories API requires a court parameter
         response = client.get(
-            "/api/dropdowns/case-categories/", {"court": "cook:law1"}, HTTP_X_REQUESTED_WITH="XMLHttpRequest"
+            "/api/dropdowns/case-categories/",
+            {"jurisdiction": "illinois", "court": "cook:law1"},
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
         )
 
         assert response.status_code in [200, 400]  # Accept both success and error
@@ -86,7 +90,7 @@ class TestBasicFunctionality:
 
         # Test the form page (might need authentication)
         try:
-            response = client.get("/expert-form/")
+            response = client.get("/illinois/expert-form/")
             # Page should load (200) or redirect to login (302)
             assert response.status_code in [200, 302, 404]  # 404 if route doesn't exist
         except Exception:
@@ -97,7 +101,7 @@ class TestBasicFunctionality:
         """Test that login functionality works."""
         client = Client()
 
-        response = client.get("/login/")
+        response = client.get("/illinois/login/")
         assert response.status_code == 200
         assert b"login" in response.content.lower()
 
