@@ -7,7 +7,7 @@ from .utils.jurisdiction_stuff import get_jurisdiction_from_request
 
 
 def jurisdiction_context(request):
-    """Add current jurisdiction and it's config to all template contexts."""
+    """Add current jurisdiction and its config to all template contexts."""
 
     current_jurisdiction = get_jurisdiction_from_request(request)
     config = config_loader.load_jurisdiction_config(current_jurisdiction)

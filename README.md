@@ -30,7 +30,7 @@ A minimal Django app for form submission and review. The Django project lives un
 - __2) Initialize the database__
   ```bash
   cd efile_app
-  uv run python manage.py migrate
+  uv run python manage.py migrate --run-syncdb
   ```
 
 - __3) Run the development server__
@@ -47,7 +47,7 @@ A minimal Django app for form submission and review. The Django project lives un
   ```bash
   source .venv/bin/activate
   cd efile_app
-  python manage.py migrate
+  python manage.py migrate --run-syncdb
   python manage.py runserver
   ```
 
@@ -55,7 +55,7 @@ A minimal Django app for form submission and review. The Django project lives un
   ```powershell
   .venv\Scripts\Activate.ps1
   cd efile_app
-  python manage.py migrate
+  python manage.py migrate --run-syncdb
   python manage.py runserver
   ```
 

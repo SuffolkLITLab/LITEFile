@@ -5,7 +5,6 @@ from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
-
 def auth_with_tyler_api(username, password, jurisdiction):
     url = f"{settings.EFSP_URL}/authenticate"
     try:
@@ -21,3 +20,4 @@ def auth_with_tyler_api(username, password, jurisdiction):
         logger.debug("Auth endpoint failed: %s - %s", url, str(e))
 
     return None
+

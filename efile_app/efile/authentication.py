@@ -28,7 +28,6 @@ class SuffolkEFileBackend(BaseBackend):
 
             user = self._get_or_create_user(username, auth_data, jurisdiction)
             # TODO(brycew): actually write these?
-            # self._update_user_profile(user, auth_data, jurisdiction)
             # if request:
             #    self._store_tokens_in_session(request, auth_data, jurisdiction)
 
@@ -48,24 +47,23 @@ class SuffolkEFileBackend(BaseBackend):
         try:
             user = User.objects.get(username=username)
         except User.DoesNotExist:
-            # TODO(brycew): should only check username
             user = None
-            pass
 
         if not user:
             user_data = self._extract_user_data(auth_data, username, jurisdiction)
             user = User.objects.create_user(
                 username=username,
+                tyler_jurisdiction=jurisdiction,
+                tyler_user_id=user_data.get("user_id", None),
                 email=user_data.get("email", username),
                 first_name=user_data.get("first_name", ""),
                 last_name=user_data.get("last_name", ""),
             )
 
-            logger.info("Created new user: %s", username)
+            logger.info("Created new user: %s, %s", user.username, user.email)
         return user
 
     def _extract_user_data(self, auth_data, username, jurisdiction):
-        # TODO(bryce): continue
         user_data = {"email": username}
         if auth_data:
             user_data["user_id"] = auth_data["tokens"][f"TYLER-ID-{jurisdiction.upper()}"]

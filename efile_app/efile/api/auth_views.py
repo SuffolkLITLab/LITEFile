@@ -35,9 +35,6 @@ class AuthAPIViews(APIResponseMixin):
         if jurisdiction is None:
             jurisdiction = AuthAPIViews.get_jurisdiction_from_request(request)
 
-        if request.user.is_authenticated and hasattr(request.user, "tyler_token") and request.user.tyler_token:
-            return request.user.tyler_token
-
         # Fallback to session
         # TODO(brycew): should this ever happen?
         auth_tokens = request.session.get("auth_tokens", {})

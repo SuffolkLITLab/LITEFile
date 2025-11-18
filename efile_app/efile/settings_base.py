@@ -21,6 +21,8 @@ ALLOWED_HOSTS: list[str] = []
 # Override in env-specific settings
 CSRF_TRUSTED_ORIGINS: list[str] = []
 
+AUTH_USER_MODEL = "efile.UserProfile"
+
 # Application definition
 INSTALLED_APPS = [
     "django.contrib.admin",
