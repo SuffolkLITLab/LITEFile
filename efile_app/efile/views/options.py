@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 
 from efile.utils.config_loader import config_loader
 
@@ -7,6 +7,8 @@ from ..utils.case_data_utils import get_case_data
 
 def efile_options(request, jurisdiction):
     """Options view that displays saved case data and provides next steps."""
+    if not request.user.is_authenticated:
+        return redirect("efile_login", jurisdiction=jurisdiction)
 
     # Get case data from session
     case_data = get_case_data(request)

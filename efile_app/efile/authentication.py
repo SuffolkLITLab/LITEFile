@@ -3,7 +3,6 @@ import logging
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import BaseBackend
 
-from efile.models import UserProfile
 from efile.utils.proxy_connection import auth_with_tyler_api
 
 logger = logging.getLogger(__name__)
@@ -73,9 +72,6 @@ class SuffolkEFileBackend(BaseBackend):
             )
 
             logger.info("Created new user: %s", username)
-            profile, created = UserProfile.objects.get_or_create(user=user)
-            profile.tyler_token = auth_data.get("tyler_token")
-            profile.tyler_user_id = auth_data.get("user_id")
         return user
 
     def _extract_user_data(self, auth_data, username, jurisdiction):

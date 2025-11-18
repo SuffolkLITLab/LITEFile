@@ -4,6 +4,11 @@ on:
   push:
   pull_request:
 
+env:
+  SUFFOLK_EFILE_API_KEY: ${{ secrets.EFILE_PROXY_API_KEY }}
+  TESTS_TYLER_USERNAME: ${{ secrets.TYLER_EMAIL }}
+  TESTS_TYLER_PASSWORD: ${{ secrets.TYLER_PASSWORD }}
+
 jobs:
   checks:
     runs-on: ubuntu-latest
