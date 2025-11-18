@@ -19,6 +19,12 @@ class UserProfile(models.Model):
     city = models.CharField(max_length=100)
     zip_code = models.CharField(max_length=10)
 
+    tyler_user_id = models.CharField(max_length=100, blank=True, null=True)
+    tyler_token = models.TextField(blank=True, null=True)
+
+    # TODO(brycew): uncomment when https://github.com/SuffolkLITLab/EfileProxyServer/issues/334 is in
+    # token_expires_at = models.DateTimeField(blank=True, null=True)
+
     # Illinois Counties choices
     COUNTY_CHOICES = [
         ("adams", "Adams"),
