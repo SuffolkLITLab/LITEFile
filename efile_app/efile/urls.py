@@ -1,3 +1,4 @@
+from django.shortcuts import redirect
 from django.urls import include, path
 
 from .views.api_views import get_filing_components
@@ -30,16 +31,22 @@ from .views.upload import (
     upload_documents,
 )
 
+
+def homepage(request):
+    return redirect("efile_login", jurisdiction="illinois")
+
+
 urlpatterns = [
-    path("login/", efile_login, name="efile_login"),
-    path("logout/", efile_logout, name="efile_logout"),
-    path("register/", efile_register, name="efile_register"),
-    path("options/", efile_options, name="efile_options"),
-    path("case-details/", case_details, name="case_details"),
-    path("expert_form/", efile_expert_form, name="expert_form"),
-    path("upload/", efile_upload, name="upload"),
-    path("review/", case_review, name="case_review"),
-    path("filing-confirmation/", filing_confirmation, name="filing_confirmation"),
+    path("", homepage, name="home"),
+    path("<jurisdiction>/login/", efile_login, name="efile_login"),
+    path("<jurisdiction>/logout/", efile_logout, name="efile_logout"),
+    path("<jurisdiction>/register/", efile_register, name="efile_register"),
+    path("<jurisdiction>/options/", efile_options, name="efile_options"),
+    path("<jurisdiction>/case-details/", case_details, name="case_details"),
+    path("<jurisdiction>/expert_form/", efile_expert_form, name="expert_form"),
+    path("<jurisdiction>/upload/", efile_upload, name="upload"),
+    path("<jurisdiction>/review/", case_review, name="case_review"),
+    path("<jurisdiction>/filing-confirmation/", filing_confirmation, name="filing_confirmation"),
     # Session API endpoints
     path("api/get-case-data/", api_get_case_data, name="get_case_data_api"),
     path("api/get-filing-components/", get_filing_components, name="get_filing_components"),

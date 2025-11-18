@@ -1,3 +1,4 @@
+
 /**
  * FormValidation - Handles form validation and user interactions
  * Features: Real-time validation, draft saving, submission handling, API caching
@@ -161,7 +162,7 @@ class FormValidation {
     // Collect form data and add friendly names
     const formData = this.collectFormData();
     const enhancedFormData = this.addFriendlyNames(formData);
-
+    const currentJurisdiction = apiUtils.getCurrentJurisdiction();
 
     try {      
       // Save case data to session via API
@@ -181,7 +182,7 @@ class FormValidation {
         this.showNotification("Case data saved successfully!", "success");
 
 
-        window.location.replace("/upload/");
+        window.location.replace(`/${currentJurisdiction}/upload/`);
       } else {
         const error = await response.json();
         console.error("Failed to save case data - Status:", response.status);

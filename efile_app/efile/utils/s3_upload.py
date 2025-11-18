@@ -32,6 +32,7 @@ class S3UploadHandler:
         self.secret_access_key = getattr(settings, "AWS_SECRET_ACCESS_KEY", "")
         self.bucket_name = getattr(settings, "AWS_S3_BUCKET_NAME", "")
         self.region_name = getattr(settings, "AWS_S3_REGION_NAME", "us-east-1")
+        self.s3_endpoint_url = getattr(settings, "AWS_S3_ENDPOINT_URL", None)
 
         # Check for required credentials
         if not all([self.access_key_id, self.secret_access_key, self.bucket_name]):
@@ -57,6 +58,7 @@ class S3UploadHandler:
                 aws_access_key_id=self.access_key_id,
                 aws_secret_access_key=self.secret_access_key,
                 region_name=self.region_name,
+                endpoint_url=self.s3_endpoint_url,
             )
 
             # Test connection by attempting to list objects (limited test)
@@ -72,7 +74,7 @@ class S3UploadHandler:
                 elif error_code == "404":
                     logger.warning("S3 bucket %s not found.", self.bucket_name)
                 else:
-                    logger.warning("S3 bucket access test failed: %s", e)
+                    logger.warning("S3 bucket access test failed on %s: %s", self.bucket_name, e)
                 # Don't raise exception here, allow the client to be initialized
                 # so we can test credentials later with proper error handling
 

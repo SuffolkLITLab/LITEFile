@@ -1,9 +1,7 @@
 import logging
 
 # views.py - Complete updated file for Illinois eFile system
-from django.contrib import messages
 from django.http import JsonResponse
-from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
 
 logger = logging.getLogger(__name__)
@@ -177,29 +175,6 @@ logger = logging.getLogger(__name__)
 #             return redirect('efile_login')
 
 #     return render(request, 'efile/password_reset.html')
-
-
-# Expert Form View
-def expert_form(request):
-    """
-    Display the expert form for case details and parties
-    """
-    if request.method == "POST":
-        # Handle form submission
-        # This would process the form data and save it
-        messages.success(request, "Case details saved successfully!")
-        return redirect("dashboard")  # or next step
-
-    # Get existing case data from session if available
-    from efile.utils.case_data_utils import get_case_data
-
-    case_data = get_case_data(request)
-
-    logger.debug("Expert form view - case_data from session: {case_data}")
-
-    context = {"case_data": case_data}
-
-    return render(request, "efile/expert_form.html", context)
 
 
 # API Endpoints for User Profile and Authentication

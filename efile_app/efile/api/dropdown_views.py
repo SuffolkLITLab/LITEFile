@@ -137,7 +137,7 @@ class DropdownAPIViews(APIResponseMixin):
             court_code = request.GET.get("court")
             case_type_id = request.GET.get("case_type") or request.GET.get("parent")  # Support both flows
             case_category_id = request.GET.get("case_category")
-            jurisdiction = request.GET.get("jurisdiction", "illinois")
+            jurisdiction = request.GET.get("jurisdiction")
             existing_case = request.GET.get("existing_case")
 
             # Set initial flag based on existing_case parameter:
@@ -205,12 +205,12 @@ class DropdownAPIViews(APIResponseMixin):
         try:
             auth_tokens = get_auth_tokens(request)
 
-            jurisdiction = request.GET.get("jurisdiction", "illinois")
+            jurisdiction = request.GET.get("jurisdiction", "")
             user_zip = request.GET.get("user_zip")
             user_county = request.GET.get("user_county")
 
             # Make API call to external jurisdiction endpoint
-            api_url = f"https://efile.suffolklitlab.org/jurisdictions/{jurisdiction}/codes/courts/?with_names=True"
+            api_url = f"{settings.EFSP_URL}/jurisdictions/{jurisdiction}/codes/courts/?with_names=True"
 
             try:
                 # Make the API request with auth tokens if available

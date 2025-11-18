@@ -9,59 +9,7 @@ from ..forms import EFileRegistrationForm
 logger = logging.getLogger(__name__)
 
 
-def efile_register(request):
-    STATE_NAMES = {
-        "AL": "Alabama",
-        "AK": "Alaska",
-        "AZ": "Arizona",
-        "AR": "Arkansas",
-        "CA": "California",
-        "CO": "Colorado",
-        "CT": "Connecticut",
-        "DE": "Delaware",
-        "FL": "Florida",
-        "GA": "Georgia",
-        "HI": "Hawaii",
-        "ID": "Idaho",
-        "IL": "Illinois",
-        "IN": "Indiana",
-        "IA": "Iowa",
-        "KS": "Kansas",
-        "KY": "Kentucky",
-        "LA": "Louisiana",
-        "ME": "Maine",
-        "MD": "Maryland",
-        "MA": "Massachusetts",
-        "MI": "Michigan",
-        "MN": "Minnesota",
-        "MS": "Mississippi",
-        "MO": "Missouri",
-        "MT": "Montana",
-        "NE": "Nebraska",
-        "NV": "Nevada",
-        "NH": "New Hampshire",
-        "NJ": "New Jersey",
-        "NM": "New Mexico",
-        "NY": "New York",
-        "NC": "North Carolina",
-        "ND": "North Dakota",
-        "OH": "Ohio",
-        "OK": "Oklahoma",
-        "OR": "Oregon",
-        "PA": "Pennsylvania",
-        "RI": "Rhode Island",
-        "SC": "South Carolina",
-        "SD": "South Dakota",
-        "TN": "Tennessee",
-        "TX": "Texas",
-        "UT": "Utah",
-        "VT": "Vermont",
-        "VA": "Virginia",
-        "WA": "Washington",
-        "WV": "West Virginia",
-        "WI": "Wisconsin",
-        "WY": "Wyoming",
-    }
+def efile_register(request, jurisdiction=None):
     if request.method == "POST":
         form = EFileRegistrationForm(request.POST)
         required_fields = [
@@ -116,11 +64,10 @@ def efile_register(request):
             )
 
         if form.errors:
-            return render(request, "efile/register.html", {"form": form})
+            return render(request, "efile/register.html", {"form": form, "jurisdiction": jurisdiction})
 
         if form.is_valid():
             state_abbr = form.cleaned_data["state"]
-            state_full = STATE_NAMES.get(state_abbr, state_abbr).lower()
             data = {
                 "registrationType": "INDIVIDUAL",
                 "firstName": form.cleaned_data["first_name"],
@@ -141,7 +88,7 @@ def efile_register(request):
 
                 api_key = getattr(settings, "SUFFOLK_EFILE_API_KEY", None)
                 headers = {"x-api-key": api_key} if api_key else {}
-                endpoint = f"{settings.EFSP_URL}/jurisdictions/{state_full}/adminusers/users"
+                endpoint = f"{settings.EFSP_URL}/jurisdictions/{jurisdiction}/adminusers/users"
 
                 response = requests.post(endpoint, json=data, headers=headers, timeout=10)
 
@@ -169,7 +116,7 @@ def efile_register(request):
                         "Registration successful! Please log in with your new account after verifying your email.",
                     )
                     # Redirect to login page
-                    return redirect("/login/")
+                    return redirect(f"/{jurisdiction}/login/")
                 else:
                     try:
                         error_msg = response.json().get("error") or response.text
@@ -184,4 +131,4 @@ def efile_register(request):
     else:
         # Always show a blank form on reload
         form = EFileRegistrationForm()
-    return render(request, "efile/register.html", {"form": form})
+    return render(request, "efile/register.html", {"form": form, "jurisdiction": jurisdiction})

@@ -15,7 +15,7 @@ def jurisdiction_context(request):
     }
 
     return {
-        "current_jurisdiction": current_jurisdiction,
+        "jurisdiction": current_jurisdiction,
         # Returns just a subset of the keys in the config
         "jurisdiction_config": config,
         "available_jurisdictions": short_configs,

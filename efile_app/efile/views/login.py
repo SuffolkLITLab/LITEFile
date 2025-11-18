@@ -3,12 +3,18 @@ import logging
 from django.contrib import messages
 from django.shortcuts import redirect, render
 
+from efile.utils.config_loader import config_loader
+
 from ..forms import EFileLoginForm
 
 logger = logging.getLogger(__name__)
 
 
-def efile_login(request):
+def efile_login(request, jurisdiction):
+    if jurisdiction not in config_loader.get_available_jurisdictions():
+        # TODO(brycew): better prediction of spell correction? (closest juris?)
+        return redirect("efile_login", jurisdiction="illinois")
+
     login_form = EFileLoginForm()
     if request.method == "POST":
         if "login_submit" in request.POST:
@@ -24,7 +30,7 @@ def efile_login(request):
                     url = f"{settings.EFSP_URL}/authenticate"
                     payload = {
                         "api_key": api_key,
-                        "tyler-illinois": {
+                        f"tyler-{jurisdiction}": {
                             "username": email,
                             "password": password,
                         },
@@ -43,7 +49,7 @@ def efile_login(request):
                             request.session["user_email"] = email
                             logger.info("User authenticated and session tokens stored")
                             messages.success(request, "Successfully logged in!")
-                            return redirect("/options/")
+                            return redirect(f"/{jurisdiction}/options/")
                         else:
                             messages.error(request, data.get("message", "Invalid email or password."))
                     else:
@@ -51,13 +57,12 @@ def efile_login(request):
                 except Exception as e:
                     logger.exception("Login request failed")
                     messages.error(request, f"Login failed: {str(e)}")
-    context = {
-        "login_form": login_form,
-    }
+    jurisdiction_config = config_loader.get_short_jurisdiction_config(jurisdiction)
+    context = {"login_form": login_form, "jurisdiction": jurisdiction, "jurisdiction_config": jurisdiction_config}
     return render(request, "efile/login.html", context)
 
 
-def efile_logout(request):
+def efile_logout(request, jurisdiction):
     """
     Custom logout view
     """

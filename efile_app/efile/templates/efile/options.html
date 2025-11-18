@@ -88,10 +88,10 @@
         saveExistingCaseData(existingCase).then(() => {
           if (caseType === 'response') {
             // For responses, redirect to case details page first (with options page flag)
-            window.location.href = '/case-details/?clear_cache=true&from_options=true';
+            window.location.href = '/{{jurisdiction}}/case-details/?clear_cache=true&from_options=true';
           } else {
             // For new cases, go directly to expert form with cache clearing and options page flag
-            window.location.href = `/expert_form/?existing_case=${existingCase}&clear_cache=true&from_options=true`;
+            window.location.href = `/{{jurisdiction}}/expert_form/?existing_case=${existingCase}&clear_cache=true&from_options=true`;
           }
         });
       }

@@ -94,6 +94,7 @@ class GetFilingComponentsView(View):
         try:
             # Get parameters from query string or fallback to session data
             court = request.GET.get("court")
+            jurisdiction = request.GET.get("jurisdiction")
             filing_type_id = request.GET.get("filing_type")
 
             # If not provided in query, try to get from session
@@ -106,7 +107,7 @@ class GetFilingComponentsView(View):
             # by using a generic endpoint or a common filing type
             if not filing_type_id:
                 # Try to get a list of filing types first to get any filing type ID
-                path = f"/jurisdictions/illinois/codes/courts/{court}/filing_types"
+                path = f"/jurisdictions/{jurisdiction}/codes/courts/{court}/filing_types"
                 filing_types_url = f"{settings.EFSP_URL}{path}"
                 filing_types_response = requests.get(filing_types_url, timeout=10)
                 if filing_types_response.status_code == 200:
@@ -126,7 +127,7 @@ class GetFilingComponentsView(View):
             print(f"Getting filing components for court: {court}, filing_type: {filing_type_id}")
 
             # Build the Suffolk LIT Lab API URL
-            path = f"/jurisdictions/illinois/codes/courts/{court}/filing_types/{filing_type_id}/filing_components"
+            path = f"/jurisdictions/{jurisdiction}/codes/courts/{court}/filing_types/{filing_type_id}/filing_components"
             api_url = f"{settings.EFSP_URL}{path}"
 
             # Make the API request to Suffolk LIT Lab

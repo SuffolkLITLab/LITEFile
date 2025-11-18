@@ -331,7 +331,8 @@ def submit_final_filing(request):
             )
 
         # Get jurisdiction and court info from case data
-        jurisdiction_id = case_data.get("jurisdiction_id", "illinois")  # Default to illinois
+        # TODO(brycew): make this not hardcoded
+        jurisdiction_id = case_data.get("jurisdiction_id", "vermont")  # Default to illinois
         court_id = case_data.get("court", "")
 
         if not court_id:
@@ -399,7 +400,7 @@ def submit_final_filing(request):
                     {
                         "success": True,
                         "message": "Filing submitted successfully",
-                        "redirect_url": "/filing-confirmation/",
+                        "redirect_url": f"/{jurisdiction_id}/filing-confirmation/",
                         "api_response": response_data,
                     }
                 )

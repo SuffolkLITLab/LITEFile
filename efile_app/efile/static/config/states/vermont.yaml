@@ -1,0 +1,20 @@
+
+jurisdiction:
+  name: "Vermont eFile"
+  code: "vermont"
+  display_name: "Vermont"
+  icon: "fas fa-balance-scale"
+  api_endpoint: "/api/vermont"
+
+# State metadata, for the address
+state:
+  code: "VT"
+  name: "Vermont"
+  jurisdiction: "vermont"
+
+# Inherit from base case types and customize
+inherits_from: "base-case-types.yaml"
+
+case_types:
+  name_change:
+    extends: "base_case_types.name_change"

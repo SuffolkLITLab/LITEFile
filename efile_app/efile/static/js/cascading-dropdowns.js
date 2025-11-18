@@ -48,7 +48,7 @@ class CascadingDropdowns {
 
   async loadCourtsWithUserContext() {
     const params = {};
-    const currentJurisdiction = this.getCurrentJurisdiction();
+    const currentJurisdiction = apiUtils.getCurrentJurisdiction();
     
     // Set the jurisdiction parameter
     params.jurisdiction = currentJurisdiction;
@@ -83,7 +83,6 @@ class CascadingDropdowns {
     } else {
       console.warn("No user profile available for courts loading");
     }
-
     await this.loadDropdownData("court", "/api/dropdowns/courts/", params);
   }
 
@@ -97,7 +96,7 @@ class CascadingDropdowns {
           '<i class="fas fa-spinner fa-spin"></i> Loading your information...';
       }
 
-      const response = await this.makeRequest("/api/auth/profile/");
+      const response = await this.makeRequest("/api/auth/profile/", {"jurisdiction": apiUtils.getCurrentJurisdiction()});
 
       if (response.success) {
         if (statusElement) {
@@ -207,7 +206,7 @@ class CascadingDropdowns {
       let params = {};
 
       // Always add jurisdiction
-      params.jurisdiction = this.getCurrentJurisdiction();
+      params.jurisdiction = apiUtils.getCurrentJurisdiction();
 
       // Add additional context parameters based on the field
       if (fieldId === "court") {
@@ -989,27 +988,6 @@ class CascadingDropdowns {
       dynamicSections.style.display = 'none';
       dynamicSections.innerHTML = '';
     }
-  }
-
-  /**
-   * Get current jurisdiction from session or default to Illinois
-   * @returns {string} Current jurisdiction code
-   */
-  getCurrentJurisdiction() {
-    // Try to get from jurisdiction selector first
-    const jurisdictionSelect = document.getElementById("jurisdictionSelect");
-    if (jurisdictionSelect && jurisdictionSelect.value) {
-      return jurisdictionSelect.value;
-    }
-
-    // Try to get from profile modal selector
-    const profileSelect = document.getElementById("profileJurisdictionSelect");
-    if (profileSelect && profileSelect.value) {
-      return profileSelect.value;
-    }
-
-    // Default to Illinois if nothing found
-    return "illinois";
   }
 }
 
