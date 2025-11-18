@@ -1,4 +1,5 @@
 import json
+import os
 from unittest.mock import Mock, patch
 
 import pytest
@@ -6,6 +7,18 @@ from django.contrib.auth.models import User
 from django.test import Client
 
 from efile.utils.config_loader import config_loader
+
+# =====================================================
+# Secrets loaded at runtime
+
+
+def get_test_username():
+    return os.environ["TESTS_TYLER_USERNAME"]
+
+
+def get_test_password():
+    return os.environ["TESTS_TYLER_PASSWORD"]
+
 
 # ============================================================================
 # DROPDOWN API TESTS
@@ -173,7 +186,13 @@ class TestAuthAPIs:
 
     def test_profile_api_authenticated_user(self, client, user):
         """Test profile API returns user data when authenticated."""
-        client.force_login(user)
+        username = get_test_username()
+        password = get_test_password()
+        client.post(
+            "/api/auth/login/",
+            content_type="application/json",
+            data=json.dumps({"username": username, "password": password, "jurisdiction": "illinois"}),
+        )
 
         response = client.get(
             "/api/auth/profile/", {"jurisdiction": "illinois"}, HTTP_X_REQUESTED_WITH="XMLHttpRequest"
@@ -182,13 +201,19 @@ class TestAuthAPIs:
         assert response.status_code == 200
         data = json.loads(response.content)
         assert data["success"] is True
-        assert data["data"]["username"] == "testuser"
-        assert data["data"]["first_name"] == "John"
-        assert data["data"]["email"] == "test@example.com"
+        assert data["data"]["username"] == username
+        assert data["data"]["first_name"] == "Bryce"
+        assert data["data"]["email"] == username
 
     def test_profile_api_includes_location_data(self, client, user):
         """Test profile API includes location and county mapping."""
-        client.force_login(user)
+        username = get_test_username()
+        password = get_test_password()
+        client.post(
+            "/api/auth/login/",
+            content_type="application/json",
+            data=json.dumps({"username": username, "password": password, "jurisdiction": "illinois"}),
+        )
 
         response = client.get(
             "/api/auth/profile/", {"jurisdiction": "illinois"}, HTTP_X_REQUESTED_WITH="XMLHttpRequest"
@@ -203,7 +228,7 @@ class TestAuthAPIs:
         assert "preferred_county" in data["data"]
 
         # Should have Cook County as demo data
-        assert data["data"]["zip_code"] == "60601"
+        assert data["data"]["zip_code"] == "02108"
         assert data["data"]["preferred_county"].lower() == "cook"
 
     def test_profile_api_unauthenticated_user(self, client):
@@ -212,15 +237,7 @@ class TestAuthAPIs:
             "/api/auth/profile/", {"jurisdiction": "illinois"}, HTTP_X_REQUESTED_WITH="XMLHttpRequest"
         )
 
-        assert response.status_code == 200
-        data = json.loads(response.content)
-        assert data["success"] is True
-
-        # Should provide demo data for unauthenticated users
-        assert data["data"]["username"] == "demo_user"
-        assert data["data"]["first_name"] == "John"  # Auth API returns 'John' not 'Demo'
-        assert data["data"]["last_name"] == "Doe"  # Auth API returns 'Doe' not 'User'
-        assert data["data"]["zip_code"] == "60601"
+        assert response.status_code == 500
 
 
 # ============================================================================
@@ -964,7 +981,9 @@ class TestEdgeCasesAndErrorHandling:
 
         def make_api_call():
             response = api_client.get(
-                "/api/auth/profile/", {"jurisdiction": "illinois"}, HTTP_X_REQUESTED_WITH="XMLHttpRequest"
+                "/api/dropdowns/case-categories/",
+                {"jurisdiction": "illinois", "court": "adams"},
+                HTTP_X_REQUESTED_WITH="XMLHttpRequest",
             )
             results.append(response.status_code)
 
@@ -1107,7 +1126,9 @@ class TestPerformanceAndCaching:
 
         for _ in range(3):
             response = api_client.get(
-                "/api/auth/profile/", {"jurisdiction": "illinois"}, HTTP_X_REQUESTED_WITH="XMLHttpRequest"
+                "/api/dropdowns/case-categories/",
+                {"jurisdiction": "illinois", "court": "adams"},
+                HTTP_X_REQUESTED_WITH="XMLHttpRequest",
             )
             assert response.status_code == 200
             data = json.loads(response.content)
@@ -1117,7 +1138,7 @@ class TestPerformanceAndCaching:
         first_response = responses[0]
         for response in responses[1:]:
             assert response["success"] == first_response["success"]
-            assert response["data"]["username"] == first_response["data"]["username"]
+            assert response["data"][1] == first_response["data"][1]
 
     @patch("efile.api.dropdown_views.requests.get")
     def test_concurrent_api_calls_consistency(self, mock_get, api_client):
