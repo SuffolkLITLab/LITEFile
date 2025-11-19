@@ -35,6 +35,11 @@ class AuthAPIViews(APIResponseMixin):
         if jurisdiction is None:
             jurisdiction = AuthAPIViews.get_jurisdiction_from_request(request)
 
+        if request.user.is_authenticated and hasattr(request.user, "tyler_token") and request.user.tyler_token:
+            return request.user.tyler_token
+
+        # Fallback to session
+        # TODO(brycew): should this ever happen?
         auth_tokens = request.session.get("auth_tokens", {})
         logger.debug(f"Auth tokens in session: {auth_tokens}")
 
@@ -57,22 +62,25 @@ class AuthAPIViews(APIResponseMixin):
 
             username = data.get("username")
             password = data.get("password")
+            jurisdiction = data.get("jurisdiction")
 
-            if not username or not password:
-                return AuthAPIViews.error_response("Username and password required")
+            if not username or not password or not jurisdiction:
+                return AuthAPIViews.error_response("Username, password, and jurisdiction required")
 
-            user = authenticate(request, username=username, password=password)
+            user = authenticate(request, username=username, password=password, jurisdiction=jurisdiction)
 
             if user is not None:
                 login(request, user)
+                request.session["user_email"] = user.email
                 return AuthAPIViews.success_response(
-                    {"user_id": user.id, "username": user.username, "email": user.email}, "Login successful"
+                    {"user_id": user.id, "username": user.username, "email": user.email, "is_authenticated": True},
+                    "Login successful",
                 )
             else:
                 return AuthAPIViews.error_response("Invalid credentials", 401)
 
-        except json.JSONDecodeError:
-            return AuthAPIViews.error_response("Invalid JSON data")
+        except json.JSONDecodeError as e:
+            return AuthAPIViews.error_response(f"Invalid JSON data: {str(e)}, {request.body}")
         except Exception as e:
             return AuthAPIViews.error_response(f"Error: {str(e)}")
 
@@ -83,6 +91,10 @@ class AuthAPIViews(APIResponseMixin):
         """Handle user logout"""
         try:
             logout(request)
+            session_keys_to_keep = ["csrftoken"]
+            session_data = {k: v for k, v in request.session.items() if k in session_keys_to_keep}
+            request.session.clear()
+            request.session.update(session_data)
             return AuthAPIViews.success_response({}, "Logout successful")
         except Exception as e:
             return AuthAPIViews.error_response(f"Error: {str(e)}")
@@ -92,228 +104,103 @@ class AuthAPIViews(APIResponseMixin):
     def user_profile(request):
         """Get current user profile from external Suffolk eFile API"""
         try:
-            try:
-                # Get jurisdiction and Tyler token dynamically
-                jurisdiction = AuthAPIViews.get_jurisdiction_from_request(request)
-                tyler_token = AuthAPIViews.get_tyler_token(request, jurisdiction)
-                api_key = getattr(settings, "SUFFOLK_EFILE_API_KEY", None)
+            # TODO(brycew): get some of this from the existing logged in user
+            # Get jurisdiction and Tyler token dynamically
+            jurisdiction = AuthAPIViews.get_jurisdiction_from_request(request)
+            tyler_token = AuthAPIViews.get_tyler_token(request, jurisdiction)
+            api_key = getattr(settings, "SUFFOLK_EFILE_API_KEY", None)
 
-                headers = {
-                    "Content-Type": "application/json",
-                    "User-Agent": f"{jurisdiction.title()}-eFile-Client/1.0",
-                    "X-API-Key": api_key if api_key else "",
-                }
+            headers = {
+                "Content-Type": "application/json",
+                "User-Agent": f"{jurisdiction.title()}-eFile-Client/1.0",
+                "X-API-Key": api_key if api_key else "",
+            }
 
-                # Add Tyler token if available
-                if tyler_token:
-                    headers[f"tyler-token-{jurisdiction}"] = tyler_token
-                else:
-                    # Log that no token was found for debugging
-                    logger.info("No Tyler token found for state '%s' in Suffolk eFile API request", jurisdiction)
+            auth_tokens = request.session.get("auth_tokens", {})
+            logger.debug(f"Auth tokens in session: {auth_tokens}")
 
-                url = f"{settings.EFSP_URL}/jurisdictions/{jurisdiction}/firmattorneyservice/firm"
-                logger.debug("GET %s header keys=%s", url, list(headers.keys()))
-                api_response = requests.get(url, headers=headers, timeout=10)
-                logger.debug(
-                    "User profile response: status=%s content_type=%s",
-                    api_response.status_code,
-                    api_response.headers.get("Content-Type"),
-                )
+            # Add Tyler token if available
+            if tyler_token:
+                headers[f"tyler-token-{jurisdiction}"] = tyler_token
+            else:
+                # Log that no token was found for debugging
+                logger.info("No Tyler token found for state '%s' in Suffolk eFile API request", jurisdiction)
 
-                if api_response.status_code == 200:
-                    external_data = api_response.json()
+            if auth_tokens.get(f"TYLER-ID-{jurisdiction.upper()}"):
+                headers[f"TYLER-ID-{jurisdiction.upper()}"] = auth_tokens.get(f"TYLER-ID-{jurisdiction.upper()}")
 
-                    # Extract address information from external API response
-                    address_info = external_data.get("address", {})
-                    address_line1 = address_info.get("addressLine1", "")
-                    address_line2 = address_info.get("addressLine2", "")
-                    city = address_info.get("city", "")
-                    state = address_info.get("state", "IL")
-                    zip_code = address_info.get("zipCode", "60601")
-                    phone_number = external_data.get("phoneNumber", "")
+            url = f"{settings.EFSP_URL}/jurisdictions/{jurisdiction}/firmattorneyservice/firm"
+            logger.debug("GET %s header keys=%s", url, list(headers.keys()))
+            api_response = requests.get(url, headers=headers, timeout=10)
+            logger.debug(
+                "User profile response: status=%s content_type=%s",
+                api_response.status_code,
+                api_response.headers.get("Content-Type"),
+            )
 
-                    # Build user profile data combining local and external data
-                    user_data = {
-                        "external_firm_data": external_data,
-                        # Local user data (if authenticated)
-                        "id": request.user.id if request.user.is_authenticated else None,
-                        "username": request.user.username if request.user.is_authenticated else "guest",
-                        "email": request.user.email
-                        if request.user.is_authenticated
-                        else request.session.get("user_email"),
-                        "first_name": request.user.first_name if request.user.is_authenticated else "Demo",
-                        "last_name": request.user.last_name if request.user.is_authenticated else "User",
-                        "date_joined": request.user.date_joined.isoformat() if request.user.is_authenticated else None,
-                        "last_login": request.user.last_login.isoformat()
-                        if (request.user.is_authenticated and request.user.last_login)
-                        else None,
-                        # Address information from external API
-                        "address": address_line1,
-                        "address_line2": address_line2,
-                        "city": city,
-                        "state": state,
-                        "zip": zip_code,
-                        "phone": phone_number,
-                        # Default location information
-                        "preferred_county": "cook",
-                        "zip_code": zip_code,  # Use actual zip from API
-                        "location": {
-                            "county": "Cook County",
-                            "state": "Illinois",
-                            "zip_code": zip_code,
-                            "available_counties": ["cook", "dupage", "kane", "lake", "mchenry", "will"],
-                        },
-                    }
+            self_url = f"{settings.EFSP_URL}/jurisdictions/{jurisdiction}/adminusers/user"
+            self_response = requests.get(self_url, headers=headers, timeout=10)
 
-                    return AuthAPIViews.success_response(user_data)
-                elif api_response.status_code == 401:
-                    # API requires authentication - return mock data for demo
-                    user_data = {
-                        "external_api_status": "requires_authentication",
-                        "note": "Suffolk eFile API requires authentication. Using demo data.",
-                        "id": request.user.id if request.user.is_authenticated else None,
-                        "username": request.user.username if request.user.is_authenticated else "demo_user",
-                        "email": request.user.email
-                        if request.user.is_authenticated
-                        else request.session.get("user_email", "demo@example.com"),
-                        "first_name": request.user.first_name if request.user.is_authenticated else "John",
-                        "last_name": request.user.last_name if request.user.is_authenticated else "Doe",
-                        # Default address information for demo
-                        "address": "123 Main St",
-                        "address_line2": "",
-                        "city": "Chicago",
-                        "state": "IL",
-                        "zip": "60601",
-                        "phone": "(312) 555-1234",
-                        "preferred_county": "cook",
-                        "zip_code": "60601",  # Downtown Chicago zip for demo
-                        "location": {
-                            "county": "Cook County",
-                            "state": "Illinois",
-                            "zip_code": "60601",
-                            "available_counties": ["cook", "dupage", "kane", "lake", "mchenry", "will"],
-                        },
-                        # Mock firm data based on Suffolk eFile API structure
-                        "firm_info": {
-                            "firm_name": "Demo Law Firm",
-                            "firm_id": "DEMO_001",
-                            "attorneys": [
-                                {
-                                    "attorney_id": "ATT_001",
-                                    "first_name": "John",
-                                    "last_name": "Doe",
-                                    "bar_number": "123456",
-                                    "email": "john.doe@demolaw.com",
-                                }
-                            ],
-                        },
-                    }
+            logger.debug(
+                "self profile response: status=%s text=%s content_type=%s",
+                self_response.status_code,
+                self_response.text,
+                self_response.headers.get("Content-Type"),
+            )
 
-                    return AuthAPIViews.success_response(user_data)
-                else:
-                    # Fall back to local data if external API fails
-                    user_data = {
-                        "external_api_error": f"Suffolk API returned status {api_response.status_code}",
-                        "response_text": api_response.text[:200] if api_response.text else "No response body",
-                        "id": request.user.id if request.user.is_authenticated else None,
-                        "username": request.user.username if request.user.is_authenticated else "guest",
-                        "email": request.user.email
-                        if request.user.is_authenticated
-                        else request.session.get("user_email"),
-                        "first_name": request.user.first_name if request.user.is_authenticated else "Demo",
-                        "last_name": request.user.last_name if request.user.is_authenticated else "User",
-                        # Default address information
-                        "address": "123 Main St",
-                        "address_line2": "",
-                        "city": "Chicago",
-                        "state": "IL",
-                        "zip": "60601",
-                        "phone": "(312) 555-1234",
-                        "preferred_county": "cook",
-                        "zip_code": "60601",  # Downtown Chicago zip for demo
-                        "location": {"county": "Cook County", "state": "Illinois", "zip_code": "60601"},
-                    }
+            if api_response.status_code == 200 and self_response.status_code == 200:
+                external_data = api_response.json()
+                self_json = self_response.json()
+                logger.debug("self_json: %s", self_json)
 
-                    return AuthAPIViews.success_response(user_data)
+                # Extract address information from external API response
+                address_info = external_data.get("address", {})
+                address_line1 = address_info.get("addressLine1", "")
+                address_line2 = address_info.get("addressLine2", "")
+                city = address_info.get("city", "")
+                state = address_info.get("state", "IL")
+                zip_code = address_info.get("zipCode", "60601")
+                phone_number = external_data.get("phoneNumber", "")
 
-            except Timeout:
-                return AuthAPIViews.error_response("External API request timed out", 408)
-            except RequestException as e:
-                # Fall back to local data if external API is unavailable
+                # Build user profile data combining local and external data
                 user_data = {
-                    "external_api_error": f"Could not connect to Suffolk API: {str(e)}",
+                    "external_firm_data": external_data,
+                    # Local user data (if authenticated)
                     "id": request.user.id if request.user.is_authenticated else None,
                     "username": request.user.username if request.user.is_authenticated else "guest",
                     "email": request.user.email if request.user.is_authenticated else request.session.get("user_email"),
-                    "first_name": request.user.first_name if request.user.is_authenticated else "Demo",
-                    "last_name": request.user.last_name if request.user.is_authenticated else "User",
-                    # Default address information
-                    "address": "123 Main St",
-                    "address_line2": "",
-                    "city": "Chicago",
-                    "state": "IL",
-                    "zip": "60601",
-                    "phone": "(312) 555-1234",
+                    "first_name": self_json["firstName"],
+                    "last_name": self_json["lastName"],
+                    "date_joined": request.user.date_joined.isoformat() if request.user.is_authenticated else None,
+                    "last_login": request.user.last_login.isoformat()
+                    if (request.user.is_authenticated and request.user.last_login)
+                    else None,
+                    # Address information from external API
+                    "address": address_line1,
+                    "address_line2": address_line2,
+                    "city": city,
+                    "state": state,
+                    "zip": zip_code,
+                    "phone": phone_number,
+                    # Default location information
                     "preferred_county": "cook",
-                    "zip_code": "60601",  # Downtown Chicago zip for demo
-                    "location": {"county": "Cook County", "state": "Illinois", "zip_code": "60601"},
+                    "zip_code": zip_code,  # Use actual zip from API
+                    "location": {
+                        "county": "Cook County",
+                        "state": "Illinois",
+                        "zip_code": zip_code,
+                        "available_counties": ["cook", "dupage", "kane", "lake", "mchenry", "will"],
+                    },
                 }
 
                 return AuthAPIViews.success_response(user_data)
-
-        except Exception as e:
-            return AuthAPIViews.error_response(f"Error: {str(e)}")
-
-    @staticmethod
-    @require_http_methods(["POST"])
-    @csrf_exempt
-    def external_auth(request):
-        """Handle authentication with external Suffolk eFile API"""
-        try:
-            data = json.loads(request.body)
-
-            username = data.get("username")
-            password = data.get("password")
-
-            if not username or not password:
-                return AuthAPIViews.error_response("Username and password required")
-
-            # Authenticate with Suffolk eFile API
-            jurisdiction = AuthAPIViews.get_jurisdiction_from_request(request)
-            auth_response = requests.post(
-                f"{settings.EFSP_URL}/jurisdictions/{jurisdiction}/auth/login",
-                json={"username": username, "password": password},
-                headers={"Content-Type": "application/json", "User-Agent": f"{jurisdiction.title()}-eFile-Client/1.0"},
-            )
-
-            if auth_response.status_code == 200:
-                auth_data = auth_response.json()
-
-                # Store auth tokens in session including Tyler token
-                request.session["auth_tokens"] = {
-                    "access_token": auth_data.get("access_token"),
-                    "refresh_token": auth_data.get("refresh_token"),
-                    f"tyler_token_{jurisdiction}": auth_data.get(f"tyler_token_{jurisdiction}"),
-                    "expires_in": auth_data.get("expires_in"),
-                    "state": jurisdiction,  # Store the state for future reference
-                }
-
-                return AuthAPIViews.success_response(
-                    {
-                        "authenticated": True,
-                        "user": auth_data.get("user", {}),
-                        "state": jurisdiction,
-                        "has_tyler_token": f"tyler_token_{jurisdiction}" in auth_data,
-                    },
-                    "External authentication successful",
-                )
             else:
-                return AuthAPIViews.error_response("External authentication failed", 401)
-
-        except json.JSONDecodeError:
-            return AuthAPIViews.error_response("Invalid JSON data")
+                return AuthAPIViews.error_response("Unable to retrieve profile", 500)
+        except Timeout:
+            return AuthAPIViews.error_response("External API request timed out", 408)
         except Exception as e:
-            return AuthAPIViews.error_response(f"Error: {str(e)}")
+            logger.warn("Request exception: %s", str(e))
+            return AuthAPIViews.error_response("Request Exception", 500)
 
     @staticmethod
     @require_http_methods(["GET"])
@@ -421,7 +308,6 @@ class AuthAPIViews(APIResponseMixin):
 user_login = AuthAPIViews.user_login
 user_logout = AuthAPIViews.user_logout
 user_profile = AuthAPIViews.user_profile
-external_auth = AuthAPIViews.external_auth
 external_profile = AuthAPIViews.external_profile
 payment_accounts = AuthAPIViews.payment_accounts
 tyler_token = AuthAPIViews.tyler_token

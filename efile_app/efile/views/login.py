@@ -1,6 +1,7 @@
 import logging
 
 from django.contrib import messages
+from django.contrib.auth import authenticate, login
 from django.shortcuts import redirect, render
 
 from efile.utils.config_loader import config_loader
@@ -20,38 +21,27 @@ def efile_login(request, jurisdiction):
         if "login_submit" in request.POST:
             login_form = EFileLoginForm(request.POST)
             if login_form.is_valid():
-                import requests
-                from django.conf import settings
-
                 email = login_form.cleaned_data["email"]
                 password = login_form.cleaned_data["password"]
-                api_key = getattr(settings, "SUFFOLK_EFILE_API_KEY", None)
                 try:
-                    url = f"{settings.EFSP_URL}/authenticate"
-                    payload = {
-                        "api_key": api_key,
-                        f"tyler-{jurisdiction}": {
-                            "username": email,
-                            "password": password,
-                        },
-                    }
+                    user = authenticate(request, username=email, password=password)
 
-                    response = requests.post(url, json=payload, timeout=10)
-
-                    logger.debug("Login response: %s, status_code: %s", response.text, response.status_code)
-
-                    if response.status_code == 200:
-                        data = response.json()
-                        if data.get("tokens"):
-                            # Save tokens in session
-                            request.session["auth_tokens"] = data["tokens"]
-                            # Save user email for use in forms
-                            request.session["user_email"] = email
-                            logger.info("User authenticated and session tokens stored")
-                            messages.success(request, "Successfully logged in!")
-                            return redirect(f"/{jurisdiction}/options/")
-                        else:
-                            messages.error(request, data.get("message", "Invalid email or password."))
+                    if user is not None:  # response.status_code == 200:
+                        login(request, user)
+                        # data = response.json()
+                        request.session["user_email"] = user.email
+                        logger.info("User is auth: %s", user.is_authenticated)
+                        logger.info("Session info: %s", request.session.keys())
+                        logger.info("User authenticated and session tokens stored")
+                        messages.success(request, "Successfully logged in!")
+                        return redirect(f"/{jurisdiction}/options/")
+                        # if data.get("tokens"):
+                        # Save tokens in session
+                        #    request.session["auth_tokens"] = data["tokens"]
+                        # Save user email for use in forms
+                        #    request.session["user_email"] = email
+                    # else:
+                    #     messages.error(request, data.get("message", "Invalid email or password."))
                     else:
                         messages.error(request, "Login service error. Please try again later.")
                 except Exception as e:

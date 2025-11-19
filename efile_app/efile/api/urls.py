@@ -5,7 +5,6 @@ URL patterns for the API module
 from django.urls import path
 
 from .auth_views import (
-    external_auth,
     external_profile,
     payment_accounts,
     tyler_token,
@@ -47,7 +46,6 @@ urlpatterns = [
     path("auth/login/", user_login, name="login"),
     path("auth/logout/", user_logout, name="logout"),
     path("auth/profile/", user_profile, name="profile"),
-    path("auth/external/", external_auth, name="external_auth"),
     path("auth/external-profile/", external_profile, name="external_profile"),
     path("auth/tyler-token/", tyler_token, name="tyler_token"),
     # Payment API endpoints

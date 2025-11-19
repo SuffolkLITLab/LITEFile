@@ -101,7 +101,6 @@ const response = await fetch('/api/filings/create/', {
 ```python
 from efile.api.dropdown_views import DropdownAPIViews
 from efile.api.config_views import ConfigAPIViews
-from efile.api.auth_views import external_auth
 ```
 
 ### Court-Specific Configuration Examples

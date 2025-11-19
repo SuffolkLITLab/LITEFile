@@ -50,6 +50,9 @@
           account.
         </p>
         <div class="mb-3">
+          <span class="form-label">Current email</span>: {{profile_info.email}}
+        </div>
+        <div class="mb-3">
           <label for="profileJurisdictionSelect" class="form-label">Current Jurisdiction:</label>
           <select id="profileJurisdictionSelect" class="form-select" onchange="switchJurisdiction(this.value)">
             {% for code, config in available_jurisdictions.items %}

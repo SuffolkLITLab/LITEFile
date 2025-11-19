@@ -139,7 +139,7 @@ def efile_upload(request, jurisdiction):
     """Upload view for document submission and filing creation."""
 
     # Check if user is authenticated first
-    if not request.session.get("auth_tokens"):
+    if not request.user.is_authenticated:
         return redirect("efile_login", jurisdiction=jurisdiction)
 
     # Get case data from session

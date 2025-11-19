@@ -1,6 +1,6 @@
 import logging
 
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 
 from efile.utils.config_loader import config_loader
 
@@ -12,6 +12,9 @@ def efile_expert_form(request, jurisdiction):
     # Log all GET parameters for debugging
     logger.debug(f"Expert form accessed with GET parameters: {dict(request.GET)}")
 
+    if not request.user.is_authenticated:
+        return redirect("efile_login", jurisdiction=jurisdiction)
+
     # Check if we need to clear cache (only when explicitly coming from options page button)
     clear_cache = request.GET.get("clear_cache", "false").lower() == "true"
     from_options = request.GET.get("from_options", "false").lower() == "true"
@@ -21,19 +24,19 @@ def efile_expert_form(request, jurisdiction):
     # Only clear cache if both conditions are met: clear_cache=true AND from_options=true
     if clear_cache and from_options:
         # Store auth info before clearing everything
-        auth_tokens = request.session.get("auth_tokens", None)
-        user_email = request.session.get("user_email", None)
+        to_save = {
+            k: request.session.get(k, None)
+            for k in ["auth_tokens", "user_email", "_auth_user_id", "_auth_user_backend", "_auth_user_hash"]
+        }
 
         logger.debug("Before cache clear - session keys: %s", list(request.session.keys()))
 
         # Clear ALL session data
         request.session.flush()
 
-        # Restore only essential auth info
-        if auth_tokens:
-            request.session["auth_tokens"] = auth_tokens
-        if user_email:
-            request.session["user_email"] = user_email
+        for key, value in to_save.items():
+            if value:
+                request.session[key] = value
 
         # Force session to save changes
         request.session.modified = True

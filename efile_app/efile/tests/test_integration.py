@@ -4,12 +4,26 @@ Tests basic functionality without mocking external services
 """
 
 import json
+import os
 
 import pytest
-from django.contrib.auth.models import User
 from django.test import Client
 
 from efile.utils.config_loader import config_loader
+
+# =====================================================
+# Secrets loaded at runtime
+
+
+def get_test_username():
+    return os.environ["TESTS_TYLER_USERNAME"]
+
+
+def get_test_password():
+    return os.environ["TESTS_TYLER_PASSWORD"]
+
+
+# =======================
 
 
 class TestBasicFunctionality:
@@ -38,13 +52,13 @@ class TestBasicFunctionality:
         """Test that profile API returns some response."""
         client = Client()
 
-        # Create a test user
-        user = User.objects.create_user(
-            username="testuser", password="testpass123", first_name="Test", last_name="User", email="test@example.com"
+        username = get_test_username()
+        password = get_test_password()
+        client.post(
+            "/api/auth/login/",
+            content_type="application/json",
+            data=json.dumps({"username": username, "password": password, "jurisdiction": "illinois"}),
         )
-
-        # Login the user
-        client.force_login(user)
 
         # Test authenticated request
         response = client.get(
@@ -59,8 +73,8 @@ class TestBasicFunctionality:
 
         if data["success"]:
             assert "data" in data
-            assert data["data"]["username"] == "testuser"
-            assert data["data"]["first_name"] == "Test"
+            assert data["data"]["username"] == username
+            assert data["data"]["first_name"] == "Bryce"
 
     @pytest.mark.django_db
     def test_case_categories_api_basic_functionality(self):
