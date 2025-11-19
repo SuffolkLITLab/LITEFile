@@ -9,6 +9,7 @@ from efile.utils.proxy_connection import auth_with_tyler_api
 logger = logging.getLogger(__name__)
 User = get_user_model()
 
+
 class SuffolkEFileBackend(BaseBackend):
     def authenticate(self, request, username=None, password=None, **kwargs):
         logger.info("Trying auth?")
@@ -32,6 +33,7 @@ class SuffolkEFileBackend(BaseBackend):
             #    self._store_tokens_in_session(request, auth_data, jurisdiction)
 
             logger.info("Successfully auth'd user: %s", username)
+            request.session["user_email"] = user.email
             return user
         except Exception:
             logger.exception("Error during auth for user: %s", username)
@@ -49,8 +51,8 @@ class SuffolkEFileBackend(BaseBackend):
         except User.DoesNotExist:
             user = None
 
+        user_data = self._extract_user_data(auth_data, username, jurisdiction)
         if not user:
-            user_data = self._extract_user_data(auth_data, username, jurisdiction)
             user = User.objects.create_user(
                 username=username,
                 tyler_jurisdiction=jurisdiction,
@@ -59,6 +61,11 @@ class SuffolkEFileBackend(BaseBackend):
                 first_name=user_data.get("first_name", ""),
                 last_name=user_data.get("last_name", ""),
             )
+        else:
+            user.tyler_jurisdiction = (jurisdiction,)
+            user.tyler_user_id = (user_data.get("user_id", None),)
+            user.email = (user_data.get("email", username),)
+            user.save()
 
             logger.info("Created new user: %s, %s", user.username, user.email)
         return user
@@ -69,3 +76,23 @@ class SuffolkEFileBackend(BaseBackend):
             user_data["user_id"] = auth_data["tokens"][f"TYLER-ID-{jurisdiction.upper()}"]
             user_data["tyler_token"] = auth_data["tokens"][f"TYLER-TOKEN-{jurisdiction.upper()}"]
         return user_data
+
+    @staticmethod
+    def logout(request):
+        """Log the current user out. Here for symmetry.
+
+        If logout fails, will raise an exception.
+        """
+        from django.contrib.auth import logout
+        from django.contrib.messages.api import get_messages
+
+        # Clear any existing messages first
+        storage = get_messages(request)
+        for _message in storage:
+            pass  # This consumes all messages
+
+        logout(request)
+        session_keys_to_keep = ["csrftoken"]
+        session_data = {k: v for k, v in request.session.items() if k in session_keys_to_keep}
+        request.session.clear()
+        request.session.update(session_data)

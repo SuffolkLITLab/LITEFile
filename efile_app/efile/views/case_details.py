@@ -54,7 +54,6 @@ def case_details(request, jurisdiction):
         # Get jurisdiction config (can be expanded later for other jurisdictions)
         return render(request, "efile/case_details.html")
 
-
     except Exception as e:
         logger.error(f"Error loading case details page: {str(e)}")
         return render(request, "efile/case_details.html", {"error": "An error occurred loading the page"})

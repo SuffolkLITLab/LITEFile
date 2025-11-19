@@ -3,10 +3,12 @@ import os
 from unittest.mock import Mock, patch
 
 import pytest
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.test import Client
 
 from efile.utils.config_loader import config_loader
+
+User = get_user_model()
 
 # =====================================================
 # Secrets loaded at runtime

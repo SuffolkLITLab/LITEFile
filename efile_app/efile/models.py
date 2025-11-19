@@ -27,6 +27,7 @@ class UserProfile(AbstractUser):
         verbose_name = "User Profile"
         verbose_name_plural = "User Profiles"
 
+
 # Don't forget to run migrations if you add this model:
 # python manage.py makemigrations
 # python manage.py migrate --run-syncdb
