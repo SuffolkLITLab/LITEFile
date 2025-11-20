@@ -4,7 +4,6 @@ from django.contrib import messages
 from django.shortcuts import redirect, render
 
 from ..utils.case_data_utils import get_case_classification, get_case_data, get_name_sought_info, get_petitioner_info
-from ..utils.config_loader import config_loader
 
 logger = logging.getLogger(__name__)
 
@@ -92,10 +91,7 @@ def case_review(request, jurisdiction):
             "items": [{"label": "Selected Services", "value": ", ".join(optional_services)}],
         }
 
-    jurisdiction_config = config_loader.get_short_jurisdiction_config(jurisdiction)
     context = {
-        "jurisdiction": jurisdiction,
-        "jurisdiction_config": jurisdiction_config,
         "case_data": case_data,
         "review_sections": review_sections,
         "friendly_names": {

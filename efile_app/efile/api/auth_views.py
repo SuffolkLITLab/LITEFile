@@ -7,10 +7,13 @@ import logging
 
 import requests
 from django.conf import settings
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from requests.exceptions import RequestException, Timeout
+
+from efile.api.suffolk_api_views import get_tyler_token
+from efile.utils.jurisdiction_stuff import get_jurisdiction_from_request
 
 from .base import APIResponseMixin
 
@@ -19,38 +22,6 @@ logger = logging.getLogger(__name__)
 
 class AuthAPIViews(APIResponseMixin):
     """API views for authentication"""
-
-    @staticmethod
-    def get_jurisdiction_from_request(request):
-        """Extract jurisdiction from request URL or parameters"""
-        # Try to get jurisdiction from query parameters first
-        jurisdiction = request.GET.get("jurisdiction")
-        if jurisdiction:
-            return jurisdiction.lower()
-        return None
-
-    @staticmethod
-    def get_tyler_token(request, jurisdiction=None):
-        """Helper method to retrieve Tyler token from various sources"""
-        if jurisdiction is None:
-            jurisdiction = AuthAPIViews.get_jurisdiction_from_request(request)
-
-        if request.user.is_authenticated and hasattr(request.user, "tyler_token") and request.user.tyler_token:
-            return request.user.tyler_token
-
-        # Fallback to session
-        # TODO(brycew): should this ever happen?
-        auth_tokens = request.session.get("auth_tokens", {})
-        logger.debug(f"Auth tokens in session: {auth_tokens}")
-
-        # Try different Tyler token key formats
-        tyler_token = (
-            auth_tokens.get(f"TYLER-TOKEN-{jurisdiction.upper()}")
-            or auth_tokens.get(f"tyler_token_{jurisdiction}")
-            or auth_tokens.get(f"tyler-token-{jurisdiction}")
-        )
-
-        return tyler_token
 
     @staticmethod
     @require_http_methods(["POST"])
@@ -71,7 +42,6 @@ class AuthAPIViews(APIResponseMixin):
 
             if user is not None:
                 login(request, user)
-                request.session["user_email"] = user.email
                 return AuthAPIViews.success_response(
                     {"user_id": user.id, "username": user.username, "email": user.email, "is_authenticated": True},
                     "Login successful",
@@ -89,12 +59,10 @@ class AuthAPIViews(APIResponseMixin):
     @csrf_exempt
     def user_logout(request):
         """Handle user logout"""
+        from efile.authentication import SuffolkEFileBackend
+
         try:
-            logout(request)
-            session_keys_to_keep = ["csrftoken"]
-            session_data = {k: v for k, v in request.session.items() if k in session_keys_to_keep}
-            request.session.clear()
-            request.session.update(session_data)
+            SuffolkEFileBackend.logout(request)
             return AuthAPIViews.success_response({}, "Logout successful")
         except Exception as e:
             return AuthAPIViews.error_response(f"Error: {str(e)}")
@@ -106,8 +74,8 @@ class AuthAPIViews(APIResponseMixin):
         try:
             # TODO(brycew): get some of this from the existing logged in user
             # Get jurisdiction and Tyler token dynamically
-            jurisdiction = AuthAPIViews.get_jurisdiction_from_request(request)
-            tyler_token = AuthAPIViews.get_tyler_token(request, jurisdiction)
+            jurisdiction = get_jurisdiction_from_request(request)
+            tyler_token = get_tyler_token(request, jurisdiction)
             api_key = getattr(settings, "SUFFOLK_EFILE_API_KEY", None)
 
             headers = {
@@ -116,9 +84,6 @@ class AuthAPIViews(APIResponseMixin):
                 "X-API-Key": api_key if api_key else "",
             }
 
-            auth_tokens = request.session.get("auth_tokens", {})
-            logger.debug(f"Auth tokens in session: {auth_tokens}")
-
             # Add Tyler token if available
             if tyler_token:
                 headers[f"tyler-token-{jurisdiction}"] = tyler_token
@@ -126,8 +91,8 @@ class AuthAPIViews(APIResponseMixin):
                 # Log that no token was found for debugging
                 logger.info("No Tyler token found for state '%s' in Suffolk eFile API request", jurisdiction)
 
-            if auth_tokens.get(f"TYLER-ID-{jurisdiction.upper()}"):
-                headers[f"TYLER-ID-{jurisdiction.upper()}"] = auth_tokens.get(f"TYLER-ID-{jurisdiction.upper()}")
+            if request.user.tyler_user_id:
+                headers[f"TYLER-ID-{jurisdiction.upper()}"] = request.user.tyler_user_id
 
             url = f"{settings.EFSP_URL}/jurisdictions/{jurisdiction}/firmattorneyservice/firm"
             logger.debug("GET %s header keys=%s", url, list(headers.keys()))
@@ -198,8 +163,8 @@ class AuthAPIViews(APIResponseMixin):
                 return AuthAPIViews.error_response("Unable to retrieve profile", 500)
         except Timeout:
             return AuthAPIViews.error_response("External API request timed out", 408)
-        except Exception as e:
-            logger.warn("Request exception: %s", str(e))
+        except Exception:
+            logger.exception("Request exception")
             return AuthAPIViews.error_response("Request Exception", 500)
 
     @staticmethod
@@ -238,8 +203,8 @@ class AuthAPIViews(APIResponseMixin):
         """Get Tyler token and API key for external form submissions"""
         try:
             # Get jurisdiction and Tyler token dynamically
-            jurisdiction = AuthAPIViews.get_jurisdiction_from_request(request)
-            tyler_token = AuthAPIViews.get_tyler_token(request, jurisdiction)
+            jurisdiction = get_jurisdiction_from_request(request)
+            tyler_token = get_tyler_token(request, jurisdiction)
             api_key = getattr(settings, "SUFFOLK_EFILE_API_KEY", None)
 
             return AuthAPIViews.success_response(
@@ -254,8 +219,8 @@ class AuthAPIViews(APIResponseMixin):
         """Get payment accounts from Suffolk eFile API with proper authentication"""
         try:
             # Get jurisdiction and Tyler token dynamically
-            jurisdiction = AuthAPIViews.get_jurisdiction_from_request(request)
-            tyler_token = AuthAPIViews.get_tyler_token(request, jurisdiction)
+            jurisdiction = get_jurisdiction_from_request(request)
+            tyler_token = get_tyler_token(request, jurisdiction)
             api_key = getattr(settings, "SUFFOLK_EFILE_API_KEY", None)
 
             headers = {

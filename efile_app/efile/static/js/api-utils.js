@@ -23,20 +23,14 @@ class ApiUtils {
       //const result = await response.json();
           
       // Try to get from jurisdiction selector first
-      const jurisdictionSelect = document.getElementById("jurisdictionSelect");
-      if (jurisdictionSelect && jurisdictionSelect.value) {
-        return jurisdictionSelect.value;
+      const jurisdiction = document.getElementById("currentJurisdiction");
+      if (jurisdiction && jurisdiction.textContent) {
+        return jurisdiction.textContent;
       }
 
-      // Try to get from profile modal selector
-      const profileSelect = document.getElementById("profileJurisdictionSelect");
-      if (profileSelect && profileSelect.value) {
-        return profileSelect.value;
-      }
-
-      // Default to Illinois if nothing found
-      console.log("Returning illinois for current, likely shouldn't")
-      return "illinois";
+      // Default to null if nothing found; rather that than weird bugs from a default state
+      console.log("Returning null for current, likely shouldn't")
+      return null;
     }
 
     getCache() {

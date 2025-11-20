@@ -12,48 +12,28 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from requests.exceptions import RequestException
 
+from efile.utils.jurisdiction_stuff import get_jurisdiction_from_request
+
 logger = logging.getLogger(__name__)
 
 
-def get_state_from_request(request):
-    """Extract state from request URL or parameters"""
-    # Try to get state from query parameters first
-    state = request.GET.get("state")
-    if state:
-        return state.lower()
-
-    # Try to extract from URL path (e.g., /jurisdictions/illinois/)
-    path = request.path
-    if "/jurisdictions/" in path:
-        path_parts = path.split("/jurisdictions/")
-        if len(path_parts) > 1:
-            state_part = path_parts[1].split("/")[0]
-            if state_part:
-                return state_part.lower()
-
-    # Default to Illinois if no state found
-    return "illinois"
-
-
-def get_tyler_token(request, state=None):
+def get_tyler_token(request, jurisdiction=None):
     """Helper method to retrieve Tyler token from various sources"""
-    if state is None:
-        state = get_state_from_request(request)
+    if jurisdiction is None:
+        jurisdiction = get_jurisdiction_from_request(request)
 
+    # Fallback to session
     auth_tokens = request.session.get("auth_tokens", {})
     logger.debug(f"Auth tokens in session: {auth_tokens}")
 
     # Try different Tyler token key formats
     tyler_token = (
-        auth_tokens.get(f"TYLER-TOKEN-{state.upper()}")
-        or auth_tokens.get(f"tyler_token_{state}")
-        or auth_tokens.get(f"tyler-token-{state}")
+        auth_tokens.get(f"TYLER-TOKEN-{jurisdiction.upper()}")
+        or auth_tokens.get(f"tyler_token_{jurisdiction}")
+        or auth_tokens.get(f"tyler-token-{jurisdiction}")
     )
 
-    if tyler_token:
-        return tyler_token
-
-    return None
+    return tyler_token
 
 
 @csrf_exempt
@@ -100,7 +80,7 @@ def lookup_case(request):
         if jurisdiction:
             state = jurisdiction.lower()
         else:
-            state = get_state_from_request(request)
+            state = get_jurisdiction_from_request(request)
         api_url = f"{settings.EFSP_URL}/jurisdictions/{state}/cases/courts/{court}/cases"
 
         # Add query parameter for docket number

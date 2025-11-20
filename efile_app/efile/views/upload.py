@@ -10,7 +10,6 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from ..utils.case_data_utils import get_case_classification, get_case_data, get_name_sought_info, get_petitioner_info
-from ..utils.config_loader import config_loader
 from ..utils.s3_upload import s3_handler
 
 logger = logging.getLogger(__name__)
@@ -160,11 +159,7 @@ def efile_upload(request, jurisdiction):
     friendly_filing_type = case_data.get("filing_type_name", case_classification["filing_type"])
     friendly_court = case_data.get("court_name", case_classification["court"])
 
-    jurisdiction_config = config_loader.get_short_jurisdiction_config(jurisdiction)
-
     context = {
-        "jurisdiction": jurisdiction,
-        "jurisdiction_config": jurisdiction_config,
         "case_data": case_data,
         "petitioner_info": petitioner_info,
         "name_sought_info": name_sought_info,

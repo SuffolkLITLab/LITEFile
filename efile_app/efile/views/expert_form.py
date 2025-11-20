@@ -2,8 +2,6 @@ import logging
 
 from django.shortcuts import redirect, render
 
-from efile.utils.config_loader import config_loader
-
 logger = logging.getLogger(__name__)
 
 
@@ -74,10 +72,7 @@ def efile_expert_form(request, jurisdiction):
         has_party_info = all(case_data.get(field) for field in party_fields)
 
     # Display the form for data collection with existing data populated
-    jurisdiction_config = config_loader.get_short_jurisdiction_config(jurisdiction)
     context = {
-        "jurisdiction": jurisdiction,
-        "jurisdiction_config": jurisdiction_config,
         "case_data": case_data,
         "auth_tokens": auth_tokens,
         "can_proceed_to_upload": has_all_required and has_party_info,

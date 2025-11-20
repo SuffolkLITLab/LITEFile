@@ -3,20 +3,16 @@ Context processors for jurisdiction-aware templates
 """
 
 from .utils.config_loader import config_loader
+from .utils.jurisdiction_stuff import get_jurisdiction_from_request
 
 
 def jurisdiction_context(request):
-    """Add current jurisdiction to all template contexts"""
-    current_jurisdiction = request.session.get("jurisdiction", "illinois")
+    """Add current jurisdiction and its config to all template contexts."""
 
-    config = config_loader.get_short_jurisdiction_config(current_jurisdiction)
-    short_configs = {
-        code: config_loader.get_short_jurisdiction_config(code) for code in config_loader.get_available_jurisdictions()
-    }
+    current_jurisdiction = get_jurisdiction_from_request(request)
+    config = config_loader.load_jurisdiction_config(current_jurisdiction)
 
     return {
         "jurisdiction": current_jurisdiction,
-        # Returns just a subset of the keys in the config
-        "jurisdiction_config": config,
-        "available_jurisdictions": short_configs,
+        "config": config,
     }

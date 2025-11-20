@@ -3,6 +3,7 @@ import logging
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import BaseBackend
 
+from efile.utils.jurisdiction_stuff import get_jurisdiction_from_request
 from efile.utils.proxy_connection import auth_with_tyler_api
 
 logger = logging.getLogger(__name__)
@@ -13,7 +14,7 @@ class SuffolkEFileBackend(BaseBackend):
     def authenticate(self, request, username=None, password=None, **kwargs):
         logger.info("Trying auth?")
 
-        jurisdiction = kwargs.get("jurisdiction", self._get_jurisdiction_from_request(request))
+        jurisdiction = kwargs.get("jurisdiction", get_jurisdiction_from_request(request))
         if not username or not password or not jurisdiction:
             return None
 
@@ -28,11 +29,11 @@ class SuffolkEFileBackend(BaseBackend):
 
             user = self._get_or_create_user(username, auth_data, jurisdiction)
             # TODO(brycew): actually write these?
-            # self._update_user_profile(user, auth_data, jurisdiction)
             # if request:
             #    self._store_tokens_in_session(request, auth_data, jurisdiction)
 
             logger.info("Successfully auth'd user: %s", username)
+            request.session["user_email"] = user.email
             return user
         except Exception:
             logger.exception("Error during auth for user: %s", username)
@@ -44,40 +45,54 @@ class SuffolkEFileBackend(BaseBackend):
         except User.DoesNotExist:
             return None
 
-    def _get_jurisdiction_from_request(self, request):
-        jurisdiction = request.GET.get("jurisdiction")
-        if jurisdiction:
-            return jurisdiction.lower()
-        segments = request.path.split("/")
-        # TODO(brycew): okay, maybe it makes sense to add an extra segment to the path...
-        if len(segments) >= 2 and segments[1] not in ["api", "options", "login", "register", "upload", "review"]:
-            return segments[1].lower()
-        return None
-
     def _get_or_create_user(self, username, auth_data, jurisdiction):
         try:
             user = User.objects.get(username=username)
         except User.DoesNotExist:
-            # TODO(brycew): should only check username
             user = None
-            pass
 
+        user_data = self._extract_user_data(auth_data, username, jurisdiction)
         if not user:
-            user_data = self._extract_user_data(auth_data, username, jurisdiction)
             user = User.objects.create_user(
                 username=username,
+                tyler_jurisdiction=jurisdiction,
+                tyler_user_id=user_data.get("user_id", None),
                 email=user_data.get("email", username),
                 first_name=user_data.get("first_name", ""),
                 last_name=user_data.get("last_name", ""),
             )
+        else:
+            user.tyler_jurisdiction = (jurisdiction,)
+            user.tyler_user_id = (user_data.get("user_id", None),)
+            user.email = (user_data.get("email", username),)
+            user.save()
 
-            logger.info("Created new user: %s", username)
+            logger.info("Created new user: %s, %s", user.username, user.email)
         return user
 
     def _extract_user_data(self, auth_data, username, jurisdiction):
-        # TODO(bryce): continue
         user_data = {"email": username}
         if auth_data:
             user_data["user_id"] = auth_data["tokens"][f"TYLER-ID-{jurisdiction.upper()}"]
             user_data["tyler_token"] = auth_data["tokens"][f"TYLER-TOKEN-{jurisdiction.upper()}"]
         return user_data
+
+    @staticmethod
+    def logout(request):
+        """Log the current user out. Here for symmetry.
+
+        If logout fails, will raise an exception.
+        """
+        from django.contrib.auth import logout
+        from django.contrib.messages.api import get_messages
+
+        # Clear any existing messages first
+        storage = get_messages(request)
+        for _message in storage:
+            pass  # This consumes all messages
+
+        logout(request)
+        session_keys_to_keep = ["csrftoken"]
+        session_data = {k: v for k, v in request.session.items() if k in session_keys_to_keep}
+        request.session.clear()
+        request.session.update(session_data)

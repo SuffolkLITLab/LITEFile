@@ -11,7 +11,7 @@ from django.conf import settings
 from django.views.decorators.http import require_http_methods
 
 from ..utils.zip_to_county_il import get_county_by_zip
-from .base import APIResponseMixin, get_auth_tokens
+from .base import APIResponseMixin
 
 logger = logging.getLogger(__name__)
 
@@ -24,8 +24,6 @@ class DropdownAPIViews(APIResponseMixin):
     def get_case_categories(request):
         """Get available case categories from Suffolk LIT Lab API"""
         try:
-            auth_tokens = get_auth_tokens(request)
-
             # Get required parameters
             court_code = request.GET.get("court")
             jurisdiction = request.GET.get("jurisdiction", "illinois")
@@ -38,8 +36,6 @@ class DropdownAPIViews(APIResponseMixin):
 
             # Make the API request with auth tokens if available
             headers = {}
-            if auth_tokens and "token" in auth_tokens:
-                headers["Authorization"] = f"Bearer {auth_tokens['token']}"
 
             logger.debug("GET %s header keys=%s", api_url, list(headers.keys()))
             response = requests.get(api_url, headers=headers, timeout=10)
@@ -78,8 +74,6 @@ class DropdownAPIViews(APIResponseMixin):
     def get_case_types(request):
         """Get case types based on selected category from Suffolk LIT Lab API"""
         try:
-            auth_tokens = get_auth_tokens(request)
-
             # Get required parameters
             court_code = request.GET.get("court")
             category_id = request.GET.get("parent")  # category_id from case category dropdown
@@ -97,8 +91,6 @@ class DropdownAPIViews(APIResponseMixin):
 
             # Make the API request with auth tokens if available
             headers = {}
-            if auth_tokens and "token" in auth_tokens:
-                headers["Authorization"] = f"Bearer {auth_tokens['token']}"
 
             logger.debug("GET %s header keys=%s", api_url, list(headers.keys()))
             response = requests.get(api_url, headers=headers, timeout=10)
@@ -131,8 +123,6 @@ class DropdownAPIViews(APIResponseMixin):
     def get_filing_types(request):
         """Get filing types based on selected case type from Suffolk LIT Lab API"""
         try:
-            auth_tokens = get_auth_tokens(request)
-
             # Get required parameters - support both parameter names for flexibility
             court_code = request.GET.get("court")
             case_type_id = request.GET.get("case_type") or request.GET.get("parent")  # Support both flows
@@ -165,8 +155,6 @@ class DropdownAPIViews(APIResponseMixin):
 
             # Make the API request with auth tokens if available
             headers = {}
-            if auth_tokens and "token" in auth_tokens:
-                headers["Authorization"] = f"Bearer {auth_tokens['token']}"
 
             logger.debug("GET %s header keys=%s", api_url, list(headers.keys()))
             response = requests.get(api_url, headers=headers, timeout=10)
@@ -203,8 +191,6 @@ class DropdownAPIViews(APIResponseMixin):
     def get_courts(request):
         """Get available courts based on user location/preferences"""
         try:
-            auth_tokens = get_auth_tokens(request)
-
             jurisdiction = request.GET.get("jurisdiction", "")
             user_zip = request.GET.get("user_zip")
             user_county = request.GET.get("user_county")
@@ -215,8 +201,6 @@ class DropdownAPIViews(APIResponseMixin):
             try:
                 # Make the API request with auth tokens if available
                 headers = {}
-                if auth_tokens and "token" in auth_tokens:
-                    headers["Authorization"] = f"Bearer {auth_tokens['token']}"
 
                 logger.debug("GET %s header keys=%s", api_url, list(headers.keys()))
                 logger.debug("GET %s header keys=%s", api_url, list(headers.keys()))
@@ -463,8 +447,6 @@ class DropdownAPIViews(APIResponseMixin):
     def get_document_types(request):
         """Get document types based on selected filing type from Suffolk LIT Lab API"""
         try:
-            auth_tokens = get_auth_tokens(request)
-
             # Get required parameters
             court_code = request.GET.get("court")
             filing_type_id = request.GET.get("parent")  # filing type ID from filing type dropdown
@@ -485,8 +467,6 @@ class DropdownAPIViews(APIResponseMixin):
 
             # Make the API request with auth tokens if available
             headers = {}
-            if auth_tokens and "token" in auth_tokens:
-                headers["Authorization"] = f"Bearer {auth_tokens['token']}"
 
             response = requests.get(api_url, headers=headers, timeout=10)
 
@@ -520,8 +500,6 @@ class DropdownAPIViews(APIResponseMixin):
     def get_optional_services(request):
         """Get optional services for a filing type from Suffolk LIT Lab API"""
         try:
-            auth_tokens = get_auth_tokens(request)
-
             # Get required parameters
             court_code = request.GET.get("court")
             filing_type_id = request.GET.get("filing_type_id")
@@ -543,8 +521,6 @@ class DropdownAPIViews(APIResponseMixin):
             try:
                 # Make the API request with auth tokens if available
                 headers = {}
-                if auth_tokens and "token" in auth_tokens:
-                    headers["Authorization"] = f"Bearer {auth_tokens['token']}"
 
                 response = requests.get(api_url, headers=headers, timeout=10)
 
@@ -596,8 +572,6 @@ class DropdownAPIViews(APIResponseMixin):
     def get_party_types(request):
         """Get available party types from Suffolk LIT Lab API based on case type"""
         try:
-            auth_tokens = get_auth_tokens(request)
-
             # Get required parameters
             court_code = request.GET.get("court")
             case_type_code = request.GET.get("case_type")
@@ -612,8 +586,6 @@ class DropdownAPIViews(APIResponseMixin):
 
             # Make the API request with auth tokens if available
             headers = {}
-            if auth_tokens and "token" in auth_tokens:
-                headers["Authorization"] = f"Bearer {auth_tokens['token']}"
 
             response = requests.get(api_url, headers=headers, timeout=10)
 
