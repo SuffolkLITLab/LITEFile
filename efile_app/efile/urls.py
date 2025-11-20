@@ -5,7 +5,7 @@ from .views.api_views import get_case_data_api, get_filing_components
 from .views.choose_jurisdiction import choose_jurisdiction
 from .views.confirmation import filing_confirmation
 from .views.expert_form import efile_expert_form
-from .views.login import efile_login, efile_logout
+from .views.login import efile_login, efile_logout, efile_password_reset
 from .views.options import efile_options
 from .views.register import efile_register
 from .views.review import case_review
@@ -39,6 +39,7 @@ urlpatterns = [
     path("jurisdiction/<jurisdiction>/login/", efile_login, name="efile_login"),
     path("jurisdiction/<jurisdiction>/logout/", efile_logout, name="efile_logout"),
     path("jurisdiction/<jurisdiction>/register/", efile_register, name="efile_register"),
+    path("jurisdiction/<jurisdiction>/password_reset/", efile_password_reset, name="efile_password_reset"),
     path("jurisdiction/<jurisdiction>/options/", efile_options, name="efile_options"),
     path("jurisdiction/<jurisdiction>/expert_form/", efile_expert_form, name="expert_form"),
     path("jurisdiction/<jurisdiction>/upload_first/", efile_upload_first, name="upload_first"),

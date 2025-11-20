@@ -17,6 +17,10 @@ class EFileLoginForm(forms.Form):
     )
 
 
+class EFilePasswordResetForm(forms.Form):
+    email = forms.EmailField(widget=forms.EmailInput(attrs={"class": "form-control", "id": "email", "required": True}))
+
+
 class EFileRegistrationForm(forms.Form):
     # Legal Name
     first_name = forms.CharField(

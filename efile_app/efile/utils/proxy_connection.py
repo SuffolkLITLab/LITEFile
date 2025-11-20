@@ -80,3 +80,15 @@ def get_headers():
         "User-Agent": "LITEfile-Client/1.0",
         "X-API-Key": getattr(settings, "SUFFOLK_EFILE_API_KEY", None),
     }
+
+
+def tyler_password_reset(username, jurisdiction):
+    url = f"{settings.EFSP_URL}/jurisdictions/{jurisdiction}/adminusers/user/password/reset"
+    try:
+        api_key = getattr(settings, "SUFFOLK_EFILE_API_KEY", None)
+        headers = {"X-API-Key": api_key, "User-Agent": f"{jurisdiction.title()}-eFile-Client/1.0"}
+
+        response = requests.post(url, data=username, headers=headers, timeout=10)
+        return response
+    except Exception:
+        logger.exception("Auth password reset failed: %s", url)
