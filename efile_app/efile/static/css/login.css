@@ -78,7 +78,9 @@ body {
 }
 
 .btn-sign-in,
-.btn-register {
+.btn-register,
+.btn-password-reset
+ {
   background: #1e3a5f;
   border: none;
   border-radius: 25px;
@@ -87,18 +89,12 @@ body {
   font-size: 1.1rem;
   color: white;
   transition: all 0.3s ease;
-}
-
-.btn-sign-in {
-  width: 200px;
-}
-
-.btn-register {
   width: 200px;
 }
 
 .btn-sign-in:hover,
-.btn-register:hover {
+.btn-register:hover,
+.btn-password-reset:hover {
   background: #1e3a5f;
   filter: brightness(1.5);
   transform: translateY(-1px);
@@ -164,4 +160,11 @@ body {
 
 .login-form.hide {
   display: none;
+}
+
+.alert-error {
+    --bs-alert-color: var(--bs-danger-text-emphasis);
+    --bs-alert-bg: var(--bs-danger-bg-subtle);
+    --bs-alert-border-color: var(--bs-danger-border-subtle);
+    --bs-alert-link-color: var(--bs-danger-text-emphasis);
 }

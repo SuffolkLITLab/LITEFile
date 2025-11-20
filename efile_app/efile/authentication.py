@@ -96,3 +96,9 @@ class SuffolkEFileBackend(BaseBackend):
         session_data = {k: v for k, v in request.session.items() if k in session_keys_to_keep}
         request.session.clear()
         request.session.update(session_data)
+
+    @staticmethod
+    def password_reset(request):
+        """Calls the efile-proxy's "reset password" API, which
+        sends an email from Tyler to reset the password.
+        """
