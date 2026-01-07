@@ -195,10 +195,10 @@ class ApiUtils {
     // Convenience methods for common HTTP verbs
     async get(endpoint, params = {}) {
         // Check cache first
-        const cachedResponse = this.getCachedResponse(endpoint, params);
-        if (cachedResponse !== null) {
-            return cachedResponse;
-        }
+        //const cachedResponse = this.getCachedResponse(endpoint, params);
+        //if (cachedResponse !== null) {
+        //    return cachedResponse;
+        //}
 
         // Make API request if not cached
         const response = await this.makeRequest(endpoint, { params });
