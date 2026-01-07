@@ -10,11 +10,60 @@ import requests
 from django.conf import settings
 from django.views.decorators.http import require_http_methods
 
+from ..utils.str_dist import levenshtein_distance
 from ..utils.zip_to_county_il import get_county_by_zip
 from .base import APIResponseMixin
 
 logger = logging.getLogger(__name__)
 
+# The maximum "string distance" that options should be from the guessed value to be "recommended"
+MAX_LEV_DIST = 5
+
+def prioritize_options(api_data, guessed=None):
+    if not api_data:
+        return []
+
+    options = []
+    if isinstance(api_data, list):
+        for opt in api_data:
+            if isinstance(opt, dict) and "code" in opt and "name" in opt:
+                options.append({"value": opt["code"], "text": opt["name"]})
+    options.sort(key=lambda x: x["text"])
+
+    guessed_norm = guessed.lower().strip() if guessed else ""
+
+    # Create prioritized list
+    prioritized_options = []
+    other_options = []
+
+    for opt in options:
+        option_text = opt.get("text", "").lower().strip()
+
+        # Direct value match (e.g., 'cook' matches 'cook') or text match (e.g., 'Cook County' matches 'cook')
+        is_match = (option_text == guessed_norm or option_text in guessed_norm or guessed_norm in option_text)
+
+        if not is_match:
+            dist = levenshtein_distance(option_text, guessed_norm)
+            if dist <= MAX_LEV_DIST:
+                is_match = True
+
+        if is_match:
+            # Mark as default/recommended court with recommended text
+            opt_copy = opt.copy()
+            opt_copy["text"] = f"{opt['text']} (Recommended)"
+            prioritized_options.append(opt_copy)
+        else:
+            other_options.append(opt)
+
+    # Mark only the first prioritized court as selected/default
+    final_options = prioritized_options + other_options
+    if prioritized_options:
+        # Mark the first recommended court as selected using multiple flag approaches
+        final_options[0]["selected"] = True
+        final_options[0]["default"] = True
+        final_options[0]["recommended"] = True
+
+    return final_options
 
 class DropdownAPIViews(APIResponseMixin):
     """API views for dropdown data"""
@@ -27,18 +76,20 @@ class DropdownAPIViews(APIResponseMixin):
             # Get required parameters
             court_code = request.GET.get("court")
             jurisdiction = request.GET.get("jurisdiction", "illinois")
+            guessed_category = request.GET.get("guessed_case_category")
 
             if not court_code:
                 return DropdownAPIViews.error_response("Missing required court parameter")
 
             # Make API call to external categories endpoint
             api_url = f"{settings.EFSP_URL}/jurisdictions/{jurisdiction}/codes/courts/{court_code}/categories"
+            params = {"fileable_only": True, "timing": "Initial"}
 
             # Make the API request with auth tokens if available
             headers = {}
 
             logger.debug("GET %s header keys=%s", api_url, list(headers.keys()))
-            response = requests.get(api_url, headers=headers, timeout=10)
+            response = requests.get(api_url, params=params, headers=headers, timeout=10)
             logger.debug(
                 "Categories response: status=%s body=%s",
                 response.status_code,
@@ -46,18 +97,8 @@ class DropdownAPIViews(APIResponseMixin):
             )
 
             if response.status_code == 200:
-                # Parse the API response - expecting list of {name, code} objects
-                api_data = response.json()
-
-                # Transform API data to our dropdown format
-                categories = []
-                if isinstance(api_data, list):
-                    for category in api_data:
-                        if isinstance(category, dict) and "code" in category and "name" in category:
-                            categories.append(
-                                {"value": category["code"], "text": f"{category['name']} ({category['code']})"}
-                            )
-
+                # Parse the response (expecting list of {name, code}), and put the most relevant options at the top
+                categories = prioritize_options(response.json(), guessed_category)
                 return DropdownAPIViews.success_response(categories)
             else:
                 return DropdownAPIViews.error_response(f"API request failed with status {response.status_code}")
@@ -78,6 +119,7 @@ class DropdownAPIViews(APIResponseMixin):
             court_code = request.GET.get("court")
             category_id = request.GET.get("parent")  # category_id from case category dropdown
             jurisdiction = request.GET.get("jurisdiction", "illinois")
+            guessed_type = request.GET.get("guessed_case_type")
 
             if not court_code:
                 return DropdownAPIViews.error_response("Missing required court parameter")
@@ -86,14 +128,15 @@ class DropdownAPIViews(APIResponseMixin):
                 return DropdownAPIViews.error_response("Missing required category_id parameter")
 
             # Make API call to external case types endpoint
-            path = f"/jurisdictions/{jurisdiction}/codes/courts/{court_code}/case_types/?category_id={category_id}"
+            path = f"/jurisdictions/{jurisdiction}/codes/courts/{court_code}/case_types/"
             api_url = f"{settings.EFSP_URL}{path}"
+            params = {"category_id": category_id, "timing": "Initial"}
 
             # Make the API request with auth tokens if available
             headers = {}
 
             logger.debug("GET %s header keys=%s", api_url, list(headers.keys()))
-            response = requests.get(api_url, headers=headers, timeout=10)
+            response = requests.get(api_url, params=params, headers=headers, timeout=10)
             logger.debug(
                 "Case types response: status=%s body=%s",
                 response.status_code,
@@ -101,18 +144,8 @@ class DropdownAPIViews(APIResponseMixin):
             )
 
             if response.status_code == 200:
-                # Parse the API response - expecting list of {name, code} objects
-                api_data = response.json()
-
-                # Transform API data to our dropdown format
-                case_types = []
-                if isinstance(api_data, list):
-                    for case_type in api_data:
-                        if isinstance(case_type, dict) and "code" in case_type and "name" in case_type:
-                            case_types.append(
-                                {"value": case_type["code"], "text": f"{case_type['name']} ({case_type['code']})"}
-                            )
-
+                # Parse the response (expecting list of {name, code}), and put relevant options at the top
+                case_types = prioritize_options(response.json(), guessed_type)
                 return DropdownAPIViews.success_response(case_types)
 
         except Exception:
@@ -129,6 +162,7 @@ class DropdownAPIViews(APIResponseMixin):
             case_category_id = request.GET.get("case_category")
             jurisdiction = request.GET.get("jurisdiction")
             existing_case = request.GET.get("existing_case")
+            guessed_filing_type = request.GET.get("guessed_filing_type")
 
             # Set initial flag based on existing_case parameter:
             # - "yes" means existing case, so initial=False (not an initial filing)
@@ -151,7 +185,6 @@ class DropdownAPIViews(APIResponseMixin):
                 f"?initial={initial}&category_id={case_category_id}&type_id={case_type_id}"
             )
             api_url = f"{settings.EFSP_URL}{path}"
-            logger.debug("Final API URL: %s", api_url)
 
             # Make the API request with auth tokens if available
             headers = {}
@@ -165,18 +198,8 @@ class DropdownAPIViews(APIResponseMixin):
             )
 
             if response.status_code == 200:
-                # Parse the API response - expecting list of {name, code} objects
-                api_data = response.json()
-
-                # Transform API data to our dropdown format
-                filing_types = []
-                if isinstance(api_data, list):
-                    for filing_type in api_data:
-                        if isinstance(filing_type, dict) and "code" in filing_type and "name" in filing_type:
-                            filing_types.append(
-                                {"value": filing_type["code"], "text": f"{filing_type['name']} ({filing_type['code']})"}
-                            )
-
+                # Parse the response (expecting list of {name, code}), and put relevant options at the top
+                filing_types = prioritize_options(response.json(), guessed_filing_type)
                 return DropdownAPIViews.success_response(filing_types)
             else:
                 return DropdownAPIViews.error_response(f"API request failed with status {response.status_code}")
@@ -194,22 +217,18 @@ class DropdownAPIViews(APIResponseMixin):
             jurisdiction = request.GET.get("jurisdiction", "")
             user_zip = request.GET.get("user_zip")
             user_county = request.GET.get("user_county")
+            guessed_court = request.GET.get("guessed_court", "")
 
             # Make API call to external jurisdiction endpoint
-            api_url = f"{settings.EFSP_URL}/jurisdictions/{jurisdiction}/codes/courts/?with_names=True"
+            api_url = f"{settings.EFSP_URL}/jurisdictions/{jurisdiction}/codes/courts/"
+            params = {"fileable_only": True, "with_names": True}
 
             try:
                 # Make the API request with auth tokens if available
                 headers = {}
 
                 logger.debug("GET %s header keys=%s", api_url, list(headers.keys()))
-                logger.debug("GET %s header keys=%s", api_url, list(headers.keys()))
-                response = requests.get(api_url, headers=headers, timeout=10)
-                logger.debug(
-                    "Optional services response: status=%s content_type=%s",
-                    response.status_code,
-                    response.headers.get("Content-Type"),
-                )
+                response = requests.get(api_url, params=params, headers=headers, timeout=10)
                 logger.debug(
                     "Courts response: status=%s content_type=%s",
                     response.status_code,
@@ -226,8 +245,11 @@ class DropdownAPIViews(APIResponseMixin):
                         for court in api_data:
                             if isinstance(court, dict) and "code" in court and "name" in court:
                                 # Filter out courts with unwanted patterns in the name
-                                court_name = court["name"]
-                                if any(pattern in court_name for pattern in ["(zOdyssey)", "z -", "zz"]):
+                                court_name_standardized = court["name"].lower()
+                                if any(
+                                    pattern in court_name_standardized
+                                    for pattern in ["(zodyssey)", "z -", "zz", "zdev"]
+                                ):
                                     continue  # Skip this court
 
                                 courts.append({"value": court["code"], "text": court["name"]})
@@ -235,7 +257,9 @@ class DropdownAPIViews(APIResponseMixin):
                     # If we got courts from the API, return them with user location priority
                     if courts:
                         return DropdownAPIViews.success_response(
-                            DropdownAPIViews._prioritize_courts_by_location(courts, user_zip, user_county)
+                            DropdownAPIViews._prioritize_courts_by_location(
+                                courts, guessed_court, user_zip, user_county
+                            )
                         )
                     else:
                         # If no courts found in API response, fall back to hardcoded data
@@ -381,7 +405,7 @@ class DropdownAPIViews(APIResponseMixin):
             return DropdownAPIViews.error_response(f"Error: {str(e)}")
 
     @staticmethod
-    def _prioritize_courts_by_location(courts, user_zip=None, user_county=None):
+    def _prioritize_courts_by_location(courts, guessed_court="", user_zip=None, user_county=None):
         """
         Prioritize courts based on user's location (zip code or county).
         Adds a 'default' flag to courts that match the user's location.
@@ -397,30 +421,29 @@ class DropdownAPIViews(APIResponseMixin):
         if not target_county:
             return courts
 
+        guessed_court_norm = guessed_court.lower().replace("court", "").replace("illinois", "")
+
         # Normalize county name for matching (lowercase, no spaces)
-        target_county_normalized = target_county.lower().replace(" ", "").replace("county", "")
+        target_county_norm = target_county.lower().replace(" ", "").replace("county", "")
 
         # Create prioritized list
         prioritized_courts = []
         other_courts = []
 
         for court in courts:
-            court_value = court.get("value", "").lower()
+            court_value = court.get("value", "").lower().replace("county", "")
             court_text = court.get("text", "").lower()
 
             # Check if this court matches the user's county
             is_match = False
 
-            # Direct value match (e.g., 'cook' matches 'cook')
-            if court_value == target_county_normalized:
+            # Direct value match (e.g., 'cook' matches 'cook') or text match (e.g., 'Cook County' matches 'cook')
+            if court_value == guessed_court_norm or court_value in guessed_court_norm:
                 is_match = True
-
-            # Text match (e.g., 'Cook County' matches 'cook')
-            elif target_county_normalized in court_text:
+            elif court_value == target_county_norm or target_county_norm in court_text:
                 is_match = True
-
             # Special handling for Cook County divisions
-            elif target_county_normalized == "cook" and "cook:" in court_value:
+            elif target_county_norm == "cook" and "cook:" in court_value:
                 is_match = True
 
             if is_match:
@@ -438,7 +461,6 @@ class DropdownAPIViews(APIResponseMixin):
             final_courts[0]["selected"] = True
             final_courts[0]["default"] = True
             final_courts[0]["recommended"] = True
-            final_courts[0]["isSelected"] = True  # Alternative property name
 
         return final_courts
 
@@ -479,12 +501,13 @@ class DropdownAPIViews(APIResponseMixin):
                 if isinstance(api_data, list):
                     for document_type in api_data:
                         if isinstance(document_type, dict) and "code" in document_type and "name" in document_type:
-                            document_types.append(
-                                {
-                                    "value": document_type["code"],
-                                    "text": f"{document_type['name']} ({document_type['code']})",
-                                }
-                            )
+                            lower_name = document_type["name"].lower().strip()
+                            if "non-confidential" == lower_name or "public" == lower_name:
+                                text = f"No ({document_type['name']})"
+                            else:
+                                text = f"Yes ({document_type['name']})"
+
+                            document_types.append({"value": document_type["code"], "text": text})
 
                 return DropdownAPIViews.success_response(document_types)
             else:

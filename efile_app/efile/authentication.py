@@ -62,9 +62,9 @@ class SuffolkEFileBackend(BaseBackend):
                 last_name=user_data.get("last_name", ""),
             )
         else:
-            user.tyler_jurisdiction = (jurisdiction,)
-            user.tyler_user_id = (user_data.get("user_id", None),)
-            user.email = (user_data.get("email", username),)
+            user.tyler_jurisdiction = jurisdiction
+            user.tyler_user_id = user_data.get("user_id", None)
+            user.email = user_data.get("email", username)
             user.save()
 
             logger.info("Created new user: %s, %s", user.username, user.email)

@@ -16,22 +16,14 @@ body {
   font-size: 1.25rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
+
+  font-size: 2rem;
 }
 
 .section-description {
   color: #6c757d;
   font-size: 0.95rem;
   margin-bottom: 1.5rem;
-}
-
-.subsection-header {
-  color: #007bff;
-  font-weight: 600;
-  margin: 2rem 0 1rem 0;
-}
-
-.required {
-  color: #dc3545;
 }
 
 .optional {
@@ -151,4 +143,33 @@ option.recommended {
 
 .court-container {
   position: relative;
+}
+
+/* Custom styles for better spacing and required field styling */
+.required {
+  color: #dc3545 !important;
+  font-weight: bold;
+}
+
+.subsection-header {
+  margin-top: 3.5rem !important;
+  margin-bottom: 1rem !important;
+  color: #007bff;
+  font-weight: 600;
+}
+
+.subsection-header:first-of-type {
+  margin-top: 2rem !important;
+}
+
+/* Increase spacing between form rows */
+.row.mb-3 {
+  margin-bottom: 2.5rem !important;
+}
+
+/* Add more space before the button section */
+.d-flex.justify-content-between.mt-4 {
+  margin-top: 4rem !important;
+  padding-top: 1rem;
+  border-top: 1px solid #e9ecef;
 }

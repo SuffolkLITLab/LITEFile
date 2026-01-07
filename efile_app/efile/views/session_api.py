@@ -2,11 +2,13 @@ import json
 import logging
 
 import requests
+from tempfile import NamedTemporaryFile
 from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
+from ..utils.llms import LlmError, extract_fields_from_file
 from ..utils.zip_to_county_il import get_county_by_zip
 
 logger = logging.getLogger(__name__)
@@ -226,6 +228,76 @@ def save_form_data_to_session(request):
 
 @csrf_exempt
 @require_http_methods(["POST"])
+def save_upload_first_data(request):
+    """Save upload data and file information to Django session for review."""
+    try:
+        logger.debug("Received POST request to save upload data")
+        logger.debug(f"Request body: {request.body.decode('utf-8')}")
+
+        data = json.loads(request.body)
+        upload_data = {"files": data.get("files", {})}
+
+        url = upload_data["files"]["lead"]["url"]
+        file_resp = requests.get(url)
+        with NamedTemporaryFile(delete_on_close=False, suffix=".pdf") as f:
+            f.write(file_resp.content)
+            f.close()
+
+            # noqa: E501
+            llm_hint = """
+            However you should always attempt to deduce "case_category" and "case_type", using the following information:
+
+* Chancery (CH): Specific Performance (order someone to do something), Injunction (order someone to stop doing something), Mechanics Lien Foreclosure (put a lien on someone’s property if they didn’t pay for your services to improve it)
+* Criminal Felony (CF) or Criminal: Petition to Expunge or Seal
+* Dissolution with Children (DC) or without Children (DN) (NOTE: Dissolution means Divorce)
+* Misdemeanor (CM)
+* Eviction (EV) NOTE: Eviction may also be called Forcible Entry and Detainer: Residential, Commercial, Ejectment
+* Family (FA): Petition for Parentage, Visitation, or Custody
+* Guardianship (GR): Guardianship of Minor or Person with Disability
+* Law Magistrate (LM): Contract, Tort, and other claims for money over $10,000 up to $50,000
+* Miscellaneous Criminal (MX): Petition to Expunge or Seal (arrests only), Civil Asset/Property Forfeiture
+* Miscellaneous Remedy (MR): Administrative Review (for example, review of unemployment decisions), Certiorari (for example, administrative review of housing authority decisions)
+* Miscellaneous Remedy (MR): Change of Name
+* Order of Protection (OP): Order of Protection, Stalking No Contact, Civil No Contact, Firearms Restraining
+* Probate (PR): Administration of Decedent’s Estate
+* Small Claims (SC): Contract and Tort claims for money $10,000 or less
+"""
+            found_fields = extract_fields_from_file(
+                f.name,
+                {
+                    "court name": "The name of the court that this form is filed in, often is the county of the court.",
+                    "filing type": "The formal title of the filing being made",
+                    "case category": "The high level category of this case",
+                    "case type": "The type of legal case this form is a part of",
+                    "docker number": "The unique identifier for this case in cort. Also referred to as the case number",
+                },
+                llm_hint=llm_hint,
+            )
+            logger.debug("Found fields: %s", found_fields)
+
+        upload_data["guesses"] = {}
+        upload_data["guesses"]["court"] = found_fields.get("court name")
+        upload_data["guesses"]["filing type"] = found_fields.get("filing type")
+        upload_data["guesses"]["case category"] = found_fields.get("case category")
+        upload_data["guesses"]["case type"] = found_fields.get("case type")
+        upload_data["guesses"]["docket number"] = found_fields.get("docket number")
+
+        # Save to session
+        request.session["upload_data"] = upload_data
+        request.session.modified = True
+
+        logger.info("Successfully saved upload data to session")
+        return JsonResponse({"success": True, "message": "Upload data saved to session"})
+    except LlmError as e:
+        logger.exception("Error processing upload data to session", e)
+        return JsonResponse({"success": False, "error": "Processing error"}, status=500)
+    except Exception as e:
+        logger.exception("Error saving upload data to session", e)
+        return JsonResponse({"success": False, "error": "Saving error"}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
 def save_upload_data_to_session(request):
     """Save upload data and file information to Django session for review."""
     try:
@@ -235,11 +307,13 @@ def save_upload_data_to_session(request):
         data = json.loads(request.body)
         logger.debug("Parsed upload data")
 
+        old_upload_data = request.session["upload_data"]
         upload_data = {
-            "files": data.get("files", {}),
+            "files": {"lead": old_upload_data["files"]["lead"], "supporting": data["files"]["supporting"]},
             "options": data.get("options", {}),
-            # Lead document filing information
+            "guesses": old_upload_data.get("guesses", {}),
             "lead_filing_type": data.get("lead_filing_type", ""),
+            # Lead document filing information
             "lead_filing_type_name": data.get("lead_filing_type_name", ""),
             "lead_document_type": data.get("lead_document_type", ""),
             "lead_document_type_name": data.get("lead_document_type_name", ""),
@@ -476,16 +550,24 @@ def api_save_case_data(request):
     try:
         data = json.loads(request.body)
 
+        session_id = data.get("session_id")
+        if session_id:
+            request.session["session_id"] = session_id
+
+        jurisdiction = data.get("jurisdiction")
+        if jurisdiction:
+            request.session["jurisdiction"] = jurisdiction
+
         # Handle two different data structures:
         # 1. From form-validation.js: { data: { form_fields... } }
-        # 2. From case_details.html: { existing_case: 'yes', case_tracking_id: '...', ... }
+        # 2. From existing cases: { existing_case: 'yes', case_tracking_id: '...', ... }
 
         if "data" in data:
             # Structure from form-validation.js (expert form)
             form_data = data.get("data", {})
             existing_case = form_data.get("existing_case")
         else:
-            # Structure from case_details.html (direct fields)
+            # Structure from existing cases (direct fields)
             form_data = data
             existing_case = data.get("existing_case")
 
@@ -500,6 +582,9 @@ def api_save_case_data(request):
         # Ensure existing_case status is available in case_data
         if existing_case:
             case_data["existing_case"] = existing_case
+
+        if jurisdiction:
+            case_data["jurisdiction_id"] = jurisdiction
 
         # Map case details fields to standard names for eFiling
         if "case_docket_id" in form_data:
@@ -526,6 +611,30 @@ def api_save_case_data(request):
 
     except json.JSONDecodeError:
         return JsonResponse({"success": False, "error": "Invalid JSON data"}, status=400)
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
+
+
+@require_http_methods(["GET"])
+def api_get_case_data(request):
+    """
+    API endpoint to retrieve saved case data from session
+    """
+    data = {}
+    try:
+        data["session_id"] = request.session.get("session_id")
+        data["jurisdiction"] = request.session.get("jurisdiction")
+
+        existing_case = request.session.get("existing_case")
+        if existing_case:
+            data["existing_case"] = existing_case
+
+        case_data = request.session.get("case_data")
+        if case_data:
+            data["case_data"] = case_data
+
+        return JsonResponse({"success": True, "data": data})
+
     except Exception as e:
         return JsonResponse({"success": False, "error": str(e)}, status=500)
 
@@ -762,22 +871,4 @@ def get_party_types_from_suffolk_api(request):
         return JsonResponse({"success": False, "error": f"Network error: {str(e)}"}, status=500)
     except Exception as e:
         print(f"Unexpected error: {e}")
-        return JsonResponse({"success": False, "error": str(e)}, status=500)
-
-
-@require_http_methods(["GET"])
-def api_get_case_data(request):
-    """
-    API endpoint to retrieve saved case data from session
-    """
-    try:
-        existing_case = request.session.get("existing_case")
-
-        data = {}
-        if existing_case:
-            data["existing_case"] = existing_case
-
-        return JsonResponse({"success": True, "data": data})
-
-    except Exception as e:
         return JsonResponse({"success": False, "error": str(e)}, status=500)

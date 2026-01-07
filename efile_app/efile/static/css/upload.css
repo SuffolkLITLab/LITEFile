@@ -105,7 +105,22 @@
   margin-top: 0;
 }
 
+.file-preview-lead {
+  /* border: 1px solid #e9ecef; */
+  border-radius: 6px;
+  padding: 1rem;
+  margin-top: 0.75rem;
+  background: #fff;
+  position: relative;
+}
+
+.file-preview-lead:first-child {
+  margin-top: 0;
+}
+
 .file-info {
+  /* overflow: clip; */
+  word-break: break-all;
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -206,6 +221,7 @@
   font-weight: 600;
   border-bottom: 1px solid #e9ecef;
   padding-bottom: 0.5rem;
+  word-break: break-word;
 }
 
 .upload-progress {
@@ -325,6 +341,10 @@
 
   .upload-area {
     padding: 2rem 1rem;
+  }
+
+  .lead-preview-area {
+    padding: 0rem 0rem;
   }
 
   .case-summary .row {

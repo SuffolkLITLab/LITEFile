@@ -2,6 +2,8 @@ import logging
 
 from django.shortcuts import redirect, render
 
+from ..utils.django_helpers import flush_cache_stay_logged_in
+
 logger = logging.getLogger(__name__)
 
 
@@ -21,28 +23,7 @@ def efile_expert_form(request, jurisdiction):
 
     # Only clear cache if both conditions are met: clear_cache=true AND from_options=true
     if clear_cache and from_options:
-        # Store auth info before clearing everything
-        to_save = {
-            k: request.session.get(k, None)
-            for k in ["auth_tokens", "user_email", "_auth_user_id", "_auth_user_backend", "_auth_user_hash"]
-        }
-
-        logger.debug("Before cache clear - session keys: %s", list(request.session.keys()))
-
-        # Clear ALL session data
-        request.session.flush()
-
-        for key, value in to_save.items():
-            if value:
-                request.session[key] = value
-
-        # Force session to save changes
-        request.session.modified = True
-
-        logger.debug(
-            "FULL cache cleared from expert form via options page - session keys after clear: %s",
-            list(request.session.keys()),
-        )
+        flush_cache_stay_logged_in(request.session)
     else:
         logger.debug("Cache NOT cleared - preserving existing session data")
 
@@ -61,6 +42,8 @@ def efile_expert_form(request, jurisdiction):
     logger.debug(f"All session data keys: {list(request.session.keys())}")
     logger.debug(f"Clear cache parameter received: {request.GET.get('clear_cache', 'not present')}")
 
+    upload_data = request.session.get("upload_data", {})
+
     # Check if we have all required data for upload
     required_fields = ["court", "case_category", "case_type", "filing_type", "document_type"]
     has_all_required = all(case_data.get(field) for field in required_fields)
@@ -74,6 +57,9 @@ def efile_expert_form(request, jurisdiction):
     # Display the form for data collection with existing data populated
     context = {
         "case_data": case_data,
+        "guessed_court": upload_data.get("guesses", {}).get("court"),
+        "guessed_case_category": upload_data.get("guesses", {}).get("case type"),
+        "guessed_case_type": upload_data.get("guesses", {}).get("case category"),
         "auth_tokens": auth_tokens,
         "can_proceed_to_upload": has_all_required and has_party_info,
         "missing_required_fields": not has_all_required,

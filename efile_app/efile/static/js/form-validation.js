@@ -601,10 +601,10 @@ class FormValidation {
         }, 1000); // Give more time for dynamic sections to render
       }
 
-      this.showNotification(
-        "Previous case data restored successfully!",
-        "success"
-      );
+      //this.showNotification(
+      //  "Previous case data restored successfully!",
+      //  "success"
+      //);
     } catch (error) {
       console.error("Error during dropdown population:", error);
       this.showNotification("Error restoring some dropdown values", "error");

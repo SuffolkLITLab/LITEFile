@@ -97,10 +97,9 @@ STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "efile/static"]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-# TODO(brycew): change these to include the jurisdiction?
-LOGIN_REDIRECT_URL = "/dashboard/"
-LOGOUT_REDIRECT_URL = "/login/"
 SUFFOLK_EFILE_API_KEY = os.getenv("SUFFOLK_EFILE_API_KEY", "")
+
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", None)
 
 # Base URL for EFSP-compatible APIs (Suffolk LIT Lab by default)
 # Override per environment with EFSP_URL env var

@@ -7,6 +7,7 @@ class ApiUtils {
         this.baseUrl = window.location.origin;
         this.csrfToken = this.getCSRFToken();
         this.cache = this.getCache();
+        //this.cacheExpiry = 0; // Use for Development
         this.cacheExpiry = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
         
         // Clear expired cache entries on initialization
@@ -195,10 +196,10 @@ class ApiUtils {
     // Convenience methods for common HTTP verbs
     async get(endpoint, params = {}) {
         // Check cache first
-        //const cachedResponse = this.getCachedResponse(endpoint, params);
-        //if (cachedResponse !== null) {
-        //    return cachedResponse;
-        //}
+        const cachedResponse = this.getCachedResponse(endpoint, params);
+        if (cachedResponse !== null) {
+            return cachedResponse;
+        }
 
         // Make API request if not cached
         const response = await this.makeRequest(endpoint, { params });

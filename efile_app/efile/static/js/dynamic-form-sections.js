@@ -11,7 +11,7 @@ class DynamicFormSections {
     this.preservedFormData = null;
     this.preservedCaseType = null;
 
-    this.init();
+    //this.init();
   }
 
   async init() {
@@ -306,10 +306,10 @@ class DynamicFormSections {
 
     if (caseTypeConfig) {
       this.currentCaseType = caseTypeValue; // Track the current case type
-      this.renderCaseTypeForm(caseTypeConfig);
-      this.showDynamicSections();
+      //this.renderCaseTypeForm(caseTypeConfig);
+      //this.showDynamicSections();
     } else {
-      this.hideDynamicSections();
+      //this.hideDynamicSections();
     }
   }
 
@@ -410,7 +410,6 @@ class DynamicFormSections {
   }
 
   renderCaseTypeForm(caseTypeConfig) {
-    // Preserve current state before re-rendering
     this.preserveCurrentState();
 
     const sections = caseTypeConfig.sections || {};
@@ -434,17 +433,17 @@ class DynamicFormSections {
     this.restorePreservedState();
 
     // Load party type dropdowns after all sections are rendered
-    this.loadPartyTypeDropdowns();
+    //this.loadPartyTypeDropdowns();
 
     // Update form validation after rendering
     this.updateFormValidation();
 
     // Check if there's restoration data from form validation that needs to be applied
     if (this.restorationData) {
-      setTimeout(() => {
+      //setTimeout(() => {
         this.populateRenderedFields(this.restorationData);
         this.restorationData = null; // Clear after use
-      }, 50);
+      //}, 50);
     }
 
     // Notify form validation system that dynamic fields have been rendered
@@ -866,7 +865,7 @@ class DynamicFormSections {
                               "/api/dropdowns/party-types/"
                             }"
                             ${requiredAttr}>
-                        <option value="">Select Party Type</option>
+                        <option value="">Select PParty Type</option>
                     </select>
                     <div class="loading-spinner" id="loading-${fieldId}" style="display: none;">
                         <i class="fas fa-spinner fa-spin"></i> Loading party types...
@@ -1154,7 +1153,9 @@ class DynamicFormSections {
 
     let fieldsPopulated = 0;
 
+    console.log("%o", data);
     dynamicFields.forEach((key) => {
+      console.log("key: %s", key);
       if (data[key]) {
         const field = document.querySelector(`[name="${key}"]`);
         if (field) {

@@ -1,0 +1,170 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Upload Your Documents</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link href="{% static 'css/upload.css' %}" rel="stylesheet" />
+    <link
+      href="{% static 'css/components/search-dropdown.css' %}"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    {% include 'efile/components/profile_header.html' %}
+
+    <div class="container">
+      <div class="upload-container">
+        <h2 class="section-header">Upload your lead document</h2>
+        <p class="section-description">
+          Upload your main court form. It must
+          be in PDF format and clearly legible.
+        </p>
+
+        <form id="uploadForm" enctype="multipart/form-data">
+          {% csrf_token %}
+
+          <!-- Document Requirements -->
+          <div class="alert alert-info mb-4">
+            <h6><i class="fas fa-info-circle me-2"></i><strong>Document requirements</strong></h6>
+            <div class="mb-2">
+              <strong>Format:</strong> Must be in PDF format with
+              text that can be read clearly.
+            </div>
+            <div class="mb-0">
+              <strong>Size Limit:</strong> Must be under 10MB.
+            </div>
+          </div>
+
+          <!-- Lead Document Section -->
+          <div class="document-section mb-4" id="leadDocumentSection">
+            <label class="form-label document-label">
+              <strong>Lead document</strong> <span class="required">*</span>
+            </label>
+            <p class="text-muted">
+              Your main petition document - this is the primary filing for your
+              case.
+            </p>
+
+            <div class="upload-area" id="leadDocumentArea">
+              <div class="upload-placeholder">
+                <i class="fas fa-file-pdf fa-3x text-muted mb-3"></i>
+                <p class="mb-2">
+                  <strong>Click to upload or drag and drop</strong>
+                </p>
+                <p class="text-muted small">PDF files only, maximum 10MB</p>
+              </div>
+              <input
+                type="file"
+                id="leadDocument"
+                name="lead_document"
+                accept=".pdf"
+                class="file-input"
+                required
+              />
+            </div>
+          </div>
+
+          <!-- Before You Continue Section -->
+          <div class="alert alert-warning">
+            <h6><strong>Before you continue</strong></h6>
+            <p class="mb-2">
+              <strong>Review your document:</strong> Make sure all text is
+              legible and all required information is complete.
+            </p>
+            <p class="mb-2">
+              <strong>File names:</strong> Your document will be renamed
+              according to court standards when filed.
+            </p>
+            <p class="mb-0">
+              <strong>Cannot be changed:</strong> Once submitted, you cannot
+              modify this document without filing additional motions.
+            </p>
+          </div>
+
+          <!-- Progress and Loading -->
+          <div
+            class="upload-progress"
+            id="uploadProgress"
+            style="display: none"
+          >
+            <div class="progress mb-3">
+              <div
+                class="progress-bar"
+                role="progressbar"
+                style="width: 0%"
+              ></div>
+            </div>
+            <p class="text-center">
+              Creating filing and uploading documents...
+            </p>
+          </div>
+
+          <!-- Error Messages -->
+          <div class="alert alert-danger" id="errorAlert" style="display: none">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <span id="errorMessage"></span>
+          </div>
+
+          <!-- Success Messages -->
+          <div
+            class="alert alert-success"
+            id="successAlert"
+            style="display: none"
+          >
+            <i class="fas fa-spinner fa-spin me-2"></i>
+            <span id="successMessage"></span>
+          </div>
+
+          <!-- Form Buttons -->
+          <div
+            class="d-flex flex-column flex-md-row justify-content-between gap-3 mt-4"
+          >
+            <button
+              type="button"
+              onclick="window.location.href='{% url 'efile_options' jurisdiction %}'"
+              class="btn btn-outline-secondary px-4"
+            >
+              <i class="fas fa-arrow-left me-2"></i>Back to Options
+            </button>
+            <button
+              type="submit"
+              class="btn btn-primary px-4"
+              id="submitButton"
+            >
+              <i class="fas fa-arrow-right me-2"></i>Continue to case information
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/api-utils.js' %}"></script>
+    <script src="{% static 'js/components/search-dropdown.js' %}"></script>
+    <script src="{% static 'js/upload-handler-first.js' %}"></script>
+
+    <script>
+      // Helper function to get CSRF token
+      function getCSRFToken() {
+        return (
+          document.querySelector("[name=csrfmiddlewaretoken]")?.value ||
+          document
+            .querySelector('meta[name="csrf-token"]')
+            ?.getAttribute("content") ||
+          ""
+        );
+      }
+    </script>
+  </body>
+</html>
