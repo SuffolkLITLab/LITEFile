@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 # The maximum "string distance" that options should be from the guessed value to be "recommended"
 MAX_LEV_DIST = 5
 
+
 def prioritize_options(api_data, guessed=None):
     if not api_data:
         return []
@@ -40,7 +41,7 @@ def prioritize_options(api_data, guessed=None):
         option_text = opt.get("text", "").lower().strip()
 
         # Direct value match (e.g., 'cook' matches 'cook') or text match (e.g., 'Cook County' matches 'cook')
-        is_match = (option_text == guessed_norm or option_text in guessed_norm or guessed_norm in option_text)
+        is_match = option_text == guessed_norm or option_text in guessed_norm or guessed_norm in option_text
 
         if not is_match:
             dist = levenshtein_distance(option_text, guessed_norm)
@@ -64,6 +65,7 @@ def prioritize_options(api_data, guessed=None):
         final_options[0]["recommended"] = True
 
     return final_options
+
 
 class DropdownAPIViews(APIResponseMixin):
     """API views for dropdown data"""

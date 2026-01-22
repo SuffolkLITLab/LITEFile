@@ -865,7 +865,7 @@ class DynamicFormSections {
                               "/api/dropdowns/party-types/"
                             }"
                             ${requiredAttr}>
-                        <option value="">Select PParty Type</option>
+                        <option value="">Select Party Type</option>
                     </select>
                     <div class="loading-spinner" id="loading-${fieldId}" style="display: none;">
                         <i class="fas fa-spinner fa-spin"></i> Loading party types...
@@ -1153,9 +1153,7 @@ class DynamicFormSections {
 
     let fieldsPopulated = 0;
 
-    console.log("%o", data);
     dynamicFields.forEach((key) => {
-      console.log("key: %s", key);
       if (data[key]) {
         const field = document.querySelector(`[name="${key}"]`);
         if (field) {

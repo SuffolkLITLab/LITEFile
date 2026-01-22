@@ -671,13 +671,6 @@ class UploadHandler {
     }
 
     async handleFormSubmission() {
-        // Validate that lead document has filing component selected
-        /*const leadFilingComponent = document.getElementById('leadFilingComponent')?.value;
-        if (!leadFilingComponent) {
-            this.showError('Please select a filing component for your lead document.');
-            return;
-        }*/
-
         // Validate that all supporting documents have filing components selected
         for (let i = 0; i < this.uploadedFiles.supporting.length; i++) {
             const supportingFilingComponent = document.getElementById(`supportingFilingComponent${i}`)?.value;

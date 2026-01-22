@@ -1,8 +1,8 @@
 import json
 import logging
+from tempfile import NamedTemporaryFile
 
 import requests
-from tempfile import NamedTemporaryFile
 from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -12,6 +12,61 @@ from ..utils.llms import LlmError, extract_fields_from_file
 from ..utils.zip_to_county_il import get_county_by_zip
 
 logger = logging.getLogger(__name__)
+
+llm_hints = {
+    "illinois": """
+            However you should always attempt to deduce "case_category" and "case_type", using the following information:
+
+* Chancery (CH): Specific Performance (order someone to do something), Injunction (order someone to stop doing something), Mechanics Lien Foreclosure (put a lien on someone’s property if they didn’t pay for your services to improve it)
+* Criminal Felony (CF) or Criminal: Petition to Expunge or Seal
+* Dissolution with Children (DC) or without Children (DN) (NOTE: Dissolution means Divorce)
+* Misdemeanor (CM)
+* Eviction (EV) NOTE: Eviction may also be called Forcible Entry and Detainer: Residential, Commercial, Ejectment
+* Family (FA): Petition for Parentage, Visitation, or Custody
+* Guardianship (GR): Guardianship of Minor or Person with Disability
+* Law Magistrate (LM): Contract, Tort, and other claims for money over $10,000 up to $50,000
+* Miscellaneous Criminal (MX): Petition to Expunge or Seal (arrests only), Civil Asset/Property Forfeiture
+* Miscellaneous Remedy (MR): Administrative Review (for example, review of unemployment decisions), Certiorari (for example, administrative review of housing authority decisions)
+* Miscellaneous Remedy (MR): Change of Name
+* Order of Protection (OP): Order of Protection, Stalking No Contact, Civil No Contact, Firearms Restraining
+* Probate (PR): Administration of Decedent’s Estate
+* Small Claims (SC): Contract and Tort claims for money $10,000 or less
+""",
+    "massachusetts": """You should always attempt to deduce "case_category" and "case_type".""",
+    "vermont": """You should always attempt to deduce "case_category" and "case_type".""",
+    "default": """You should always attempt to deduce "case_category" and "case_type".""",
+}
+
+llm_fields: dict[str, dict[str, str]] = {
+    "illinois": {
+        "court name": "The name of the court that this form is filed in, often is the county of the court.",
+        "filing type": "The formal title of the filing being made",
+        "case category": "The high level category of this case",
+        "case type": "The type of legal case this form is a part of",
+        "docker number": "The unique identifier for this case in court. Also referred to as the case number",
+    },
+    "massachusetts": {
+        "court name": "The name of the court that this form is filed in",
+        "filing type": "The formal title of the filing being made",
+        "case category": "The high level category of this case",
+        "case type": "The type of legal case this form is a part of",
+        "docker number": "The unique identifier for this case in court.",
+    },
+    "vermont": {
+        "court name": "The name of the court that this form is filed in, often is the county of the court.",
+        "filing type": "The formal title of the filing being made",
+        "case category": "The high level category of this case",
+        "case type": "The type of legal case this form is a part of",
+        "docker number": "The unique identifier for this case in court. Also referred to as the case number",
+    },
+    "default": {
+        "court name": "The name of the court that this form is filed in.",
+        "filing type": "The formal title of the filing being made",
+        "case category": "The high level category of this case",
+        "case type": "The type of legal case this form is a part of",
+        "docker number": "The unique identifier for this case in court. Also referred to as the case number",
+    },
+}
 
 
 def get_party_type_code_from_api(court_code, case_type_code, jurisdiction="illinois", target_party_name=None):
@@ -235,6 +290,7 @@ def save_upload_first_data(request):
         logger.debug(f"Request body: {request.body.decode('utf-8')}")
 
         data = json.loads(request.body)
+        jurisdiction_id = data.get("jurisdiction_id", "default")
         upload_data = {"files": data.get("files", {})}
 
         url = upload_data["files"]["lead"]["url"]
@@ -244,33 +300,11 @@ def save_upload_first_data(request):
             f.close()
 
             # noqa: E501
-            llm_hint = """
-            However you should always attempt to deduce "case_category" and "case_type", using the following information:
-
-* Chancery (CH): Specific Performance (order someone to do something), Injunction (order someone to stop doing something), Mechanics Lien Foreclosure (put a lien on someone’s property if they didn’t pay for your services to improve it)
-* Criminal Felony (CF) or Criminal: Petition to Expunge or Seal
-* Dissolution with Children (DC) or without Children (DN) (NOTE: Dissolution means Divorce)
-* Misdemeanor (CM)
-* Eviction (EV) NOTE: Eviction may also be called Forcible Entry and Detainer: Residential, Commercial, Ejectment
-* Family (FA): Petition for Parentage, Visitation, or Custody
-* Guardianship (GR): Guardianship of Minor or Person with Disability
-* Law Magistrate (LM): Contract, Tort, and other claims for money over $10,000 up to $50,000
-* Miscellaneous Criminal (MX): Petition to Expunge or Seal (arrests only), Civil Asset/Property Forfeiture
-* Miscellaneous Remedy (MR): Administrative Review (for example, review of unemployment decisions), Certiorari (for example, administrative review of housing authority decisions)
-* Miscellaneous Remedy (MR): Change of Name
-* Order of Protection (OP): Order of Protection, Stalking No Contact, Civil No Contact, Firearms Restraining
-* Probate (PR): Administration of Decedent’s Estate
-* Small Claims (SC): Contract and Tort claims for money $10,000 or less
-"""
+            llm_hint = llm_hints.get(jurisdiction_id)
+            fields: dict[str, str] = llm_fields.get(jurisdiction_id, {})
             found_fields = extract_fields_from_file(
                 f.name,
-                {
-                    "court name": "The name of the court that this form is filed in, often is the county of the court.",
-                    "filing type": "The formal title of the filing being made",
-                    "case category": "The high level category of this case",
-                    "case type": "The type of legal case this form is a part of",
-                    "docker number": "The unique identifier for this case in cort. Also referred to as the case number",
-                },
+                fields,
                 llm_hint=llm_hint,
             )
             logger.debug("Found fields: %s", found_fields)
@@ -622,19 +656,11 @@ def api_get_case_data(request):
     """
     data = {}
     try:
-        data["session_id"] = request.session.get("session_id")
-        data["jurisdiction"] = request.session.get("jurisdiction")
-
-        existing_case = request.session.get("existing_case")
-        if existing_case:
-            data["existing_case"] = existing_case
-
-        case_data = request.session.get("case_data")
-        if case_data:
-            data["case_data"] = case_data
-
+        for param_to_check in ["session_id", "jurisdiction", "existing_case", "case_data"]:
+            value = request.session.get(param_to_check)
+            if value:
+                data[param_to_check] = value
         return JsonResponse({"success": True, "data": data})
-
     except Exception as e:
         return JsonResponse({"success": False, "error": str(e)}, status=500)
 

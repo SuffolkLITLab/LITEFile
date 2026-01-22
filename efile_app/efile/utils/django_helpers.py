@@ -15,10 +15,6 @@ def flush_cache_stay_logged_in(session):
     }
 
     logger.debug("Before cache clear - session keys: %s", list(session.keys()))
-    logger.debug(
-        "session: %s",
-        session,
-    )
 
     # Clear ALL session data
     session.flush()
@@ -33,8 +29,4 @@ def flush_cache_stay_logged_in(session):
     logger.debug(
         "FULL cache cleared from expert form via options page - session keys after clear: %s",
         list(session.keys()),
-    )
-    logger.debug(
-        "session: %s",
-        session,
     )

@@ -80,6 +80,7 @@
             result.data &&
             Object.keys(result.data).length > 0
           ) {
+            console.log("existing: %o", result.data)
             //TODO(brycew): return more here to bring user directly to old session
             return true;
           }
@@ -173,9 +174,9 @@
           let html = useExistingCardHtml();
           let elem = document.getElementById('existing-placeholder');
           elem.innerHTML = html;
-          console.log("existing session?");
+          console.log("existing session?: %o", value);
         } else {
-          console.log("No existing session?");
+          console.log("No existing session?, %o", value);
         }
       });
     </script>
