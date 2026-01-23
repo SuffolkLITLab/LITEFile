@@ -22,45 +22,29 @@
       <h2 class="section-title">eFiling Options</h2>
       <div class="row justify-content-center">
         <div class="col-lg-8 col-xl-7">
+          
+          <div id="existing-placeholder"></div>
+
           <div class="option-card">
             <div class="d-flex align-items-center mb-3">
               <div class="option-icon">
                 <i class="fas fa-university"></i>
               </div>
               <div class="option-content">
-                <h3>File a New Case</h3>
-                <p>Begin a NEW case by efiling your form and documents.</p>
+                <h3>Make a Filing</h3>
+                <p>Begin a new case or file a response.</p>
               </div>
             </div>
             <div class="button-group">
-              <button class="btn btn-outline-primary" onclick="goToSimpleForm('new')">
+              <!-- button class="btn btn-outline-primary" tabindex="0" onclick="goToSimpleForm('new')">
                  Simple Form
-              </button>
-              <button class="btn btn-primary" onclick="goToExpertForm('new')">
-                 Expert Form
+              </button-->
+              <button class="btn btn-primary" tabindex="0" onclick="goToExpertForm('new')">
+                Begin
               </button>
             </div>
           </div>
 
-          <div class="option-card">
-            <div class="d-flex align-items-center mb-3">
-              <div class="option-icon">
-                <i class="fas fa-reply"></i>
-              </div>
-              <div class="option-content">
-                <h3>Respond</h3>
-                <p>If you have been served and need to file a response.</p>
-              </div>
-            </div>
-            <div class="button-group">
-              <button class="btn btn-outline-primary" onclick="goToSimpleForm('response')">
-                 Simple Form
-              </button>
-              <button class="btn btn-primary" onclick="goToExpertForm('response')">
-                Expert Form
-              </button>
-            </div>
-          </div>
 
         </div>
       </div>
@@ -68,39 +52,53 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script>
-      // Function to save existing_case data and redirect to simple form
-      function goToSimpleForm(caseType) {
-        const existingCase = caseType === 'response' ? 'yes' : 'no';
-        
-        // Save the existing_case selection to session storage or make an API call
-        saveExistingCaseData(existingCase).then(() => {
-          // For now, alert - replace with actual simple form URL when available
-          alert(`Redirecting to Simple Form with existing_case: ${existingCase}`);
-          // window.location.href = "/simple-form/";
-        });
+      // Function to save existing_case data and redirect to expert form or case details
+      function goToExpertForm(new_or_existing) {
+        if (new_or_existing === "new") {
+          // Save the existing_case selection
+          makeNewCaseData().then(() => {
+            // For new cases, go directly to expert form with cache clearing and options page flag
+            window.location.href = `/{{jurisdiction}}/upload_first/?clear_cache=true&from_options=true`;
+          });
+        } else {
+          // TODO(brycew): go straight to the page where the existing session was, reload everything
+        }
       }
 
-      // Function to save existing_case data and redirect to expert form or case details
-      function goToExpertForm(caseType) {
-        const existingCase = caseType === 'response' ? 'yes' : 'no';
-        
-        // Save the existing_case selection
-        saveExistingCaseData(existingCase).then(() => {
-          if (caseType === 'response') {
-            // For responses, redirect to case details page first (with options page flag)
-            window.location.href = '/{{jurisdiction}}/case-details/?clear_cache=true&from_options=true';
-          } else {
-            // For new cases, go directly to expert form with cache clearing and options page flag
-            window.location.href = `/{{jurisdiction}}/expert_form/?existing_case=${existingCase}&clear_cache=true&from_options=true`;
-          }
+      async function checkExistingCaseData() {
+        // Check if there's an API endpoint to retrieve saved case data
+        const response = await fetch("/api/get-case-data/", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
         });
+        if (response.ok) {
+          const result = await response.json();
+          if (
+            result.success &&
+            result.data &&
+            Object.keys(result.data).length > 0
+          ) {
+            console.log("existing: %o", result.data)
+            //TODO(brycew): return more here to bring user directly to old session
+            return true;
+          }
+          else {
+            console.log("existing: %o", result.data)
+          }
+        } else {
+          console.log("response: %o", response)
+        }
+        return false;
       }
 
       // Function to save existing_case data to the session
-      async function saveExistingCaseData(existingCase) {
+      async function makeNewCaseData() {
+        // Save to session storage as immediate fallback
+        let new_uuid = self.crypto.randomUUID();
+        sessionStorage.setItem('session_id', new_uuid);
         try {
-          // Save to session storage as immediate fallback
-          sessionStorage.setItem('existing_case', existingCase);
           
           // Also make an API call to save server-side if needed
           const response = await fetch('/api/save-case-data/', {
@@ -110,12 +108,15 @@
               'X-CSRFToken': getCsrfToken(),
             },
             body: JSON.stringify({
-              existing_case: existingCase
+              session_id: new_uuid,
+              jurisdiction: `{{jurisdiction}}`,
             })
           });
           
           if (!response.ok) {
-            console.warn('Failed to save case data server-side, using session storage');
+            console.warn('Failed to save case data server-side, session storage used only');
+          } else {
+            console.log("Saved data!")
           }
         } catch (error) {
           console.warn('Error saving case data:', error);
@@ -135,23 +136,28 @@
         return '';
       }
 
-      // Legacy functions for backward compatibility (if needed elsewhere)
-      function fileNewCase() {
-        goToExpertForm('new');
+      function useExistingCardHtml() {
+        let html = `
+          <div class="option-card">
+            <div class="d-flex align-items-center mb-3">
+              <div class="option-icon">
+                <i class="fas fa-reply"></i>
+              </div>
+              <div class="option-content">
+                <h3>Resume Filing</h3>
+                <p>Resome your filing where you left off.</p>
+              </div>
+            </div>
+            <div class="button-group">
+              <button class="btn btn-primary" tabindex="0" onclick="goToExpertForm('resume')">
+                Resume 
+              </button>
+            </div>
+          </div>
+          `;
+          return html;
       }
 
-      function respondToCase() {
-        goToExpertForm('response');
-      }
-
-      function addToCase() {
-        alert("Redirecting to Add Documents...");
-        // In a real application, this would redirect to the document addition form
-      }
-
-      function addToExpertForm() {
-        window.location.href = "/expert-form/";
-      }
 
       // Add keyboard navigation
       document.addEventListener("keydown", function (e) {
@@ -163,9 +169,15 @@
         }
       });
 
-      // Make buttons focusable for accessibility
-      document.querySelectorAll(".btn").forEach((btn) => {
-        btn.setAttribute("tabindex", "0");
+      checkExistingCaseData().then(value => {
+        if (value) {
+          let html = useExistingCardHtml();
+          let elem = document.getElementById('existing-placeholder');
+          elem.innerHTML = html;
+          console.log("existing session?: %o", value);
+        } else {
+          console.log("No existing session?, %o", value);
+        }
       });
     </script>
   </body>

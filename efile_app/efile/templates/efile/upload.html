@@ -27,7 +27,7 @@
       <div class="upload-container">
         <h2 class="section-header">Upload your documents</h2>
         <p class="section-description">
-          Upload your petition and any supporting documents. All documents must
+          Upload any supporting documents. All documents must
           be in PDF format and clearly legible.
         </p>
 
@@ -59,30 +59,11 @@
 
           <!-- Lead Document Section -->
           <div class="document-section mb-4" id="leadDocumentSection">
-            <label class="form-label document-label">
+            <div class="form-label document-label">
               <strong>Lead document</strong> <span class="required">*</span>
             </label>
-            <p class="text-muted">
-              Your main petition document - this is the primary filing for your
-              case.
-            </p>
 
-            <div class="upload-area" id="leadDocumentArea">
-              <div class="upload-placeholder">
-                <i class="fas fa-file-pdf fa-3x text-muted mb-3"></i>
-                <p class="mb-2">
-                  <strong>Click to upload or drag and drop</strong>
-                </p>
-                <p class="text-muted small">PDF files only, maximum 10MB</p>
-              </div>
-              <input
-                type="file"
-                id="leadDocument"
-                name="lead_document"
-                accept=".pdf"
-                class="file-input"
-                required
-              />
+            <div class="lead-preview-area" id="leadDocumentArea">
             </div>
 
             <!-- Filing Component for Lead Document -->
@@ -148,7 +129,7 @@
                 </div>
                 <div class="col-md-6">
                   <label for="leadDocumentType" class="form-label"
-                    ><strong>Document type</strong>
+                    ><strong>Request documents be sealed / confidential?</strong>
                     <span class="required">*</span></label
                   >
                   <select
@@ -158,22 +139,6 @@
                     required
                   >
                     <option value="">Select filing type first</option>
-                  </select>
-                </div>
-              </div>
-              <div class="row mt-3">
-                <div class="col-md-6">
-                  <label for="leadFilingComponent" class="form-label"
-                    ><strong>Filing component</strong>
-                    <span class="required">*</span></label
-                  >
-                  <select
-                    class="form-select filing-component-select"
-                    id="leadFilingComponent"
-                    name="lead_filing_component"
-                    required
-                  >
-                    <option value="">Select a filing component</option>
                   </select>
                 </div>
               </div>
@@ -189,22 +154,6 @@
                     />
                     <label class="form-check-label" for="leadCertifiedCopies">
                       Request certified copies when filed
-                    </label>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="form-check">
-                    <input
-                      class="form-check-input"
-                      type="checkbox"
-                      id="leadSealedConfidential"
-                      name="lead_sealed_confidential"
-                    />
-                    <label
-                      class="form-check-label"
-                      for="leadSealedConfidential"
-                    >
-                      Request documents be sealed/confidential
                     </label>
                   </div>
                 </div>
@@ -330,6 +279,8 @@
     <script>
       // Store filing components globally once loaded
       let globalFilingComponents = [];
+      let globalFilingComponentLead = {};
+      let globalFilingComponentSupport = {};
 
       // Load filing components when page loads
       document.addEventListener("DOMContentLoaded", function () {
@@ -362,6 +313,8 @@
           );
           return;
         }
+        
+        let guesses = (await (await fetch("/api/get-upload-data")).json()).guesses;
 
         // Fetch filing types data only once
         if (window.globalFilingTypes.length === 0) {
@@ -370,7 +323,7 @@
               court
             )}&case_category=${encodeURIComponent(categoryType)}&case_type=${encodeURIComponent(
               caseType
-            )}&existing_case=${existingCase}`;
+            )}&existing_case=${existingCase}&guessed_filing_type=${guesses["filing type"]}`;
 
             const response = await fetch(apiUrl, {
               method: "GET",
@@ -514,7 +467,7 @@
           const result = await response.json();
           if (result.success && result.data) {
             documentTypeSelect.innerHTML =
-              '<option value="">Select a document type</option>';
+              '<option value="">Select an option</option>';
             result.data.forEach((docType) => {
               const option = document.createElement("option");
               option.value = docType.value || docType.code || docType.id;
@@ -555,9 +508,15 @@
 
           const result = await response.json();
           if (result.success && result.data) {
-            globalFilingComponents = processFilingComponentsData(result.data);
-            // Immediately populate all filing component dropdowns - no waiting for document type
-            populateAllFilingComponentDropdowns();
+            // TODO(brycew): Make selecting Lead document and attachment more resillient
+            result.data.map((component) => {
+              if (component.name === "Lead Document") {
+                globalFilingComponentLead = {id: component.code, name: component.name };
+              }
+              if (component.name === "Attachments") {
+                globalFilingComponentSupport = {id: component.code, name: component.name };
+              }
+            });
           } else {
             console.error("API returned error:", result.error);
             populateFilingComponentDropdownFallback();
@@ -567,48 +526,6 @@
           // Fallback to default options
           populateFilingComponentDropdownFallback();
         }
-      }
-
-      function processFilingComponentsData(data) {
-        let components = [];
-
-        // Handle different possible API response structures
-        if (Array.isArray(data)) {
-          components = data;
-        } else if (data && typeof data === "object") {
-          components =
-            data.data ||
-            data.filing_components ||
-            data.components ||
-            data.results ||
-            [];
-          if (!Array.isArray(components) && typeof components === "object") {
-            // If components is an object, try to extract array values
-            components = Object.values(components);
-          }
-        }
-
-        // Process and normalize components
-        return components.map((component) => {
-          // Try different possible field names for ID
-          const id =
-            component.id ||
-            component.value ||
-            component.code ||
-            component.filing_component_id;
-
-          // Try different possible field names for display text
-          const name =
-            component.name ||
-            component.description ||
-            component.label ||
-            component.display_name ||
-            component.filing_component_name ||
-            component.text ||
-            `Component ${id}`;
-
-          return { id, name };
-        });
       }
 
       function populateAllFilingComponentDropdowns() {
@@ -684,7 +601,9 @@
       // Expose functions and data globally for upload handler
       window.populateDocumentTypes = populateDocumentTypes;
       window.populateFilingComponentDropdown = populateFilingComponentDropdown;
-      window.globalFilingComponents = globalFilingComponents;
+      //window.globalFilingComponents = globalFilingComponents;
+      window.globalFilingComponentLead = globalFilingComponentLead;
+      window.globalFilingComponentSupport = globalFilingComponentSupport;
       window.createSupportingDocumentOptions = createSupportingDocumentOptions;
 
       function createSupportingDocumentOptions(index, fileName) {
@@ -725,17 +644,9 @@
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <label for="supportingDocumentType${index}" class="form-label"><strong>Document Type</strong> <span class="required">*</span></label>
+                            <label for="supportingDocumentType${index}" class="form-label"><strong>Request Documents to be Sealed / Confidential?</strong> <span class="required">*</span></label>
                             <select class="form-select document-type-select" id="supportingDocumentType${index}" name="supporting_document_type_${index}" required>
                                 <option value="">Select filing type first</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="row mt-3">
-                        <div class="col-md-6">
-                            <label for="supportingFilingComponent${index}" class="form-label"><strong>Filing Component</strong> <span class="required">*</span></label>
-                            <select class="form-select supporting-filing-component" id="supportingFilingComponent${index}" name="supporting_filing_component_${index}" required>
-                                <option value="">Select a filing component</option>
                             </select>
                         </div>
                     </div>
@@ -749,27 +660,9 @@
                                 </label>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="supportingSealedConfidential${index}" name="supporting_sealed_confidential_${index}">
-                                <label class="form-check-label" for="supportingSealedConfidential${index}">
-                                    Request documents be sealed/confidential
-                                </label>
-                            </div>
-                        </div>
                     </div>
                 </div>
             `;
-
-        // After creating the HTML, make sure to populate the filing components dropdown
-        setTimeout(() => {
-          const dropdown = document.getElementById(
-            `supportingFilingComponent${index}`
-          );
-          if (dropdown) {
-            populateFilingComponentDropdown(dropdown);
-          }
-        }, 100);
 
         return html;
       }

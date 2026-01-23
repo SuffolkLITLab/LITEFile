@@ -47,8 +47,8 @@ class TestDropdownAPIs:
             mock_response = Mock()
             mock_response.json.return_value = {
                 "courts": [
-                    {"id": "cook:law1", "name": "Cook County Law Division", "jurisdiction": "illinois"},
-                    {"id": "cook:dr1", "name": "Cook County Domestic Relations", "jurisdiction": "illinois"},
+                    {"code": "cook:law1", "name": "Cook County Law Division"},
+                    {"code": "cook:dr1", "name": "Cook County Domestic Relations"},
                 ]
             }
             mock_response.raise_for_status.return_value = None
@@ -66,12 +66,11 @@ class TestDropdownAPIs:
         """Test courts API prioritizes based on user location."""
         with patch("efile.api.dropdown_views.requests.get") as mock_get:
             mock_response = Mock()
-            mock_response.json.return_value = {
-                "courts": [
-                    {"id": "cook:law1", "name": "Cook County Law Division", "jurisdiction": "illinois"},
-                    {"id": "will:law1", "name": "Will County Law Division", "jurisdiction": "illinois"},
-                ]
-            }
+            mock_response.json.return_value = [
+                {"code": "cook:law1", "name": "Cook County Law Division", "jurisdiction": "illinois"},
+                {"code": "will:law1", "name": "Will County Law Division", "jurisdiction": "illinois"},
+            ]
+            mock_response.status_code = 200
             mock_response.raise_for_status.return_value = None
             mock_get.return_value = mock_response
 

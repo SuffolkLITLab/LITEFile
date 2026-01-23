@@ -2,7 +2,6 @@ from django.shortcuts import redirect
 from django.urls import include, path
 
 from .views.api_views import get_filing_components
-from .views.case_details import case_details
 from .views.confirmation import filing_confirmation
 from .views.expert_form import efile_expert_form
 from .views.jurisdiction import get_current_jurisdiction, switch_jurisdiction
@@ -20,6 +19,7 @@ from .views.session_api import (
     get_upload_data_from_session,
     save_party_type_to_session,
     save_upload_data_to_session,
+    save_upload_first_data,
     submit_final_filing,
 )
 from .views.upload import (
@@ -28,8 +28,8 @@ from .views.upload import (
     mock_s3_upload,
     simple_s3_upload,
     test_s3_connection,
-    upload_documents,
 )
+from .views.upload_first import efile_upload_first
 
 
 def homepage(request):
@@ -42,8 +42,8 @@ urlpatterns = [
     path("<jurisdiction>/logout/", efile_logout, name="efile_logout"),
     path("<jurisdiction>/register/", efile_register, name="efile_register"),
     path("<jurisdiction>/options/", efile_options, name="efile_options"),
-    path("<jurisdiction>/case-details/", case_details, name="case_details"),
     path("<jurisdiction>/expert_form/", efile_expert_form, name="expert_form"),
+    path("<jurisdiction>/upload_first/", efile_upload_first, name="upload_first"),
     path("<jurisdiction>/upload/", efile_upload, name="upload"),
     path("<jurisdiction>/review/", case_review, name="case_review"),
     path("<jurisdiction>/filing-confirmation/", filing_confirmation, name="filing_confirmation"),
@@ -52,6 +52,7 @@ urlpatterns = [
     path("api/get-filing-components/", get_filing_components, name="get_filing_components"),
     path("api/save-case-data/", api_save_case_data, name="save_case_data_api"),
     path("api/save-upload-data/", save_upload_data_to_session, name="save_upload_data_to_session"),
+    path("api/save-upload-data-first/", save_upload_first_data, name="save_upload_data_to_session"),
     path("api/get-upload-data/", get_upload_data_from_session, name="get_upload_data_from_session"),
     path("api/fetch-party-type/", fetch_and_save_party_type, name="fetch_party_type"),
     path("api/get-party-types/", get_party_types_from_suffolk_api, name="get_party_types"),
@@ -65,7 +66,6 @@ urlpatterns = [
     path("api/jurisdiction/current/", get_current_jurisdiction, name="get_current_jurisdiction"),
     # API endpoints for upload functionality
     path("api/create-filing/", create_filing, name="create_filing"),
-    path("api/upload-documents/", upload_documents, name="upload_documents"),
     path("api/simple-s3-upload/", simple_s3_upload, name="simple_s3_upload"),
     path("api/mock-s3-upload/", mock_s3_upload, name="mock_s3_upload"),
     path("api/test-s3-connection/", test_s3_connection, name="test_s3_connection"),

@@ -34,6 +34,7 @@ class CascadingDropdowns {
   async init() {
     // Load user profile first
     await this.loadUserProfile();
+    await this.loadGuesses();
 
     // Load initial data for independent dropdowns with user context
     this.loadCourtsWithUserContext();
@@ -49,9 +50,12 @@ class CascadingDropdowns {
   async loadCourtsWithUserContext() {
     const params = {};
     const currentJurisdiction = apiUtils.getCurrentJurisdiction();
+
+    const data = await this.makeRequest("/api/get-upload-data", {});
     
     // Set the jurisdiction parameter
     params.jurisdiction = currentJurisdiction;
+    params.guessed_court = data['guesses']['court'];
     
     // For Massachusetts, skip location-based filtering and show all courts
     if (currentJurisdiction === 'massachusetts') {
@@ -125,6 +129,11 @@ class CascadingDropdowns {
         }, 3000);
       }
     }
+  }
+
+  async loadGuesses() {
+    const data = await this.makeRequest("/api/get-upload-data", {});
+    this.guesses = data['guesses']
   }
 
   async loadDropdownData(fieldId, endpoint, params = {}) {
@@ -241,6 +250,8 @@ class CascadingDropdowns {
       if (this.validateParameters(fieldId, params)) {
         // Load data for the next dropdown only if there is a next dropdown
         if (mapping.next && mapping.endpoint) {
+          params.guessed_case_category = this.guesses['case category'];
+          params.guessed_case_type = this.guesses['case type'];
           this.loadDropdownData(mapping.next, mapping.endpoint, params);
         }
       } else {
@@ -735,8 +746,7 @@ class CascadingDropdowns {
       if (
         option.recommended ||
         option.selected ||
-        option.default ||
-        option.isSelected
+        option.default
       ) {
         optionElement.style.fontWeight = "bold";
         recommendedOption = option.value || option.id;
@@ -746,13 +756,15 @@ class CascadingDropdowns {
     });
 
     // Auto-select recommended court and trigger change event
-    if (dropdown.id === "court" && recommendedOption) {
+    if ((dropdown.id === "court" || dropdown.id === "case_category" || dropdown.id === "case_type") && recommendedOption) {
       this.isAutomaticSelection = true; // Mark as automatic selection
       dropdown.value = recommendedOption;
-      this.selectedValues.court = recommendedOption;
+      if (dropdown.id === "court") {
+        this.selectedValues.court = recommendedOption;
+      }
 
       // Show a brief notification about the auto-selection
-      this.showRecommendationNotice(dropdown, "court");
+      this.showRecommendationNotice(dropdown, dropdown.id);
 
       // Trigger change event to load dependent dropdowns
       setTimeout(() => {
@@ -794,22 +806,23 @@ class CascadingDropdowns {
       existingNotice.remove();
     }
 
-    // Create a persistent notice to show the user why this option was selected
-    const notice = document.createElement("div");
-    notice.className = "alert alert-success recommendation-notice";
-    notice.style.cssText =
+    if (type === "court") {
+      // Create a persistent notice to show the user why this option was selected
+      const notice = document.createElement("div");
+      notice.className = "alert alert-success recommendation-notice";
+      notice.style.cssText =
       "position: relative; z-index: 1000; margin-top: 5px; margin-bottom: 10px; padding: 8px 12px; font-size: 0.875rem; border-radius: 4px;";
-    notice.innerHTML = `<i class="fas fa-star"></i> We've pre-selected the ${type} for your area based on your location.`;
-
-    // Find the label for this dropdown to insert the notice above it
-    const dropdownLabel = dropdown.parentNode.querySelector(`label[for="${dropdown.id}"]`);
+      notice.innerHTML = `<i class="fas fa-star"></i> We've pre-selected some choices based on your uploaded form.`;
+      // Find the label for this dropdown to insert the notice above it
+      const dropdownLabel = dropdown.parentNode.querySelector(`label[for="${dropdown.id}"]`);
     
-    if (dropdownLabel) {
-      // Insert the notice before the label (above the title)
-      dropdownLabel.parentNode.insertBefore(notice, dropdownLabel);
-    } else {
-      // Fallback: insert before the dropdown if no label is found
-      dropdown.parentNode.insertBefore(notice, dropdown);
+      if (dropdownLabel) {
+        // Insert the notice before the label (above the title)
+        dropdownLabel.parentNode.insertBefore(notice, dropdownLabel);
+      } else {
+        // Fallback: insert before the dropdown if no label is found
+        dropdown.parentNode.insertBefore(notice, dropdown);
+      }
     }
 
     // The notice will now persist until the court dropdown changes or page reloads

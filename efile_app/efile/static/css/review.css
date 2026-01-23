@@ -38,6 +38,11 @@
   margin-left: 1rem;
 }
 
+.review-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .review-item > .d-flex.align-items-center.w-100 {
   justify-content: flex-end;
   gap: 0.75rem;
@@ -90,6 +95,8 @@
 }
 .document-name {
   font-weight: 500;
+  width: 62%;
+  overflow: clip;
 }
 .change-btn {
   background: #6c757d;

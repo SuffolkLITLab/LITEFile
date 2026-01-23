@@ -8,7 +8,6 @@ class UploadHandler {
         this.form = document.getElementById('uploadForm');
         this.leadDocumentArea = document.getElementById('leadDocumentArea');
         this.supportingDocumentsArea = document.getElementById('supportingDocumentsArea');
-        this.leadDocumentInput = document.getElementById('leadDocument');
         this.supportingDocumentsInput = document.getElementById('supportingDocuments');
         this.submitButton = document.getElementById('submitButton');
         this.uploadProgress = document.getElementById('uploadProgress');
@@ -192,15 +191,12 @@ class UploadHandler {
 
     setupEventListeners() {
         // Form submission
-        this.form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.handleFormSubmission();
-        });
-
-        // File input changes
-        this.leadDocumentInput.addEventListener('change', (e) => {
-            this.handleFileSelection(e.target.files, 'lead');
-        });
+        if (this.form) {
+          this.form.addEventListener('submit', (e) => {
+              e.preventDefault();
+              this.handleFormSubmission();
+          });
+        }
 
         this.supportingDocumentsInput.addEventListener('change', (e) => {
             this.handleFileSelection(e.target.files, 'supporting');
@@ -229,11 +225,6 @@ class UploadHandler {
             // Prevent default and stop propagation to avoid any interference
             e.preventDefault();
             e.stopPropagation();
-            
-            // Use setTimeout to ensure this runs after any other event handlers
-            setTimeout(() => {
-                this.leadDocumentInput.click();
-            }, 10);
         });
 
         this.supportingDocumentsArea.addEventListener('click', (e) => {
@@ -262,9 +253,10 @@ class UploadHandler {
         });
     }
 
-    setupDragAndDrop() {
+    async setupDragAndDrop() {
         // Lead document area
-        this.setupDragDropForArea(this.leadDocumentArea, 'lead');
+        //this.setupDragDropForArea(this.leadDocumentArea, 'lead');
+        await this.prepLeadFileSelection();
         
         // Supporting documents area
         this.setupDragDropForArea(this.supportingDocumentsArea, 'supporting');
@@ -290,6 +282,20 @@ class UploadHandler {
         });
     }
 
+    async prepLeadFileSelection() {
+        let lead = (await (await fetch("/api/get-upload-data")).json()).files.lead;
+
+        // Add file previews
+        const preview = this.createFilePreviewNoRemove(lead.name, lead.size);
+        this.leadDocumentArea.appendChild(preview);
+
+        // Show/hide document options based on whether files are uploaded
+        const leadOptions = document.getElementById('leadDocumentOptions');
+        if (leadOptions) {
+            leadOptions.style.display = 'block';
+        }
+    }
+
     handleFileSelection(files, type) {
         if (files.length === 0) return;
 
@@ -303,26 +309,6 @@ class UploadHandler {
 
         if (validFiles.length === 0) return;
 
-        if (type === 'lead') {
-            // Only one lead document allowed
-            this.uploadedFiles.lead = validFiles[0];
-            this.updateFilePreview(this.leadDocumentArea, [validFiles[0]], 'lead');
-
-            // Ensure the native file input reflects the selection so browser validation works
-            try {
-                const dt = new DataTransfer();
-                dt.items.add(validFiles[0]);
-                if (this.leadDocumentInput) {
-                    this.leadDocumentInput.files = dt.files;
-                }
-            } catch (e) {
-                // Some older browsers may not support DataTransfer constructor in this context
-                console.warn('Could not set native input.files via DataTransfer:', e);
-            }
-
-            // Automatically upload lead document
-            this.uploadFileImmediately(validFiles[0], type, 0);
-        } else {
             // Multiple supporting documents allowed
             const startIndex = this.uploadedFiles.supporting.length;
             this.uploadedFiles.supporting = [...this.uploadedFiles.supporting, ...validFiles];
@@ -343,7 +329,6 @@ class UploadHandler {
             validFiles.forEach((file, index) => {
                 this.uploadFileImmediately(file, type, startIndex + index);
             });
-        }
 
         this.updateSubmitButton();
     }
@@ -394,6 +379,25 @@ class UploadHandler {
         }
     }
 
+    createFilePreviewNoRemove(file_name, file_size) {
+        const preview = document.createElement('div');
+        preview.className = 'file-preview-lead';
+        
+        const fileSize = this.formatFileSize(file_size);
+        
+        preview.innerHTML = `
+            <div class="file-info">
+                <i class="fas fa-file-pdf"></i>
+                <div>
+                    <div class="fw-semibold">${file_name}</div>
+                    <div class="text-muted small">${fileSize}</div>
+                </div>
+            </div>
+        `;
+
+        return preview;
+    }
+
     createFilePreview(file, type, index) {
         const preview = document.createElement('div');
         preview.className = 'file-preview';
@@ -420,32 +424,7 @@ class UploadHandler {
             e.stopPropagation();
             e.stopImmediatePropagation();
 
-            if (type === 'lead') {
-                this.uploadedFiles.lead = null;
-                this.updateFilePreview(this.leadDocumentArea, [], 'lead');
-                // Clear the native file input
-                if (this.leadDocumentInput) {
-                    this.leadDocumentInput.value = '';
-                }
-                } else {
-                // Find and remove the specific file from the array
-                const fileIndex = this.uploadedFiles.supporting.indexOf(file);
-                if (fileIndex > -1) {
-                    this.uploadedFiles.supporting.splice(fileIndex, 1);
-                    this.updateFilePreview(this.supportingDocumentsArea, this.uploadedFiles.supporting, 'supporting');
-                    
-                    // Update native supporting input FileList
-                    try {
-                        const dt = new DataTransfer();
-                        this.uploadedFiles.supporting.forEach(f => dt.items.add(f));
-                        if (this.supportingDocumentsInput) {
-                            this.supportingDocumentsInput.files = dt.files;
-                        }
-                    } catch (err) {
-                        console.warn('Could not update native supporting input.files after removal:', err);
-                    }
-                }
-            }            this.updateSubmitButton();
+            this.updateSubmitButton();
             
             // Return false to ensure no further event processing
             return false;
@@ -533,32 +512,15 @@ class UploadHandler {
     setupSupportingDocumentCascading(index) {
         const filingTypeSelect = document.getElementById(`supportingFilingType${index}`);
         const documentTypeSelect = document.getElementById(`supportingDocumentType${index}`);
-        const filingComponentSelect = document.getElementById(`supportingFilingComponent${index}`);
 
-        if (filingTypeSelect && documentTypeSelect && filingComponentSelect) {
+        if (filingTypeSelect && documentTypeSelect) {
             filingTypeSelect.addEventListener('change', async () => {
                 const selectedFilingTypeId = filingTypeSelect.value;                
                 if (selectedFilingTypeId) {
                     await window.populateDocumentTypes(selectedFilingTypeId, documentTypeSelect);
-                    filingComponentSelect.innerHTML = '<option value="">Select document type first</option>';
                 } else {
                     documentTypeSelect.innerHTML = '<option value="">Select filing type first</option>';
-                    filingComponentSelect.innerHTML = '<option value="">Select document type first</option>';
                 }
-            });
-
-            documentTypeSelect.addEventListener('change', () => {
-                const selectedDocumentType = documentTypeSelect.value;
-                
-                if (selectedDocumentType) {
-                    window.populateFilingComponents(selectedDocumentType, filingComponentSelect);
-                } else {
-                    filingComponentSelect.innerHTML = '<option value="">Select document type first</option>';
-                }
-            });
-
-            filingComponentSelect.addEventListener('change', () => {
-                const selectedComponent = filingComponentSelect.value;
             });
         }
     }
@@ -567,14 +529,6 @@ class UploadHandler {
         return `
             <div class="document-options mt-3 supporting-document-options" id="supportingDocumentOptions${index}">
                 <h6 class="mb-3"><strong>Options for: ${fileName}</strong></h6>
-                <div class="row">
-                    <div class="col-md-6">
-                        <label for="supportingFilingComponent${index}" class="form-label"><strong>Filing Component</strong> <span class="required">*</span></label>
-                        <select class="form-select supporting-filing-component" id="supportingFilingComponent${index}" name="supporting_filing_component_${index}" required>
-                            <option value="">Select a document type</option>
-                        </select>
-                    </div>
-                </div>
                 
                 <div class="row mt-3">
                     <div class="col-md-6">
@@ -585,29 +539,12 @@ class UploadHandler {
                             </label>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="supportingSealedConfidential${index}" name="supporting_sealed_confidential_${index}">
-                                <label class="form-check-label" for="supportingSealedConfidential${index}">
-                                Request documents be sealed/confidential
-                            </label>
-                        </div>
-                    </div>
                 </div>
             </div>
         `;
     }
 
     removeFile(type, index) {
-        if (type === 'lead') {
-            this.uploadedFiles.lead = null;
-            this.updateFilePreview(this.leadDocumentArea, [], 'lead');
-            
-            // Clear the native file input
-            if (this.leadDocumentInput) {
-                this.leadDocumentInput.value = '';
-            }
-        } else {
             this.uploadedFiles.supporting.splice(index, 1);
             // Regenerate all supporting file previews with correct indices
             this.updateFilePreview(this.supportingDocumentsArea, this.uploadedFiles.supporting, 'supporting');
@@ -622,7 +559,6 @@ class UploadHandler {
             } catch (e) {
                 console.warn('Could not update native supporting input.files after removal:', e);
             }
-        }
         
         this.updateSubmitButton();
     }
@@ -735,18 +671,6 @@ class UploadHandler {
     }
 
     async handleFormSubmission() {
-        if (!this.uploadedFiles.lead) {
-            this.showError('Please upload a lead document before continuing.');
-            return;
-        }
-
-        // Validate that lead document has filing component selected
-        const leadFilingComponent = document.getElementById('leadFilingComponent')?.value;
-        if (!leadFilingComponent) {
-            this.showError('Please select a filing component for your lead document.');
-            return;
-        }
-
         // Validate that all supporting documents have filing components selected
         for (let i = 0; i < this.uploadedFiles.supporting.length; i++) {
             const supportingFilingComponent = document.getElementById(`supportingFilingComponent${i}`)?.value;
@@ -760,14 +684,13 @@ class UploadHandler {
             // Collect dropdown values for lead document
             const leadFilingTypeSelect = document.getElementById('leadFilingType');
             const leadDocumentTypeSelect = document.getElementById('leadDocumentType');
-            const leadFilingComponentSelect = document.getElementById('leadFilingComponent');
             
             const leadFilingType = leadFilingTypeSelect ? leadFilingTypeSelect.value : '';
             const leadFilingTypeName = leadFilingTypeSelect && leadFilingTypeSelect.selectedOptions[0] ? leadFilingTypeSelect.selectedOptions[0].text : '';
             const leadDocumentType = leadDocumentTypeSelect ? leadDocumentTypeSelect.value : '';
             const leadDocumentTypeName = leadDocumentTypeSelect && leadDocumentTypeSelect.selectedOptions[0] ? leadDocumentTypeSelect.selectedOptions[0].text : '';
-            const leadFilingComponentValue = leadFilingComponentSelect ? leadFilingComponentSelect.value : '';
-            const leadFilingComponentName = leadFilingComponentSelect && leadFilingComponentSelect.selectedOptions[0] ? leadFilingComponentSelect.selectedOptions[0].text : '';
+            const leadFilingComponentValue = globalFilingComponentLead.id;
+            const leadFilingComponentName = globalFilingComponentLead.name;
 
             // Collect supporting document dropdown values
             const supportingDocuments = [];
@@ -797,12 +720,11 @@ class UploadHandler {
             // Prepare upload data using already uploaded files (since files are uploaded immediately on selection)
             const uploadDataWithUrls = {
                 files: {
-                    lead: null,
                     supporting: []
                 },
                 options: {
                     lead: {
-                        filing_component: leadFilingComponent,
+                        filing_component: {id: leadFilingComponentValue, name: leadFilingComponentName},
                         certified_copies: document.getElementById('leadCertifiedCopies')?.checked || false,
                         sealed_confidential: document.getElementById('leadSealedConfidential')?.checked || false
                     },
@@ -823,11 +745,6 @@ class UploadHandler {
             if (this.uploadedFiles.lead && this.uploadedFiles.lead.uploadResult) {
                 const leadResult = this.uploadedFiles.lead.uploadResult;
                 uploadDataWithUrls.files.lead = {
-                    name: this.uploadedFiles.lead.name,
-                    size: this.uploadedFiles.lead.size,
-                    type: this.uploadedFiles.lead.type,
-                    url: leadResult.files[0]?.public_url,
-                    s3_key: leadResult.files[0]?.key,
                     filing_component: leadFilingComponent
                 };
             }

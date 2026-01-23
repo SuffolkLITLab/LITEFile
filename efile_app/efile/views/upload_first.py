@@ -1,0 +1,43 @@
+import logging
+
+from django.contrib import messages
+from django.shortcuts import redirect, render
+
+from ..utils.case_data_utils import get_case_classification, get_case_data, get_name_sought_info, get_petitioner_info
+
+logger = logging.getLogger(__name__)
+
+
+def efile_upload_first(request, jurisdiction):
+    """Upload view for document submission and filing creation."""
+
+    # Check if user is authenticated first
+    if not request.user.is_authenticated:
+        return redirect("efile_login", jurisdiction=jurisdiction)
+
+    # Get case data from session
+    case_data = get_case_data(request)
+
+    # If no case data exists, redirect back to options page
+    if not case_data:
+        messages.error(request, "Please complete the case details first.")
+        return redirect("efile_options", jurisdiction=jurisdiction)
+
+    # Get organized case information
+    petitioner_info = get_petitioner_info(request)
+    name_sought_info = get_name_sought_info(request)
+    case_classification = get_case_classification(request)
+
+    # Use friendly names if available, otherwise fallback to raw values
+    friendly_court = case_data.get("court_name", case_classification["court"])
+
+    context = {
+        "case_data": case_data,
+        "petitioner_info": petitioner_info,
+        "name_sought_info": name_sought_info,
+        "case_classification": case_classification,
+        "court": friendly_court,
+        "court_raw": case_classification["court"],
+    }
+
+    return render(request, "efile/upload_first.html", context)

@@ -55,7 +55,7 @@
           <div class="review-item">
             <span class="review-label">Case type:</span>
             <div class="d-flex align-items-center">
-              <span class="review-value" id="caseTypeValue"
+              <span class="review-value" id="caseTypeValue" style="word-break: break-word"
                 >{{ friendly_names.case_type|default:"Loading..." }}</span
               >
               <a href="{% url 'expert_form' jurisdiction %}" class="edit-btn ms-3">Edit</a>
@@ -232,7 +232,7 @@
             <span class="review-label"
               >Email <span class="text-danger">*</span></span
             >
-            <div class="d-flex align-items-center w-100">
+            <div class="d-flex align-items-center w-100" style="overflow: hidden">
               <span class="review-text" id="userEmailText"
                 >Loading...</span
               >

@@ -31,28 +31,20 @@ def mock_court_api_response():
         {
             "courts": [
                 {
-                    "id": "cook:law1",
+                    "code": "cook:law1",
                     "name": "Cook County Circuit Court - Law Division",
-                    "jurisdiction": "illinois",
-                    "address": "50 W Washington St, Chicago, IL 60602",
                 },
                 {
-                    "id": "cook:dr1",
+                    "code": "cook:dr1",
                     "name": "Cook County Circuit Court - Domestic Relations",
-                    "jurisdiction": "illinois",
-                    "address": "50 W Washington St, Chicago, IL 60602",
                 },
                 {
-                    "id": "cook:pr1",
+                    "code": "cook:pr1",
                     "name": "Cook County Circuit Court - Probate",
-                    "jurisdiction": "illinois",
-                    "address": "50 W Washington St, Chicago, IL 60602",
                 },
                 {
-                    "id": "will:law1",
+                    "code": "will:law1",
                     "name": "Will County Circuit Court - Law Division",
-                    "jurisdiction": "illinois",
-                    "address": "14 W Jefferson St, Joliet, IL 60432",
                 },
             ]
         }
