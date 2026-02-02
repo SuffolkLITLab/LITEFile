@@ -343,7 +343,7 @@ def save_upload_data_to_session(request):
 
         old_upload_data = request.session["upload_data"]
         upload_data = {
-            "files": {"lead": old_upload_data["files"]["lead"], "supporting": data["files"]["supporting"]},
+            "files": {"lead": old_upload_data["files"]["lead"], "supporting": data["files"]},
             "options": data.get("options", {}),
             "guesses": old_upload_data.get("guesses", {}),
             "lead_filing_type": data.get("lead_filing_type", ""),
