@@ -132,7 +132,12 @@ def lookup_case(request):
 
                 # Extract case category
                 if "caseCategoryText" in case_value and "value" in case_value["caseCategoryText"]:
-                    case_info["caseCategoryText"] = case_value["caseCategoryText"]["value"]
+                    case_info["caseCategoryCode"] = case_value["caseCategoryText"]["value"]
+                    api_url = f"{settings.EFSP_URL}/jurisdictions/{state}/codes/courts/{court}/categories/{case_info['caseCategoryCode']}"
+                    category_resp = requests.get(api_url, headers=headers, timeout=30)
+                    if category_resp.ok:
+                        data = category_resp.json()
+                        case_info["caseCategoryName"] = data["name"]
 
                 # Extract case title
                 if "caseTitleText" in case_value and "value" in case_value["caseTitleText"]:
@@ -150,8 +155,13 @@ def lookup_case(request):
                         if item.get("name") == "{urn:tyler:ecf:extensions:Common}CaseAugmentation":
                             if "value" in item and "caseTypeText" in item["value"]:
                                 if "value" in item["value"]["caseTypeText"]:
-                                    case_info["caseTypeText"] = item["value"]["caseTypeText"]["value"]
-                                break
+                                    case_info["caseTypeCode"] = item["value"]["caseTypeText"]["value"]
+                                    api_url = f"{settings.EFSP_URL}/jurisdictions/{state}/codes/courts/{court}/case_types/{case_info['caseTypeCode']}"
+                                    case_resp = requests.get(api_url, headers=headers, timeout=30)
+                                    if case_resp.ok:
+                                        data = category_resp.json()
+                                        case_info["caseTypeName"] = data["name"]
+                                    break
             else:
                 # If no 'value' key, try to extract directly
                 case_info = {

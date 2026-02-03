@@ -547,10 +547,10 @@
             body: JSON.stringify({
               existing_case: 'yes',
               case_tracking_id: data.caseTrackingID,
-              case_category_text: data.caseCategoryText,
+              case_category_code: data.caseCategoryCode,
               case_title_text: data.caseTitleText,
               case_docket_id: data.caseDocketID,
-              case_type_text: data.caseTypeText,
+              case_type_code: data.caseTypeCode,
               court: data.court
             })
           });
@@ -611,18 +611,20 @@
             
             caseData = {
               caseTrackingID: caseInfo.caseTrackingID || '',
-              caseCategoryText: caseInfo.caseCategoryText || '',
+              caseCategoryCode: caseInfo.caseCategoryCode || '',
+              caseCategoryName: caseInfo.caseCategoryName || '',
               caseTitleText: caseInfo.caseTitle || '',
               caseDocketID: caseNumber,
               court: court,
-              caseTypeText: caseInfo.caseTypeText || ''
+              caseTypeCode: caseInfo.caseTypeCode || '',
+              caseTypeName: caseInfo.caseTypeName || ''
             };
             
             // Display case information
             document.getElementById('caseTitleText').textContent = caseData.caseTitleText || 'Not available';
             document.getElementById('caseDocketID').textContent = caseData.caseDocketID;
-            document.getElementById('caseCategoryText').textContent = caseData.caseCategoryText || 'Not available';
-            document.getElementById('caseTypeText').textContent = caseData.caseTypeText || 'Not available';
+            document.getElementById('caseCategoryText').textContent = caseData.caseCategoryName || caseData.caseCategoryCode || 'Not available';
+            document.getElementById('caseTypeText').textContent = caseData.caseTypeName || caseData.caseTypeCode || 'Not available';
             
             caseInfoDisplay.style.display = 'block';
             statusText.textContent = 'Case found successfully!';
@@ -645,7 +647,6 @@
           continueBtn.disabled = true;
         }
       }
-
 
     // Initialize when DOM is ready
     if (document.readyState === 'loading') {
