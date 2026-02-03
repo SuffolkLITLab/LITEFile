@@ -363,10 +363,20 @@ const UIUpdater = {
 
     let html = '<div class="payment-methods-list">';
     
+    let hasMultipleWaivers = paymentAccounts.filter((account) => account.paymentAccountTypeCode === "WV").length > 1;
     paymentAccounts.forEach((account, index) => {
       const isDefault = index === 0;
       const cardType = account.cardType?.value || "Card";
       const cardLast4 = account.cardLast4 || "****";
+      let paymentText = `${cardType} ending in ${cardLast4}`;
+
+      if (account.paymentAccountTypeCode === "WV") {
+        if (hasMultipleWaivers) {
+          paymentText = `Payment Waiver (named "${account.accountName}")`;
+        } else {
+          paymentText = 'Payment Waiver';
+        }
+      }
 
       html += `<div class="payment-method-item">
         <div class="form-check">
@@ -376,7 +386,7 @@ const UIUpdater = {
             <div class="payment-method-details">
               <div class="payment-method-info">
                 <i class="fab fa-cc-${cardType.toLowerCase()}"></i>
-                ${cardType} ending in ${cardLast4}
+                ${paymentText}
               </div>
             </div>
           </label>
