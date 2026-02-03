@@ -14,10 +14,8 @@ class UploadHandler {
         this.errorAlert = document.getElementById('errorAlert');
         this.successAlert = document.getElementById('successAlert');
         
-        this.uploadedFiles = {
-            lead: null,
-            supporting: []
-        };
+        this.uploadedFiles = [];
+        this.uploadedFileStatuses = [];
         
         this.initialized = false;
         
@@ -35,23 +33,23 @@ class UploadHandler {
         
         this.setupEventListeners();
         this.setupDragAndDrop();
-        this.setupFilingComponentListeners();
+        this.setupDocumentTypeListeners();
         
         this.initialized = true;
     }
 
-    setupFilingComponentListeners() {
+    setupDocumentTypeListeners() {
         // Listen for changes to lead filing component
-        const leadFilingComponent = document.getElementById('leadFilingComponent');
-        if (leadFilingComponent) {
-            leadFilingComponent.addEventListener('change', () => {
+        const leadDocumentType = document.getElementById('leadDocumentType');
+        if (leadDocumentType) {
+            leadDocumentType.addEventListener('change', () => {
                 this.updateSubmitButton();
             });
         }
 
         // Use event delegation for supporting filing components since they're added dynamically
         document.addEventListener('change', (e) => {
-            if (e.target && e.target.classList.contains('supporting-filing-component')) {
+            if (e.target && e.target.classList.contains('document-type-select')) {
                 this.updateSubmitButton();
             }
         });
@@ -117,12 +115,7 @@ class UploadHandler {
         try {
             // Create file metadata to save to session (we can't store actual File objects)
             const fileData = {
-                lead: this.uploadedFiles.lead ? {
-                    name: this.uploadedFiles.lead.name,
-                    size: this.uploadedFiles.lead.size,
-                    type: this.uploadedFiles.lead.type
-                } : null,
-                supporting: this.uploadedFiles.supporting.map(file => ({
+                supporting: this.uploadedFiles.map(file => ({
                     name: file.name,
                     size: file.size,
                     type: file.type
@@ -136,9 +129,9 @@ class UploadHandler {
 
             // Collect supporting document options
             const supportingOptions = [];
-            this.uploadedFiles.supporting.forEach((file, index) => {
+            this.uploadedFiles.forEach((file, index) => {
                 supportingOptions.push({
-                    filing_component: document.getElementById(`supportingFilingComponent${index}`)?.value || '',
+                    filing_component: globalFilingComponentSupport,
                     certified_copies: document.getElementById(`supportingCertifiedCopies${index}`)?.checked || false,
                     sealed_confidential: document.getElementById(`supportingSealedConfidential${index}`)?.checked || false
                 });
@@ -255,7 +248,6 @@ class UploadHandler {
 
     async setupDragAndDrop() {
         // Lead document area
-        //this.setupDragDropForArea(this.leadDocumentArea, 'lead');
         await this.prepLeadFileSelection();
         
         // Supporting documents area
@@ -310,14 +302,15 @@ class UploadHandler {
         if (validFiles.length === 0) return;
 
             // Multiple supporting documents allowed
-            const startIndex = this.uploadedFiles.supporting.length;
-            this.uploadedFiles.supporting = [...this.uploadedFiles.supporting, ...validFiles];
-            this.updateFilePreview(this.supportingDocumentsArea, this.uploadedFiles.supporting, 'supporting');
+            const startIndex = this.uploadedFiles.length;
+            this.uploadedFiles= [...this.uploadedFiles, ...validFiles];
+            this.uploadedFileStatuses= [...this.uploadedFileStatuses, validFiles.map(f => "uploading")]
+            this.updateFilePreview(this.supportingDocumentsArea, this.uploadedFiles, this.uploadedFileStatuses);
 
             // Update native supporting input FileList to match uploadedFiles.supporting
             try {
                 const dt = new DataTransfer();
-                this.uploadedFiles.supporting.forEach(file => dt.items.add(file));
+                this.uploadedFiles.forEach(file => dt.items.add(file));
                 if (this.supportingDocumentsInput) {
                     this.supportingDocumentsInput.files = dt.files;
                 }
@@ -350,33 +343,35 @@ class UploadHandler {
         return true;
     }
 
-    updateFilePreview(area, files, type) {
+    updateFilePreview(area, files, file_statuses) {
         // Clear existing preview
         const existingPreviews = area.querySelectorAll('.file-preview');
         existingPreviews.forEach(preview => preview.remove());
 
         // Add file previews
         files.forEach((file, index) => {
-            const preview = this.createFilePreview(file, type, index);
+            const preview = this.createFilePreview(file, index);
             area.appendChild(preview);
         });
 
-        // Show/hide document options based on whether files are uploaded
-        if (type === 'lead') {
-            const leadOptions = document.getElementById('leadDocumentOptions');
-            if (leadOptions) {
-                leadOptions.style.display = files.length > 0 ? 'block' : 'none';
+        // Update supporting documents options
+        this.updateSupportingDocumentsOptions(files);
+        file_statuses.forEach((status, index) => {
+            if (status === "success") {
+                this.showFileUploadSuccess(index);
+            } else if (status === "failed") {
+                this.showFileUploadError(index, "Failed");
+            } else if (status === "uploading") {
+                this.showFileUploadProgress(index);
             }
-        } else if (type === 'supporting') {
-            // Update supporting documents options
-            this.updateSupportingDocumentsOptions(files);
-        }
+        });
 
         // Hide/show placeholder
         const placeholder = area.querySelector('.upload-placeholder');
         if (placeholder) {
             placeholder.style.display = files.length > 0 ? 'none' : 'block';
         }
+
     }
 
     createFilePreviewNoRemove(file_name, file_size) {
@@ -398,7 +393,7 @@ class UploadHandler {
         return preview;
     }
 
-    createFilePreview(file, type, index) {
+    createFilePreview(file, index) {
         const preview = document.createElement('div');
         preview.className = 'file-preview';
         
@@ -420,6 +415,7 @@ class UploadHandler {
         // Add event listener to the remove button with strong event prevention
         const removeButton = preview.querySelector('.file-remove');
         removeButton.addEventListener('click', (e) => {
+            this.removeFile(index);
             e.preventDefault();
             e.stopPropagation();
             e.stopImmediatePropagation();
@@ -544,15 +540,16 @@ class UploadHandler {
         `;
     }
 
-    removeFile(type, index) {
-            this.uploadedFiles.supporting.splice(index, 1);
+    removeFile(index) {
+            this.uploadedFiles.splice(index, 1);
+            this.uploadedFileStatuses.splice(index, 1);
             // Regenerate all supporting file previews with correct indices
-            this.updateFilePreview(this.supportingDocumentsArea, this.uploadedFiles.supporting, 'supporting');
+            this.updateFilePreview(this.supportingDocumentsArea, this.uploadedFiles, this.uploadedFileStatuses);
             
             // Update native supporting input FileList
             try {
                 const dt = new DataTransfer();
-                this.uploadedFiles.supporting.forEach(file => dt.items.add(file));
+                this.uploadedFiles.forEach(file => dt.items.add(file));
                 if (this.supportingDocumentsInput) {
                     this.supportingDocumentsInput.files = dt.files;
                 }
@@ -564,34 +561,31 @@ class UploadHandler {
     }
 
     updateSubmitButton() {
-        const hasLeadDocument = this.uploadedFiles.lead !== null;
         let hasAllFilingComponents = true;
 
+        let uploadsSucceeded = this.uploadedFileStatuses.every(st => st === "success");
+
         // Check if lead document has filing component selected
-        if (hasLeadDocument) {
-            const leadFilingComponent = document.getElementById('leadFilingComponent');
-            if (leadFilingComponent && !leadFilingComponent.value) {
-                hasAllFilingComponents = false;
-            }
+        const leadFilingType = document.getElementById('leadFilingType');
+        if (leadFilingType && !leadFilingType.value) {
+            hasAllFilingComponents = false;
         }
 
         // Check if all supporting documents have filing components selected
-        this.uploadedFiles.supporting.forEach((file, index) => {
-            const supportingFilingComponent = document.getElementById(`supportingFilingComponent${index}`);
-            if (supportingFilingComponent && !supportingFilingComponent.value) {
+        this.uploadedFiles.forEach((file, index) => {
+            const supportingFilingType = document.getElementById(`supportingFilingType${index}`);
+            if (supportingFilingType && !supportingFilingType.value) {
                 hasAllFilingComponents = false;
             }
         });
 
-        this.submitButton.disabled = !hasLeadDocument || !hasAllFilingComponents;
+        this.submitButton.disabled = !uploadsSucceeded || !hasAllFilingComponents;
     }
 
     async uploadFileImmediately(file, type, index) {
         try {
-            // Show upload progress for this specific file
-            this.showFileUploadProgress(file.name, type, index);
+            this.showFileUploadProgress(index);
 
-            // Create FormData with just this file
             const formData = new FormData();
             formData.append('documents', file);
 
@@ -606,30 +600,26 @@ class UploadHandler {
             const result = await response.json();
             
             if (!result.success) {
+                this.uploadedFileStatuses[index] = "failed";
                 throw new Error(result.error || 'Upload failed');
             }
 
             // Update file preview to show successful upload
-            this.showFileUploadSuccess(file.name, type, index);
+            this.showFileUploadSuccess(index);
 
             // Store the upload result for later use during form submission
-            if (type === 'lead') {
-                this.uploadedFiles.lead.uploadResult = result;
-            } else {
-                this.uploadedFiles.supporting[index].uploadResult = result;
-            }
+            this.uploadedFiles[index].uploadResult = result;
 
         } catch (error) {
             console.error('Error uploading file immediately:', error);
-            this.showFileUploadError(file.name, type, index, error.message);
+            this.showFileUploadError(index, error.message);
         }
     }
 
-    showFileUploadProgress(fileName, type, index) {
-        const selector = type === 'lead' ? '.file-preview' : `.file-preview:nth-child(${index + 2})`;
-        const preview = type === 'lead' 
-            ? this.leadDocumentArea.querySelector(selector)
-            : this.supportingDocumentsArea.querySelector(selector);
+    showFileUploadProgress(index) {
+        this.uploadedFileStatuses[index] = "uploading";
+        const selector = `.file-preview:nth-child(${index + 3})`;
+        const preview = this.supportingDocumentsArea.querySelector(selector);
         
         if (preview) {
             const statusDiv = preview.querySelector('.upload-status') || document.createElement('div');
@@ -641,41 +631,43 @@ class UploadHandler {
         }
     }
 
-    showFileUploadSuccess(fileName, type, index) {
-        const selector = type === 'lead' ? '.file-preview' : `.file-preview:nth-child(${index + 2})`;
-        const preview = type === 'lead' 
-            ? this.leadDocumentArea.querySelector(selector)
-            : this.supportingDocumentsArea.querySelector(selector);
+    showFileUploadSuccess(index) {
+        this.uploadedFileStatuses[index] = "success";
+        const selector = `.file-preview:nth-child(${index + 3})`;
+        const preview = this.supportingDocumentsArea.querySelector(selector);
         
         if (preview) {
-            const statusDiv = preview.querySelector('.upload-status');
-            if (statusDiv) {
-                statusDiv.innerHTML = '<i class="fas fa-check-circle text-success me-1"></i>Uploaded';
+            const statusDiv = preview.querySelector('.upload-status') || document.createElement("div");
+            statusDiv.className = 'upload-status';
+            statusDiv.innerHTML = '<i class="fas fa-check-circle text-success me-1"></i>Uploaded';
+            if (!preview.querySelector(".upload-status")) {
+                preview.appendChild(statusDiv);
             }
         }
     }
 
-    showFileUploadError(fileName, type, index, error) {
-        const selector = type === 'lead' ? '.file-preview' : `.file-preview:nth-child(${index + 2})`;
-        const preview = type === 'lead' 
-            ? this.leadDocumentArea.querySelector(selector)
-            : this.supportingDocumentsArea.querySelector(selector);
+    showFileUploadError(index, error) {
+        this.uploadedFileStatuses[index] = "failed";
+        const selector = `.file-preview:nth-child(${index + 3})`;
+        const preview = this.supportingDocumentsArea.querySelector(selector);
         
         if (preview) {
-            const statusDiv = preview.querySelector('.upload-status');
-            if (statusDiv) {
-                statusDiv.innerHTML = '<i class="fas fa-exclamation-triangle text-danger me-1"></i>Upload failed';
-                statusDiv.title = error;
+            const statusDiv = preview.querySelector('.upload-status') || document.createElement("div");
+            statusDiv.className = "upload-status";
+            statusDiv.innerHTML = '<i class="fas fa-exclamation-triangle text-danger me-1"></i>Upload failed';
+            statusDiv.title = error;
+            if (!preview.querySelector('.upload-status')) {
+                preview.appendChild(statusDiv);
             }
         }
     }
 
     async handleFormSubmission() {
         // Validate that all supporting documents have filing components selected
-        for (let i = 0; i < this.uploadedFiles.supporting.length; i++) {
-            const supportingFilingComponent = document.getElementById(`supportingFilingComponent${i}`)?.value;
-            if (!supportingFilingComponent) {
-                this.showError(`Please select a filing component for supporting document: ${this.uploadedFiles.supporting[i].name}`);
+        for (let i = 0; i < this.uploadedFiles.length; i++) {
+            const supportingFilingType = document.getElementById(`supportingFilingType${i}`)?.value;
+            if (!supportingFilingType) {
+                this.showError(`Please select a filing component for supporting document: ${this.uploadedFiles[i].name}`);
                 return;
             }
         }
@@ -694,16 +686,15 @@ class UploadHandler {
 
             // Collect supporting document dropdown values
             const supportingDocuments = [];
-            const supportingDropdowns = document.querySelectorAll('[id*="supportingFilingType"]:not([id*="_search"])');
+            const supportingDropdowns = document.querySelectorAll('select[id*="supportingFilingType"]:not([id*="_search"])');
             supportingDropdowns.forEach((dropdown, index) => {
                 const filingType = dropdown.value;
                 const filingTypeName = dropdown.selectedOptions[0]?.text || '';
                 const docTypeSelect = document.getElementById(`supportingDocumentType${index}`);
                 const docType = docTypeSelect?.value || '';
                 const docTypeName = docTypeSelect?.selectedOptions[0]?.text || '';
-                const componentSelect = document.getElementById(`supportingFilingComponent${index}`);
-                const component = componentSelect?.value || '';
-                const componentName = componentSelect?.selectedOptions[0]?.text || '';
+                const component = globalFilingComponentSupport.id;
+                const componentName = globalFilingComponentSupport.name;
                 
                 const supportingDoc = {
                     filing_type: filingType,
@@ -719,9 +710,7 @@ class UploadHandler {
 
             // Prepare upload data using already uploaded files (since files are uploaded immediately on selection)
             const uploadDataWithUrls = {
-                files: {
-                    supporting: []
-                },
+                files: [],
                 options: {
                     lead: {
                         filing_component: {id: leadFilingComponentValue, name: leadFilingComponentName},
@@ -740,21 +729,12 @@ class UploadHandler {
                 // Add supporting documents dropdown data
                 supporting_documents: supportingDocuments
             };
-
-            // Use already uploaded file data (files were uploaded immediately when selected)
-            if (this.uploadedFiles.lead && this.uploadedFiles.lead.uploadResult) {
-                const leadResult = this.uploadedFiles.lead.uploadResult;
-                uploadDataWithUrls.files.lead = {
-                    filing_component: leadFilingComponent
-                };
-            }
-
             // Process supporting documents that were already uploaded
-            this.uploadedFiles.supporting.forEach((file, index) => {
+            this.uploadedFiles.forEach((file, index) => {
                 if (file.uploadResult) {
-                    const supportingFilingComponent = document.getElementById(`supportingFilingComponent${index}`)?.value || '';
+                    const supportingFilingComponent = globalFilingComponentSupport;
                     
-                    uploadDataWithUrls.files.supporting.push({
+                    uploadDataWithUrls.files.push({
                         name: file.name,
                         size: file.size,
                         type: file.type,
