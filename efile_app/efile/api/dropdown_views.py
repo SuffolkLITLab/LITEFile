@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 MAX_LEV_DIST = 5
 
 
-def prioritize_options(api_data, guessed=None):
+def prioritize_options(api_data, guessed):
     if not api_data:
         return []
 
@@ -30,6 +30,9 @@ def prioritize_options(api_data, guessed=None):
             if isinstance(opt, dict) and "code" in opt and "name" in opt:
                 options.append({"value": opt["code"], "text": opt["name"]})
     options.sort(key=lambda x: x["text"])
+
+    if not guessed:
+        return options
 
     guessed_norm = guessed.lower().strip() if guessed else ""
 
