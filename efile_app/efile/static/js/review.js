@@ -449,9 +449,10 @@ const PaymentHandler = {
     // TODO: we should revisit this hardcoded value in the future too
     form.action = `http://localhost:9100/jurisdictions/${encodeURIComponent(jurisdiction)}/payments/new-toga-account`;
 
+    let dateStr = new Date().toDateString();
     const fields = [
-      ['account_name', 'Default Payment Account'],
-      ['global', 'true'],
+      ['account_name', `Payment Account made on ${dateStr}`],
+      ['global', 'false'],
       ['type_code', 'CC'],
       ['tyler_info', authData.tyler_token],
       ['original_url', `${window.location.origin}/${jurisdiction}/review/?payment_status=success`],
