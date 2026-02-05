@@ -542,7 +542,7 @@
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'X-CSRFToken': getCsrfToken(),
+              'X-CSRFToken': window.apiUtils.getCSRFToken(),
             },
             body: JSON.stringify({
               existing_case: 'yes',

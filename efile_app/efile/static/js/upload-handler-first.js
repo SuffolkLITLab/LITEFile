@@ -46,7 +46,7 @@ class UploadHandler {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRFToken': this.getCSRFToken()
+                        'X-CSRFToken': apiUtils.getCSRFToken()
                     },
                     body: caseFormData
                 });
@@ -69,7 +69,7 @@ class UploadHandler {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': this.getCSRFToken()
+                    'X-CSRFToken': apiUtils.getCSRFToken()
                 },
                 body: JSON.stringify(uploadData)
             });
@@ -112,7 +112,7 @@ class UploadHandler {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': this.getCSRFToken()
+                    'X-CSRFToken': apiUtils.getCSRFToken()
                 },
                 body: JSON.stringify(uploadData)
             });
@@ -135,10 +135,6 @@ class UploadHandler {
             console.error('Error saving files to session:', error);
             throw error;
         }
-    }
-
-    getCSRFToken() {
-        return document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
     }
 
     setupEventListeners() {
@@ -355,16 +351,6 @@ class UploadHandler {
         return preview;
     }
 
-    getCSRFToken() {
-        return (
-            document.querySelector("[name=csrfmiddlewaretoken]")?.value ||
-            document
-                .querySelector('meta[name="csrf-token"]')
-                ?.getAttribute("content") ||
-            ""
-        );
-    }
-
     updateSubmitButton() {
         const hasLeadDocument = this.uploadedFiles.lead !== null;
         this.submitButton.disabled = !hasLeadDocument;
@@ -383,7 +369,7 @@ class UploadHandler {
                 method: 'POST',
                 body: formData,
                 headers: {
-                    'X-CSRFToken': this.getCSRFToken()
+                    'X-CSRFToken': apiUtils.getCSRFToken()
                 }
             });
 

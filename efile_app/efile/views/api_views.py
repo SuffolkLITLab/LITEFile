@@ -16,14 +16,14 @@ class GetCaseDataView(View):
     """API endpoint to retrieve case data from session."""
 
     def get(self, request):
+        data = {}
         try:
-            # Get case data from session
-            case_data = request.session.get("case_data", {})
+            for param_to_check in ["session_id", "jurisdiction", "existing_case", "case_data"]:
+                value = request.session.get(param_to_check)
+                if value:
+                    data[param_to_check] = value
 
-            logger.debug(f"Retrieved case data from session: {case_data}")
-
-            return JsonResponse({"success": True, "data": case_data})
-
+            return JsonResponse({"success": True, "data": data})
         except Exception:
             logger.exception("Error retrieving case data: {e}")
             return JsonResponse({"success": False, "error": "Server error occurred"}, status=500)
@@ -152,6 +152,6 @@ class GetFilingComponentsView(View):
 
 
 # Function-based view wrapper for easy URL mapping
-get_case_data = GetCaseDataView.as_view()
+get_case_data_api = GetCaseDataView.as_view()
 save_case_data = SaveCaseDataView.as_view()
 get_filing_components = GetFilingComponentsView.as_view()

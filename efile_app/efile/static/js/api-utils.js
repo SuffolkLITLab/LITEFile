@@ -91,11 +91,50 @@ class ApiUtils {
     }
 
     getCSRFToken() {
-        const token = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+        let token = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
         if (!token) {
-            console.warn('CSRF token not found. Some API requests may fail.');
+            token = this.getCookie('csrftoken');
+            if (!token) {
+                console.warn('CSRF token not found. Some API requests may fail.');
+            }
         }
         return token;
+    }
+
+    // Method to refresh CSRF token if needed
+    async refreshCSRFToken() {
+        try {
+            const response = await fetch('/api/csrf-token/', {
+                method: 'GET',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                this.csrfToken = data.csrf_token;
+                
+                // Update the token in the form if it exists
+                const tokenInput = document.querySelector('[name=csrfmiddlewaretoken]');
+                if (tokenInput) {
+                    tokenInput.value = this.csrfToken;
+                }
+            }
+        } catch (error) {
+            console.warn('Could not refresh CSRF token:', error);
+        }
+    }
+
+    getCookie(name) {
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                const [cookieName, value] = cookie.trim().split('=');
+                if (cookieName === name) {
+                    return decodeURIComponent(value);
+                }
+            }
+        }
+        return null;
     }
 
     buildUrl(endpoint, params = {}) {
@@ -301,28 +340,6 @@ class ApiUtils {
         return stats;
     }
 
-    // Method to refresh CSRF token if needed
-    async refreshCSRFToken() {
-        try {
-            const response = await fetch('/api/csrf-token/', {
-                method: 'GET',
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            });
-            
-            if (response.ok) {
-                const data = await response.json();
-                this.csrfToken = data.csrf_token;
-                
-                // Update the token in the form if it exists
-                const tokenInput = document.querySelector('[name=csrfmiddlewaretoken]');
-                if (tokenInput) {
-                    tokenInput.value = this.csrfToken;
-                }
-            }
-        } catch (error) {
-            console.warn('Could not refresh CSRF token:', error);
-        }
-    }
 }
 
 // Create global instance

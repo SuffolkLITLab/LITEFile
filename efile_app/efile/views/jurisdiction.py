@@ -5,13 +5,13 @@ Jurisdiction management views
 import json
 
 from django.http import JsonResponse
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_http_methods
 
 from ..utils.config_loader import config_loader
 
 
-@require_POST
-def switch_jurisdiction(request):
+@require_http_methods(["POST"])
+def switch_jurisdiction(request) -> JsonResponse:
     """Switch user's jurisdiction preference"""
     try:
         data = json.loads(request.body)

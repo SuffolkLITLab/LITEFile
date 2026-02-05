@@ -13,6 +13,7 @@ from django.views.decorators.http import require_http_methods
 from requests.exceptions import RequestException
 
 from efile.utils.jurisdiction_stuff import get_jurisdiction_from_request
+from efile.utils.proxy_connection import get_headers
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +37,13 @@ def get_tyler_token(request, jurisdiction=None):
     return tyler_token
 
 
+def set_access_control_headers(response):
+    response["Access-Control-Allow-Origin"] = "*"
+    response["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+    response["Access-Control-Allow-Headers"] = "Content-Type, X-CSRFToken"
+    return response
+
+
 @csrf_exempt
 @require_http_methods(["GET", "POST", "OPTIONS"])
 def lookup_case(request):
@@ -51,10 +59,7 @@ def lookup_case(request):
     # Handle preflight OPTIONS request
     if request.method == "OPTIONS":
         response = JsonResponse({})
-        response["Access-Control-Allow-Origin"] = "*"
-        response["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-        response["Access-Control-Allow-Headers"] = "Content-Type, X-CSRFToken"
-        return response
+        return set_access_control_headers(response)
 
     try:
         # Get parameters based on request method
@@ -70,10 +75,7 @@ def lookup_case(request):
 
         if not court or not case_number:
             response = JsonResponse({"success": False, "error": "Both court and caseNumber are required"}, status=400)
-            response["Access-Control-Allow-Origin"] = "*"
-            response["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-            response["Access-Control-Allow-Headers"] = "Content-Type, X-CSRFToken"
-            return response
+            return set_access_control_headers(response)
 
         # Suffolk eFile API endpoint - build URL with court and case number
         # Use provided jurisdiction or fall back to request-based detection
@@ -90,14 +92,8 @@ def lookup_case(request):
 
         # Get authentication credentials dynamically
         tyler_token = get_tyler_token(request, state)
-        api_key = getattr(settings, "SUFFOLK_EFILE_API_KEY", None)
 
-        headers = {
-            "Accept": "application/json",
-            "User-Agent": f"{state.title()}-eFile-Client/1.0",
-            "X-API-Key": api_key if api_key else "",
-        }
-
+        headers = get_headers()
         # Add Tyler token if available
         if tyler_token:
             headers[f"tyler-token-{state}"] = tyler_token
@@ -186,35 +182,143 @@ def lookup_case(request):
                 "fullResponse": api_data,  # Include full response for debugging
             }
         )
-        response["Access-Control-Allow-Origin"] = "*"
-        response["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-        response["Access-Control-Allow-Headers"] = "Content-Type, X-CSRFToken"
-        return response
+
+        return set_access_control_headers(response)
 
     except json.JSONDecodeError:
         # This only applies to POST requests
         response = JsonResponse({"success": False, "error": "Invalid JSON in request body"}, status=400)
-        response["Access-Control-Allow-Origin"] = "*"
-        response["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-        response["Access-Control-Allow-Headers"] = "Content-Type, X-CSRFToken"
-        return response
+        return set_access_control_headers(response)
 
     except RequestException as e:
         logger.error(f"Suffolk API request failed: {str(e)}")
         response = JsonResponse(
             {"success": False, "error": "Failed to connect to Suffolk API", "details": str(e)}, status=500
         )
-        response["Access-Control-Allow-Origin"] = "*"
-        response["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-        response["Access-Control-Allow-Headers"] = "Content-Type, X-CSRFToken"
-        return response
+        return set_access_control_headers(response)
 
     except Exception as e:
         logger.error(f"Unexpected error in case lookup: {str(e)}")
         response = JsonResponse(
             {"success": False, "error": "An unexpected error occurred", "details": str(e)}, status=500
         )
-        response["Access-Control-Allow-Origin"] = "*"
-        response["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-        response["Access-Control-Allow-Headers"] = "Content-Type, X-CSRFToken"
-        return response
+        return set_access_control_headers(response)
+
+
+@require_http_methods(["GET"])
+def get_party_types_from_suffolk_api(request):
+    """
+    Fetch party types directly from Suffolk API and save to session (GET request)
+    """
+    try:
+        jurisdiction = request.GET.get("jurisdiction", "illinois")
+        court = request.GET.get("court")
+        case_type = request.GET.get("case_type")
+        existing_case = request.GET.get("existing_case", "no")
+
+        if not court or not case_type:
+            return JsonResponse({"success": False, "error": "Court and case_type parameters are required"}, status=400)
+
+        # Construct Suffolk API URL
+        suffolk_api_url = (
+            f"{settings.EFSP_URL}/jurisdictions/{jurisdiction}/codes/courts/{court}/case_types/{case_type}/party_types"
+        )
+
+        logger.debug(f"Fetching party types from Suffolk API: {suffolk_api_url}")
+        logger.debug(f"Existing case: {existing_case}")
+
+        # Make request to Suffolk API
+        response = requests.get(suffolk_api_url, timeout=10)
+
+        if response.status_code == 200:
+            party_types = response.json()
+            logger.debug(f"Suffolk API returned {len(party_types)} party types:")
+            for pt in party_types:
+                logger.debug(f"  - {pt.get('name', 'No name')} ({pt.get('code', 'No code')})")
+
+            if party_types and len(party_types) > 0:
+                # Determine appropriate party type based on case status
+                selected_party_type = None
+
+                if existing_case == "yes":
+                    # For existing cases, look for defendant party type
+                    logger.debug("Looking for defendant party type for existing case")
+                    for party_type in party_types:
+                        if isinstance(party_type, dict) and "name" in party_type and "code" in party_type:
+                            party_name_lower = party_type["name"].lower()
+                            if (
+                                "defendant" in party_name_lower
+                                or "respondent" in party_name_lower
+                                or "def" in party_name_lower
+                            ):
+                                selected_party_type = party_type["code"]
+                                logger.info(
+                                    f"Found defendant/respondent party type: "
+                                    f"{party_type['name']} ({selected_party_type})"
+                                )
+                                break
+                else:
+                    # For new cases, look for petitioner or plaintiff party type
+                    logger.debug("Looking for petitioner/plaintiff party type for new case")
+                    case_type_lower = case_type.lower()
+
+                    target_names = []
+                    if "name change" in case_type_lower or "family" in case_type_lower or "probate" in case_type_lower:
+                        target_names = ["petitioner", "pet"]
+                    elif "civil" in case_type_lower:
+                        target_names = ["plaintiff", "pl"]
+                    else:
+                        target_names = ["petitioner", "pet", "plaintiff", "pl"]
+
+                    for target_name in target_names:
+                        for party_type in party_types:
+                            if isinstance(party_type, dict) and "name" in party_type and "code" in party_type:
+                                party_name_lower = party_type["name"].lower()
+                                if target_name in party_name_lower:
+                                    selected_party_type = party_type["code"]
+                                    logger.info(
+                                        f"Found {target_name} party type: {party_type['name']} ({selected_party_type})"
+                                    )
+                                    break
+                        if selected_party_type:
+                            break
+
+                # If no specific match found, use the first available party type
+                if not selected_party_type:
+                    selected_party_type = party_types[0].get("code")
+                    logger.info(
+                        f"No specific match found, using first party type: "
+                        f"{party_types[0].get('name', 'Unknown')} ({selected_party_type})"
+                    )
+
+                # Save to session
+                case_data = request.session.get("case_data", {})
+                case_data["determined_party_type"] = selected_party_type
+                case_data["party_type"] = selected_party_type
+                case_data["petitioner_party_type"] = selected_party_type
+                case_data["available_party_types"] = party_types
+                case_data["existing_case"] = existing_case  # Save existing case status
+                request.session["case_data"] = case_data
+                request.session.modified = True
+
+                print(f"Saved party type to session: {selected_party_type}")
+
+                return JsonResponse(
+                    {"success": True, "party_types": party_types, "selected_party_type": selected_party_type}
+                )
+            else:
+                return JsonResponse({"success": False, "error": "No party types returned from Suffolk API"}, status=400)
+        else:
+            print(f"Suffolk API request failed with status: {response.status_code}")
+            print(f"Response: {response.text}")
+            return JsonResponse(
+                {"success": False, "error": f"Suffolk API returned status {response.status_code}"},
+                status=response.status_code,
+            )
+
+    except requests.RequestException as e:
+        print(f"Network error calling Suffolk API: {e}")
+        return JsonResponse({"success": False, "error": f"Network error: {str(e)}"}, status=500)
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        return JsonResponse({"success": False, "error": str(e)}, status=500)

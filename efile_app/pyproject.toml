@@ -39,17 +39,8 @@ dev = [
   "pytest-xdist>=3.6",
   "pre-commit>=3.7",
   "boto3-stubs>=1.40.12",
-]
-
-[project.optional-dependencies]
-dev = [
-    "ruff>=0.5.0,<1",
-    "ty",
-    "pytest>=8.0",
-    "pytest-django>=4.8",
-    "pytest-cov>=5.0",
-    "pytest-xdist>=3.6",
-    "pre-commit>=3.7",
+  "types-requests",
+  "django-stubs[compatible-mypy]"
 ]
 
 [tool.ruff]

@@ -332,7 +332,7 @@
               method: "GET",
               headers: {
                 "Content-Type": "application/json",
-                "X-CSRFToken": getCSRFToken(),
+                "X-CSRFToken": apiUtils.getCSRFToken(),
               },
             });
 
@@ -456,7 +456,7 @@
               method: "GET",
               headers: {
                 "Content-Type": "application/json",
-                "X-CSRFToken": getCSRFToken(),
+                "X-CSRFToken": apiUtils.getCSRFToken(),
               },
             }
           );
@@ -499,7 +499,7 @@
             method: "GET",
             headers: {
               "Content-Type": "application/json",
-              "X-CSRFToken": getCSRFToken(),
+              "X-CSRFToken": apiUtils.getCSRFToken(),
             },
           });
 
@@ -588,17 +588,6 @@
         supportingDropdowns.forEach((dropdown) => {
           populateDropdownFallback(dropdown);
         });
-      }
-
-      // Helper function to get CSRF token
-      function getCSRFToken() {
-        return (
-          document.querySelector("[name=csrfmiddlewaretoken]")?.value ||
-          document
-            .querySelector('meta[name="csrf-token"]')
-            ?.getAttribute("content") ||
-          ""
-        );
       }
 
       // Expose functions and data globally for upload handler
