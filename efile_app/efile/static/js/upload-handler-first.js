@@ -256,6 +256,8 @@ class UploadHandler {
             return false;
         }
 
+        this.hideAlerts();
+
         return true;
     }
 
