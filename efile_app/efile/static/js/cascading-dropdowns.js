@@ -37,7 +37,7 @@ class CascadingDropdowns {
     await this.loadGuesses();
 
     // Load initial data for independent dropdowns with user context
-    this.loadCourtsWithUserContext();
+    await this.loadCourtsWithUserContext();
 
     // Add event listeners
     document.addEventListener("change", (e) => {
@@ -51,11 +51,9 @@ class CascadingDropdowns {
     const params = {};
     const currentJurisdiction = apiUtils.getCurrentJurisdiction();
 
-    const data = await this.makeRequest("/api/get-upload-data", {});
-    
     // Set the jurisdiction parameter
     params.jurisdiction = currentJurisdiction;
-    params.guessed_court = data['guesses']['court'];
+    params.guessed_court = this.guesses?.court;
     
     // For Massachusetts, skip location-based filtering and show all courts
     if (currentJurisdiction === 'massachusetts') {
@@ -132,7 +130,7 @@ class CascadingDropdowns {
   }
 
   async loadGuesses() {
-    const data = await this.makeRequest("/api/get-upload-data", {});
+    const data = await apiUtils.getUploadData();
     this.guesses = data['guesses']
   }
 

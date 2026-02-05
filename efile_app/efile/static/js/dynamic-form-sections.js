@@ -11,6 +11,7 @@ class DynamicFormSections {
     this.preservedFormData = null;
     this.preservedCaseType = null;
 
+    this.jurisdiction = apiUtils.getCurrentJurisdiction();
     //this.init();
   }
 
@@ -90,18 +91,13 @@ class DynamicFormSections {
 
       // Use form-config endpoint which applies court-specific modifications
       let url = "/api/form-config/";
-      const params = new URLSearchParams();
+      let params = {
+        "case_type": caseTypeText,
+        "jurisdiction": this.jurisdiction,
+        "court": court
+      };
 
-      params.append("case_type", caseTypeText); // Use text for keyword matching
-      if (court) {
-        params.append("court", court);
-      }
-      params.append("jurisdiction", "illinois"); // Default to Illinois
-
-      url += "?" + params.toString();
-
-      const response = await fetch(url);
-      const result = await response.json();
+      const result = await apiUtils.get(url, params);
 
       if (result.success && result.data) {
         // Transform the response to match the expected config structure
@@ -194,26 +190,17 @@ class DynamicFormSections {
   async loadExistingCaseData() {
     try {
       // Check if there's an API endpoint to retrieve saved case data
-      const response = await fetch("/api/get-case-data/", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      const result = await apiUtils.getCaseData();
+      if (
+        result.success &&
+        result.data &&
+        Object.keys(result.data).length > 0
+      ) {
+        this.restorationData = result.data;
 
-      if (response.ok) {
-        const result = await response.json();
-        if (
-          result.success &&
-          result.data &&
-          Object.keys(result.data).length > 0
-        ) {
-          this.restorationData = result.data;
-
-          // Also make it available for form validation system
-          if (window.formValidation) {
-            window.formValidation.restorationData = result.data;
-          }
+        // Also make it available for form validation system
+        if (window.formValidation) {
+          window.formValidation.restorationData = result.data;
         }
       }
     } catch (error) {

@@ -25,8 +25,9 @@ class ExpertForm {
             // Make form validation available globally for dynamic sections
             window.formValidation = this.formValidation;
             
-            // Try to restore any saved draft
-            this.formValidation.restoreDraft();
+            if (window.caseData) {
+                this.formValidation.populateForm(window.caseData);
+            }
             
             // Note: Auto-save removed - drafts are now only saved when user clicks "Save Draft" button
             

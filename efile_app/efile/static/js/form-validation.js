@@ -166,27 +166,8 @@ class FormValidation {
 
     try {      
       // Save case data to session via API
-      const response = await fetch("/api/save-case-data/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": apiUtils.getCSRFToken(),
-        },
-        body: JSON.stringify({ data: enhancedFormData }),
-      });
-
-
-      if (response.ok) {
-        const result = await response.json();
-        this.showNotification("Case data saved successfully!", "success");
-
-        window.location.replace(`/${currentJurisdiction}/upload/`);
-      } else {
-        const error = await response.json();
-        console.error("Failed to save case data - Status:", response.status);
-        console.error("Failed to save case data - Error:", error);
-        this.showNotification(`Error: ${error.error}`, "error");
-      }
+      apiUtils.saveCaseData({data: enhancedFormData});
+      window.location.replace(`/${currentJurisdiction}/upload/`);
     } catch (error) {
       console.error("Network error:", error);
       this.showNotification(
@@ -375,7 +356,7 @@ class FormValidation {
         }
 
         // Trigger change event for dropdowns to update dependent fields
-        if (field.tagName === "SELECT") {
+        if (field.tagName === "SELECT" || field.type === "radio") {
           field.dispatchEvent(new Event("change", { bubbles: true }));
         }
       }
