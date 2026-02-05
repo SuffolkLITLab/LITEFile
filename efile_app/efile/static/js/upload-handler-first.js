@@ -13,9 +13,7 @@ class UploadHandler {
         this.errorAlert = document.getElementById('errorAlert');
         this.successAlert = document.getElementById('successAlert');
         
-        this.uploadedFiles = {
-            lead: null
-        };
+        this.uploadedFile = null;
         
         this.initialized = false;
         
@@ -30,7 +28,7 @@ class UploadHandler {
         
         // First, sync any localStorage data to session
         await this.syncFormDataToSession();
-        
+
         this.setupEventListeners();
         this.setupDragAndDrop();
         
@@ -38,101 +36,35 @@ class UploadHandler {
     }
 
     async syncFormDataToSession() {
-        // Check if we have form data in localStorage
+        // Send stuff from localStorage to server
         const caseFormData = localStorage.getItem('caseFormData');
         if (caseFormData) {
             try {
-                const response = await fetch('/api/save-case-data/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': apiUtils.getCSRFToken()
-                    },
-                    body: caseFormData
-                });
-
-                if (response.ok) {
-                    // Clear localStorage since it's now in session
-                    localStorage.removeItem('caseFormData');
-                } else {
-                    console.warn('Failed to sync form data to session');
-                }
+                await apiUtils.saveCaseData(caseFormdata);
+                // Clear localStorage since it's now in session
+                localStorage.removeItem('caseFormData');
             } catch (error) {
                 console.error('Error syncing form data:', error);
             }
+        }
+        // Take stuff from server and show on page
+        const response = await apiUtils.getUploadData();
+        const lead = response?.files?.lead;
+        if (lead) {
+            this.uploadedFile = lead;
+            this.updateFilePreview(this.leadDocumentArea, lead);
+            document.getElementById("leadDocument").removeAttribute("required");
         }
     }
 
     async saveUploadDataToSession(uploadData) {
         try {            
-            const response = await fetch('/api/save-upload-data-first/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': apiUtils.getCSRFToken()
-                },
-                body: JSON.stringify(uploadData)
-            });
-
-            if (!response.ok) {
-                let errText = 'Failed to save upload data to session';
-                try {
-                    const errJson = await response.json();
-                    errText = errJson.error || errJson.message || errText;
-                } catch (e) {}
-                throw new Error(errText);
-            }
-
-            const result = await response.json();            
+            const result = await apiUtils.saveFirstUploadData(uploadData);
             if (!result.success) {
                 throw new Error(result.error || 'Failed to save upload data to session');
             }
         } catch (error) {
             console.error('Error saving upload data to session:', error);
-            throw error;
-        }
-    }
-
-    async saveFilesToSession() {
-        try {
-            // Create file metadata to save to session (we can't store actual File objects)
-            const fileData = {
-                lead: this.uploadedFiles.lead ? {
-                    name: this.uploadedFiles.lead.name,
-                    size: this.uploadedFiles.lead.size,
-                    type: this.uploadedFiles.lead.type
-                } : null
-            };
-
-            const uploadData = {
-                files: fileData
-            };
-
-            const response = await fetch('/api/save-upload-data/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': apiUtils.getCSRFToken()
-                },
-                body: JSON.stringify(uploadData)
-            });
-
-            if (!response.ok) {
-                // Try to extract error message from JSON if available
-                let errText = 'Failed to save upload data to session';
-                try {
-                    const errJson = await response.json();
-                    errText = errJson.error || errJson.message || errText;
-                } catch (e) {}
-                throw new Error(errText);
-            }
-
-            const result = await response.json();
-            if (!result.success) {
-                throw new Error(result.error || 'Failed to save upload data to session');
-            }
-        } catch (error) {
-            console.error('Error saving files to session:', error);
             throw error;
         }
     }
@@ -217,8 +149,8 @@ class UploadHandler {
         if (validFiles.length === 0) return;
 
         // Only one lead document allowed
-        this.uploadedFiles.lead = validFiles[0];
-        this.updateFilePreview(this.leadDocumentArea, [validFiles[0]], 'lead');
+        this.uploadedFile = validFiles[0];
+        this.updateFilePreview(this.leadDocumentArea, validFiles[0]);
 
         // Ensure the native file input reflects the selection so browser validation works
         try {
@@ -233,7 +165,7 @@ class UploadHandler {
         }
 
         // Automatically upload lead document
-        this.uploadFileImmediately(validFiles[0], 'lead', 0);
+        this.uploadFileImmediately(validFiles[0], 0);
 
         this.updateSubmitButton();
     }
@@ -257,36 +189,31 @@ class UploadHandler {
         return true;
     }
 
-    updateFilePreview(area, files, type) {
+    updateFilePreview(area, file) {
         // Clear existing preview
         const existingPreviews = area.querySelectorAll('.file-preview');
         existingPreviews.forEach(preview => preview.remove());
 
         // Add file previews
-        files.forEach((file, index) => {
-            const preview = this.createFilePreview(file, type, index);
-            area.appendChild(preview);
-        });
+        if (file) {
+          const preview = this.createFilePreview(file);
+          area.appendChild(preview);
+        }
 
         // Show/hide document options based on whether files are uploaded
-        if (type === 'lead') {
-            const leadOptions = document.getElementById('leadDocumentOptions');
-            if (leadOptions) {
-                leadOptions.style.display = files.length > 0 ? 'block' : 'none';
-            }
-        } else if (type === 'supporting') {
-            // Update supporting documents options
-            this.updateSupportingDocumentsOptions(files);
+        const leadOptions = document.getElementById('leadDocumentOptions');
+        if (leadOptions) {
+            leadOptions.style.display = file ? 'block' : 'none';
         }
 
         // Hide/show placeholder
         const placeholder = area.querySelector('.upload-placeholder');
         if (placeholder) {
-            placeholder.style.display = files.length > 0 ? 'none' : 'block';
+            placeholder.style.display = file ? 'none' : 'block';
         }
     }
 
-    createFilePreview(file, type, index) {
+    createFilePreview(file) {
         const preview = document.createElement('div');
         preview.className = 'file-preview';
         
@@ -312,32 +239,13 @@ class UploadHandler {
             e.stopPropagation();
             e.stopImmediatePropagation();
 
-            if (type === 'lead') {
-                this.uploadedFiles.lead = null;
-                this.updateFilePreview(this.leadDocumentArea, [], 'lead');
-                // Clear the native file input
-                if (this.leadDocumentInput) {
-                    this.leadDocumentInput.value = '';
-                }
-                } else {
-                // Find and remove the specific file from the array
-                const fileIndex = this.uploadedFiles.supporting.indexOf(file);
-                if (fileIndex > -1) {
-                    this.uploadedFiles.supporting.splice(fileIndex, 1);
-                    this.updateFilePreview(this.supportingDocumentsArea, this.uploadedFiles.supporting, 'supporting');
-                    
-                    // Update native supporting input FileList
-                    try {
-                        const dt = new DataTransfer();
-                        this.uploadedFiles.supporting.forEach(f => dt.items.add(f));
-                        if (this.supportingDocumentsInput) {
-                            this.supportingDocumentsInput.files = dt.files;
-                        }
-                    } catch (err) {
-                        console.warn('Could not update native supporting input.files after removal:', err);
-                    }
-                }
-            }            this.updateSubmitButton();
+            this.uploadedFile = null;
+            this.updateFilePreview(this.leadDocumentArea, null); 
+            // Clear the native file input
+            if (this.leadDocumentInput) {
+                this.leadDocumentInput.value = '';
+            }
+            this.updateSubmitButton();
             
             // Return false to ensure no further event processing
             return false;
@@ -352,14 +260,14 @@ class UploadHandler {
     }
 
     updateSubmitButton() {
-        const hasLeadDocument = this.uploadedFiles.lead !== null;
+        const hasLeadDocument = this.uploadedFile !== null;
         this.submitButton.disabled = !hasLeadDocument;
     }
 
-    async uploadFileImmediately(file, type, index) {
+    async uploadFileImmediately(file, index) {
         try {
             // Show upload progress for this specific file
-            this.showFileUploadProgress(file.name, type, index);
+            this.showFileUploadProgress(file.name, index);
 
             // Create FormData with just this file
             const formData = new FormData();
@@ -380,26 +288,20 @@ class UploadHandler {
             }
 
             // Update file preview to show successful upload
-            this.showFileUploadSuccess(file.name, type, index);
+            this.showFileUploadSuccess(file.name, index);
 
             // Store the upload result for later use during form submission
-            if (type === 'lead') {
-                this.uploadedFiles.lead.uploadResult = result;
-            } else {
-                this.uploadedFiles.supporting[index].uploadResult = result;
-            }
+            this.uploadedFile.uploadResult = result;
 
         } catch (error) {
             console.error('Error uploading file immediately:', error);
-            this.showFileUploadError(file.name, type, index, error.message);
+            this.showFileUploadError(file.name, index, error.message);
         }
     }
 
     showFileUploadProgress(fileName, type, index) {
-        const selector = type === 'lead' ? '.file-preview' : `.file-preview:nth-child(${index + 2})`;
-        const preview = type === 'lead' 
-            ? this.leadDocumentArea.querySelector(selector)
-            : this.supportingDocumentsArea.querySelector(selector);
+        const selector = '.file-preview';
+        const preview = this.leadDocumentArea.querySelector(selector)
         
         if (preview) {
             const statusDiv = preview.querySelector('.upload-status') || document.createElement('div');
@@ -411,11 +313,9 @@ class UploadHandler {
         }
     }
 
-    showFileUploadSuccess(fileName, type, index) {
-        const selector = type === 'lead' ? '.file-preview' : `.file-preview:nth-child(${index + 2})`;
-        const preview = type === 'lead' 
-            ? this.leadDocumentArea.querySelector(selector)
-            : this.supportingDocumentsArea.querySelector(selector);
+    showFileUploadSuccess(fileName, index) {
+        const selector = '.file-preview';
+        const preview = this.leadDocumentArea.querySelector(selector);
         
         if (preview) {
             const statusDiv = preview.querySelector('.upload-status');
@@ -425,11 +325,9 @@ class UploadHandler {
         }
     }
 
-    showFileUploadError(fileName, type, index, error) {
-        const selector = type === 'lead' ? '.file-preview' : `.file-preview:nth-child(${index + 2})`;
-        const preview = type === 'lead' 
-            ? this.leadDocumentArea.querySelector(selector)
-            : this.supportingDocumentsArea.querySelector(selector);
+    showFileUploadError(fileName, index, error) {
+        const selector = '.file-preview';
+        const preview = this.leadDocumentArea.querySelector(selector)
         
         if (preview) {
             const statusDiv = preview.querySelector('.upload-status');
@@ -441,11 +339,18 @@ class UploadHandler {
     }
 
     async handleFormSubmission() {
-        if (!this.uploadedFiles.lead) {
+        if (!this.uploadedFile) {
             this.showError('Please upload a lead document before continuing.');
             return;
         }
 
+        if (this.uploadedFile.url && this.uploadedFile.s3_key) {
+            // We've already uploaded the file previously. Just continue.
+            const jurisdiction = apiUtils.getCurrentJurisdiction();
+            window.location.href = `/${jurisdiction}/expert_form/`;
+            return;
+        }
+        
         this.showWaiting("Processing your form...");
 
         try {
@@ -460,12 +365,12 @@ class UploadHandler {
             };
 
             // Use already uploaded file data (files were uploaded immediately when selected)
-            if (this.uploadedFiles.lead && this.uploadedFiles.lead.uploadResult) {
-                const leadResult = this.uploadedFiles.lead.uploadResult;
+            if (this.uploadedFile && this.uploadedFile.uploadResult) {
+                const leadResult = this.uploadedFile.uploadResult;
                 uploadDataWithUrls.files.lead = {
-                    name: this.uploadedFiles.lead.name,
-                    size: this.uploadedFiles.lead.size,
-                    type: this.uploadedFiles.lead.type,
+                    name: this.uploadedFile.name,
+                    size: this.uploadedFile.size,
+                    type: this.uploadedFile.type,
                     url: leadResult.files[0]?.public_url,
                     s3_key: leadResult.files[0]?.key
                 };
@@ -475,7 +380,7 @@ class UploadHandler {
             await this.saveUploadDataToSession(uploadDataWithUrls);
 
             
-            // Redirect to review page
+            // Redirect to next page
             const jurisdiction = apiUtils.getCurrentJurisdiction();
             window.location.href = `/${jurisdiction}/expert_form/`;
 

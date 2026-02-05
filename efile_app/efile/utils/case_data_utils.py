@@ -30,6 +30,24 @@ def clear_case_data(request):
         request.session.modified = True
 
 
+def get_upload_data(request):
+    return request.session.get("upload_data", {})
+
+
+def update_upload_data(request, updates):
+    upload_data = get_upload_data(request)
+    upload_data.update(updates)
+    request.session["upload_data"] = upload_data
+    request.session.modified = True
+    return upload_data
+
+
+def clear_upload_data(request):
+    if "upload_data" in request.session:
+        del request.session["upload_data"]
+        request.session.modified = True
+
+
 def get_petitioner_info(request):
     """
     Get petitioner information specifically

@@ -56,7 +56,7 @@
           // Save the existing_case selection
           makeNewCaseData().then(() => {
             // For new cases, go directly to expert form with cache clearing and options page flag
-            window.location.href = `/{{jurisdiction}}/upload_first/?clear_cache=true&from_options=true`;
+            window.location.href = `/{{jurisdiction}}/upload_first/?clear_session=true&from_options=true`;
           });
         } else {
           // TODO(brycew): go straight to the page where the existing session was, reload everything
@@ -65,28 +65,17 @@
 
       async function checkExistingCaseData() {
         // Check if there's an API endpoint to retrieve saved case data
-        const response = await fetch("/api/get-case-data/", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-        if (response.ok) {
-          const result = await response.json();
-          if (
+        const result = await apiUtils.getCaseData();
+        if (
             result.success &&
             result.data &&
             Object.keys(result.data).length > 0
-          ) {
-            console.log("existing: %o", result.data)
-            //TODO(brycew): return more here to bring user directly to old session
-            return true;
-          }
-          else {
-            console.log("existing: %o", result.data)
-          }
+        ) {
+          console.log("existing: %o", result.data)
+          //TODO(brycew): return more here to bring user directly to old session
+          return true;
         } else {
-          console.log("response: %o", response)
+          console.log("existing: %o", result.data)
         }
         return false;
       }
@@ -98,23 +87,12 @@
         sessionStorage.setItem('session_id', new_uuid);
         try {
           // Also make an API call to save server-side if needed
-          const response = await fetch('/api/save-case-data/', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-CSRFToken': window.apiUtils.getCSRFToken(),
-            },
-            body: JSON.stringify({
+          await apiUtils.saveCaseData({
               session_id: new_uuid,
               jurisdiction: `{{jurisdiction}}`,
-            })
           });
           
-          if (!response.ok) {
-            console.warn('Failed to save case data server-side, session storage used only');
-          } else {
-            console.log("Saved data!")
-          }
+          console.log("Saved data!")
         } catch (error) {
           console.warn('Error saving case data:', error);
           // Session storage fallback is already in place

@@ -149,10 +149,56 @@
       </div>
     </div>
 
+    {{ upload_data|json_script:"upload-data" }}
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script src="{% static 'js/api-utils.js' %}"></script>
+    <script>
+    // Check for cache clearing parameters first, before loading any data
+    function shouldClearCache() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const clearSession = urlParams.get('clear_session');
+      const fromOptions = urlParams.get('from_options');
+
+      // Only clear cache if both parameters are present and true
+      return clearSession === 'true' && fromOptions === 'true';
+    }
+
+    // Clear all eFiling related data if coming from options
+    if (shouldClearCache()) {
+      apiUtils.clearAllCache();
+      // Clear all eFiling related session storage
+      const keysToRemove = [];
+      for (let i = 0; i < sessionStorage.length; i++) {
+        const key = sessionStorage.key(i);
+        if (key && (
+          key.includes('case_') ||
+          key.includes('efile_') ||
+          key.includes('filing_') ||
+          key.includes('document_') ||
+          key.includes('upload_') ||
+          key === 'existing_case' ||
+          key === 'form_data' ||
+          key === 'case_data'
+        )) {
+          keysToRemove.push(key);
+        }
+      }
+
+      // Remove the identified keys
+      keysToRemove.forEach(key => {
+        sessionStorage.removeItem(key);
+      });
+
+      // Clear window.caseData to ensure fresh start
+      window.caseData = {};
+
+      sessionStorage.setItem('existing_case', 'no');
+    }
+    </script>
+
+
     <script src="{% static 'js/components/search-dropdown.js' %}"></script>
     <script src="{% static 'js/upload-handler-first.js' %}"></script>
-
   </body>
 </html>

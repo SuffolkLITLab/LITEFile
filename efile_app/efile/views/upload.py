@@ -3,7 +3,13 @@ import logging
 from django.contrib import messages
 from django.shortcuts import redirect, render
 
-from ..utils.case_data_utils import get_case_classification, get_case_data, get_name_sought_info, get_petitioner_info
+from ..utils.case_data_utils import (
+    get_case_classification,
+    get_case_data,
+    get_name_sought_info,
+    get_petitioner_info,
+    get_upload_data,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -33,8 +39,11 @@ def efile_upload(request, jurisdiction):
     friendly_filing_type = case_data.get("filing_type_name", case_classification["filing_type"])
     friendly_court = case_data.get("court_name", case_classification["court"])
 
+    upload_data = get_upload_data(request)
+
     context = {
         "case_data": case_data,
+        "upload_data": upload_data,
         "petitioner_info": petitioner_info,
         "name_sought_info": name_sought_info,
         "case_classification": case_classification,

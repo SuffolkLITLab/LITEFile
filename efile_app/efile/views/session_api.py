@@ -8,6 +8,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
+from ..utils.case_data_utils import clear_case_data, clear_upload_data, get_upload_data
 from ..utils.llms import LlmError, extract_fields_from_file
 from ..utils.proxy_connection import get_party_type_code_from_api
 from ..utils.zip_to_county_il import get_county_by_zip
@@ -319,8 +320,7 @@ def save_upload_data_to_session(request):
 @require_http_methods(["GET"])
 def get_upload_data_from_session(request):
     """Get upload data from Django session."""
-    upload_data = request.session.get("upload_data", {})
-    return JsonResponse(upload_data, safe=False)
+    return JsonResponse(get_upload_data(request), safe=False)
 
 
 @csrf_exempt
@@ -335,7 +335,7 @@ def submit_final_filing(request):
 
         # Get all data from session
         case_data = request.session.get("case_data", {})
-        upload_data = request.session.get("upload_data", {})
+        upload_data = get_upload_data(request)
         auth_tokens = request.session.get("auth_tokens", {})
 
         logger.debug("Session data contents:")
@@ -443,11 +443,8 @@ def submit_final_filing(request):
                 response_data = response.json()
 
                 # Clear session data after successful submission
-                if "case_data" in request.session:
-                    del request.session["case_data"]
-                if "upload_data" in request.session:
-                    del request.session["upload_data"]
-                request.session.modified = True
+                clear_case_data(request)
+                clear_upload_data(request)
 
                 return JsonResponse(
                     {

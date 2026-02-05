@@ -233,15 +233,23 @@ class ApiUtils {
     }
 
     // Convenience methods for common HTTP verbs
-    async get(endpoint, params = {}) {
+    async get(endpoint, params = {}, use_csrf=false) {
         // Check cache first
         const cachedResponse = this.getCachedResponse(endpoint, params);
         if (cachedResponse !== null) {
             return cachedResponse;
         }
+        
+        let headers = {};
+        if (use_csrf) {
+            headers = {
+                "Content-Type": "application/json",
+                "X-CSRFToken": apiUtils.getCSRFToken(),
+            };
+        }
 
         // Make API request if not cached
-        const response = await this.makeRequest(endpoint, { params });
+        const response = await this.makeRequest(endpoint, { params, headers });
         
         // Cache the response
         this.setCachedResponse(endpoint, params, response);
@@ -280,10 +288,65 @@ class ApiUtils {
         });
     }
 
+    async getCaseData() {
+        return this.get("/api/get-case-data", {});
+    }
+
+    async saveCaseData(body) {
+        let resp = this.makeRequest(
+            "/api/save-case-data/", {
+                method: "POST",
+                data: body,
+                params: {},
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': apiUtils.getCSRFToken()
+                }
+            }
+        );
+        const cacheKey = this.getCacheKey("/api/get-case-data", {});
+        this.clearCache(cacheKey)
+        return resp;
+    }
+
+    async getUploadData() {
+        return this.get("/api/get-upload-data", {});
+    }
+
+    async saveUploadData(body) {
+        return this._saveUpload("/api/save-upload-data/", body);
+    }
+
+    async saveFirstUploadData(body) {
+        return this._saveUpload("/api/save-upload-data-first/", body);
+    }
+
+    async _saveUpload(endpoint, body) {
+        let resp = this.makeRequest(
+            endpoint, {
+                method: "POST",
+                data: body,
+                params: {},
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': apiUtils.getCSRFToken()
+                }
+            }
+        );
+        const cacheKey = this.getCacheKey("/api/get-upload-data", {});
+        this.clearCache(cacheKey)
+        return resp;
+    }
+
     // Cache management methods
-    clearCache() {
+    clearAllCache() {
         this.cache = {};
         localStorage.removeItem('apiResponseCache');
+    }
+
+    clearCache(key) {
+        delete this.cache[key];
+        this.saveCache();
     }
 
     clearExpiredCache() {

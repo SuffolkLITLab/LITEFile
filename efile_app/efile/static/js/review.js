@@ -270,7 +270,7 @@ const APIHandlers = {
   },
 
   async loadUploadData() {
-    const data = await DataManager.fetchJSON(CONFIG.URLS.UPLOAD_DATA);
+    const data = await apiUtils.getUploadData();
     if (data) {
       UIUpdater.updateDocumentsSection(data);
     }
@@ -487,7 +487,12 @@ const Navigation = {
   },
 
   changeDocument(type) {
-    window.location.href = `/${apiUtils.getCurrentJurisdiction()}/upload`;
+    if (type === "lead") {
+      // TODO: still save all of the existing stuff?
+      window.location.href = `/${apiUtils.getCurrentJurisdiction()}/upload_first`;
+    } else {
+      window.location.href = `/${apiUtils.getCurrentJurisdiction()}/upload`;
+    }
   }
 };
 
