@@ -156,6 +156,10 @@
                       Request certified copies when filed
                     </label>
                   </div>
+                  <div class="form-text" hidden>
+                    <label class="form-text-label form-label" for="leadCertifiedCopyEmail"><strong>Email:</strong></label>
+                    <input class="form-text-input form-control" type="text" id="leadCertifiedCopyEmail" name="lead_certified_copy_email_${index}">
+                  </div>
                 </div>
               </div>
             </div>
@@ -654,10 +658,14 @@
                     <div class="row mt-3">
                         <div class="col-md-6">
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="supportingCertifiedCopies${index}" name="supporting_certified_copies_${index}">
+                                <input class="form-check-input supporting-certified-copies" type="checkbox" id="supportingCertifiedCopies${index}" name="supporting_certified_copies_${index}">
                                 <label class="form-check-label" for="supportingCertifiedCopies${index}">
                                     Request certified copies when filed
                                 </label>
+                            </div>
+                            <div class="form-text" hidden>
+                                <label class="form-text-label form-label" for="supportingCertifiedCopyEmail${index}"><strong>Email:</strong></label>
+                                <input class="form-text-input form-control" type="text" id="supportingCertifiedCopyEmail${index}" name="supporting_certified_copy_email_${index}">
                             </div>
                         </div>
                     </div>

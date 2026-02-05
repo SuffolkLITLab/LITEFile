@@ -668,7 +668,8 @@ const FilingHandler = {
         uploadData.lead_filing_component || caseData.filing_component,
         users,
         uploadData.lead_filing_type_name || caseData.case_type_name,
-        uploadData.lead_document_type_name || ""
+        uploadData.lead_document_type_name || "",
+        uploadData.lead_cc_email
       );
       efilingData.al_court_bundle.push(leadBundle);
     }
@@ -684,14 +685,21 @@ const FilingHandler = {
           config.filing_component || "supporting",
           users,
           config.filing_type_name || `Supporting Document ${index + 1}`,
-          config.document_type_name || ""
+          config.document_type_name || "",
+          config.cc_email
         );
         efilingData.al_court_bundle.push(bundle);
       });
     }
   },
 
-  createDocumentBundle(doc, filingType, documentType, filingComponent, users, description, docDescription) {
+  createDocumentBundle(doc, filingType, documentType, filingComponent, users, description, docDescription, cc_email) {
+    if (cc_email) {
+      courtesy_copies = [cc_email]
+    }
+    else {
+      countesy_copies = []
+    }
     return {
       proxy_enabled: true,
       filing_type: filingType,
@@ -701,7 +709,7 @@ const FilingHandler = {
       reference_number: "",
       filing_attorney: "",
       filing_comment: "",
-      courtesy_copies: [],
+      courtesy_copies: countesy_copies,
       preliminary_copies: [],
       filing_parties: users.length === 1 ? ["users[0]"] : ["users[0]", "users[1]"],
       filing_action: "efile",

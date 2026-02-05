@@ -33,12 +33,12 @@ class UploadHandler {
         
         this.setupEventListeners();
         this.setupDragAndDrop();
-        this.setupDocumentTypeListeners();
+        this.setupListeners();
         
         this.initialized = true;
     }
 
-    setupDocumentTypeListeners() {
+    setupListeners() {
         // Listen for changes to lead filing component
         const leadDocumentType = document.getElementById('leadDocumentType');
         if (leadDocumentType) {
@@ -47,10 +47,38 @@ class UploadHandler {
             });
         }
 
+        const leadCertifiedCopies = document.getElementById('leadCertifiedCopies');
+        if (leadCertifiedCopies) {
+            leadCertifiedCopies.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    let inputElement = document.getElementById('leadCertifiedCopyEmail');
+                    inputElement.parentElement.removeAttribute("hidden");
+                    inputElement.parentElement.setAttribute("required", true);
+                } else {
+                    let inputElement = document.getElementById('leadCertifiedCopyEmail');
+                    inputElement.parentElement.setAttribute("hidden", true);
+                    inputElement.removeAttribute("required");
+                }
+            })
+        }
+
         // Use event delegation for supporting filing components since they're added dynamically
         document.addEventListener('change', (e) => {
             if (e.target && e.target.classList.contains('document-type-select')) {
                 this.updateSubmitButton();
+            } else if (e.target && e.target.classList.contains('supporting-certified-copies')) {
+                let idToChange = e.target.id.replace("supportingCertifiedCopies", "supportingCertifiedCopyEmail");
+                let inputElement = document.getElementById(idToChange);
+                if (e.target.checked) {
+                    inputElement.parentElement.removeAttribute("hidden");
+                    inputElement.setAttribute("required", true);
+                    if (!inputElement.value) {
+                        inputElement.value = document.getElementById("leadCertifiedCopyEmail").value;
+                    }
+                } else {
+                    inputElement.parentElement.setAttribute("hidden", true);
+                    inputElement.removeAttribute("required");
+                }
             }
         });
     }
@@ -443,9 +471,7 @@ class UploadHandler {
         
         // Add options for each supporting document
         files.forEach((file, index) => {
-            const optionsHTML = window.createSupportingDocumentOptions ? 
-                window.createSupportingDocumentOptions(index, file.name) :
-                this.createSupportingDocumentOptionsHTML(index, file.name);
+            const optionsHTML = window.createSupportingDocumentOptions(index, file.name);
             
             const div = document.createElement('div');
             div.innerHTML = optionsHTML;
@@ -519,25 +545,6 @@ class UploadHandler {
                 }
             });
         }
-    }
-
-    createSupportingDocumentOptionsHTML(index, fileName) {
-        return `
-            <div class="document-options mt-3 supporting-document-options" id="supportingDocumentOptions${index}">
-                <h6 class="mb-3"><strong>Options for: ${fileName}</strong></h6>
-                
-                <div class="row mt-3">
-                    <div class="col-md-6">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="supportingCertifiedCopies${index}" name="supporting_certified_copies_${index}">
-                            <label class="form-check-label" for="supportingCertifiedCopies${index}">
-                                Request certified copies when filed
-                            </label>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
     }
 
     removeFile(index) {
@@ -684,6 +691,11 @@ class UploadHandler {
             const leadFilingComponentValue = globalFilingComponentLead.id;
             const leadFilingComponentName = globalFilingComponentLead.name;
 
+            let leadCCEmail = document.getElementById('leadCertifiedCopyEmail').value;
+            if (!document.getElementById('leadCertifiedCopies').checked) {
+                leadCCEmail = null;
+            }
+
             // Collect supporting document dropdown values
             const supportingDocuments = [];
             const supportingDropdowns = document.querySelectorAll('select[id*="supportingFilingType"]:not([id*="_search"])');
@@ -695,6 +707,11 @@ class UploadHandler {
                 const docTypeName = docTypeSelect?.selectedOptions[0]?.text || '';
                 const component = globalFilingComponentSupport.id;
                 const componentName = globalFilingComponentSupport.name;
+
+                let supportingCCEmail = document.getElementById(`supportingCertifiedCopyEmail${index}`).value;
+                if (!document.getElementById(`supportingCertifiedCopies${index}`).checked) {
+                    supportingCCEmail = null;
+                }
                 
                 const supportingDoc = {
                     filing_type: filingType,
@@ -702,7 +719,8 @@ class UploadHandler {
                     document_type: docType,
                     document_type_name: docTypeName,
                     filing_component: component,
-                    filing_component_name: componentName
+                    filing_component_name: componentName,
+                    cc_email: supportingCCEmail
                 };
                 
                 supportingDocuments.push(supportingDoc);
@@ -726,6 +744,7 @@ class UploadHandler {
                 lead_document_type_name: leadDocumentTypeName,
                 lead_filing_component: leadFilingComponentValue,
                 lead_filing_component_name: leadFilingComponentName,
+                lead_cc_email: leadCCEmail,
                 // Add supporting documents dropdown data
                 supporting_documents: supportingDocuments
             };
