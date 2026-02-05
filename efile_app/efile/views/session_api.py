@@ -353,6 +353,7 @@ def save_upload_data_to_session(request):
             "lead_document_type_name": data.get("lead_document_type_name", ""),
             "lead_filing_component": data.get("lead_filing_component", ""),
             "lead_filing_component_name": data.get("lead_filing_component_name", ""),
+            "lead_cc_email": data.get("lead_cc_email"),
             # Supporting documents filing information
             "supporting_documents": data.get("supporting_documents", []),
         }
