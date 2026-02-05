@@ -36,9 +36,6 @@
               </div>
             </div>
             <div class="button-group">
-              <!-- button class="btn btn-outline-primary" tabindex="0" onclick="goToSimpleForm('new')">
-                 Simple Form
-              </button-->
               <button class="btn btn-primary" tabindex="0" onclick="goToExpertForm('new')">
                 Begin
               </button>
@@ -51,6 +48,7 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/api-utils.js' %}"></script>
     <script>
       // Function to save existing_case data and redirect to expert form or case details
       function goToExpertForm(new_or_existing) {
@@ -99,13 +97,12 @@
         let new_uuid = self.crypto.randomUUID();
         sessionStorage.setItem('session_id', new_uuid);
         try {
-          
           // Also make an API call to save server-side if needed
           const response = await fetch('/api/save-case-data/', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'X-CSRFToken': getCsrfToken(),
+              'X-CSRFToken': window.apiUtils.getCSRFToken(),
             },
             body: JSON.stringify({
               session_id: new_uuid,
@@ -122,18 +119,6 @@
           console.warn('Error saving case data:', error);
           // Session storage fallback is already in place
         }
-      }
-
-      // Helper function to get CSRF token
-      function getCsrfToken() {
-        const cookies = document.cookie.split(';');
-        for (let cookie of cookies) {
-          const [name, value] = cookie.trim().split('=');
-          if (name === 'csrftoken') {
-            return value;
-          }
-        }
-        return '';
       }
 
       function useExistingCardHtml() {
@@ -171,12 +156,8 @@
 
       checkExistingCaseData().then(value => {
         if (value) {
-          let html = useExistingCardHtml();
           let elem = document.getElementById('existing-placeholder');
-          elem.innerHTML = html;
-          console.log("existing session?: %o", value);
-        } else {
-          console.log("No existing session?, %o", value);
+          elem.innerHTML = useExistingCardHtml();
         }
       });
     </script>

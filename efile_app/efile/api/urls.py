@@ -24,11 +24,21 @@ from .dropdown_views import (
     get_party_types,
 )
 from .filing_views import create_filing, delete_filing, get_filing_detail, get_filings, update_filing
-from .suffolk_api_views import lookup_case
+from .s3_upload import (
+    mock_s3_upload,
+    simple_s3_upload,
+    test_s3_connection,
+)
+from .suffolk_api_views import get_party_types_from_suffolk_api, lookup_case
 
 app_name = "api"
 
 urlpatterns = [
+    path("get-party-types/", get_party_types_from_suffolk_api, name="get_party_types"),
+    path("simple-s3-upload/", simple_s3_upload, name="simple_s3_upload"),
+    path("mock-s3-upload/", mock_s3_upload, name="mock_s3_upload"),
+    path("test-s3-connection/", test_s3_connection, name="test_s3_connection"),
+    # path("api/create-filing/", create_filing, name="create_filing"),
     # Dropdown API endpoints
     path("dropdowns/case-categories/", get_case_categories, name="case_categories"),
     path("dropdowns/case-types/", get_case_types, name="case_types"),

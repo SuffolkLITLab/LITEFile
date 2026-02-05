@@ -154,17 +154,5 @@
     <script src="{% static 'js/components/search-dropdown.js' %}"></script>
     <script src="{% static 'js/upload-handler-first.js' %}"></script>
 
-    <script>
-      // Helper function to get CSRF token
-      function getCSRFToken() {
-        return (
-          document.querySelector("[name=csrfmiddlewaretoken]")?.value ||
-          document
-            .querySelector('meta[name="csrf-token"]')
-            ?.getAttribute("content") ||
-          ""
-        );
-      }
-    </script>
   </body>
 </html>

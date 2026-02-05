@@ -170,8 +170,7 @@ class FormValidation {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]")
-            .value,
+          "X-CSRFToken": apiUtils.getCSRFToken(),
         },
         body: JSON.stringify({ data: enhancedFormData }),
       });
@@ -180,7 +179,6 @@ class FormValidation {
       if (response.ok) {
         const result = await response.json();
         this.showNotification("Case data saved successfully!", "success");
-
 
         window.location.replace(`/${currentJurisdiction}/upload/`);
       } else {

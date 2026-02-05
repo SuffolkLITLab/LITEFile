@@ -17,18 +17,13 @@ const CONFIG = {
     PAYMENT_ACCOUNTS: '/api/payment-accounts/',
     TYLER_TOKEN: '/api/auth/tyler-token/',
     SUBMIT_FILING: '/api/submit-final-filing/',
+    CASE_DATA: '/api/get-case-data/',
   }
 };
 
 
 // Utility functions
 const Utils = {
-  getCSRFToken() {
-    return document.querySelector("[name=csrfmiddlewaretoken]")?.value ||
-           document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") ||
-           "";
-  },
-
   getElement(id) {
     return document.getElementById(id);
   },
@@ -109,7 +104,7 @@ const DataManager = {
       const response = await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRFToken': Utils.getCSRFToken(),
+          'X-CSRFToken': apiUtils.getCSRFToken(),
           ...options.headers
         },
         ...options
@@ -121,7 +116,7 @@ const DataManager = {
     }
   },
 
-  getCaseData() {
+  async getCaseData() {
     return Utils.parseJSON('case-data');
   },
 
@@ -548,10 +543,12 @@ const FilingHandler = {
   },
 
   async processSubmission(userData, paymentAccountID) {
-    const [caseData, uploadData] = await Promise.all([
-      Promise.resolve(DataManager.getCaseData()),
+    let [caseData, uploadData] = await Promise.all([
+      DataManager.fetchJSON(CONFIG.URLS.CASE_DATA),
       DataManager.fetchJSON(CONFIG.URLS.UPLOAD_DATA)
     ]);
+
+    caseData = caseData.data.case_data;
 
     const efilingData = this.buildEFilingData(userData, caseData, uploadData, paymentAccountID);
     
@@ -698,7 +695,7 @@ const FilingHandler = {
       courtesy_copies = [cc_email]
     }
     else {
-      countesy_copies = []
+      courtesy_copies = []
     }
     return {
       proxy_enabled: true,
@@ -709,7 +706,7 @@ const FilingHandler = {
       reference_number: "",
       filing_attorney: "",
       filing_comment: "",
-      courtesy_copies: countesy_copies,
+      courtesy_copies: courtesy_copies,
       preliminary_copies: [],
       filing_parties: users.length === 1 ? ["users[0]"] : ["users[0]", "users[1]"],
       filing_action: "efile",
