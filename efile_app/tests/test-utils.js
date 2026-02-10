@@ -37,7 +37,7 @@ async function loginViaLogout(page, config = getTestConfig()) {
   await page.context().addCookies([]);
   
   // Navigate to logout page
-  await page.goto(`${config.baseUrl}/logout`);
+  await page.goto(`${config.baseUrl}/jurisdiction/illinois/logout`);
   
   // Fill in login credentials
   await page.getByLabel('Email address').fill(config.username);
@@ -59,7 +59,7 @@ async function loginViaLoginPage(page, config = getTestConfig()) {
   console.log(`Logging in as ${config.username} to ${config.baseUrl}`);
   
   // Navigate to login page
-  await page.goto(`${config.baseUrl}/login`);
+  await page.goto(`${config.baseUrl}/jurisdiction/illinois/login`);
   
   // Fill in login credentials
   await page.getByLabel('Email address').fill(config.username);

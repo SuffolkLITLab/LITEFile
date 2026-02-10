@@ -7,6 +7,7 @@ jurisdiction:
   code: "illinois"
   display_name: "Illinois"
   icon: "fas fa-balance-scale"
+  svg: "img/IL.svg"
   api_endpoint: "/api/illinois"
 
 # State metadata, for the address

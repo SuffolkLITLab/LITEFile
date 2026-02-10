@@ -121,14 +121,14 @@
 
   function logout() {
     // Clear any messages first, then redirect to logout endpoint
-    fetch('/{{jurisdiction}}/logout/', {
+    fetch('/jurisdiction/{{jurisdiction}}/logout/', {
       method: 'GET',
       credentials: 'same-origin'
     }).then(function() {
-      window.location.href = '/{{jurisdiction}}/login/';
+      window.location.href = '/jurisdiction/{{jurisdiction}}/login/';
     }).catch(function() {
       // Fallback if fetch fails
-      window.location.href = '/{{jurisdiction}}/logout/';
+      window.location.href = '/jurisdiction/{{jurisdiction}}/logout/';
     });
   }
 </script>

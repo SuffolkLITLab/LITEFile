@@ -19,8 +19,7 @@ logger = logging.getLogger(__name__)
 
 def efile_login(request, jurisdiction):
     if jurisdiction not in config_loader.get_available_jurisdictions():
-        # TODO(brycew): better prediction of spell correction? (closest juris?)
-        return redirect("efile_login", jurisdiction="illinois")
+        return redirect("efile_choose_jurisdiction")
 
     login_form = EFileLoginForm()
     if request.method == "POST":
@@ -36,13 +35,14 @@ def efile_login(request, jurisdiction):
                         login(request, user)
                         request.session["user_email"] = user.email
                         messages.success(request, "Successfully logged in!")
-                        return redirect(f"/{jurisdiction}/options/")
+                        return redirect(f"/jurisdiction/{jurisdiction}/options/")
                     else:
                         messages.error(request, "Login service error. Please try again later.")
                 except Exception as e:
                     logger.exception("Login request failed")
                     messages.error(request, f"Login failed: {str(e)}")
-    context = {"login_form": login_form}
+    config = config_loader.load_jurisdiction_config(jurisdiction)
+    context = {"login_form": login_form, "config": config}
     return render(request, "efile/login.html", context)
 
 

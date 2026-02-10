@@ -167,7 +167,7 @@ class FormValidation {
     try {      
       // Save case data to session via API
       apiUtils.saveCaseData({data: enhancedFormData});
-      window.location.replace(`/${currentJurisdiction}/upload/`);
+      window.location.replace(`/jurisdiction/${currentJurisdiction}/upload/`);
     } catch (error) {
       console.error("Network error:", error);
       this.showNotification(

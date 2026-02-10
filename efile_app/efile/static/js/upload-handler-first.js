@@ -347,7 +347,7 @@ class UploadHandler {
         if (this.uploadedFile.url && this.uploadedFile.s3_key) {
             // We've already uploaded the file previously. Just continue.
             const jurisdiction = apiUtils.getCurrentJurisdiction();
-            window.location.href = `/${jurisdiction}/expert_form/`;
+            window.location.href = `/jurisdiction/${jurisdiction}/expert_form/`;
             return;
         }
         
@@ -382,7 +382,7 @@ class UploadHandler {
             
             // Redirect to next page
             const jurisdiction = apiUtils.getCurrentJurisdiction();
-            window.location.href = `/${jurisdiction}/expert_form/`;
+            window.location.href = `/jurisdiction/${jurisdiction}/expert_form/`;
 
         } catch (error) {
             console.error('Form submission error:', error);

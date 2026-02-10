@@ -2,6 +2,7 @@ from django.shortcuts import redirect
 from django.urls import include, path
 
 from .views.api_views import get_case_data_api, get_filing_components
+from .views.choose_jurisdiction import choose_jurisdiction
 from .views.confirmation import filing_confirmation
 from .views.expert_form import efile_expert_form
 from .views.jurisdiction import get_current_jurisdiction, switch_jurisdiction
@@ -25,20 +26,21 @@ from .views.upload_first import efile_upload_first
 
 
 def homepage(request):
-    return redirect("efile_login", jurisdiction="illinois")
+    return redirect("efile_choose_jurisdiction")
 
 
 urlpatterns = [
     path("", homepage, name="home"),
-    path("<jurisdiction>/login/", efile_login, name="efile_login"),
-    path("<jurisdiction>/logout/", efile_logout, name="efile_logout"),
-    path("<jurisdiction>/register/", efile_register, name="efile_register"),
-    path("<jurisdiction>/options/", efile_options, name="efile_options"),
-    path("<jurisdiction>/expert_form/", efile_expert_form, name="expert_form"),
-    path("<jurisdiction>/upload_first/", efile_upload_first, name="upload_first"),
-    path("<jurisdiction>/upload/", efile_upload, name="upload"),
-    path("<jurisdiction>/review/", case_review, name="case_review"),
-    path("<jurisdiction>/filing-confirmation/", filing_confirmation, name="filing_confirmation"),
+    path("choose-jurisdiction", choose_jurisdiction, name="efile_choose_jurisdiction"),
+    path("jurisdiction/<jurisdiction>/login/", efile_login, name="efile_login"),
+    path("jurisdiction/<jurisdiction>/logout/", efile_logout, name="efile_logout"),
+    path("jurisdiction/<jurisdiction>/register/", efile_register, name="efile_register"),
+    path("jurisdiction/<jurisdiction>/options/", efile_options, name="efile_options"),
+    path("jurisdiction/<jurisdiction>/expert_form/", efile_expert_form, name="expert_form"),
+    path("jurisdiction/<jurisdiction>/upload_first/", efile_upload_first, name="upload_first"),
+    path("jurisdiction/<jurisdiction>/upload/", efile_upload, name="upload"),
+    path("jurisdiction/<jurisdiction>/review/", case_review, name="case_review"),
+    path("jurisdiction/<jurisdiction>/filing-confirmation/", filing_confirmation, name="filing_confirmation"),
     # Session API endpoints
     path("api/get-case-data/", get_case_data_api, name="get_case_data_api"),
     path("api/get-filing-components/", get_filing_components, name="get_filing_components"),

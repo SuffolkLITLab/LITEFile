@@ -4,7 +4,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Illinois eFile - Register</title>
+    <title>{{config.jurisdiction.name}} eFile - Register</title>
     <link
       href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
       rel="stylesheet"
@@ -28,7 +28,7 @@
         <!-- Brand Header -->
         <div class="brand-header">
           <i class="fas fa-balance-scale scales-icon"></i>
-          <h1 class="brand-title">Illinois eFile</h1>
+          <h1 class="brand-title">{{config.jurisdiction.name}} eFile</h1>
         </div>
 
         <!-- Registration Content -->
@@ -247,7 +247,7 @@
         }
       }
       function goBack() {
-        window.location.href = `${apiUtils.getCurrentJurisdiction()}/login/`;
+        window.location.href = `jurisdiction/${apiUtils.getCurrentJurisdiction()}/login/`;
       }
       // Event listeners
       document

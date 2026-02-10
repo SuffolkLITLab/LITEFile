@@ -18,6 +18,23 @@
   <body>
     {% include 'efile/components/profile_header.html' %}
 
+    <!-- Django Messages -->
+     <div style="display: flex; flex-direction: column; align-items:center;">
+        {% if messages %} {% for message in messages %}
+        <div
+          class="alert alert-{{ message.tags }} alert-dismissible fade show"
+          role="alert"
+          style="max-width: 50%"
+        >
+          {{ message }}
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+          ></button>
+        </div>
+        {% endfor %} {% endif %}
+     </div>
     <div class="container">
       <h2 class="section-title">eFiling Options</h2>
       <div class="row justify-content-center">
@@ -56,7 +73,7 @@
           // Save the existing_case selection
           makeNewCaseData().then(() => {
             // For new cases, go directly to expert form with cache clearing and options page flag
-            window.location.href = `/{{jurisdiction}}/upload_first/?clear_session=true&from_options=true`;
+            window.location.href = `/jurisdiction/{{jurisdiction}}/upload_first/?clear_session=true&from_options=true`;
           });
         } else {
           // TODO(brycew): go straight to the page where the existing session was, reload everything

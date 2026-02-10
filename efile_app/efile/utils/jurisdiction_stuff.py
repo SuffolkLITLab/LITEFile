@@ -4,8 +4,7 @@ def get_jurisdiction_from_request(request):
         return jurisdiction.lower()
 
     segments = request.path.split("/")
-    # TODO(brycew): okay, maybe it makes sense to add an extra segment to the path...
-    if len(segments) >= 2 and segments[1] not in ["api", "options", "login", "register", "upload", "review"]:
-        return segments[1].lower()
+    if len(segments) >= 3 and segments[1] == "jurisdiction":
+        return segments[2].lower()
 
     return None

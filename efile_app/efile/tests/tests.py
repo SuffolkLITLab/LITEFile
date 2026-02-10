@@ -387,7 +387,7 @@ class TestExpertFormIntegration:
 
     def test_expert_form_page_loads(self, authenticated_client):
         """Test that the expert form page loads correctly."""
-        response = authenticated_client.get("/illinois/expert_form/")
+        response = authenticated_client.get("/jurisdiction/illinois/expert_form/")
 
         assert response.status_code == 200
         assert b"Case Details & Parties" in response.content or b"Expert Form" in response.content
@@ -439,7 +439,7 @@ class TestExpertFormIntegration:
     def test_form_submission_validation(self, authenticated_client):
         """Test form submission with validation."""
         response = authenticated_client.post(
-            "/illinois/expert_form/",
+            "/jurisdiction/illinois/expert_form/",
             {
                 "court": "cook:law1",
                 "case_category": "civil",

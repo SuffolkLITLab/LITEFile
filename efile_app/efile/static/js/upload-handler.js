@@ -777,7 +777,7 @@ class UploadHandler {
 
             
             // Redirect to review page
-            window.location.href = `/${this.jurisdiction}/review/`;
+            window.location.href = `/jurisdiction/${this.jurisdiction}/review/`;
 
         } catch (error) {
             console.error('Form submission error:', error);
