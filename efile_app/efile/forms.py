@@ -3,9 +3,15 @@ from django.contrib.auth.models import User
 
 
 class EFileLoginForm(forms.Form):
-    email = forms.EmailField(widget=forms.EmailInput(attrs={"class": "form-control", "id": "email", "required": True}))
+    email = forms.EmailField(
+        widget=forms.EmailInput(
+            attrs={"class": "form-control", "id": "email", "required": True, "autocomplete": "username"}
+        )
+    )
     password = forms.CharField(
-        widget=forms.PasswordInput(attrs={"class": "form-control", "id": "password", "required": True})
+        widget=forms.PasswordInput(
+            attrs={"class": "form-control", "id": "password", "required": True, "autocomplete": "current-password"}
+        )
     )
 
 
