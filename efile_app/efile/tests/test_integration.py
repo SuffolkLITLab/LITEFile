@@ -115,7 +115,7 @@ class TestBasicFunctionality:
         """Test that login functionality works."""
         client = Client()
 
-        response = client.get("/illinois/login/")
+        response = client.get("/jurisdiction/illinois/login/")
         assert response.status_code == 200
         assert b"login" in response.content.lower()
 

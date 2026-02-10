@@ -4,12 +4,16 @@ import requests
 from django.contrib import messages
 from django.shortcuts import redirect, render
 
+from efile.utils.config_loader import config_loader
+
 from ..forms import EFileRegistrationForm
 
 logger = logging.getLogger(__name__)
 
 
-def efile_register(request, jurisdiction=None):
+def efile_register(request, jurisdiction):
+    if jurisdiction not in config_loader.get_available_jurisdictions():
+        return redirect("efile_choose_jurisdiction")
     if request.method == "POST":
         form = EFileRegistrationForm(request.POST)
         required_fields = [
@@ -131,4 +135,5 @@ def efile_register(request, jurisdiction=None):
     else:
         # Always show a blank form on reload
         form = EFileRegistrationForm()
-    return render(request, "efile/register.html", {"form": form})
+    config = config_loader.load_jurisdiction_config(jurisdiction)
+    return render(request, "efile/register.html", {"form": form, "config": config})

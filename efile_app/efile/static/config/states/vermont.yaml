@@ -4,6 +4,7 @@ jurisdiction:
   code: "vermont"
   display_name: "Vermont"
   icon: "fas fa-balance-scale"
+  svg: "img/VT.svg"
   api_endpoint: "/api/vermont"
 
 # State metadata, for the address

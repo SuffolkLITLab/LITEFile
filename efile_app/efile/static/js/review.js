@@ -450,8 +450,8 @@ const PaymentHandler = {
       ['global', 'false'],
       ['type_code', 'CC'],
       ['tyler_info', authData.tyler_token],
-      ['original_url', `${window.location.origin}/${jurisdiction}/review/?payment_status=success`],
-      ['error_url', `${window.location.origin}/${jurisdiction}/review/?payment_status=failure`]
+      ['original_url', `${window.location.origin}/jurisdiction/${jurisdiction}/review/?payment_status=success`],
+      ['error_url', `${window.location.origin}/jurisdiction/${jurisdiction}/review/?payment_status=failure`]
     ];
 
     fields.forEach(([name, value]) => {
@@ -483,15 +483,16 @@ const PaymentHandler = {
 // Navigation
 const Navigation = {
   goBack() {
-    window.location.href = `/${apiUtils.getCurrentJurisdiction()}/upload`;
+    window.location.href = `/jurisdiction/${apiUtils.getCurrentJurisdiction()}/upload`;
   },
 
   changeDocument(type) {
+    const jurisdiction = apiUtils.getCurrentJurisdiction();
     if (type === "lead") {
       // TODO: still save all of the existing stuff?
-      window.location.href = `/${apiUtils.getCurrentJurisdiction()}/upload_first`;
+      window.location.href = `/jurisdiction/${jurisdiction}/upload_first`;
     } else {
-      window.location.href = `/${apiUtils.getCurrentJurisdiction()}/upload`;
+      window.location.href = `/jurisdiction/${jurisdiction}/upload`;
     }
   }
 };
@@ -729,7 +730,7 @@ const FilingHandler = {
       Messages.showSuccess("Filing submitted successfully! You will be redirected to the confirmation page.");
       setTimeout(() => {
         const jurisdiction = apiUtils.getCurrentJurisdiction();
-        window.location.href = result.redirect_url || `/${jurisdiction}/filing-confirmation/`;
+        window.location.href = result.redirect_url || `/jurisdiction/${jurisdiction}/filing-confirmation/`;
       }, 2000);
     } else {
       Messages.showError(result?.error || "An error occurred during submission.");

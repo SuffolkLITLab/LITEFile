@@ -450,7 +450,7 @@ def submit_final_filing(request):
                     {
                         "success": True,
                         "message": "Filing submitted successfully",
-                        "redirect_url": f"/{jurisdiction_id}/filing-confirmation/",
+                        "redirect_url": f"/jurisdiction/{jurisdiction_id}/filing-confirmation/",
                         "api_response": response_data,
                     }
                 )
