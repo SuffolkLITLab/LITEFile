@@ -103,7 +103,9 @@ class TestDropdownAPIs:
             mock_get.return_value = mock_response
 
             response = api_client.get(
-                "/api/dropdowns/case-categories/", {"court": "cook:law1"}, HTTP_X_REQUESTED_WITH="XMLHttpRequest"
+                "/api/dropdowns/case-categories/",
+                {"court": "cook:law1", "jurisdiction": "illinois"},
+                HTTP_X_REQUESTED_WITH="XMLHttpRequest",
             )
 
             if response.status_code != 200:
@@ -145,6 +147,7 @@ class TestDropdownAPIs:
                 {
                     "parent": "family",  # Use 'parent' not 'category'
                     "court": "cook:dr1",
+                    "jurisdiction": "illinois",
                 },
                 HTTP_X_REQUESTED_WITH="XMLHttpRequest",
             )

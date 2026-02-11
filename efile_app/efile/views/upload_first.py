@@ -1,4 +1,5 @@
 import logging
+import uuid
 
 from django.shortcuts import redirect, render
 
@@ -28,6 +29,11 @@ def efile_upload_first(request, jurisdiction):
 
     if clear_session and from_options:
         flush_cache_stay_logged_in(request.session)
+
+        # They are actively starting a new session, so make the base info for that.
+        request.session["session_id"] = str(uuid.uuid4())
+        request.session["jurisdiction"] = jurisdiction
+        request.session.modified = True
 
     # Could visit here from a back button press, so use upload data if any
     upload_data = get_upload_data(request)

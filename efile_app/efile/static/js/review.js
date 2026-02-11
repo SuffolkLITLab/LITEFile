@@ -11,7 +11,6 @@ const CONFIG = {
     PHONE_REGEX: /^\+?\d{7,15}$/
   },
   URLS: {
-    PARTY_TYPES: '/api/get-party-types/',
     UPLOAD_DATA: '/api/get-upload-data/',
     PROFILE: '/api/auth/profile/',
     PAYMENT_ACCOUNTS: '/api/payment-accounts/',
@@ -218,18 +217,18 @@ const FormValidator = {
 // API handlers
 const APIHandlers = {
   async fetchPartyType() {
-    const caseData = DataManager.getCaseData();
+    const caseData = await DataManager.getCaseData();
     
     if (!caseData.court || !caseData.case_type) return;
 
-    const params = new URLSearchParams({
+    const params = {
       jurisdiction: apiUtils.getCurrentJurisdiction(),
       court: caseData.court,
       case_type: caseData.case_type,
       existing_case: caseData.existing_case || 'no'
-    });
+    };
 
-    const result = await DataManager.fetchJSON(`${CONFIG.URLS.PARTY_TYPES}?${params}`);
+    const result = await apiUtils.getPartyTypes(params);
     
     if (result?.success) {
       console.log('Party types received:', result.party_types);

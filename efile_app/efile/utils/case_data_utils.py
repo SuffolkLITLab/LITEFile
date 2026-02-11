@@ -2,6 +2,10 @@
 Utility functions for handling case data throughout the application
 """
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 def get_case_data(request):
     """
@@ -79,10 +83,11 @@ def get_case_classification(request):
     Get case classification information
     """
     case_data = get_case_data(request)
+    logger.info("Case data: %s", case_data)
     return {
         "court": case_data.get("court", ""),
-        "case_category": case_data.get("case_category", ""),
-        "case_type": case_data.get("case_type", ""),
+        "case_category": case_data.get("case_category_code", case_data.get("case_category", "")),
+        "case_type": case_data.get("case_type_code", case_data.get("case_type", "")),
         "filing_type": case_data.get("filing_type", ""),
         "document_type": case_data.get("document_type", ""),
         "is_name_change": "name change" in case_data.get("case_type", "").lower(),

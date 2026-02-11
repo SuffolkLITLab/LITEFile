@@ -504,15 +504,17 @@
 
       async function saveCaseDataToSession(data) {
         try {
-          const caseData = JSON.stringify({
+          const caseData = {
               existing_case: 'yes',
               case_tracking_id: data.caseTrackingID,
+              case_category_name: data.caseCategoryName,
               case_category_code: data.caseCategoryCode,
               case_title_text: data.caseTitleText,
               case_docket_id: data.caseDocketID,
+              case_type_name: data.caseTypeName,
               case_type_code: data.caseTypeCode,
               court: data.court
-          });
+          };
           await apiUtils.saveCaseData(caseData);
         } catch (error) {
           console.warn('Error saving case data:', error);

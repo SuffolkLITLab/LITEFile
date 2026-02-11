@@ -80,8 +80,11 @@ class DropdownAPIViews(APIResponseMixin):
         try:
             # Get required parameters
             court_code = request.GET.get("court")
-            jurisdiction = request.GET.get("jurisdiction", "illinois")
+            jurisdiction = request.GET.get("jurisdiction")
             guessed_category = request.GET.get("guessed_case_category")
+
+            if not jurisdiction:
+                return DropdownAPIViews.error_response("Missing required jurisdiction parameter")
 
             if not court_code:
                 return DropdownAPIViews.error_response("Missing required court parameter")
@@ -123,8 +126,11 @@ class DropdownAPIViews(APIResponseMixin):
             # Get required parameters
             court_code = request.GET.get("court")
             category_id = request.GET.get("parent")  # category_id from case category dropdown
-            jurisdiction = request.GET.get("jurisdiction", "illinois")
+            jurisdiction = request.GET.get("jurisdiction")
             guessed_type = request.GET.get("guessed_case_type")
+
+            if not jurisdiction:
+                return DropdownAPIViews.error_response("Missing required jurisdiction parameter")
 
             if not court_code:
                 return DropdownAPIViews.error_response("Missing required court parameter")
@@ -477,7 +483,10 @@ class DropdownAPIViews(APIResponseMixin):
             # Get required parameters
             court_code = request.GET.get("court")
             filing_type_id = request.GET.get("parent")  # filing type ID from filing type dropdown
-            jurisdiction = request.GET.get("jurisdiction", "illinois")
+            jurisdiction = request.GET.get("jurisdiction")
+
+            if not jurisdiction:
+                return DropdownAPIViews.error_response("Missing required jurisdiction parameter")
 
             if not court_code:
                 return DropdownAPIViews.error_response("Missing required court parameter")
@@ -531,7 +540,10 @@ class DropdownAPIViews(APIResponseMixin):
             # Get required parameters
             court_code = request.GET.get("court")
             filing_type_id = request.GET.get("filing_type_id")
-            jurisdiction = request.GET.get("jurisdiction", "illinois")
+            jurisdiction = request.GET.get("jurisdiction")
+
+            if not jurisdiction:
+                return DropdownAPIViews.error_response("Missing required jurisdiction parameter")
 
             if not court_code:
                 return DropdownAPIViews.error_response("Missing required court parameter")
@@ -603,7 +615,10 @@ class DropdownAPIViews(APIResponseMixin):
             # Get required parameters
             court_code = request.GET.get("court")
             case_type_code = request.GET.get("case_type")
-            jurisdiction = request.GET.get("jurisdiction", "illinois")
+            jurisdiction = request.GET.get("jurisdiction")
+
+            if not jurisdiction:
+                return DropdownAPIViews.error_response("Missing required jurisidiction parameter")
 
             if not court_code or not case_type_code:
                 return DropdownAPIViews.error_response("Missing required court or case_type parameters")

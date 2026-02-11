@@ -47,7 +47,7 @@ def efile_upload(request, jurisdiction):
         "petitioner_info": petitioner_info,
         "name_sought_info": name_sought_info,
         "case_classification": case_classification,
-        "case_type": friendly_case_type,
+        "case_type_name": friendly_case_type,
         "filing_type": friendly_filing_type,
         "court": friendly_court,
         "case_type_raw": case_classification["case_type"],

@@ -26,7 +26,7 @@ class ConfigAPIViews(APIResponseMixin):
             case_type_id = request.GET.get("case_type")
             filing_type_id = request.GET.get("filing_type")
             court_code = request.GET.get("court")
-            jurisdiction = request.GET.get("jurisdiction") or request.session.get("jurisdiction", "illinois")
+            jurisdiction = request.GET.get("jurisdiction") or request.session.get("jurisdiction")
 
             logger.debug(
                 f"Fetching form config for "

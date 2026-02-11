@@ -5,7 +5,6 @@ from .views.api_views import get_case_data_api, get_filing_components
 from .views.choose_jurisdiction import choose_jurisdiction
 from .views.confirmation import filing_confirmation
 from .views.expert_form import efile_expert_form
-from .views.jurisdiction import get_current_jurisdiction, switch_jurisdiction
 from .views.login import efile_login, efile_logout
 from .views.options import efile_options
 from .views.register import efile_register
@@ -59,9 +58,6 @@ urlpatterns = [
     path("api/clear-session/", clear_session_data, name="clear_session_data"),
     path("api/debug-session/", debug_session_data, name="debug_session_data"),
     path("api/debug-session-data/", debug_session_data, name="debug_session_data"),
-    # Jurisdiction management API
-    path("api/jurisdiction/switch/", switch_jurisdiction, name="switch_jurisdiction"),
-    path("api/jurisdiction/current/", get_current_jurisdiction, name="get_current_jurisdiction"),
     # API endpoints for dropdowns
     path("api/", include("efile.api.urls")),
     # Legacy endpoints for backward compatibility (can be removed later)

@@ -211,7 +211,7 @@ def get_party_types_from_suffolk_api(request):
     Fetch party types directly from Suffolk API and save to session (GET request)
     """
     try:
-        jurisdiction = request.GET.get("jurisdiction", "illinois")
+        jurisdiction = request.GET.get("jurisdiction")
         court = request.GET.get("court")
         case_type = request.GET.get("case_type")
         existing_case = request.GET.get("existing_case", "no")

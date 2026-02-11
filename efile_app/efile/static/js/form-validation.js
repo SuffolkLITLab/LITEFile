@@ -19,7 +19,6 @@ class FormValidation {
 
   init() {
     this.setupValidation();
-    this.setupDraftSaving();
     this.setupFormSubmission();
     this.restoreSessionData();
   }
@@ -48,33 +47,6 @@ class FormValidation {
         }
       });
     });
-  }
-
-  setupDraftSaving() {
-    const draftButton = document.querySelector("#saveDraftBtn");
-    if (draftButton) {
-      draftButton.addEventListener("click", (e) => {
-        // Provide immediate visual feedback
-        const originalText = draftButton.innerHTML;
-        draftButton.innerHTML =
-          '<i class="fas fa-spinner fa-spin"></i> Saving...';
-        draftButton.disabled = true;
-
-        // Save the draft
-        this.saveDraft();
-
-        // Reset button after a short delay
-        setTimeout(() => {
-          draftButton.innerHTML = '<i class="fas fa-check"></i> Saved!';
-          setTimeout(() => {
-            draftButton.innerHTML = originalText;
-            draftButton.disabled = false;
-          }, 1500);
-        }, 500);
-      });
-    } else {
-      console.warn("Save Draft button not found");
-    }
   }
 
   setupFormSubmission() {
@@ -345,8 +317,9 @@ class FormValidation {
     this.restorationData = data;
 
     Object.keys(data).forEach((key) => {
-      const field = this.form.querySelector(`[name="${key}"]`);
-      if (field) {
+      const fields = this.form.querySelectorAll(`[name="${key}"]`);
+      if (fields.length == 1) {
+        let field = fields[0];
         if (field.type === "checkbox" || field.type === "radio") {
           field.checked = Array.isArray(data[key])
             ? data[key].includes(field.value)
@@ -361,6 +334,17 @@ class FormValidation {
         // Trigger change event for dropdowns to update dependent fields
         if (field.tagName === "SELECT") {
             field.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+      } else if (fields.length > 1) {
+        for (let field of fields) {
+          if (field.type === "radio") {
+            field.checked = Array.isArray(data[key])
+                ? data[key].includes(field.value)
+                : data[key] === field.value;
+            if (field.checked) {
+              field.dispatchEvent(new Event("change", { bubbles: true }));
+            }
+          }
         }
       }
     });

@@ -27,8 +27,6 @@ class CascadingDropdowns {
     };
     this.optionalServicesLoaded = false;
     this.isAutomaticSelection = false; // Track if selection is automatic
-
-    this.init();
   }
 
   async init() {

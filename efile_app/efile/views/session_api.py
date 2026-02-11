@@ -230,14 +230,14 @@ def save_form_data_to_session(request):
 @require_http_methods(["POST"])
 def save_upload_first_data(request):
     """Save upload data and file information to Django session for review."""
+    logger.debug("Received POST request to save upload data")
+    logger.debug(f"Request body: {request.body.decode('utf-8')}")
+
+    data = json.loads(request.body)
+    jurisdiction_id = data.get("jurisdiction_id", "default")
+    upload_data = {"files": data.get("files", {})}
+
     try:
-        logger.debug("Received POST request to save upload data")
-        logger.debug(f"Request body: {request.body.decode('utf-8')}")
-
-        data = json.loads(request.body)
-        jurisdiction_id = data.get("jurisdiction_id", "default")
-        upload_data = {"files": data.get("files", {})}
-
         url = upload_data["files"]["lead"]["url"]
         file_resp = requests.get(url)
         with NamedTemporaryFile(delete_on_close=False, suffix=".pdf") as f:
@@ -254,25 +254,26 @@ def save_upload_first_data(request):
             )
             logger.debug("Found fields: %s", found_fields)
 
-        upload_data["guesses"] = {}
-        upload_data["guesses"]["court"] = found_fields.get("court name")
-        upload_data["guesses"]["filing type"] = found_fields.get("filing type")
-        upload_data["guesses"]["case category"] = found_fields.get("case category")
-        upload_data["guesses"]["case type"] = found_fields.get("case type")
-        upload_data["guesses"]["docket number"] = found_fields.get("docket number")
-
-        # Save to session
-        request.session["upload_data"] = upload_data
-        request.session.modified = True
-
-        logger.info("Successfully saved upload data to session")
-        return JsonResponse({"success": True, "message": "Upload data saved to session"})
     except LlmError as e:
-        logger.exception("Error processing upload data to session", e)
-        return JsonResponse({"success": False, "error": "Processing error"}, status=500)
+        logger.exception("Error processing upload data to session: %s", e)
+        found_fields = {}
     except Exception as e:
-        logger.exception("Error saving upload data to session", e)
-        return JsonResponse({"success": False, "error": "Saving error"}, status=500)
+        logger.exception("Error saving upload data to session: %s", e)
+        found_fields = {}
+
+    upload_data["guesses"] = {}
+    upload_data["guesses"]["court"] = found_fields.get("court name")
+    upload_data["guesses"]["filing type"] = found_fields.get("filing type")
+    upload_data["guesses"]["case category"] = found_fields.get("case category")
+    upload_data["guesses"]["case type"] = found_fields.get("case type")
+    upload_data["guesses"]["docket number"] = found_fields.get("docket number")
+
+    # Save to session
+    request.session["upload_data"] = upload_data
+    request.session.modified = True
+
+    logger.info("Successfully saved upload data to session")
+    return JsonResponse({"success": True, "message": "Upload data saved to session"})
 
 
 @csrf_exempt
@@ -335,6 +336,7 @@ def submit_final_filing(request):
 
         # Get all data from session
         case_data = request.session.get("case_data", {})
+        jurisdiction_id = request.session.get("jurisdiction")
         upload_data = get_upload_data(request)
         auth_tokens = request.session.get("auth_tokens", {})
 
@@ -384,8 +386,6 @@ def submit_final_filing(request):
             )
 
         # Get jurisdiction and court info from case data
-        # TODO(brycew): make this not hardcoded
-        jurisdiction_id = case_data.get("jurisdiction_id", "vermont")  # Default to illinois
         court_id = case_data.get("court", "")
 
         if not court_id:
@@ -588,6 +588,7 @@ def api_save_case_data(request):
     except json.JSONDecodeError:
         return JsonResponse({"success": False, "error": "Invalid JSON data"}, status=400)
     except Exception as e:
+        logging.exception("Error when trying to save case data")
         return JsonResponse({"success": False, "error": str(e)}, status=500)
 
 
@@ -602,9 +603,12 @@ def fetch_and_save_party_type(request):
         court_code = data.get("court")
         case_type_code = data.get("case_type")
         existing_case = data.get("existing_case")
-        jurisdiction = data.get("jurisdiction", "illinois")
+        jurisdiction = data.get("jurisdiction")
 
         logger.debug("Fetching party type with data")
+
+        if not jurisdiction:
+            return JsonResponse({"success": False, "error": "Jurisdiction is required"}, status=400)
 
         if not court_code or not case_type_code:
             return JsonResponse({"success": False, "error": "Court and case_type are required"}, status=400)

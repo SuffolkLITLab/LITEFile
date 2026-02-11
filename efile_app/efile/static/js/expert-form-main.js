@@ -15,6 +15,7 @@ class ExpertForm {
         try {
             // Initialize cascading dropdowns first (they load user profile)
             this.cascadingDropdowns = new CascadingDropdowns();
+            await this.cascadingDropdowns.init();
             
             // Make cascading dropdowns globally accessible for jurisdiction switching
             window.cascadingDropdowns = this.cascadingDropdowns;
