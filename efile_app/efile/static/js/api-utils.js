@@ -19,10 +19,6 @@ class ApiUtils {
      * @returns {string} Current jurisdiction code
      */
     getCurrentJurisdiction() {
-      // TODO(brycew): should we make a server query? Probably not necessary?
-      //const response = await fetch('/api/jurisdiction/current/');
-      //const result = await response.json();
-          
       // Try to get from jurisdiction selector first
       const jurisdiction = document.getElementById("currentJurisdiction");
       if (jurisdiction && jurisdiction.textContent) {
@@ -30,7 +26,7 @@ class ApiUtils {
       }
 
       // Default to null if nothing found; rather that than weird bugs from a default state
-      console.log("Returning null for current, likely shouldn't")
+      console.warn("Returning null for current, likely shouldn't")
       return null;
     }
 
@@ -205,6 +201,13 @@ class ApiUtils {
         }
     }
 
+    async fetchJSON(endpoint, method = 'GET', params = {}, data = null) {
+        return this.makeRequest(endpoint, {method, params, data, headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': this.getCSRFToken(),
+        }});
+    }
+
     handleApiError(error) {
         if (error.message === 'Request timeout') {
             return new Error('Request timed out. Please check your connection and try again.');
@@ -289,28 +292,26 @@ class ApiUtils {
     }
 
     async getCaseData() {
-        return this.get("/api/get-case-data", {});
+        return this.get("/api/get-case-data", {}, true);
     }
 
     async saveCaseData(body) {
-        let resp = this.makeRequest(
-            "/api/save-case-data/", {
-                method: "POST",
-                data: body,
-                params: {},
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': apiUtils.getCSRFToken()
-                }
-            }
-        );
+        let resp = this.fetchJSON("/api/save-case-data/", "POST", {}, body)
+        const cacheKey = this.getCacheKey("/api/get-case-data", {});
+        this.clearCache(cacheKey)
+        return resp;
+    }
+
+    /** Calling `get-party-types` will set certain values on the case. For now, just nuke the cache.. */
+    async getPartyTypes(params) {
+        let resp = this.fetchJSON("/api/get-party-types", "GET", params);
         const cacheKey = this.getCacheKey("/api/get-case-data", {});
         this.clearCache(cacheKey)
         return resp;
     }
 
     async getUploadData() {
-        return this.get("/api/get-upload-data", {});
+        return this.get("/api/get-upload-data", {}, true);
     }
 
     async saveUploadData(body) {
@@ -322,17 +323,7 @@ class ApiUtils {
     }
 
     async _saveUpload(endpoint, body) {
-        let resp = this.makeRequest(
-            endpoint, {
-                method: "POST",
-                data: body,
-                params: {},
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': apiUtils.getCSRFToken()
-                }
-            }
-        );
+        let resp = this.fetchJSON(endpoint, "POST", {}, body);
         const cacheKey = this.getCacheKey("/api/get-upload-data", {});
         this.clearCache(cacheKey)
         return resp;

@@ -896,7 +896,7 @@ class UploadHandler {
           return;
         }
         
-        let guesses = await apiUtils.getUploadData();
+        let guesses = (await apiUtils.getUploadData())['guesses'];
 
         // Fetch filing types data only once
         if (this.globalFilingTypes.length === 0) {

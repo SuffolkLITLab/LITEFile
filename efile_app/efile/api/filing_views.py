@@ -258,7 +258,7 @@ def transform_case_data_to_filing_payload(case_data, request=None):
 
     # Base filing payload structure
     payload = {
-        "jurisdiction": "illinois",
+        "jurisdiction": case_data.get("jurisdiction"),
         "court": case_data.get("court"),
         "category": case_data.get("case_category"),
         "case_type": case_data.get("case_type"),

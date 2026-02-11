@@ -150,12 +150,6 @@ class AuthAPIViews(APIResponseMixin):
                     # Default location information
                     "preferred_county": "cook",
                     "zip_code": zip_code,  # Use actual zip from API
-                    "location": {
-                        "county": "Cook County",
-                        "state": "Illinois",
-                        "zip_code": zip_code,
-                        "available_counties": ["cook", "dupage", "kane", "lake", "mchenry", "will"],
-                    },
                 }
 
                 return AuthAPIViews.success_response(user_data)

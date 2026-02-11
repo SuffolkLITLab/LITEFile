@@ -8,7 +8,7 @@ def get_case_type_config(request):
     Serves the case type configuration from jurisdiction-aware configuration system
     """
     try:
-        jurisdiction = request.GET.get("jurisdiction") or request.session.get("jurisdiction", "illinois")
+        jurisdiction = request.GET.get("jurisdiction") or request.session.get("jurisdiction")
 
         # Use the new jurisdiction-aware configuration loader
         config_data = config_loader.load_jurisdiction_config(jurisdiction)

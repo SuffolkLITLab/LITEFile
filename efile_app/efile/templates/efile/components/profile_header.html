@@ -71,35 +71,6 @@
     }
   });
 
-  async function switchJurisdiction(jurisdiction) {
-    try {
-      const response = await fetch('/api/jurisdiction/switch/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': window.apiUtils.getCSRFToken()
-        },
-        body: JSON.stringify({ jurisdiction: jurisdiction })
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        // Show success message
-        showMessage(data.message, 'success');
-        // Reload page to reflect jurisdiction change
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
-      } else {
-        const error = await response.json();
-        showMessage(error.error || 'Failed to switch jurisdiction', 'error');
-      }
-    } catch (error) {
-      console.error('Error switching jurisdiction:', error);
-      showMessage('Failed to switch jurisdiction', 'error');
-    }
-  }
-
   function showMessage(message, type) {
     // Create and show bootstrap alert
     const alertDiv = document.createElement('div');
