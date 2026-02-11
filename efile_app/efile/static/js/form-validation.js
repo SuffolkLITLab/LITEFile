@@ -166,7 +166,7 @@ class FormValidation {
 
     try {      
       // Save case data to session via API
-      apiUtils.saveCaseData({data: enhancedFormData});
+      await apiUtils.saveCaseData({data: enhancedFormData});
       window.location.replace(`/jurisdiction/${currentJurisdiction}/upload/`);
     } catch (error) {
       console.error("Network error:", error);
@@ -351,13 +351,16 @@ class FormValidation {
           field.checked = Array.isArray(data[key])
             ? data[key].includes(field.value)
             : data[key] === field.value;
+          if (field.type === "radio" && field.checked) {
+            field.dispatchEvent(new Event("change", { bubbles: true }));
+          }
         } else {
           field.value = Array.isArray(data[key]) ? data[key][0] : data[key];
         }
 
         // Trigger change event for dropdowns to update dependent fields
-        if (field.tagName === "SELECT" || field.type === "radio") {
-          field.dispatchEvent(new Event("change", { bubbles: true }));
+        if (field.tagName === "SELECT") {
+            field.dispatchEvent(new Event("change", { bubbles: true }));
         }
       }
     });

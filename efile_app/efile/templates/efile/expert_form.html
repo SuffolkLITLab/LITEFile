@@ -55,12 +55,16 @@
               <fieldset>
                 <legend>New or existing? <span class="required">*</span></legend>
                 <div>
-                  <input type="radio" name="new_or_existing" id="new_case_radio" value="new">
-                  <label for="new_case_radio">I am making a new case</label>
+                  <label for="new_case_radio">
+                    <input type="radio" name="new_or_existing" id="new_case_radio" value="new">
+                    I am making a new case
+                  </label>
                 </div>
                 <div>
-                  <input type="radio" name="new_or_existing" id="existing_case_radio" value="responding">
-                  <label for="new_case_radio">I am responding to an existing case</label>
+                  <label for="existing_case_radio">
+                    <input type="radio" name="new_or_existing" id="existing_case_radio" value="responding">
+                    I am responding to an existing case
+                  </label>
                 </div>
               </fieldset>
             </div>
@@ -180,13 +184,15 @@
 
     function setupNewOrExistingRadio() {
       let newRadio = document.getElementById("new_case_radio");
-      newRadio.addEventListener("change", () => {
+      newRadio.addEventListener("change", (event) => {
         document.getElementById("case-info-subsection").removeAttribute("hidden");
         document.getElementById("case_category").setAttribute("required", true);
         document.getElementById("case_type").setAttribute("required", true);
 
         document.getElementById("case-search-subsection").setAttribute("hidden", true);
         document.getElementById("case_number").removeAttribute("required");
+        const continueBtn = document.getElementById('continueBtn');
+        continueBtn.disabled = false;
       });
 
       let existingRadio = document.getElementById("existing_case_radio");
@@ -197,6 +203,8 @@
 
         document.getElementById("case-search-subsection").removeAttribute("hidden");
         document.getElementById("case_number").setAttribute("required", true);
+        const continueBtn = document.getElementById('continueBtn');
+        continueBtn.disabled = true;
       });
     }
 
@@ -224,6 +232,7 @@
       // Auto-lookup when both fields are filled
       document.getElementById('court').addEventListener('change', autoLookupIfReady);
       document.getElementById('case_number').addEventListener('input', autoLookupIfReady);
+      document.getElementById('case_number').addEventListener('change', lookupCase);
 
       // If cache was cleared, start fresh with no existing case
 
@@ -530,9 +539,9 @@
           statusText.textContent = 'Looking up case information...';
           statusElement.style.display = 'block';
           statusElement.className = 'alert alert-info';
-          continueBtn.disabled = true;
           caseInfoDisplay.style.display = 'none';
-          
+          continueBtn.disabled = true;
+
           // Get current jurisdiction for the API call
           const jurisdiction = apiUtils.getCurrentJurisdiction();
           

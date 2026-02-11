@@ -29,9 +29,14 @@ def homepage(request):
     return redirect("efile_choose_jurisdiction")
 
 
+def jurisdiction_homepage(request, jurisdiction):
+    return redirect("efile_login", jurisdiction)
+
+
 urlpatterns = [
     path("", homepage, name="home"),
     path("choose-jurisdiction", choose_jurisdiction, name="efile_choose_jurisdiction"),
+    path("jurisdiction/<jurisdiction>", jurisdiction_homepage, name="jurisdiction_homepage"),
     path("jurisdiction/<jurisdiction>/login/", efile_login, name="efile_login"),
     path("jurisdiction/<jurisdiction>/logout/", efile_logout, name="efile_logout"),
     path("jurisdiction/<jurisdiction>/register/", efile_register, name="efile_register"),
