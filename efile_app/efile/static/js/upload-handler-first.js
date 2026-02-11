@@ -404,6 +404,7 @@ class UploadHandler {
     showWaiting(message) {
         this.hideAlerts();
         document.getElementById('successMessage').textContent = message;
+        document.getElementById('submitButton').disabled = true;
         this.successAlert.style.display = 'block';
         
         // Scroll to success

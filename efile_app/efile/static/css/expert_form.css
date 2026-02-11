@@ -67,6 +67,13 @@ body {
   border-color: #007bff;
 }
 
+.btn-primary {
+  --bs-btn-disabled-color: #ffffff;
+  --bs-btn-disabled-bg: #333333;
+  --bs-btn-disabled-border-color: #666666;
+  --bs-btn-disabled-opacity: 
+}
+
 .checkbox-group {
   background-color: #f8f9fa;
   border: 1px solid #e9ecef;
