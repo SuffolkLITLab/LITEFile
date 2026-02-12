@@ -616,6 +616,7 @@ class DropdownAPIViews(APIResponseMixin):
             court_code = request.GET.get("court")
             case_type_code = request.GET.get("case_type")
             jurisdiction = request.GET.get("jurisdiction")
+            only_required = request.GET.get("only_required", "True").lower() == "true"
 
             if not jurisdiction:
                 return DropdownAPIViews.error_response("Missing required jurisidiction parameter")
@@ -642,6 +643,9 @@ class DropdownAPIViews(APIResponseMixin):
                     for party_type in api_data:
                         if isinstance(party_type, dict) and "code" in party_type and "name" in party_type:
                             # Include all party types for now (no filtering)
+                            is_required = party_type.get("isrequired", False)
+                            if not is_required and only_required:
+                                continue
 
                             party_types.append(
                                 {
@@ -649,7 +653,7 @@ class DropdownAPIViews(APIResponseMixin):
                                     "text": party_type["name"],
                                     "code": party_type["code"],
                                     "name": party_type["name"],
-                                    "isRequired": party_type.get("isrequired", False),
+                                    "isRequired": is_required,
                                     "isAvailableForNewParties": party_type.get("isAvailableForNewParties", True),
                                 }
                             )
@@ -657,15 +661,7 @@ class DropdownAPIViews(APIResponseMixin):
                     # Sort alphabetically by name
                     party_types.sort(key=lambda x: x["name"])
 
-                return DropdownAPIViews.success_response(
-                    {
-                        "party_types": party_types,
-                        "count": len(party_types),
-                        "source": "suffolk_api",
-                        "court": court_code,
-                        "case_type": case_type_code,
-                    }
-                )
+                return DropdownAPIViews.success_response(party_types)
             else:
                 # Log the error but don't expose sensitive details
                 error_msg = f"External API returned status {response.status_code}"

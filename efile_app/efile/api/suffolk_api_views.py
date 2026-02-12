@@ -215,6 +215,7 @@ def get_party_types_from_suffolk_api(request):
         court = request.GET.get("court")
         case_type = request.GET.get("case_type")
         existing_case = request.GET.get("existing_case", "no")
+        only_required = request.GET.get("only_required", "False").lower() == "true"
 
         if not court or not case_type:
             return JsonResponse({"success": False, "error": "Court and case_type parameters are required"}, status=400)
@@ -303,8 +304,13 @@ def get_party_types_from_suffolk_api(request):
 
                 print(f"Saved party type to session: {selected_party_type}")
 
+                if only_required:
+                    filtered_party_types = [p for p in party_types if p.get("isrequired", False)]
+                else:
+                    filtered_party_types = party_types
+                logger.info("only_required: %s, filtered: %s", only_required, filtered_party_types)
                 return JsonResponse(
-                    {"success": True, "party_types": party_types, "selected_party_type": selected_party_type}
+                    {"success": True, "party_types": filtered_party_types, "selected_party_type": selected_party_type}
                 )
             else:
                 return JsonResponse({"success": False, "error": "No party types returned from Suffolk API"}, status=400)

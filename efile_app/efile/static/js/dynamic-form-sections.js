@@ -12,7 +12,7 @@ class DynamicFormSections {
     this.preservedCaseType = null;
 
     this.jurisdiction = apiUtils.getCurrentJurisdiction();
-    //this.init();
+    this.init();
   }
 
   async init() {
@@ -137,9 +137,6 @@ class DynamicFormSections {
               result.data.case_type_name || "name_change"
             ] = caseConfig;
           }
-        } else {
-          // Also load the static base configuration to ensure we have eviction config
-          await this.loadStaticBaseConfiguration();
         }
       } else {
         console.error(
@@ -147,14 +144,16 @@ class DynamicFormSections {
           result.error || "Unknown error"
         );
         this.config = this.getDefaultConfig();
-        // Fallback: load static base configuration
-        await this.loadStaticBaseConfiguration();
+      }
+
+      let party_params = {"case_type": caseTypeValue, "jurisdiction": this.jurisdiction, "court": court, "existing_case": "no"};
+      const parties_result = await apiUtils.getPartyTypes(party_params);
+      if (parties_result.success && parties_result.party_types) {
+        this.parties = parties_result.party_types;
       }
     } catch (error) {
       console.error("Error loading configuration:", error);
       this.config = this.getDefaultConfig();
-      // Fallback: load static base configuration
-      await this.loadStaticBaseConfiguration();
     }
   }
 
@@ -169,22 +168,6 @@ class DynamicFormSections {
       return ["name change", "name petition", "change of name"];
     }
     return [caseTypeName.toLowerCase()];
-  }
-
-  // Load static base configuration as fallback
-  async loadStaticBaseConfiguration() {
-    try {
-      // Try to load the static base-case-types.yaml configuration
-      const response = await fetch("/static/config/base-case-types.yaml");
-      if (response.ok) {
-        const yamlText = await response.text();
-        // This is a simplified YAML parser - in production you'd want a proper YAML library
-        // For now, just ensure we have the base case types available
-        this.config.base_case_types = this.config.base_case_types || {};
-      }
-    } catch (error) {
-      console.warn("Could not load static base configuration:", error);
-    }
   }
 
   async loadExistingCaseData() {
@@ -293,10 +276,10 @@ class DynamicFormSections {
 
     if (caseTypeConfig) {
       this.currentCaseType = caseTypeValue; // Track the current case type
-      //this.renderCaseTypeForm(caseTypeConfig);
-      //this.showDynamicSections();
+      this.renderCaseTypeForm(caseTypeConfig);
+      this.showDynamicSections();
     } else {
-      //this.hideDynamicSections();
+      this.hideDynamicSections();
     }
   }
 
@@ -403,24 +386,24 @@ class DynamicFormSections {
 
     // Render case information section (should come first)
     if (sections.case_information) {
-      this.renderSection("case_information", sections.case_information);
+      this.renderSection("case_information", sections.case_information || {});
     }
 
     // Render parties section
     if (sections.parties) {
-      this.renderSection("parties", sections.parties);
+      this.renderSection("parties", sections.parties || {});
     }
 
     // Render services section
     if (sections.services) {
-      this.renderSection("services", sections.services);
+      this.renderSection("services", sections.services || {});
     }
 
     // Restore preserved state after rendering
     this.restorePreservedState();
 
     // Load party type dropdowns after all sections are rendered
-    //this.loadPartyTypeDropdowns();
+    this.loadPartyTypeDropdowns();
 
     // Update form validation after rendering
     this.updateFormValidation();
@@ -580,6 +563,13 @@ class DynamicFormSections {
     const fields = sectionConfig.fields || [];
     let html = "";
 
+    let party_types = this.parties;
+
+    if (party_types.length <= 1) {
+      // Skip rendering
+      return "";
+    }
+
     fields.forEach((partyGroup) => {
       if (partyGroup.section_title) {
         // Check if this section should be shown based on current court selection
@@ -587,7 +577,7 @@ class DynamicFormSections {
 
         // Skip rendering this section entirely if it shouldn't be shown
         if (!shouldShow) {
-          return;
+          return "";
         }
 
         // Check if this section should be required based on current court selection
@@ -841,6 +831,73 @@ class DynamicFormSections {
         inputHtml = `<input type="tel" class="form-control" id="${fieldId}" name="${fieldName}" ${requiredAttr}>`;
         break;
 
+      case "us_state":
+        const STATE_CHOICES = [
+        ["", "Select a state"],
+        ["AL", "Alabama"],
+        ["AK", "Alaska"],
+        ["AS", "American Samoa"],
+        ["AZ", "Arizona"],
+        ["AR", "Arkansas"],
+        ["CA", "California"],
+        ["CO", "Colorado"],
+        ["CT", "Connecticut"],
+        ["DE", "Delaware"],
+        ["DC", "District of Columbia"],
+        ["FL", "Florida"],
+        ["GA", "Georgia"],
+        ["GU", "Guam"],
+        ["HI", "Hawaii"],
+        ["ID", "Idaho"],
+        ["IL", "Illinois"],
+        ["IN", "Indiana"],
+        ["IA", "Iowa"],
+        ["KS", "Kansas"],
+        ["KY", "Kentucky"],
+        ["LA", "Louisiana"],
+        ["ME", "Maine"],
+        ["MD", "Maryland"],
+        ["MA", "Massachusetts"],
+        ["MI", "Michigan"],
+        ["MN", "Minnesota"],
+        ["MS", "Mississippi"],
+        ["MO", "Missouri"],
+        ["MT", "Montana"],
+        ["NE", "Nebraska"],
+        ["NV", "Nevada"],
+        ["NH", "New Hampshire"],
+        ["NJ", "New Jersey"],
+        ["NM", "New Mexico"],
+        ["NY", "New York"],
+        ["NC", "North Carolina"],
+        ["ND", "North Dakota"],
+        ["MP", "Northern Mariana Islands"],
+        ["OH", "Ohio"],
+        ["OK", "Oklahoma"],
+        ["OR", "Oregon"],
+        ["PA", "Pennsylvania"],
+        ["PR", "Puerto Rico"],
+        ["RI", "Rhode Island"],
+        ["SC", "South Carolina"],
+        ["SD", "South Dakota"],
+        ["TN", "Tennessee"],
+        ["TX", "Texas"],
+        ["UT", "Utah"],
+        ["VT", "Vermont"],
+        ["VA", "Virginia"],
+        ["VI", "US Virgin Islands"],
+        ["WA", "Washington"],
+        ["WV", "West Virginia"],
+        ["WI", "Wisconsin"],
+        ["WY", "Wyoming"]
+        ]
+        inputHtml = `<select class="form-select state-dropdown" name="${fieldName}" id="${fieldId}" ${requiredAttr}>`
+        for (let state of STATE_CHOICES) {
+          inputHtml += `<option value="${state[0]}">${state[1]}</option>`
+        }
+        inputHtml += "</select>"
+        break;
+
       case "party_type_dropdown":
         // Create a dropdown for party types that will be populated via API
         inputHtml = `
@@ -929,15 +986,10 @@ class DynamicFormSections {
         }
 
         // Build API URL with parameters
-        const url = new URL(apiEndpoint, window.location.origin);
-        url.searchParams.append("court", court);
-        url.searchParams.append("case_type", caseType);
+        const result = await apiUtils.get(apiEndpoint, {court, "case_type": caseType, "jurisdiction": this.jurisdiction});
 
-        const response = await fetch(url);
-        const result = await response.json();
-
-        if (result.success && result.data && result.data.party_types) {
-          const partyTypes = result.data.party_types;
+        if (result.success && result.data) {
+          const partyTypes = result.data;
 
           // Clear existing options except the first one
           dropdown.innerHTML = '<option value="">Select Party Type</option>';

@@ -133,17 +133,17 @@ class JurisdictionConfigLoader:
     def get_short_jurisdiction_config(self, jurisdiction):
         return self.load_jurisdiction_config(jurisdiction)["jurisdiction"]
 
-    def _find_with_keywords(self, key, entries):
+    def _find_with_keywords(self, key, cases):
         """
         Given a dictionary with keys and keywords (as a list in the key's value),
         return the value that the key matches (for the dict or the keyword).
         """
-        if key in entries:
-            return entries[key]
+        if key in cases:
+            return cases[key]
 
-        for value in entries.values():
-            if "keywords" in value and key in value["keywords"]:
-                return value
+        for case in cases.values():
+            if "keywords" in case and key in case["keywords"]:
+                return case
 
         return None
 
@@ -169,8 +169,12 @@ class JurisdictionConfigLoader:
             case_config = self._find_with_keywords(case_type, case_types)
             if case_config:
                 break
+
         if case_config is None:
-            return None
+            if "defaults" in jurisdiction:
+                return jurisdiction["defaults"]
+            else:
+                return None
 
         case_config = deepcopy(case_config)
 

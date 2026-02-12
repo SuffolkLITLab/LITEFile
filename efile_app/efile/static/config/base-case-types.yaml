@@ -3,25 +3,83 @@
 
 # Global defaults that apply to all states unless overridden
 defaults:
-  field_types:
-    text:
-      class: "form-control"
-      validation: "required"
-    textarea:
-      class: "form-control"
-      rows: 3
-    number:
-      class: "form-control"
-      validation: "numeric"
-    party_type_dropdown:
-      class: "form-control dropdown-field"
-      validation: "required"
+  sections:
+    parties:
+      title: "Required Parties"
+      show if:
+        var: required_party_types.length
+        op: gt
+        rhs: 1
+      api_endpoint: "/api/dropdowns/party-types/"
+      requires_params: ["court", "case_type"]
+      fields:
+        - section_title: "The Other Side"
+          required: true
+          conditional_requirements:
+            # Default: show for all courts except those explicitly hidden
+          fields:
+            - name: "other_party_type"
+              label: "Party Type"
+              type: "party_type_dropdown"
+              required: true
+              column_width: "col-12"
+              api_endpoint: "/api/dropdowns/party-types/"
+            - name: "other_first_name"
+              label: "First Name"
+              type: "text"
+              required: true
+              column_width: "col-6"
+            - name: "other_last_name"
+              label: "Last Name"
+              type: "text"
+              required: true
+              column_width: "col-6"
+        - section_title: "Their Physical Address"
+          required: true
+          conditional_requirements:
+            # Default: show for all courts except those explicitly hidden
+          fields:
+            - name: "other_address_line_1"
+              label: "Street Address"
+              type: "text"
+              required: true
+              column_width: "col-12"
+            - name: "other_address_line_2"
+              label: "Street Address 2"
+              type: "text"
+              required: true
+              column_width: "col-12"
+            - name: "other_address_city"
+              label: "City"
+              type: "text"
+              required: true
+              column_width: "col-6"
+            - name: "other_address_state"
+              label: "State"
+              type: "us_state"
+              required: true
+              column_width: "col-6"
+            - name: "other_address_zip"
+              label: "Zip Code"
+              type: "text"
+              required: true
+              column_width: "col-6"
+        - section_title: "Their Contact Information"
+          required: true
+          conditional_requirements:
+            # Default: show for all courts except those explicitly hidden
+          fields:
+            - name: "other_email"
+              label: "Email"
+              type: "email"
+              required: true
+              column_width: "col-12"
+            - name: "other_phone_number"
+              label: "Phone number"
+              type: "tel"
+              required: true
+              column_width: "col-12"
 
-  column_widths:
-    full: "col-12"
-    half: "col-6"
-    third: "col-4"
-    two_thirds: "col-8"
 
 # Base case type templates that states can inherit from
 base_case_types:
@@ -34,30 +92,6 @@ base_case_types:
         api_endpoint: "/api/dropdowns/party-types/"
         requires_params: ["court", "case_type"]
         fields:
-          - section_title: "Petitioner"
-            required: true
-            conditional_requirements:
-              # Default: show for all courts except those explicitly hidden
-              required_for_courts: []
-              optional_for_courts: []
-              hidden_for_courts: []
-            fields:
-              - name: "petitioner_party_type"
-                label: "Party Type"
-                type: "party_type_dropdown"
-                required: true
-                column_width: "col-12"
-                api_endpoint: "/api/dropdowns/party-types/"
-              - name: "petitioner_first_name"
-                label: "First Name"
-                type: "text"
-                required: true
-                column_width: "col-6"
-              - name: "petitioner_last_name"
-                label: "Last Name"
-                type: "text"
-                required: true
-                column_width: "col-6"
           - section_title: "Name Sought"
             required: false
             conditional_requirements:
