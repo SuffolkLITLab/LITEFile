@@ -180,3 +180,9 @@ option.recommended {
   padding-top: 1rem;
   border-top: 1px solid #e9ecef;
 }
+
+h4 {
+  margin-top: 2rem;
+  margin-bottom: 1rem !important;
+  color: #007bff;
+}

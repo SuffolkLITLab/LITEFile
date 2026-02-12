@@ -656,10 +656,9 @@ class FormValidation {
             console.warn(
               "dynamicFormSections not available when setting case_type"
             );
-            // Try to trigger manually
-            const changeEvent = new Event("change", { bubbles: true });
-            dropdown.dispatchEvent(changeEvent);
           }
+          const changeEvent = new Event("change", { bubbles: true });
+          dropdown.dispatchEvent(changeEvent);
         }, 300); // Give time for dropdown to settle
       }
     } else {

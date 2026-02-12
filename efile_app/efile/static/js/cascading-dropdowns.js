@@ -14,9 +14,13 @@ class CascadingDropdowns {
         endpoint: "/api/dropdowns/case-types/",
       },
       case_type: {
-        next: null, // Case type is now the final dropdown on expert form
-        endpoint: null,
+        next: "party_type", // Case type is now the final dropdown on expert form
+        endpoint: "/api/dropdowns/party-types",
       },
+      party_type: {
+        next: null,
+        endpoint: null
+      }
     };
 
     this.userProfile = null;
@@ -24,6 +28,7 @@ class CascadingDropdowns {
       court: null,
       case_category: null,
       case_type: null,
+      party_type: null,
     };
     this.optionalServicesLoaded = false;
     this.isAutomaticSelection = false; // Track if selection is automatic
@@ -156,7 +161,12 @@ class CascadingDropdowns {
           response.data.length > 0
         ) {
           this.populateDropdown(dropdown, response.data);
+          dropdown.parentElement.removeAttribute("hidden");
           dropdown.disabled = false;
+          if (response.data.length == 1 && dropdown.id =="party_type") {
+            dropdown.parentElement.hidden = true;
+            dropdown.value = response.data[0].value || response.data[0].id;
+          }
         } else {
           console.warn(`No data returned for ${fieldId}:`, response);
           this.showError(dropdown, "No options available for this selection");
@@ -228,6 +238,7 @@ class CascadingDropdowns {
         }
       } else if (fieldId === "case_type") {
         params.parent = selectedValue; // Suffolk API expects parent parameter for case_type
+        params.case_type = selectedValue;
         if (this.selectedValues.court) {
           params.court = this.selectedValues.court;
         } else {
@@ -240,7 +251,7 @@ class CascadingDropdowns {
         const isInitialFiling = existingCase === 'no';
         params.existing_case = existingCase; // Pass existing_case to Django API
         params.initial = isInitialFiling ? 'true' : 'false'; // Pass initial to Suffolk API
-      }
+      } 
 
       // Validate required parameters before making API call
       if (this.validateParameters(fieldId, params)) {
@@ -248,6 +259,7 @@ class CascadingDropdowns {
         if (mapping.next && mapping.endpoint) {
           params.guessed_case_category = this.guesses['case category'];
           params.guessed_case_type = this.guesses['case type'];
+          params.only_required = true;
           this.loadDropdownData(mapping.next, mapping.endpoint, params);
         }
       } else {
@@ -651,7 +663,7 @@ class CascadingDropdowns {
     const dependencies = {
       court: ["case_category", "case_type"],
       case_category: ["case_type"],
-      case_type: [], // case_type is now the final dropdown on expert form
+      case_type: ["party_type"], // case_type is now the final dropdown on expert form
     };
 
     const toClear = dependencies[changedFieldId] || [];
@@ -876,6 +888,7 @@ class CascadingDropdowns {
       "court",
       "case_category",
       "case_type",
+      "party_type",
       "filing_type",
       "document_type",
     ];
@@ -959,17 +972,6 @@ class CascadingDropdowns {
     if (dropdown) {
       dropdown.disabled = false;
     }
-  }
-
-  /**
-   * Reload courts when jurisdiction changes
-   * Called when jurisdiction switch happens without page reload
-   */
-  async reloadCourtsForJurisdiction() {
-    this.clearAllDropdowns();
-
-    // Reload courts with new jurisdiction context
-    await this.loadCourtsWithUserContext();
   }
 
   /**

@@ -629,6 +629,29 @@ const FilingHandler = {
       });
     }
 
+    let other_parties = [];
+
+    if (caseData.other_first_name && caseData.other_party_type) {
+      other_parties.push({
+        party_type: caseData.other_party_type,
+        name: {
+          first: caseData.other_first_name,
+          last: caseData.other_last_name
+        },
+        address: {
+          address: caseData.other_address_line_1,
+          unit: caseData.other_address_line_2,
+          city: caseData.other_address_city,
+          state: caseData.other_address_state,
+          zip: caseData.other_address_zip,
+          country: "US"
+        },
+        email: caseData.other_email,
+        phone_number: caseData.other_phone_number,
+        is_new: true,
+      });
+    }
+
     const efilingData = {
       efile_case_category: caseData.case_category,
       efile_case_type: caseData.case_type,
@@ -636,7 +659,7 @@ const FilingHandler = {
       previous_case_id: caseData?.previous_case_id,
       docket_number: caseData?.docket_number,
       users,
-      other_parties: [],
+      other_parties,
       user_started_case: !caseData?.previous_case_id,
       al_court_bundle: [],
       cross_references: "",
