@@ -441,7 +441,7 @@ const PaymentHandler = {
     
     const jurisdiction = authData.state || apiUtils.getCurrentJurisdiction();
     // TODO: we should revisit this hardcoded value in the future too
-    form.action = `http://localhost:9100/jurisdictions/${encodeURIComponent(jurisdiction)}/payments/new-toga-account`;
+    form.action = Utils.parseJSON('new-toga-url');
 
     let dateStr = new Date().toDateString();
     const fields = [

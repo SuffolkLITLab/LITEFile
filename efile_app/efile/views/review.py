@@ -1,5 +1,6 @@
 import logging
 
+from django.conf import settings
 from django.contrib import messages
 from django.shortcuts import redirect, render
 
@@ -91,7 +92,10 @@ def case_review(request, jurisdiction):
             "items": [{"label": "Selected Services", "value": ", ".join(optional_services)}],
         }
 
+    new_toga_url = f"{settings.EFSP_URL}/jurisdictions/{jurisdiction}/payments/new-toga-account"
+
     context = {
+        "new_toga_url": new_toga_url,
         "case_data": case_data,
         "review_sections": review_sections,
         "friendly_names": {
