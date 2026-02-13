@@ -47,7 +47,7 @@ defaults:
             - name: "other_address_line_2"
               label: "Street Address 2"
               type: "text"
-              required: true
+              required: false 
               column_width: "col-12"
             - name: "other_address_city"
               label: "City"
