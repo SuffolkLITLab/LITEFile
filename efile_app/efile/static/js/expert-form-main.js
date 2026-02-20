@@ -36,7 +36,7 @@ class ExpertForm {
             
         } catch (error) {
             console.error('Error initializing ExpertForm:', error);
-            this.showError('There was an error loading the form. Please refresh the page.');
+            this.showError(gettext('There was an error loading the form. Please refresh the page.'));
         }
     }
 

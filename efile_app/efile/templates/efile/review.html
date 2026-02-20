@@ -1,4 +1,5 @@
 {% load static %}
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -20,17 +21,16 @@
     <div class="container">
       <div class="review-container">
         <h2 class="mb-4" style="color: #2c5aa0; font-weight: 600">
-          Review case details
+          {% translate "Review case details" %}
         </h2>
         <p class="text-muted mb-4">
-          Verify the information below for your case. Please edit anything you
-          believe to be incorrect.
+          {% translate "Verify the information below for your case. Please edit anything you believe to be incorrect." %}
         </p>
 
         <!-- Case Information -->
         <div class="review-section">
           <div class="d-flex justify-content-between align-items-center mb-3">
-            <h3>Case information</h3>
+            <h3>{% translate "Case information" %}</h3>
           </div>
 
           <div class="review-item">
@@ -56,15 +56,15 @@
 
         <!-- User Information -->
         <div class="review-section">
-          <h3>Review your information</h3>
+          <h3>{% translate "Review your information" %}</h3>
 
           <!-- Inline fields: show text by default, input hidden until Edit clicked -->
           <div class="review-item">
             <span class="review-label"
-              >Name: <span class="text-danger">*</span></span
+              >{% translate "Name:" %}<span class="text-danger">*</span></span
             >
             <div class="d-flex align-items-center w-100">
-              <span class="review-text" id="userNameText">Loading...</span>
+              <span class="review-text" id="userNameText">{% translate "Loading..." %}</span>
               <input
                 type="text"
                 id="userNameInput"
@@ -78,18 +78,20 @@
                 class="edit-btn ms-3"
                 onclick="toggleEdit('userNameInput', this)"
               >
-                Edit
+                {% translate "Edit" %}
               </button>
             </div>
           </div>
 
           <div class="review-item">
             <span class="review-label"
-              >Address line 1: <span class="text-danger">*</span></span
+              >{% translate "Address line 1:" %}
+              <span class="text-danger">*</span></span
             >
             <div class="d-flex align-items-center w-100">
               <span class="review-text" id="userAddressLine1Text"
-                >Loading...</span
+                >{% translate "Loading..." %}
+                </span
               >
               <input
                 type="text"
@@ -104,17 +106,17 @@
                 class="edit-btn ms-3"
                 onclick="toggleEdit('userAddressLine1Input', this)"
               >
-                Edit
+                {% translate "Edit" %}
               </button>
             </div>
           </div>
 
           <div class="review-item">
-            <span class="review-label">Address line 2:</span>
+            <span class="review-label">{% translate "Address line 2" %}:</span>
             <div class="d-flex align-items-center w-100">
               <span class="review-text" id="userAddressLine2Text"
-                >Loading...</span
-              >
+                >{% translate "Loading..." %}
+                </span>
               <input
                 type="text"
                 id="userAddressLine2Input"
@@ -126,18 +128,18 @@
                 class="edit-btn ms-3"
                 onclick="toggleEdit('userAddressLine2Input', this)"
               >
-                Edit
+                {% translate "Edit" %}
               </button>
             </div>
           </div>
 
           <div class="review-item">
             <span class="review-label"
-              >City: <span class="text-danger">*</span></span
+              >{% translate "City:" %}<span class="text-danger">*</span></span
             >
             <div class="d-flex align-items-center w-100">
               <span class="review-text" id="userCityText"
-                >Loading...</span
+                >{% translate "Loading..." %}</span
               >
               <input
                 type="text"
@@ -152,18 +154,18 @@
                 class="edit-btn ms-3"
                 onclick="toggleEdit('userCityInput', this)"
               >
-                Edit
+                {% translate "Edit" %}
               </button>
             </div>
           </div>
 
           <div class="review-item">
             <span class="review-label"
-              >State: <span class="text-danger">*</span></span
+              >{% translate "State:" %}<span class="text-danger">*</span></span
             >
             <div class="d-flex align-items-center w-100">
               <span class="review-value" id="userStateText"
-                >Loading...</span
+                >{% translate "Loading.." %}</span
               >
               <input
                 type="text"
@@ -178,18 +180,18 @@
                 class="edit-btn ms-3"
                 onclick="toggleEdit('userStateInput', this)"
               >
-                Edit
+                {% translate "Edit" %}
               </button>
             </div>
           </div>
 
           <div class="review-item">
             <span class="review-label"
-              >ZIP code: <span class="text-danger">*</span></span
+              >{% translate "ZIP code" %}: <span class="text-danger">*</span></span
             >
             <div class="d-flex align-items-center w-100">
               <span class="review-text" id="userZipText"
-                >Loading...</span
+                >{% translate "Loading..." %}</span
               >
               <input
                 type="text"
@@ -204,18 +206,20 @@
                 class="edit-btn ms-3"
                 onclick="toggleEdit('userZipInput', this)"
               >
-                Edit
+                {% translate "Edit" %}
               </button>
             </div>
           </div>
 
           <div class="review-item">
             <span class="review-label"
-              >Email <span class="text-danger">*</span></span
+              >{% translate "Email" %}
+              <span class="text-danger">*</span></span
             >
             <div class="d-flex align-items-center w-100" style="overflow: hidden">
               <span class="review-text" id="userEmailText"
-                >Loading...</span
+                >{% translate "Loading..." %}
+                </span
               >
               <input
                 type="email"
@@ -230,7 +234,7 @@
                 class="edit-btn ms-3"
                 onclick="toggleEdit('userEmailInput', this)"
               >
-                Edit
+                {% translate "Edit" %}
               </button>
             </div>
           </div>
@@ -256,7 +260,7 @@
                 class="edit-btn ms-3"
                 onclick="toggleEdit('userPhoneInput', this)"
               >
-                Edit
+                {% translate "Edit" %}
               </button>
             </div>
           </div>
@@ -264,7 +268,7 @@
 
         <!-- Documents -->
         <div class="review-section">
-          <h3>Your documents for filing</h3>
+          <h3>{% translate "Your documents for filing" %}</h3>
           <div id="documentsContainer">
             <!-- Documents will be loaded here -->
           </div>
@@ -272,10 +276,10 @@
 
         <!-- Payment Methods -->
         <h2 class="mb-4" style="color: #2c5aa0; font-weight: 600">
-          Payment method
+          {% translate "Payment method" %}
         </h2>
         <div class="review-section">
-          <h3>Existing</h3>
+          <h3>{% translate "Existing" %}</h3>
           <div id="paymentMethodsContainer">
             <!-- Payment methods will be loaded here -->
           </div>
@@ -283,7 +287,7 @@
 
         <!-- Payment Information (will be loaded via API call) -->
         <div class="review-section" id="paymentSection" style="display: none">
-          <h3>Filing Fees</h3>
+          <h3>{% translate "Filing Fees" %}</h3>
           <div class="payment-info" id="paymentInfo">
             <!-- Payment details will be loaded here -->
           </div>
@@ -291,7 +295,7 @@
 
         <!-- Disclaimer and Action Buttons -->
         <h2 class="mb-4" style="color: #2c5aa0; font-weight: 600">
-          Submit my filing
+          {% translate "Submit my filing" %}
         </h2>
         <div class="disclaimer-section mb-4">
           <div class="form-check">
@@ -302,7 +306,7 @@
               required
             />
             <label class="form-check-label" for="disclaimerCheckbox">
-              I acknowledge that selecting submit and file will electronically file my documents with the court of law which I have selected and will become legal record.
+              {% translate "I acknowledge that selecting submit and file will electronically file my documents with the court of law which I have selected and will become legal record." %}
             </label>
           </div>
         </div>
@@ -322,14 +326,14 @@
           <div class="spinner-border text-primary" role="status">
             <span class="visually-hidden">Loading...</span>
           </div>
-          <p class="mt-2">Processing your filing...</p>
+          <p class="mt-2">{% translate "Processing your filing..." %}</p>
         </div>
 
 
         <!-- Action Buttons -->
         <div class="action-buttons">
           <button type="button" class="btn-back" onclick="goBack()">
-            Back
+            {% translate "Back" %}
           </button>
           <button
             type="button"
@@ -338,13 +342,14 @@
             id="submitButton"
             disabled
           >
-            Pay and submit
+            {% translate "Pay and submit" %}
           </button>
         </div>
       </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="{% url 'javascript-catalog' %}"></script>
 
     <!-- Django template data for JavaScript -->
     {{ case_data|json_script:"case-data" }}

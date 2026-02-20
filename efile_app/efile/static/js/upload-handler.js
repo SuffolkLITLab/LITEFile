@@ -1019,7 +1019,7 @@ class UploadHandler {
         const fieldId = dropdown.id.replace("_search", "");
 
         const searchDropdown = new SearchDropdown(fieldId, {
-            placeholder: "Search filing types...",
+            placeholder: gettext("Search filing types..."),
         });
         searchDropdown.updateOptions(this.globalFilingTypes);
 
@@ -1033,10 +1033,10 @@ function populateDropdownFallback(dropdown) {
         if (!dropdown) return;
 
         dropdown.innerHTML = `
-                <option value="">Select a document type</option>
-                <option value="lead">Lead Document</option>
-                <option value="supporting">Supporting Document</option>
-                <option value="exhibit">Exhibit</option>
+                <option value="">${gettext("Select a document type")}</option>
+                <option value="lead">${gettext("Lead Document")}</option>
+                <option value="supporting">${gettext("Supporting Document")}</option>
+                <option value="exhibit">${gettext("Exhibit")}</option>
             `;
 }
     

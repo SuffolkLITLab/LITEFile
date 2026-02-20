@@ -2,6 +2,7 @@ import logging
 
 from django.contrib import messages
 from django.shortcuts import redirect, render
+from django.utils.translation import gettext
 
 from ..utils.case_data_utils import (
     get_case_classification,
@@ -26,7 +27,7 @@ def efile_upload(request, jurisdiction):
 
     # If no case data exists, redirect back to options page
     if not case_data:
-        messages.error(request, "Please complete the case details first.")
+        messages.error(request, gettext("Please complete the case details first."))
         return redirect("efile_options", jurisdiction=jurisdiction)
 
     # Get organized case information

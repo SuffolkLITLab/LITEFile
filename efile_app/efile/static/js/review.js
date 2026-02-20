@@ -469,11 +469,11 @@ const PaymentHandler = {
     const status = Utils.getURLParam('payment_status');
     
     if (status === 'success') {
-      Messages.showSuccess("Payment method added successfully!");
+      Messages.showSuccess(gettext("Payment method added successfully!"));
       setTimeout(() => APIHandlers.loadPaymentAccounts(), 1000);
       Utils.cleanURL();
     } else if (status === 'failure') {
-      Messages.showError("Failed to add payment method. Please try again.");
+      Messages.showError(gettext("Failed to add payment method. Please try again."));
       Utils.cleanURL();
     }
   }
@@ -509,7 +509,7 @@ const FilingHandler = {
 
     const selectedPaymentMethod = document.querySelector('input[name="paymentMethod"]:checked');
     if (!selectedPaymentMethod) {
-      Messages.showError("Please select a payment method to continue.");
+      Messages.showError(gettext("Please select a payment method to continue."));
       return;
     }
 
@@ -521,7 +521,7 @@ const FilingHandler = {
       this.handleSubmissionResult(result);
     } catch (error) {
       console.log("Error on submission: %o", error)
-      Messages.showError("An unexpected error occurred. Please try again.");
+      Messages.showError(gexttext("An unexpected error occurred. Please try again."));
       this.setSubmissionState(false);
     }
   },
@@ -749,7 +749,7 @@ const FilingHandler = {
 
   handleSubmissionResult(result) {
     if (result?.success) {
-      Messages.showSuccess("Filing submitted successfully! You will be redirected to the confirmation page.");
+      Messages.showSuccess(gettext("Filing submitted successfully! You will be redirected to the confirmation page."));
       setTimeout(() => {
         const jurisdiction = apiUtils.getCurrentJurisdiction();
         window.location.href = result.redirect_url || `/jurisdiction/${jurisdiction}/filing-confirmation/`;
