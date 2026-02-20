@@ -1,4 +1,5 @@
 {% load static %}
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -34,7 +35,7 @@
 
         <!-- Registration Content -->
         <div class="register-content">
-          <h2 class="page-title">Register to eFile</h2>
+          <h2 class="page-title">{% translate "Register to eFile" %}</h2>
 
           <!-- Django Messages -->
           {% if messages %} {% for message in messages %}
@@ -53,11 +54,9 @@
 
           <!-- Important Notice -->
           <div class="alert-warning">
-            <strong>Important Note</strong>
+            <strong>{% translate "Important Note" %}</strong>
             <p>
-              The information you enter here is used when you efile your
-              documents. Please use your full correct legal name and address to
-              avoid issues with your filing.
+              {% translate "The information you enter here is used when you efile your documents. Please use your full correct legal name and address to avoid issues with your filing." %}
             </p>
           </div>
 
@@ -65,7 +64,7 @@
             {% csrf_token %}
 
             <!-- Your Legal Name -->
-            <div class="section-title">Your Legal Name</div>
+            <div class="section-title">{% translate "Your Legal Name" %}</div>
             <div class="row">
               <div class="col-md-6">
                 {{ form.first_name.label_tag }} {{ form.first_name }} {% if form.first_name.errors %}
@@ -88,7 +87,7 @@
               {% endif %}
             </div>
             <!-- Physical Address -->
-            <div class="section-title">Physical Address</div>
+            <div class="section-title">{% translate "Physical Address" %}</div>
             <div class="mb-3">
               {{ form.street_address.label_tag }} {{ form.street_address }} {% if form.street_address.errors %}
               <div class="text-danger small">
@@ -121,7 +120,7 @@
               </div>
             </div>
             <!-- Contact Information -->
-            <div class="section-title">Contact Information</div>
+            <div class="section-title">{% translate "Contact Information" %}</div>
             <div class="mb-3">
               {{ form.email.label_tag }} {{ form.email }} {% if form.email.errors %}
               <div class="text-danger small">{{ form.email.errors }}</div>
@@ -140,7 +139,7 @@
             <!-- Password Section -->
             <div class="password-section">
               <div class="section-title section-title-tight">
-                Choose a Password
+                {% translate "Choose a Password" %}
               </div>
               <div class="mb-3">
                 {{ form.password.label_tag }}
@@ -187,10 +186,10 @@
             <!-- Action Buttons -->
             <div class="btn-container">
               <button type="button" class="btn btn-back" onclick="goBack()">
-                <i class="fas fa-arrow-left me-2"></i>Back
+                <i class="fas fa-arrow-left me-2"></i>{% translate "Back" %}
               </button>
               <button type="submit" class="btn btn-register">
-                Register Me to eFile
+                {% translate "Register Me to eFile" %}
               </button>
             </div>
           </form>
@@ -199,6 +198,7 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="{% url 'javascript-catalog' %}"></script>
     <script src="{% static 'js/api-utils.js' %}"></script>
     <script>
       document

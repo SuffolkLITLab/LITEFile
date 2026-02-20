@@ -3,6 +3,7 @@ import logging
 import requests
 from django.contrib import messages
 from django.shortcuts import redirect, render
+from django.utils.translation import gettext
 
 from efile.utils.config_loader import config_loader
 
@@ -131,7 +132,7 @@ def efile_register(request, jurisdiction):
                 logger.exception("Registration request failed")
                 messages.error(request, f"Registration failed: {str(e)}")
         else:
-            messages.error(request, "Please correct the errors below.")
+            messages.error(request, gettext("Please correct the errors below."))
     else:
         # Always show a blank form on reload
         form = EFileRegistrationForm()

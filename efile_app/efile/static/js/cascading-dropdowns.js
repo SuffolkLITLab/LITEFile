@@ -289,7 +289,7 @@ class CascadingDropdowns {
           const placeholder =
             caseCategoryDropdown.querySelector('option[value=""]');
           if (placeholder) {
-            placeholder.textContent = "Select Case Category";
+            placeholder.textContent = gettext("Select Case Category");
           }
         }
       }
@@ -545,7 +545,7 @@ class CascadingDropdowns {
 
       // Create header
       const header = document.createElement("h3");
-      header.textContent = "Optional Services";
+      header.textContent = gettext("Optional Services");
       header.className = "mb-3";
       servicesContainer.appendChild(header);
 

@@ -48,7 +48,7 @@
         {% if is_required %}required{% endif %}
         {% if disabled %}disabled{% endif %}
       >
-        <option value="">Select {{ label_text }}</option>
+        <option value="">{% blocktranslate %}Select {{ label_text }}{% endblocktranslate %}</option>
       </select>
       
       <div class="search-dropdown-results" id="{{ field_id }}-results" style="display: none;">

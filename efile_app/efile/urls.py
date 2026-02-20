@@ -1,5 +1,6 @@
 from django.shortcuts import redirect
 from django.urls import include, path
+from django.views.i18n import JavaScriptCatalog
 
 from .views.api_views import get_case_data_api, get_filing_components
 from .views.choose_jurisdiction import choose_jurisdiction
@@ -33,6 +34,7 @@ def jurisdiction_homepage(request, jurisdiction):
 
 
 urlpatterns = [
+    path("jsi18n/", JavaScriptCatalog.as_view(), name="javascript-catalog"),
     path("", homepage, name="home"),
     path("choose-jurisdiction", choose_jurisdiction, name="efile_choose_jurisdiction"),
     path("jurisdiction/<jurisdiction>", jurisdiction_homepage, name="jurisdiction_homepage"),

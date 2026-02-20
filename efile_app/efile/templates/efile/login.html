@@ -1,10 +1,11 @@
 {% load static %}
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{{ config.jurisdiction.name }} - Login/Register</title>
+    <title>{{ config.jurisdiction.name }} - {% translate "Login/Register" %}</title>
     <link
       href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
       rel="stylesheet"
@@ -49,7 +50,7 @@
             class="mb-4"
             style="color: #374151; font-weight: 700; font-size: 1.8rem"
           >
-            Sign In to eFile
+            {% translate "Sign In to eFile" %}
           </h2>
 
           <form method="post">
@@ -58,7 +59,7 @@
               <label
                 for="{{ login_form.email.id_for_label }}"
                 class="form-label"
-                >Email address</label
+                >{% translate "Email addres" %}</label
               >
               {{ login_form.email }} {% if login_form.email.errors %}
               <div class="text-danger mt-1">
@@ -73,8 +74,7 @@
               <label
                 for="{{ login_form.password.id_for_label }}"
                 class="form-label"
-                >Password</label
-              >
+                >{% translate "Password" %}</label>
               {{ login_form.password }} {% if login_form.password.errors %}
               <div class="text-danger mt-1">
                 {% for error in login_form.password.errors %}
@@ -84,7 +84,7 @@
               {% endif %}
               <div class="text-end mt-2">
                 <a href="#" class="show-password" onclick="togglePassword()"
-                  >Show Password</a
+                  >{% translate "Show Password" %}</a
                 >
               </div>
             </div>
@@ -105,15 +105,14 @@
 
           <!-- First Time Section -->
           <div class="first-time-section">
-            <h3>First Time?</h3>
+            <h3>{% translate "First Time?" %}</h3>
             <p class="first-time-text">
-              To use the efile system, you must<br />
-              create a registration.
+              {% translate "To use the efile system, you must create a registration." %}
             </p>
             <div class="text-center">
-              <a href="{% url 'efile_register' jurisdiction %}" class="btn btn-register"
-                >Register</a
-              >
+              <a href="{% url 'efile_register' jurisdiction %}" class="btn btn-register">
+                {% translate "Register" %}
+              </a>
             </div>
           </div>
         </div>
@@ -121,6 +120,7 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="{% url 'javascript-catalog' %}"></script>
     <script>
       function togglePassword() {
         const passwordField = document.getElementById("password");
@@ -128,10 +128,10 @@
 
         if (passwordField.type === "password") {
           passwordField.type = "text";
-          showPasswordLink.textContent = "Hide Password";
+          showPasswordLink.textContent = '{% translate "Hide Password" %}';
         } else {
           passwordField.type = "password";
-          showPasswordLink.textContent = "Show Password";
+          showPasswordLink.textContent = '{% translate "Show Password" %}';
         }
       }
       // Add some interactive behavior

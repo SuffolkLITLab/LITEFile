@@ -1,4 +1,5 @@
 {% load static %}
+{% load i18n %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -6,7 +7,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Case Details & Parties</title>
+  <title>{% translate "Case Details & Parties" %}</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
   <link href="{% static 'css/expert_form.css' %}" rel="stylesheet" />
@@ -20,32 +21,32 @@
       <form id="expertForm" onsubmit="return false;">
         {% csrf_token %}
 
-        <h2 class="section-header">Case details</h2>
+        <h2 class="section-header">{% translate "Case details" %}</h2>
         <p class="section-description">
-          Please provide the basic information about your case.
-          Required fields are marked with a red asterisk (<span class="required">*</span>).
+          {% translate "Please provide the basic information about your case. Required fields are marked with a red asterisk" %}
+          (<span class="required">*</span>).
         </p>
 
         <!-- Case Classification Section -->
         <div id="case-start-subsection">
-          <h3 class="subsection-header">Case classification</h3>
+          <h3 class="subsection-header">{% translate "Case classification" %}</h3>
 
           <div class="alert alert-info" id="userProfileStatus" style="display: none">
-            <i class="fas fa-user-check"></i> Loading your information...
+            <i class="fas fa-user-check"></i>{% translate "Loading your information..." %}
           </div>
 
           <div class="row mb-3">
             <div class="col-md-6 court-container">
               <label for="court" class="form-label">Court <span class="required">*</span></label>
               <small class="form-text text-muted mb-2 d-block">
-                This is the court you will be filing in
+                {% translate "This is the court you will be filing in" %}
               </small>
               <select class="form-select dropdown-field" id="court" name="court" data-level="3"
                 data-endpoint="/api/dropdowns/courts/" required>
-                <option value="">Select Court</option>
+                <option value="">{% translate "Select Court" %}</option>
               </select>
               <div class="loading-spinner" id="loading-3" style="display: none">
-                <i class="fas fa-spinner fa-spin"></i> Loading courts...
+                <i class="fas fa-spinner fa-spin"></i>{% translate "Loading courts..." %}
               </div>
             </div>
           </div>
@@ -53,17 +54,17 @@
           <div class="row mb-3">
             <div class="col-md-6">
               <fieldset>
-                <legend>New or existing? <span class="required">*</span></legend>
+                <legend>{% translate "New or existing?" %}<span class="required">*</span></legend>
                 <div>
                   <label for="new_case_radio">
                     <input type="radio" name="new_or_existing" id="new_case_radio" value="new">
-                    I am making a new case
+                    {% translate "I am making a new case" %}
                   </label>
                 </div>
                 <div>
                   <label for="existing_case_radio">
                     <input type="radio" name="new_or_existing" id="existing_case_radio" value="responding">
-                    I am responding to an existing case
+                    {% translate "I am responding to an existing case" %}
                   </label>
                 </div>
               </fieldset>
@@ -73,51 +74,51 @@
 
 
         <div id="case-info-subsection" hidden>
-          <h3 class="subsection-header">Case information</h3>
+          <h3 class="subsection-header">{% translate "Case information"%}</h3>
           <div class="row mb-3">
             <div class="col-md-6">
-              <label for="case_category" class="form-label">Case category <span class="required">*</span></label>
+              <label for="case_category" class="form-label">{% translate "Case category" %}<span class="required">*</span></label>
               <small class="form-text text-muted mb-2 d-block">
-                This is the case category
+                {% translate "This is the case category" %}
               </small>
               <select class="form-select dropdown-field" id="case_category" name="case_category" data-level="0"
                 data-endpoint="/api/dropdowns/case-categories/" disabled>
-                <option value="">First select a court</option>
+                <option value="">{% translate "First select a court" %}</option>
               </select>
               <div class="loading-spinner" id="loading-0" style="display: none">
-                <i class="fas fa-spinner fa-spin"></i> Loading categories...
+                <i class="fas fa-spinner fa-spin"></i>{% translate " Loading categories..." %}
               </div>
             </div>
           </div>
 
           <div class="row mb-3">
             <div class="col-md-6">
-              <label for="case_type" class="form-label">Case type <span class="required">*</span></label>
+              <label for="case_type" class="form-label">{% translate "Case type" %}<span class="required">*</span></label>
               <small class="form-text text-muted mb-2 d-block">
-                This is the case type you will use
+                {% translate "This is the case type you will use" %}
               </small>
               <select class="form-select dropdown-field" id="case_type" name="case_type" data-level="1" required
                 disabled>
-                <option value="">Select case type</option>
+                <option value="">{% translate "Select case type" %}</option>
               </select>
               <div class="loading-spinner" id="loading-1" style="display: none">
-                <i class="fas fa-spinner fa-spin"></i> Loading case types...
+                <i class="fas fa-spinner fa-spin"></i> {% translate "Loading case types..." %}
               </div>
             </div>
           </div>
 
           <div class="row mb-3">
             <div class="col-md-6" id="party-type-section">
-              <label for="party_type" class="form-label">Party Type<span class="required">*</span></label>
+              <label for="party_type" class="form-label">{% translate "Party Typ" %}<span class="required">*</span></label>
               <small class="form-text text-muted mb-2 d-block">
-                This is your party type.
+                {% translate "This is your party type." %}
               </small>
               <select class="form-select dropdown-field" id="party_type" name="party_type" data-level="2" required
                 >
-                <option value="">Select party type</option>
+                <option value="">{% translate "Select party type" %}</option>
               </select>
               <div class="loading-spinner" id="loading-2" style="display: none">
-                <i class="fas fa-spinner fa-spin"></i> Loading party types...
+                <i class="fas fa-spinner fa-spin"></i>{% translate "Loading party types..." %}
               </div>
             </div>
           </div>
@@ -182,10 +183,10 @@
         <!-- Form Buttons -->
         <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mt-4">
           <button type="button" class="btn btn-outline-secondary px-4" onclick="goBack()">
-            Back to Upload
+            {% translate "Back to Upload" %}
           </button>
           <button type="submit" id="continueBtn" class="btn btn-primary px-4">
-            Continue to documents
+            {% translate "Continue to documents" %}
           </button>
         </div>
       </form>
@@ -196,6 +197,7 @@
 
   <!-- Pass case data to JavaScript -->
   {{ case_data|json_script:"case-data" }}
+  <script src="{% url 'javascript-catalog' %}"></script>
   <script>
 
     function setupNewOrExistingRadio() {
@@ -609,7 +611,7 @@
         const caseNumber = document.getElementById('case_number').value.trim();
         
         if (!court || !caseNumber) {
-          showError('Please select a court and enter a case number');
+          showError('{% translate "Please select a court and enter a case number" %}');
           return;
         }
 
@@ -619,7 +621,7 @@
         const caseInfoDisplay = document.getElementById('caseInfoDisplay');
         
         try {
-          statusText.textContent = 'Looking up case information...';
+          statusText.textContent = '{% translate "Looking up case information..." %}';
           statusElement.style.display = 'block';
           statusElement.className = 'alert alert-info';
           caseInfoDisplay.style.display = 'none';
@@ -655,7 +657,7 @@
             document.getElementById('caseTypeText').textContent = caseData.caseTypeName || caseData.caseTypeCode || 'Not available';
             
             caseInfoDisplay.style.display = 'block';
-            statusText.textContent = 'Case found successfully!';
+            statusText.textContent = '{% translate "Case found successfully!" %}';
             statusElement.className = 'alert alert-success';
             continueBtn.disabled = false;
             
@@ -663,7 +665,7 @@
             await saveCaseDataToSession(caseData);
             
           } else {
-            throw new Error(apiData.error || 'No case found with that number');
+            throw new Error(apiData.error || '{% translate "No case found with that number" %}');
           }
           
         } catch (error) {

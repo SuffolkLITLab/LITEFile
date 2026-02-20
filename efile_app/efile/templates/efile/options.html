@@ -1,4 +1,5 @@
 {% load static %}
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -48,13 +49,13 @@
                 <i class="fas fa-university"></i>
               </div>
               <div class="option-content">
-                <h3>Make a Filing</h3>
-                <p>Begin a new case or file a response.</p>
+                <h3>{% translate "Make a Filing" %}</h3>
+                <p>{% translate "Begin a new case or file a response." %}</p>
               </div>
             </div>
             <div class="button-group">
               <button class="btn btn-primary" tabindex="0" onclick="goToExpertForm('new')">
-                Begin
+                {% translate "Begin" %}
               </button>
             </div>
           </div>
@@ -65,6 +66,7 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="{% url 'javascript-catalog' %}"></script>
     <script src="{% static 'js/api-utils.js' %}"></script>
     <script>
       // Function to save existing_case data and redirect to expert form or case details
@@ -124,13 +126,13 @@
                 <i class="fas fa-reply"></i>
               </div>
               <div class="option-content">
-                <h3>Resume Filing</h3>
-                <p>Resume your filing where you left off.</p>
+                <h3>{% translate "Resume Filing" %}</h3>
+                <p>{% translate "Resume your filing where you left off." %}</p>
               </div>
             </div>
             <div class="button-group">
               <button class="btn btn-primary" tabindex="0" onclick="goToExpertForm('resume')">
-                Resume 
+                {% translate "Resume " %}
               </button>
             </div>
           </div>

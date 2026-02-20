@@ -298,7 +298,7 @@ class FormValidation {
           const saveMethod =
             savedBy === "user_action" ? "manually saved" : "auto-saved";
           this.showNotification(
-            `Draft restored from previous session (${saveMethod})`,
+            gettext(`Draft restored from previous session (${saveMethod})`),
             "info"
           );
         } else {

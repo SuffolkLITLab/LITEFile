@@ -1,4 +1,5 @@
 {% load static %}
+{% load i18n %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -25,10 +26,9 @@
 
     <div class="container">
       <div class="upload-container">
-        <h2 class="section-header">Upload your lead document</h2>
+        <h2 class="section-header">{% translate "Upload your lead document" %}</h2>
         <p class="section-description">
-          Upload your main court form. It must
-          be in PDF format and clearly legible.
+          {% translate "Upload your main court form. It must be in PDF format and clearly legible." %}
         </p>
 
         <form id="uploadForm" enctype="multipart/form-data">
@@ -36,33 +36,31 @@
 
           <!-- Document Requirements -->
           <div class="alert alert-info mb-4">
-            <h6><i class="fas fa-info-circle me-2"></i><strong>Document requirements</strong></h6>
+            <h6><i class="fas fa-info-circle me-2"></i><strong>{% translate "Document requirements" %}</strong></h6>
             <div class="mb-2">
-              <strong>Format:</strong> Must be in PDF format with
-              text that can be read clearly.
+              <strong>{% translate "Format" %}:</strong> {% translate "Must be in PDF format with text that can be read clearly." %}
             </div>
             <div class="mb-0">
-              <strong>Size Limit:</strong> Must be under 10MB.
+              <strong>{% translate "Size Limit" %}:</strong> {% translate "Must be under 10MB." %}
             </div>
           </div>
 
           <!-- Lead Document Section -->
           <div class="document-section mb-4" id="leadDocumentSection">
             <label class="form-label document-label">
-              <strong>Lead document</strong> <span class="required">*</span>
+              <strong>{% translate "Lead document" %}</strong> <span class="required">*</span>
             </label>
             <p class="text-muted">
-              Your main petition document - this is the primary filing for your
-              case.
+              {% translate "Your main petition document - this is the primary filing for your case." %}
             </p>
 
             <div class="upload-area" id="leadDocumentArea">
               <div class="upload-placeholder">
                 <i class="fas fa-file-pdf fa-3x text-muted mb-3"></i>
                 <p class="mb-2">
-                  <strong>Click to upload or drag and drop</strong>
+                  <strong>{% translate "Click to upload or drag and drop" %}</strong>
                 </p>
-                <p class="text-muted small">PDF files only, maximum 10MB</p>
+                <p class="text-muted small">{% translate "PDF files only, maximum 10MB" %}</p>
               </div>
               <input
                 type="file"
@@ -89,7 +87,7 @@
               ></div>
             </div>
             <p class="text-center">
-              Creating filing and uploading documents...
+              {% translate "Creating filing and uploading documents..." %}
             </p>
           </div>
 
@@ -111,18 +109,15 @@
 
           <!-- Before You Continue Section -->
           <div class="alert alert-warning">
-            <h6><strong>Before you continue</strong></h6>
+            <h6><strong>{% translate "Before you continue" %}</strong></h6>
             <p class="mb-2">
-              <strong>Review your document:</strong> Make sure all text is
-              legible and all required information is complete.
+              <strong>{% translate "Review your document" %}:</strong> {% translate "Make sure all text is legible and all required information is complete." %}
             </p>
             <p class="mb-2">
-              <strong>File names:</strong> Your document will be renamed
-              according to court standards when filed.
+              <strong>{% translate "File names" %}:</strong> {% translate "Your document will be renamed according to court standards when filed." %}
             </p>
             <p class="mb-0">
-              <strong>Cannot be changed:</strong> Once submitted, you cannot
-              modify this document without filing additional motions.
+              <strong>{% translate "Cannot be changed" %}:</strong> {% translate "Once submitted, you cannot modify this document without filing additional motions." %}
             </p>
           </div>
 
@@ -135,14 +130,14 @@
               onclick="window.location.href='{% url 'efile_options' jurisdiction %}'"
               class="btn btn-outline-secondary px-4"
             >
-              <i class="fas fa-arrow-left me-2"></i>Back to Options
+              <i class="fas fa-arrow-left me-2"></i>{% translate "Back to Options" %}
             </button>
             <button
               type="submit"
               class="btn btn-primary px-4"
               id="submitButton"
             >
-              <i class="fas fa-arrow-right me-2"></i>Continue to case information
+              <i class="fas fa-arrow-right me-2"></i>{% translate "Continue to case information" %}
             </button>
           </div>
         </form>
@@ -152,6 +147,7 @@
     {{ upload_data|json_script:"upload-data" }}
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="{% url 'javascript-catalog' %}"></script>
     <script src="{% static 'js/api-utils.js' %}"></script>
     <script>
     // Check for cache clearing parameters first, before loading any data

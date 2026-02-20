@@ -1,11 +1,12 @@
 {% load static %}
+{% load i18n %}
 
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Upload Your Documents</title>
+    <title>{% translate "Upload Your Documents" %}</title>
     <link
       href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
       rel="stylesheet"
@@ -27,8 +28,7 @@
       <div class="upload-container">
         <h2 class="section-header">Upload your documents</h2>
         <p class="section-description">
-          Upload any supporting documents. All documents must
-          be in PDF format and clearly legible.
+          {% translate "Upload any supporting documents. All documents must be in PDF format and clearly legible." %}
         </p>
 
         <!-- Case Information Summary -->
@@ -36,7 +36,7 @@
           <h5 class="case-summary-header">My case</h5>
           <div class="row">
             <div class="col-md-6">
-              <strong>Case type:</strong> {{ case_type_name }}
+              <strong>{% translate "Case type:" %}</strong> {{ case_type_name }}
             </div>
             <div class="col-md-6"><strong>County:</strong> {{ court }}</div>
           </div>
@@ -49,18 +49,17 @@
           <div class="alert alert-info mb-4">
             <h6><i class="fas fa-info-circle me-2"></i><strong>Document requirements</strong></h6>
             <div class="mb-2">
-              <strong>Format:</strong> All documents must be in PDF format with
-              text that can be read clearly.
+              <strong>{% translate "Format:" %}</strong>{% translate "All documents must be in PDF format with text that can be read clearly." %}
             </div>
             <div class="mb-0">
-              <strong>Size Limit:</strong> Each document must be under 10MB.
+              <strong>Size Limit:</strong>{% translate "Each document must be under 10MB." %}
             </div>
           </div>
 
           <!-- Lead Document Section -->
           <div class="document-section mb-4" id="leadDocumentSection">
             <div class="form-label document-label">
-              <strong>Lead document</strong> <span class="required">*</span>
+              <strong>{% translate "Lead document" %}</strong> <span class="required">*</span>
             </div>
 
             <div class="lead-preview-area" id="leadDocumentArea">
@@ -75,7 +74,7 @@
               <div class="row" style="align-items: baseline">
                 <div class="col-md-6">
                   <label for="leadFilingType" class="form-label"
-                    ><strong>Filing type</strong>
+                    ><strong>{% translate "Filing type" %}</strong>
                     <span class="required">*</span></label
                   >
                   <div
@@ -98,7 +97,7 @@
                       name="lead_filing_type"
                       required
                     >
-                      <option value="">Select filing type</option>
+                      <option value="">{% translate "Select filing type" %}</option>
                     </select>
 
                     <div
@@ -107,7 +106,7 @@
                       style="display: none"
                     >
                       <div class="search-no-results">
-                        No matching options found
+                        {% translate "No matching options found" %}
                       </div>
                     </div>
 
@@ -129,7 +128,7 @@
                 </div>
                 <div class="col-md-6">
                   <label for="leadDocumentType" class="form-label"
-                    ><strong>Request documents be sealed / confidential?</strong>
+                    ><strong>{% translate "Request documents be sealed / confidential?" %}</strong>
                     <span class="required">*</span></label
                   >
                   <select
@@ -138,7 +137,7 @@
                     name="lead_document_type"
                     required
                   >
-                    <option value="">Select filing type first</option>
+                    <option value="">{% translate "Select filing type first" %}</option>
                   </select>
                 </div>
               </div>
@@ -153,7 +152,7 @@
                       name="lead_certified_copies"
                     />
                     <label class="form-check-label" for="leadCertifiedCopies">
-                      Request certified copies when filed
+                      {% translate "Request certified copies when filed" %}
                     </label>
                   </div>
                   <div class="form-text" hidden>
@@ -171,18 +170,17 @@
               <strong>Supporting documents</strong>
             </label>
             <p class="text-muted">
-              Optional additional documents that support your petition (birth
-              certificates, marriage certificates, etc.)
+              {% translate "Optional additional documents that support your petition (birth certificates, marriage certificates, etc.)" %}
             </p>
 
             <div class="upload-area" id="supportingDocumentsArea">
               <div class="upload-placeholder">
                 <i class="fas fa-file-upload fa-3x text-muted mb-3"></i>
                 <p class="mb-2">
-                  <strong>Click to upload or drag and drop</strong>
+                  <strong>{% translate "Click to upload or drag and drop" %}</strong>
                 </p>
                 <p class="text-muted small">
-                  PDF files only, maximum 10MB each
+                  {% translate "PDF files only, maximum 10MB each" %}
                 </p>
               </div>
               <input
@@ -215,7 +213,7 @@
               ></div>
             </div>
             <p class="text-center">
-              Creating filing and uploading documents...
+              {% translate "Creating filing and uploading documents..." %}
             </p>
           </div>
 
@@ -238,16 +236,13 @@
           <div class="alert alert-warning">
             <h6><strong>Before you continue</strong></h6>
             <p class="mb-2">
-              <strong>Review your documents:</strong> Make sure all text is
-              legible and all required information is complete.
+              <strong>{% translate "Review your documents" %}:</strong> {% translate "Make sure all text is legible and all required information is complete." %}
             </p>
             <p class="mb-2">
-              <strong>File names:</strong> Your documents will be renamed
-              according to court standards when filed.
+              <strong>{%translate "File names" %}:</strong> {% translate "Your documents will be renamed according to court standards when filed." %}
             </p>
             <p class="mb-0">
-              <strong>Cannot be changed:</strong> Once submitted, you cannot
-              modify these documents without filing additional motions.
+              <strong>{% translate "Cannot be changed" %}:</strong> {% translate "Once submitted, you cannot modify these documents without filing additional motions." %}
             </p>
           </div>
 
@@ -260,14 +255,14 @@
               onclick="window.location.href='{% url 'expert_form' jurisdiction %}'"
               class="btn btn-outline-secondary px-4"
             >
-              <i class="fas fa-arrow-left me-2"></i>Back to case details
+              <i class="fas fa-arrow-left me-2"></i>{% translate "Back to case details" %}
             </button>
             <button
               type="submit"
               class="btn btn-primary px-4"
               id="submitButton"
             >
-              <i class="fas fa-upload me-2"></i>Continue to review & pay
+              <i class="fas fa-upload me-2"></i>{% translate "Continue to review & pay" %}
             </button>
           </div>
         </form>
@@ -279,6 +274,7 @@
     {{ case_classification|json_script:"case-classification"}}
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="{% url 'javascript-catalog' %}"></script>
     <script src="{% static 'js/api-utils.js' %}"></script>
     <script src="{% static 'js/components/search-dropdown.js' %}"></script>
     <script src="{% static 'js/upload-handler.js' %}"></script>

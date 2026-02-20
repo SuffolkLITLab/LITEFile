@@ -9,6 +9,7 @@ import logging
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.shortcuts import redirect, render
+from django.utils.translation import gettext
 
 from efile.utils.config_loader import config_loader
 from efile.utils.proxy_connection import tyler_password_reset
@@ -60,12 +61,12 @@ def efile_password_reset(request, jurisdiction):
             result = tyler_password_reset(email, jurisdiction)
             logger.info("Password reset result: %s", result)
             if result.ok:
-                messages.success(request, "Password reset link sent to email!")
+                messages.success(request, gettext("Password reset link sent to email!"))
                 return redirect(f"/jurisdiction/{jurisdiction}/login")
             else:
                 messages.error(request, f"Password reset failed: {result.text}")
         else:
-            messages.error(request, "Please correct the errors below.")
+            messages.error(request, gettext("Please correct the errors below."))
     else:
         reset_form = EFilePasswordResetForm()
 
