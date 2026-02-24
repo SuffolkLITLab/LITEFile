@@ -12,11 +12,11 @@ class UploadHandler {
         this.uploadProgress = document.getElementById('uploadProgress');
         this.errorAlert = document.getElementById('errorAlert');
         this.successAlert = document.getElementById('successAlert');
-        
+
         this.uploadedFile = null;
-        
+
         this.initialized = false;
-        
+
         this.init();
     }
 
@@ -25,13 +25,13 @@ class UploadHandler {
             console.warn('UploadHandler already initialized, skipping...');
             return;
         }
-        
+
         // First, sync any localStorage data to session
         await this.syncFormDataToSession();
 
         this.setupEventListeners();
         this.setupDragAndDrop();
-        
+
         this.initialized = true;
     }
 
@@ -58,7 +58,7 @@ class UploadHandler {
     }
 
     async saveUploadDataToSession(uploadData) {
-        try {            
+        try {
             const result = await apiUtils.saveFirstUploadData(uploadData);
             if (!result.success) {
                 throw new Error(result.error || 'Failed to save upload data to session');
@@ -72,10 +72,10 @@ class UploadHandler {
     setupEventListeners() {
         // Form submission
         if (this.form) {
-          this.form.addEventListener('submit', (e) => {
-              e.preventDefault();
-              this.handleFormSubmission();
-          });
+            this.form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.handleFormSubmission();
+            });
         }
 
         // File input changes
@@ -89,7 +89,7 @@ class UploadHandler {
 
         this.leadDocumentArea.addEventListener('click', (e) => {
             // Check if click is on file preview or remove button
-            if (e.target.closest('.file-preview') || 
+            if (e.target.closest('.file-preview') ||
                 e.target.closest('.file-remove') ||
                 e.target.classList.contains('file-remove')) {
                 return;
@@ -101,11 +101,11 @@ class UploadHandler {
             }
 
             lastLeadClick = now;
-            
+
             // Prevent default and stop propagation to avoid any interference
             e.preventDefault();
             e.stopPropagation();
-            
+
             // Use setTimeout to ensure this runs after any other event handlers
             setTimeout(() => {
                 this.leadDocumentInput.click();
@@ -129,7 +129,7 @@ class UploadHandler {
         area.addEventListener('drop', (e) => {
             e.preventDefault();
             area.classList.remove('dragover');
-            
+
             const files = e.dataTransfer.files;
             this.handleFileSelection(files);
         });
@@ -196,8 +196,8 @@ class UploadHandler {
 
         // Add file previews
         if (file) {
-          const preview = this.createFilePreview(file);
-          area.appendChild(preview);
+            const preview = this.createFilePreview(file);
+            area.appendChild(preview);
         }
 
         // Show/hide document options based on whether files are uploaded
@@ -216,9 +216,9 @@ class UploadHandler {
     createFilePreview(file) {
         const preview = document.createElement('div');
         preview.className = 'file-preview';
-        
+
         const fileSize = this.formatFileSize(file.size);
-        
+
         preview.innerHTML = `
             <div class="file-info">
                 <i class="fas fa-file-pdf"></i>
@@ -231,7 +231,7 @@ class UploadHandler {
                 <i class="fas fa-times"></i>
             </button>
         `;
-        
+
         // Add event listener to the remove button with strong event prevention
         const removeButton = preview.querySelector('.file-remove');
         removeButton.addEventListener('click', (e) => {
@@ -240,22 +240,22 @@ class UploadHandler {
             e.stopImmediatePropagation();
 
             this.uploadedFile = null;
-            this.updateFilePreview(this.leadDocumentArea, null); 
+            this.updateFilePreview(this.leadDocumentArea, null);
             // Clear the native file input
             if (this.leadDocumentInput) {
                 this.leadDocumentInput.value = '';
             }
             this.updateSubmitButton();
-            
+
             // Return false to ensure no further event processing
             return false;
         }, true); // Use capture phase to intercept before other handlers
-        
+
         // Also add a mousedown event to completely prevent any interaction issues
         removeButton.addEventListener('mousedown', (e) => {
             e.stopPropagation();
         }, true);
-        
+
         return preview;
     }
 
@@ -282,7 +282,7 @@ class UploadHandler {
             });
 
             const result = await response.json();
-            
+
             if (!result.success) {
                 throw new Error(result.error || 'Upload failed');
             }
@@ -302,7 +302,7 @@ class UploadHandler {
     showFileUploadProgress(fileName, type, index) {
         const selector = '.file-preview';
         const preview = this.leadDocumentArea.querySelector(selector)
-        
+
         if (preview) {
             const statusDiv = preview.querySelector('.upload-status') || document.createElement('div');
             statusDiv.className = 'upload-status';
@@ -316,7 +316,7 @@ class UploadHandler {
     showFileUploadSuccess(fileName, index) {
         const selector = '.file-preview';
         const preview = this.leadDocumentArea.querySelector(selector);
-        
+
         if (preview) {
             const statusDiv = preview.querySelector('.upload-status');
             if (statusDiv) {
@@ -328,7 +328,7 @@ class UploadHandler {
     showFileUploadError(fileName, index, error) {
         const selector = '.file-preview';
         const preview = this.leadDocumentArea.querySelector(selector)
-        
+
         if (preview) {
             const statusDiv = preview.querySelector('.upload-status');
             if (statusDiv) {
@@ -350,7 +350,7 @@ class UploadHandler {
             window.location.href = `/jurisdiction/${jurisdiction}/expert_form/`;
             return;
         }
-        
+
         this.showWaiting("Processing your form...");
 
         try {
@@ -379,7 +379,7 @@ class UploadHandler {
             // Save the complete upload data to session
             await this.saveUploadDataToSession(uploadDataWithUrls);
 
-            
+
             // Redirect to next page
             const jurisdiction = apiUtils.getCurrentJurisdiction();
             window.location.href = `/jurisdiction/${jurisdiction}/expert_form/`;
@@ -396,9 +396,12 @@ class UploadHandler {
         this.hideAlerts();
         document.getElementById('errorMessage').textContent = message;
         this.errorAlert.style.display = 'block';
-        
+
         // Scroll to error
-        this.errorAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        this.errorAlert.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+        });
     }
 
     showWaiting(message) {
@@ -406,9 +409,12 @@ class UploadHandler {
         document.getElementById('successMessage').textContent = message;
         document.getElementById('submitButton').disabled = true;
         this.successAlert.style.display = 'block';
-        
+
         // Scroll to success
-        this.successAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        this.successAlert.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+        });
     }
 
     hideAlerts() {
@@ -418,11 +424,11 @@ class UploadHandler {
 
     formatFileSize(bytes) {
         if (bytes === 0) return '0 Bytes';
-        
+
         const k = 1024;
         const sizes = ['Bytes', 'KB', 'MB', 'GB'];
         const i = Math.floor(Math.log(bytes) / Math.log(k));
-        
+
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     }
 }

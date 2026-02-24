@@ -2,376 +2,261 @@
 {% load i18n %}
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Review Case Details</title>
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="{% static 'css/review.css' %}" />
-  </head>
-  <body>
-    {% csrf_token %} {% include 'efile/components/profile_header.html' %}
-    <div class="container">
-      <div class="review-container">
-        <h2 class="mb-4" style="color: #2c5aa0; font-weight: 600">
-          {% translate "Review case details" %}
-        </h2>
-        <p class="text-muted mb-4">
-          {% translate "Verify the information below for your case. Please edit anything you believe to be incorrect." %}
-        </p>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Review Case Details</title>
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
+              rel="stylesheet" />
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+              rel="stylesheet" />
+        <link rel="stylesheet" href="{% static 'css/review.css' %}" />
+    </head>
+    <body>
+        {% csrf_token %}
+        {% include "efile/components/profile_header.html" %}
+        <div class="container">
+            <div class="review-container">
+                <h2 class="mb-4" style="color: #2c5aa0; font-weight: 600">{% translate "Review case details" %}</h2>
+                <p class="text-muted mb-4">
+                    {% translate "Verify the information below for your case. Please edit anything you believe to be incorrect." %}
+                </p>
+                <!-- Case Information -->
+                <div class="review-section">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h3>{% translate "Case information" %}</h3>
+                    </div>
+                    <div class="review-item">
+                        <span class="review-label">Case type:</span>
+                        <div class="d-flex align-items-center">
+                            <span class="review-value"
+                                  id="caseTypeValue"
+                                  style="word-break: break-word">{{ friendly_names.case_type|default:"Loading..." }}</span>
+                            <a href="{% url 'expert_form' jurisdiction %}" class="edit-btn ms-3">Edit</a>
+                        </div>
+                    </div>
+                    <div class="review-item">
+                        <span class="review-label">To be filed in:</span>
+                        <div class="d-flex align-items-center">
+                            <span class="review-value" id="courtValue">{{ friendly_names.court|default:"Loading..." }}</span>
+                            <a href="{% url 'expert_form' jurisdiction %}" class="edit-btn ms-3">Edit</a>
+                        </div>
+                    </div>
+                </div>
+                <!-- User Information -->
+                <div class="review-section">
+                    <h3>{% translate "Review your information" %}</h3>
+                    <!-- Inline fields: show text by default, input hidden until Edit clicked -->
+                    <div class="review-item">
+                        <span class="review-label">{% translate "Name:" %}<span class="text-danger">*</span></span>
+                        <div class="d-flex align-items-center w-100">
+                            <span class="review-text" id="userNameText">{% translate "Loading..." %}</span>
+                            <input type="text"
+                                   id="userNameInput"
+                                   class="form-control form-control-sm"
+                                   style="max-width: 400px;
+                                          display: none"
+                                   value=""
+                                   required
+                                   aria-required="true" />
+                            <button class="edit-btn ms-3" onclick="toggleEdit('userNameInput', this)">{% translate "Edit" %}</button>
+                        </div>
+                    </div>
+                    <div class="review-item">
+                        <span class="review-label">{% translate "Address line 1:" %}
+                            <span class="text-danger">*</span></span>
+                            <div class="d-flex align-items-center w-100">
+                                <span class="review-text" id="userAddressLine1Text">{% translate "Loading..." %}</span>
+                                <input type="text"
+                                       id="userAddressLine1Input"
+                                       class="form-control form-control-sm"
+                                       style="max-width: 400px;
+                                              display: none"
+                                       value=""
+                                       required
+                                       aria-required="true" />
+                                <button class="edit-btn ms-3"
+                                        onclick="toggleEdit('userAddressLine1Input', this)">
+                                    {% translate "Edit" %}
+                                </button>
+                            </div>
+                        </div>
+                        <div class="review-item">
+                            <span class="review-label">{% translate "Address line 2" %}:</span>
+                            <div class="d-flex align-items-center w-100">
+                                <span class="review-text" id="userAddressLine2Text">{% translate "Loading..." %}</span>
+                                <input type="text"
+                                       id="userAddressLine2Input"
+                                       class="form-control form-control-sm"
+                                       style="max-width: 400px;
+                                              display: none"
+                                       value="" />
+                                <button class="edit-btn ms-3"
+                                        onclick="toggleEdit('userAddressLine2Input', this)">
+                                    {% translate "Edit" %}
+                                </button>
+                            </div>
+                        </div>
+                        <div class="review-item">
+                            <span class="review-label">{% translate "City:" %}<span class="text-danger">*</span></span>
+                            <div class="d-flex align-items-center w-100">
+                                <span class="review-text" id="userCityText">{% translate "Loading..." %}</span>
+                                <input type="text"
+                                       id="userCityInput"
+                                       class="form-control form-control-sm"
+                                       style="max-width: 400px;
+                                              display: none"
+                                       value=""
+                                       required
+                                       aria-required="true" />
+                                <button class="edit-btn ms-3" onclick="toggleEdit('userCityInput', this)">{% translate "Edit" %}</button>
+                            </div>
+                        </div>
+                        <div class="review-item">
+                            <span class="review-label">{% translate "State:" %}<span class="text-danger">*</span></span>
+                            <div class="d-flex align-items-center w-100">
+                                <span class="review-value" id="userStateText">{% translate "Loading.." %}</span>
+                                <input type="text"
+                                       id="userStateInput"
+                                       class="form-control form-control-sm"
+                                       style="max-width: 400px;
+                                              display: none"
+                                       value=""
+                                       required
+                                       aria-required="true" />
+                                <button class="edit-btn ms-3" onclick="toggleEdit('userStateInput', this)">{% translate "Edit" %}</button>
+                            </div>
+                        </div>
+                        <div class="review-item">
+                            <span class="review-label">{% translate "ZIP code" %}: <span class="text-danger">*</span></span>
+                            <div class="d-flex align-items-center w-100">
+                                <span class="review-text" id="userZipText">{% translate "Loading..." %}</span>
+                                <input type="text"
+                                       id="userZipInput"
+                                       class="form-control form-control-sm"
+                                       style="max-width: 400px;
+                                              display: none"
+                                       value=""
+                                       required
+                                       aria-required="true" />
+                                <button class="edit-btn ms-3" onclick="toggleEdit('userZipInput', this)">{% translate "Edit" %}</button>
+                            </div>
+                        </div>
+                        <div class="review-item">
+                            <span class="review-label">{% translate "Email" %}
+                                <span class="text-danger">*</span></span>
+                                <div class="d-flex align-items-center w-100" style="overflow: hidden">
+                                    <span class="review-text" id="userEmailText">{% translate "Loading..." %}</span>
+                                    <input type="email"
+                                           id="userEmailInput"
+                                           class="form-control form-control-sm"
+                                           style="max-width: 400px;
+                                                  display: none"
+                                           value=""
+                                           required
+                                           aria-required="true" />
+                                    <button class="edit-btn ms-3" onclick="toggleEdit('userEmailInput', this)">{% translate "Edit" %}</button>
+                                </div>
+                            </div>
+                            <div class="review-item">
+                                <span class="review-label">Phone: <span class="text-danger">*</span></span>
+                                <div class="d-flex align-items-center w-100">
+                                    <span class="review-text" id="userPhoneText">Loading...</span>
+                                    <input type="tel"
+                                           id="userPhoneInput"
+                                           class="form-control form-control-sm"
+                                           style="max-width: 400px;
+                                                  display: none"
+                                           value=""
+                                           required
+                                           aria-required="true" />
+                                    <button class="edit-btn ms-3" onclick="toggleEdit('userPhoneInput', this)">{% translate "Edit" %}</button>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Documents -->
+                        <div class="review-section">
+                            <h3>{% translate "Your documents for filing" %}</h3>
+                            <div id="documentsContainer">
+                                <!-- Documents will be loaded here -->
+                            </div>
+                        </div>
+                        <!-- Payment Methods -->
+                        <h2 class="mb-4" style="color: #2c5aa0; font-weight: 600">{% translate "Payment method" %}</h2>
+                        <div class="review-section">
+                            <h3>{% translate "Existing" %}</h3>
+                            <div id="paymentMethodsContainer">
+                                <!-- Payment methods will be loaded here -->
+                            </div>
+                        </div>
+                        <!-- Payment Information (will be loaded via API call) -->
+                        <div class="review-section" id="paymentSection" style="display: none">
+                            <h3>{% translate "Filing Fees" %}</h3>
+                            <div class="payment-info" id="paymentInfo">
+                                <!-- Payment details will be loaded here -->
+                            </div>
+                        </div>
+                        <!-- Disclaimer and Action Buttons -->
+                        <h2 class="mb-4" style="color: #2c5aa0; font-weight: 600">{% translate "Submit my filing" %}</h2>
+                        <div class="disclaimer-section mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input"
+                                       type="checkbox"
+                                       id="disclaimerCheckbox"
+                                       required />
+                                <label class="form-check-label" for="disclaimerCheckbox">
+                                    {% translate "I acknowledge that selecting submit and file will electronically file my documents with the court of law which I have selected and will become legal record." %}
+                                </label>
+                            </div>
+                        </div>
+                        <!-- Error/Success Messages -->
+                        <div id="errorMessage" class="error-message">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <span id="errorText"></span>
+                        </div>
+                        <div id="successMessage" class="success-message">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <span id="successText"></span>
+                        </div>
+                        <!-- Loading Spinner -->
+                        <div id="loadingSpinner" class="loading-spinner">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">{% translate "Processing your filing..." %}</p>
+                        </div>
+                        <!-- Action Buttons -->
+                        <div class="action-buttons">
+                            <button type="button" class="btn-back" onclick="goBack()">{% translate "Back" %}</button>
+                            <button type="button"
+                                    class="btn-continue"
+                                    onclick="submitFiling()"
+                                    id="submitButton"
+                                    disabled>{% translate "Pay and submit" %}</button>
+                        </div>
+                    </div>
+                </div>
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+                <script src="{% url 'javascript-catalog' %}"></script>
+                <!-- Django template data for JavaScript -->
+                {{ case_data|json_script:"case-data" }}
+                {{ new_toga_url|json_script:"new-toga-url" }}
+                {{ friendly_names|json_script:"friendly-names" }}
+                <!-- Review page JavaScript -->
+                <script src="{% static 'js/api-utils.js' %}"></script>
+                <script src="{% static 'js/review.js' %}"></script>
+                <!-- Disclaimer checkbox functionality -->
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const disclaimerCheckbox = document.getElementById('disclaimerCheckbox');
+                        const submitButton = document.getElementById('submitButton');
 
-        <!-- Case Information -->
-        <div class="review-section">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h3>{% translate "Case information" %}</h3>
-          </div>
-
-          <div class="review-item">
-            <span class="review-label">Case type:</span>
-            <div class="d-flex align-items-center">
-              <span class="review-value" id="caseTypeValue" style="word-break: break-word"
-                >{{ friendly_names.case_type|default:"Loading..." }}</span
-              >
-              <a href="{% url 'expert_form' jurisdiction %}" class="edit-btn ms-3">Edit</a>
-            </div>
-          </div>
-
-          <div class="review-item">
-            <span class="review-label">To be filed in:</span>
-            <div class="d-flex align-items-center">
-              <span class="review-value" id="courtValue"
-                >{{ friendly_names.court|default:"Loading..." }}</span
-              >
-              <a href="{% url 'expert_form' jurisdiction %}" class="edit-btn ms-3">Edit</a>
-            </div>
-          </div>
-        </div>
-
-        <!-- User Information -->
-        <div class="review-section">
-          <h3>{% translate "Review your information" %}</h3>
-
-          <!-- Inline fields: show text by default, input hidden until Edit clicked -->
-          <div class="review-item">
-            <span class="review-label"
-              >{% translate "Name:" %}<span class="text-danger">*</span></span
-            >
-            <div class="d-flex align-items-center w-100">
-              <span class="review-text" id="userNameText">{% translate "Loading..." %}</span>
-              <input
-                type="text"
-                id="userNameInput"
-                class="form-control form-control-sm"
-                style="max-width: 400px; display: none"
-                value=""
-                required
-                aria-required="true"
-              />
-              <button
-                class="edit-btn ms-3"
-                onclick="toggleEdit('userNameInput', this)"
-              >
-                {% translate "Edit" %}
-              </button>
-            </div>
-          </div>
-
-          <div class="review-item">
-            <span class="review-label"
-              >{% translate "Address line 1:" %}
-              <span class="text-danger">*</span></span
-            >
-            <div class="d-flex align-items-center w-100">
-              <span class="review-text" id="userAddressLine1Text"
-                >{% translate "Loading..." %}
-                </span
-              >
-              <input
-                type="text"
-                id="userAddressLine1Input"
-                class="form-control form-control-sm"
-                style="max-width: 400px; display: none"
-                value=""
-                required
-                aria-required="true"
-              />
-              <button
-                class="edit-btn ms-3"
-                onclick="toggleEdit('userAddressLine1Input', this)"
-              >
-                {% translate "Edit" %}
-              </button>
-            </div>
-          </div>
-
-          <div class="review-item">
-            <span class="review-label">{% translate "Address line 2" %}:</span>
-            <div class="d-flex align-items-center w-100">
-              <span class="review-text" id="userAddressLine2Text"
-                >{% translate "Loading..." %}
-                </span>
-              <input
-                type="text"
-                id="userAddressLine2Input"
-                class="form-control form-control-sm"
-                style="max-width: 400px; display: none"
-                value=""
-              />
-              <button
-                class="edit-btn ms-3"
-                onclick="toggleEdit('userAddressLine2Input', this)"
-              >
-                {% translate "Edit" %}
-              </button>
-            </div>
-          </div>
-
-          <div class="review-item">
-            <span class="review-label"
-              >{% translate "City:" %}<span class="text-danger">*</span></span
-            >
-            <div class="d-flex align-items-center w-100">
-              <span class="review-text" id="userCityText"
-                >{% translate "Loading..." %}</span
-              >
-              <input
-                type="text"
-                id="userCityInput"
-                class="form-control form-control-sm"
-                style="max-width: 400px; display: none"
-                value=""
-                required
-                aria-required="true"
-              />
-              <button
-                class="edit-btn ms-3"
-                onclick="toggleEdit('userCityInput', this)"
-              >
-                {% translate "Edit" %}
-              </button>
-            </div>
-          </div>
-
-          <div class="review-item">
-            <span class="review-label"
-              >{% translate "State:" %}<span class="text-danger">*</span></span
-            >
-            <div class="d-flex align-items-center w-100">
-              <span class="review-value" id="userStateText"
-                >{% translate "Loading.." %}</span
-              >
-              <input
-                type="text"
-                id="userStateInput"
-                class="form-control form-control-sm"
-                style="max-width: 400px; display: none"
-                value=""
-                required
-                aria-required="true"
-              />
-              <button
-                class="edit-btn ms-3"
-                onclick="toggleEdit('userStateInput', this)"
-              >
-                {% translate "Edit" %}
-              </button>
-            </div>
-          </div>
-
-          <div class="review-item">
-            <span class="review-label"
-              >{% translate "ZIP code" %}: <span class="text-danger">*</span></span
-            >
-            <div class="d-flex align-items-center w-100">
-              <span class="review-text" id="userZipText"
-                >{% translate "Loading..." %}</span
-              >
-              <input
-                type="text"
-                id="userZipInput"
-                class="form-control form-control-sm"
-                style="max-width: 400px; display: none"
-                value=""
-                required
-                aria-required="true"
-              />
-              <button
-                class="edit-btn ms-3"
-                onclick="toggleEdit('userZipInput', this)"
-              >
-                {% translate "Edit" %}
-              </button>
-            </div>
-          </div>
-
-          <div class="review-item">
-            <span class="review-label"
-              >{% translate "Email" %}
-              <span class="text-danger">*</span></span
-            >
-            <div class="d-flex align-items-center w-100" style="overflow: hidden">
-              <span class="review-text" id="userEmailText"
-                >{% translate "Loading..." %}
-                </span
-              >
-              <input
-                type="email"
-                id="userEmailInput"
-                class="form-control form-control-sm"
-                style="max-width: 400px; display: none"
-                value=""
-                required
-                aria-required="true"
-              />
-              <button
-                class="edit-btn ms-3"
-                onclick="toggleEdit('userEmailInput', this)"
-              >
-                {% translate "Edit" %}
-              </button>
-            </div>
-          </div>
-
-          <div class="review-item">
-            <span class="review-label"
-              >Phone: <span class="text-danger">*</span></span
-            >
-            <div class="d-flex align-items-center w-100">
-              <span class="review-text" id="userPhoneText"
-                >Loading...</span
-              >
-              <input
-                type="tel"
-                id="userPhoneInput"
-                class="form-control form-control-sm"
-                style="max-width: 400px; display: none"
-                value=""
-                required
-                aria-required="true"
-              />
-              <button
-                class="edit-btn ms-3"
-                onclick="toggleEdit('userPhoneInput', this)"
-              >
-                {% translate "Edit" %}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Documents -->
-        <div class="review-section">
-          <h3>{% translate "Your documents for filing" %}</h3>
-          <div id="documentsContainer">
-            <!-- Documents will be loaded here -->
-          </div>
-        </div>
-
-        <!-- Payment Methods -->
-        <h2 class="mb-4" style="color: #2c5aa0; font-weight: 600">
-          {% translate "Payment method" %}
-        </h2>
-        <div class="review-section">
-          <h3>{% translate "Existing" %}</h3>
-          <div id="paymentMethodsContainer">
-            <!-- Payment methods will be loaded here -->
-          </div>
-        </div>
-
-        <!-- Payment Information (will be loaded via API call) -->
-        <div class="review-section" id="paymentSection" style="display: none">
-          <h3>{% translate "Filing Fees" %}</h3>
-          <div class="payment-info" id="paymentInfo">
-            <!-- Payment details will be loaded here -->
-          </div>
-        </div>
-
-        <!-- Disclaimer and Action Buttons -->
-        <h2 class="mb-4" style="color: #2c5aa0; font-weight: 600">
-          {% translate "Submit my filing" %}
-        </h2>
-        <div class="disclaimer-section mb-4">
-          <div class="form-check">
-            <input
-              class="form-check-input"
-              type="checkbox"
-              id="disclaimerCheckbox"
-              required
-            />
-            <label class="form-check-label" for="disclaimerCheckbox">
-              {% translate "I acknowledge that selecting submit and file will electronically file my documents with the court of law which I have selected and will become legal record." %}
-            </label>
-          </div>
-        </div>
-
-        <!-- Error/Success Messages -->
-        <div id="errorMessage" class="error-message">
-          <i class="fas fa-exclamation-triangle me-2"></i>
-          <span id="errorText"></span>
-        </div>
-        <div id="successMessage" class="success-message">
-          <i class="fas fa-check-circle me-2"></i>
-          <span id="successText"></span>
-        </div>
-
-        <!-- Loading Spinner -->
-        <div id="loadingSpinner" class="loading-spinner">
-          <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
-          </div>
-          <p class="mt-2">{% translate "Processing your filing..." %}</p>
-        </div>
-
-
-        <!-- Action Buttons -->
-        <div class="action-buttons">
-          <button type="button" class="btn-back" onclick="goBack()">
-            {% translate "Back" %}
-          </button>
-          <button
-            type="button"
-            class="btn-continue"
-            onclick="submitFiling()"
-            id="submitButton"
-            disabled
-          >
-            {% translate "Pay and submit" %}
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-    <script src="{% url 'javascript-catalog' %}"></script>
-
-    <!-- Django template data for JavaScript -->
-    {{ case_data|json_script:"case-data" }}
-    {{ new_toga_url|json_script:"new-toga-url" }}
-    {{ friendly_names|json_script:"friendly-names" }}
-
-    <!-- Review page JavaScript -->
-    <script src="{% static 'js/api-utils.js' %}"></script>
-    <script src="{% static 'js/review.js' %}"></script>
-    
-    <!-- Disclaimer checkbox functionality -->
-    <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        const disclaimerCheckbox = document.getElementById('disclaimerCheckbox');
-        const submitButton = document.getElementById('submitButton');
-        
-        if (disclaimerCheckbox && submitButton) {
-          disclaimerCheckbox.addEventListener('change', function() {
-            submitButton.disabled = !this.checked;
-          });
-        }
-      });
-    </script>
-  </body>
-</html>
+                        if (disclaimerCheckbox && submitButton) {
+                            disclaimerCheckbox.addEventListener('change', function() {
+                                submitButton.disabled = !this.checked;
+                            });
+                        }
+                    });
+                </script>
+            </body>
+        </html>

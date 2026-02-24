@@ -1,200 +1,157 @@
 {% load static %}
 {% load i18n %}
-
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Upload Your Documents</title>
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-      rel="stylesheet"
-    />
-    <link href="{% static 'css/upload.css' %}" rel="stylesheet" />
-    <link
-      href="{% static 'css/components/search-dropdown.css' %}"
-      rel="stylesheet"
-    />
-  </head>
-  <body>
-    {% include 'efile/components/profile_header.html' %}
-
-    <div class="container">
-      <div class="upload-container">
-        <h2 class="section-header">{% translate "Upload your lead document" %}</h2>
-        <p class="section-description">
-          {% translate "Upload your main court form. It must be in PDF format and clearly legible." %}
-        </p>
-
-        <form id="uploadForm" enctype="multipart/form-data">
-          {% csrf_token %}
-
-          <!-- Document Requirements -->
-          <div class="alert alert-info mb-4">
-            <h6><i class="fas fa-info-circle me-2"></i><strong>{% translate "Document requirements" %}</strong></h6>
-            <div class="mb-2">
-              <strong>{% translate "Format" %}:</strong> {% translate "Must be in PDF format with text that can be read clearly." %}
-            </div>
-            <div class="mb-0">
-              <strong>{% translate "Size Limit" %}:</strong> {% translate "Must be under 10MB." %}
-            </div>
-          </div>
-
-          <!-- Lead Document Section -->
-          <div class="document-section mb-4" id="leadDocumentSection">
-            <label class="form-label document-label">
-              <strong>{% translate "Lead document" %}</strong> <span class="required">*</span>
-            </label>
-            <p class="text-muted">
-              {% translate "Your main document - this is the primary filing for your case." %}
-            </p>
-
-            <div class="upload-area" id="leadDocumentArea">
-              <div class="upload-placeholder">
-                <i class="fas fa-file-pdf fa-3x text-muted mb-3"></i>
-                <p class="mb-2">
-                  <strong>{% translate "Click to upload or drag and drop" %}</strong>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Upload Your Documents</title>
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
+              rel="stylesheet" />
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+              rel="stylesheet" />
+        <link href="{% static 'css/upload.css' %}" rel="stylesheet" />
+        <link href="{% static 'css/components/search-dropdown.css' %}"
+              rel="stylesheet" />
+    </head>
+    <body>
+        {% include "efile/components/profile_header.html" %}
+        <div class="container">
+            <div class="upload-container">
+                <h2 class="section-header">{% translate "Upload your lead document" %}</h2>
+                <p class="section-description">
+                    {% translate "Upload your main court form. It must be in PDF format and clearly legible." %}
                 </p>
-                <p class="text-muted small">{% translate "PDF files only, maximum 10MB" %}</p>
-              </div>
-              <input
-                type="file"
-                id="leadDocument"
-                name="lead_document"
-                accept=".pdf"
-                class="file-input"
-                required
-              />
+                <form id="uploadForm" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <!-- Document Requirements -->
+                    <div class="alert alert-info mb-4">
+                        <h6>
+                            <i class="fas fa-info-circle me-2"></i><strong>{% translate "Document requirements" %}</strong>
+                        </h6>
+                        <div class="mb-2">
+                            <strong>{% translate "Format" %}:</strong> {% translate "Must be in PDF format with text that can be read clearly." %}
+                        </div>
+                        <div class="mb-0">
+                            <strong>{% translate "Size Limit" %}:</strong> {% translate "Must be under 10MB." %}
+                        </div>
+                    </div>
+                    <!-- Lead Document Section -->
+                    <div class="document-section mb-4" id="leadDocumentSection">
+                        <label class="form-label document-label">
+                            <strong>{% translate "Lead document" %}</strong> <span class="required">*</span>
+                        </label>
+                        <p class="text-muted">{% translate "Your main document - this is the primary filing for your case." %}</p>
+                        <div class="upload-area" id="leadDocumentArea">
+                            <div class="upload-placeholder">
+                                <i class="fas fa-file-pdf fa-3x text-muted mb-3"></i>
+                                <p class="mb-2">
+                                    <strong>{% translate "Click to upload or drag and drop" %}</strong>
+                                </p>
+                                <p class="text-muted small">{% translate "PDF files only, maximum 10MB" %}</p>
+                            </div>
+                            <input type="file"
+                                   id="leadDocument"
+                                   name="lead_document"
+                                   accept=".pdf"
+                                   class="file-input"
+                                   required />
+                        </div>
+                    </div>
+                    <!-- Progress and Loading -->
+                    <div class="upload-progress" id="uploadProgress" style="display: none">
+                        <div class="progress mb-3">
+                            <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+                        </div>
+                        <p class="text-center">{% translate "Creating filing and uploading documents..." %}</p>
+                    </div>
+                    <!-- Error Messages -->
+                    <div class="alert alert-danger" id="errorAlert" style="display: none">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <span id="errorMessage"></span>
+                    </div>
+                    <!-- Success Messages -->
+                    <div class="alert alert-success" id="successAlert" style="display: none">
+                        <i class="fas fa-spinner fa-spin me-2"></i>
+                        <span id="successMessage"></span>
+                    </div>
+                    <!-- Before You Continue Section -->
+                    <div class="alert alert-warning">
+                        <h6>
+                            <strong>{% translate "Before you continue" %}</strong>
+                        </h6>
+                        <p class="mb-2">
+                            <strong>{% translate "Review your document" %}:</strong> {% translate "Make sure all text is legible and all required information is complete." %}
+                        </p>
+                        <p class="mb-2">
+                            <strong>{% translate "File names" %}:</strong> {% translate "Your document will be renamed according to court standards when filed." %}
+                        </p>
+                        <p class="mb-0">
+                            <strong>{% translate "Cannot be changed" %}:</strong> {% translate "Once submitted, you cannot modify this document without filing additional motions." %}
+                        </p>
+                    </div>
+                    <!-- Form Buttons -->
+                    <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mt-4">
+                        <button type="button"
+                                onclick="window.location.href='{% url 'efile_options' jurisdiction %}'"
+                                class="btn btn-outline-secondary px-4">
+                            <i class="fas fa-arrow-left me-2"></i>{% translate "Back to Options" %}
+                        </button>
+                        <button type="submit" class="btn btn-primary px-4" id="submitButton">
+                            <i class="fas fa-arrow-right me-2"></i>{% translate "Continue to case information" %}
+                        </button>
+                    </div>
+                </form>
             </div>
-          </div>
+        </div>
+        {{ upload_data|json_script:"upload-data" }}
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+        <script src="{% url 'javascript-catalog' %}"></script>
+        <script src="{% static 'js/api-utils.js' %}"></script>
+        <script>
+            // Check for cache clearing parameters first, before loading any data
+            function shouldClearCache() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const clearSession = urlParams.get('clear_session');
+                const fromOptions = urlParams.get('from_options');
 
-          <!-- Progress and Loading -->
-          <div
-            class="upload-progress"
-            id="uploadProgress"
-            style="display: none"
-          >
-            <div class="progress mb-3">
-              <div
-                class="progress-bar"
-                role="progressbar"
-                style="width: 0%"
-              ></div>
-            </div>
-            <p class="text-center">
-              {% translate "Creating filing and uploading documents..." %}
-            </p>
-          </div>
+                // Only clear cache if both parameters are present and true
+                return clearSession === 'true' && fromOptions === 'true';
+            }
 
-          <!-- Error Messages -->
-          <div class="alert alert-danger" id="errorAlert" style="display: none">
-            <i class="fas fa-exclamation-triangle me-2"></i>
-            <span id="errorMessage"></span>
-          </div>
+            // Clear all eFiling related data if coming from options
+            if (shouldClearCache()) {
+                apiUtils.clearAllCache();
+                // Clear all eFiling related session storage
+                const keysToRemove = [];
+                for (let i = 0; i < sessionStorage.length; i++) {
+                    const key = sessionStorage.key(i);
+                    if (key && (
+                            key.includes('case_') ||
+                            key.includes('efile_') ||
+                            key.includes('filing_') ||
+                            key.includes('document_') ||
+                            key.includes('upload_') ||
+                            key === 'existing_case' ||
+                            key === 'form_data' ||
+                            key === 'case_data'
+                        )) {
+                        keysToRemove.push(key);
+                    }
+                }
 
-          <!-- Success Messages -->
-          <div
-            class="alert alert-success"
-            id="successAlert"
-            style="display: none"
-          >
-            <i class="fas fa-spinner fa-spin me-2"></i>
-            <span id="successMessage"></span>
-          </div>
+                // Remove the identified keys
+                keysToRemove.forEach(key => {
+                    sessionStorage.removeItem(key);
+                });
 
-          <!-- Before You Continue Section -->
-          <div class="alert alert-warning">
-            <h6><strong>{% translate "Before you continue" %}</strong></h6>
-            <p class="mb-2">
-              <strong>{% translate "Review your document" %}:</strong> {% translate "Make sure all text is legible and all required information is complete." %}
-            </p>
-            <p class="mb-2">
-              <strong>{% translate "File names" %}:</strong> {% translate "Your document will be renamed according to court standards when filed." %}
-            </p>
-            <p class="mb-0">
-              <strong>{% translate "Cannot be changed" %}:</strong> {% translate "Once submitted, you cannot modify this document without filing additional motions." %}
-            </p>
-          </div>
+                // Clear window.caseData to ensure fresh start
+                window.caseData = {};
 
-          <!-- Form Buttons -->
-          <div
-            class="d-flex flex-column flex-md-row justify-content-between gap-3 mt-4"
-          >
-            <button
-              type="button"
-              onclick="window.location.href='{% url 'efile_options' jurisdiction %}'"
-              class="btn btn-outline-secondary px-4"
-            >
-              <i class="fas fa-arrow-left me-2"></i>{% translate "Back to Options" %}
-            </button>
-            <button
-              type="submit"
-              class="btn btn-primary px-4"
-              id="submitButton"
-            >
-              <i class="fas fa-arrow-right me-2"></i>{% translate "Continue to case information" %}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    {{ upload_data|json_script:"upload-data" }}
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-    <script src="{% url 'javascript-catalog' %}"></script>
-    <script src="{% static 'js/api-utils.js' %}"></script>
-    <script>
-    // Check for cache clearing parameters first, before loading any data
-    function shouldClearCache() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const clearSession = urlParams.get('clear_session');
-      const fromOptions = urlParams.get('from_options');
-
-      // Only clear cache if both parameters are present and true
-      return clearSession === 'true' && fromOptions === 'true';
-    }
-
-    // Clear all eFiling related data if coming from options
-    if (shouldClearCache()) {
-      apiUtils.clearAllCache();
-      // Clear all eFiling related session storage
-      const keysToRemove = [];
-      for (let i = 0; i < sessionStorage.length; i++) {
-        const key = sessionStorage.key(i);
-        if (key && (
-          key.includes('case_') ||
-          key.includes('efile_') ||
-          key.includes('filing_') ||
-          key.includes('document_') ||
-          key.includes('upload_') ||
-          key === 'existing_case' ||
-          key === 'form_data' ||
-          key === 'case_data'
-        )) {
-          keysToRemove.push(key);
-        }
-      }
-
-      // Remove the identified keys
-      keysToRemove.forEach(key => {
-        sessionStorage.removeItem(key);
-      });
-
-      // Clear window.caseData to ensure fresh start
-      window.caseData = {};
-
-      sessionStorage.setItem('existing_case', 'no');
-    }
-    </script>
-
-
-    <script src="{% static 'js/components/search-dropdown.js' %}"></script>
-    <script src="{% static 'js/upload-handler-first.js' %}"></script>
-  </body>
+                sessionStorage.setItem('existing_case', 'no');
+            }
+        </script>
+        <script src="{% static 'js/components/search-dropdown.js' %}"></script>
+        <script src="{% static 'js/upload-handler-first.js' %}"></script>
+    </body>
 </html>

@@ -9,7 +9,7 @@ class ApiUtils {
         this.cache = this.getCache();
         //this.cacheExpiry = 0; // Use for Development
         this.cacheExpiry = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-        
+
         // Clear expired cache entries on initialization
         this.clearExpiredCache();
     }
@@ -19,15 +19,15 @@ class ApiUtils {
      * @returns {string} Current jurisdiction code
      */
     getCurrentJurisdiction() {
-      // Try to get from jurisdiction selector first
-      const jurisdiction = document.getElementById("currentJurisdiction");
-      if (jurisdiction && jurisdiction.textContent) {
-        return jurisdiction.textContent;
-      }
+        // Try to get from jurisdiction selector first
+        const jurisdiction = document.getElementById("currentJurisdiction");
+        if (jurisdiction && jurisdiction.textContent) {
+            return jurisdiction.textContent;
+        }
 
-      // Default to null if nothing found; rather that than weird bugs from a default state
-      console.warn("Returning null for current, likely shouldn't")
-      return null;
+        // Default to null if nothing found; rather that than weird bugs from a default state
+        console.warn("Returning null for current, likely shouldn't")
+        return null;
     }
 
     getCache() {
@@ -68,7 +68,7 @@ class ApiUtils {
     getCachedResponse(endpoint, params = {}) {
         const cacheKey = this.getCacheKey(endpoint, params);
         const cacheEntry = this.cache[cacheKey];
-        
+
         if (this.isCacheValid(cacheEntry)) {
             const age = Date.now() - cacheEntry.timestamp;
             return cacheEntry.data;
@@ -102,13 +102,15 @@ class ApiUtils {
         try {
             const response = await fetch('/api/csrf-token/', {
                 method: 'GET',
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
             });
-            
+
             if (response.ok) {
                 const data = await response.json();
                 this.csrfToken = data.csrf_token;
-                
+
                 // Update the token in the form if it exists
                 const tokenInput = document.querySelector('[name=csrfmiddlewaretoken]');
                 if (tokenInput) {
@@ -159,18 +161,21 @@ class ApiUtils {
     async makeRequest(endpoint, options = {}) {
         const {
             method = 'GET',
-            params = {},
-            data = null,
-            headers = {},
-            timeout = 30000
+                params = {},
+                data = null,
+                headers = {},
+                timeout = 30000
         } = options;
 
         try {
             const url = this.buildUrl(endpoint, params);
-            
+
             const requestOptions = {
                 method,
-                headers: { ...this.getDefaultHeaders(), ...headers }
+                headers: {
+                    ...this.getDefaultHeaders(),
+                    ...headers
+                }
             };
 
             if (data && method !== 'GET') {
@@ -202,10 +207,15 @@ class ApiUtils {
     }
 
     async fetchJSON(endpoint, method = 'GET', params = {}, data = null) {
-        return this.makeRequest(endpoint, {method, params, data, headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': this.getCSRFToken(),
-        }});
+        return this.makeRequest(endpoint, {
+            method,
+            params,
+            data,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': this.getCSRFToken(),
+            }
+        });
     }
 
     handleApiError(error) {
@@ -236,13 +246,13 @@ class ApiUtils {
     }
 
     // Convenience methods for common HTTP verbs
-    async get(endpoint, params = {}, use_csrf=false) {
+    async get(endpoint, params = {}, use_csrf = false) {
         // Check cache first
         const cachedResponse = this.getCachedResponse(endpoint, params);
         if (cachedResponse !== null) {
             return cachedResponse;
         }
-        
+
         let headers = {};
         if (use_csrf) {
             headers = {
@@ -252,42 +262,45 @@ class ApiUtils {
         }
 
         // Make API request if not cached
-        const response = await this.makeRequest(endpoint, { params, headers });
-        
+        const response = await this.makeRequest(endpoint, {
+            params,
+            headers
+        });
+
         // Cache the response
         this.setCachedResponse(endpoint, params, response);
-        
+
         return response;
     }
 
     async post(endpoint, data = {}, params = {}) {
-        return this.makeRequest(endpoint, { 
-            method: 'POST', 
-            data, 
-            params 
+        return this.makeRequest(endpoint, {
+            method: 'POST',
+            data,
+            params
         });
     }
 
     async put(endpoint, data = {}, params = {}) {
-        return this.makeRequest(endpoint, { 
-            method: 'PUT', 
-            data, 
-            params 
+        return this.makeRequest(endpoint, {
+            method: 'PUT',
+            data,
+            params
         });
     }
 
     async patch(endpoint, data = {}, params = {}) {
-        return this.makeRequest(endpoint, { 
-            method: 'PATCH', 
-            data, 
-            params 
+        return this.makeRequest(endpoint, {
+            method: 'PATCH',
+            data,
+            params
         });
     }
 
     async delete(endpoint, params = {}) {
-        return this.makeRequest(endpoint, { 
-            method: 'DELETE', 
-            params 
+        return this.makeRequest(endpoint, {
+            method: 'DELETE',
+            params
         });
     }
 
@@ -343,7 +356,7 @@ class ApiUtils {
     clearExpiredCache() {
         const now = Date.now();
         let cleared = 0;
-        
+
         Object.keys(this.cache).forEach(key => {
             const entry = this.cache[key];
             if (!this.isCacheValid(entry)) {
@@ -351,7 +364,7 @@ class ApiUtils {
                 cleared++;
             }
         });
-        
+
         if (cleared > 0) {
             this.saveCache();
         }
@@ -371,13 +384,13 @@ class ApiUtils {
             const entry = this.cache[key];
             const isValid = this.isCacheValid(entry);
             const age = Date.now() - entry.timestamp;
-            
+
             if (isValid) {
                 stats.validEntries++;
             } else {
                 stats.expiredEntries++;
             }
-            
+
             stats.entries.push({
                 key: key.substring(0, 50) + (key.length > 50 ? '...' : ''),
                 ageMinutes: Math.round(age / 60000),
@@ -407,7 +420,10 @@ window.getCacheData = () => apiUtils.cache;
 
 // Export for module use or make globally available
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { ApiUtils, apiUtils };
+    module.exports = {
+        ApiUtils,
+        apiUtils
+    };
 } else {
     window.ApiUtils = ApiUtils;
     window.apiUtils = apiUtils;

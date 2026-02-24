@@ -16,6 +16,7 @@ dependencies = [
     "tiktoken>=0.12.0",
     "openai>=2.14.0",
     "markitdown>=0.1.4",
+    "djlint>=1.36.4",
 ]
 
 [build-system]
@@ -138,3 +139,9 @@ exclude_lines = [
     "class .*\\bProtocol\\):",
     "@(abc\\.)?abstractmethod",
 ]
+
+[tool.djlint]
+profile="django"
+ignore="H030,H031,H006,H021" # H021 is avoid inline styles, which we might focus on later.
+format_css = true
+format_js = true

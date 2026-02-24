@@ -1,307 +1,333 @@
 .review-container {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 1rem;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 1rem;
 }
+
 .review-section {
-  background: #f8f9fa;
-  border-radius: 8px;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
+
 .review-section h3 {
-  color: #2c5aa0;
-  margin-bottom: 1rem;
-  font-size: 1.3rem;
-  font-weight: 600;
+    color: #2c5aa0;
+    margin-bottom: 1rem;
+    font-size: 1.3rem;
+    font-weight: 600;
 }
+
 .review-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #e9ecef;
 }
+
 .review-item:last-child {
-  border-bottom: none;
+    border-bottom: none;
 }
+
 .review-label {
-  font-weight: 500;
-  color: #495057;
-  flex: 0 0 auto;
+    font-weight: 500;
+    color: #495057;
+    flex: 0 0 auto;
 }
+
 .review-value {
-  flex: 1;
-  text-align: right;
-  color: #212529;
-  margin-left: 1rem;
+    flex: 1;
+    text-align: right;
+    color: #212529;
+    margin-left: 1rem;
 }
 
 .review-text {
-  overflow: hidden;
-  text-overflow: ellipsis;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.review-item > .d-flex.align-items-center.w-100 {
-  justify-content: flex-end;
-  gap: 0.75rem;
+.review-item>.d-flex.align-items-center.w-100 {
+    justify-content: flex-end;
+    gap: 0.75rem;
 }
 
 .review-item input.form-control {
-  flex: 1 1 auto;
-  min-width: 0;
+    flex: 1 1 auto;
+    min-width: 0;
 }
 
 .review-item .edit-btn {
-  margin-left: 0.75rem;
-  flex: 0 0 auto;
+    margin-left: 0.75rem;
+    flex: 0 0 auto;
 }
+
 .edit-btn {
-  background: #45637d;
-  color: white;
-  border: none;
-  border-radius: 20px;
-  padding: 0.4rem 1rem;
-  font-size: 0.85rem;
-  text-decoration: none;
-  display: inline-block;
-  transition: background-color 0.3s;
+    background: #45637d;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 0.4rem 1rem;
+    font-size: 0.85rem;
+    text-decoration: none;
+    display: inline-block;
+    transition: background-color 0.3s;
 }
+
 .edit-btn:hover {
-  background: #5a6268;
-  color: white;
+    background: #5a6268;
+    color: white;
 }
+
 .document-list {
-  background: white;
-  border: 1px solid #dee2e6;
-  border-radius: 6px;
-  padding: 1rem;
-  margin-top: 1rem;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 1rem;
+    margin-top: 1rem;
 }
+
 .document-item {
-  display: flex;
-  align-items: center;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid #e9ecef;
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #e9ecef;
 }
+
 .document-item:last-child {
-  border-bottom: none;
+    border-bottom: none;
 }
+
 .document-item i {
-  color: #dc3545;
-  margin-right: 0.5rem;
-  font-size: 1.2rem;
+    color: #dc3545;
+    margin-right: 0.5rem;
+    font-size: 1.2rem;
 }
+
 .document-name {
-  font-weight: 500;
-  width: 62%;
-  overflow: clip;
+    font-weight: 500;
+    width: 62%;
+    overflow: clip;
 }
+
 .change-btn {
-  background: #6c757d;
-  color: white;
-  border: none;
-  border-radius: 20px;
-  padding: 0.3rem 0.8rem;
-  font-size: 0.8rem;
-  margin-left: auto;
+    background: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 0.3rem 0.8rem;
+    font-size: 0.8rem;
+    margin-left: auto;
 }
+
 .change-btn:hover {
-  background: #5a6268;
-  color: white;
+    background: #5a6268;
+    color: white;
 }
+
 .action-buttons {
-  margin-top: 2rem;
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
+    margin-top: 2rem;
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
 }
+
 .btn-continue {
-  background: #2c5aa0;
-  color: white;
-  border: none;
-  padding: 0.75rem 2rem;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 1rem;
+    background: #2c5aa0;
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 1rem;
 }
+
 .btn-continue:hover {
-  background: #1e3d6f;
-  color: white;
+    background: #1e3d6f;
+    color: white;
 }
+
 .btn-back {
-  background: #6c757d;
-  color: white;
-  border: none;
-  padding: 0.75rem 2rem;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 1rem;
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 1rem;
 }
+
 .btn-back:hover {
-  background: #5a6268;
-  color: white;
+    background: #5a6268;
+    color: white;
 }
+
 .payment-info {
-  background: #e3f2fd;
-  border: 1px solid #bbdefb;
-  border-radius: 6px;
-  padding: 1rem;
-  margin-top: 1rem;
+    background: #e3f2fd;
+    border: 1px solid #bbdefb;
+    border-radius: 6px;
+    padding: 1rem;
+    margin-top: 1rem;
 }
+
 .payment-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.25rem 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.25rem 0;
 }
+
 .payment-total {
-  font-weight: bold;
-  font-size: 1.1rem;
-  border-top: 1px solid #90caf9;
-  padding-top: 0.5rem;
-  margin-top: 0.5rem;
+    font-weight: bold;
+    font-size: 1.1rem;
+    border-top: 1px solid #90caf9;
+    padding-top: 0.5rem;
+    margin-top: 0.5rem;
 }
+
 .loading-spinner {
-  display: none;
-  text-align: center;
-  padding: 2rem;
+    display: none;
+    text-align: center;
+    padding: 2rem;
 }
+
 .error-message {
-  display: none;
-  background: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
-  border-radius: 6px;
-  padding: 1rem;
-  margin-bottom: 1rem;
+    display: none;
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    border-radius: 6px;
+    padding: 1rem;
+    margin-bottom: 1rem;
 }
+
 .success-message {
-  display: none;
-  background: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
-  border-radius: 6px;
-  padding: 1rem;
-  margin-bottom: 1rem;
+    display: none;
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+    border-radius: 6px;
+    padding: 1rem;
+    margin-bottom: 1rem;
 }
 
 /* Payment methods styles moved from review.html */
 .payment-methods-list {
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  overflow: hidden;
-  width: 100%;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+    width: 100%;
 }
 
 .payment-method-item {
-  border-bottom: 1px solid #e0e0e0;
-  padding: 0;
-  width: 100%;
-  box-sizing: border-box;
+    border-bottom: 1px solid #e0e0e0;
+    padding: 0;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .payment-method-item:last-child {
-  border-bottom: none;
+    border-bottom: none;
 }
 
 .payment-method-item .form-check {
-  margin: 0;
-  padding: 16px 20px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  width: 100%;
-  box-sizing: border-box;
-  min-height: 60px;
+    margin: 0;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 60px;
 }
 
 .payment-method-item .form-check-input {
-  margin: 0 !important;
-  margin-left: 0 !important;
-  margin-right: 0 !important;
-  flex: 0 0 20px;
-  width: 20px;
-  height: 20px;
-  position: static;
+    margin: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    flex: 0 0 20px;
+    width: 20px;
+    height: 20px;
+    position: static;
 }
 
 .payment-method-details {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 12px;
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow: hidden;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
 }
 
 .payment-method-info {
-  display: flex;
-  align-items: center;
-  color: #666;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  gap: 8px;
+    display: flex;
+    align-items: center;
+    color: #666;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    gap: 8px;
 }
 
 .payment-method-info i {
-  margin: 0;
-  width: 28px;
-  text-align: center;
-  color: #2c5aa0;
-  font-size: 1.1rem;
+    margin: 0;
+    width: 28px;
+    text-align: center;
+    color: #2c5aa0;
+    font-size: 1.1rem;
 }
 
 .payment-method-name {
-  font-weight: 600;
-  color: #2c5aa0;
-  margin-bottom: 0;
+    font-weight: 600;
+    color: #2c5aa0;
+    margin-bottom: 0;
 }
 
 .payment-method-holder {
-  font-size: 0.9rem;
-  color: #888;
+    font-size: 0.9rem;
+    color: #888;
 }
 
 .payment-method-item:hover {
-  background-color: #f8f9fa;
+    background-color: #f8f9fa;
 }
 
 .no-payment-methods {
-  text-align: center;
-  padding: 2rem;
+    text-align: center;
+    padding: 2rem;
 }
 
 .add-payment-method {
-  text-align: center;
+    text-align: center;
 }
 
 /* Disclaimer section styling */
 .disclaimer-section {
-  background: #fff3cd;
-  border: 1px solid #ffeaa7;
-  border-radius: 6px;
-  padding: 1rem;
-  margin-top: 2rem;
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 6px;
+    padding: 1rem;
+    margin-top: 2rem;
 }
 
 .disclaimer-section .form-check-label {
-  font-size: 0.95rem;
-  line-height: 1.4;
-  color: #856404;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    color: #856404;
 }
 
 .disclaimer-section .form-check-input {
-  margin-top: 0.25rem;
+    margin-top: 0.25rem;
 }
 
 /* Disabled button styling */
 .btn-continue:disabled {
-  background: #6c757d !important;
-  border-color: #6c757d !important;
-  cursor: not-allowed;
-  opacity: 0.65;
+    background: #6c757d !important;
+    border-color: #6c757d !important;
+    cursor: not-allowed;
+    opacity: 0.65;
 }

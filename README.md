@@ -173,10 +173,17 @@ Ruff is configured in `pyproject.toml` under `[tool.ruff]`.
   - Lint the codebase:
     ```bash
     uv run ruff check .
+    uv run djlint .
     ```
-  - Auto-format (optional):
+  - Auto-format:
     ```bash
     uv run ruff format .
+    ```
+  - Auto-format HTML, JS, and CSS
+    ```bash
+    uv run djlint --reformat .
+    uv run css-beautify -r efile/static/css/*.css
+    uv run js-beautify -r efile/static/js/*.js
     ```
 
 Notes: Ruff targets Python 3.10, line length 120, and excludes Django migrations (`**/migrations/*`).

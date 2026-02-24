@@ -29,9 +29,9 @@ class UploadHandler {
         this.globalFilingTypes = [];
 
         this.jurisdiction = apiUtils.getCurrentJurisdiction();
-        
+
         this.initialized = false;
-        
+
         this.init();
     }
 
@@ -40,7 +40,7 @@ class UploadHandler {
             console.warn('UploadHandler already initialized, skipping...');
             return;
         }
-        
+
         await this.loadFilingComponents();
 
         // First, sync any localStorage data to session
@@ -49,9 +49,9 @@ class UploadHandler {
         this.setupEventListeners();
         this.setupDragAndDrop();
         this.setupListeners();
-        
+
         this.setupCascadingDropdowns();
-        
+
         this.initialized = true;
     }
 
@@ -76,7 +76,7 @@ class UploadHandler {
 
         const leadCertifiedCopies = document.getElementById('leadCertifiedCopies');
         if (leadCertifiedCopies) {
-            leadCertifiedCopies.addEventListener('change', (e) => { 
+            leadCertifiedCopies.addEventListener('change', (e) => {
                 let inputElement = document.getElementById('leadCertifiedCopyEmail');
                 this.toggleCCEmail(inputElement, e.target.checked)
             })
@@ -123,7 +123,7 @@ class UploadHandler {
     }
 
     async saveUploadDataToSession(uploadData) {
-        try {            
+        try {
             const result = await apiUtils.saveUploadData(uploadData);
             if (!result.success) {
                 throw new Error(result.error || 'Failed to save upload data to session');
@@ -186,10 +186,10 @@ class UploadHandler {
     setupEventListeners() {
         // Form submission
         if (this.form) {
-          this.form.addEventListener('submit', (e) => {
-              e.preventDefault();
-              this.handleFormSubmission();
-          });
+            this.form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.handleFormSubmission();
+            });
         }
 
         this.supportingDocumentsInput.addEventListener('change', (e) => {
@@ -203,7 +203,7 @@ class UploadHandler {
 
         this.leadDocumentArea.addEventListener('click', (e) => {
             // Check if click is on file preview or remove button
-            if (e.target.closest('.file-preview') || 
+            if (e.target.closest('.file-preview') ||
                 e.target.closest('.file-remove') ||
                 e.target.classList.contains('file-remove')) {
                 return;
@@ -215,7 +215,7 @@ class UploadHandler {
             }
 
             lastLeadClick = now;
-            
+
             // Prevent default and stop propagation to avoid any interference
             e.preventDefault();
             e.stopPropagation();
@@ -223,7 +223,7 @@ class UploadHandler {
 
         this.supportingDocumentsArea.addEventListener('click', (e) => {
             // Check if click is on file preview or remove button
-            if (e.target.closest('.file-preview') || 
+            if (e.target.closest('.file-preview') ||
                 e.target.closest('.file-remove') ||
                 e.target.classList.contains('file-remove')) {
                 return;
@@ -235,11 +235,11 @@ class UploadHandler {
             }
 
             lastSupportingClick = now;
-            
+
             // Prevent default and stop propagation to avoid any interference
             e.preventDefault();
             e.stopPropagation();
-            
+
             // Use setTimeout to ensure this runs after any other event handlers
             setTimeout(() => {
                 this.supportingDocumentsInput.click();
@@ -266,7 +266,7 @@ class UploadHandler {
         area.addEventListener('drop', (e) => {
             e.preventDefault();
             area.classList.remove('dragover');
-            
+
             const files = e.dataTransfer.files;
             this.handleFileSelection(files, type);
         });
@@ -287,7 +287,10 @@ class UploadHandler {
 
         if (upload_data.lead_filing_type) {
             this.initializeFilingTypeDropdown(document.getElementById("leadFilingType_search"));
-            window[`leadFilingTypeDropdown`].selectOption({"text": upload_data.lead_filing_type_name, "value": upload_data.lead_filing_type});
+            window[`leadFilingTypeDropdown`].selectOption({
+                "text": upload_data.lead_filing_type_name,
+                "value": upload_data.lead_filing_type
+            });
 
             await this.populateDocumentTypes(upload_data.lead_filing_type, document.getElementById("leadDocumentType"));
         }
@@ -312,7 +315,10 @@ class UploadHandler {
 
                 if (d.filing_type) {
                     this.initializeFilingTypeDropdown(document.getElementById(`supportingFilingType${index}_search`));
-                    window[`supportingFilingType${index}Dropdown`].selectOption({"text": d.filing_type_name, "value": d.filing_type});
+                    window[`supportingFilingType${index}Dropdown`].selectOption({
+                        "text": d.filing_type_name,
+                        "value": d.filing_type
+                    });
 
                     await this.populateDocumentTypes(d.filing_type, document.getElementById(`supportingDocumentType${index}`));
                 }
@@ -344,8 +350,8 @@ class UploadHandler {
 
         // Multiple supporting documents allowed
         const startIndex = this.uploadedFiles.length;
-        this.uploadedFiles= [...this.uploadedFiles, ...validFiles];
-        this.uploadedFileStatuses= [...this.uploadedFileStatuses, validFiles.map(f => FileStatus.UPLOADING)];
+        this.uploadedFiles = [...this.uploadedFiles, ...validFiles];
+        this.uploadedFileStatuses = [...this.uploadedFileStatuses, validFiles.map(f => FileStatus.UPLOADING)];
         this.updateFilePreview(this.supportingDocumentsArea, this.uploadedFiles, this.uploadedFileStatuses);
 
         // Update native supporting input FileList to match uploadedFiles.supporting
@@ -420,9 +426,9 @@ class UploadHandler {
     createFilePreviewNoRemove(file_name, file_size) {
         const preview = document.createElement('div');
         preview.className = 'file-preview-lead';
-        
+
         const fileSize = this.formatFileSize(file_size);
-        
+
         preview.innerHTML = `
             <div class="file-info">
                 <i class="fas fa-file-pdf"></i>
@@ -439,9 +445,9 @@ class UploadHandler {
     createFilePreview(file, index) {
         const preview = document.createElement('div');
         preview.className = 'file-preview';
-        
+
         const fileSize = this.formatFileSize(file.size);
-        
+
         preview.innerHTML = `
             <div class="file-info">
                 <i class="fas fa-file-pdf"></i>
@@ -454,7 +460,7 @@ class UploadHandler {
                 <i class="fas fa-times"></i>
             </button>
         `;
-        
+
         // Add event listener to the remove button with strong event prevention
         const removeButton = preview.querySelector('.file-remove');
         removeButton.addEventListener('click', (e) => {
@@ -464,40 +470,40 @@ class UploadHandler {
             e.stopImmediatePropagation();
 
             this.updateSubmitButton();
-            
+
             // Return false to ensure no further event processing
             return false;
         }, true); // Use capture phase to intercept before other handlers
-        
+
         // Also add a mousedown event to completely prevent any interaction issues
         removeButton.addEventListener('mousedown', (e) => {
             e.stopPropagation();
         }, true);
-        
+
         return preview;
     }
 
     updateSupportingDocumentsOptions(files) {
         const optionsContainer = document.getElementById('supportingDocumentsOptions');
         if (!optionsContainer) return;
-        
+
         // Clear existing options
         optionsContainer.innerHTML = '';
-        
+
         // Add options for each supporting document
         files.forEach((file, index) => {
             const optionsHTML = createSupportingDocumentOptions(index, file.name);
-            
+
             const div = document.createElement('div');
             div.innerHTML = optionsHTML;
             optionsContainer.appendChild(div.firstElementChild);
         });
-        
+
         // Initialize search dropdowns for supporting documents
         this.initializeSupportingFilingTypeDropdowns(files);
     }
 
-    async initializeSupportingFilingTypeDropdowns(files) {        
+    async initializeSupportingFilingTypeDropdowns(files) {
         // Use global filing types data if available, otherwise wait for it to load
         const checkGlobalData = () => {
             if (this.globalFilingTypes && this.globalFilingTypes.length > 0) {
@@ -509,13 +515,13 @@ class UploadHandler {
                             placeholder: 'Search filing types...'
                         });
                         searchDropdown.updateOptions(this.globalFilingTypes);
-                        
+
                         // Store reference for later use
                         window[`supportingFilingType${index}Dropdown`] = searchDropdown;
                     } else {
                         console.warn(`Dropdown element not found for supportingFilingType${index}_search`);
                     }
-                    
+
                     // Setup cascading dropdown logic
                     this.setupSupportingDocumentCascading(index);
                 });
@@ -524,7 +530,7 @@ class UploadHandler {
                 setTimeout(checkGlobalData, 100);
             }
         };
-        
+
         checkGlobalData();
     }
 
@@ -534,7 +540,7 @@ class UploadHandler {
 
         if (filingTypeSelect && documentTypeSelect) {
             filingTypeSelect.addEventListener('change', async () => {
-                const selectedFilingTypeId = filingTypeSelect.value;                
+                const selectedFilingTypeId = filingTypeSelect.value;
                 if (selectedFilingTypeId) {
                     await this.populateDocumentTypes(selectedFilingTypeId, documentTypeSelect);
                 } else {
@@ -545,22 +551,22 @@ class UploadHandler {
     }
 
     removeFile(index) {
-            this.uploadedFiles.splice(index, 1);
-            this.uploadedFileStatuses.splice(index, 1);
-            // Regenerate all supporting file previews with correct indices
-            this.updateFilePreview(this.supportingDocumentsArea, this.uploadedFiles, this.uploadedFileStatuses);
-            
-            // Update native supporting input FileList
-            try {
-                const dt = new DataTransfer();
-                this.uploadedFiles.forEach(file => dt.items.add(file));
-                if (this.supportingDocumentsInput) {
-                    this.supportingDocumentsInput.files = dt.files;
-                }
-            } catch (e) {
-                console.warn('Could not update native supporting input.files after removal:', e);
+        this.uploadedFiles.splice(index, 1);
+        this.uploadedFileStatuses.splice(index, 1);
+        // Regenerate all supporting file previews with correct indices
+        this.updateFilePreview(this.supportingDocumentsArea, this.uploadedFiles, this.uploadedFileStatuses);
+
+        // Update native supporting input FileList
+        try {
+            const dt = new DataTransfer();
+            this.uploadedFiles.forEach(file => dt.items.add(file));
+            if (this.supportingDocumentsInput) {
+                this.supportingDocumentsInput.files = dt.files;
             }
-        
+        } catch (e) {
+            console.warn('Could not update native supporting input.files after removal:', e);
+        }
+
         this.updateSubmitButton();
     }
 
@@ -603,7 +609,7 @@ class UploadHandler {
             });
 
             const result = await response.json();
-            
+
             if (!result.success) {
                 this.uploadedFileStatuses[index] = FileStatus.FAILED;
                 throw new Error(result.error || 'Upload failed');
@@ -625,7 +631,7 @@ class UploadHandler {
         this.uploadedFileStatuses[index] = FileStatus.UPLOADING;
         const selector = `.file-preview:nth-child(${index + 3})`;
         const preview = this.supportingDocumentsArea.querySelector(selector);
-        
+
         if (preview) {
             const statusDiv = preview.querySelector('.upload-status') || document.createElement('div');
             statusDiv.className = 'upload-status';
@@ -640,7 +646,7 @@ class UploadHandler {
         this.uploadedFileStatuses[index] = FileStatus.SUCCESS;
         const selector = `.file-preview:nth-child(${index + 3})`;
         const preview = this.supportingDocumentsArea.querySelector(selector);
-        
+
         if (preview) {
             const statusDiv = preview.querySelector('.upload-status') || document.createElement("div");
             statusDiv.className = 'upload-status';
@@ -655,7 +661,7 @@ class UploadHandler {
         this.uploadedFileStatuses[index] = FileStatus.FAILED;
         const selector = `.file-preview:nth-child(${index + 3})`;
         const preview = this.supportingDocumentsArea.querySelector(selector);
-        
+
         if (preview) {
             const statusDiv = preview.querySelector('.upload-status') || document.createElement("div");
             statusDiv.className = "upload-status";
@@ -681,7 +687,7 @@ class UploadHandler {
             // Collect dropdown values for lead document
             const leadFilingTypeSelect = document.getElementById('leadFilingType');
             const leadDocumentTypeSelect = document.getElementById('leadDocumentType');
-            
+
             const leadFilingType = leadFilingTypeSelect ? leadFilingTypeSelect.value : '';
             const leadFilingTypeName = leadFilingTypeSelect && leadFilingTypeSelect.selectedOptions[0] ? leadFilingTypeSelect.selectedOptions[0].text : '';
             const leadDocumentType = leadDocumentTypeSelect ? leadDocumentTypeSelect.value : '';
@@ -710,7 +716,7 @@ class UploadHandler {
                 if (!document.getElementById(`supportingCertifiedCopies${index}`).checked) {
                     supportingCCEmail = null;
                 }
-                
+
                 const supportingDoc = {
                     filing_type: filingType,
                     filing_type_name: filingTypeName,
@@ -720,7 +726,7 @@ class UploadHandler {
                     filing_component_name: componentName,
                     cc_email: supportingCCEmail
                 };
-                
+
                 supportingDocuments.push(supportingDoc);
             });
 
@@ -729,7 +735,10 @@ class UploadHandler {
                 files: [],
                 options: {
                     lead: {
-                        filing_component: {id: leadFilingComponentValue, name: leadFilingComponentName},
+                        filing_component: {
+                            id: leadFilingComponentValue,
+                            name: leadFilingComponentName
+                        },
                         certified_copies: document.getElementById('leadCertifiedCopies')?.checked || false,
                         sealed_confidential: document.getElementById('leadSealedConfidential')?.checked || false
                     },
@@ -775,7 +784,7 @@ class UploadHandler {
             // Save the complete upload data to session
             await this.saveUploadDataToSession(uploadDataWithUrls);
 
-            
+
             // Redirect to review page
             window.location.href = `/jurisdiction/${this.jurisdiction}/review/`;
 
@@ -791,18 +800,24 @@ class UploadHandler {
         this.hideAlerts();
         document.getElementById('errorMessage').textContent = message;
         this.errorAlert.style.display = 'block';
-        
+
         // Scroll to error
-        this.errorAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        this.errorAlert.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+        });
     }
 
     showSuccess(message) {
         this.hideAlerts();
         document.getElementById('successMessage').textContent = message;
         this.successAlert.style.display = 'block';
-        
+
         // Scroll to success
-        this.successAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        this.successAlert.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+        });
     }
 
     hideAlerts() {
@@ -812,11 +827,11 @@ class UploadHandler {
 
     formatFileSize(bytes) {
         if (bytes === 0) return '0 Bytes';
-        
+
         const k = 1024;
         const sizes = ['Bytes', 'KB', 'MB', 'GB'];
         const i = Math.floor(Math.log(bytes) / Math.log(k));
-        
+
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     }
 
@@ -827,16 +842,18 @@ class UploadHandler {
             const field = this.form.querySelector(`[name="${key}"]`);
             if (field) {
                 if (field.type === "checkbox" || field.type === "radio") {
-                    field.checked = Array.isArray(data[key])
-                            ? data[key].includes(field.value)
-                            : data[key] === field.value;
+                    field.checked = Array.isArray(data[key]) ?
+                        data[key].includes(field.value) :
+                        data[key] === field.value;
                 } else {
                     field.value = Array.isArray(data[key]) ? data[key][0] : data[key];
                 }
 
                 // Trigger change event for dropdowns to update dependent fields
                 if (field.tagName === "SELECT") {
-                    field.dispatchEvent(new Event("change", { bubbles: true }));
+                    field.dispatchEvent(new Event("change", {
+                        bubbles: true
+                    }));
                 }
             }
         });
@@ -845,40 +862,46 @@ class UploadHandler {
 
     async loadFilingComponents() {
         try {
-          // Use our backend API endpoint instead of direct Suffolk API call to avoid CORS
-          const response = await fetch(`/api/get-filing-components/?jurisdiction=${this.jurisdiction}`, {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              "X-CSRFToken": apiUtils.getCSRFToken(),
-            },
-          });
-
-          if (!response.ok) {
-            throw new Error(
-              `Failed to load filing components: ${response.status}`
-            );
-          }
-
-          const result = await response.json();
-          if (result.success && result.data) {
-            // TODO(brycew): Make selecting Lead document and attachment more resillient
-            result.data.map((component) => {
-              if (component.name === "Lead Document") {
-                this.globalFilingComponentLead = {id: component.code, name: component.name };
-              }
-              if (component.name === "Attachments") {
-                this.globalFilingComponentSupport = {id: component.code, name: component.name };
-              }
+            // Use our backend API endpoint instead of direct Suffolk API call to avoid CORS
+            const response = await fetch(`/api/get-filing-components/?jurisdiction=${this.jurisdiction}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": apiUtils.getCSRFToken(),
+                },
             });
-          } else {
-            console.error("API returned error:", result.error);
-          }
+
+            if (!response.ok) {
+                throw new Error(
+                    `Failed to load filing components: ${response.status}`
+                );
+            }
+
+            const result = await response.json();
+            if (result.success && result.data) {
+                // TODO(brycew): Make selecting Lead document and attachment more resillient
+                result.data.map((component) => {
+                    if (component.name === "Lead Document") {
+                        this.globalFilingComponentLead = {
+                            id: component.code,
+                            name: component.name
+                        };
+                    }
+                    if (component.name === "Attachments") {
+                        this.globalFilingComponentSupport = {
+                            id: component.code,
+                            name: component.name
+                        };
+                    }
+                });
+            } else {
+                console.error("API returned error:", result.error);
+            }
         } catch (error) {
-          console.error("Error loading filing components:", error);
+            console.error("Error loading filing components:", error);
         }
     }
-    
+
     async initializeSearchDropdowns() {
         // Get case data from Django context (passed from the view)
         const caseClassification = JSON.parse(document.getElementById("case-classification").textContent);
@@ -890,97 +913,97 @@ class UploadHandler {
         const existingCase = sessionStorage.getItem("existing_case") || "no";
 
         if (!court || !caseType) {
-          console.warn(
-            "Missing court or case_type for filing type dropdown initialization"
-          );
-          return;
+            console.warn(
+                "Missing court or case_type for filing type dropdown initialization"
+            );
+            return;
         }
-        
+
         let guesses = (await apiUtils.getUploadData())['guesses'];
 
         // Fetch filing types data only once
         if (this.globalFilingTypes.length === 0) {
-          try {
-            const apiUrl = `/api/dropdowns/filing-types/?jurisdiction=${this.jurisdiction}&court=${encodeURIComponent(
+            try {
+                const apiUrl = `/api/dropdowns/filing-types/?jurisdiction=${this.jurisdiction}&court=${encodeURIComponent(
               court
             )}&case_category=${encodeURIComponent(categoryType)}&case_type=${encodeURIComponent(
               caseType
             )}&existing_case=${existingCase}&guessed_filing_type=${guesses["filing type"]}`;
 
-            const response = await fetch(apiUrl, {
-              method: "GET",
-              headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": apiUtils.getCSRFToken(),
-              },
-            });
+                const response = await fetch(apiUrl, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": apiUtils.getCSRFToken(),
+                    },
+                });
 
-            if (!response.ok) {
-              throw new Error(
-                `Failed to load filing types: ${response.status}`
-              );
-            }
+                if (!response.ok) {
+                    throw new Error(
+                        `Failed to load filing types: ${response.status}`
+                    );
+                }
 
-            const result = await response.json();
-            if (result.success && result.data) {
-              this.globalFilingTypes = result.data.map((item, index) => {
-                const processedItem = {
-                  value: item.value || item.code || item.id,
-                  text: item.text || item.name || item.description,
-                };
-                return processedItem;
-              });
-            } else {
-              console.error("API returned error:", result.error);
-              return;
+                const result = await response.json();
+                if (result.success && result.data) {
+                    this.globalFilingTypes = result.data.map((item, index) => {
+                        const processedItem = {
+                            value: item.value || item.code || item.id,
+                            text: item.text || item.name || item.description,
+                        };
+                        return processedItem;
+                    });
+                } else {
+                    console.error("API returned error:", result.error);
+                    return;
+                }
+            } catch (error) {
+                console.error("Error loading filing types:", error);
+                return;
             }
-          } catch (error) {
-            console.error("Error loading filing types:", error);
-            return;
-          }
         }
 
         // Initialize all existing filing type search dropdowns
         this.initializeFilingTypeDropdowns();
     }
-    
+
     async populateDocumentTypes(filingTypeId, documentTypeSelect) {
         try {
-          // Get court data from Django context to pass required parameters
-          const court = JSON.parse(document.getElementById("case-classification").textContent)["court"] || sessionStorage.getItem("selected_court");
+            // Get court data from Django context to pass required parameters
+            const court = JSON.parse(document.getElementById("case-classification").textContent)["court"] || sessionStorage.getItem("selected_court");
 
-          if (!court) {
-            console.error("Missing court parameter for document types API");
-            documentTypeSelect.innerHTML =
-              '<option value="">Missing court data</option>';
-            return;
-          }
+            if (!court) {
+                console.error("Missing court parameter for document types API");
+                documentTypeSelect.innerHTML =
+                    '<option value="">Missing court data</option>';
+                return;
+            }
 
-          let params = {
-            jurisdiction: this.jurisdiction,
-            court: court,
-            parent: filingTypeId,
-          }
-          const result = await apiUtils.get('/api/dropdowns/document-types', params, true);
-          if (result.success && result.data) {
-            documentTypeSelect.innerHTML =
-              '<option value="">Select an option</option>';
-            result.data.forEach((docType) => {
-              const option = document.createElement("option");
-              option.value = docType.value || docType.code || docType.id;
-              option.textContent =
-                docType.text || docType.name || docType.description;
-              documentTypeSelect.appendChild(option);
-            });
-          } else {
-            console.error("API returned error:", result.error);
-            documentTypeSelect.innerHTML =
-              '<option value="">Error loading document types</option>';
-          }
+            let params = {
+                jurisdiction: this.jurisdiction,
+                court: court,
+                parent: filingTypeId,
+            }
+            const result = await apiUtils.get('/api/dropdowns/document-types', params, true);
+            if (result.success && result.data) {
+                documentTypeSelect.innerHTML =
+                    '<option value="">Select an option</option>';
+                result.data.forEach((docType) => {
+                    const option = document.createElement("option");
+                    option.value = docType.value || docType.code || docType.id;
+                    option.textContent =
+                        docType.text || docType.name || docType.description;
+                    documentTypeSelect.appendChild(option);
+                });
+            } else {
+                console.error("API returned error:", result.error);
+                documentTypeSelect.innerHTML =
+                    '<option value="">Error loading document types</option>';
+            }
         } catch (error) {
-          console.error("Error loading document types:", error);
-          documentTypeSelect.innerHTML =
-            '<option value="">Error loading document types</option>';
+            console.error("Error loading document types:", error);
+            documentTypeSelect.innerHTML =
+                '<option value="">Error loading document types</option>';
         }
     }
 
@@ -988,7 +1011,7 @@ class UploadHandler {
         // Lead document cascading dropdowns
         const leadFilingTypeSelect = document.getElementById("leadFilingType");
         const leadDocumentTypeSelect =
-          document.getElementById("leadDocumentType");
+            document.getElementById("leadDocumentType");
 
         if (leadFilingTypeSelect) {
             leadFilingTypeSelect.addEventListener("change", () => {
@@ -1004,11 +1027,11 @@ class UploadHandler {
             });
         }
     }
- 
+
     initializeFilingTypeDropdowns() {
         // Initialize filing type search dropdowns
         const filingTypeDropdowns = document.querySelectorAll(
-          '[id*="FilingType_search"]'
+            '[id*="FilingType_search"]'
         );
 
         filingTypeDropdowns.forEach((dropdown) => this.initializeFilingTypeDropdown(dropdown));
@@ -1028,20 +1051,20 @@ class UploadHandler {
     }
 
 }
-      
-function populateDropdownFallback(dropdown) {
-        if (!dropdown) return;
 
-        dropdown.innerHTML = `
+function populateDropdownFallback(dropdown) {
+    if (!dropdown) return;
+
+    dropdown.innerHTML = `
                 <option value="">${gettext("Select a document type")}</option>
                 <option value="lead">${gettext("Lead Document")}</option>
                 <option value="supporting">${gettext("Supporting Document")}</option>
                 <option value="exhibit">${gettext("Exhibit")}</option>
             `;
 }
-    
+
 function createSupportingDocumentOptions(index, fileName) {
-        const html = `
+    const html = `
                 <div class="document-options mt-3 supporting-document-options" id="supportingDocumentOptions${index}">
                     <h6 class="mb-3"><strong>Options for: ${fileName}</strong></h6>
                     <div class="row" style="align-items: baseline">
@@ -1102,8 +1125,8 @@ function createSupportingDocumentOptions(index, fileName) {
                 </div>
             `;
 
-        return html;
-      }
+    return html;
+}
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {

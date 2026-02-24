@@ -43,15 +43,21 @@ jobs:
       # No per-check installs needed; everything is managed by uv
 
       # ruff
-      - name: Ruff format (check only)
+      - name: Formatting (check only)
         if: matrix.check == 'ruff'
         working-directory: efile_app
-        run: uv run ruff format --check .
+        run: |
+          uv run ruff format --check .
+          uv run djlint --check .
+          git ls-files '*.css' | xargs -n 1 --verbose bash -c 'diff -ru "$0" <(uv run css-beautify "$0")'
+          git ls-files '*.js' | xargs -n 1 --verbose bash -c 'diff -ru "$0" <(uv run js-beautify "$0")'
 
       - name: Ruff lint
         if: matrix.check == 'ruff'
         working-directory: efile_app
-        run: uv run ruff check .
+        run: |
+          uv run ruff check .
+          uv run djlint .
 
       # type checking
       - name: Type check (ty)
