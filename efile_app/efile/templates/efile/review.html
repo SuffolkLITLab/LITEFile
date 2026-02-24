@@ -10,6 +10,7 @@
               rel="stylesheet" />
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
               rel="stylesheet" />
+        <link rel="stylesheet" href="{% static 'css/common.css' %}" />
         <link rel="stylesheet" href="{% static 'css/review.css' %}" />
     </head>
     <body>
@@ -17,21 +18,19 @@
         {% include "efile/components/profile_header.html" %}
         <div class="container">
             <div class="review-container">
-                <h2 class="mb-4" style="color: #2c5aa0; font-weight: 600">{% translate "Review case details" %}</h2>
+                <h1 class="mb-4">{% translate "Review case details" %}</h1>
                 <p class="text-muted mb-4">
                     {% translate "Verify the information below for your case. Please edit anything you believe to be incorrect." %}
                 </p>
                 <!-- Case Information -->
                 <div class="review-section">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h3>{% translate "Case information" %}</h3>
+                        <h2>{% translate "Case information" %}</h2>
                     </div>
                     <div class="review-item">
                         <span class="review-label">Case type:</span>
                         <div class="d-flex align-items-center">
-                            <span class="review-value"
-                                  id="caseTypeValue"
-                                  style="word-break: break-word">{{ friendly_names.case_type|default:"Loading..." }}</span>
+                            <span class="review-value" id="caseTypeValue">{{ friendly_names.case_type|default:"Loading..." }}</span>
                             <a href="{% url 'expert_form' jurisdiction %}" class="edit-btn ms-3">Edit</a>
                         </div>
                     </div>
@@ -45,7 +44,7 @@
                 </div>
                 <!-- User Information -->
                 <div class="review-section">
-                    <h3>{% translate "Review your information" %}</h3>
+                    <h2>{% translate "Review your information" %}</h2>
                     <!-- Inline fields: show text by default, input hidden until Edit clicked -->
                     <div class="review-item">
                         <span class="review-label">{% translate "Name:" %}<span class="text-danger">*</span></span>
@@ -119,8 +118,7 @@
                                 <input type="text"
                                        id="userStateInput"
                                        class="form-control form-control-sm"
-                                       style="max-width: 400px;
-                                              display: none"
+                                       style="display: none"
                                        value=""
                                        required
                                        aria-required="true" />
@@ -134,8 +132,7 @@
                                 <input type="text"
                                        id="userZipInput"
                                        class="form-control form-control-sm"
-                                       style="max-width: 400px;
-                                              display: none"
+                                       style="display: none"
                                        value=""
                                        required
                                        aria-required="true" />
@@ -150,8 +147,7 @@
                                     <input type="email"
                                            id="userEmailInput"
                                            class="form-control form-control-sm"
-                                           style="max-width: 400px;
-                                                  display: none"
+                                           style="display: none"
                                            value=""
                                            required
                                            aria-required="true" />
@@ -165,8 +161,7 @@
                                     <input type="tel"
                                            id="userPhoneInput"
                                            class="form-control form-control-sm"
-                                           style="max-width: 400px;
-                                                  display: none"
+                                           style="display: none"
                                            value=""
                                            required
                                            aria-required="true" />
@@ -182,7 +177,7 @@
                             </div>
                         </div>
                         <!-- Payment Methods -->
-                        <h2 class="mb-4" style="color: #2c5aa0; font-weight: 600">{% translate "Payment method" %}</h2>
+                        <h2 class="mb-4">{% translate "Payment method" %}</h2>
                         <div class="review-section">
                             <h3>{% translate "Existing" %}</h3>
                             <div id="paymentMethodsContainer">
@@ -197,7 +192,7 @@
                             </div>
                         </div>
                         <!-- Disclaimer and Action Buttons -->
-                        <h2 class="mb-4" style="color: #2c5aa0; font-weight: 600">{% translate "Submit my filing" %}</h2>
+                        <h2 class="mb-4">{% translate "Submit my filing" %}</h2>
                         <div class="disclaimer-section mb-4">
                             <div class="form-check">
                                 <input class="form-check-input"

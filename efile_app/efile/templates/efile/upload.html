@@ -10,6 +10,7 @@
               rel="stylesheet" />
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
               rel="stylesheet" />
+        <link rel="stylesheet" href="{% static 'css/common.css' %}" />
         <link href="{% static 'css/upload.css' %}" rel="stylesheet" />
         <link href="{% static 'css/components/search-dropdown.css' %}"
               rel="stylesheet" />
@@ -18,13 +19,13 @@
         {% include "efile/components/profile_header.html" %}
         <div class="container">
             <div class="upload-container">
-                <h2 class="section-header">{% translate "Your Documents" %}</h2>
+                <h1 class="section-header">{% translate "Your Documents" %}</h1>
                 <p class="section-description">
                     {% translate "Upload any supporting documents. All documents must be in PDF format and clearly legible." %}
                 </p>
                 <!-- Case Information Summary -->
                 <div class="case-summary mb-4">
-                    <h5 class="case-summary-header">{% translate "My case" %}</h5>
+                    <h2 class="case-summary-header">{% translate "My case" %}</h2>
                     <div class="row">
                         <div class="col-md-6">
                             <strong>{% translate "Case type:" %}</strong> {{ case_type_name }}
@@ -36,29 +37,19 @@
                 </div>
                 <form id="uploadForm" enctype="multipart/form-data">
                     {% csrf_token %}
-                    <!-- Document Requirements -->
-                    <div class="alert alert-info mb-4">
-                        <h6>
-                            <i class="fas fa-info-circle me-2"></i><strong>{% translate "Document requirements" %}</strong>
-                        </h6>
-                        <div class="mb-2">
-                            <strong>{% translate "Format:" %}</strong>{% translate "All documents must be in PDF format with text that can be read clearly." %}
-                        </div>
-                        <div class="mb-0">
-                            <strong>Size Limit:</strong>{% translate "Each document must be under 10MB." %}
-                        </div>
-                    </div>
                     <!-- Lead Document Section -->
                     <div class="document-section mb-4" id="leadDocumentSection">
                         <div class="form-label document-label">
-                            <strong>{% translate "Lead document" %}</strong> <span class="required">*</span>
+                            <h2>
+                                <strong>{% translate "Lead document" %}</strong> <span class="required">*</span>
+                            </h2>
                         </div>
                         <div class="lead-preview-area" id="leadDocumentArea"></div>
                         <!-- Filing Component for Lead Document -->
                         <div class="document-options mt-3"
                              id="leadDocumentOptions"
                              style="display: none">
-                            <div class="row" style="align-items: baseline">
+                            <div class="row">
                                 <div class="col-md-6">
                                     <label for="leadFilingType" class="form-label">
                                         <strong>{% translate "Filing type" %}</strong>
@@ -129,11 +120,25 @@
                     <!-- Supporting Documents Section -->
                     <div class="document-section mb-4">
                         <label class="form-label document-label">
-                            <strong>Supporting documents</strong>
+                            <h2>
+                                <strong>Supporting documents</strong>
+                            </h2>
                         </label>
                         <p class="text-muted">
                             {% translate "Optional additional documents that support your petition (birth certificates, marriage certificates, etc.)" %}
                         </p>
+                        <!-- Document Requirements -->
+                        <div class="alert alert-info mb-4">
+                            <h3>
+                                <i class="fas fa-info-circle me-2"></i><strong>{% translate "Document requirements" %}</strong>
+                            </h3>
+                            <div class="mb-2">
+                                <strong>{% translate "Format:" %}</strong>{% translate "All documents must be in PDF format with text that can be read clearly." %}
+                            </div>
+                            <div class="mb-0">
+                                <strong>Size Limit:</strong>{% translate "Each document must be under 10MB." %}
+                            </div>
+                        </div>
                         <div class="upload-area" id="supportingDocumentsArea">
                             <div class="upload-placeholder">
                                 <i class="fas fa-file-upload fa-3x text-muted mb-3"></i>
@@ -173,9 +178,7 @@
                     </div>
                     <!-- Before You Continue Section -->
                     <div class="alert alert-warning">
-                        <h6>
-                            <strong>Before you continue</strong>
-                        </h6>
+                        <h2>Before you continue</h2>
                         <p class="mb-2">
                             <strong>{% translate "Review your documents" %}:</strong> {% translate "Make sure all text is legible and all required information is complete." %}
                         </p>

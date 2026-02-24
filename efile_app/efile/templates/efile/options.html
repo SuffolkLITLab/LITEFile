@@ -10,6 +10,7 @@
               rel="stylesheet" />
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
               rel="stylesheet" />
+        <link rel="stylesheet" href="{% static 'css/common.css' %}" />
         <link rel="stylesheet" href="{% static 'css/options.css' %}" />
     </head>
     <body>
@@ -28,7 +29,7 @@
             {% endif %}
         </div>
         <div class="container">
-            <h2 class="section-title">{% translate "File Forms and Documents with the Court" %}</h2>
+            <h1>{% translate "File Forms and Documents with the Court" %}</h1>
             <div class="row justify-content-center">
                 <div class="col-lg-8 col-xl-7">
                     <div id="existing-placeholder"></div>
@@ -38,7 +39,7 @@
                                 <i class="fas fa-university"></i>
                             </div>
                             <div class="option-content">
-                                <h3>{% translate "Start a new filing" %}</h3>
+                                <h2>{% translate "Start a new filing" %}</h2>
                                 <p>{% translate "Begin a new case or file a response." %}</p>
                             </div>
                         </div>
@@ -110,7 +111,7 @@
                 <i class="fas fa-reply"></i>
               </div>
               <div class="option-content">
-                <h3>{% translate "Continue a draft filing" %}</h3>
+                <h2>{% translate "Continue a draft filing" %}</h2>
                 <p>{% translate "Resume your filing where you left off." %}</p>
               </div>
             </div>

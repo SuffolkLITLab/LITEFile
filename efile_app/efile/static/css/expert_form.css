@@ -7,7 +7,6 @@
 }
 
 .section-header {
-    color: var(--primary-btn-color);
     font-size: 1.25rem;
     font-weight: 600;
     margin-bottom: 0.5rem;
@@ -30,6 +29,7 @@
 
 .form-label {
     font-weight: 500;
+    font-size: 1.25rem;
     color: #495057;
     margin-bottom: 0;
 }
@@ -166,8 +166,6 @@ option.recommended {
 .subsection-header {
     margin-top: 3.5rem !important;
     margin-bottom: 1rem !important;
-    color: var(--primary-btn-color);
-    font-weight: 600;
 }
 
 .subsection-header:first-of-type {

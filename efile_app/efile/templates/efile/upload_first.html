@@ -10,6 +10,7 @@
               rel="stylesheet" />
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
               rel="stylesheet" />
+        <link rel="stylesheet" href="{% static 'css/common.css' %}" />
         <link href="{% static 'css/upload.css' %}" rel="stylesheet" />
         <link href="{% static 'css/components/search-dropdown.css' %}"
               rel="stylesheet" />
@@ -18,7 +19,7 @@
         {% include "efile/components/profile_header.html" %}
         <div class="container">
             <div class="upload-container">
-                <h2 class="section-header">{% translate "Upload your lead document" %}</h2>
+                <h1 class="section-header">{% translate "Upload your lead document" %}</h1>
                 <p class="section-description">
                     {% translate "Upload your main court form. It must be in PDF format and clearly legible." %}
                 </p>
@@ -77,9 +78,9 @@
                     </div>
                     <!-- Before You Continue Section -->
                     <div class="alert alert-warning">
-                        <h6>
+                        <h2>
                             <strong>{% translate "Before you continue" %}</strong>
-                        </h6>
+                        </h2>
                         <p class="mb-2">
                             <strong>{% translate "Review your document" %}:</strong> {% translate "Make sure all text is legible and all required information is complete." %}
                         </p>
