@@ -1,5 +1,5 @@
 .header {
-    background: linear-gradient(135deg, #1e3a5f 0%, #2c5aa0 100%);
+    background: linear-gradient(135deg, var(--suffolk-blue) 0%, var(--better-blue) 100%);
     color: white;
     padding: 1rem 0;
     margin-bottom: 2rem;
@@ -19,11 +19,17 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #1e3a5f;
+    color: var(--suffolk-blue);
     cursor: pointer;
 }
 
 .scales-icon {
     font-size: 1.2rem;
     margin-right: 0.5rem;
+}
+
+.brand-title {
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin: 0;
 }

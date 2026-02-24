@@ -1,0 +1,18 @@
+:root {
+    --suffolk-blue: #1e3a5f;
+    --better-blue: #2c5aa0;
+    --primary-btn-color: #007bff;
+    --success: #28a745;
+    --light-blue-background: #f8f9fa;
+}
+
+body {
+    background-color: var(--light-blue-background);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Custom styles for better spacing and required field styling */
+.required {
+    color: #dc3545 !important;
+    font-weight: bold;
+}

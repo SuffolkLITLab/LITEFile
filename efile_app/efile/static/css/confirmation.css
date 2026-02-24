@@ -6,7 +6,7 @@
 }
 
 .success-icon {
-    color: #28a745;
+    color: var(--success);
     font-size: 4rem;
     margin-bottom: 1rem;
 }
@@ -18,8 +18,8 @@
 }
 
 .btn-primary.custom-confirm {
-    background: #2c5aa0;
-    border-color: #2c5aa0;
+    background: var(--better-blue);
+    border-color: var(--better-blue);
 }
 
 .btn-primary.custom-confirm:hover {

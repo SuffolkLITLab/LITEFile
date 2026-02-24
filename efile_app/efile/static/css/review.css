@@ -5,7 +5,7 @@
 }
 
 .review-section {
-    background: #f8f9fa;
+    background: var(--light-blue-background);
     border-radius: 8px;
     padding: 1.5rem;
     margin-bottom: 1.5rem;
@@ -13,7 +13,7 @@
 }
 
 .review-section h3 {
-    color: #2c5aa0;
+    color: var(--better-blue);
     margin-bottom: 1rem;
     font-size: 1.3rem;
     font-weight: 600;
@@ -135,7 +135,7 @@
 }
 
 .btn-continue {
-    background: #2c5aa0;
+    background: var(--better-blue);
     color: white;
     border: none;
     padding: 0.75rem 2rem;
@@ -277,13 +277,13 @@
     margin: 0;
     width: 28px;
     text-align: center;
-    color: #2c5aa0;
+    color: var(--better-blue);
     font-size: 1.1rem;
 }
 
 .payment-method-name {
     font-weight: 600;
-    color: #2c5aa0;
+    color: var(--better-blue);
     margin-bottom: 0;
 }
 
@@ -293,7 +293,7 @@
 }
 
 .payment-method-item:hover {
-    background-color: #f8f9fa;
+    background-color: var(--light-blue-background);
 }
 
 .no-payment-methods {
