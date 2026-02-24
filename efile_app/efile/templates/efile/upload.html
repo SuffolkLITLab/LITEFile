@@ -6,7 +6,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{% translate "Upload Your Documents" %}</title>
+    <title>{% translate "Your Documents" %}</title>
     <link
       href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
       rel="stylesheet"
@@ -26,19 +26,19 @@
 
     <div class="container">
       <div class="upload-container">
-        <h2 class="section-header">Upload your documents</h2>
+        <h2 class="section-header">{% translate "Your Documents" %}</h2>
         <p class="section-description">
           {% translate "Upload any supporting documents. All documents must be in PDF format and clearly legible." %}
         </p>
 
         <!-- Case Information Summary -->
         <div class="case-summary mb-4">
-          <h5 class="case-summary-header">My case</h5>
+          <h5 class="case-summary-header">{% translate "My case" %}</h5>
           <div class="row">
             <div class="col-md-6">
               <strong>{% translate "Case type:" %}</strong> {{ case_type_name }}
             </div>
-            <div class="col-md-6"><strong>County:</strong> {{ court }}</div>
+            <div class="col-md-6"><strong>{% translate "Court" %}:</strong> {{ court }}</div>
           </div>
         </div>
 
@@ -47,7 +47,7 @@
 
           <!-- Document Requirements -->
           <div class="alert alert-info mb-4">
-            <h6><i class="fas fa-info-circle me-2"></i><strong>Document requirements</strong></h6>
+            <h6><i class="fas fa-info-circle me-2"></i><strong>{%translate "Document requirements" %}</strong></h6>
             <div class="mb-2">
               <strong>{% translate "Format:" %}</strong>{% translate "All documents must be in PDF format with text that can be read clearly." %}
             </div>
@@ -255,7 +255,7 @@
               onclick="window.location.href='{% url 'expert_form' jurisdiction %}'"
               class="btn btn-outline-secondary px-4"
             >
-              <i class="fas fa-arrow-left me-2"></i>{% translate "Back to case details" %}
+              <i class="fas fa-arrow-left me-2"></i>{% translate "Back to case information" %}
             </button>
             <button
               type="submit"

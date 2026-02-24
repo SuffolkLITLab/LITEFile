@@ -393,7 +393,7 @@ class TestExpertFormIntegration:
         response = authenticated_client.get("/jurisdiction/illinois/expert_form/")
 
         assert response.status_code == 200
-        assert b"Case Details & Parties" in response.content or b"Expert Form" in response.content
+        assert b"Case Information" in response.content or b"Expert Form" in response.content
         assert b"cascading-dropdowns.js" in response.content or b"dynamic-form-sections.js" in response.content
 
     @patch("efile.api.dropdown_views.requests.get")
