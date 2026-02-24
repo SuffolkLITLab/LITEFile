@@ -2,124 +2,108 @@
 {% load i18n %}
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{{ config.jurisdiction.name }}</title>
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="{% static 'css/options.css' %}" />
-  </head>
-  <body>
-    {% include 'efile/components/profile_header.html' %}
-
-    <!-- Django Messages -->
-     <div style="display: flex; flex-direction: column; align-items:center;">
-        {% if messages %} {% for message in messages %}
-        <div
-          class="alert alert-{{ message.tags }} alert-dismissible fade show"
-          role="alert"
-          style="max-width: 50%"
-        >
-          {{ message }}
-          <button
-            type="button"
-            class="btn-close"
-            data-bs-dismiss="alert"
-          ></button>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>{{ config.jurisdiction.name }}</title>
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
+              rel="stylesheet" />
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+              rel="stylesheet" />
+        <link rel="stylesheet" href="{% static 'css/options.css' %}" />
+    </head>
+    <body>
+        {% include "efile/components/profile_header.html" %}
+        <!-- Django Messages -->
+        <div style="display: flex; flex-direction: column; align-items:center;">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show"
+                         role="alert"
+                         style="max-width: 50%">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
         </div>
-        {% endfor %} {% endif %}
-     </div>
-    <div class="container">
-      <h2 class="section-title">{% translate "File Forms and Documents with the Court" %}</h2>
-      <div class="row justify-content-center">
-        <div class="col-lg-8 col-xl-7">
-          
-          <div id="existing-placeholder"></div>
-
-          <div class="option-card">
-            <div class="d-flex align-items-center mb-3">
-              <div class="option-icon">
-                <i class="fas fa-university"></i>
-              </div>
-              <div class="option-content">
-                <h3>{% translate "Start a new filing" %}</h3>
-                <p>{% translate "Begin a new case or file a response." %}</p>
-              </div>
+        <div class="container">
+            <h2 class="section-title">{% translate "File Forms and Documents with the Court" %}</h2>
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-xl-7">
+                    <div id="existing-placeholder"></div>
+                    <div class="option-card">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="option-icon">
+                                <i class="fas fa-university"></i>
+                            </div>
+                            <div class="option-content">
+                                <h3>{% translate "Start a new filing" %}</h3>
+                                <p>{% translate "Begin a new case or file a response." %}</p>
+                            </div>
+                        </div>
+                        <div class="button-group">
+                            <button class="btn btn-primary" tabindex="0" onclick="goToExpertForm('new')">{% translate "Begin" %}</button>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="button-group">
-              <button class="btn btn-primary" tabindex="0" onclick="goToExpertForm('new')">
-                {% translate "Begin" %}
-              </button>
-            </div>
-          </div>
-
-
         </div>
-      </div>
-    </div>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+        <script src="{% url 'javascript-catalog' %}"></script>
+        <script src="{% static 'js/api-utils.js' %}"></script>
+        <script>
+            // Function to save existing_case data and redirect to expert form or case details
+            function goToExpertForm(new_or_existing) {
+                if (new_or_existing === "new") {
+                    // Save the existing_case selection
+                    makeNewCaseData().then(() => {
+                        // For new cases, go directly to expert form with cache clearing and options page flag
+                        window.location.href = `/jurisdiction/{{jurisdiction}}/upload_first/?clear_session=true&from_options=true`;
+                    });
+                } else {
+                    // TODO(brycew): go straight to the page where the existing session was, reload everything
+                }
+            }
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-    <script src="{% url 'javascript-catalog' %}"></script>
-    <script src="{% static 'js/api-utils.js' %}"></script>
-    <script>
-      // Function to save existing_case data and redirect to expert form or case details
-      function goToExpertForm(new_or_existing) {
-        if (new_or_existing === "new") {
-          // Save the existing_case selection
-          makeNewCaseData().then(() => {
-            // For new cases, go directly to expert form with cache clearing and options page flag
-            window.location.href = `/jurisdiction/{{jurisdiction}}/upload_first/?clear_session=true&from_options=true`;
-          });
-        } else {
-          // TODO(brycew): go straight to the page where the existing session was, reload everything
-        }
-      }
+            async function checkExistingCaseData() {
+                // Check if there's an API endpoint to retrieve saved case data
+                const result = await apiUtils.getCaseData();
+                if (
+                    result.success &&
+                    result.data &&
+                    Object.keys(result.data).length > 0
+                ) {
+                    console.log("existing: %o", result.data)
+                    //TODO(brycew): return more here to bring user directly to old session
+                    return true;
+                } else {
+                    console.log("existing: %o", result.data)
+                }
+                return false;
+            }
 
-      async function checkExistingCaseData() {
-        // Check if there's an API endpoint to retrieve saved case data
-        const result = await apiUtils.getCaseData();
-        if (
-            result.success &&
-            result.data &&
-            Object.keys(result.data).length > 0
-        ) {
-          console.log("existing: %o", result.data)
-          //TODO(brycew): return more here to bring user directly to old session
-          return true;
-        } else {
-          console.log("existing: %o", result.data)
-        }
-        return false;
-      }
+            // Function to save existing_case data to the session
+            async function makeNewCaseData() {
+                // Save to session storage as immediate fallback
+                let new_uuid = self.crypto.randomUUID();
+                sessionStorage.setItem('session_id', new_uuid);
+                try {
+                    // Also make an API call to save server-side if needed
+                    await apiUtils.saveCaseData({
+                        session_id: new_uuid,
+                        jurisdiction: `{{jurisdiction}}`,
+                    });
 
-      // Function to save existing_case data to the session
-      async function makeNewCaseData() {
-        // Save to session storage as immediate fallback
-        let new_uuid = self.crypto.randomUUID();
-        sessionStorage.setItem('session_id', new_uuid);
-        try {
-          // Also make an API call to save server-side if needed
-          await apiUtils.saveCaseData({
-              session_id: new_uuid,
-              jurisdiction: `{{jurisdiction}}`,
-          });
-          
-          console.log("Saved data!")
-        } catch (error) {
-          console.warn('Error saving case data:', error);
-          // Session storage fallback is already in place
-        }
-      }
+                    console.log("Saved data!")
+                } catch (error) {
+                    console.warn('Error saving case data:', error);
+                    // Session storage fallback is already in place
+                }
+            }
 
-      function useExistingCardHtml() {
-        let html = `
+            function useExistingCardHtml() {
+                let html = `
           <div class="option-card">
             <div class="d-flex align-items-center mb-3">
               <div class="option-icon">
@@ -137,26 +121,26 @@
             </div>
           </div>
           `;
-          return html;
-      }
+                return html;
+            }
 
 
-      // Add keyboard navigation
-      document.addEventListener("keydown", function (e) {
-        if (e.key === "Enter") {
-          const focusedElement = document.activeElement;
-          if (focusedElement.classList.contains("btn")) {
-            focusedElement.click();
-          }
-        }
-      });
+            // Add keyboard navigation
+            document.addEventListener("keydown", function(e) {
+                if (e.key === "Enter") {
+                    const focusedElement = document.activeElement;
+                    if (focusedElement.classList.contains("btn")) {
+                        focusedElement.click();
+                    }
+                }
+            });
 
-      checkExistingCaseData().then(value => {
-        if (value) {
-          let elem = document.getElementById('existing-placeholder');
-          elem.innerHTML = useExistingCardHtml();
-        }
-      });
-    </script>
-  </body>
+            checkExistingCaseData().then(value => {
+                if (value) {
+                    let elem = document.getElementById('existing-placeholder');
+                    elem.innerHTML = useExistingCardHtml();
+                }
+            });
+        </script>
+    </body>
 </html>

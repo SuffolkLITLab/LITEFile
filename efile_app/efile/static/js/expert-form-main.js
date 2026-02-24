@@ -11,29 +11,29 @@ class ExpertForm {
 
     async init() {
         if (this.initialized) return;
-        
+
         try {
             // Initialize cascading dropdowns first (they load user profile)
             this.cascadingDropdowns = new CascadingDropdowns();
             await this.cascadingDropdowns.init();
-            
+
             // Make cascading dropdowns globally accessible for jurisdiction switching
             window.cascadingDropdowns = this.cascadingDropdowns;
-            
+
             // Initialize form validation
             this.formValidation = new FormValidation();
-            
+
             // Make form validation available globally for dynamic sections
             window.formValidation = this.formValidation;
-            
+
             if (window.caseData) {
                 this.formValidation.populateForm(window.caseData);
             }
-            
+
             // Note: Auto-save removed - drafts are now only saved when user clicks "Save Draft" button
-            
+
             this.initialized = true;
-            
+
         } catch (error) {
             console.error('Error initializing ExpertForm:', error);
             this.showError(gettext('There was an error loading the form. Please refresh the page.'));
@@ -42,10 +42,10 @@ class ExpertForm {
 
     // setupAutoSave() method removed - drafts are now only saved when user clicks "Save Draft" button
     // This prevents automatic saving and gives users full control over when drafts are saved
-    
+
     hasFormContent(data) {
         // Check if form has meaningful content beyond empty strings
-        return Object.values(data).some(value => 
+        return Object.values(data).some(value =>
             value && value.toString().trim() !== ''
         );
     }
@@ -54,7 +54,7 @@ class ExpertForm {
         const errorDiv = document.createElement('div');
         errorDiv.className = 'alert alert-danger';
         errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${message}`;
-        
+
         const container = document.querySelector('.form-container');
         if (container) {
             container.insertBefore(errorDiv, container.firstChild);

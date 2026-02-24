@@ -21,54 +21,47 @@
   Usage example:
     {% include 'efile/components/search_dropdown.html' with field_id="filing_type" field_name="filing_type" label_text="Filing Type" is_required=True placeholder="Search filing types..." data_level="2" %}
 {% endcomment %}
-
 <div class="row mb-3">
-  <div class="{{ container_classes|default:'col-md-6' }}">
-    <label for="{{ field_id }}" class="form-label">
-      {{ label_text }}
-      {% if is_required %}<span class="required">*</span>{% endif %}
-    </label>
-    
-    <div class="search-dropdown-container" id="{{ field_id }}-container">
-      <input
-        type="text"
-        class="form-control search-dropdown-input"
-        id="{{ field_id }}_search"
-        name="{{ field_id }}_search"
-        placeholder="{{ placeholder|default:'Search...' }}"
-        autocomplete="off"
-        {% if disabled %}disabled{% endif %}
-      />
-      
-      <select
-        class="form-select dropdown-field d-none"
-        id="{{ field_id }}"
-        name="{{ field_name }}"
-        {% if data_level %}data-level="{{ data_level }}"{% endif %}
-        {% if is_required %}required{% endif %}
-        {% if disabled %}disabled{% endif %}
-      >
-        <option value="">{% blocktranslate %}Select {{ label_text }}{% endblocktranslate %}</option>
-      </select>
-      
-      <div class="search-dropdown-results" id="{{ field_id }}-results" style="display: none;">
-        <div class="search-no-results">{{ no_results_text|default:"No matching options found" }}</div>
-      </div>
-      
-      <div class="search-dropdown-selected" id="{{ field_id }}-selected" style="display: none;">
-        <span class="selected-text"></span>
-        <button type="button" class="btn-clear" aria-label="Clear selection">&times;</button>
-      </div>
+    <div class="{{ container_classes|default:'col-md-6' }}">
+        <label for="{{ field_id }}" class="form-label">
+            {{ label_text }}
+            {% if is_required %}<span class="required">*</span>{% endif %}
+        </label>
+        <div class="search-dropdown-container" id="{{ field_id }}-container">
+            <input type="text"
+                   class="form-control search-dropdown-input"
+                   id="{{ field_id }}_search"
+                   name="{{ field_id }}_search"
+                   placeholder="{{ placeholder|default:'Search...' }}"
+                   autocomplete="off"
+                   {% if disabled %}disabled{% endif %} />
+            <select class="form-select dropdown-field d-none"
+                    id="{{ field_id }}"
+                    name="{{ field_name }}"
+                    {% if data_level %}data-level="{{ data_level }}"{% endif %}
+                    {% if is_required %}required{% endif %}
+                    {% if disabled %}disabled{% endif %}>
+                <option value="">{% blocktranslate %}Select {{ label_text }}{% endblocktranslate %}</option>
+            </select>
+            <div class="search-dropdown-results"
+                 id="{{ field_id }}-results"
+                 style="display: none">
+                <div class="search-no-results">{{ no_results_text|default:"No matching options found" }}</div>
+            </div>
+            <div class="search-dropdown-selected"
+                 id="{{ field_id }}-selected"
+                 style="display: none">
+                <span class="selected-text"></span>
+                <button type="button" class="btn-clear" aria-label="Clear selection">×</button>
+            </div>
+        </div>
+        {% if loading_spinner_id or data_level %}
+            <div class="loading-spinner"
+                 id="{{ loading_spinner_id|default:'loading-'|add:data_level }}"
+                 style="display: none">
+                <i class="fas fa-spinner fa-spin"></i> Loading {{ label_text|lower }}...
+            </div>
+        {% endif %}
+        {% if help_text %}<div class="form-text">{{ help_text }}</div>{% endif %}
     </div>
-    
-    {% if loading_spinner_id or data_level %}
-    <div class="loading-spinner" id="{{ loading_spinner_id|default:'loading-'|add:data_level }}" style="display: none">
-      <i class="fas fa-spinner fa-spin"></i> Loading {{ label_text|lower }}...
-    </div>
-    {% endif %}
-    
-    {% if help_text %}
-    <div class="form-text">{{ help_text }}</div>
-    {% endif %}
-  </div>
 </div>

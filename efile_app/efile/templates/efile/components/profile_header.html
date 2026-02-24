@@ -2,104 +2,94 @@
 {% load i18n %}
 <link href="{% static 'css/header.css' %}" rel="stylesheet" />
 <!-- TODO(brycew): is this a hack? -->
-<div id="currentJurisdiction" hidden>{{jurisdiction}}</div>
+<div id="currentJurisdiction" hidden>{{ jurisdiction }}</div>
 <div class="header">
-  <div class="container">
-    <div class="d-flex justify-content-between align-items-center">
-      <div class="d-flex align-items-center">
-        <i class="{{ config.jurisdiction.icon }} scales-icon"></i>
-        <h1>{{ config.jurisdiction.name }}</h1>
-      </div>
-      <div class="d-flex align-items-center gap-3">
-        <div class="profile-icon" id="profileIcon" style="cursor: pointer">
-          <i class="fas fa-user"></i>
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                <i class="{{ config.jurisdiction.icon }} scales-icon"></i>
+                <h1>{{ config.jurisdiction.name }}</h1>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <div class="profile-icon" id="profileIcon" style="cursor: pointer">
+                    <i class="fas fa-user"></i>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
 </div>
 <!-- Profile Modal -->
-<div
-  class="modal fade"
-  id="profileModal"
-  tabindex="-1"
-  aria-labelledby="profileModalLabel"
-  aria-hidden="true"
->
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="profileModalLabel">{% translate "Profile Info" %}</h5>
-        <button
-          type="button"
-          class="btn-close"
-          data-bs-dismiss="modal"
-          aria-label="Close"
-        ></button>
-      </div>
-      <div class="modal-body">
-        <p>
-          {% blocktranslate %}Welcome to {{ config.jurisdiction.name }}. Here you can manage your filings and account.{% endblocktranslate %}
-        </p>
-        <div class="mb-3">
-          <span class="form-label">{% translate "Current email" %}</span>: {{user.username}}
+<div class="modal fade"
+     id="profileModal"
+     tabindex="-1"
+     aria-labelledby="profileModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="profileModalLabel">{% translate "Profile Info" %}</h5>
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    {% blocktranslate %}Welcome to {{ config.jurisdiction.name }}. Here you can manage your filings and account.{% endblocktranslate %}
+                </p>
+                <div class="mb-3">
+                    <span class="form-label">{% translate "Current email" %}</span>: {{ user.username }}
+                </div>
+                <div class="mb-3">
+                    <span class="form-label">{% translate "Current Jurisdiction" %}</span>: {{ jurisdiction }}
+                </div>
+                <button type="button" class="btn btn-danger w-100" onclick="logout()">Logout</button>
+            </div>
         </div>
-        <div class="mb-3">
-          <span class="form-label">{% translate "Current Jurisdiction" %}</span>: {{jurisdiction}}
-        </div>
-        <button
-          type="button"
-          class="btn btn-danger w-100"
-          onclick="logout()"
-        >
-          Logout
-        </button>
-      </div>
     </div>
-  </div>
 </div>
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-    var profileIcon = document.getElementById("profileIcon");
-    if (profileIcon) {
-      profileIcon.addEventListener("click", function () {
-        var modal = new bootstrap.Modal(
-          document.getElementById("profileModal")
-        );
-        modal.show();
-      });
-    }
-  });
+    document.addEventListener("DOMContentLoaded", function() {
+        var profileIcon = document.getElementById("profileIcon");
+        if (profileIcon) {
+            profileIcon.addEventListener("click", function() {
+                var modal = new bootstrap.Modal(
+                    document.getElementById("profileModal")
+                );
+                modal.show();
+            });
+        }
+    });
 
-  function showMessage(message, type) {
-    // Create and show bootstrap alert
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show`;
-    alertDiv.innerHTML = `
+    function showMessage(message, type) {
+        // Create and show bootstrap alert
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show`;
+        alertDiv.innerHTML = `
       ${message}
       <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     `;
-    
-    // Insert at top of container
-    const container = document.querySelector('.container');
-    container.insertBefore(alertDiv, container.firstChild);
-    
-    // Auto-dismiss after 3 seconds
-    setTimeout(() => {
-      alertDiv.remove();
-    }, 3000);
-  }
 
-  function logout() {
-    // Clear any messages first, then redirect to logout endpoint
-    fetch('/jurisdiction/{{jurisdiction}}/logout/', {
-      method: 'GET',
-      credentials: 'same-origin'
-    }).then(function() {
-      window.location.href = '/jurisdiction/{{jurisdiction}}/login/';
-    }).catch(function() {
-      // Fallback if fetch fails
-      window.location.href = '/jurisdiction/{{jurisdiction}}/logout/';
-    });
-  }
+        // Insert at top of container
+        const container = document.querySelector('.container');
+        container.insertBefore(alertDiv, container.firstChild);
+
+        // Auto-dismiss after 3 seconds
+        setTimeout(() => {
+            alertDiv.remove();
+        }, 3000);
+    }
+
+    function logout() {
+        // Clear any messages first, then redirect to logout endpoint
+        fetch('/jurisdiction/{{jurisdiction}}/logout/', {
+            method: 'GET',
+            credentials: 'same-origin'
+        }).then(function() {
+            window.location.href = '/jurisdiction/{{jurisdiction}}/login/';
+        }).catch(function() {
+            // Fallback if fetch fails
+            window.location.href = '/jurisdiction/{{jurisdiction}}/logout/';
+        });
+    }
 </script>
