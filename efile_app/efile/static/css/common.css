@@ -16,3 +16,13 @@ body {
     color: #dc3545 !important;
     font-weight: bold;
 }
+
+h1 {
+    color: var(--better-blue);
+    font-weight: 600;
+}
+
+h2 {
+    color: var(--better-blue);
+    font-weight: 500;
+}

@@ -10,9 +10,6 @@
 }
 
 .section-header {
-    color: #2c3e50;
-    font-size: 2rem;
-    font-weight: 600;
     margin-bottom: 1rem;
     text-align: left;
 }
@@ -189,6 +186,10 @@
     border-radius: 8px;
     padding: 1.5rem;
     margin-top: 1rem;
+}
+
+.document-options row {
+    align-items: baseline;
 }
 
 .document-options h5 {
@@ -415,6 +416,10 @@
     margin: 0 auto 1.5rem auto;
 }
 
+.alert h2 {
+    color: var(--bs-heading-color)
+}
+
 .requirements-section h5,
 .document-options h5 {
     margin-bottom: 1.5rem;
@@ -428,4 +433,12 @@
 
 .d-flex.flex-column.flex-md-row.justify-content-between .btn {
     min-width: 200px;
+}
+
+h2 {
+    font-size: 1.3rem;
+}
+
+h3 {
+    font-size: 1.1rem;
 }

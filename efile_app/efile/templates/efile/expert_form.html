@@ -10,6 +10,7 @@
               rel="stylesheet" />
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
               rel="stylesheet" />
+        <link rel="stylesheet" href="{% static 'css/common.css' %}" />
         <link href="{% static 'css/expert_form.css' %}" rel="stylesheet" />
     </head>
     <body>
@@ -18,14 +19,14 @@
             <div class="form-container">
                 <form id="expertForm" onsubmit="return false;">
                     {% csrf_token %}
-                    <h2 class="section-header">{% translate "Case Information" %}</h2>
+                    <h1>{% translate "Case Information" %}</h1>
                     <p class="section-description">
                         {% translate "Please provide the basic information about your case. Required fields are marked with a red asterisk" %}
                         (<span class="required">*</span>).
                     </p>
                     <!-- Case Classification Section -->
                     <div id="case-start-subsection">
-                        <h3 class="subsection-header">{% translate "Case classification" %}</h3>
+                        <h2 class="subsection-header">{% translate "Where and what" %}</h2>
                         <div class="alert alert-info" id="userProfileStatus" style="display: none">
                             <i class="fas fa-user-check"></i>{% translate "Loading your information..." %}
                         </div>
@@ -51,7 +52,7 @@
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <fieldset>
-                                    <legend>
+                                    <legend class="form-label">
                                         {% translate "New or existing?" %}<span class="required">*</span>
                                     </legend>
                                     <div>
@@ -74,7 +75,7 @@
                         </div>
                     </div>
                     <div id="case-info-subsection" hidden>
-                        <h3 class="subsection-header">{% translate "Case information" %}</h3>
+                        <h2 class="subsection-header">{% translate "Case type" %}</h2>
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="case_category" class="form-label">
@@ -134,7 +135,7 @@
                     </div>
                     <!-- Case Information Section -->
                     <div id="case-search-subsection" hidden>
-                        <h3 class="subsection-header">Case Search</h3>
+                        <h2 class="subsection-header">Case Search</h2>
                         <div class="alert alert-info" id="caseInfoStatus" style="display: none">
                             <i class="fas fa-info-circle"></i> <span id="statusText">Looking up case information...</span>
                         </div>

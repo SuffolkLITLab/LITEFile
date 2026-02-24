@@ -10,6 +10,7 @@
               rel="stylesheet" />
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
               rel="stylesheet" />
+        <link rel="stylesheet" href="{% static 'css/common.css' %}" />
         <link rel="stylesheet" href="{% static 'css/login.css' %}" />
     </head>
     <body>
@@ -21,7 +22,7 @@
                 <div class="brand-header">
                     <div class="d-flex align-items-center">
                         <i class="fas fa-balance-scale scales-icon"></i>
-                        <h1 class="brand-title">{{ config.jurisdiction.name }}</h1>
+                        <span class="brand-title">{{ config.jurisdiction.name }}</span>
                     </div>
                 </div>
                 <!-- Django Messages -->
@@ -36,10 +37,10 @@
                 {% endif %}
                 <!-- Sign In Form -->
                 <div class="login-form">
-                    <h2 class="mb-4"
+                    <h1 class="mb-4"
                         style="color: #374151;
                                font-weight: 700;
-                               font-size: 1.8rem">{% translate "Sign In to eFile" %}</h2>
+                               font-size: 1.8rem">{% translate "Sign in to eFile" %}</h1>
                     <form method="post">
                         {% csrf_token %}
                         <div class="mb-3">
@@ -75,7 +76,7 @@
                     <div class="divider"></div>
                     <!-- First Time Section -->
                     <div class="first-time-section">
-                        <h3>{% translate "First Time?" %}</h3>
+                        <h2>{% translate "First Time?" %}</h2>
                         <p class="first-time-text">{% translate "To use the efile system, you must create a registration." %}</p>
                         <div class="text-center">
                             <a href="{% url 'efile_register' jurisdiction %}"
