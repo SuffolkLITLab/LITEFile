@@ -1,8 +1,3 @@
-body {
-    background-color: #f8f9fa;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-}
-
 .main-container {
     max-width: 500px;
     margin: 2rem auto;
@@ -25,7 +20,7 @@ body {
 }
 
 .brand-header {
-    background: linear-gradient(135deg, #1e3a5f 0%, #2c5aa0 100%);
+    background: linear-gradient(135deg, var(--suffolk-blue) 0%, var(--better-blue) 100%);
     color: white;
     padding: 1.5rem;
     border-radius: 20px 20px 0 0;
@@ -80,7 +75,7 @@ body {
 .btn-sign-in,
 .btn-register,
 .btn-password-reset {
-    background: #1e3a5f;
+    background: var(--suffolk-blue);
     border: none;
     border-radius: 25px;
     padding: 0.75rem 2rem;
@@ -94,7 +89,7 @@ body {
 .btn-sign-in:hover,
 .btn-register:hover,
 .btn-password-reset:hover {
-    background: #1e3a5f;
+    background: var(--suffolk-blue);
     filter: brightness(1.5);
     transform: translateY(-1px);
 }

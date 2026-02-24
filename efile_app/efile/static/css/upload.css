@@ -27,8 +27,8 @@
     padding: 1rem;
     border-top: 1px solid #e9ecef;
     border-bottom: 1px solid #e9ecef;
-    border-left: 4px solid #007bff;
-    border-right: 4px solid #007bff;
+    border-left: 4px solid var(--primary-btn-color);
+    border-right: 4px solid var(--primary-btn-color);
     border-radius: 6px;
     font-size: 0.95rem;
 }
@@ -52,10 +52,6 @@
     margin-bottom: 0.5rem;
 }
 
-.required {
-    color: #dc3545;
-}
-
 .upload-area {
     position: relative;
     border: 2px dashed #dee2e6;
@@ -68,12 +64,12 @@
 }
 
 .upload-area:hover {
-    border-color: #007bff;
-    background: #f8f9fa;
+    border-color: var(--primary-btn-color);
+    background: var(--light-blue-background);
 }
 
 .upload-area.dragover {
-    border-color: #007bff;
+    border-color: var(--primary-btn-color);
     background: #e3f2fd;
 }
 
@@ -157,11 +153,11 @@
 
 .file-remove:hover {
     color: #dc3545;
-    background-color: #f8f9fa;
+    background-color: var(--light-blue-background);
 }
 
 .requirements-section {
-    background: #f8f9fa;
+    background: var(--light-blue-background);
     padding: 1.5rem;
     border-radius: 6px;
     border: 1px solid #e9ecef;
@@ -181,7 +177,7 @@
 
 .requirement-item:before {
     content: "•";
-    color: #007bff;
+    color: var(--primary-btn-color);
     font-weight: bold;
     position: absolute;
     left: 0;
@@ -208,7 +204,7 @@
 }
 
 .supporting-document-options {
-    background: #f8f9fa;
+    background: var(--light-blue-background);
     border: 1px solid #dee2e6;
     border-radius: 6px;
     padding: 1rem;
@@ -235,7 +231,7 @@
 }
 
 .progress-bar {
-    background-color: #007bff;
+    background-color: var(--primary-btn-color);
     transition: width 0.3s ease;
 }
 
@@ -268,7 +264,7 @@
     margin-top: 0.5rem;
     padding: 0.25rem 0.5rem;
     border-radius: 4px;
-    background: #f8f9fa;
+    background: var(--light-blue-background);
     font-size: 0.875rem;
     display: flex;
     align-items: center;
@@ -278,11 +274,11 @@
 }
 
 .upload-status i.fa-spinner {
-    color: #007bff;
+    color: var(--primary-btn-color);
 }
 
 .upload-status i.fa-check-circle {
-    color: #28a745;
+    color: var(--success);
 }
 
 .upload-status i.fa-exclamation-triangle {
@@ -305,7 +301,7 @@
 }
 
 .btn-primary {
-    background-color: #007bff;
+    background-color: var(--primary-btn-color);
     color: white;
 }
 
@@ -403,7 +399,7 @@
 }
 
 .was-validated .form-control:valid {
-    border-color: #28a745;
+    border-color: var(--success);
 }
 
 .invalid-feedback {

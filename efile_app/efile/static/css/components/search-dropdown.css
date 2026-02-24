@@ -41,7 +41,7 @@
 .search-dropdown-item {
     padding: 0.75rem;
     cursor: pointer;
-    border-bottom: 1px solid #f8f9fa;
+    border-bottom: 1px solid var(--light-blue-background);
     transition: background-color 0.15s ease-in-out;
     background-color: #ffffff;
     color: #212529;
