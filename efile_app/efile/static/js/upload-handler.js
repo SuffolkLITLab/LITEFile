@@ -785,8 +785,8 @@ class UploadHandler {
             await this.saveUploadDataToSession(uploadDataWithUrls);
 
 
-            // Redirect to review page
-            window.location.href = `/jurisdiction/${this.jurisdiction}/review/`;
+            // Redirect to payments page
+            window.location.href = `/jurisdiction/${this.jurisdiction}/payment/`;
 
         } catch (error) {
             console.error('Form submission error:', error);

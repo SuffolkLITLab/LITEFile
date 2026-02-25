@@ -77,6 +77,7 @@ def get_party_type_code_from_api(court_code, case_type_code, jurisdiction, targe
 def get_headers():
     return {
         "Accept": "application/json",
+        "Content-Type": "application/json",
         "User-Agent": "LITEfile-Client/1.0",
         "X-API-Key": getattr(settings, "SUFFOLK_EFILE_API_KEY", None),
     }

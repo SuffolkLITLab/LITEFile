@@ -12,7 +12,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from ..utils.case_data_utils import get_case_data
-from ..utils.proxy_connection import get_party_type_code_from_api
+from ..utils.proxy_connection import get_headers, get_party_type_code_from_api
 from .base import APIResponseMixin
 
 logger = logging.getLogger(__name__)
@@ -78,6 +78,85 @@ class FilingAPIViews(APIResponseMixin):
                 return FilingAPIViews.success_response(filing_data, "Filing created successfully")
             else:
                 return FilingAPIViews.error_response("Failed to create filing")
+
+        except json.JSONDecodeError:
+            return FilingAPIViews.error_response("Invalid JSON data")
+        except Exception as e:
+            return FilingAPIViews.error_response(f"Error: {str(e)}")
+
+    @staticmethod
+    @require_http_methods(["POST"])
+    @csrf_exempt
+    def payment_fees(request):
+        try:
+            logger.info("Test in payment fees!")
+            data = json.loads(request.body)
+            efile_data = data.get("efile_data", {})
+            if not efile_data:
+                return JsonResponse({"success": False, "error": "No efile data provided in request"}, status=400)
+
+            jurisdiction_id = request.session.get("jurisdiction")
+            auth_tokens = request.session.get("auth_tokens", {})
+            case_data = request.session.get("case_data", {})
+            court_id = case_data.get("court", "")
+            url = f"{settings.EFSP_URL}/jurisdictions/{jurisdiction_id}/filingreview/courts/{court_id}/filing/fees"
+
+            headers = get_headers()
+            tyler_token = (
+                auth_tokens.get(f"TYLER-TOKEN-{jurisdiction_id.upper()}")
+                or auth_tokens.get(f"tyler_token_{jurisdiction_id}")
+                or auth_tokens.get(f"tyler-token-{jurisdiction_id}")
+            )
+
+            # Add Tyler token if available (following auth_views.py pattern)
+            if tyler_token:
+                headers[f"TYLER-TOKEN-{jurisdiction_id.upper()}"] = tyler_token
+            else:
+                logger.warning(f"No Tyler token found for jurisdiction '{jurisdiction_id}' in filing submission")
+
+            logger.info(f"Making request!: {url}")
+            response = requests.post(url, json=efile_data, headers=headers)
+            logger.info(f"Made request: {response.status_code}")
+
+            if response.status_code == 200 or response.status_code == 201:
+                response_data = response.json()
+
+                logger.info(f"Sending back: {response_data}")
+                return JsonResponse(
+                    {
+                        "success": True,
+                        "message": "Payment fees submitted successfully",
+                        "api_response": response_data,
+                    }
+                )
+            else:
+                try:
+                    error_data = response.json()
+                    error_message = error_data.get("error", f"API returned status {response.status_code}")
+                    logger.info(f"Sending back: {error_data}, {error_message}")
+
+                    # For 400 errors, include more details
+                    if response.status_code == 400:
+                        validation_errors = error_data.get("validation_errors", error_data.get("errors", []))
+                        if validation_errors:
+                            error_message += f" - Validation errors: {validation_errors}"
+
+                except json.JSONDecodeError:
+                    error_message = f"API returned status {response.status_code} - Response: {response.text}"
+                except Exception as parse_error:
+                    error_message = (
+                        f"API returned status {response.status_code} - Could not parse response: {str(parse_error)}"
+                    )
+
+                return JsonResponse(
+                    {
+                        "success": False,
+                        "error": f"Filing submission failed: {error_message}",
+                        "api_status_code": response.status_code,
+                        "api_response": response.text[:500] if response.text else "No response body",
+                    },
+                    status=response.status_code,
+                )
 
         except json.JSONDecodeError:
             return FilingAPIViews.error_response("Invalid JSON data")
@@ -449,6 +528,7 @@ def determine_party_type_for_existing_case(case_data):
 # Individual view functions for URL mapping
 get_filings = FilingAPIViews.get_filings
 create_filing = FilingAPIViews.create_filing
+payment_fees = FilingAPIViews.payment_fees
 get_filing_detail = FilingAPIViews.get_filing_detail
 update_filing = FilingAPIViews.update_filing
 delete_filing = FilingAPIViews.delete_filing

@@ -5,18 +5,11 @@
 
 // Configuration constants
 const CONFIG = {
-    VALIDATION: {
-        EMAIL_REGEX: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-        ZIP_REGEX: /^\d{5}(-\d{4})?$/,
-        PHONE_REGEX: /^\+?\d{7,15}$/
-    },
     URLS: {
-        UPLOAD_DATA: '/api/get-upload-data/',
         PROFILE: '/api/auth/profile/',
         PAYMENT_ACCOUNTS: '/api/payment-accounts/',
         TYLER_TOKEN: '/api/auth/tyler-token/',
         SUBMIT_FILING: '/api/submit-final-filing/',
-        CASE_DATA: '/api/get-case-data/',
         QUERY_FEES: '/api/payment-fees/',
     }
 };
@@ -45,20 +38,15 @@ const Utils = {
         if (element) element.style.display = "none";
     },
 
-    // Validation helpers
-    isValidEmail(email) {
-        return email && CONFIG.VALIDATION.EMAIL_REGEX.test(email);
+    // URL parameter helper
+    getURLParam(param) {
+        return new URLSearchParams(window.location.search).get(param);
     },
 
-    isValidZip(zip) {
-        return zip && CONFIG.VALIDATION.ZIP_REGEX.test(zip);
-    },
+    cleanURL() {
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
 
-    isValidPhone(phone) {
-        if (!phone) return false;
-        const cleaned = phone.replace(/[\s()-\.]/g, "");
-        return CONFIG.VALIDATION.PHONE_REGEX.test(cleaned);
-    },
 };
 
 // Message handling
@@ -91,34 +79,6 @@ const Messages = {
     }
 };
 
-// Data management
-const DataManager = {
-    async fetchJSON(url, options = {}) {
-        try {
-            const response = await fetch(url, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': apiUtils.getCSRFToken(),
-                    ...options.headers
-                },
-                ...options
-            });
-            return response.ok ? await response.json() : null;
-        } catch (error) {
-            console.error(`Fetch error for ${url}:`, error);
-            return null;
-        }
-    },
-
-    async getCaseData() {
-        return Utils.parseJSON('case-data');
-    },
-
-    getFriendlyNames() {
-        return Utils.parseJSON('friendly-names');
-    }
-};
-
 // UI Field management
 const FieldManager = {
     // Consolidated field setting logic
@@ -136,20 +96,6 @@ const FieldManager = {
         const inputVal = input?.value?.trim();
         const textVal = text?.textContent?.trim();
         return (inputVal && inputVal.length > 0) ? inputVal : textVal;
-    },
-
-    toggleEdit(inputId, button) {
-        const input = Utils.getElement(inputId);
-        const text = Utils.getElement(inputId.replace("Input", "Text"));
-        if (!input || !text || !button) return;
-
-        const isEditing = input.style.display !== "none";
-
-        if (!isEditing) {
-            this.startEditing(input, text, button, inputId);
-        } else {
-            this.saveField(input, text, button, inputId);
-        }
     },
 
     startEditing(input, text, button, inputId) {
@@ -170,134 +116,22 @@ const FieldManager = {
     }
 };
 
-// Form validation
-const FormValidator = {
-    validateUserData(userData) {
-        const {
-            fullName,
-            address,
-            city,
-            state,
-            zip,
-            email,
-            phone
-        } = userData;
-
-        const requiredFields = [{
-            value: fullName,
-            name: 'Name'
-        }, {
-            value: address,
-            name: 'Address Line 1'
-        }, {
-            value: city,
-            name: 'City'
-        }, {
-            value: state,
-            name: 'State'
-        }, {
-            value: zip,
-            name: 'ZIP Code'
-        }, {
-            value: email,
-            name: 'Email'
-        }, {
-            value: phone,
-            name: 'Phone'
-        }];
-
-        // Check required fields
-        for (const field of requiredFields) {
-            if (!field.value) {
-                return `${field.name} is required.`;
-            }
-        }
-
-        // Validate formats
-        if (!Utils.isValidZip(zip)) {
-            return "Please enter a valid ZIP code (e.g. 60601 or 60601-1234).";
-        }
-
-        if (!Utils.isValidPhone(phone)) {
-            return "Please enter a valid phone number.";
-        }
-
-        if (!Utils.isValidEmail(email)) {
-            return "Please provide a valid email address.";
-        }
-
-        return null; // No validation errors
-    }
-};
-
 // API handlers
 const APIHandlers = {
-    async fetchPartyType() {
-        const caseData = await DataManager.getCaseData();
-
-        if (!caseData.court || !caseData.case_type) return;
-
-        const params = {
-            jurisdiction: apiUtils.getCurrentJurisdiction(),
-            court: caseData.court,
-            case_type: caseData.case_type,
-            existing_case: caseData.existing_case || 'no'
-        };
-
-        const result = await apiUtils.getPartyTypes(params);
-
-        if (result?.success) {
-            console.log('Party types received:', result.party_types);
-            console.log('Selected party type:', result.selected_party_type);
-        } else {
-            console.error('Party type fetch failed:', result?.error);
-        }
-    },
-
-    async loadUserInfo() {
+    async loadPaymentAccounts() {
         const params = {
             jurisdiction: apiUtils.getCurrentJurisdiction()
         };
-        const data = await apiUtils.get(CONFIG.URLS.PROFILE, params);
+        const result = await apiUtils.get(CONFIG.URLS.PAYMENT_ACCOUNTS, params);
 
-        if (data?.success && data.data) {
-            const profile = data.data;
-            const fullName = [profile.first_name, profile.last_name].filter(n => n).join(" ");
-
-            // Set all user fields
-            const fields = [
-                ['userName', fullName],
-                ['userAddressLine1', profile.address],
-                ['userAddressLine2', profile.address_line2],
-                ['userCity', profile.city],
-                ['userState', profile.state],
-                ['userZip', profile.zip],
-                ['userEmail', profile.email],
-                ['userPhone', profile.phone]
-            ];
-
-            fields.forEach(([prefix, value]) => FieldManager.setFieldValue(prefix, value));
+        if (result?.success && result.data) {
+            UIUpdater.updatePaymentMethodsSection(result.data);
+            let elems = document.querySelectorAll('input[name="paymentMethod"]');
+            elems.forEach(e => e.addEventListener("change", () => {
+                window.queryFees();
+            }));
+            window.queryFees();
         } else {
-            // Set empty values for all fields on failure
-            ['userName', 'userAddressLine1', 'userAddressLine2', 'userCity', 'userState', 'userZip', 'userEmail', 'userPhone']
-            .forEach(prefix => FieldManager.setFieldValue(prefix, "", "Please provide"));
-        }
-    },
-
-    async loadUploadData() {
-        const data = await apiUtils.getUploadData();
-        if (data) {
-            UIUpdater.updateDocumentsSection(data);
-        }
-    },
-
-    async loadPaymentAccounts() {
-        try {
-            const caseData = await DataManager.getCaseData();
-            UIUpdater.updatePaymentMethodsSection(caseData.selected_payment_account, caseData.selected_payment_account_name || "Your payment");
-            await window.queryFees();
-        } catch (ex) {
-            console.log(ex);
             UIUpdater.showAddNewPaymentMethod();
         }
     }
@@ -305,89 +139,51 @@ const APIHandlers = {
 
 // UI updaters
 const UIUpdater = {
-    updateCaseInfo(caseData, friendlyNames) {
-        const caseTypeEl = Utils.getElement('caseTypeValue');
-        const courtEl = Utils.getElement('courtValue');
-
-        if (caseTypeEl) {
-            caseTypeEl.textContent = friendlyNames.case_type || caseData.case_type_name || caseData.case_type || "Not specified";
-        }
-        if (courtEl) {
-            courtEl.textContent = friendlyNames.court || caseData.court_name || caseData.court || "Not specified";
-        }
-    },
-
-    updateDocumentsSection(uploadData) {
-        const container = Utils.getElement('documentsContainer');
-        if (!container) return;
-
-        let html = "";
-
-        // Lead document
-        if (uploadData.files?.lead) {
-            const docName = uploadData.files.lead.name.includes("Name Change") ? "Name Change Form" : "Lead Document";
-            html += this.createDocumentHTML(docName, uploadData.files.lead.name, 'lead', true);
-        } else {
-            html += `<div class="document-group"><h6>1. Lead Document (required)</h6><div class="text-muted mb-2">No document found</div></div>`;
-        }
-
-        // Supporting documents
-        if (uploadData.files?.supporting?.length > 0) {
-            html += '<div class="document-group mt-4"><h6>2. Fee Waiver (optional)</h6><div class="text-muted mb-2">File or Files</div><div class="document-list">';
-
-            uploadData.files.supporting.forEach(file => {
-                html += `<div class="document-item">
-          <i class="fas fa-file-pdf"></i>
-          <span class="document-name">${file.name}</span>
-          <button class="change-btn" onclick="Navigation.changeDocument('supporting')">Change</button>
-        </div>`;
-            });
-
-            html += '</div></div>';
-        }
-
-        container.innerHTML = html;
-    },
-
-    createDocumentHTML(title, filename, type, required = false) {
-        return `<div class="document-group">
-      <h6>1. ${title} ${required ? '(required)' : ''}</h6>
-      <div class="text-muted mb-2">File or Files</div>
-      <div class="document-list">
-        <div class="document-item">
-          <i class="fas fa-file-pdf"></i>
-          <span class="document-name">${filename}</span>
-          <button class="change-btn" onclick="Navigation.changeDocument('${type}')">Change</button>
-        </div>
-      </div>
-    </div>`;
-    },
-
-    updatePaymentMethodsSection(account, account_name) {
-        console.log(account);
+    updatePaymentMethodsSection(paymentAccounts) {
         const container = Utils.getElement('paymentMethodsContainer');
+        if (!container || !paymentAccounts?.length) {
+            return this.showAddNewPaymentMethod();
+        }
+
         let html = '<div class="payment-methods-list">';
 
-        //const cardType = account.cardType?.value || "Card";
-        //const cardLast4 = account.cardLast4 || "****";
-        //let paymentText = `${cardType} ending in ${cardLast4}`;
+        let hasMultipleWaivers = paymentAccounts.filter((account) => account.paymentAccountTypeCode === "WV").length > 1;
+        paymentAccounts.forEach((account, index) => {
+            const isDefault = index === 0;
+            const cardType = account.cardType?.value || "Card";
+            const cardLast4 = account.cardLast4 || "****";
+            let paymentText = `${cardType} ending in ${cardLast4}`;
 
-        html += `<div class="payment-method-item">
+            if (account.paymentAccountTypeCode === "WV") {
+                if (hasMultipleWaivers) {
+                    paymentText = `Payment Waiver (named "${account.accountName}")`;
+                } else {
+                    paymentText = 'Payment Waiver';
+                }
+            }
+
+            html += `<div class="payment-method-item">
         <div class="form-check">
-          <div name="paymentMethod" 
-                 id="paymentAccountID" value="${account}">
-          <span class="form-check-label">
+          <input class="form-check-input" type="radio" name="paymentMethod" 
+                 id="payment_${index}" fullName="${paymentText}" value="${account.paymentAccountID}" ${isDefault ? "checked" : ""}>
+          <label class="form-check-label" for="payment_${index}">
             <div class="payment-method-details">
               <div class="payment-method-info">
-                ${account_name}
+                <i class="fab fa-cc-${cardType.toLowerCase()}"></i>
+                ${paymentText}
               </div>
             </div>
-          </span>
+          </label>
         </div>
-            <a style="margin-left: auto;" href="/jurisdiction/${apiUtils.getCurrentJurisdiction()}/payment">Change payment method</a>
       </div>`;
+        });
 
-        html += `</div>`;
+        html += `</div>
+      <div class="add-payment-method mt-3">
+        <button type="button" class="btn btn-outline-primary" onclick="PaymentHandler.addNewPaymentMethod()">
+          <i class="fas fa-plus me-2"></i>Add New Payment Method
+        </button>
+      </div>`;
 
         container.innerHTML = html;
     },
@@ -399,73 +195,164 @@ const UIUpdater = {
         container.innerHTML = `<div class="no-payment-methods">
       <div class="alert alert-info">
         <i class="fas fa-credit-card me-2"></i>
-        No payment methods found. Please <a href="/jurisdiction/${apiUtils.getCurrentJurisdiction()}/payment">go back to add a payment method</a>.
+        No payment methods found. Please add a payment method to continue.
       </div>
+      <button type="button" class="btn btn-primary" onclick="PaymentHandler.addNewPaymentMethod()">
+        <i class="fas fa-plus me-2"></i>Add Payment Method
+      </button>
     </div>`;
+    }
+};
+
+// Payment handling
+const PaymentHandler = {
+    async addNewPaymentMethod() {
+        try {
+            const params = new URLSearchParams({
+                jurisdiction: apiUtils.getCurrentJurisdiction(),
+            });
+            const authData = await apiUtils.get(CONFIG.URLS.TYLER_TOKEN, params);
+
+            if (!authData?.success || !authData.data?.tyler_token) {
+                Messages.showError("Authentication failed. Please try again.");
+                return;
+            }
+
+            this.redirectToPaymentForm(authData.data);
+        } catch (error) {
+            console.warn("Create payment error: %o", error);
+            Messages.showError("Failed to create payment method. Please try again.");
+        }
+    },
+
+    redirectToPaymentForm(authData) {
+        const form = document.createElement("form");
+        form.method = "post";
+
+        const jurisdiction = authData.state || apiUtils.getCurrentJurisdiction();
+        form.action = Utils.parseJSON('new-toga-url');
+
+        let dateStr = new Date().toDateString();
+        const fields = [
+            ['account_name', `Payment Account made on ${dateStr}`],
+            ['global', 'false'],
+            ['type_code', 'CC'],
+            ['tyler_info', authData.tyler_token],
+            ['original_url', `${window.location.origin}/jurisdiction/${jurisdiction}/payment/?payment_status=success`],
+            ['error_url', `${window.location.origin}/jurisdiction/${jurisdiction}/payment/?payment_status=failure`]
+        ];
+
+        fields.forEach(([name, value]) => {
+            const input = document.createElement("input");
+            input.type = "hidden";
+            input.name = name;
+            input.value = value;
+            form.appendChild(input);
+        });
+
+        document.body.appendChild(form);
+        form.submit();
+    },
+
+    handleCallback() {
+        const status = Utils.getURLParam('payment_status');
+
+        if (status === 'success') {
+            Messages.showSuccess(gettext("Payment method added successfully!"));
+            setTimeout(() => APIHandlers.loadPaymentAccounts(), 1000);
+            Utils.cleanURL();
+        } else if (status === 'failure') {
+            Messages.showError(gettext("Failed to add payment method. Please try again."));
+            Utils.cleanURL();
+        }
+    },
+
+    calcPaymentCosts() {
+
     }
 };
 
 // Navigation
 const Navigation = {
     goBack() {
-        window.location.href = `/jurisdiction/${apiUtils.getCurrentJurisdiction()}/payment`;
+        window.location.href = `/jurisdiction/${apiUtils.getCurrentJurisdiction()}/upload`;
     },
 
-    changeDocument(type) {
-        const jurisdiction = apiUtils.getCurrentJurisdiction();
-        if (type === "lead") {
-            // TODO: still save all of the existing stuff?
-            window.location.href = `/jurisdiction/${jurisdiction}/upload_first`;
-        } else {
-            window.location.href = `/jurisdiction/${jurisdiction}/upload`;
-        }
+    async toReview() {
+        const selectedPaymentMethod = document.querySelector('input[name="paymentMethod"]:checked');
+        await apiUtils.saveCaseData({
+            "selected_payment_account": selectedPaymentMethod.value,
+            "selected_payment_account_name": selectedPaymentMethod.getAttribute("fullName")
+        });
+
+        window.location.href = `/jurisdiction/${apiUtils.getCurrentJurisdiction()}/review`;
     }
 };
 
 // Filing submission
 const FilingHandler = {
-    async submitFiling() {
-        const userData = this.collectUserData();
-        const validationError = FormValidator.validateUserData(userData);
-
-        if (validationError) {
-            Messages.showError(validationError);
-            return;
-        }
-
-        const selectedPaymentMethod = document.getElementById('paymentAccountID');
-        if (!selectedPaymentMethod) {
-            Messages.showError(gettext("Please select a payment method to continue."));
-            return;
-        }
-
-        this.setSubmissionState(true);
-        Messages.hide();
-
-        try {
-            const result = await this.processSubmission(userData, selectedPaymentMethod.getAttribute("value"));
-            this.handleSubmissionResult(result);
-        } catch (error) {
-            console.log("Error on submission: %o", error)
-            Messages.showError(gettext("An unexpected error occurred. Please try again."));
-            this.setSubmissionState(false);
-        }
-    },
-
     async queryFees() {
-        const userData = await this.collectUserData();
-        const selectedPaymentMethod = document.getElementById('paymentAccountID');
-
+        document.getElementById("paymentSection").setAttribute("hidden", true);
         this.setFeesState(true);
 
+        const userData = await this.collectUserData();
+        const selectedPaymentMethod = document.querySelector('input[name="paymentMethod"]:checked');
+        if (!selectedPaymentMethod) {
+            this.setFeesState(false);
+            return;
+        }
+
+
         try {
-            const result = await this.processFees(userData, selectedPaymentMethod.getAttribute("value"));
+            const result = await this.processFees(userData, selectedPaymentMethod.value);
             this.handleFeesResponse(result);
         } catch (error) {
-            console.log("Error on submission: %o", error)
+            console.warn("Error on submission: %o", error)
             Messages.showError(gettext("An unexpected error occurred. Please try again."));
             this.setFeesState(false);
         }
+    },
+
+    async collectUserData() {
+        const params = {
+            jurisdiction: apiUtils.getCurrentJurisdiction()
+        };
+        const data = await apiUtils.get(CONFIG.URLS.PROFILE, params, true);
+
+        if (data?.success && data.data) {
+            const profile = data.data;
+            const fullName = [profile.first_name, profile.last_name].filter(n => n).join(" ");
+
+            // Set all user fields
+            return {
+                fullName: fullName,
+                address: profile.address,
+                addressLine2: profile.address_line2,
+                city: profile.city,
+                state: profile.state,
+                zip: profile.zip,
+                email: profile.email,
+                phone: profile.phone
+            };
+        }
+        return {
+            fullName: "",
+            address: "",
+            addressLine2: "",
+            city: "Citytown",
+            state: "IL",
+            zip: "",
+            email: "test@example.com",
+            phone: "",
+        };
+    },
+
+    setFeesState(isQueryingFees) {
+        const submitButton = Utils.getElement('submitButton');
+        const loadingSpinner = Utils.getElement('loadingSpinner');
+
+        if (submitButton) submitButton.disabled = isQueryingFees;
+        if (loadingSpinner) loadingSpinner.style.display = isQueryingFees ? "block" : "none";
     },
 
     async processFees(userData, paymentAccountID) {
@@ -485,54 +372,6 @@ const FilingHandler = {
         });
     },
 
-    collectUserData() {
-        return {
-            fullName: FieldManager.getFieldValue('userName'),
-            address: FieldManager.getFieldValue('userAddressLine1'),
-            addressLine2: FieldManager.getFieldValue('userAddressLine2'),
-            city: FieldManager.getFieldValue('userCity'),
-            state: FieldManager.getFieldValue('userState'),
-            zip: FieldManager.getFieldValue('userZip'),
-            email: FieldManager.getFieldValue('userEmail'),
-            phone: FieldManager.getFieldValue('userPhone')
-        };
-    },
-
-    setFeesState(isQueryingFees) {
-        const submitButton = Utils.getElement('submitButton');
-        const loadingSpinner = Utils.getElement('loadingSpinner');
-
-        if (submitButton) submitButton.disabled = isQueryingFees;
-        if (loadingSpinner) loadingSpinner.style.display = isQueryingFees ? "block" : "none";
-    },
-
-    setSubmissionState(isSubmitting) {
-        const submitButton = Utils.getElement('submitButton');
-        const loadingSpinner = Utils.getElement('loadingSpinner');
-
-        if (submitButton) submitButton.disabled = isSubmitting;
-        if (loadingSpinner) loadingSpinner.style.display = isSubmitting ? "block" : "none";
-    },
-
-    async processSubmission(userData, paymentAccountID) {
-        let [caseData, uploadData] = await Promise.all([
-            apiUtils.getCaseData(),
-            apiUtils.getUploadData()
-        ]);
-
-        caseData = caseData.data.case_data;
-
-        const efilingData = this.buildEFilingData(userData, caseData, uploadData, paymentAccountID);
-
-        return await DataManager.fetchJSON(CONFIG.URLS.SUBMIT_FILING, {
-            method: 'POST',
-            body: JSON.stringify({
-                efile_data: efilingData,
-                confirm_submission: true,
-                payment_account_id: paymentAccountID
-            })
-        });
-    },
 
     buildEFilingData(userData, caseData, uploadData, paymentAccountID) {
         const nameParts = userData.fullName.split(" ");
@@ -765,32 +604,22 @@ const FilingHandler = {
 const ReviewApp = {
     async init() {
         await this.loadAllData();
-        APIHandlers.fetchPartyType();
+        PaymentHandler.handleCallback();
     },
 
     async loadAllData() {
-        const caseData = DataManager.getCaseData();
-        const friendlyNames = DataManager.getFriendlyNames();
-
-        // Update case info immediately if available
-        if (Object.keys(caseData).length > 0 || Object.keys(friendlyNames).length > 0) {
-            UIUpdater.updateCaseInfo(caseData, friendlyNames);
-        }
-
         // Load other data in parallel
         await Promise.all([
-            APIHandlers.loadUserInfo(),
-            APIHandlers.loadUploadData(),
+            APIHandlers.loadPaymentAccounts()
         ]);
-        await APIHandlers.loadPaymentAccounts()
     }
 };
 
 // Global function exports for HTML onclick handlers
-window.toggleEdit = FieldManager.toggleEdit.bind(FieldManager);
 window.goBack = Navigation.goBack;
-window.submitFiling = FilingHandler.submitFiling.bind(FilingHandler);
+window.toReview = Navigation.toReview;
 window.queryFees = FilingHandler.queryFees.bind(FilingHandler);
+window.PaymentHandler = PaymentHandler;
 window.Navigation = Navigation;
 
 // Initialize app when DOM is ready

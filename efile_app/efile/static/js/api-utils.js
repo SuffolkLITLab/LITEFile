@@ -70,7 +70,6 @@ class ApiUtils {
         const cacheEntry = this.cache[cacheKey];
 
         if (this.isCacheValid(cacheEntry)) {
-            const age = Date.now() - cacheEntry.timestamp;
             return cacheEntry.data;
         }
 
@@ -271,6 +270,32 @@ class ApiUtils {
         this.setCachedResponse(endpoint, params, response);
 
         return response;
+    }
+
+    async cachedPost(endpoint, body) {
+        // Check cache first
+        const cachedResponse = this.getCachedResponse(endpoint, body);
+        if (cachedResponse !== null) {
+            return cachedResponse;
+        }
+
+        let headers = {
+            "Content-Type": "application/json",
+            "X-CSRFToken": apiUtils.getCSRFToken(),
+        };
+
+        // Make API request if not cached
+        const response = await this.makeRequest(endpoint, {
+            method: "POST",
+            headers,
+            data: body,
+        });
+
+        // Cache the response
+        this.setCachedResponse(endpoint, body, response);
+
+        return response;
+
     }
 
     async post(endpoint, data = {}, params = {}) {
