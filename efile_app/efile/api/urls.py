@@ -23,7 +23,7 @@ from .dropdown_views import (
     get_optional_services,
     get_party_types,
 )
-from .filing_views import create_filing, delete_filing, get_filing_detail, get_filings, update_filing
+from .filing_views import create_filing, delete_filing, get_filing_detail, get_filings, payment_fees, update_filing
 from .s3_upload import (
     mock_s3_upload,
     simple_s3_upload,
@@ -60,6 +60,7 @@ urlpatterns = [
     path("auth/tyler-token/", tyler_token, name="tyler_token"),
     # Payment API endpoints
     path("payment-accounts/", payment_accounts, name="payment_accounts"),
+    path("payment-fees/", payment_fees, name="payment_fees"),
     # Filing API endpoints
     path("filings/", get_filings, name="filings_list"),
     path("filings/create/", create_filing, name="create_filing"),

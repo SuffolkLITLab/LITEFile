@@ -8,6 +8,7 @@ from .views.confirmation import filing_confirmation
 from .views.expert_form import efile_expert_form
 from .views.login import efile_login, efile_logout, efile_password_reset
 from .views.options import efile_options
+from .views.payment import efile_payment
 from .views.register import efile_register
 from .views.review import case_review
 from .views.session_api import (
@@ -46,6 +47,7 @@ urlpatterns = [
     path("jurisdiction/<jurisdiction>/expert_form/", efile_expert_form, name="expert_form"),
     path("jurisdiction/<jurisdiction>/upload_first/", efile_upload_first, name="upload_first"),
     path("jurisdiction/<jurisdiction>/upload/", efile_upload, name="upload"),
+    path("jurisdiction/<jurisdiction>/payment/", efile_payment, name="payment"),
     path("jurisdiction/<jurisdiction>/review/", case_review, name="case_review"),
     path("jurisdiction/<jurisdiction>/filing-confirmation/", filing_confirmation, name="filing_confirmation"),
     # Session API endpoints
