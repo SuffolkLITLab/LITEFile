@@ -10,6 +10,8 @@ jurisdiction:
   icon: "fas fa-balance-scale"
   svg: "img/MA.svg"
   api_endpoint: "/api/massachusetts"
+  help_url: "https://www.mass.gov/orgs/massachusetts-court-system"
+  help_number: "711"
 
 # State metadata
 state:
