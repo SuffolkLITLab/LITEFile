@@ -1,0 +1,18 @@
+{% load static %}
+{% load i18n %}
+<link href="{% static 'css/header.css' %}" rel="stylesheet" />
+<link href="{% static 'css/components/footer.css' %}" rel="stylesheet" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet" />
+<footer>
+    <div class="container">
+        <div class="d-flex" style="justify-content: end">
+            <div style="padding:0 1rem;">
+                <a href="{{ jurisdiction.help_url }}"><i class="fas fa-circle-info"></i>{% translate "Get more help" %}</a>
+            </div>
+            <div style="padding:0 1rem;">
+                <a href="tel:{{ jurisdiction.help_number }}"><i class="fas fa-phone"></i>Call</a>
+            </div>
+        </div>
+    </div>
+</footer>
