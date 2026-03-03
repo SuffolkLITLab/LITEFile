@@ -115,16 +115,16 @@ class GetFilingComponentsView(View):
                     # Use the first available filing type to get components
                     if filing_types_data and len(filing_types_data) > 0:
                         filing_type_id = filing_types_data[0].get("value") or filing_types_data[0].get("code")
-                        print(f"Using first available filing type: {filing_type_id}")
+                        logger.info(f"Using first available filing type: {filing_type_id}")
                     else:
                         # Fallback to a common filing type ID
                         filing_type_id = "78690"
-                        print(f"Using fallback filing type: {filing_type_id}")
+                        logger.info(f"Using fallback filing type: {filing_type_id}")
                 else:
                     filing_type_id = "78690"  # Fallback
-                    print(f"Failed to get filing types, using fallback: {filing_type_id}")
+                    logger.info(f"Failed to get filing types, using fallback: {filing_type_id}")
 
-            print(f"Getting filing components for court: {court}, filing_type: {filing_type_id}")
+            logger.info(f"Getting filing components for court: {court}, filing_type: {filing_type_id}")
 
             # Build the Suffolk LIT Lab API URL
             path = f"/jurisdictions/{jurisdiction}/codes/courts/{court}/filing_types/{filing_type_id}/filing_components"
@@ -137,17 +137,17 @@ class GetFilingComponentsView(View):
                 filing_data = response.json()
                 return JsonResponse({"success": True, "data": filing_data})
             else:
-                print(f"Suffolk API error: {response.status_code} - {response.text}")
+                logger.error(f"Suffolk API error: {response.status_code} - {response.text}")
                 return JsonResponse(
                     {"success": False, "error": f"Failed to fetch filing components: {response.status_code}"},
                     status=response.status_code,
                 )
 
-        except requests.RequestException as e:
-            print(f"Request error: {e}")
+        except requests.RequestException:
+            logger.exception("Request error")
             return JsonResponse({"success": False, "error": "Failed to connect to filing components API"}, status=503)
-        except Exception as e:
-            print(f"Error getting filing components: {e}")
+        except Exception:
+            logger.exception("Error getting filing components")
             return JsonResponse({"success": False, "error": "Server error occurred"}, status=500)
 
 
