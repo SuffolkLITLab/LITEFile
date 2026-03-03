@@ -1,5 +1,6 @@
 {% load static %}
 {% load i18n %}
+{% load md_to_html %}
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -32,37 +33,58 @@
             <h1>{% translate "File Forms and Documents with the Court" %}</h1>
             <div class="row justify-content-center">
                 <div class="col-xl-7">
-                    <div id="existing-placeholder"></div>
-                    <div class="option-card">
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="option-icon">
-                                <i class="fas fa-university"></i>
+                    <p>{{ config.jurisdiction.copyedit.landing_text | md_to_html }}</p>
+                    {% if not is_logged_in %}
+                        <div class="option-card">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="option-icon">
+                                    <i class="fas fa-folder-open"></i>
+                                </div>
+                                <div class="option-content">
+                                    <h2>{% translate "Start making your filing" %}</h2>
+                                    <p>{% translate "Sign in or create an account and start making your filing." %}</p>
+                                </div>
                             </div>
-                            <div class="option-content">
-                                <h2>{% translate "Start a new filing" %}</h2>
-                                <p>{% translate "Begin a new case or file a response." %}</p>
-                            </div>
-                        </div>
-                        <div class="button-group">
-                            <button class="btn btn-primary" tabindex="0" onclick="goToExpertForm('new')">{% translate "Begin" %}</button>
-                        </div>
-                    </div>
-                    <div class="option-card">
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="option-icon">
-                                <i class="fas fa-folder-open"></i>
-                            </div>
-                            <div class="option-content">
-                                <h2>{% translate "View past filings" %}</h2>
-                                <p>{% translate "See if a filing you have made was accepted or rejected." %}</p>
+                            <div class="button-group">
+                                <a href="{% url 'efile_login' jurisdiction %}"
+                                   class="btn btn-primary"
+                                   tabindex="0">{% translate "Sign in" %}</a>
                             </div>
                         </div>
-                        <div class="button-group">
-                            <a href="{% url 'filing_statuses' jurisdiction %}"
-                               class="btn btn-primary"
-                               tabindex="0">{% translate "View" %}</a>
+                    {% else %}
+                        <div id="existing-placeholder"></div>
+                        <div class="option-card">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="option-icon">
+                                    <i class="fas fa-university"></i>
+                                </div>
+                                <div class="option-content">
+                                    <h2>{% translate "Start a new filing" %}</h2>
+                                    <p>{% translate "Begin a new case or file a response." %}</p>
+                                </div>
+                            </div>
+                            <div class="button-group">
+                                <button class="btn btn-primary" tabindex="0" onclick="goToExpertForm('new')">{% translate "Begin" %}</button>
+                            </div>
                         </div>
-                    </div>
+                        <div class="option-card">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="option-icon">
+                                    <i class="fas fa-folder-open"></i>
+                                </div>
+                                <div class="option-content">
+                                    <h2>{% translate "View past filings" %}</h2>
+                                    <p>{% translate "See if a filing you have made was accepted or rejected." %}</p>
+                                </div>
+                            </div>
+                            <div class="button-group">
+                                <a href="{% url 'filing_statuses' jurisdiction %}"
+                                   class="btn btn-primary"
+                                   tabindex="0">{% translate "View" %}</a>
+                            </div>
+                        </div>
+                    {% endif %}
+                    <p>{{ config.jurisdiction.copyedit.post_action_text | md_to_html }}</p>
                 </div>
             </div>
         </div>

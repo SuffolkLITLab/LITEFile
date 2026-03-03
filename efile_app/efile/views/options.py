@@ -1,18 +1,19 @@
-from django.shortcuts import redirect, render
+from django.shortcuts import render
 
 from ..utils.case_data_utils import get_case_data
 
 
 def efile_options(request, jurisdiction):
     """Options view that displays saved case data and provides next steps."""
-    if not request.user.is_authenticated:
-        return redirect("efile_login", jurisdiction=jurisdiction)
-
     # Get case data from session
-    case_data = get_case_data(request)
+    if request.user.is_authenticated:
+        case_data = get_case_data(request)
+    else:
+        case_data = {}
 
     # Pass case data to template for display
     context = {
+        "is_logged_in": request.user.is_authenticated,
         "case_data": case_data,
         "has_case_data": bool(case_data),
     }

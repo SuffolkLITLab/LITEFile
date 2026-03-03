@@ -17,6 +17,8 @@ dependencies = [
     "openai>=2.14.0",
     "markitdown>=0.1.4",
     "djlint>=1.36.4",
+    "markdown>=3.10.2",
+    "markdownify>=1.2.2",
 ]
 
 [build-system]

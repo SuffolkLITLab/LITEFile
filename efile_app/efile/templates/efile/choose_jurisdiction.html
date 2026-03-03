@@ -35,7 +35,7 @@
                         align-items:center">
                 {% for value in jurisdiction_details %}
                     <div class="option-card" style="position:relative">
-                        <a href="{% url 'efile_login' jurisdiction=value.jurisdiction.code %}"
+                        <a href="{% url 'efile_options' jurisdiction=value.jurisdiction.code %}"
                            style="position:absolute;
                                   width:100%;
                                   height:100%;
