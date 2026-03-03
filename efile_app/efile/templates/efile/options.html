@@ -114,11 +114,8 @@
                     result.data &&
                     Object.keys(result.data).length > 0
                 ) {
-                    console.log("existing: %o", result.data)
                     //TODO(brycew): return more here to bring user directly to old session
                     return true;
-                } else {
-                    console.log("existing: %o", result.data)
                 }
                 return false;
             }
@@ -134,8 +131,6 @@
                         session_id: new_uuid,
                         jurisdiction: `{{jurisdiction}}`,
                     });
-
-                    console.log("Saved data!")
                 } catch (error) {
                     console.warn('Error saving case data:', error);
                     // Session storage fallback is already in place

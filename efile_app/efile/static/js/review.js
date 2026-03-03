@@ -297,7 +297,7 @@ const APIHandlers = {
             UIUpdater.updatePaymentMethodsSection(caseData.selected_payment_account, caseData.selected_payment_account_name || "Your payment");
             await window.queryFees();
         } catch (ex) {
-            console.log(ex);
+            console.error(ex);
             UIUpdater.showAddNewPaymentMethod();
         }
     }
@@ -364,7 +364,6 @@ const UIUpdater = {
     },
 
     updatePaymentMethodsSection(account, account_name) {
-        console.log(account);
         const container = Utils.getElement('paymentMethodsContainer');
         let html = '<div class="payment-methods-list">';
 
@@ -446,7 +445,7 @@ const FilingHandler = {
             const result = await this.processSubmission(userData, selectedPaymentMethod.getAttribute("value"));
             this.handleSubmissionResult(result);
         } catch (error) {
-            console.log("Error on submission: %o", error)
+            console.error("Error on submission: %o", error)
             Messages.showError(gettext("An unexpected error occurred. Please try again."));
             this.setSubmissionState(false);
         }
@@ -462,7 +461,7 @@ const FilingHandler = {
             const result = await this.processFees(userData, selectedPaymentMethod.getAttribute("value"));
             this.handleFeesResponse(result);
         } catch (error) {
-            console.log("Error on submission: %o", error)
+            console.error("Error on submission: %o", error)
             Messages.showError(gettext("An unexpected error occurred. Please try again."));
             this.setFeesState(false);
         }
