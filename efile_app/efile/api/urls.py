@@ -62,7 +62,7 @@ urlpatterns = [
     path("payment-accounts/", payment_accounts, name="payment_accounts"),
     path("payment-fees/", payment_fees, name="payment_fees"),
     # Filing API endpoints
-    path("filings/", get_filings, name="filings_list"),
+    path("filings/", get_filings, name="get_filings"),
     path("filings/create/", create_filing, name="create_filing"),
     path("filings/<int:filing_id>/", get_filing_detail, name="filing_detail"),
     path("filings/<int:filing_id>/update/", update_filing, name="update_filing"),

@@ -12,6 +12,11 @@ jurisdiction:
   api_endpoint: "/api/massachusetts"
   help_url: "https://www.mass.gov/orgs/massachusetts-court-system"
   help_number: "711"
+  copyedit:
+    filing_statuses: |
+      These are filings that you have already sent to the courts, either through this website or elsewhere.
+
+      If you have questions about why the court didn't accept a specific filing, you should contact the court.
 
 # State metadata
 state:

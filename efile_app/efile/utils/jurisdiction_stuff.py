@@ -7,4 +7,4 @@ def get_jurisdiction_from_request(request):
     if len(segments) >= 3 and segments[1] == "jurisdiction":
         return segments[2].lower()
 
-    return None
+    return request.session.get("jurisdiction")
