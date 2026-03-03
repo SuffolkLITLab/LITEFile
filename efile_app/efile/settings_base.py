@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "efile",
+    "efile.templatetags.md_to_html",
 ]
 
 MIDDLEWARE = [

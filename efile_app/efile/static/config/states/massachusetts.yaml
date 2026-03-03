@@ -13,6 +13,12 @@ jurisdiction:
   help_url: "https://www.mass.gov/orgs/massachusetts-court-system"
   help_number: "711"
   copyedit:
+    landing_text: |
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed fringilla enim ut nibh aliquam venenatis. Vivamus lacinia risus vitae massa aliquet, id hendrerit mi tincidunt. Vestibulum aliquet sapien ut velit laoreet, in blandit lectus congue. Ut at massa in eros sodales porta id sit amet urna. Proin suscipit venenatis justo sit amet condimentum. Donec volutpat sem nec facilisis tristique. Sed elementum ante nisi, id lacinia eros pellentesque in. Curabitur quis ante ut nunc pharetra tincidunt. Maecenas ornare augue eu diam condimentum congue. Pellentesque ac lorem quis magna rutrum euismod pharetra ac massa. Nulla felis erat, consectetur eu lacus ac, scelerisque rhoncus diam. Sed gravida ex ut maximus dapibus. Sed eu hendrerit est. Maecenas in porta lacus.
+    post_action_text: |
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed fringilla enim ut nibh aliquam venenatis. Vivamus lacinia risus vitae massa aliquet, id hendrerit mi tincidunt. Vestibulum aliquet sapien ut velit laoreet, in blandit lectus congue. Ut at massa in eros sodales porta id sit amet urna. Proin suscipit venenatis justo sit amet condimentum. Donec volutpat sem nec facilisis tristique. Sed elementum ante nisi, id lacinia eros pellentesque in. Curabitur quis ante ut nunc pharetra tincidunt. Maecenas ornare augue eu diam condimentum congue. Pellentesque ac lorem quis magna rutrum euismod pharetra ac massa. Nulla felis erat, consectetur eu lacus ac, scelerisque rhoncus diam. Sed gravida ex ut maximus dapibus. Sed eu hendrerit est. Maecenas in porta lacus.
+
+      Nulla at blandit risus, vel vehicula magna. Quisque ullamcorper lorem eget erat dignissim, id posuere ante lacinia. Quisque luctus vitae velit sed vulputate. Ut gravida ipsum in consectetur tincidunt. Quisque ac purus nunc. Sed sit amet accumsan dolor, in ullamcorper orci. Donec maximus imperdiet libero. Pellentesque vel feugiat magna, congue fermentum mi. Mauris vel molestie ex. Sed quis augue semper, tempus est vitae, porta felis.
     filing_statuses: |
       These are filings that you have already sent to the courts, either through this website or elsewhere.
 
