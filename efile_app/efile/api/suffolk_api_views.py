@@ -302,7 +302,7 @@ def get_party_types_from_suffolk_api(request):
                 request.session["case_data"] = case_data
                 request.session.modified = True
 
-                print(f"Saved party type to session: {selected_party_type}")
+                logger.debug(f"Saved party type to session: {selected_party_type}")
 
                 if only_required:
                     filtered_party_types = [p for p in party_types if p.get("isrequired", False)]
@@ -315,16 +315,16 @@ def get_party_types_from_suffolk_api(request):
             else:
                 return JsonResponse({"success": False, "error": "No party types returned from Suffolk API"}, status=400)
         else:
-            print(f"Suffolk API request failed with status: {response.status_code}")
-            print(f"Response: {response.text}")
+            logger.warning(f"Suffolk API request failed with status: {response.status_code}")
+            logger.warning(f"Response: {response.text}")
             return JsonResponse(
                 {"success": False, "error": f"Suffolk API returned status {response.status_code}"},
                 status=response.status_code,
             )
 
     except requests.RequestException as e:
-        print(f"Network error calling Suffolk API: {e}")
+        logger.warning(f"Network error calling Suffolk API: {e}")
         return JsonResponse({"success": False, "error": f"Network error: {str(e)}"}, status=500)
     except Exception as e:
-        print(f"Unexpected error: {e}")
+        logger.warning(f"Unexpected error: {e}")
         return JsonResponse({"success": False, "error": str(e)}, status=500)

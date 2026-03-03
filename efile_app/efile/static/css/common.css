@@ -3,6 +3,7 @@
     --better-blue: #2c5aa0;
     --primary-btn-color: #007bff;
     --success: #28a745;
+    --failure: #dc3545;
     --light-blue-background: #f8f9fa;
 }
 
@@ -13,7 +14,7 @@ body {
 
 /* Custom styles for better spacing and required field styling */
 .required {
-    color: #dc3545 !important;
+    color: var(--failure) !important;
     font-weight: bold;
 }
 

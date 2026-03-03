@@ -1,0 +1,150 @@
+{% load static %}
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>{{ config.jurisdiction.name }}</title>
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
+              rel="stylesheet" />
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+              rel="stylesheet" />
+        <link rel="stylesheet" href="{% static 'css/common.css' %}" />
+        <link rel="stylesheet" href="{% static 'css/view_statuses.css' %}" />
+    </head>
+    <body>
+        {% include "efile/components/profile_header.html" %}
+        <!-- Django Messages -->
+        <div style="display: flex; flex-direction: column; align-items:center;">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show"
+                         role="alert"
+                         style="max-width: 50%">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+        <div class="container">
+            <h1>{% translate "Filing Statuses" %}</h1>
+            <div class="row justify-content-center">
+                <p class="col-xl-7">{{ config.jurisdiction.copyedit.filing_statuses }}</p>
+            </div>
+            <div id="filing_statuses"></div>
+            <div>
+                <a href="{% url 'efile_options' jurisdiction %}"
+                   class="btn btn-primary mb-3">{% translate "Go Back" %}</a>
+            </div>
+        </div>
+        {% include "efile/components/footer.html" %}
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+        <script src="{% url 'javascript-catalog' %}"></script>
+        <script src="{% static 'js/api-utils.js' %}"></script>
+        <script>
+            // Function to save existing_case data and redirect to expert form or case details
+            async function getFilingStatuses() {
+                let now = new Date();
+                now.setFullYear(now.getFullYear() - 5);
+                let resp = await apiUtils.get("/api/filings", {
+                    "start_date": `${now.toISOString().split("T")[0]}`
+                }, true);
+                let filings = resp.data;
+                let courts = (await apiUtils.get("/api/dropdowns/courts")).data;
+                let courts_dict = courts.reduce((dict, court) => {
+                    dict[court.value] = court.text;
+                    return dict;
+                }, {});
+                let htmlStr = "";
+                for (let filing of filings) {
+                    let status_icon = '<i class="fas fa-file"></i>';
+                    let status_text = gettext("Waiting on Court");
+                    let case_info = "";
+                    if (filing['filing_status'] === 'accepted') {
+                        status_icon = '<i class="fas fa-file-circle-check accepted"></i>';
+                        status_text = gettext("Accepted");
+                    } else if (filing['filing_status'] === 'under-review') {
+                        status_icon = '<i class="fas fa-file-pen"></i>';
+                        status_text = gettext("Under Review");
+                    } else if (filing['filing_status'] === 'rejected' || filing['filing_status'] === 'returned') {
+                        status_icon = '<i class="fas fa-file-circle-exclaimation rejected"></i>';
+                        status_text = gettext("Rejected");
+                    }
+                    if (filing['case_title']) {
+                        case_info = `<li><strong>{% translate "Case" %}</strong>: ${filing['case_title']} (${filing['case_number']})</li>`;
+                    }
+                    let date_string = new Date(filing['received_timestamp']).toLocaleDateString();
+                    htmlStr += `
+            <div class="row justify-content-center">
+                <div class="col-xl-7">
+                    <div id="existing-placeholder"></div>
+                    <div class="option-card">
+                        <div class="d-flex align-items-center">
+                            <!--div class="option-icon">
+                                <i class="fas fa-university"></i>
+                            </div -->
+                            <div style="display: flex; flex-direction: column; align-items: center;">
+                               ${status_icon}
+                               <span>${status_text}</span>
+                               <span>${date_string}</span>
+                            </div>
+                            <div class="option-content">
+                                <ul>
+                                <li><strong>{% translate "Court" %}</strong>: ${courts_dict[filing['court_code']]}</li>
+                                <li><strong>{% translate "Filing" %}</strong>: ${filing['filing_code']}</li>
+                                ${case_info}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            `;
+                }
+                return htmlStr;
+            }
+
+            function useExistingCardHtml() {
+                let html = `
+          <div class="option-card">
+            <div class="d-flex align-items-center mb-3">
+              <div class="option-icon">
+                <i class="fas fa-reply"></i>
+              </div>
+              <div class="option-content">
+                <h2>{% translate "Continue a draft filing" %}</h2>
+                <p>{% translate "Resume your filing where you left off." %}</p>
+              </div>
+            </div>
+            <div class="button-group">
+              <button class="btn btn-primary" tabindex="0" onclick="goToExpertForm('resume')">
+                {% translate "Resume " %}
+              </button>
+            </div>
+          </div>
+          `;
+                return html;
+            }
+
+
+            // Add keyboard navigation
+            document.addEventListener("keydown", function(e) {
+                if (e.key === "Enter") {
+                    const focusedElement = document.activeElement;
+                    if (focusedElement.classList.contains("btn")) {
+                        focusedElement.click();
+                    }
+                }
+            });
+
+            getFilingStatuses().then(value => {
+                if (value) {
+                    let elem = document.getElementById('filing_statuses');
+                    elem.innerHTML = value;
+                }
+            });
+        </script>
+</body>
+</html>

@@ -10,6 +10,8 @@ import requests
 from django.conf import settings
 from django.views.decorators.http import require_http_methods
 
+from efile.utils.jurisdiction_stuff import get_jurisdiction_from_request
+
 from ..utils.str_dist import levenshtein_distance
 from ..utils.zip_to_county_il import get_county_by_zip
 from .base import APIResponseMixin
@@ -80,7 +82,7 @@ class DropdownAPIViews(APIResponseMixin):
         try:
             # Get required parameters
             court_code = request.GET.get("court")
-            jurisdiction = request.GET.get("jurisdiction")
+            jurisdiction = get_jurisdiction_from_request(request)
             guessed_category = request.GET.get("guessed_case_category")
 
             if not jurisdiction:
@@ -126,7 +128,7 @@ class DropdownAPIViews(APIResponseMixin):
             # Get required parameters
             court_code = request.GET.get("court")
             category_id = request.GET.get("parent")  # category_id from case category dropdown
-            jurisdiction = request.GET.get("jurisdiction")
+            jurisdiction = get_jurisdiction_from_request(request)
             guessed_type = request.GET.get("guessed_case_type")
 
             if not jurisdiction:
@@ -171,7 +173,7 @@ class DropdownAPIViews(APIResponseMixin):
             court_code = request.GET.get("court")
             case_type_id = request.GET.get("case_type") or request.GET.get("parent")  # Support both flows
             case_category_id = request.GET.get("case_category")
-            jurisdiction = request.GET.get("jurisdiction")
+            jurisdiction = get_jurisdiction_from_request(request)
             existing_case = request.GET.get("existing_case")
             guessed_filing_type = request.GET.get("guessed_filing_type")
 
@@ -225,7 +227,7 @@ class DropdownAPIViews(APIResponseMixin):
     def get_courts(request):
         """Get available courts based on user location/preferences"""
         try:
-            jurisdiction = request.GET.get("jurisdiction", "")
+            jurisdiction = get_jurisdiction_from_request(request)
             user_zip = request.GET.get("user_zip")
             user_county = request.GET.get("user_county")
             guessed_court = request.GET.get("guessed_court", "")
