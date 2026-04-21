@@ -93,6 +93,7 @@
         <script src="{% url 'javascript-catalog' %}"></script>
         <script src="{% static 'js/api-utils.js' %}"></script>
         <script>
+            let is_logged_in = "{{is_logged_in}}" === "True";
             // Function to save existing_case data and redirect to expert form or case details
             function goToExpertForm(new_or_existing) {
                 if (new_or_existing === "new") {
@@ -109,7 +110,7 @@
             async function checkExistingCaseData() {
                 // Check if there's an API endpoint to retrieve saved case data
                 const result = await apiUtils.getCaseData();
-                if (
+                if (is_logged_in &&
                     result.success &&
                     result.data &&
                     Object.keys(result.data).length > 0

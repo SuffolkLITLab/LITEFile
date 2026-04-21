@@ -26,25 +26,39 @@
      aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="profileModalLabel">{% translate "Profile Info" %}</h5>
-                <button type="button"
-                        class="btn-close"
-                        data-bs-dismiss="modal"
-                        aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>
-                    {% blocktranslate %}Welcome to {{ config.jurisdiction.name }}. Here you can manage your filings and account.{% endblocktranslate %}
-                </p>
-                <div class="mb-3">
-                    <span class="form-label">{% translate "Current email" %}</span>: {{ user.username }}
+            {% if is_logged_in %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="profileModalLabel">{% translate "Profile Info" %}</h5>
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"
+                            aria-label="Close"></button>
                 </div>
-                <div class="mb-3">
-                    <span class="form-label">{% translate "Current Jurisdiction" %}</span>: {{ jurisdiction }}
+                <div class="modal-body">
+                    <p>
+                        {% blocktranslate with name=config.jurisdiction.name %}Welcome to {{ name }}. Here you can manage your filings and account.{% endblocktranslate %}
+                    </p>
+                    <div class="mb-3">
+                        <span class="form-label">{% translate "Current email" %}</span>: {{ user.username }}
+                    </div>
+                    <div class="mb-3">
+                        <span class="form-label">{% translate "Current Jurisdiction" %}</span>: {{ jurisdiction }}
+                    </div>
+                    <button type="button" class="btn btn-danger w-100" onclick="logout()">{% translate "Sign out" %}</button>
                 </div>
-                <button type="button" class="btn btn-danger w-100" onclick="logout()">Logout</button>
-            </div>
+            {% else %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="profileModalLabel">{% translate "Sign in to get started" %}</h5>
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>{% blocktranslate with name=config.jurisdiction.name %}Welcome to {{ name }}.{% endblocktranslate %}</p>
+                    <button type="button" class="btn btn-primary w-100" onclick="login()">{% translate "Sign in" %}</button>
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>
@@ -91,5 +105,9 @@
             // Fallback if fetch fails
             window.location.href = '/jurisdiction/{{jurisdiction}}/logout/';
         });
+    }
+
+    function login() {
+        window.location.href = '/jurisdiction/{{jurisdiction}}/login/';
     }
 </script>

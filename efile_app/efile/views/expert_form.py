@@ -2,6 +2,8 @@ import logging
 
 from django.shortcuts import redirect, render
 
+from efile.api.suffolk_api_views import get_tyler_token
+
 from ..utils.case_data_utils import get_upload_data
 
 logger = logging.getLogger(__name__)
@@ -42,8 +44,12 @@ def efile_expert_form(request, jurisdiction):
         party_fields = ["petitioner_first_name", "petitioner_last_name", "new_first_name", "new_last_name"]
         has_party_info = all(case_data.get(field) for field in party_fields)
 
+    is_logged_in = request.user.is_authenticated
+    if not get_tyler_token(request, jurisdiction):
+        is_logged_in = False
     # Display the form for data collection with existing data populated
     context = {
+        "is_logged_in": is_logged_in,
         "case_data": case_data,
         "guessed_court": upload_data.get("guesses", {}).get("court"),
         "guessed_case_category": upload_data.get("guesses", {}).get("case type"),
