@@ -192,11 +192,13 @@ class TestAuthAPIs:
         """Test profile API returns user data when authenticated."""
         username = get_test_username()
         password = get_test_password()
-        client.post(
+        response_one = client.post(
             "/api/auth/login/",
             content_type="application/json",
             data=json.dumps({"username": username, "password": password, "jurisdiction": "illinois"}),
         )
+
+        assert response_one.status_code == 200
 
         response = client.get(
             "/api/auth/profile/", {"jurisdiction": "illinois"}, HTTP_X_REQUESTED_WITH="XMLHttpRequest"
