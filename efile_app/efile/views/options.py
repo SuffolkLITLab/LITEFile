@@ -1,5 +1,7 @@
 from django.shortcuts import render
 
+from efile.api.suffolk_api_views import get_tyler_token
+
 from ..utils.case_data_utils import get_case_data
 
 
@@ -11,9 +13,16 @@ def efile_options(request, jurisdiction):
     else:
         case_data = {}
 
+    is_logged_in = request.user.is_authenticated
+    if not get_tyler_token(request, jurisdiction):
+        is_logged_in = False
+
+    is_logged_in = request.user.is_authenticated
+    if not get_tyler_token(request, jurisdiction):
+        is_logged_in = False
     # Pass case data to template for display
     context = {
-        "is_logged_in": request.user.is_authenticated,
+        "is_logged_in": is_logged_in,
         "case_data": case_data,
         "has_case_data": bool(case_data),
     }

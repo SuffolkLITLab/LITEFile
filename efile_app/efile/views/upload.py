@@ -4,6 +4,8 @@ from django.contrib import messages
 from django.shortcuts import redirect, render
 from django.utils.translation import gettext
 
+from efile.api.suffolk_api_views import get_tyler_token
+
 from ..utils.case_data_utils import (
     get_case_classification,
     get_case_data,
@@ -42,7 +44,11 @@ def efile_upload(request, jurisdiction):
 
     upload_data = get_upload_data(request)
 
+    is_logged_in = request.user.is_authenticated
+    if not get_tyler_token(request, jurisdiction):
+        is_logged_in = False
     context = {
+        "is_logged_in": is_logged_in,
         "case_data": case_data,
         "upload_data": upload_data,
         "petitioner_info": petitioner_info,
