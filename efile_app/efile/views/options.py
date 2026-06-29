@@ -3,7 +3,7 @@ from django.shortcuts import render
 from efile.api.suffolk_api_views import get_tyler_token
 
 from ..utils.case_data_utils import get_case_data
-from ..workflow import get_workflow_context
+from ..workflow import WorkflowStepKey, get_workflow_context
 
 
 def efile_options(request, jurisdiction):
@@ -24,6 +24,6 @@ def efile_options(request, jurisdiction):
         "case_data": case_data,
         "has_case_data": bool(case_data),
     }
-    context.update(get_workflow_context("options", jurisdiction))
+    context.update(get_workflow_context(WorkflowStepKey.OPTIONS, jurisdiction))
 
     return render(request, "efile/options.html", context)
