@@ -1,5 +1,5 @@
-from django.urls import reverse
 import pytest
+from django.urls import reverse
 
 from efile.workflow import (
     FILING_WORKFLOW,
@@ -11,7 +11,6 @@ from efile.workflow import (
     get_workflow_context,
     get_workflow_steps,
 )
-
 
 EXPECTED_WORKFLOW_KEYS = [
     WorkflowStepKey.OPTIONS,
