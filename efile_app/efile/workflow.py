@@ -1,3 +1,22 @@
+"""Central filing workflow registry.
+
+Use FILING_WORKFLOW as the single high-level map of the filing flow.
+
+To add a step:
+1. Add the URL route and view.
+2. Add a WorkflowStep entry in the desired position below.
+3. Add get_workflow_context("step_key", jurisdiction) to that view's context.
+4. Update any navigation copy that mentions the surrounding steps.
+5. Update efile/tests/test_workflow.py.
+
+To rearrange steps:
+1. Reorder FILING_WORKFLOW.
+2. Update affected labels, navigation copy, and workflow tests.
+
+This registry is intentionally linear for now. Future branching should be added
+here after the durable filing draft model exists as the workflow state source.
+"""
+
 from dataclasses import dataclass
 
 from django.urls import reverse
