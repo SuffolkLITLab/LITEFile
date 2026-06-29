@@ -1,5 +1,5 @@
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Iterable, Optional
 
 from django.urls import reverse
 
@@ -42,14 +42,14 @@ def get_step_index(step_key: str) -> int:
     raise KeyError(f"Unknown workflow step: {step_key}")
 
 
-def get_previous_step(step_key: str) -> Optional[WorkflowStep]:
+def get_previous_step(step_key: str):
     index = get_step_index(step_key)
     if index == 0:
         return None
     return FILING_WORKFLOW[index - 1]
 
 
-def get_next_step(step_key: str) -> Optional[WorkflowStep]:
+def get_next_step(step_key: str):
     index = get_step_index(step_key)
     try:
         return FILING_WORKFLOW[index + 1]
