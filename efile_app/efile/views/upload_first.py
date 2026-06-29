@@ -12,6 +12,7 @@ from ..utils.case_data_utils import (
     get_upload_data,
 )
 from ..utils.django_helpers import flush_cache_stay_logged_in
+from ..workflow import get_workflow_context
 
 logger = logging.getLogger(__name__)
 
@@ -55,5 +56,6 @@ def efile_upload_first(request, jurisdiction):
         "name_sought_info": name_sought_info,
         "case_classification": case_classification,
     }
+    context.update(get_workflow_context("upload_first", jurisdiction))
 
     return render(request, "efile/upload_first.html", context)
