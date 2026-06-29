@@ -13,7 +13,7 @@ from ..utils.case_data_utils import (
     get_petitioner_info,
     get_upload_data,
 )
-from ..workflow import get_workflow_context
+from ..workflow import WorkflowStepKey, get_workflow_context
 
 logger = logging.getLogger(__name__)
 
@@ -58,6 +58,6 @@ def efile_upload(request, jurisdiction):
         "filing_type_raw": case_classification["filing_type"],
         "court_raw": case_classification["court"],
     }
-    context.update(get_workflow_context("documents", jurisdiction))
+    context.update(get_workflow_context(WorkflowStepKey.DOCUMENTS, jurisdiction))
 
     return render(request, "efile/upload.html", context)
