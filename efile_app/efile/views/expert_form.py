@@ -5,6 +5,7 @@ from django.shortcuts import redirect, render
 from efile.api.suffolk_api_views import get_tyler_token
 
 from ..utils.case_data_utils import get_upload_data
+from ..workflow import get_workflow_context
 
 logger = logging.getLogger(__name__)
 
@@ -59,5 +60,6 @@ def efile_expert_form(request, jurisdiction):
         "missing_required_fields": not has_all_required,
         "missing_party_info": has_all_required and not has_party_info,
     }
+    context.update(get_workflow_context("case_information", jurisdiction))
 
     return render(request, "efile/expert_form.html", context)
