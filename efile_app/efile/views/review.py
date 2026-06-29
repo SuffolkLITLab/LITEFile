@@ -7,6 +7,7 @@ from django.shortcuts import redirect, render
 from efile.api.suffolk_api_views import get_tyler_token
 
 from ..utils.case_data_utils import get_case_classification, get_case_data, get_name_sought_info, get_petitioner_info
+from ..workflow import get_workflow_context
 
 logger = logging.getLogger(__name__)
 
@@ -112,5 +113,6 @@ def case_review(request, jurisdiction):
             "document_type": friendly_document_type,
         },
     }
+    context.update(get_workflow_context("review", jurisdiction))
 
     return render(request, "efile/review.html", context)
