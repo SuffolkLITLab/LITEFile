@@ -8,6 +8,8 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import ensure_csrf_cookie
 
+from efile.services.drafts import draft_snapshot, get_active_draft, update_draft_from_case_data
+
 logger = logging.getLogger(__name__)
 
 
@@ -23,9 +25,13 @@ class GetCaseDataView(View):
                 if value:
                     data[param_to_check] = value
 
+            draft = get_active_draft(request)
+            if draft:
+                data["filing_draft"] = draft_snapshot(draft)
+
             return JsonResponse({"success": True, "data": data})
         except Exception:
-            logger.exception("Error retrieving case data: {e}")
+            logger.exception("Error retrieving case data")
             return JsonResponse({"success": False, "error": "Server error occurred"}, status=500)
 
 
@@ -75,6 +81,10 @@ class SaveCaseDataView(View):
             request.session["case_data"] = case_data
             request.session.modified = True
 
+            draft = get_active_draft(request)
+            if draft:
+                update_draft_from_case_data(draft, case_data)
+
             logger.debug(f"Saved case data to session: {case_data}")
 
             return JsonResponse({"success": True, "message": "Case data saved successfully"})
@@ -82,7 +92,7 @@ class SaveCaseDataView(View):
         except json.JSONDecodeError:
             return JsonResponse({"success": False, "error": "Invalid JSON data"}, status=400)
         except Exception:
-            logger.exception("Error saving case data: {e}")
+            logger.exception("Error saving case data")
             return JsonResponse({"success": False, "error": "Server error occurred"}, status=500)
 
 
