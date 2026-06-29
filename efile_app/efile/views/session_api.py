@@ -8,6 +8,11 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
+from efile.services.legacy_draft_bridge import (
+    sync_current_draft_case_data,
+    sync_current_draft_upload_data,
+)
+
 from ..utils.case_data_utils import clear_case_data, clear_upload_data, get_upload_data
 from ..utils.llms import LlmError, extract_fields_from_file
 from ..utils.proxy_connection import get_party_type_code_from_api
@@ -219,6 +224,7 @@ def save_form_data_to_session(request):
         # Persist to session
         request.session["case_data"] = case_data
         request.session.modified = True
+        sync_current_draft_case_data(request, case_data)
 
         return JsonResponse({"success": True, "message": "Case data saved to session"})
 
@@ -271,6 +277,7 @@ def save_upload_first_data(request):
     # Save to session
     request.session["upload_data"] = upload_data
     request.session.modified = True
+    sync_current_draft_upload_data(request, upload_data)
 
     logger.info("Successfully saved upload data to session")
     return JsonResponse({"success": True, "message": "Upload data saved to session"})
@@ -309,6 +316,7 @@ def save_upload_data_to_session(request):
         # Save to session
         request.session["upload_data"] = upload_data
         request.session.modified = True
+        sync_current_draft_upload_data(request, upload_data)
 
         logger.info("Successfully saved upload data to session")
         return JsonResponse({"success": True, "message": "Upload data saved to session"})
@@ -580,6 +588,7 @@ def api_save_case_data(request):
 
         request.session["case_data"] = case_data
         request.session.modified = True
+        sync_current_draft_case_data(request, case_data)
 
         return JsonResponse(
             {"success": True, "data": {"existing_case": existing_case, "saved_fields": list(form_data.keys())}}
@@ -667,6 +676,7 @@ def fetch_and_save_party_type(request):
         case_data["petitioner_party_type"] = party_type_code
         request.session["case_data"] = case_data
         request.session.modified = True
+        sync_current_draft_case_data(request, case_data)
 
         logger.debug(f"Saved party type to session: {party_type_code}")
 
@@ -700,6 +710,7 @@ def save_party_type_to_session(request):
         case_data["available_party_types"] = party_types_available
         request.session["case_data"] = case_data
         request.session.modified = True
+        sync_current_draft_case_data(request, case_data)
 
         logger.debug(f"Saved party type to session: {party_type}")
 

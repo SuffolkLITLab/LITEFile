@@ -60,6 +60,12 @@ def get_workflow_steps() -> tuple[WorkflowStep, ...]:
     return FILING_WORKFLOW
 
 
+def get_workflow_step_choices() -> tuple[tuple[str, str], ...]:
+    """Return Django model choices derived from the workflow registry."""
+
+    return tuple((step.key.value, step.label) for step in FILING_WORKFLOW)
+
+
 def get_step(step_key: WorkflowStepKey | str) -> WorkflowStep:
     try:
         return next(step for step in FILING_WORKFLOW if step.key == step_key)

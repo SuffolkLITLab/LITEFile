@@ -2,7 +2,8 @@ from django.shortcuts import render
 from django.views.decorators.csrf import ensure_csrf_cookie
 
 from efile.api.suffolk_api_views import get_tyler_token
-from efile.services.drafts import draft_snapshot, get_active_draft
+from efile.services.current_drafts import get_current_draft
+from efile.services.drafts import draft_snapshot
 
 from ..utils.case_data_utils import get_case_data
 from ..workflow import WorkflowStepKey, get_workflow_context
@@ -14,7 +15,7 @@ def efile_options(request, jurisdiction):
     # Get case data from session
     if request.user.is_authenticated:
         case_data = get_case_data(request)
-        active_draft = get_active_draft(request)
+        active_draft = get_current_draft(request, jurisdiction=jurisdiction)
     else:
         case_data = {}
         active_draft = None

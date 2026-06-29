@@ -4,7 +4,8 @@ import logging
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 
-from efile.services.drafts import create_draft, draft_snapshot, get_active_draft
+from efile.services.current_drafts import create_current_draft, get_current_draft
+from efile.services.drafts import draft_snapshot
 from efile.utils.django_helpers import flush_cache_stay_logged_in
 from efile.workflow import WorkflowStepKey, get_step_url
 
@@ -19,12 +20,14 @@ def create_draft_view(request, jurisdiction):
         return JsonResponse({"success": False, "error": "Authentication required"}, status=401)
 
     try:
-        json.loads(request.body or "{}")
+        payload = json.loads(request.body or "{}")
     except json.JSONDecodeError:
         return JsonResponse({"success": False, "error": "Invalid JSON data"}, status=400)
+    if not isinstance(payload, dict):
+        return JsonResponse({"success": False, "error": "JSON body must be an object"}, status=400)
 
     flush_cache_stay_logged_in(request.session)
-    draft = create_draft(request, jurisdiction, current_step=WorkflowStepKey.UPLOAD_FIRST)
+    draft = create_current_draft(request, jurisdiction, current_step=WorkflowStepKey.UPLOAD_FIRST)
     logger.info("Created durable draft id=%s jurisdiction=%s", draft.pk, jurisdiction)
 
     return JsonResponse(
@@ -40,5 +43,8 @@ def create_draft_view(request, jurisdiction):
 def get_current_draft_view(request):
     """Return the durable draft attached to this session/user."""
 
-    draft = get_active_draft(request)
+    if not request.user.is_authenticated:
+        return JsonResponse({"success": False, "error": "Authentication required"}, status=401)
+
+    draft = get_current_draft(request)
     return JsonResponse({"success": True, "data": {"filing_draft": draft_snapshot(draft)}})

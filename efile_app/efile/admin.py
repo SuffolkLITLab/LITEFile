@@ -60,7 +60,6 @@ class FilingDraftAdmin(admin.ModelAdmin):
     list_filter = ("jurisdiction", "status", "current_step", "created_at", "updated_at")
     search_fields = (
         "id",
-        "session_id",
         "court_code",
         "court_name",
         "case_type_code",

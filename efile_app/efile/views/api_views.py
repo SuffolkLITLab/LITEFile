@@ -8,7 +8,9 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import ensure_csrf_cookie
 
-from efile.services.drafts import draft_snapshot, get_active_draft, update_draft_from_case_data
+from efile.services.current_drafts import get_current_draft
+from efile.services.drafts import draft_snapshot
+from efile.services.legacy_draft_bridge import sync_current_draft_case_data
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +27,7 @@ class GetCaseDataView(View):
                 if value:
                     data[param_to_check] = value
 
-            draft = get_active_draft(request)
+            draft = get_current_draft(request, resume_latest=False)
             if draft:
                 data["filing_draft"] = draft_snapshot(draft)
 
@@ -81,9 +83,7 @@ class SaveCaseDataView(View):
             request.session["case_data"] = case_data
             request.session.modified = True
 
-            draft = get_active_draft(request)
-            if draft:
-                update_draft_from_case_data(draft, case_data)
+            sync_current_draft_case_data(request, case_data)
 
             logger.debug(f"Saved case data to session: {case_data}")
 

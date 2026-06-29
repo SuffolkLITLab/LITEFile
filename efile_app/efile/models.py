@@ -4,6 +4,8 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
 
+from efile.workflow import WorkflowStepKey, get_workflow_step_choices
+
 
 class UserProfile(AbstractUser):
     """
@@ -40,27 +42,18 @@ class FilingDraft(models.Model):
         ERROR = "error", "Error"
         ABANDONED = "abandoned", "Abandoned"
 
-    class WorkflowStep(models.TextChoices):
-        OPTIONS = "options", "Options"
-        UPLOAD_FIRST = "upload_first", "Upload lead document"
-        CASE_INFORMATION = "case_information", "Case information"
-        DOCUMENTS = "documents", "Documents"
-        PAYMENT = "payment", "Payment"
-        REVIEW = "review", "Review"
-        CONFIRMATION = "confirmation", "Confirmation"
-
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        blank=True,
-        null=True,
         on_delete=models.CASCADE,
         related_name="filing_drafts",
     )
-    session_key = models.CharField(max_length=80, blank=True, db_index=True)
-    session_id = models.CharField(max_length=100, blank=True, db_index=True)
     jurisdiction = models.CharField(max_length=40, db_index=True)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT, db_index=True)
-    current_step = models.CharField(max_length=64, choices=WorkflowStep.choices, default=WorkflowStep.OPTIONS)
+    current_step = models.CharField(
+        max_length=64,
+        choices=get_workflow_step_choices(),
+        default=WorkflowStepKey.OPTIONS,
+    )
 
     existing_case = models.CharField(max_length=20, blank=True)
     court_code = models.CharField(max_length=100, blank=True)
@@ -94,9 +87,9 @@ class FilingDraft(models.Model):
     class Meta:
         ordering = ["-updated_at"]
         indexes = [
-            models.Index(fields=["user", "status"]),
-            models.Index(fields=["jurisdiction", "status"]),
-            models.Index(fields=["status", "updated_at"]),
+            models.Index(fields=["user", "status"], name="draft_user_status_idx"),
+            models.Index(fields=["jurisdiction", "status"], name="draft_jurisdiction_status_idx"),
+            models.Index(fields=["status", "updated_at"], name="draft_status_updated_idx"),
         ]
 
     def __str__(self):
@@ -104,7 +97,7 @@ class FilingDraft(models.Model):
 
     def mark_submitted(self, response_data):
         self.status = self.Status.SUBMITTED
-        self.current_step = self.WorkflowStep.CONFIRMATION
+        self.current_step = WorkflowStepKey.CONFIRMATION
         self.submission_response = response_data or {}
         self.submitted_at = timezone.now()
         self.save(update_fields=["status", "current_step", "submission_response", "submitted_at", "updated_at"])
@@ -149,7 +142,9 @@ class FilingDocument(models.Model):
     class Meta:
         ordering = ["role", "sort_order", "created_at"]
         constraints = [
-            models.UniqueConstraint(fields=["draft", "role", "sort_order"], name="unique_document_order_per_draft_role"),
+            models.UniqueConstraint(
+                fields=["draft", "role", "sort_order"], name="unique_document_order_per_draft_role"
+            ),
         ]
 
     def __str__(self):

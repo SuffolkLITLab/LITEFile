@@ -4,12 +4,16 @@ import pytest
 from django.urls import reverse
 
 from efile.models import FilingDocument, FilingDraft, FilingParty
-from efile.services.drafts import draft_snapshot, sync_documents_from_upload_data, update_draft_from_case_data
+from efile.services.current_drafts import CURRENT_DRAFT_SESSION_KEY, get_current_draft
+from efile.services.drafts import draft_snapshot
+from efile.services.legacy_draft_bridge import sync_documents_from_upload_data, update_draft_from_case_data
+from efile.workflow import WorkflowStepKey, get_workflow_step_choices
 
 
 @pytest.mark.django_db
-def test_update_draft_from_case_data_normalizes_known_fields():
-    draft = FilingDraft.objects.create(jurisdiction="illinois")
+def test_update_draft_from_case_data_normalizes_known_fields(django_user_model):
+    user = django_user_model.objects.create_user(username="draft-owner", tyler_jurisdiction="illinois")
+    draft = FilingDraft.objects.create(user=user, jurisdiction="illinois")
     case_data = {
         "court": "cook:cd",
         "court_name": "Cook County Circuit Court",
@@ -31,10 +35,10 @@ def test_update_draft_from_case_data_normalizes_known_fields():
         "new_last_name": "Lovelace",
     }
 
-    update_draft_from_case_data(draft, case_data, current_step=FilingDraft.WorkflowStep.CASE_INFORMATION)
+    update_draft_from_case_data(draft, case_data, current_step=WorkflowStepKey.CASE_INFORMATION)
     draft.refresh_from_db()
 
-    assert draft.current_step == FilingDraft.WorkflowStep.CASE_INFORMATION
+    assert draft.current_step == WorkflowStepKey.CASE_INFORMATION
     assert draft.court_code == "cook:cd"
     assert draft.case_category_code == "MR"
     assert draft.case_type_code == "Name Change"
@@ -54,8 +58,9 @@ def test_update_draft_from_case_data_normalizes_known_fields():
 
 
 @pytest.mark.django_db
-def test_sync_documents_from_upload_data_creates_lead_and_supporting_documents():
-    draft = FilingDraft.objects.create(jurisdiction="illinois")
+def test_sync_documents_from_upload_data_creates_lead_and_supporting_documents(django_user_model):
+    user = django_user_model.objects.create_user(username="document-owner", tyler_jurisdiction="illinois")
+    draft = FilingDraft.objects.create(user=user, jurisdiction="illinois")
     upload_data = {
         "files": {
             "lead": {
@@ -88,10 +93,10 @@ def test_sync_documents_from_upload_data_creates_lead_and_supporting_documents()
         ],
     }
 
-    sync_documents_from_upload_data(draft, upload_data, current_step=FilingDraft.WorkflowStep.DOCUMENTS)
+    sync_documents_from_upload_data(draft, upload_data, current_step=WorkflowStepKey.DOCUMENTS)
     draft.refresh_from_db()
 
-    assert draft.current_step == FilingDraft.WorkflowStep.DOCUMENTS
+    assert draft.current_step == WorkflowStepKey.DOCUMENTS
     assert draft.extracted_guesses == {"court": "Cook County"}
 
     lead = FilingDocument.objects.get(draft=draft, role=FilingDocument.Role.LEAD)
@@ -106,11 +111,13 @@ def test_sync_documents_from_upload_data_creates_lead_and_supporting_documents()
 
 
 @pytest.mark.django_db
-def test_draft_snapshot_is_json_serializable():
-    draft = FilingDraft.objects.create(jurisdiction="illinois", court_code="cook:cd")
+def test_draft_snapshot_is_json_serializable(django_user_model):
+    user = django_user_model.objects.create_user(username="snapshot-owner", tyler_jurisdiction="illinois")
+    draft = FilingDraft.objects.create(user=user, jurisdiction="illinois", court_code="cook:cd")
 
     snapshot = draft_snapshot(draft)
 
+    assert snapshot is not None
     assert snapshot["id"] == draft.pk
     assert snapshot["court_code"] == "cook:cd"
     json.dumps(snapshot)
@@ -138,5 +145,116 @@ def test_create_draft_view_creates_durable_draft(client, django_user_model):
 
     draft = FilingDraft.objects.get(user=user)
     assert draft.jurisdiction == "illinois"
-    assert draft.current_step == FilingDraft.WorkflowStep.UPLOAD_FIRST
+    assert draft.current_step == WorkflowStepKey.UPLOAD_FIRST
     assert payload["data"]["filing_draft"]["id"] == draft.pk
+
+
+@pytest.mark.django_db
+def test_current_draft_enforces_owner(client, django_user_model):
+    illinois_user = django_user_model.objects.create_user(username="illinois-user", tyler_jurisdiction="illinois")
+    other_user = django_user_model.objects.create_user(username="other-user", tyler_jurisdiction="massachusetts")
+    other_draft = FilingDraft.objects.create(user=other_user, jurisdiction="illinois")
+    expected_draft = FilingDraft.objects.create(user=illinois_user, jurisdiction="illinois")
+
+    client.force_login(illinois_user)
+    session = client.session
+    session[CURRENT_DRAFT_SESSION_KEY] = other_draft.pk
+    session.save()
+
+    response = client.get(reverse("get_current_draft"))
+
+    assert response.status_code == 200
+    assert response.json()["data"]["filing_draft"]["id"] == expected_draft.pk
+
+
+@pytest.mark.django_db
+def test_current_draft_does_not_cross_jurisdictions(client, django_user_model):
+    user = django_user_model.objects.create_user(username="multi-state-user", tyler_jurisdiction="illinois")
+    illinois_draft = FilingDraft.objects.create(user=user, jurisdiction="illinois")
+    massachusetts_draft = FilingDraft.objects.create(user=user, jurisdiction="massachusetts")
+    client.force_login(user)
+    session = client.session
+    session[CURRENT_DRAFT_SESSION_KEY] = massachusetts_draft.pk
+    session.save()
+
+    request = type("Request", (), {"user": user, "session": client.session})()
+    current = get_current_draft(request, jurisdiction="illinois")
+
+    assert current == illinois_draft
+
+
+@pytest.mark.django_db
+def test_legacy_case_endpoint_mirrors_into_current_draft(client, django_user_model):
+    user = django_user_model.objects.create_user(username="bridge-user", tyler_jurisdiction="illinois")
+    client.force_login(user)
+    client.post(
+        reverse("create_draft", kwargs={"jurisdiction": "illinois"}),
+        data={},
+        content_type="application/json",
+    )
+
+    response = client.post(
+        reverse("save_case_data_api"),
+        data={
+            "jurisdiction": "illinois",
+            "data": {
+                "existing_case": "no",
+                "court": "cook:cd",
+                "case_type": "Name Change",
+                "petitioner_first_name": "Ada",
+                "petitioner_last_name": "Lovelace",
+            },
+        },
+        content_type="application/json",
+    )
+
+    assert response.status_code == 200
+    draft = FilingDraft.objects.get(user=user)
+    assert draft.court_code == "cook:cd"
+    assert draft.case_type_code == "Name Change"
+    assert draft.parties.get(role="petitioner").first_name == "Ada"
+
+
+@pytest.mark.django_db
+def test_model_step_choices_follow_workflow_registry():
+    current_step = FilingDraft._meta.get_field("current_step")
+
+    assert tuple(current_step.choices) == get_workflow_step_choices()
+
+
+@pytest.mark.django_db
+def test_legacy_partial_case_update_does_not_clear_omitted_fields(django_user_model):
+    user = django_user_model.objects.create_user(username="partial-update-user", tyler_jurisdiction="illinois")
+    draft = FilingDraft.objects.create(
+        user=user,
+        jurisdiction="illinois",
+        court_code="old-code",
+        court_name="Court name to preserve",
+    )
+
+    update_draft_from_case_data(draft, {"court": "new-code"})
+    draft.refresh_from_db()
+
+    assert draft.court_code == "new-code"
+    assert draft.court_name == "Court name to preserve"
+
+
+@pytest.mark.django_db
+def test_legacy_upload_sync_removes_state_missing_from_complete_blob(django_user_model):
+    user = django_user_model.objects.create_user(username="upload-replace-user", tyler_jurisdiction="illinois")
+    draft = FilingDraft.objects.create(
+        user=user,
+        jurisdiction="illinois",
+        extracted_guesses={"court": "Old guess"},
+    )
+    FilingDocument.objects.create(
+        draft=draft,
+        role=FilingDocument.Role.LEAD,
+        name="old.pdf",
+    )
+
+    sync_documents_from_upload_data(draft, {"files": {}, "guesses": {}})
+    draft.refresh_from_db()
+
+    assert draft.extracted_guesses == {}
+    assert not draft.documents.exists()
