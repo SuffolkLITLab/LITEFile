@@ -12,7 +12,7 @@ from typing import Any
 from django.db import transaction
 from django.db.models import QuerySet
 
-from efile.models import FilingDraft
+from efile.models import FilingDocument, FilingDraft, FilingParty
 from efile.workflow import WorkflowStepKey
 
 ACTIVE_DRAFT_STATUSES = (FilingDraft.Status.DRAFT, FilingDraft.Status.ERROR)
@@ -101,8 +101,8 @@ def draft_snapshot(draft: FilingDraft | None) -> dict[str, Any] | None:
         "selected_payment_account_name": draft.selected_payment_account_name,
         "optional_services": draft.optional_services,
         "extracted_guesses": draft.extracted_guesses,
-        "document_count": draft.documents.count(),
-        "party_count": draft.parties.count(),
+        "document_count": FilingDocument.objects.filter(draft=draft).count(),
+        "party_count": FilingParty.objects.filter(draft=draft).count(),
         "created_at": draft.created_at.isoformat() if draft.created_at else None,
         "updated_at": draft.updated_at.isoformat() if draft.updated_at else None,
         "submitted_at": draft.submitted_at.isoformat() if draft.submitted_at else None,

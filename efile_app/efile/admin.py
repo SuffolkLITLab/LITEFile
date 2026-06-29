@@ -1,3 +1,5 @@
+from typing import Any, cast
+
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
@@ -28,7 +30,7 @@ class FilingPartyInline(admin.TabularInline):
 
 @admin.register(UserProfile)
 class UserProfileAdmin(UserAdmin):
-    fieldsets = UserAdmin.fieldsets + (
+    fieldsets = cast(tuple[Any, ...], UserAdmin.fieldsets) + (
         (
             "eFile profile",
             {

@@ -59,12 +59,14 @@ def test_get_previous_step_returns_none_for_first_step():
 def test_get_previous_step_returns_prior_step():
     previous_step = get_previous_step(WorkflowStepKey.CASE_INFORMATION)
 
+    assert previous_step is not None
     assert previous_step.key == WorkflowStepKey.UPLOAD_FIRST
 
 
 def test_get_next_step_returns_following_step():
     next_step = get_next_step(WorkflowStepKey.CASE_INFORMATION)
 
+    assert next_step is not None
     assert next_step.key == WorkflowStepKey.DOCUMENTS
 
 
