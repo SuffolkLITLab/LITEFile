@@ -4,6 +4,7 @@ import uuid
 from django.shortcuts import redirect, render
 
 from efile.api.suffolk_api_views import get_tyler_token
+from efile.services.drafts import draft_snapshot, ensure_draft
 
 from ..utils.case_data_utils import (
     get_case_classification,
@@ -38,6 +39,8 @@ def efile_upload_first(request, jurisdiction):
         request.session["jurisdiction"] = jurisdiction
         request.session.modified = True
 
+    filing_draft = ensure_draft(request, jurisdiction, current_step=WorkflowStepKey.UPLOAD_FIRST)
+
     # Could visit here from a back button press, so use upload data if any
     upload_data = get_upload_data(request)
 
@@ -52,6 +55,7 @@ def efile_upload_first(request, jurisdiction):
     context = {
         "is_logged_in": is_logged_in,
         "upload_data": upload_data,
+        "filing_draft": draft_snapshot(filing_draft),
         "petitioner_info": petitioner_info,
         "name_sought_info": name_sought_info,
         "case_classification": case_classification,
