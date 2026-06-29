@@ -2,7 +2,7 @@ from django.shortcuts import render
 
 from efile.api.suffolk_api_views import get_tyler_token
 
-from ..workflow import get_workflow_context
+from ..workflow import WorkflowStepKey, get_workflow_context
 
 
 def filing_confirmation(request, jurisdiction):
@@ -19,6 +19,6 @@ def filing_confirmation(request, jurisdiction):
         "page_title": "Filing Confirmation",
         "success_message": "Your filing has been successfully submitted!",
     }
-    context.update(get_workflow_context("confirmation", jurisdiction))
+    context.update(get_workflow_context(WorkflowStepKey.CONFIRMATION, jurisdiction))
 
     return render(request, "efile/confirmation.html", context)
