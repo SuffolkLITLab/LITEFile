@@ -19,6 +19,9 @@ def efile_payment(request, jurisdiction):
     if not request.user.is_authenticated:
         return redirect("efile_login", jurisdiction=jurisdiction)
 
+    if not get_tyler_token(request, jurisdiction):
+        return redirect("efile_login", jurisdiction=jurisdiction)
+
     # Get case data from session
     case_data = get_case_data(request)
     logger.debug("Review view case_data %s", case_data)
@@ -37,11 +40,8 @@ def efile_payment(request, jurisdiction):
 
     new_toga_url = f"{settings.EFSP_URL}/jurisdictions/{jurisdiction}/payments/new-toga-account"
 
-    is_logged_in = request.user.is_authenticated
-    if not get_tyler_token(request, jurisdiction):
-        is_logged_in = False
     context = {
-        "is_logged_in": is_logged_in,
+        "is_logged_in": True,
         "new_toga_url": new_toga_url,
         "case_data": case_data,
         "filing_draft": draft_snapshot(filing_draft),
