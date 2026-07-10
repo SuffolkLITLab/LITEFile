@@ -26,6 +26,9 @@ def efile_upload(request, jurisdiction):
     if not request.user.is_authenticated:
         return redirect("efile_login", jurisdiction=jurisdiction)
 
+    if not get_tyler_token(request, jurisdiction):
+        return redirect("efile_login", jurisdiction=jurisdiction)
+
     case_data = get_case_data(request)
 
     if not case_data:
@@ -44,11 +47,8 @@ def efile_upload(request, jurisdiction):
 
     upload_data = get_upload_data(request)
 
-    is_logged_in = request.user.is_authenticated
-    if not get_tyler_token(request, jurisdiction):
-        is_logged_in = False
     context = {
-        "is_logged_in": is_logged_in,
+        "is_logged_in": True,
         "case_data": case_data,
         "upload_data": upload_data,
         "filing_draft": draft_snapshot(filing_draft),
