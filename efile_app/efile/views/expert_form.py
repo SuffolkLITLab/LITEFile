@@ -20,6 +20,9 @@ def efile_expert_form(request, jurisdiction):
     if not request.user.is_authenticated:
         return redirect("efile_login", jurisdiction=jurisdiction)
 
+    if not get_tyler_token(request, jurisdiction):
+        return redirect("efile_login", jurisdiction=jurisdiction)
+
     filing_draft = ensure_current_draft(request, jurisdiction, current_step=WorkflowStepKey.CASE_INFORMATION)
 
     # Get auth tokens from session if available
@@ -49,12 +52,9 @@ def efile_expert_form(request, jurisdiction):
         party_fields = ["petitioner_first_name", "petitioner_last_name", "new_first_name", "new_last_name"]
         has_party_info = all(case_data.get(field) for field in party_fields)
 
-    is_logged_in = request.user.is_authenticated
-    if not get_tyler_token(request, jurisdiction):
-        is_logged_in = False
     # Display the form for data collection with existing data populated
     context = {
-        "is_logged_in": is_logged_in,
+        "is_logged_in": True,
         "case_data": case_data,
         "filing_draft": draft_snapshot(filing_draft),
         "guessed_court": upload_data.get("guesses", {}).get("court"),
