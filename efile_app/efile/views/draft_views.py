@@ -4,6 +4,7 @@ import logging
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 
+from efile.api.suffolk_api_views import get_tyler_token
 from efile.services.current_drafts import create_current_draft, get_current_draft
 from efile.services.drafts import draft_snapshot
 from efile.utils.django_helpers import flush_cache_stay_logged_in
@@ -18,6 +19,8 @@ def create_draft_view(request, jurisdiction):
 
     if not request.user.is_authenticated:
         return JsonResponse({"success": False, "error": "Authentication required"}, status=401)
+    if not get_tyler_token(request, jurisdiction):
+        return JsonResponse({"success": False, "error": "Jurisdiction authorization required"}, status=403)
 
     try:
         payload = json.loads(request.body or "{}")
