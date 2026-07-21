@@ -16,6 +16,9 @@ from efile.models import FilingDocument, FilingDraft, FilingParty
 from efile.workflow import WorkflowStepKey
 
 ACTIVE_DRAFT_STATUSES = (FilingDraft.Status.DRAFT, FilingDraft.Status.ERROR)
+# A draft mid-submission is still the user's current draft (so the submit flow can
+# read its own data), but it is not offered for resume in listings.
+CURRENT_DRAFT_STATUSES = (*ACTIVE_DRAFT_STATUSES, FilingDraft.Status.SUBMITTING)
 
 
 def active_drafts_for(user, *, jurisdiction: str | None = None) -> QuerySet[FilingDraft]:
@@ -32,10 +35,14 @@ def get_active_draft(
     user,
     draft_id: int | str | None = None,
     jurisdiction: str | None = None,
+    statuses: tuple[str, ...] = ACTIVE_DRAFT_STATUSES,
 ) -> FilingDraft | None:
-    """Get an owned active draft by ID, or the user's most recent draft."""
+    """Get an owned draft by ID, or the user's most recent one, within ``statuses``."""
 
-    drafts = active_drafts_for(user, jurisdiction=jurisdiction)
+    drafts = FilingDraft.objects.filter(user=user, status__in=statuses)
+    if jurisdiction is not None:
+        drafts = drafts.filter(jurisdiction=jurisdiction)
+    drafts = drafts.order_by("-updated_at")
     if draft_id is not None:
         return drafts.filter(pk=draft_id).first()
     return drafts.first()
@@ -83,13 +90,15 @@ _MISSING = object()
 
 # Draft scalar column -> the wire keys it may arrive under (first present wins).
 _DRAFT_FIELD_SOURCES: dict[str, tuple[str, ...]] = {
-    "court_code": ("court",),
+    "court_code": ("court", "court_code"),
     "court_name": ("court_name",),
-    "case_category_code": ("case_category",),
+    # The dropdown flow sends the bare name ("case_category"); the existing-case
+    # lookup sends the explicit "*_code" form. Accept both.
+    "case_category_code": ("case_category", "case_category_code"),
     "case_category_name": ("case_category_name",),
-    "case_type_code": ("case_type",),
+    "case_type_code": ("case_type", "case_type_code"),
     "case_type_name": ("case_type_name",),
-    "case_subtype_code": ("case_subtype",),
+    "case_subtype_code": ("case_subtype", "case_subtype_code"),
     "case_subtype_name": ("case_subtype_name",),
     "filing_type_code": ("filing_type", "filing_type_id"),
     "filing_type_name": ("filing_type_name",),

@@ -132,6 +132,33 @@ def test_case_data_round_trips_through_the_model(django_user_model):
 
 
 @pytest.mark.django_db
+def test_existing_case_lookup_codes_are_persisted(django_user_model):
+    """The existing-case lookup sends *_code keys; they must not be dropped."""
+    user = django_user_model.objects.create_user(username="existing-case-owner", tyler_jurisdiction="illinois")
+    draft = FilingDraft.objects.create(user=user, jurisdiction="illinois")
+
+    write_case_data(
+        draft,
+        {
+            "existing_case": "yes",
+            "court": "cook:cd",
+            "case_category_code": "MR",
+            "case_category_name": "Miscellaneous Remedy",
+            "case_type_code": "Name Change",
+            "case_type_name": "Change of Name",
+            "case_tracking_id": "track-1",
+            "case_docket_id": "2024-MR-1",
+        },
+    )
+    draft.refresh_from_db()
+
+    assert draft.case_category_code == "MR"
+    assert draft.case_type_code == "Name Change"
+    assert draft.previous_case_id == "track-1"
+    assert draft.docket_number == "2024-MR-1"
+
+
+@pytest.mark.django_db
 def test_write_upload_data_creates_lead_and_supporting_documents(django_user_model):
     user = django_user_model.objects.create_user(username="document-owner", tyler_jurisdiction="illinois")
     draft = FilingDraft.objects.create(user=user, jurisdiction="illinois")
@@ -401,6 +428,21 @@ def test_final_submission_marks_current_draft_error_on_api_failure(client, djang
     assert draft.status == FilingDraft.Status.ERROR
     assert draft.submission_response["status_code"] == 400
     assert draft.submission_response["response"]["api_status_code"] == 400
+
+
+@pytest.mark.django_db
+def test_submission_claim_prevents_duplicate_filing(django_user_model):
+    """The SUBMITTING claim is single-winner, so concurrent submits can't both file."""
+    from efile.views.submission import _claim_for_submission
+
+    user = django_user_model.objects.create_user(username="claim-user", tyler_jurisdiction="illinois")
+    draft = FilingDraft.objects.create(user=user, jurisdiction="illinois")
+
+    assert _claim_for_submission(draft) is True
+    draft.refresh_from_db()
+    assert draft.status == FilingDraft.Status.SUBMITTING
+    # A second attempt on the same draft is refused.
+    assert _claim_for_submission(draft) is False
 
 
 @pytest.mark.django_db

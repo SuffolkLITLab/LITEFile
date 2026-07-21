@@ -5,7 +5,7 @@ from __future__ import annotations
 from django.db import transaction
 
 from efile.models import FilingDraft
-from efile.services.drafts import create_draft, get_active_draft, set_current_step
+from efile.services.drafts import CURRENT_DRAFT_STATUSES, create_draft, get_active_draft, set_current_step
 from efile.workflow import WorkflowStepKey
 
 CURRENT_DRAFT_SESSION_KEY = "filing_draft_id"
@@ -56,7 +56,14 @@ def get_current_draft(
             draft_id = None
 
     if draft_id is not None:
-        draft = get_active_draft(user=user, draft_id=draft_id, jurisdiction=jurisdiction)
+        # The pointed-at draft may be mid-submission (SUBMITTING); it is still the
+        # user's current draft, so resolve it even though resume/listings would not.
+        draft = get_active_draft(
+            user=user,
+            draft_id=draft_id,
+            jurisdiction=jurisdiction,
+            statuses=CURRENT_DRAFT_STATUSES,
+        )
         if draft is not None:
             return draft
         clear_current_draft(request)
