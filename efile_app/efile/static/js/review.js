@@ -258,7 +258,7 @@ const APIHandlers = {
         const params = {
             jurisdiction: apiUtils.getCurrentJurisdiction()
         };
-        const data = await apiUtils.get(CONFIG.URLS.PROFILE, params);
+        const data = await apiUtils.fetchJSON(CONFIG.URLS.PROFILE, "GET", params);
 
         if (data?.success && data.data) {
             const profile = data.data;
@@ -477,7 +477,7 @@ const FilingHandler = {
 
         const efilingData = this.buildEFilingData(userData, caseData, uploadData, paymentAccountID);
 
-        return await apiUtils.cachedPost(CONFIG.URLS.QUERY_FEES, {
+        return await apiUtils.post(CONFIG.URLS.QUERY_FEES, {
             efile_data: efilingData,
             confirm_submission: true,
             payment_account_id: paymentAccountID

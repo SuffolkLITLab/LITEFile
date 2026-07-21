@@ -122,7 +122,7 @@ const APIHandlers = {
         const params = {
             jurisdiction: apiUtils.getCurrentJurisdiction()
         };
-        const result = await apiUtils.get(CONFIG.URLS.PAYMENT_ACCOUNTS, params);
+        const result = await apiUtils.fetchJSON(CONFIG.URLS.PAYMENT_ACCOUNTS, "GET", params);
 
         if (result?.success && result.data) {
             UIUpdater.updatePaymentMethodsSection(result.data);
@@ -211,7 +211,7 @@ const PaymentHandler = {
             const params = new URLSearchParams({
                 jurisdiction: apiUtils.getCurrentJurisdiction(),
             });
-            const authData = await apiUtils.get(CONFIG.URLS.TYLER_TOKEN, params);
+            const authData = await apiUtils.fetchJSON(CONFIG.URLS.TYLER_TOKEN, "GET", params);
 
             if (!authData?.success || !authData.data?.tyler_token) {
                 Messages.showError("Authentication failed. Please try again.");
@@ -317,7 +317,7 @@ const FilingHandler = {
         const params = {
             jurisdiction: apiUtils.getCurrentJurisdiction()
         };
-        const data = await apiUtils.get(CONFIG.URLS.PROFILE, params, true);
+        const data = await apiUtils.fetchJSON(CONFIG.URLS.PROFILE, "GET", params);
 
         if (data?.success && data.data) {
             const profile = data.data;
@@ -365,7 +365,7 @@ const FilingHandler = {
 
         const efilingData = this.buildEFilingData(userData, caseData, uploadData, paymentAccountID);
 
-        return await apiUtils.cachedPost(CONFIG.URLS.QUERY_FEES, {
+        return await apiUtils.post(CONFIG.URLS.QUERY_FEES, {
             efile_data: efilingData,
             confirm_submission: true,
             payment_account_id: paymentAccountID

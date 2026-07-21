@@ -272,31 +272,6 @@ class ApiUtils {
         return response;
     }
 
-    async cachedPost(endpoint, body) {
-        // Check cache first
-        const cachedResponse = this.getCachedResponse(endpoint, body);
-        if (cachedResponse !== null) {
-            return cachedResponse;
-        }
-
-        let headers = {
-            "Content-Type": "application/json",
-            "X-CSRFToken": apiUtils.getCSRFToken(),
-        };
-
-        // Make API request if not cached
-        const response = await this.makeRequest(endpoint, {
-            method: "POST",
-            headers,
-            data: body,
-        });
-
-        // Cache the response
-        this.setCachedResponse(endpoint, body, response);
-
-        return response;
-
-    }
 
     async post(endpoint, data = {}, params = {}) {
         return this.makeRequest(endpoint, {
@@ -329,42 +304,31 @@ class ApiUtils {
         });
     }
 
+    // Draft state (case/upload data) is owned by the server-side FilingDraft
+    // model. It must never be cached in localStorage: a stale blob could survive
+    // a submit/reset and leak into the next filing. These always hit the server.
     async getCaseData() {
-        return this.get("/api/get-case-data", {}, true);
+        return this.fetchJSON("/api/get-case-data", "GET");
     }
 
     async saveCaseData(body) {
-        let resp = this.fetchJSON("/api/save-case-data/", "POST", {}, body)
-        const cacheKey = this.getCacheKey("/api/get-case-data", {});
-        this.clearCache(cacheKey)
-        return resp;
+        return this.fetchJSON("/api/save-case-data/", "POST", {}, body);
     }
 
-    /** Calling `get-party-types` will set certain values on the case. For now, just nuke the cache.. */
     async getPartyTypes(params) {
-        let resp = this.fetchJSON("/api/get-party-types", "GET", params);
-        const cacheKey = this.getCacheKey("/api/get-case-data", {});
-        this.clearCache(cacheKey)
-        return resp;
+        return this.fetchJSON("/api/get-party-types", "GET", params);
     }
 
     async getUploadData() {
-        return this.get("/api/get-upload-data", {}, true);
+        return this.fetchJSON("/api/get-upload-data", "GET");
     }
 
     async saveUploadData(body) {
-        return this._saveUpload("/api/save-upload-data/", body);
+        return this.fetchJSON("/api/save-upload-data/", "POST", {}, body);
     }
 
     async saveFirstUploadData(body) {
-        return this._saveUpload("/api/save-upload-data-first/", body);
-    }
-
-    async _saveUpload(endpoint, body) {
-        let resp = this.fetchJSON(endpoint, "POST", {}, body);
-        const cacheKey = this.getCacheKey("/api/get-upload-data", {});
-        this.clearCache(cacheKey)
-        return resp;
+        return this.fetchJSON("/api/save-upload-data-first/", "POST", {}, body);
     }
 
     // Cache management methods
