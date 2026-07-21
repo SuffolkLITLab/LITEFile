@@ -21,10 +21,21 @@ globalThis.localStorage = {
     setItem: (key, value) => store.set(key, String(value)),
     removeItem: (key) => store.delete(key),
 };
-globalThis.window = { location: { origin: "http://localhost" } };
-globalThis.document = { querySelector: () => ({ value: "test-csrf-token" }), cookie: "" };
+globalThis.window = {
+    location: {
+        origin: "http://localhost"
+    }
+};
+globalThis.document = {
+    querySelector: () => ({
+        value: "test-csrf-token"
+    }),
+    cookie: ""
+};
 
-const { ApiUtils } = require("../efile/static/js/api-utils.js");
+const {
+    ApiUtils
+} = require("../efile/static/js/api-utils.js");
 
 function makeClient() {
     const client = new ApiUtils();
@@ -33,20 +44,37 @@ function makeClient() {
     // Replace the network layer so we can count real round trips.
     client.makeRequest = async (endpoint) => {
         calls += 1;
-        return { success: true, endpoint, call: calls };
+        return {
+            success: true,
+            endpoint,
+            call: calls
+        };
     };
-    return { client, calls: () => calls };
+    return {
+        client,
+        calls: () => calls
+    };
 }
 
 test("reference-data GETs are cached: repeated reads hit the network once", async () => {
-    const { client, calls } = makeClient();
-    await client.get("/api/dropdowns/courts", { jurisdiction: "illinois" });
-    await client.get("/api/dropdowns/courts", { jurisdiction: "illinois" });
+    const {
+        client,
+        calls
+    } = makeClient();
+    await client.get("/api/dropdowns/courts", {
+        jurisdiction: "illinois"
+    });
+    await client.get("/api/dropdowns/courts", {
+        jurisdiction: "illinois"
+    });
     assert.strictEqual(calls(), 1);
 });
 
 test("draft state (case + upload data) is never cached", async () => {
-    const { client, calls } = makeClient();
+    const {
+        client,
+        calls
+    } = makeClient();
     await client.getCaseData();
     await client.getCaseData();
     await client.getUploadData();
@@ -55,15 +83,27 @@ test("draft state (case + upload data) is never cached", async () => {
 });
 
 test("per-user reads via fetchJSON (profile, payment accounts, token) are not cached", async () => {
-    const { client, calls } = makeClient();
-    await client.fetchJSON("/api/payment-accounts", "GET", { jurisdiction: "illinois" });
-    await client.fetchJSON("/api/payment-accounts", "GET", { jurisdiction: "illinois" });
+    const {
+        client,
+        calls
+    } = makeClient();
+    await client.fetchJSON("/api/payment-accounts", "GET", {
+        jurisdiction: "illinois"
+    });
+    await client.fetchJSON("/api/payment-accounts", "GET", {
+        jurisdiction: "illinois"
+    });
     assert.strictEqual(calls(), 2);
 });
 
 test("saving case data does not populate the read cache", async () => {
-    const { client, calls } = makeClient();
-    await client.saveCaseData({ court: "cook:cd" });
+    const {
+        client,
+        calls
+    } = makeClient();
+    await client.saveCaseData({
+        court: "cook:cd"
+    });
     await client.getCaseData();
     await client.getCaseData();
     // 1 save + 2 uncached reads
