@@ -64,9 +64,9 @@ class Migration(migrations.Migration):
                 ("docket_number", models.CharField(blank=True, max_length=255)),
                 ("selected_payment_account_id", models.CharField(blank=True, max_length=255)),
                 ("selected_payment_account_name", models.CharField(blank=True, max_length=255)),
+                ("name_change_reason", models.TextField(blank=True)),
                 ("optional_services", models.JSONField(blank=True, default=list)),
                 ("extracted_guesses", models.JSONField(blank=True, default=dict)),
-                ("extra_case_data", models.JSONField(blank=True, default=dict)),
                 ("submission_response", models.JSONField(blank=True, default=dict)),
                 ("submitted_at", models.DateTimeField(blank=True, null=True)),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
@@ -114,7 +114,6 @@ class Migration(migrations.Migration):
                 ("filing_component_code", models.CharField(blank=True, max_length=100)),
                 ("filing_component_name", models.CharField(blank=True, max_length=255)),
                 ("courtesy_copy_email", models.EmailField(blank=True, max_length=254)),
-                ("metadata", models.JSONField(blank=True, default=dict)),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 ("updated_at", models.DateTimeField(auto_now=True)),
                 (
@@ -151,7 +150,6 @@ class Migration(migrations.Migration):
                 ("state", models.CharField(blank=True, max_length=50)),
                 ("zip_code", models.CharField(blank=True, max_length=20)),
                 ("country", models.CharField(blank=True, default="US", max_length=2)),
-                ("metadata", models.JSONField(blank=True, default=dict)),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 ("updated_at", models.DateTimeField(auto_now=True)),
                 (

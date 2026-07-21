@@ -75,9 +75,10 @@ class FilingDraft(models.Model):
     selected_payment_account_id = models.CharField(max_length=255, blank=True)
     selected_payment_account_name = models.CharField(max_length=255, blank=True)
 
+    name_change_reason = models.TextField(blank=True)
+
     optional_services = models.JSONField(default=list, blank=True)
     extracted_guesses = models.JSONField(default=dict, blank=True)
-    extra_case_data = models.JSONField(default=dict, blank=True)
     submission_response = models.JSONField(default=dict, blank=True)
 
     submitted_at = models.DateTimeField(blank=True, null=True)
@@ -134,7 +135,6 @@ class FilingDocument(models.Model):
     filing_component_name = models.CharField(max_length=255, blank=True)
 
     courtesy_copy_email = models.EmailField(blank=True)
-    metadata = models.JSONField(default=dict, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -176,8 +176,6 @@ class FilingParty(models.Model):
     state = models.CharField(max_length=50, blank=True)
     zip_code = models.CharField(max_length=20, blank=True)
     country = models.CharField(max_length=2, default="US", blank=True)
-
-    metadata = models.JSONField(default=dict, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

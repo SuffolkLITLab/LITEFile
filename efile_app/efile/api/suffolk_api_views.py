@@ -12,6 +12,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from requests.exceptions import RequestException
 
+from efile.utils.case_data_utils import update_case_data
 from efile.utils.jurisdiction_stuff import get_jurisdiction_from_request
 from efile.utils.proxy_connection import get_headers
 
@@ -292,17 +293,18 @@ def get_party_types_from_suffolk_api(request):
                         f"{party_types[0].get('name', 'Unknown')} ({selected_party_type})"
                     )
 
-                # Save to session
-                case_data = request.session.get("case_data", {})
-                case_data["determined_party_type"] = selected_party_type
-                case_data["party_type"] = selected_party_type
-                case_data["petitioner_party_type"] = selected_party_type
-                case_data["available_party_types"] = party_types
-                case_data["existing_case"] = existing_case  # Save existing case status
-                request.session["case_data"] = case_data
-                request.session.modified = True
+                # Persist the resolved party type onto the current draft
+                update_case_data(
+                    request,
+                    {
+                        "determined_party_type": selected_party_type,
+                        "party_type": selected_party_type,
+                        "petitioner_party_type": selected_party_type,
+                        "existing_case": existing_case,
+                    },
+                )
 
-                logger.debug(f"Saved party type to session: {selected_party_type}")
+                logger.debug(f"Saved party type to draft: {selected_party_type}")
 
                 if only_required:
                     filtered_party_types = [p for p in party_types if p.get("isrequired", False)]

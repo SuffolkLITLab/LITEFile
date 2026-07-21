@@ -388,6 +388,9 @@ class TestExpertFormIntegration:
         """Create an authenticated client."""
         user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
         client.force_login(user)
+        session = client.session
+        session["auth_tokens"] = {"TYLER-TOKEN-ILLINOIS": "token"}
+        session.save()
         return client
 
     def test_expert_form_page_loads(self, authenticated_client):

@@ -8,15 +8,11 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
-from efile.services.legacy_draft_bridge import (
-    sync_current_draft_case_data,
-    sync_current_draft_upload_data,
-)
+from efile.services.current_drafts import clear_current_draft, get_current_draft
 
-from ..utils.case_data_utils import clear_case_data, clear_upload_data, get_upload_data
+from ..utils.case_data_utils import get_case_data, get_upload_data, update_case_data, update_upload_data
 from ..utils.llms import LlmError, extract_fields_from_file
 from ..utils.proxy_connection import get_party_type_code_from_api
-from ..utils.zip_to_county_il import get_county_by_zip
 
 logger = logging.getLogger(__name__)
 
@@ -141,106 +137,18 @@ def determine_party_type_for_existing_case(case_data):
 
 @csrf_exempt
 @require_http_methods(["POST"])
-def save_form_data_to_session(request):
-    """Save form data (including petitioner contact info) to Django session and derive county from zip."""
-    try:
-        data = json.loads(request.body)
-        form_data = data.get("data", {})
-
-        # Start from existing case_data so we don't clobber other fields
-        case_data = request.session.get("case_data", {})
-
-        # Update case_data fields with provided form values (preserve existing when not provided)
-        case_data.update(
-            {
-                "court": form_data.get("court", case_data.get("court", "")),
-                "case_category": form_data.get("case_category", case_data.get("case_category", "")),
-                "case_type": form_data.get("case_type", case_data.get("case_type", "")),
-                "filing_type": form_data.get("filing_type", case_data.get("filing_type", "")),
-                "document_type": form_data.get("document_type", case_data.get("document_type", "")),
-                # simplified contact/address fields
-                "first_name": form_data.get("first_name", case_data.get("first_name", "")),
-                "last_name": form_data.get("last_name", case_data.get("last_name", "")),
-                "address": form_data.get("address", case_data.get("address", "")),
-                "address_line2": form_data.get("address_line2", case_data.get("address_line2", "")),
-                "city": form_data.get("city", case_data.get("city", "")),
-                "state": form_data.get("state", case_data.get("state", "")),
-                "zip": form_data.get("zip", case_data.get("zip", "")),
-                "email": form_data.get("email", case_data.get("email", "")),
-                "phone": form_data.get("phone", case_data.get("phone", "")),
-                # optional services and friendly names
-                "optional_services": form_data.get("optional_services", case_data.get("optional_services", [])),
-                "court_name": form_data.get("court_name", case_data.get("court_name", "")),
-                "case_category_name": form_data.get("case_category_name", case_data.get("case_category_name", "")),
-                "case_type_name": form_data.get("case_type_name", case_data.get("case_type_name", "")),
-                "filing_type_name": form_data.get("filing_type_name", case_data.get("filing_type_name", "")),
-                "document_type_name": form_data.get("document_type_name", case_data.get("document_type_name", "")),
-            }
-        )
-
-        # Add all dynamic fields that might be present in the form data
-        # This includes petitioner information, name change details, etc.
-        dynamic_fields = [
-            "petitioner_first_name",
-            "petitioner_last_name",
-            "petitioner_address",
-            "petitioner_phone",
-            "petitioner_email",
-            "new_first_name",
-            "new_last_name",
-            "reason_for_change",
-            "minor_first_name",
-            "minor_last_name",
-            "parent_first_name",
-            "parent_last_name",
-            "guardian_first_name",
-            "guardian_last_name",
-        ]
-
-        for field in dynamic_fields:
-            if field in form_data:
-                case_data[field] = form_data[field]
-
-        # Also save any other fields that might be dynamically added but not in our predefined list
-        for key, value in form_data.items():
-            if key not in case_data and value:  # Only add if not already handled and has a value
-                case_data[key] = value
-
-        # Try to derive county from zip code and save it
-        zip_code = (
-            case_data.get("zip") or case_data.get("zip_code") or form_data.get("zip") or form_data.get("zip_code", "")
-        )
-        if zip_code:
-            try:
-                county = get_county_by_zip(zip_code)
-                if county:
-                    # Save simplified county key and keep petitioner_county for backward compatibility
-                    case_data["county"] = county
-                    case_data["petitioner_county"] = county
-            except Exception:
-                # If mapping fails, ignore and continue
-                pass
-
-        # Persist to session
-        request.session["case_data"] = case_data
-        request.session.modified = True
-        sync_current_draft_case_data(request, case_data)
-
-        return JsonResponse({"success": True, "message": "Case data saved to session"})
-
-    except Exception as e:
-        return JsonResponse({"success": False, "error": str(e)}, status=500)
-
-
-@csrf_exempt
-@require_http_methods(["POST"])
 def save_upload_first_data(request):
     """Save upload data and file information to Django session for review."""
     logger.debug("Received POST request to save upload data")
     logger.debug(f"Request body: {request.body.decode('utf-8')}")
 
+    if not request.user.is_authenticated:
+        return JsonResponse({"success": False, "error": "Authentication required"}, status=401)
+
     data = json.loads(request.body)
     jurisdiction_id = data.get("jurisdiction_id", "default")
+    if data.get("jurisdiction_id"):
+        request.session["jurisdiction"] = jurisdiction_id
     upload_data = {"files": data.get("files", {})}
 
     try:
@@ -274,61 +182,49 @@ def save_upload_first_data(request):
     upload_data["guesses"]["case type"] = found_fields.get("case type")
     upload_data["guesses"]["docket number"] = found_fields.get("docket number")
 
-    # Save to session
-    request.session["upload_data"] = upload_data
-    request.session.modified = True
-    sync_current_draft_upload_data(request, upload_data)
+    update_upload_data(request, upload_data)
 
-    logger.info("Successfully saved upload data to session")
-    return JsonResponse({"success": True, "message": "Upload data saved to session"})
+    logger.info("Persisted lead upload to the current draft")
+    return JsonResponse({"success": True, "message": "Upload data saved"})
 
 
 @csrf_exempt
 @require_http_methods(["POST"])
 def save_upload_data_to_session(request):
-    """Save upload data and file information to Django session for review."""
+    """Persist supporting documents and lead filing config onto the current draft."""
     try:
-        logger.debug("Received POST request to save upload data")
-        logger.debug(f"Request body: {request.body.decode('utf-8')}")
+        if not request.user.is_authenticated:
+            return JsonResponse({"success": False, "error": "Authentication required"}, status=401)
 
         data = json.loads(request.body)
-        logger.debug("Parsed upload data")
 
-        old_upload_data = request.session["upload_data"]
         upload_data = {
-            "files": {"lead": old_upload_data["files"]["lead"], "supporting": data["files"]},
-            "options": data.get("options", {}),
-            "guesses": old_upload_data.get("guesses", {}),
+            "files": {"supporting": data.get("files", [])},
+            # Lead document filing information (updates the already-persisted lead doc)
             "lead_filing_type": data.get("lead_filing_type", ""),
-            # Lead document filing information
             "lead_filing_type_name": data.get("lead_filing_type_name", ""),
             "lead_document_type": data.get("lead_document_type", ""),
             "lead_document_type_name": data.get("lead_document_type_name", ""),
             "lead_filing_component": data.get("lead_filing_component", ""),
             "lead_filing_component_name": data.get("lead_filing_component_name", ""),
-            "lead_cc_email": data.get("lead_cc_email"),
+            "lead_cc_email": data.get("lead_cc_email", ""),
             # Supporting documents filing information
             "supporting_documents": data.get("supporting_documents", []),
         }
 
-        logger.debug("Processed upload data")
+        update_upload_data(request, upload_data)
 
-        # Save to session
-        request.session["upload_data"] = upload_data
-        request.session.modified = True
-        sync_current_draft_upload_data(request, upload_data)
-
-        logger.info("Successfully saved upload data to session")
-        return JsonResponse({"success": True, "message": "Upload data saved to session"})
+        logger.info("Persisted supporting documents to the current draft")
+        return JsonResponse({"success": True, "message": "Upload data saved"})
 
     except Exception as e:
-        logger.exception("Error saving upload data to session")
+        logger.exception("Error saving upload data")
         return JsonResponse({"success": False, "error": str(e)}, status=500)
 
 
 @require_http_methods(["GET"])
 def get_upload_data_from_session(request):
-    """Get upload data from Django session."""
+    """Return the current draft's documents as the upload_data blob."""
     return JsonResponse(get_upload_data(request), safe=False)
 
 
@@ -342,9 +238,9 @@ def submit_final_filing(request):
         if not data.get("confirm_submission"):
             return JsonResponse({"success": False, "error": "Submission confirmation is required"}, status=400)
 
-        # Get all data from session
-        case_data = request.session.get("case_data", {})
-        jurisdiction_id = request.session.get("jurisdiction")
+        # Read the filing state from the current durable draft
+        case_data = get_case_data(request)
+        jurisdiction_id = request.session.get("jurisdiction") or case_data.get("jurisdiction")
         upload_data = get_upload_data(request)
         auth_tokens = request.session.get("auth_tokens", {})
 
@@ -450,9 +346,11 @@ def submit_final_filing(request):
             if response.status_code == 200 or response.status_code == 201:
                 response_data = response.json()
 
-                # Clear session data after successful submission
-                clear_case_data(request)
-                clear_upload_data(request)
+                # Finalize the draft; it drops out of the active set so the flow resets
+                draft = get_current_draft(request)
+                if draft is not None:
+                    draft.mark_submitted(response_data)
+                clear_current_draft(request)
 
                 return JsonResponse(
                     {
@@ -532,6 +430,9 @@ def api_save_case_data(request):
     API endpoint to save case data to session
     """
     try:
+        if not request.user.is_authenticated:
+            return JsonResponse({"success": False, "error": "Authentication required"}, status=401)
+
         data = json.loads(request.body)
 
         session_id = data.get("session_id")
@@ -555,40 +456,18 @@ def api_save_case_data(request):
             form_data = data
             existing_case = data.get("existing_case")
 
-        # Save existing_case to session if provided
+        updates = dict(form_data)
         if existing_case:
             request.session["existing_case"] = existing_case
+            updates["existing_case"] = existing_case
 
-        # Always save all form data to case_data for upload view compatibility
-        case_data = request.session.get("case_data", {})
-        case_data.update(form_data)
-
-        # Ensure existing_case status is available in case_data
-        if existing_case:
-            case_data["existing_case"] = existing_case
-
-        if jurisdiction:
-            case_data["jurisdiction_id"] = jurisdiction
-
-        # Map case details fields to standard names for eFiling
-        if "case_docket_id" in form_data:
-            case_data["docket_number"] = form_data["case_docket_id"]
-        if "case_tracking_id" in form_data:
-            case_data["previous_case_id"] = form_data["case_tracking_id"]
-
-        # Determine party type for existing cases - typically defendant/respondent when responding to existing case
-        if existing_case == "yes":
-            # For existing cases, we need to determine the appropriate party type
-            # This depends on the case type and filing type
+        # Determine party type for existing cases - typically defendant/respondent when responding
+        if existing_case == "yes" and not updates.get("party_type"):
             party_type = determine_party_type_for_existing_case(form_data)
-            if not case_data.get("party_type"):
-                case_data["party_type"] = party_type
-            if not case_data.get("petitioner_party_type"):
-                case_data["petitioner_party_type"] = party_type
+            updates["party_type"] = party_type
+            updates.setdefault("petitioner_party_type", party_type)
 
-        request.session["case_data"] = case_data
-        request.session.modified = True
-        sync_current_draft_case_data(request, case_data)
+        update_case_data(request, updates)
 
         return JsonResponse(
             {"success": True, "data": {"existing_case": existing_case, "saved_fields": list(form_data.keys())}}
@@ -608,6 +487,9 @@ def fetch_and_save_party_type(request):
     Fetch party type code from Suffolk LIT Lab API and save to session
     """
     try:
+        if not request.user.is_authenticated:
+            return JsonResponse({"success": False, "error": "Authentication required"}, status=401)
+
         data = json.loads(request.body)
         court_code = data.get("court")
         case_type_code = data.get("case_type")
@@ -618,6 +500,8 @@ def fetch_and_save_party_type(request):
 
         if not jurisdiction:
             return JsonResponse({"success": False, "error": "Jurisdiction is required"}, status=400)
+
+        request.session["jurisdiction"] = jurisdiction
 
         if not court_code or not case_type_code:
             return JsonResponse({"success": False, "error": "Court and case_type are required"}, status=400)
@@ -669,16 +553,16 @@ def fetch_and_save_party_type(request):
 
         logger.debug(f"Final party type code: {party_type_code}")
 
-        # Save to session
-        case_data = request.session.get("case_data", {})
-        case_data["determined_party_type"] = party_type_code
-        case_data["party_type"] = party_type_code
-        case_data["petitioner_party_type"] = party_type_code
-        request.session["case_data"] = case_data
-        request.session.modified = True
-        sync_current_draft_case_data(request, case_data)
+        update_case_data(
+            request,
+            {
+                "determined_party_type": party_type_code,
+                "party_type": party_type_code,
+                "petitioner_party_type": party_type_code,
+            },
+        )
 
-        logger.debug(f"Saved party type to session: {party_type_code}")
+        logger.debug(f"Saved party type to draft: {party_type_code}")
 
         return JsonResponse({"success": True, "party_type": party_type_code})
 
@@ -695,24 +579,25 @@ def save_party_type_to_session(request):
     Save party type code to session after it's been fetched from Suffolk API on frontend
     """
     try:
+        if not request.user.is_authenticated:
+            return JsonResponse({"success": False, "error": "Authentication required"}, status=401)
+
         data = json.loads(request.body)
         party_type = data.get("party_type")
-        party_types_available = data.get("party_types_available", [])
 
         if not party_type:
             return JsonResponse({"success": False, "error": "Party type is required"}, status=400)
 
-        # Save to session
-        case_data = request.session.get("case_data", {})
-        case_data["determined_party_type"] = party_type
-        case_data["party_type"] = party_type
-        case_data["petitioner_party_type"] = party_type
-        case_data["available_party_types"] = party_types_available
-        request.session["case_data"] = case_data
-        request.session.modified = True
-        sync_current_draft_case_data(request, case_data)
+        update_case_data(
+            request,
+            {
+                "determined_party_type": party_type,
+                "party_type": party_type,
+                "petitioner_party_type": party_type,
+            },
+        )
 
-        logger.debug(f"Saved party type to session: {party_type}")
+        logger.debug(f"Saved party type to draft: {party_type}")
 
         return JsonResponse({"success": True, "party_type": party_type})
 
