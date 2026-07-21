@@ -40,7 +40,7 @@ def efile_expert_form(request, jurisdiction):
     logger.debug(f"All session data keys: {list(request.session.keys())}")
     logger.debug(f"Clear session parameter received: {request.GET.get('clear_session', 'not present')}")
 
-    upload_data = get_upload_data(request)
+    upload_data = get_upload_data(request, jurisdiction)
 
     # Check if we have all required data for upload
     required_fields = ["court", "case_category", "case_type", "filing_type", "document_type"]

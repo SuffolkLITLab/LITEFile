@@ -180,7 +180,7 @@ def save_upload_first_data(request):
     upload_data["guesses"]["case type"] = found_fields.get("case type")
     upload_data["guesses"]["docket number"] = found_fields.get("docket number")
 
-    update_upload_data(request, upload_data)
+    update_upload_data(request, upload_data, jurisdiction_id)
 
     logger.info("Persisted lead upload to the current draft")
     return JsonResponse({"success": True, "message": "Upload data saved"})
@@ -461,7 +461,7 @@ def api_save_case_data(request):
             updates["party_type"] = party_type
             updates.setdefault("petitioner_party_type", party_type)
 
-        update_case_data(request, updates)
+        update_case_data(request, updates, jurisdiction)
 
         return JsonResponse(
             {"success": True, "data": {"existing_case": existing_case, "saved_fields": list(form_data.keys())}}
@@ -554,6 +554,7 @@ def fetch_and_save_party_type(request):
                 "party_type": party_type_code,
                 "petitioner_party_type": party_type_code,
             },
+            jurisdiction,
         )
 
         logger.debug(f"Saved party type to draft: {party_type_code}")

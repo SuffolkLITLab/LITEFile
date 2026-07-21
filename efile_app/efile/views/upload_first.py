@@ -46,12 +46,12 @@ def efile_upload_first(request, jurisdiction):
     filing_draft = ensure_current_draft(request, jurisdiction, current_step=WorkflowStepKey.UPLOAD_FIRST)
 
     # Could visit here from a back button press, so use upload data if any
-    upload_data = get_upload_data(request)
+    upload_data = get_upload_data(request, jurisdiction)
 
     # Get organized case information
-    petitioner_info = get_petitioner_info(request)
-    name_sought_info = get_name_sought_info(request)
-    case_classification = get_case_classification(request)
+    petitioner_info = get_petitioner_info(request, jurisdiction)
+    name_sought_info = get_name_sought_info(request, jurisdiction)
+    case_classification = get_case_classification(request, jurisdiction)
 
     context = {
         "is_logged_in": True,

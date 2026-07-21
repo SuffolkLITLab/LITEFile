@@ -11,7 +11,7 @@ def filing_statuses(request, jurisdiction):
         return redirect("efile_login", jurisdiction=jurisdiction)
 
     # Get case data from session
-    case_data = get_case_data(request)
+    case_data = get_case_data(request, jurisdiction)
 
     is_logged_in = request.user.is_authenticated
     if not get_tyler_token(request, jurisdiction):

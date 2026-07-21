@@ -23,7 +23,7 @@ def efile_payment(request, jurisdiction):
         return redirect("efile_login", jurisdiction=jurisdiction)
 
     # Get case data from session
-    case_data = get_case_data(request)
+    case_data = get_case_data(request, jurisdiction)
     logger.debug("Review view case_data %s", case_data)
 
     # Add user email from session if available and not already in case_data

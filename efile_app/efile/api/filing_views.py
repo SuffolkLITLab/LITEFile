@@ -172,7 +172,7 @@ class FilingAPIViews(APIResponseMixin):
 
             jurisdiction_id = request.session.get("jurisdiction")
             auth_tokens = request.session.get("auth_tokens", {})
-            case_data = get_case_data(request)
+            case_data = get_case_data(request, jurisdiction_id)
             court_id = case_data.get("court", "")
             url = f"{settings.EFSP_URL}/jurisdictions/{jurisdiction_id}/filingreview/courts/{court_id}/filing/fees"
 

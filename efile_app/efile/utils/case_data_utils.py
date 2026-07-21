@@ -22,45 +22,54 @@ def _current_jurisdiction(request):
     return request.session.get("jurisdiction")
 
 
-def _resolve_writable_draft(request):
-    """Return the draft to write to, creating one for authenticated users only."""
+def _resolve_writable_draft(request, jurisdiction=None):
+    """Return the draft to write to, creating one for authenticated users only.
+
+    When ``jurisdiction`` is given (the route/payload the caller is acting on), it
+    is enforced so a request for jurisdiction A can never write jurisdiction B's
+    currently-pointed draft.
+    """
     if not getattr(request.user, "is_authenticated", False):
         return None
-    jurisdiction = _current_jurisdiction(request)
-    if jurisdiction:
-        return ensure_current_draft(request, jurisdiction)
+    target = jurisdiction or _current_jurisdiction(request)
+    if target:
+        return ensure_current_draft(request, target)
     return get_current_draft(request)
 
 
-def get_case_data(request):
-    """Return the current draft serialized to the case_data blob (``{}`` if none)."""
-    return read_case_data(get_current_draft(request))
+def get_case_data(request, jurisdiction=None):
+    """Return the current draft serialized to the case_data blob (``{}`` if none).
+
+    Passing ``jurisdiction`` (the route the caller is serving) enforces isolation:
+    a draft pointed to from a different jurisdiction is not returned.
+    """
+    return read_case_data(get_current_draft(request, jurisdiction=jurisdiction))
 
 
-def update_case_data(request, updates):
+def update_case_data(request, updates, jurisdiction=None):
     """Persist a partial case_data blob onto the current draft and return the merged blob."""
-    draft = _resolve_writable_draft(request)
+    draft = _resolve_writable_draft(request, jurisdiction)
     if draft is None:
         return {}
     write_case_data(draft, updates)
     return read_case_data(draft)
 
 
-def get_upload_data(request):
-    return read_upload_data(get_current_draft(request))
+def get_upload_data(request, jurisdiction=None):
+    return read_upload_data(get_current_draft(request, jurisdiction=jurisdiction))
 
 
-def update_upload_data(request, updates):
-    draft = _resolve_writable_draft(request)
+def update_upload_data(request, updates, jurisdiction=None):
+    draft = _resolve_writable_draft(request, jurisdiction)
     if draft is None:
         return {}
     write_upload_data(draft, updates)
     return read_upload_data(draft)
 
 
-def get_petitioner_info(request):
+def get_petitioner_info(request, jurisdiction=None):
     """Get petitioner information specifically."""
-    case_data = get_case_data(request)
+    case_data = get_case_data(request, jurisdiction)
     full_name = f"{case_data.get('petitioner_first_name', '')} {case_data.get('petitioner_last_name', '')}".strip()
     return {
         "first_name": case_data.get("petitioner_first_name", ""),
@@ -70,9 +79,9 @@ def get_petitioner_info(request):
     }
 
 
-def get_name_sought_info(request):
+def get_name_sought_info(request, jurisdiction=None):
     """Get name sought information specifically."""
-    case_data = get_case_data(request)
+    case_data = get_case_data(request, jurisdiction)
     return {
         "first_name": case_data.get("new_first_name", ""),
         "last_name": case_data.get("new_last_name", ""),
@@ -80,9 +89,9 @@ def get_name_sought_info(request):
     }
 
 
-def get_case_classification(request):
+def get_case_classification(request, jurisdiction=None):
     """Get case classification information."""
-    case_data = get_case_data(request)
+    case_data = get_case_data(request, jurisdiction)
     logger.info("Case data: %s", case_data)
     return {
         "court": case_data.get("court", ""),
@@ -94,7 +103,7 @@ def get_case_classification(request):
     }
 
 
-def get_selected_services(request):
+def get_selected_services(request, jurisdiction=None):
     """Get list of selected optional services."""
-    case_data = get_case_data(request)
+    case_data = get_case_data(request, jurisdiction)
     return case_data.get("optional_services", [])

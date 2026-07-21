@@ -302,6 +302,7 @@ def get_party_types_from_suffolk_api(request):
                         "petitioner_party_type": selected_party_type,
                         "existing_case": existing_case,
                     },
+                    jurisdiction,
                 )
 
                 logger.debug(f"Saved party type to draft: {selected_party_type}")

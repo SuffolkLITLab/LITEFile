@@ -15,7 +15,7 @@ def efile_options(request, jurisdiction):
 
     # Get case data from session
     if request.user.is_authenticated:
-        case_data = get_case_data(request)
+        case_data = get_case_data(request, jurisdiction)
         active_draft = get_current_draft(request, jurisdiction=jurisdiction)
     else:
         case_data = {}

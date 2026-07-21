@@ -446,6 +446,90 @@ def test_submission_claim_prevents_duplicate_filing(django_user_model):
 
 
 @pytest.mark.django_db
+def test_stale_submission_claim_is_recoverable(django_user_model):
+    """A claim left behind by a crashed request can be taken over after the timeout."""
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    from efile.views.submission import SUBMISSION_CLAIM_TIMEOUT, _claim_for_submission
+
+    user = django_user_model.objects.create_user(username="stale-user", tyler_jurisdiction="illinois")
+    draft = FilingDraft.objects.create(user=user, jurisdiction="illinois")
+
+    assert _claim_for_submission(draft) is True
+    assert _claim_for_submission(draft) is False  # fresh claim is not recoverable
+
+    stale = timezone.now() - SUBMISSION_CLAIM_TIMEOUT - timedelta(minutes=1)
+    FilingDraft.objects.filter(pk=draft.pk).update(updated_at=stale)
+
+    assert _claim_for_submission(draft) is True  # stale claim is recovered
+
+
+@pytest.mark.django_db
+def test_precondition_failure_releases_claim_to_draft(client, django_user_model):
+    """A failure before the external call frees the draft for a safe retry."""
+    user = django_user_model.objects.create_user(username="precondition-user", tyler_jurisdiction="illinois")
+    draft = FilingDraft.objects.create(user=user, jurisdiction="illinois", current_step=WorkflowStepKey.REVIEW)
+    client.force_login(user)
+    _prepare_submission(client, draft)
+
+    response = client.post(
+        reverse("submit_final_filing"),
+        data={"confirm_submission": True},  # no efile_data -> pre-call validation failure
+        content_type="application/json",
+    )
+
+    assert response.status_code == 400
+    draft.refresh_from_db()
+    assert draft.status == FilingDraft.Status.DRAFT
+
+
+@pytest.mark.django_db
+def test_ambiguous_failure_does_not_release_to_draft(client, django_user_model, monkeypatch):
+    """An error after requests.post may mean the filing went through: never reset to DRAFT."""
+
+    def boom(*_args, **_kwargs):
+        raise ValueError("crashed after sending")
+
+    monkeypatch.setattr("requests.post", boom)
+    user = django_user_model.objects.create_user(username="ambiguous-user", tyler_jurisdiction="illinois")
+    draft = FilingDraft.objects.create(user=user, jurisdiction="illinois", current_step=WorkflowStepKey.REVIEW)
+    client.force_login(user)
+    _prepare_submission(client, draft)
+
+    response = client.post(
+        reverse("submit_final_filing"),
+        data={"confirm_submission": True, "efile_data": {"al_court_bundle": {}}},
+        content_type="application/json",
+    )
+
+    assert response.status_code >= 400
+    draft.refresh_from_db()
+    assert draft.status == FilingDraft.Status.ERROR
+
+
+@pytest.mark.django_db
+def test_route_jurisdiction_isolates_reads(client, django_user_model):
+    """A request served for jurisdiction A must not read a draft pointed to from B."""
+    from efile.utils.case_data_utils import get_case_data
+
+    user = django_user_model.objects.create_user(username="multi-jur-user", tyler_jurisdiction="illinois")
+    illinois_draft = FilingDraft.objects.create(user=user, jurisdiction="illinois")
+    massachusetts_draft = FilingDraft.objects.create(user=user, jurisdiction="massachusetts")
+    write_case_data(illinois_draft, {"court": "cook:cd"})
+    write_case_data(massachusetts_draft, {"court": "suffolk:ma"})
+
+    client.force_login(user)
+    session = client.session
+    session[CURRENT_DRAFT_SESSION_KEY] = massachusetts_draft.pk
+    session.save()
+    request = type("Request", (), {"user": user, "session": client.session})()
+
+    assert get_case_data(request, jurisdiction="illinois").get("court") == "cook:cd"
+
+
+@pytest.mark.django_db
 def test_model_step_choices_follow_workflow_registry():
     current_step = FilingDraft._meta.get_field("current_step")
 

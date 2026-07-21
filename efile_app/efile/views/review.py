@@ -23,7 +23,7 @@ def case_review(request, jurisdiction):
         return redirect("efile_login", jurisdiction=jurisdiction)
 
     # Get case data from session
-    case_data = get_case_data(request)
+    case_data = get_case_data(request, jurisdiction)
     logger.debug("Review view case_data %s", case_data)
 
     # Add user email from session if available and not already in case_data
@@ -39,9 +39,9 @@ def case_review(request, jurisdiction):
     filing_draft = ensure_current_draft(request, jurisdiction, current_step=WorkflowStepKey.REVIEW)
 
     # Get organized case information
-    petitioner_info = get_petitioner_info(request)
-    name_sought_info = get_name_sought_info(request)
-    case_classification = get_case_classification(request)
+    petitioner_info = get_petitioner_info(request, jurisdiction)
+    name_sought_info = get_name_sought_info(request, jurisdiction)
+    case_classification = get_case_classification(request, jurisdiction)
 
     # Use friendly names if available, otherwise fallback to raw values
     friendly_case_type = case_data.get("case_type_name", case_classification["case_type"])

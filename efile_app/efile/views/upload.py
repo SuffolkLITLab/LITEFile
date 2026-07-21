@@ -29,7 +29,7 @@ def efile_upload(request, jurisdiction):
     if not get_tyler_token(request, jurisdiction):
         return redirect("efile_login", jurisdiction=jurisdiction)
 
-    case_data = get_case_data(request)
+    case_data = get_case_data(request, jurisdiction)
 
     if not case_data:
         messages.error(request, gettext("Please complete the case details first."))
@@ -37,15 +37,15 @@ def efile_upload(request, jurisdiction):
 
     filing_draft = ensure_current_draft(request, jurisdiction, current_step=WorkflowStepKey.DOCUMENTS)
 
-    petitioner_info = get_petitioner_info(request)
-    name_sought_info = get_name_sought_info(request)
-    case_classification = get_case_classification(request)
+    petitioner_info = get_petitioner_info(request, jurisdiction)
+    name_sought_info = get_name_sought_info(request, jurisdiction)
+    case_classification = get_case_classification(request, jurisdiction)
 
     friendly_case_type = case_data.get("case_type_name", case_classification["case_type"])
     friendly_filing_type = case_data.get("filing_type_name", case_classification["filing_type"])
     friendly_court = case_data.get("court_name", case_classification["court"])
 
-    upload_data = get_upload_data(request)
+    upload_data = get_upload_data(request, jurisdiction)
 
     context = {
         "is_logged_in": True,
