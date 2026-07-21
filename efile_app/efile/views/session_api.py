@@ -8,8 +8,6 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
-from efile.services.current_drafts import clear_current_draft, get_current_draft
-
 from ..utils.case_data_utils import get_case_data, get_upload_data, update_case_data, update_upload_data
 from ..utils.llms import LlmError, extract_fields_from_file
 from ..utils.proxy_connection import get_party_type_code_from_api
@@ -346,12 +344,8 @@ def submit_final_filing(request):
             if response.status_code == 200 or response.status_code == 201:
                 response_data = response.json()
 
-                # Finalize the draft; it drops out of the active set so the flow resets
-                draft = get_current_draft(request)
-                if draft is not None:
-                    draft.mark_submitted(response_data)
-                clear_current_draft(request)
-
+                # Draft status (mark_submitted / clear) is handled by the
+                # submission wrapper in views/submission.py that calls this view.
                 return JsonResponse(
                     {
                         "success": True,

@@ -5,6 +5,8 @@ from django.shortcuts import redirect, render
 from django.utils.translation import gettext
 
 from efile.api.suffolk_api_views import get_tyler_token
+from efile.services.current_drafts import ensure_current_draft
+from efile.services.drafts import draft_snapshot
 
 from ..utils.case_data_utils import (
     get_case_classification,
@@ -24,11 +26,16 @@ def efile_upload(request, jurisdiction):
     if not request.user.is_authenticated:
         return redirect("efile_login", jurisdiction=jurisdiction)
 
+    if not get_tyler_token(request, jurisdiction):
+        return redirect("efile_login", jurisdiction=jurisdiction)
+
     case_data = get_case_data(request)
 
     if not case_data:
         messages.error(request, gettext("Please complete the case details first."))
         return redirect("efile_options", jurisdiction=jurisdiction)
+
+    filing_draft = ensure_current_draft(request, jurisdiction, current_step=WorkflowStepKey.DOCUMENTS)
 
     petitioner_info = get_petitioner_info(request)
     name_sought_info = get_name_sought_info(request)
@@ -40,13 +47,11 @@ def efile_upload(request, jurisdiction):
 
     upload_data = get_upload_data(request)
 
-    is_logged_in = request.user.is_authenticated
-    if not get_tyler_token(request, jurisdiction):
-        is_logged_in = False
     context = {
-        "is_logged_in": is_logged_in,
+        "is_logged_in": True,
         "case_data": case_data,
         "upload_data": upload_data,
+        "filing_draft": draft_snapshot(filing_draft),
         "petitioner_info": petitioner_info,
         "name_sought_info": name_sought_info,
         "case_classification": case_classification,

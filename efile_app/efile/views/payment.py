@@ -5,6 +5,8 @@ from django.contrib import messages
 from django.shortcuts import redirect, render
 
 from efile.api.suffolk_api_views import get_tyler_token
+from efile.services.current_drafts import ensure_current_draft
+from efile.services.drafts import draft_snapshot
 
 from ..utils.case_data_utils import get_case_data
 from ..workflow import WorkflowStepKey, get_workflow_context
@@ -14,6 +16,12 @@ logger = logging.getLogger(__name__)
 
 def efile_payment(request, jurisdiction):
     """Review view for case details before final submission."""
+    if not request.user.is_authenticated:
+        return redirect("efile_login", jurisdiction=jurisdiction)
+
+    if not get_tyler_token(request, jurisdiction):
+        return redirect("efile_login", jurisdiction=jurisdiction)
+
     # Get case data from session
     case_data = get_case_data(request)
     logger.debug("Review view case_data %s", case_data)
@@ -28,15 +36,15 @@ def efile_payment(request, jurisdiction):
         messages.error(request, "Please complete the case details first.")
         return redirect("expert_form", jurisdiction=jurisdiction)
 
+    filing_draft = ensure_current_draft(request, jurisdiction, current_step=WorkflowStepKey.PAYMENT)
+
     new_toga_url = f"{settings.EFSP_URL}/jurisdictions/{jurisdiction}/payments/new-toga-account"
 
-    is_logged_in = request.user.is_authenticated
-    if not get_tyler_token(request, jurisdiction):
-        is_logged_in = False
     context = {
-        "is_logged_in": is_logged_in,
+        "is_logged_in": True,
         "new_toga_url": new_toga_url,
         "case_data": case_data,
+        "filing_draft": draft_snapshot(filing_draft),
     }
     context.update(get_workflow_context(WorkflowStepKey.PAYMENT, jurisdiction))
 

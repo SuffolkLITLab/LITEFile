@@ -15,6 +15,35 @@ from efile.services.drafts import (
 from efile.workflow import WorkflowStepKey, get_workflow_step_choices
 
 
+class FakeApiResponse:
+    def __init__(self, status_code, payload):
+        self.status_code = status_code
+        self._payload = payload
+        self.text = json.dumps(payload)
+        self.headers = {}
+
+    def json(self):
+        return self._payload
+
+
+def _authorize_jurisdiction_session(client, jurisdiction="illinois"):
+    """Give the session the Tyler token that draft creation/updates now require."""
+    session = client.session
+    session["auth_tokens"] = {f"TYLER-TOKEN-{jurisdiction.upper()}": "token"}
+    session.save()
+
+
+def _prepare_submission(client, draft, jurisdiction="illinois"):
+    """Populate the draft (the source of truth) and session so submit can run."""
+    write_case_data(draft, {"court": "cook:cd"})
+    write_upload_data(draft, {"files": {"lead": {"url": "https://example.com/petition.pdf"}}})
+    session = client.session
+    session[CURRENT_DRAFT_SESSION_KEY] = draft.pk
+    session["jurisdiction"] = jurisdiction
+    session["auth_tokens"] = {f"TYLER-TOKEN-{jurisdiction.upper()}": "token"}
+    session.save()
+
+
 @pytest.mark.django_db
 def test_write_case_data_normalizes_known_fields(django_user_model):
     user = django_user_model.objects.create_user(username="draft-owner", tyler_jurisdiction="illinois")
@@ -212,6 +241,7 @@ def test_create_draft_view_creates_durable_draft(client, django_user_model):
         tyler_jurisdiction="illinois",
     )
     client.force_login(user)
+    _authorize_jurisdiction_session(client)
 
     response = client.post(
         reverse("create_draft", kwargs={"jurisdiction": "illinois"}),
@@ -228,6 +258,22 @@ def test_create_draft_view_creates_durable_draft(client, django_user_model):
     assert draft.jurisdiction == "illinois"
     assert draft.current_step == WorkflowStepKey.UPLOAD_FIRST
     assert payload["data"]["filing_draft"]["id"] == draft.pk
+
+
+@pytest.mark.django_db
+def test_create_draft_view_requires_jurisdiction_token(client, django_user_model):
+    user = django_user_model.objects.create_user(username="no-token", tyler_jurisdiction="illinois")
+    client.force_login(user)
+
+    response = client.post(
+        reverse("create_draft", kwargs={"jurisdiction": "illinois"}),
+        data={},
+        content_type="application/json",
+    )
+
+    assert response.status_code == 403
+    assert response.json()["success"] is False
+    assert not FilingDraft.objects.exists()
 
 
 @pytest.mark.django_db
@@ -268,6 +314,7 @@ def test_current_draft_does_not_cross_jurisdictions(client, django_user_model):
 def test_save_case_endpoint_persists_into_current_draft(client, django_user_model):
     user = django_user_model.objects.create_user(username="endpoint-user", tyler_jurisdiction="illinois")
     client.force_login(user)
+    _authorize_jurisdiction_session(client)
     client.post(
         reverse("create_draft", kwargs={"jurisdiction": "illinois"}),
         data={},
@@ -305,6 +352,55 @@ def test_save_case_endpoint_requires_authentication(client):
     )
 
     assert response.status_code == 401
+
+
+@pytest.mark.django_db
+def test_final_submission_marks_current_draft_submitted(client, django_user_model, monkeypatch):
+    def fake_post(*_args, **_kwargs):
+        return FakeApiResponse(201, {"filing_id": "abc-123"})
+
+    monkeypatch.setattr("requests.post", fake_post)
+    user = django_user_model.objects.create_user(username="submit-user", tyler_jurisdiction="illinois")
+    draft = FilingDraft.objects.create(user=user, jurisdiction="illinois", current_step=WorkflowStepKey.REVIEW)
+    client.force_login(user)
+    _prepare_submission(client, draft)
+
+    response = client.post(
+        reverse("submit_final_filing"),
+        data={"confirm_submission": True, "efile_data": {"al_court_bundle": {}}},
+        content_type="application/json",
+    )
+
+    assert response.status_code == 200
+    draft.refresh_from_db()
+    assert draft.status == FilingDraft.Status.SUBMITTED
+    assert draft.current_step == WorkflowStepKey.CONFIRMATION
+    assert draft.submission_response == {"filing_id": "abc-123"}
+    assert CURRENT_DRAFT_SESSION_KEY not in client.session
+
+
+@pytest.mark.django_db
+def test_final_submission_marks_current_draft_error_on_api_failure(client, django_user_model, monkeypatch):
+    def fake_post(*_args, **_kwargs):
+        return FakeApiResponse(400, {"error": "Rejected", "validation_errors": ["bad bundle"]})
+
+    monkeypatch.setattr("requests.post", fake_post)
+    user = django_user_model.objects.create_user(username="error-user", tyler_jurisdiction="illinois")
+    draft = FilingDraft.objects.create(user=user, jurisdiction="illinois", current_step=WorkflowStepKey.REVIEW)
+    client.force_login(user)
+    _prepare_submission(client, draft)
+
+    response = client.post(
+        reverse("submit_final_filing"),
+        data={"confirm_submission": True, "efile_data": {"al_court_bundle": {}}},
+        content_type="application/json",
+    )
+
+    assert response.status_code == 400
+    draft.refresh_from_db()
+    assert draft.status == FilingDraft.Status.ERROR
+    assert draft.submission_response["status_code"] == 400
+    assert draft.submission_response["response"]["api_status_code"] == 400
 
 
 @pytest.mark.django_db

@@ -22,8 +22,8 @@ from .views.session_api import (
     save_party_type_to_session,
     save_upload_data_to_session,
     save_upload_first_data,
-    submit_final_filing,
 )
+from .views.submission import submit_final_filing
 from .views.upload import efile_upload
 from .views.upload_first import efile_upload_first
 

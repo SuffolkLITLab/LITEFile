@@ -26,6 +26,9 @@ def efile_upload_first(request, jurisdiction):
     if not request.user.is_authenticated:
         return redirect("efile_login", jurisdiction=jurisdiction)
 
+    if not get_tyler_token(request, jurisdiction):
+        return redirect("efile_login", jurisdiction=jurisdiction)
+
     # Check if we need to clear cache (only when explicitly coming from options page button)
     clear_session = request.GET.get("clear_session", "false").lower() == "true"
     from_options = request.GET.get("from_options", "false").lower() == "true"
@@ -50,11 +53,8 @@ def efile_upload_first(request, jurisdiction):
     name_sought_info = get_name_sought_info(request)
     case_classification = get_case_classification(request)
 
-    is_logged_in = request.user.is_authenticated
-    if not get_tyler_token(request, jurisdiction):
-        is_logged_in = False
     context = {
-        "is_logged_in": is_logged_in,
+        "is_logged_in": True,
         "upload_data": upload_data,
         "filing_draft": draft_snapshot(filing_draft),
         "petitioner_info": petitioner_info,

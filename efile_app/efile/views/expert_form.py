@@ -3,6 +3,8 @@ import logging
 from django.shortcuts import redirect, render
 
 from efile.api.suffolk_api_views import get_tyler_token
+from efile.services.current_drafts import ensure_current_draft
+from efile.services.drafts import draft_snapshot
 
 from ..utils.case_data_utils import get_upload_data
 from ..workflow import WorkflowStepKey, get_workflow_context
@@ -17,6 +19,11 @@ def efile_expert_form(request, jurisdiction):
 
     if not request.user.is_authenticated:
         return redirect("efile_login", jurisdiction=jurisdiction)
+
+    if not get_tyler_token(request, jurisdiction):
+        return redirect("efile_login", jurisdiction=jurisdiction)
+
+    filing_draft = ensure_current_draft(request, jurisdiction, current_step=WorkflowStepKey.CASE_INFORMATION)
 
     # Get auth tokens from session if available
     auth_tokens = request.session.get("auth_tokens", None)
@@ -45,13 +52,11 @@ def efile_expert_form(request, jurisdiction):
         party_fields = ["petitioner_first_name", "petitioner_last_name", "new_first_name", "new_last_name"]
         has_party_info = all(case_data.get(field) for field in party_fields)
 
-    is_logged_in = request.user.is_authenticated
-    if not get_tyler_token(request, jurisdiction):
-        is_logged_in = False
     # Display the form for data collection with existing data populated
     context = {
-        "is_logged_in": is_logged_in,
+        "is_logged_in": True,
         "case_data": case_data,
+        "filing_draft": draft_snapshot(filing_draft),
         "guessed_court": upload_data.get("guesses", {}).get("court"),
         "guessed_case_category": upload_data.get("guesses", {}).get("case type"),
         "guessed_case_type": upload_data.get("guesses", {}).get("case category"),

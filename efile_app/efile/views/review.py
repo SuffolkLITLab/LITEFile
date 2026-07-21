@@ -5,6 +5,8 @@ from django.contrib import messages
 from django.shortcuts import redirect, render
 
 from efile.api.suffolk_api_views import get_tyler_token
+from efile.services.current_drafts import ensure_current_draft
+from efile.services.drafts import draft_snapshot
 
 from ..utils.case_data_utils import get_case_classification, get_case_data, get_name_sought_info, get_petitioner_info
 from ..workflow import WorkflowStepKey, get_workflow_context
@@ -14,6 +16,11 @@ logger = logging.getLogger(__name__)
 
 def case_review(request, jurisdiction):
     """Review view for case details before final submission."""
+    if not request.user.is_authenticated:
+        return redirect("efile_login", jurisdiction=jurisdiction)
+
+    if not get_tyler_token(request, jurisdiction):
+        return redirect("efile_login", jurisdiction=jurisdiction)
 
     # Get case data from session
     case_data = get_case_data(request)
@@ -28,6 +35,8 @@ def case_review(request, jurisdiction):
     if not case_data:
         messages.error(request, "Please complete the case details first.")
         return redirect("expert_form", jurisdiction=jurisdiction)
+
+    filing_draft = ensure_current_draft(request, jurisdiction, current_step=WorkflowStepKey.REVIEW)
 
     # Get organized case information
     petitioner_info = get_petitioner_info(request)
@@ -97,13 +106,11 @@ def case_review(request, jurisdiction):
 
     new_toga_url = f"{settings.EFSP_URL}/jurisdictions/{jurisdiction}/payments/new-toga-account"
 
-    is_logged_in = request.user.is_authenticated
-    if not get_tyler_token(request, jurisdiction):
-        is_logged_in = False
     context = {
-        "is_logged_in": is_logged_in,
+        "is_logged_in": True,
         "new_toga_url": new_toga_url,
         "case_data": case_data,
+        "filing_draft": draft_snapshot(filing_draft),
         "review_sections": review_sections,
         "friendly_names": {
             "case_type": friendly_case_type,
