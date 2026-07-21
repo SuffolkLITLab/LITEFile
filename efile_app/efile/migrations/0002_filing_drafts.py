@@ -67,6 +67,7 @@ class Migration(migrations.Migration):
                 ("name_change_reason", models.TextField(blank=True)),
                 ("optional_services", models.JSONField(blank=True, default=list)),
                 ("extracted_guesses", models.JSONField(blank=True, default=dict)),
+                ("supplemental_fields", models.JSONField(blank=True, default=dict)),
                 ("submission_response", models.JSONField(blank=True, default=dict)),
                 ("submitted_at", models.DateTimeField(blank=True, null=True)),
                 ("created_at", models.DateTimeField(auto_now_add=True)),

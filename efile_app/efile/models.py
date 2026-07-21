@@ -79,6 +79,11 @@ class FilingDraft(models.Model):
 
     optional_services = models.JSONField(default=list, blank=True)
     extracted_guesses = models.JSONField(default=dict, blank=True)
+    # Area-of-law questionnaire answers (e.g. divorce children questions). These are
+    # driven by the per-state/case-type config, not a fixed schema, so they live in a
+    # structured JSON field rather than a column each. Only config-defined keys are
+    # stored here -- it is not a catch-all for arbitrary case data.
+    supplemental_fields = models.JSONField(default=dict, blank=True)
     submission_response = models.JSONField(default=dict, blank=True)
 
     submitted_at = models.DateTimeField(blank=True, null=True)

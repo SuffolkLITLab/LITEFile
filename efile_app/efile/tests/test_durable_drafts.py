@@ -132,6 +132,22 @@ def test_case_data_round_trips_through_the_model(django_user_model):
 
 
 @pytest.mark.django_db
+def test_supplemental_case_fields_round_trip(django_user_model):
+    """Config-driven questionnaire answers survive a durable-draft round trip."""
+    user = django_user_model.objects.create_user(username="supplemental-owner", tyler_jurisdiction="illinois")
+    draft = FilingDraft.objects.create(user=user, jurisdiction="illinois")
+
+    write_case_data(draft, {"has_children": "false", "child_count": "2", "unknown_answer": "drop me"})
+    draft.refresh_from_db()
+
+    assert draft.supplemental_fields == {"has_children": "false", "child_count": "2"}
+    assert read_case_data(draft)["has_children"] == "false"
+    assert read_case_data(draft)["child_count"] == "2"
+    assert "unknown_answer" not in read_case_data(draft)
+    assert draft_snapshot(draft)["supplemental_fields"] == {"has_children": "false", "child_count": "2"}
+
+
+@pytest.mark.django_db
 def test_existing_case_lookup_codes_are_persisted(django_user_model):
     """The existing-case lookup sends *_code keys; they must not be dropped."""
     user = django_user_model.objects.create_user(username="existing-case-owner", tyler_jurisdiction="illinois")
@@ -407,7 +423,7 @@ def test_final_submission_marks_current_draft_submitted(client, django_user_mode
 
 
 @pytest.mark.django_db
-def test_final_submission_marks_current_draft_error_on_api_failure(client, django_user_model, monkeypatch):
+def test_confirmed_api_rejection_releases_draft_for_retry(client, django_user_model, monkeypatch):
     def fake_post(*_args, **_kwargs):
         return FakeApiResponse(400, {"error": "Rejected", "validation_errors": ["bad bundle"]})
 
@@ -425,9 +441,17 @@ def test_final_submission_marks_current_draft_error_on_api_failure(client, djang
 
     assert response.status_code == 400
     draft.refresh_from_db()
-    assert draft.status == FilingDraft.Status.ERROR
-    assert draft.submission_response["status_code"] == 400
-    assert draft.submission_response["response"]["api_status_code"] == 400
+    assert draft.status == FilingDraft.Status.DRAFT
+
+
+@pytest.mark.parametrize(
+    ("status_code", "is_confirmed_rejection"),
+    [(400, True), (422, True), (408, False), (409, False), (500, False)],
+)
+def test_confirmed_api_rejection_excludes_ambiguous_statuses(status_code, is_confirmed_rejection):
+    from efile.views.submission import _confirmed_api_rejection
+
+    assert _confirmed_api_rejection({"api_status_code": status_code}) is is_confirmed_rejection
 
 
 @pytest.mark.django_db
@@ -446,24 +470,18 @@ def test_submission_claim_prevents_duplicate_filing(django_user_model):
 
 
 @pytest.mark.django_db
-def test_stale_submission_claim_is_recoverable(django_user_model):
-    """A claim left behind by a crashed request can be taken over after the timeout."""
-    from datetime import timedelta
+def test_ambiguous_submission_states_are_not_automatically_reclaimed(django_user_model):
+    """SUBMITTING and ERROR require review because retrying either may double-file."""
+    from efile.views.submission import _claim_for_submission
 
-    from django.utils import timezone
-
-    from efile.views.submission import SUBMISSION_CLAIM_TIMEOUT, _claim_for_submission
-
-    user = django_user_model.objects.create_user(username="stale-user", tyler_jurisdiction="illinois")
+    user = django_user_model.objects.create_user(username="ambiguous-state-user", tyler_jurisdiction="illinois")
     draft = FilingDraft.objects.create(user=user, jurisdiction="illinois")
 
     assert _claim_for_submission(draft) is True
-    assert _claim_for_submission(draft) is False  # fresh claim is not recoverable
+    assert _claim_for_submission(draft) is False
 
-    stale = timezone.now() - SUBMISSION_CLAIM_TIMEOUT - timedelta(minutes=1)
-    FilingDraft.objects.filter(pk=draft.pk).update(updated_at=stale)
-
-    assert _claim_for_submission(draft) is True  # stale claim is recovered
+    draft.mark_error({"error": "outcome unknown"})
+    assert _claim_for_submission(draft) is False
 
 
 @pytest.mark.django_db
@@ -489,7 +507,11 @@ def test_precondition_failure_releases_claim_to_draft(client, django_user_model)
 def test_ambiguous_failure_does_not_release_to_draft(client, django_user_model, monkeypatch):
     """An error after requests.post may mean the filing went through: never reset to DRAFT."""
 
+    calls = 0
+
     def boom(*_args, **_kwargs):
+        nonlocal calls
+        calls += 1
         raise ValueError("crashed after sending")
 
     monkeypatch.setattr("requests.post", boom)
@@ -507,6 +529,15 @@ def test_ambiguous_failure_does_not_release_to_draft(client, django_user_model, 
     assert response.status_code >= 400
     draft.refresh_from_db()
     assert draft.status == FilingDraft.Status.ERROR
+
+    retry = client.post(
+        reverse("submit_final_filing"),
+        data={"confirm_submission": True, "efile_data": {"al_court_bundle": {}}},
+        content_type="application/json",
+    )
+
+    assert retry.status_code == 409
+    assert calls == 1
 
 
 @pytest.mark.django_db

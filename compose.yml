@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
     image: form-submission-mvp:web
     command: >-
-      sh -c "uv run python efile_app/manage.py migrate &&
+      sh -c "uv run python efile_app/manage.py migrate --noinput --fake-initial &&
              uv run python efile_app/manage.py runserver 0.0.0.0:8000"
     ports:
       - "8000:8000"

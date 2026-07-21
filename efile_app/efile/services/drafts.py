@@ -152,6 +152,12 @@ _PARTY_SPECS: dict[str, dict[str, str]] = {
 
 _PETITIONER_PARTY_TYPE_KEYS = ("determined_party_type", "party_type", "petitioner_party_type")
 
+# Area-of-law questionnaire fields that persist in ``supplemental_fields`` instead
+# of a dedicated column. Keep this allowlist aligned with fields currently rendered
+# from the state configuration. Values are stored as received rather than being
+# string-coerced like the typed columns.
+_SUPPLEMENTAL_FIELDS = ("has_children", "child_count")
+
 
 def _first_present(data: dict[str, Any], keys: tuple[str, ...]) -> Any:
     for key in keys:
@@ -201,6 +207,13 @@ def write_case_data(
         if draft.optional_services != services:
             draft.optional_services = services
             update_fields.append("optional_services")
+
+    supplemental_updates = {key: data[key] for key in _SUPPLEMENTAL_FIELDS if key in data}
+    if supplemental_updates:
+        merged = {**draft.supplemental_fields, **supplemental_updates}
+        if merged != draft.supplemental_fields:
+            draft.supplemental_fields = merged
+            update_fields.append("supplemental_fields")
 
     if current_step is not None and draft.current_step != str(current_step):
         draft.current_step = str(current_step)
@@ -264,6 +277,10 @@ def read_case_data(draft: FilingDraft | None) -> dict[str, Any]:
         if party.role == "petitioner" and party.party_type:
             for key in _PETITIONER_PARTY_TYPE_KEYS:
                 _put(data, key, party.party_type)
+
+    # Supplemental answers are emitted as stored (a False/0 answer is meaningful).
+    for key, value in (draft.supplemental_fields or {}).items():
+        data[key] = value
 
     return data
 
@@ -465,6 +482,7 @@ def draft_snapshot(draft: FilingDraft | None) -> dict[str, Any] | None:
         "selected_payment_account_name": draft.selected_payment_account_name,
         "optional_services": draft.optional_services,
         "extracted_guesses": draft.extracted_guesses,
+        "supplemental_fields": draft.supplemental_fields,
         "document_count": FilingDocument.objects.filter(draft=draft).count(),
         "party_count": FilingParty.objects.filter(draft=draft).count(),
         "created_at": draft.created_at.isoformat() if draft.created_at else None,
