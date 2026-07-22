@@ -18,6 +18,8 @@ pip install 'awscli-local[ver1]'
 awslocal s3 ls s3://forms-mvp-xf6361/efile-documents/ --recursive
 ```
 
+Also make sure that `AWS_S3_ENDPOINT_URL = "http://host.docker.internal:4566"` and `AWS_ACCOUNT_ID_ENDPOINT_MODE = "disabled"` in your env.
+
 ## Calculating fees and filing end-to-end
 
 The EFSP proxy **downloads each document itself** from the `data_url` in the
@@ -31,13 +33,17 @@ A LocalStack presigned URL points at `http://localstack:4566`, which only
 resolves inside the Docker network. So a hosted EFSP proxy cannot fetch your
 locally uploaded document, and fee quotes fail.
 
-The opt-in workaround is `EFSP_TEST_DOCUMENT_URL`: set it to any publicly
-readable PDF, and the app sends *that* URL to the proxy as every document's
-`data_url`.
+By default in `efile_app/.env.example`, `EFSP_TEST_DOCUMENT_URL` points to the publicly accessible test PDF hosted in this repository:
+
+```bash
+https://raw.githubusercontent.com/SuffolkLITLab/LITEFile/main/testing/sample_test.pdf
+```
+
+You can set `EFSP_TEST_DOCUMENT_URL` in `efile_app/.env` or your environment to any publicly readable PDF, and the app sends *that* URL to the proxy as every document's `data_url`.
 
 ```bash
 # in efile_app/.env, or the environment you run compose from
-EFSP_TEST_DOCUMENT_URL="https://example.org/some/public/blank.pdf"
+EFSP_TEST_DOCUMENT_URL="https://raw.githubusercontent.com/SuffolkLITLab/LITEFile/main/testing/sample_test.pdf"
 ```
 
 What this does and does not change:
@@ -62,7 +68,7 @@ outside local development.
 
 ### If you need the proxy to fetch the real document
 
-Leave `EFSP_TEST_DOCUMENT_URL` unset and choose one of:
+Leave `EFSP_TEST_DOCUMENT_URL` unset (empty string) and choose one of:
 
 - Point `AWS_S3_ENDPOINT_URL` at a real dev S3 bucket. Presigned URLs are the
   production path, so this exercises exactly what ships.
