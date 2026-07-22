@@ -1,4 +1,5 @@
 import json
+from unittest.mock import patch
 
 import pytest
 from django.urls import reverse
@@ -317,6 +318,84 @@ def test_create_draft_view_requires_jurisdiction_token(client, django_user_model
     assert response.status_code == 403
     assert response.json()["success"] is False
     assert not FilingDraft.objects.exists()
+
+
+@pytest.mark.django_db
+def test_options_page_points_resume_to_draft_workflow_step(client, django_user_model):
+    user = django_user_model.objects.create_user(
+        username="resume-user",
+        password="testpass123",
+        tyler_jurisdiction="illinois",
+    )
+    draft = FilingDraft.objects.create(
+        user=user,
+        jurisdiction="illinois",
+        current_step=WorkflowStepKey.DOCUMENTS,
+    )
+    client.force_login(user)
+    _authorize_jurisdiction_session(client)
+    session = client.session
+    session[CURRENT_DRAFT_SESSION_KEY] = draft.pk
+    session.save()
+
+    response = client.get(reverse("efile_options", kwargs={"jurisdiction": "illinois"}))
+
+    assert response.status_code == 200
+    assert reverse("upload", kwargs={"jurisdiction": "illinois"}).encode() in response.content
+
+
+@pytest.mark.django_db
+def test_documents_page_returns_to_lead_upload_when_lead_is_missing(client, django_user_model):
+    user = django_user_model.objects.create_user(username="missing-lead-user", tyler_jurisdiction="illinois")
+    draft = FilingDraft.objects.create(user=user, jurisdiction="illinois")
+    write_case_data(draft, {"court": "cook:cd", "case_type": "Name Change"})
+    client.force_login(user)
+    _authorize_jurisdiction_session(client)
+    session = client.session
+    session[CURRENT_DRAFT_SESSION_KEY] = draft.pk
+    session.save()
+
+    response = client.get(reverse("upload", kwargs={"jurisdiction": "illinois"}))
+
+    assert response.status_code == 302
+    assert response.url == reverse("upload_first", kwargs={"jurisdiction": "illinois"})
+
+
+@pytest.mark.django_db
+def test_first_upload_save_uses_current_draft_jurisdiction(client, django_user_model):
+    """A first-upload request without a jurisdiction must not fall into ``default``."""
+    user = django_user_model.objects.create_user(username="first-upload-owner", tyler_jurisdiction="illinois")
+    draft = FilingDraft.objects.create(user=user, jurisdiction="illinois")
+    client.force_login(user)
+    session = client.session
+    session[CURRENT_DRAFT_SESSION_KEY] = draft.pk
+    session["jurisdiction"] = "illinois"
+    session.save()
+
+    with (
+        patch("efile.views.session_api.requests.get") as get_file,
+        patch("efile.views.session_api.extract_fields_from_file", return_value={}),
+    ):
+        get_file.return_value.content = b"%PDF-1.7"
+        response = client.post(
+            reverse("save_upload_data_to_session"),
+            data=json.dumps(
+                {
+                    "files": {
+                        "lead": {
+                            "name": "petition.pdf",
+                            "url": "http://localstack:4566/forms/petition.pdf",
+                            "s3_key": "efile-documents/lead/petition.pdf",
+                        }
+                    }
+                }
+            ),
+            content_type="application/json",
+        )
+
+    assert response.status_code == 200
+    assert FilingDocument.objects.filter(draft=draft, role=FilingDocument.Role.LEAD).exists()
+    assert not FilingDraft.objects.filter(user=user, jurisdiction="default").exists()
 
 
 @pytest.mark.django_db

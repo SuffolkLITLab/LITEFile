@@ -560,7 +560,10 @@ const FilingHandler = {
             email: userData.email,
             party_type: partyType,
             date_of_birth: "",
-            is_form_filler: true,
+            // The authenticated account is a firm filer, not a self-represented
+            // party. Marking the filer as the party makes Tyler reject fees with
+            // "Cannot specify self as party for a firm filer."
+            is_form_filler: false,
             name: {
                 first: firstName,
                 middle: middleName,
@@ -633,7 +636,6 @@ const FilingHandler = {
             other_parties,
             user_started_case: !caseData?.previous_case_id,
             al_court_bundle: [],
-            cross_references: "",
             comments_to_clerk: "",
             tyler_payment_id: paymentAccountID,
             lead_contact: {
@@ -680,11 +682,16 @@ const FilingHandler = {
         if (uploadData?.files?.supporting?.length > 0) {
             uploadData.files.supporting.forEach((doc, index) => {
                 const config = uploadData.supporting_documents?.[index] || {};
+                const configuredComponent = config.filing_component;
+                const documentComponent = doc.filing_component;
+                const filingComponent = typeof configuredComponent === "object"
+                    ? configuredComponent.id
+                    : configuredComponent || (typeof documentComponent === "object" ? documentComponent.id : documentComponent);
                 const bundle = this.createDocumentBundle(
                     doc,
                     config.filing_type || caseData.filing_type_id,
                     config.document_type || caseData.document_type,
-                    config.filing_component || "supporting",
+                    filingComponent || caseData.filing_component,
                     users,
                     config.filing_type_name || `Supporting Document ${index + 1}`,
                     config.document_type_name || "",

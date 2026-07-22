@@ -8,6 +8,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
+from ..services.current_drafts import get_current_draft
 from ..utils.case_data_utils import get_case_data, get_upload_data, update_case_data, update_upload_data
 from ..utils.llms import LlmError, extract_fields_from_file
 from ..utils.proxy_connection import get_party_type_code_from_api
@@ -144,7 +145,13 @@ def save_upload_first_data(request):
         return JsonResponse({"success": False, "error": "Authentication required"}, status=401)
 
     data = json.loads(request.body)
-    jurisdiction_id = data.get("jurisdiction_id", "default")
+    current_draft = get_current_draft(request, resume_latest=False)
+    jurisdiction_id = (
+        data.get("jurisdiction_id")
+        or (current_draft.jurisdiction if current_draft is not None else None)
+        or request.session.get("jurisdiction")
+        or "default"
+    )
     if data.get("jurisdiction_id"):
         request.session["jurisdiction"] = jurisdiction_id
     upload_data = {"files": data.get("files", {})}

@@ -1,27 +1,79 @@
 services:
+  localstack:
+    # Keep the pre-auth Community Edition for local development. Newer
+    # calendar-versioned images require a LocalStack account token.
+    image: localstack/localstack:3.8.0
+    ports:
+      - "127.0.0.1:4566:4566"
+      - "127.0.0.1:4510-4559:4510-4559"
+    environment:
+      DEBUG: "${DEBUG:-0}"
+      SERVICES: s3
+      AWS_DEFAULT_REGION: us-east-1
+      AWS_S3_BUCKET_NAME: forms-mvp-xf6361
+    volumes:
+      - localstack:/var/lib/localstack
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./testing/localstack-init:/etc/localstack/init/ready.d:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
   web:
     build:
       context: .
       dockerfile: Dockerfile
     image: form-submission-mvp:web
     command: >-
-      sh -c "uv run python efile_app/manage.py migrate --noinput --fake-initial &&
-             uv run python efile_app/manage.py runserver 0.0.0.0:8000"
+      sh -c "uv run python manage.py migrate --noinput --fake-initial &&
+             uv run python manage.py runserver 0.0.0.0:8000"
+    depends_on:
+      localstack:
+        condition: service_healthy
     ports:
       - "8000:8000"
     environment:
       PYTHONDONTWRITEBYTECODE: "1"
       PYTHONUNBUFFERED: "1"
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_S3_BUCKET_NAME: forms-mvp-xf6361
+      AWS_S3_REGION_NAME: us-east-1
+      AWS_S3_ENDPOINT_URL: http://localstack:4566
+      AWS_ACCOUNT_ID_ENDPOINT_MODE: disabled
+      DJANGO_ALLOWED_HOSTS: "*"
+      LOCAL_PUBLIC_UPLOAD_TUNNEL_LOG: /shared/cloudflared.log
+      LOCAL_PUBLIC_UPLOAD_WAIT_SECONDS: "30"
       # DJANGO_SETTINGS_MODULE: efile.settings  # manage.py sets this; uncomment to override
     volumes:
       - .:/app:delegated
       - venv:/app/.venv
+      - public-tunnel:/shared:ro
     # healthcheck:
     #   test: ["CMD-SHELL", "wget -qO- http://localhost:8000/ || exit 1"]
     #   interval: 10s
     #   timeout: 5s
     #   retries: 5
 
+  # The remote EFSP server fetches document URLs from outside Docker. A
+  # Cloudflare quick tunnel makes the local document proxy reachable without
+  # an account or per-developer configuration.
+  public-tunnel:
+    image: cloudflare/cloudflared:latest
+    command: tunnel --no-autoupdate --url http://web:8000 --logfile /shared/cloudflared.log
+    user: "0:0"
+    depends_on:
+      web:
+        condition: service_started
+    volumes:
+      - public-tunnel:/shared
+
 volumes:
+  localstack:
+    driver: local
   venv:
+    driver: local
+  public-tunnel:
     driver: local

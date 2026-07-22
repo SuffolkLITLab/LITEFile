@@ -101,7 +101,8 @@
                         window.location.href = result.redirect_url || `/jurisdiction/{{jurisdiction}}/upload_first/`;
                     });
                 } else {
-                    // TODO(brycew): go straight to the page where the existing session was, reload everything
+                    const resumeUrl = "{{ resume_url|default:'' }}";
+                    window.location.href = resumeUrl || `/jurisdiction/{{jurisdiction}}/upload_first/`;
                 }
             }
 

@@ -331,7 +331,19 @@ def _apply_document(doc: FilingDocument, file_obj: dict[str, Any], config: dict[
     }
     for model_field, config_key in config_fields.items():
         if config_key in config:
-            setattr(doc, model_field, _as_str(config.get(config_key)))
+            value = config.get(config_key)
+            if isinstance(value, dict):
+                value = value.get("id") or value.get("code") or ""
+            setattr(doc, model_field, _as_str(value))
+
+    # Older upload clients stored the selected component on the file object as
+    # {id, name}, while the durable draft config was empty. Preserve that code
+    # so the payment payload never falls back to the literal "supporting".
+    if not doc.filing_component_code and file_obj.get("filing_component"):
+        value = file_obj["filing_component"]
+        if isinstance(value, dict):
+            value = value.get("id") or value.get("code") or ""
+        doc.filing_component_code = _as_str(value)
 
 
 def _upsert_document(

@@ -61,12 +61,10 @@
                                                id="leadFilingType_search"
                                                name="leadFilingType_search"
                                                placeholder="Search filing types..."
-                                               autocomplete="off"
-                                               required />
+                                               autocomplete="off" />
                                         <select class="form-select dropdown-field d-none"
                                                 id="leadFilingType"
-                                                name="lead_filing_type"
-                                                required>
+                                                name="lead_filing_type">
                                             <option value="">{% translate "Select filing type" %}</option>
                                         </select>
                                         <div class="search-dropdown-results"
@@ -89,8 +87,7 @@
                                     </label>
                                     <select class="form-select document-type-select"
                                             id="leadDocumentType"
-                                            name="lead_document_type"
-                                            required>
+                                            name="lead_document_type">
                                         <option value="">{% translate "Select filing type first" %}</option>
                                     </select>
                                 </div>
@@ -210,7 +207,7 @@
         <script src="{% url 'javascript-catalog' %}"></script>
         <script src="{% static 'js/api-utils.js' %}"></script>
         <script src="{% static 'js/components/search-dropdown.js' %}"></script>
-        <script src="{% static 'js/upload-handler.js' %}"></script>
+        <script src="{% static 'js/upload-handler.js' %}?v=20260722-4"></script>
         <script>
             // Load filing components when page loads
             document.addEventListener("DOMContentLoaded", function() {

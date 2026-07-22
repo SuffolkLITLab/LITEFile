@@ -115,8 +115,15 @@ class UploadHandler {
                 console.error('Error syncing form data:', error);
             }
         }
-        // Take stuff from server and show on page
-        let upload_data = await apiUtils.getUploadData();
+        // Take stuff from server and show on page. Upload metadata is optional
+        // while a draft is being created, and the page should still initialize
+        // if the metadata request temporarily fails.
+        let upload_data = {};
+        try {
+            upload_data = await apiUtils.getUploadData() || {};
+        } catch (error) {
+            console.warn('Could not load saved upload data:', error);
+        }
         await this.prepLeadFileSelection(upload_data);
 
         await this.prepSupportingFileSelection(upload_data);
@@ -273,7 +280,14 @@ class UploadHandler {
     }
 
     async prepLeadFileSelection(upload_data) {
-        let lead = upload_data.files.lead;
+        const lead = upload_data?.files?.lead;
+
+        // A draft may not have a lead document yet (for example after an
+        // interrupted upload). Leave the options hidden and let the page
+        // recover without throwing during initialization.
+        if (!lead) {
+            return;
+        }
 
         // Add file previews
         const preview = this.createFilePreviewNoRemove(lead.name, lead.size);
@@ -306,12 +320,13 @@ class UploadHandler {
     }
 
     async prepSupportingFileSelection(upload_data) {
-        this.uploadedFiles = upload_data.files.supporting || [];
+        this.uploadedFiles = upload_data?.files?.supporting || [];
         if (this.uploadedFiles && this.uploadedFiles.length > 0) {
             this.uploadedFileStatuses = this.uploadedFiles.map(f => FileStatus.SUCCESS);
             this.updateFilePreview(this.supportingDocumentsArea, this.uploadedFiles, this.uploadedFileStatuses);
-            for (let index = 0; index < upload_data.supporting_documents.length; index++) {
-                let d = upload_data.supporting_documents[index];
+            const supportingDocuments = upload_data?.supporting_documents || [];
+            for (let index = 0; index < supportingDocuments.length; index++) {
+                let d = supportingDocuments[index];
 
                 if (d.filing_type) {
                     this.initializeFilingTypeDropdown(document.getElementById(`supportingFilingType${index}_search`));
@@ -681,6 +696,11 @@ class UploadHandler {
                 this.showError(`Please select a filing component for supporting document: ${this.uploadedFiles[i].name}`);
                 return;
             }
+            const supportingDocumentType = document.getElementById(`supportingDocumentType${i}`)?.value;
+            if (!supportingDocumentType) {
+                this.showError(`Please select a document type for supporting document: ${this.uploadedFiles[i].name}`);
+                return;
+            }
         }
 
         try {
@@ -692,6 +712,12 @@ class UploadHandler {
             const leadFilingTypeName = leadFilingTypeSelect && leadFilingTypeSelect.selectedOptions[0] ? leadFilingTypeSelect.selectedOptions[0].text : '';
             const leadDocumentType = leadDocumentTypeSelect ? leadDocumentTypeSelect.value : '';
             const leadDocumentTypeName = leadDocumentTypeSelect && leadDocumentTypeSelect.selectedOptions[0] ? leadDocumentTypeSelect.selectedOptions[0].text : '';
+
+            if (!leadFilingType || !leadDocumentType) {
+                this.showError('Please select a filing type and document type for the lead document.');
+                return;
+            }
+
             const leadFilingComponentValue = this.globalFilingComponentLead.id;
             const leadFilingComponentName = this.globalFilingComponentLead.name;
 
@@ -759,8 +785,8 @@ class UploadHandler {
             this.uploadedFiles.forEach((file, index) => {
                 const supportingFilingComponent = this.globalFilingComponentSupport;
                 if (file.uploadResult) {
-                    file.s3_key = file.uploadResult.files[0]?.public_url;
-                    file.url = file.uploadResult.files[0]?.key;
+                    file.url = file.uploadResult.files[0]?.public_url;
+                    file.s3_key = file.uploadResult.files[0]?.key;
                 }
                 if (file.s3_key && file.url) {
                     uploadDataWithUrls.files.push({
@@ -894,6 +920,16 @@ class UploadHandler {
                         };
                     }
                 });
+
+                // Some filing types expose only one filing component. In
+                // that case the EFSP still expects that component's code for
+                // supporting documents; never send the UI label "supporting".
+                if (!this.globalFilingComponentSupport.id && this.globalFilingComponentLead.id) {
+                    this.globalFilingComponentSupport = {
+                        id: this.globalFilingComponentLead.id,
+                        name: this.globalFilingComponentLead.name
+                    };
+                }
             } else {
                 console.error("API returned error:", result.error);
             }
@@ -919,7 +955,13 @@ class UploadHandler {
             return;
         }
 
-        let guesses = (await apiUtils.getUploadData())['guesses'];
+        let uploadData = {};
+        try {
+            uploadData = await apiUtils.getUploadData() || {};
+        } catch (error) {
+            console.warn('Could not load upload guesses:', error);
+        }
+        const guesses = uploadData.guesses || {};
 
         // Fetch filing types data only once
         if (this.globalFilingTypes.length === 0) {
@@ -1078,14 +1120,12 @@ function createSupportingDocumentOptions(index, fileName) {
                                   name="supportingFilingType${index}_search"
                                   placeholder="Search filing types..."
                                   autocomplete="off"
-                                  required
                                 />
                                 
                                 <select
                                   class="form-select dropdown-field d-none"
                                   id="supportingFilingType${index}"
                                   name="supporting_filing_type_${index}"
-                                  required
                                 >
                                   <option value="">Select Filing Type</option>
                                 </select>
@@ -1102,7 +1142,7 @@ function createSupportingDocumentOptions(index, fileName) {
                         </div>
                         <div class="col-md-6">
                             <label for="supportingDocumentType${index}" class="form-label"><strong>Request Documents to be Sealed / Confidential?</strong> <span class="required">*</span></label>
-                            <select class="form-select document-type-select" id="supportingDocumentType${index}" name="supporting_document_type_${index}" required>
+                            <select class="form-select document-type-select" id="supportingDocumentType${index}" name="supporting_document_type_${index}">
                                 <option value="">Select filing type first</option>
                             </select>
                         </div>

@@ -17,7 +17,7 @@ from efile.settings_base import DATABASES as BASE_DATABASES  # noqa: E402
 DATABASES = BASE_DATABASES
 
 DEBUG = True
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", ".localhost", "[::1]", "testserver"]
+ALLOWED_HOSTS = ALLOWED_HOSTS or ["localhost", "127.0.0.1", ".localhost", "[::1]", "testserver"]
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost",
     "http://127.0.0.1",

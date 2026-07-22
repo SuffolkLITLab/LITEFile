@@ -35,6 +35,11 @@ def efile_upload(request, jurisdiction):
         messages.error(request, gettext("Please complete the case details first."))
         return redirect("efile_options", jurisdiction=jurisdiction)
 
+    upload_data = get_upload_data(request, jurisdiction)
+    if not upload_data.get("files", {}).get("lead"):
+        messages.error(request, gettext("Please upload a lead document before continuing."))
+        return redirect("upload_first", jurisdiction=jurisdiction)
+
     filing_draft = ensure_current_draft(request, jurisdiction, current_step=WorkflowStepKey.DOCUMENTS)
 
     petitioner_info = get_petitioner_info(request, jurisdiction)
@@ -44,8 +49,6 @@ def efile_upload(request, jurisdiction):
     friendly_case_type = case_data.get("case_type_name", case_classification["case_type"])
     friendly_filing_type = case_data.get("filing_type_name", case_classification["filing_type"])
     friendly_court = case_data.get("court_name", case_classification["court"])
-
-    upload_data = get_upload_data(request, jurisdiction)
 
     context = {
         "is_logged_in": True,
