@@ -9,15 +9,17 @@ from efile.utils.llms import (
     list_available_models,
 )
 
+
 def test_openai_base_url_settings_and_config(monkeypatch):
     """Test that OPENAI_BASE_URL is recognized by get_config and settings."""
     assert hasattr(settings, "OPENAI_BASE_URL")
-    
+
     custom_url = "https://custom-ai-endpoint.example.com/v1/"
     monkeypatch.setenv("OPENAI_BASE_URL", custom_url)
-    
+
     assert get_config("openai base url") == custom_url
     assert get_config("open ai")["base url"] == custom_url
+
 
 @patch("efile.utils.llms.OpenAI")
 def test_chat_completion_uses_custom_base_url(mock_openai_cls, monkeypatch):
@@ -42,6 +44,7 @@ def test_chat_completion_uses_custom_base_url(mock_openai_cls, monkeypatch):
 
     assert result == "hello test response"
     mock_openai_cls.assert_called_with(api_key="test-api-key", base_url=custom_url)
+
 
 def test_llms_exports():
     """Test that standard functions and exceptions are exported."""
