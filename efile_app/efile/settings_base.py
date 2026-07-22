@@ -101,6 +101,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 SUFFOLK_EFILE_API_KEY = os.getenv("SUFFOLK_EFILE_API_KEY", "")
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", None)
+OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1/")
 
 # Base URL for EFSP-compatible APIs (Suffolk LIT Lab by default)
 # Override per environment with EFSP_URL env var
