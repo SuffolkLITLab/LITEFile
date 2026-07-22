@@ -19,3 +19,15 @@ awslocal s3api create-bucket --bucket efile-form-submission-bucket
 ```
 
 Also make sure that `AWS_S3_ENDPOINT_URL = "http://host.docker.internal:4566"` and `AWS_ACCOUNT_ID_ENDPOINT_MODE = "disabled"` in your env.
+
+## Calculating fees and filing end-to-end
+
+The EFSP proxy downloads each document itself from the `data_url` in the filing payload. A LocalStack presigned URL points to local/Docker host addresses which a remote EFSP proxy cannot reach.
+
+By default in local development (`settings_dev.py` / `compose.yml`), `EFSP_TEST_DOCUMENT_URL` points to the publicly accessible test PDF hosted in this repository:
+
+```bash
+https://raw.githubusercontent.com/SuffolkLITLab/LITEFile/main/testing/sample_test.pdf
+```
+
+You can override this in `efile_app/.env` or your environment if you wish to use a different publicly accessible PDF.
