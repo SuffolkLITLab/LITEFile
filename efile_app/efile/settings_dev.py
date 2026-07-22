@@ -2,7 +2,30 @@ import os
 from pathlib import Path
 
 import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
+
+# Refuse to be the settings module on a deployed host.
+#
+# `efile/settings.py` is a bare re-export of this module, and manage.py, wsgi.py
+# and asgi.py all `setdefault("DJANGO_SETTINGS_MODULE", "efile.settings")`. So a
+# deploy that loses DJANGO_SETTINGS_MODULE -- an edit to fly.toml's [env] block,
+# a new machine started without it -- silently falls back to *development*
+# settings: DEBUG=True, and EFSP_TEST_DOCUMENT_URL live, which would file
+# stand-in PDFs against a real court. Every other guard on that setting keys off
+# DEBUG, so none of them would fire in exactly this case.
+#
+# Fly always sets FLY_APP_NAME in the runtime environment, so its presence means
+# "deployed" regardless of what DJANGO_SETTINGS_MODULE says. Failing at import
+# turns a silent misconfiguration into a boot failure. Deliberately no override
+# env var: an escape hatch here is the same footgun again.
+if os.getenv("FLY_APP_NAME"):
+    raise ImproperlyConfigured(
+        "efile.settings_dev was loaded on a deployed host (FLY_APP_NAME="
+        f"{os.environ['FLY_APP_NAME']!r}). Development settings enable DEBUG and the "
+        "EFSP stand-in document. Set DJANGO_SETTINGS_MODULE to efile.settings_staging "
+        "or efile.settings_prod."
+    )
 
 # Determine BASE_DIR without importing base to load .env first
 _BASE_DIR = Path(__file__).resolve().parent.parent

@@ -45,10 +45,16 @@ services:
       # botocore >= 1.35 routes S3 through account-ID-specific endpoints, which
       # LocalStack does not serve. Disable that routing.
       AWS_ACCOUNT_ID_ENDPOINT_MODE: disabled
-      # Optional: a publicly readable PDF to hand the EFSP proxy in place of the
-      # uploaded document, so fee quotes work without exposing this machine.
-      # See testing/README.md.
-      EFSP_TEST_DOCUMENT_URL: "${EFSP_TEST_DOCUMENT_URL:-}"
+      # A publicly readable PDF handed to the EFSP proxy in place of the uploaded
+      # document, so fee quotes work without exposing this machine. The proxy
+      # fetches every data_url itself and cannot resolve `localstack`, so a real
+      # presigned URL fails here with a 400. See testing/README.md.
+      #
+      # Read from the shell or the compose-level .env, NOT efile_app/.env: this
+      # value lands in the container environment, and settings_dev loads that
+      # .env with override=False, so whatever is set here wins. `-` rather than
+      # `:-` so an explicit empty value still turns the substitution off.
+      EFSP_TEST_DOCUMENT_URL: "${EFSP_TEST_DOCUMENT_URL-https://raw.githubusercontent.com/SuffolkLITLab/LITEFile/main/testing/sample_test.pdf}"
       # DJANGO_SETTINGS_MODULE: efile.settings  # manage.py sets this; uncomment to override
     volumes:
       - .:/app:delegated

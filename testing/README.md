@@ -62,9 +62,40 @@ proxy forwards the bytes on to Tyler.
 The app logs a warning on every request where a substitution happens, so a
 stand-in filing is never mistaken for a real one.
 
-The setting is defined in `settings_dev.py` only. `settings_staging` and
-`settings_prod` never read it, so no environment variable can enable this
-outside local development.
+### Why this cannot reach a real court
+
+Filing a placeholder PDF in place of someone's actual document is the worst thing
+this repository could do, so the stand-in is fenced in four independent ways. No
+single mistake -- a stray environment variable, a dropped setting, a bad deploy --
+gets past all of them, and each one fails loudly rather than quietly.
+
+1. **`settings_dev` refuses to load on a deployed host.** `efile/settings.py` is
+   a bare re-export of `settings_dev`, and `manage.py`, `wsgi.py` and `asgi.py`
+   all `setdefault("DJANGO_SETTINGS_MODULE", "efile.settings")`. A deploy that
+   loses `DJANGO_SETTINGS_MODULE` -- an edit to `fly.toml`'s `[env]`, a machine
+   started without it -- would otherwise come up on *development* settings, with
+   `DEBUG=True` and every guard below inert. `settings_dev` now raises
+   `ImproperlyConfigured` at import when `FLY_APP_NAME` is present. There is no
+   override flag: an escape hatch would be the same footgun again.
+2. **Only `settings_dev` reads the environment variable.** `settings_staging` and
+   `settings_prod` never define `EFSP_TEST_DOCUMENT_URL`, so exporting it there
+   does nothing. A test asserts no other settings module starts reading it.
+3. **A startup system check** (`efile.E001`, in `efile/checks.py`) fails any
+   management command when the setting is non-empty while `DEBUG` is off.
+   `fly.toml` runs `manage.py migrate` as its release command, so a
+   misconfiguration fails the *deploy* rather than the first filing. In
+   development the same check emits `efile.W001` at startup, naming the stand-in
+   URL, so an active substitution is visible before anything is filed.
+4. **The substitution itself refuses to run outside `DEBUG`**, raising
+   `ImproperlyConfigured` rather than falling back to the real document. A
+   production process holding a stand-in URL is a broken deploy and should file
+   nothing at all until it is fixed.
+
+`efile/tests/test_stand_in_document_guards.py` covers all four. The suite also
+disables the stand-in for every test by default (`efile/tests/conftest.py`), so
+tests run in the production-shaped configuration and a developer who has the
+variable exported gets the same results as CI; tests that want the substitution
+opt in with `override_settings`.
 
 ### If you need the proxy to fetch the real document
 

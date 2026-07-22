@@ -10,6 +10,7 @@ import logging
 
 import requests
 from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 
 logger = logging.getLogger(__name__)
 
@@ -41,13 +42,32 @@ def substitute_test_document_urls(efile_data):
     locally would otherwise require public ingress to the dev machine.
 
     Documents are still uploaded to S3 for real and drafts still store their real
-    keys and URLs; only the URL handed to the proxy is replaced. The setting is
-    defined in ``settings_dev`` alone, so no environment variable can turn this on
-    in staging or production.
+    keys and URLs; only the URL handed to the proxy is replaced.
+
+    Three independent things have to hold for a substitution to happen, so that no
+    single mistake can put a stand-in document in front of a real court:
+
+    1. ``settings_dev`` refuses to load on a deployed host at all.
+    2. The setting is defined in ``settings_dev`` alone -- staging and production
+       never read the environment variable, so exporting it there does nothing.
+    3. This function refuses to substitute when ``DEBUG`` is off, and raises
+       rather than quietly falling back, because a production process holding a
+       stand-in URL is a broken deploy and should not file anything.
     """
     test_url = getattr(settings, "EFSP_TEST_DOCUMENT_URL", "")
     if not test_url:
         return
+
+    if not settings.DEBUG:
+        # Fail closed and loud. Silently sending the real document would leave a
+        # misconfigured deploy running and undiagnosed until it did something
+        # worse; silently sending the stand-in would file a placeholder PDF as
+        # though it were the filer's document.
+        raise ImproperlyConfigured(
+            "EFSP_TEST_DOCUMENT_URL is set while DEBUG is False. The stand-in filing "
+            "document is a local-development affordance and must never reach a real "
+            "court. Unset EFSP_TEST_DOCUMENT_URL in this environment."
+        )
 
     substituted = 0
     for bundle in efile_data.get("al_court_bundle", []):

@@ -7,6 +7,8 @@ developer opts in, so the "off" cases are tested as carefully as the "on" ones.
 import logging
 
 import pytest
+from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 from django.test import override_settings
 
 from efile.services.efsp_payload import (
@@ -51,16 +53,61 @@ def test_real_document_url_is_untouched_when_stand_in_is_not_configured():
     assert efile_data["al_court_bundle"][0]["data_url"] == REAL_S3_URL
 
 
-def test_substitution_is_inert_when_setting_is_absent_entirely():
-    """settings_prod/settings_staging never define the setting at all."""
+def test_substitution_is_inert_when_setting_is_absent_entirely(monkeypatch):
+    """settings_prod/settings_staging never define the setting at all.
+
+    Deleted rather than left to the ambient value: the suite runs under
+    settings_dev, which defaults the stand-in URL to a real PDF so local fee
+    quotes work, and `override_settings` cannot express "no such setting".
+    """
     efile_data = _bundle()
 
+    # Through the LazySettings wrapper, not settings._wrapped: __getattr__ caches
+    # each setting on the wrapper, so deleting only from the inner object leaves
+    # the cached value visible to getattr.
+    monkeypatch.delattr(settings, "EFSP_TEST_DOCUMENT_URL", raising=False)
     substitute_test_document_urls(efile_data)
 
     assert efile_data["al_court_bundle"][0]["data_url"] == REAL_S3_URL
 
 
-# --- EFSP_TEST_DOCUMENT_URL on ----------------------------------------------
+# --- EFSP_TEST_DOCUMENT_URL set outside development --------------------------
+#
+# Django's test environment forces DEBUG=False, so every "on" case below has to
+# opt into DEBUG=True explicitly -- which is the precondition the substitution
+# actually requires.
+
+
+def test_stand_in_url_is_refused_when_debug_is_off():
+    """A non-development process holding a stand-in URL must not file anything."""
+    efile_data = _bundle()
+
+    with override_settings(EFSP_TEST_DOCUMENT_URL=STAND_IN_URL, DEBUG=False):
+        with pytest.raises(ImproperlyConfigured, match="DEBUG is False"):
+            substitute_test_document_urls(efile_data)
+
+
+def test_refusal_happens_before_any_url_is_rewritten():
+    """The raise must not leave a half-substituted payload behind."""
+    efile_data = {"al_court_bundle": [{"data_url": REAL_S3_URL}, {"data_url": REAL_S3_URL}]}
+
+    with override_settings(EFSP_TEST_DOCUMENT_URL=STAND_IN_URL, DEBUG=False):
+        with pytest.raises(ImproperlyConfigured):
+            substitute_test_document_urls(efile_data)
+
+    assert [b["data_url"] for b in efile_data["al_court_bundle"]] == [REAL_S3_URL, REAL_S3_URL]
+
+
+def test_full_payload_preparation_refuses_too():
+    """The guard holds on the path both the fee quote and the submission call."""
+    efile_data = _bundle()
+
+    with override_settings(EFSP_TEST_DOCUMENT_URL=STAND_IN_URL, DEBUG=False):
+        with pytest.raises(ImproperlyConfigured):
+            prepare_efile_payload(efile_data, "illinois", "adams")
+
+
+# --- EFSP_TEST_DOCUMENT_URL on in development --------------------------------
 
 
 def test_stand_in_url_replaces_every_document_url():
@@ -71,7 +118,7 @@ def test_stand_in_url_replaces_every_document_url():
         ]
     }
 
-    with override_settings(EFSP_TEST_DOCUMENT_URL=STAND_IN_URL):
+    with override_settings(EFSP_TEST_DOCUMENT_URL=STAND_IN_URL, DEBUG=True):
         substitute_test_document_urls(efile_data)
 
     assert [b["data_url"] for b in efile_data["al_court_bundle"]] == [STAND_IN_URL, STAND_IN_URL]
@@ -80,7 +127,7 @@ def test_stand_in_url_replaces_every_document_url():
 def test_substitution_warns_so_the_filing_is_not_mistaken_for_a_real_one(efile_logs):
     efile_data = _bundle()
 
-    with override_settings(EFSP_TEST_DOCUMENT_URL=STAND_IN_URL):
+    with override_settings(EFSP_TEST_DOCUMENT_URL=STAND_IN_URL, DEBUG=True):
         substitute_test_document_urls(efile_data)
 
     assert any("stand-in document" in record.getMessage() for record in efile_logs.records)
@@ -89,7 +136,7 @@ def test_substitution_warns_so_the_filing_is_not_mistaken_for_a_real_one(efile_l
 def test_substitution_leaves_other_bundle_fields_alone():
     efile_data = _bundle(filing_component="331", filing_type="27965")
 
-    with override_settings(EFSP_TEST_DOCUMENT_URL=STAND_IN_URL):
+    with override_settings(EFSP_TEST_DOCUMENT_URL=STAND_IN_URL, DEBUG=True):
         substitute_test_document_urls(efile_data)
 
     bundle = efile_data["al_court_bundle"][0]
