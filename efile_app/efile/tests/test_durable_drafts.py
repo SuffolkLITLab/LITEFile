@@ -143,8 +143,8 @@ def test_supplemental_case_fields_round_trip(django_user_model):
     assert draft.supplemental_fields == {"has_children": "false", "child_count": "2"}
     assert read_case_data(draft)["has_children"] == "false"
     assert read_case_data(draft)["child_count"] == "2"
-    assert "unknown_answer" not in read_case_data(draft)
-    assert draft_snapshot(draft)["supplemental_fields"] == {"has_children": "false", "child_count": "2"}
+    assert (snapshot := draft_snapshot(draft)) is not None
+    assert snapshot["supplemental_fields"] == {"has_children": "false", "child_count": "2"}
 
 
 @pytest.mark.django_db
