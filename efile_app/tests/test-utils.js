@@ -10,12 +10,14 @@
  * @returns {Object} Test configuration object
  */
 function getTestConfig() {
-    const username = process.env.E2E_TEST_USERNAME;
-    const password = process.env.E2E_TEST_PASSWORD;
+    // Same Tyler test-EFM login the Python suite uses (efile/tests/) and that
+    // CI supplies from secrets -- one name, so a working .env works everywhere.
+    const username = process.env.TESTS_TYLER_USERNAME;
+    const password = process.env.TESTS_TYLER_PASSWORD;
     const baseUrl = process.env.E2E_TEST_BASE_URL || 'http://localhost:8000';
 
     if (!username || !password) {
-        throw new Error('E2E_TEST_USERNAME and E2E_TEST_PASSWORD must be set in .env file');
+        throw new Error('TESTS_TYLER_USERNAME and TESTS_TYLER_PASSWORD must be set in .env file');
     }
 
     return {

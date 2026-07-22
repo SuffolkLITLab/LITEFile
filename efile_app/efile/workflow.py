@@ -100,6 +100,28 @@ def get_step_url(step_key: WorkflowStepKey | str, jurisdiction: str) -> str:
     return reverse(step.url_name, kwargs={"jurisdiction": jurisdiction})
 
 
+def get_resume_step_url(current_step: WorkflowStepKey | str | None, jurisdiction: str) -> str | None:
+    """Return the URL to send someone back to when they resume a draft.
+
+    OPTIONS is the model default for drafts saved before ``current_step`` was
+    tracked, but resuming there just returns the user to the page offering to
+    resume. Those start at the first real filing step instead. An unrecognised
+    value is treated the same way rather than breaking the options page.
+    """
+    if current_step is None:
+        return None
+
+    try:
+        step_key = WorkflowStepKey(current_step)
+    except ValueError:
+        step_key = WorkflowStepKey.UPLOAD_FIRST
+
+    if step_key == WorkflowStepKey.OPTIONS:
+        step_key = WorkflowStepKey.UPLOAD_FIRST
+
+    return get_step_url(step_key, jurisdiction)
+
+
 def get_workflow_context(current_step: WorkflowStepKey | str, jurisdiction: str) -> dict:
     previous_step = get_previous_step(current_step)
     next_step = get_next_step(current_step)

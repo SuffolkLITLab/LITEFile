@@ -4,8 +4,6 @@ S3 Upload utilities for handling document uploads to AWS S3
 
 import logging
 import mimetypes
-import re
-import time
 import uuid
 from urllib.parse import quote
 
@@ -193,10 +191,6 @@ class S3UploadHandler:
         Get a presigned URL for an S3 object (for efile submission)
         Uses presigned URLs since bucket policy makes files private
         """
-        local_url = self.get_local_public_url(s3_key)
-        if local_url:
-            return local_url
-
         if self.s3_client:
             try:
                 return self.s3_client.generate_presigned_url(
@@ -207,56 +201,6 @@ class S3UploadHandler:
 
         # Fallback to direct URL (will return 403 with current bucket policy)
         return f"https://{self.bucket_name}.s3.{self.region_name}.amazonaws.com/{s3_key}"
-
-    @classmethod
-    def get_local_public_url(cls, s3_key):
-        """Return a public proxy URL for a local S3 key, if configured."""
-        local_tunnel_url = cls._get_local_tunnel_url()
-        if not local_tunnel_url:
-            return None
-        return f"{local_tunnel_url}/api/public-upload/{quote(s3_key, safe='/')}"
-
-    @staticmethod
-    def _get_local_tunnel_url():
-        """Read the automatic local-development tunnel URL.
-
-        cloudflared writes the URL after it starts. Waiting here makes the
-        first upload reliable even if it happens while the tunnel is booting.
-        The shared log setting is absent outside local Docker development.
-        """
-        log_path = getattr(settings, "LOCAL_PUBLIC_UPLOAD_TUNNEL_LOG", "")
-        if not log_path:
-            return None
-
-        wait_seconds = max(0, getattr(settings, "LOCAL_PUBLIC_UPLOAD_WAIT_SECONDS", 30))
-        deadline = time.monotonic() + wait_seconds
-        tunnel_pattern = re.compile(r"https://[a-z0-9-]+\.trycloudflare\.com", re.IGNORECASE)
-
-        while True:
-            try:
-                with open(log_path, encoding="utf-8") as log_file:
-                    log_contents = log_file.read()
-                # A named Docker volume keeps the log across container
-                # restarts. Ignore the previous tunnel until cloudflared has
-                # announced a new one.
-                latest_start = log_contents.rfind("Requesting new quick Tunnel")
-                current_log = log_contents[latest_start:] if latest_start != -1 else log_contents
-                matches = tunnel_pattern.findall(current_log)
-                if matches:
-                    return matches[-1].rstrip("/")
-            except FileNotFoundError:
-                pass
-            except OSError as error:
-                logger.warning("Could not read local public upload tunnel log: %s", error)
-                return None
-
-            if time.monotonic() >= deadline:
-                logger.error(
-                    "Local public upload tunnel did not become ready within %ss",
-                    wait_seconds,
-                )
-                return None
-            time.sleep(0.25)
 
     def delete_file(self, s3_key):
         """
@@ -318,7 +262,3 @@ class S3UploadHandler:
             pass
 
         return {"valid": True}
-
-
-# Global instance
-s3_handler = S3UploadHandler()

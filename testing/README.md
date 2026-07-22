@@ -1,21 +1,71 @@
 # Testing Help
 
-For local testing, we recommend using [LocalStack](https://docs.localstack.cloud/aws/getting-started/installation/#docker-compose)
-to mock S3 locally, and [awslocal](https://github.com/localstack/awscli-local)
-to use it. 
+## Local S3 (LocalStack)
 
-LocalStack will be used through Docker, but to install `awslocal`, run the following:
+`compose.yml` in the repo root starts [LocalStack](https://docs.localstack.cloud/)
+alongside the web container and creates the bucket automatically
+(`testing/localstack-init/ready.d/01-create-s3-bucket.sh`), so uploads work out
+of the box with `docker compose up`.
+
+Uploads exercise the real code path: real boto3 client, real bucket, real keys,
+real presigned URLs. Nothing about the upload flow is mocked.
+
+To poke at the bucket by hand, install
+[awslocal](https://github.com/localstack/awscli-local):
 
 ```bash
-pip install awscli-local[ver1]
-``
-
-You can start the S3 mock using the `docker-compose.yml` here in this folder with the following commands.
-
-```bash
-docker compose up -d
-# Create a bucket with the name that should be in .env as `AWS_S3_BUCKET_NAME`. `AWS_S3_REGION_NAME` defaults to "us-east-1".
-awslocal s3api create-bucket --bucket efile-form-submission-bucket
+pip install 'awscli-local[ver1]'
+awslocal s3 ls s3://forms-mvp-xf6361/efile-documents/ --recursive
 ```
 
-Also make sure that `AWS_S3_ENDPOINT_URL = "http://host.docker.internal:4566"` and `AWS_ACCOUNT_ID_ENDPOINT_MODE = "disabled"` in your env.
+## Calculating fees and filing end-to-end
+
+The EFSP proxy **downloads each document itself** from the `data_url` in the
+filing payload, and it does this for a fee quote exactly as it does for a real
+filing (`FilingReviewService.calculateFilingFees` runs the same deserializer,
+which calls `inStream.readAllBytes()` inline). It also refuses any scheme other
+than `http://` or `https://` — there is no way to POST the file bytes, and no
+base64 or `data:` URI support.
+
+A LocalStack presigned URL points at `http://localstack:4566`, which only
+resolves inside the Docker network. So a hosted EFSP proxy cannot fetch your
+locally uploaded document, and fee quotes fail.
+
+The opt-in workaround is `EFSP_TEST_DOCUMENT_URL`: set it to any publicly
+readable PDF, and the app sends *that* URL to the proxy as every document's
+`data_url`.
+
+```bash
+# in efile_app/.env, or the environment you run compose from
+EFSP_TEST_DOCUMENT_URL="https://example.org/some/public/blank.pdf"
+```
+
+What this does and does not change:
+
+- **Unchanged:** the file is uploaded to LocalStack for real, the draft stores
+  the real S3 key and URL, and the review/payment screens show the real
+  document. Everything up to the EFSP call is exercised normally.
+- **Changed:** only the `data_url` field in the payload sent to the proxy.
+
+Fees are calculated from filing codes, party counts, and optional services
+rather than from the document's contents, and `page_count` is taken from the
+JSON payload rather than parsed out of the PDF — so a stand-in PDF returns the
+same fees as the real one. It does need to be a real, fetchable PDF, because the
+proxy forwards the bytes on to Tyler.
+
+The app logs a warning on every request where a substitution happens, so a
+stand-in filing is never mistaken for a real one.
+
+The setting is defined in `settings_dev.py` only. `settings_staging` and
+`settings_prod` never read it, so no environment variable can enable this
+outside local development.
+
+### If you need the proxy to fetch the real document
+
+Leave `EFSP_TEST_DOCUMENT_URL` unset and choose one of:
+
+- Point `AWS_S3_ENDPOINT_URL` at a real dev S3 bucket. Presigned URLs are the
+  production path, so this exercises exactly what ships.
+- Run [EfileProxyServer](https://github.com/SuffolkLITLab/EfileProxyServer) in
+  your own compose stack. It deliberately does not block private addresses, so a
+  `data_url` on the Docker network works and no public ingress is needed.

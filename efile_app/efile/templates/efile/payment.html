@@ -73,7 +73,9 @@
         {{ new_toga_url|json_script:"new-toga-url" }}
         <!-- Review page JavaScript -->
         <script src="{% static 'js/api-utils.js' %}"></script>
-        <script src="{% static 'js/payment.js' %}?v=20260722-5"></script>
+        <!-- Must load before payment.js, which mixes FilingPayload into FilingHandler. -->
+        <script src="{% static 'js/filing-payload.js' %}"></script>
+        <script src="{% static 'js/payment.js' %}"></script>
         <script src="{% url 'javascript-catalog' %}"></script>
     </body>
 </html>

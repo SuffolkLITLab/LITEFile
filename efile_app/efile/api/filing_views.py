@@ -4,7 +4,6 @@ API views for filing operations and document management
 
 import json
 import logging
-from urllib.parse import unquote, urlparse
 
 import requests
 from django.conf import settings
@@ -14,89 +13,12 @@ from django.views.decorators.http import require_http_methods
 
 from efile.utils.jurisdiction_stuff import get_jurisdiction_from_request
 
+from ..services.efsp_payload import prepare_efile_payload
 from ..utils.case_data_utils import get_case_data
 from ..utils.proxy_connection import get_headers
-from ..utils.s3_upload_handler import S3UploadHandler
 from .base import APIResponseMixin
 
 logger = logging.getLogger(__name__)
-
-
-def rewrite_local_document_urls(efile_data):
-    """Refresh stale Docker-only document URLs before an EFSP request.
-
-    Drafts can outlive a local tunnel restart. Rebuild URLs from their S3 keys
-    when a draft still contains a LocalStack or host-only URL.
-    """
-    if not getattr(settings, "LOCAL_PUBLIC_UPLOAD_TUNNEL_LOG", ""):
-        return
-
-    for bundle in efile_data.get("al_court_bundle", []):
-        document_url = bundle.get("data_url")
-        if not document_url:
-            continue
-
-        parsed_url = urlparse(document_url)
-        if not parsed_url.scheme and document_url.startswith("efile-documents/"):
-            public_url = S3UploadHandler.get_local_public_url(document_url)
-            if public_url:
-                bundle["data_url"] = public_url
-            continue
-
-        is_quick_tunnel = bool(parsed_url.hostname and parsed_url.hostname.endswith(".trycloudflare.com"))
-        if parsed_url.hostname not in {"localstack", "localhost", "127.0.0.1", "host.docker.internal"} and not is_quick_tunnel:
-            continue
-
-        marker = "/efile-documents/"
-        marker_position = parsed_url.path.find(marker)
-        if marker_position == -1:
-            continue
-
-        s3_key = unquote(parsed_url.path[marker_position + 1 :])
-        public_url = S3UploadHandler.get_local_public_url(s3_key)
-        if public_url:
-            bundle["data_url"] = public_url
-
-
-def rewrite_fallback_filing_components(efile_data, jurisdiction_id, court_id):
-    """Replace legacy supporting-document labels with the court's code."""
-    bundles_needing_component = [
-        bundle
-        for bundle in efile_data.get("al_court_bundle", [])
-        if str(bundle.get("filing_component", "")).lower() in {"", "supporting", "attachment", "attachments"}
-    ]
-    if not bundles_needing_component:
-        return
-
-    for bundle in bundles_needing_component:
-        filing_type = bundle.get("filing_type")
-        if not filing_type:
-            continue
-        url = (
-            f"{settings.EFSP_URL}/jurisdictions/{jurisdiction_id}/codes/courts/{court_id}/"
-            f"filing_types/{filing_type}/filing_components"
-        )
-        try:
-            response = requests.get(url, timeout=10)
-            if response.status_code != 200:
-                continue
-            components = response.json()
-            if not isinstance(components, list):
-                continue
-            attachment = next(
-                (
-                    component
-                    for component in components
-                    if str(component.get("name", "")).lower() in {"attachment", "attachments"}
-                ),
-                None,
-            )
-            component = attachment or (components[0] if components else None)
-            component_code = component.get("code") if isinstance(component, dict) else None
-            if component_code:
-                bundle["filing_component"] = component_code
-        except (requests.RequestException, ValueError, TypeError):
-            logger.exception("Could not resolve filing component for filing type %s", filing_type)
 
 # TODO(brycew): this file doesn't work in it's current state. Keeping
 # around for later refactors, when we inevitably want to start letting users
@@ -249,15 +171,15 @@ class FilingAPIViews(APIResponseMixin):
             if not efile_data:
                 return JsonResponse({"success": False, "error": "No efile data provided in request"}, status=400)
 
-            if efile_data.get("cross_references") is None or efile_data.get("cross_references") == "":
-                efile_data.pop("cross_references", None)
-            rewrite_local_document_urls(efile_data)
-
             jurisdiction_id = request.session.get("jurisdiction")
             auth_tokens = request.session.get("auth_tokens", {})
             case_data = get_case_data(request, jurisdiction_id)
             court_id = case_data.get("court", "")
-            rewrite_fallback_filing_components(efile_data, jurisdiction_id, court_id)
+
+            # Must match what submit_final_filing sends, or fees are quoted
+            # against a payload that differs from the one actually filed.
+            prepare_efile_payload(efile_data, jurisdiction_id, court_id)
+
             url = f"{settings.EFSP_URL}/jurisdictions/{jurisdiction_id}/filingreview/courts/{court_id}/filing/fees"
 
             headers = get_headers()
@@ -289,7 +211,8 @@ class FilingAPIViews(APIResponseMixin):
                     }
                 )
             else:
-                logger.info("EFSP fee response body: %s", response.text[:2000])
+                # Debug, not info: fee responses echo party names and case details.
+                logger.debug("EFSP fee response body: %s", response.text[:2000])
                 try:
                     error_data = response.json()
                     if isinstance(error_data, dict):

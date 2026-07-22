@@ -1109,6 +1109,10 @@ function createSupportingDocumentOptions(index, fileName) {
     const html = `
                 <div class="document-options mt-3 supporting-document-options" id="supportingDocumentOptions${index}">
                     <h6 class="mb-3"><strong>Options for: ${fileName}</strong></h6>
+                    <!-- No \`required\` on the controls below: search-dropdown.js hides the input
+                         once a choice is made and the <select> is always d-none, so the browser
+                         would refuse to submit with "not focusable" exactly when the field IS
+                         filled in. handleSubmit validates these instead. -->
                     <div class="row" style="align-items: baseline">
                         <div class="col-md-6">
                             <label for="supportingFilingType${index}" class="form-label"><strong>Filing Type</strong> <span class="required">*</span></label>

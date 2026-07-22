@@ -55,6 +55,11 @@
                                         <strong>{% translate "Filing type" %}</strong>
                                         <span class="required">*</span>
                                     </label>
+                                    {# No `required` on either control below: search-dropdown.js hides #}
+                                    {# the input once a choice is made and the <select> is always d-none, #}
+                                    {# so the browser would refuse to submit with "not focusable" exactly #}
+                                    {# when the field IS filled in. UploadHandler.handleSubmit validates #}
+                                    {# these instead. #}
                                     <div class="search-dropdown-container" id="leadFilingType-container">
                                         <input type="text"
                                                class="form-control search-dropdown-input"
@@ -207,7 +212,7 @@
         <script src="{% url 'javascript-catalog' %}"></script>
         <script src="{% static 'js/api-utils.js' %}"></script>
         <script src="{% static 'js/components/search-dropdown.js' %}"></script>
-        <script src="{% static 'js/upload-handler.js' %}?v=20260722-4"></script>
+        <script src="{% static 'js/upload-handler.js' %}"></script>
         <script>
             // Load filing components when page loads
             document.addEventListener("DOMContentLoaded", function() {

@@ -115,12 +115,6 @@ AWS_S3_BUCKET_NAME = os.getenv("AWS_S3_BUCKET_NAME", "")
 AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME", "us-east-1")
 AWS_S3_ENDPOINT_URL = os.getenv("AWS_S3_ENDPOINT_URL", None)
 
-# LocalStack URLs are only resolvable inside Docker. Local compose starts a
-# public quick tunnel and shares its log with the web container so the remote
-# EFSP server can fetch uploaded documents during local development.
-LOCAL_PUBLIC_UPLOAD_TUNNEL_LOG = os.getenv("LOCAL_PUBLIC_UPLOAD_TUNNEL_LOG", "")
-LOCAL_PUBLIC_UPLOAD_WAIT_SECONDS = float(os.getenv("LOCAL_PUBLIC_UPLOAD_WAIT_SECONDS", "30"))
-
 # File Upload Settings
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
 ALLOWED_FILE_TYPES = [".pdf", ".doc", ".docx"]

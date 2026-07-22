@@ -9,6 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from ..services.current_drafts import get_current_draft
+from ..services.efsp_payload import prepare_efile_payload
 from ..utils.case_data_utils import get_case_data, get_upload_data, update_case_data, update_upload_data
 from ..utils.llms import LlmError, extract_fields_from_file
 from ..utils.proxy_connection import get_party_type_code_from_api
@@ -299,6 +300,9 @@ def submit_final_filing(request):
 
         if not court_id:
             return JsonResponse({"success": False, "error": "Court ID is required for filing submission"}, status=400)
+
+        # Same fixups the fee quote applied, so the filing matches the quote.
+        prepare_efile_payload(efile_data, jurisdiction_id, court_id)
 
         # Construct the Suffolk LIT Lab API endpoint
         api_url = f"{settings.EFSP_URL}/jurisdictions/{jurisdiction_id}/filingreview/courts/{court_id}/filings"

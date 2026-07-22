@@ -60,6 +60,27 @@ class UploadHandler {
         }
     }
 
+    /**
+     * Build the durable-draft payload for a lead document that S3 has accepted.
+     * Used both by the save-on-upload path and by the save-on-Continue retry, so
+     * the two can never drift.
+     * @param {Object} uploadedLead - one entry from the upload response's `files`
+     */
+    buildLeadPayload(uploadedLead) {
+        return {
+            files: {
+                lead: {
+                    name: this.uploadedFile.name,
+                    size: this.uploadedFile.size,
+                    type: this.uploadedFile.type,
+                    url: uploadedLead.public_url || uploadedLead.url,
+                    s3_key: uploadedLead.key,
+                },
+            },
+            options: { lead: {} },
+        };
+    }
+
     async saveUploadDataToSession(uploadData) {
         try {
             const payload = {
@@ -306,18 +327,7 @@ class UploadHandler {
             const uploadedLead = result.files?.[0];
             if (uploadedLead) {
                 try {
-                    await this.saveUploadDataToSession({
-                        files: {
-                            lead: {
-                                name: this.uploadedFile.name,
-                                size: this.uploadedFile.size,
-                                type: this.uploadedFile.type,
-                                url: uploadedLead.public_url || uploadedLead.url,
-                                s3_key: uploadedLead.key,
-                            },
-                        },
-                        options: { lead: {} },
-                    });
+                    await this.saveUploadDataToSession(this.buildLeadPayload(uploadedLead));
                     this.leadPersisted = true;
                 } catch (error) {
                     // Continue still retries the same save, so an interim
@@ -396,18 +406,7 @@ class UploadHandler {
                 if (!uploadedLead) {
                     throw new Error('The lead document upload did not return a file.');
                 }
-                await this.saveUploadDataToSession({
-                    files: {
-                        lead: {
-                            name: this.uploadedFile.name,
-                            size: this.uploadedFile.size,
-                            type: this.uploadedFile.type,
-                            url: uploadedLead.public_url || uploadedLead.url,
-                            s3_key: uploadedLead.key,
-                        },
-                    },
-                    options: { lead: {} },
-                });
+                await this.saveUploadDataToSession(this.buildLeadPayload(uploadedLead));
                 this.leadPersisted = true;
             } catch (error) {
                 console.error('Error persisting lead upload:', error);

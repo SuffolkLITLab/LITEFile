@@ -42,38 +42,28 @@ services:
       AWS_S3_BUCKET_NAME: forms-mvp-xf6361
       AWS_S3_REGION_NAME: us-east-1
       AWS_S3_ENDPOINT_URL: http://localstack:4566
+      # botocore >= 1.35 routes S3 through account-ID-specific endpoints, which
+      # LocalStack does not serve. Disable that routing.
       AWS_ACCOUNT_ID_ENDPOINT_MODE: disabled
-      DJANGO_ALLOWED_HOSTS: "*"
-      LOCAL_PUBLIC_UPLOAD_TUNNEL_LOG: /shared/cloudflared.log
-      LOCAL_PUBLIC_UPLOAD_WAIT_SECONDS: "30"
+      # Optional: a publicly readable PDF to hand the EFSP proxy in place of the
+      # uploaded document, so fee quotes work without exposing this machine.
+      # See testing/README.md.
+      EFSP_TEST_DOCUMENT_URL: "${EFSP_TEST_DOCUMENT_URL:-}"
       # DJANGO_SETTINGS_MODULE: efile.settings  # manage.py sets this; uncomment to override
     volumes:
       - .:/app:delegated
-      - venv:/app/.venv
-      - public-tunnel:/shared:ro
+      # The image builds its venv at /app/efile_app/.venv (Dockerfile WORKDIR).
+      # This must shadow that exact path, or the bind mount above exposes the
+      # host's venv to the container and root-owned files land in the checkout.
+      - venv:/app/efile_app/.venv
     # healthcheck:
     #   test: ["CMD-SHELL", "wget -qO- http://localhost:8000/ || exit 1"]
     #   interval: 10s
     #   timeout: 5s
     #   retries: 5
 
-  # The remote EFSP server fetches document URLs from outside Docker. A
-  # Cloudflare quick tunnel makes the local document proxy reachable without
-  # an account or per-developer configuration.
-  public-tunnel:
-    image: cloudflare/cloudflared:latest
-    command: tunnel --no-autoupdate --url http://web:8000 --logfile /shared/cloudflared.log
-    user: "0:0"
-    depends_on:
-      web:
-        condition: service_started
-    volumes:
-      - public-tunnel:/shared
-
 volumes:
   localstack:
     driver: local
   venv:
-    driver: local
-  public-tunnel:
     driver: local

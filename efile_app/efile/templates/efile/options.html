@@ -92,6 +92,7 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
         <script src="{% url 'javascript-catalog' %}"></script>
         <script src="{% static 'js/api-utils.js' %}"></script>
+        {{ resume_url|json_script:"resume-url" }}
         <script>
             let is_logged_in = "{{is_logged_in}}" === "True";
             // Function to save existing_case data and redirect to expert form or case details
@@ -101,7 +102,7 @@
                         window.location.href = result.redirect_url || `/jurisdiction/{{jurisdiction}}/upload_first/`;
                     });
                 } else {
-                    const resumeUrl = "{{ resume_url|default:'' }}";
+                    const resumeUrl = JSON.parse(document.getElementById("resume-url").textContent);
                     window.location.href = resumeUrl || `/jurisdiction/{{jurisdiction}}/upload_first/`;
                 }
             }

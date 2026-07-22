@@ -242,8 +242,9 @@ of the current end-to-end testing.
 
 - __Environment variables__: Create a `.env` file in the `efile_app/` directory with:
   ```bash
-  E2E_TEST_USERNAME=your_test_email@example.com
-  E2E_TEST_PASSWORD=your_test_password
+  # Tyler test-EFM login. The Python test suite reads the same two names.
+  TESTS_TYLER_USERNAME=your_test_email@example.com
+  TESTS_TYLER_PASSWORD=your_test_password
   E2E_TEST_BASE_URL=http://localhost:8000  # optional, defaults to localhost:8000
   ```
 
