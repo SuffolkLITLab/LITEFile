@@ -116,20 +116,18 @@
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-6" id="party-type-section">
-                                <label for="party_type" class="form-label">
-                                    {% translate "Party Type" %}<span class="required">*</span>
-                                </label>
-                                <small class="form-text text-muted mb-2 d-block">{% translate "This is your party type." %}</small>
-                                <select class="form-select dropdown-field"
-                                        id="party_type"
-                                        name="party_type"
-                                        data-level="2"
-                                        required>
-                                    <option value="">{% translate "Select party type" %}</option>
-                                </select>
-                                <div class="loading-spinner" id="loading-2" style="display: none">
-                                    <i class="fas fa-spinner fa-spin"></i>{% translate "Loading party types..." %}
-                                </div>
+                                <fieldset>
+                                    <legend class="form-label">
+                                        {% translate "Party Type" %}<span class="required">*</span>
+                                    </legend>
+                                    <small class="form-text text-muted mb-2 d-block">{% translate "This is your party type." %}</small>
+                                    <div id="party_type" data-level="2">
+                                        <p class="text-muted mb-0">{% translate "Select a case type first" %}</p>
+                                    </div>
+                                    <div class="loading-spinner" id="loading-2" style="display: none">
+                                        <i class="fas fa-spinner fa-spin"></i>{% translate "Loading party types..." %}
+                                    </div>
+                                </fieldset>
                             </div>
                         </div>
                     </div>

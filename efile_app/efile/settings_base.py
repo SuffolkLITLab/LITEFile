@@ -44,6 +44,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "efile.middleware.NoCacheHTMLMiddleware",
 ]
 
 ROOT_URLCONF = "efile.urls"

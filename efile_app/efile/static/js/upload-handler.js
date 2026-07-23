@@ -309,7 +309,7 @@ class UploadHandler {
             await this.populateDocumentTypes(upload_data.lead_filing_type, document.getElementById("leadDocumentType"));
         }
         if (upload_data.lead_document_type) {
-            document.getElementById("leadDocumentType").value = upload_data.lead_document_type;
+            this.setRadioGroupValue(document.getElementById("leadDocumentType"), upload_data.lead_document_type);
         }
         if (upload_data.lead_cc_email) {
             let input_element = document.getElementById("leadCertifiedCopies")
@@ -338,7 +338,7 @@ class UploadHandler {
                     await this.populateDocumentTypes(d.filing_type, document.getElementById(`supportingDocumentType${index}`));
                 }
                 if (d.document_type) {
-                    document.getElementById(`supportingDocumentType${index}`).value = d.document_type;
+                    this.setRadioGroupValue(document.getElementById(`supportingDocumentType${index}`), d.document_type);
                 }
                 if (d.cc_email) {
                     let input_element = document.getElementById(`supportingFilingType${index}`);
@@ -559,7 +559,7 @@ class UploadHandler {
                 if (selectedFilingTypeId) {
                     await this.populateDocumentTypes(selectedFilingTypeId, documentTypeSelect);
                 } else {
-                    documentTypeSelect.innerHTML = '<option value="">Select filing type first</option>';
+                    documentTypeSelect.innerHTML = '<p class="text-muted mb-0">Select filing type first</p>';
                 }
             });
         }
@@ -696,7 +696,7 @@ class UploadHandler {
                 this.showError(`Please select a filing component for supporting document: ${this.uploadedFiles[i].name}`);
                 return;
             }
-            const supportingDocumentType = document.getElementById(`supportingDocumentType${i}`)?.value;
+            const supportingDocumentType = this.getRadioGroupValue(document.getElementById(`supportingDocumentType${i}`));
             if (!supportingDocumentType) {
                 this.showError(`Please select a document type for supporting document: ${this.uploadedFiles[i].name}`);
                 return;
@@ -706,12 +706,12 @@ class UploadHandler {
         try {
             // Collect dropdown values for lead document
             const leadFilingTypeSelect = document.getElementById('leadFilingType');
-            const leadDocumentTypeSelect = document.getElementById('leadDocumentType');
+            const leadDocumentTypeContainer = document.getElementById('leadDocumentType');
 
             const leadFilingType = leadFilingTypeSelect ? leadFilingTypeSelect.value : '';
             const leadFilingTypeName = leadFilingTypeSelect && leadFilingTypeSelect.selectedOptions[0] ? leadFilingTypeSelect.selectedOptions[0].text : '';
-            const leadDocumentType = leadDocumentTypeSelect ? leadDocumentTypeSelect.value : '';
-            const leadDocumentTypeName = leadDocumentTypeSelect && leadDocumentTypeSelect.selectedOptions[0] ? leadDocumentTypeSelect.selectedOptions[0].text : '';
+            const leadDocumentType = this.getRadioGroupValue(leadDocumentTypeContainer);
+            const leadDocumentTypeName = this.getRadioGroupText(leadDocumentTypeContainer);
 
             if (!leadFilingType || !leadDocumentType) {
                 this.showError('Please select a filing type and document type for the lead document.');
@@ -732,9 +732,9 @@ class UploadHandler {
             supportingDropdowns.forEach((dropdown, index) => {
                 const filingType = dropdown.value;
                 const filingTypeName = dropdown.selectedOptions[0]?.text || '';
-                const docTypeSelect = document.getElementById(`supportingDocumentType${index}`);
-                const docType = docTypeSelect?.value || '';
-                const docTypeName = docTypeSelect?.selectedOptions[0]?.text || '';
+                const docTypeContainer = document.getElementById(`supportingDocumentType${index}`);
+                const docType = this.getRadioGroupValue(docTypeContainer);
+                const docTypeName = this.getRadioGroupText(docTypeContainer);
                 const component = this.globalFilingComponentSupport.id;
                 const componentName = this.globalFilingComponentSupport.name;
 
@@ -1009,15 +1009,15 @@ class UploadHandler {
         this.initializeFilingTypeDropdowns();
     }
 
-    async populateDocumentTypes(filingTypeId, documentTypeSelect) {
+    async populateDocumentTypes(filingTypeId, documentTypeContainer) {
         try {
             // Get court data from Django context to pass required parameters
             const court = JSON.parse(document.getElementById("case-classification").textContent)["court"] || sessionStorage.getItem("selected_court");
 
             if (!court) {
                 console.error("Missing court parameter for document types API");
-                documentTypeSelect.innerHTML =
-                    '<option value="">Missing court data</option>';
+                documentTypeContainer.innerHTML =
+                    '<p class="text-danger mb-0">Missing court data</p>';
                 return;
             }
 
@@ -1028,25 +1028,69 @@ class UploadHandler {
             }
             const result = await apiUtils.get('/api/dropdowns/document-types', params, true);
             if (result.success && result.data) {
-                documentTypeSelect.innerHTML =
-                    '<option value="">Select an option</option>';
-                result.data.forEach((docType) => {
-                    const option = document.createElement("option");
-                    option.value = docType.value || docType.code || docType.id;
-                    option.textContent =
-                        docType.text || docType.name || docType.description;
-                    documentTypeSelect.appendChild(option);
-                });
+                this.renderDocumentTypeRadios(documentTypeContainer, result.data);
             } else {
                 console.error("API returned error:", result.error);
-                documentTypeSelect.innerHTML =
-                    '<option value="">Error loading document types</option>';
+                documentTypeContainer.innerHTML =
+                    '<p class="text-danger mb-0">Error loading document types</p>';
             }
         } catch (error) {
             console.error("Error loading document types:", error);
-            documentTypeSelect.innerHTML =
-                '<option value="">Error loading document types</option>';
+            documentTypeContainer.innerHTML =
+                '<p class="text-danger mb-0">Error loading document types</p>';
         }
+    }
+
+    // Confidential/non-confidential is a binary choice (occasionally a third
+    // option), so it's rendered as radio buttons rather than a dropdown.
+    renderDocumentTypeRadios(container, options) {
+        container.innerHTML = "";
+        const groupName = container.dataset.fieldName || container.id;
+
+        options.forEach((docType, index) => {
+            const value = docType.value || docType.code || docType.id;
+            const text = docType.text || docType.name || docType.description;
+
+            const wrapper = document.createElement("div");
+            wrapper.className = "form-check";
+
+            const input = document.createElement("input");
+            input.type = "radio";
+            input.className = "form-check-input document-type-select";
+            input.name = groupName;
+            input.id = `${container.id}_${index}`;
+            input.value = value;
+            input.required = true;
+
+            const label = document.createElement("label");
+            label.className = "form-check-label";
+            label.setAttribute("for", input.id);
+            label.textContent = text;
+
+            wrapper.appendChild(input);
+            wrapper.appendChild(label);
+            container.appendChild(wrapper);
+        });
+    }
+
+    getRadioGroupValue(container) {
+        if (!container) return '';
+        const checked = container.querySelector('input[type="radio"]:checked');
+        return checked ? checked.value : '';
+    }
+
+    getRadioGroupText(container) {
+        if (!container) return '';
+        const checked = container.querySelector('input[type="radio"]:checked');
+        if (!checked) return '';
+        const label = container.querySelector(`label[for="${checked.id}"]`);
+        return label ? label.textContent.trim() : '';
+    }
+
+    setRadioGroupValue(container, value) {
+        if (!container) return;
+        const radio = container.querySelector(`input[type="radio"][value="${value}"]`);
+        if (radio) radio.checked = true;
     }
 
     setupCascadingDropdowns() {
@@ -1145,10 +1189,12 @@ function createSupportingDocumentOptions(index, fileName) {
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <label for="supportingDocumentType${index}" class="form-label"><strong>Request Documents to be Sealed / Confidential?</strong> <span class="required">*</span></label>
-                            <select class="form-select document-type-select" id="supportingDocumentType${index}" name="supporting_document_type_${index}">
-                                <option value="">Select filing type first</option>
-                            </select>
+                            <fieldset>
+                                <legend class="form-label"><strong>Request Documents to be Sealed / Confidential?</strong> <span class="required">*</span></legend>
+                                <div id="supportingDocumentType${index}" data-field-name="supporting_document_type_${index}">
+                                    <p class="text-muted mb-0">Select filing type first</p>
+                                </div>
+                            </fieldset>
                         </div>
                     </div>
                     

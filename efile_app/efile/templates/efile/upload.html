@@ -86,15 +86,14 @@
                                     </div>
                                 </div>
                                 <div class="col-md-6">
-                                    <label for="leadDocumentType" class="form-label">
-                                        <strong>{% translate "Request documents be sealed / confidential?" %}</strong>
-                                        <span class="required">*</span>
-                                    </label>
-                                    <select class="form-select document-type-select"
-                                            id="leadDocumentType"
-                                            name="lead_document_type">
-                                        <option value="">{% translate "Select filing type first" %}</option>
-                                    </select>
+                                    <fieldset>
+                                        <legend class="form-label">
+                                            {% translate "Request documents be sealed / confidential?" %}<span class="required">*</span>
+                                        </legend>
+                                        <div id="leadDocumentType" data-field-name="lead_document_type">
+                                            <p class="text-muted mb-0">{% translate "Select filing type first" %}</p>
+                                        </div>
+                                    </fieldset>
                                 </div>
                             </div>
                             <div class="row mt-3">

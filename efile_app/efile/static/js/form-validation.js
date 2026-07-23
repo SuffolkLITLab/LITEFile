@@ -505,9 +505,17 @@ class FormValidation {
                     "document_type",
                 ].includes(key)
             ) {
-                const field = this.form.querySelector(`[name="${key}"]`);
-                if (field) {
-                    field.value = Array.isArray(data[key]) ? data[key][0] : data[key];
+                const fields = this.form.querySelectorAll(`[name="${key}"]`);
+                if (fields.length === 1 && fields[0].type !== "radio") {
+                    fields[0].value = Array.isArray(data[key]) ? data[key][0] : data[key];
+                } else {
+                    fields.forEach((field) => {
+                        if (field.type === "radio" || field.type === "checkbox") {
+                            field.checked = Array.isArray(data[key]) ?
+                                data[key].includes(field.value) :
+                                data[key] === field.value;
+                        }
+                    });
                 }
             }
         });
