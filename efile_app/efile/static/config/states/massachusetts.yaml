@@ -42,13 +42,13 @@ case_types:
     # Override with Massachusetts terminology
     sections:
       parties:
-        title: "Parties to the Petition"  # Massachusetts uses "petition" terminology
+        title: "Parties to the petition"  # Massachusetts uses "petition" terminology
         sections:
           - section_title: "Petitioner"
             # Massachusetts uses different party type codes
             party_type_filter: ["MA_5628"]  # Massachusetts petitioner code
             
-          - section_title: "Requested Name"  # Different terminology
+          - section_title: "Requested name"  # Different terminology
             required: true  # Always required in Massachusetts
             party_type_filter: ["MA_56354"]  # Massachusetts name sought code
             fields:
@@ -78,7 +78,7 @@ case_types:
     # Massachusetts-specific additional sections
     additional_sections:
       background_check:
-        title: "Criminal Background Information"
+        title: "Criminal background information"
         required: true
         fields:
           - name: "criminal_background_check"

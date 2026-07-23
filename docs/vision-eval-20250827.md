@@ -1,4 +1,4 @@
-# Status Check vs Vision
+# Status check vs vision
 Based on the current codebase, here’s where things stand relative to your MVP vision.
 
 ## What’s in place
@@ -20,7 +20,7 @@ Based on the current codebase, here’s where things stand relative to your MVP 
 - __Uploads and mapping to EFSP__
   - `efile/views/upload.py` implements `create_filing()` (maps session → Suffolk payload) and `upload_documents()` (S3 → Suffolk document registration), plus mock/simple upload utilities.
 
-## Gaps vs Vision
+## Gaps vs vision
 
 - __Filing Flow runner (recipe-driven)__: No generalized sequence/branch/validate engine or persisted recipes for curated flows.
 - __Form Blocks abstraction and UI__: No explicit Form Block schema/type library and reusable UI components.
@@ -31,7 +31,7 @@ Based on the current codebase, here’s where things stand relative to your MVP 
 - __Configuration management UX__: No admin UI for non-technical authoring/editing of Blocks/Flows.
 - __Tests__: Limited tests for flow engine, YAML court overrides, and EFSP interactions.
 
-## Recommended Next Steps (MVP-targeted)
+## Recommended next steps (MVP-targeted)
 
 1. __Introduce a Filing Flow “recipe” format (JSON/YAML)__
    - Minimal schema: metadata (`id`, `title`, `jurisdiction`), steps (Form Blocks), branching (`next_if`, `next_else`), validation, mapping.
@@ -68,7 +68,7 @@ Based on the current codebase, here’s where things stand relative to your MVP 
 8. __Tests__
    - Flow runner branching/validation; config merging for courts (e.g., `cook:cd1` vs `cook:chd1` per `efile/static/config/README.md`); mapping integration tests.
 
-## Concrete Implementation Plan
+## Concrete implementation plan
 
 - __Backend__
   - Create `efile/flow/`: `schemas.py` (dataclasses/Pydantic for Block/Step/Recipe), `runner.py`, `mapping.py`, (optional) `models.py` for persistence.
@@ -81,13 +81,13 @@ Based on the current codebase, here’s where things stand relative to your MVP 
   - Reuse dropdown endpoints and party types via `config_views.py` and Suffolk codes.
   - Reuse S3 patterns from `upload.py`.
 
-## Open Questions
+## Open questions
 
 - Recipes YAML (human-friendly) or JSON (browser-native)? Suggest YAML in repo + compile to JSON at runtime.
 - Attachments: embed file-upload blocks in steps now or upload at review step?
 - Initial guided flow: Illinois Name Change (best documented today)?
 
-## Proposed Short Milestones
+## Proposed short milestones
 
 - __M1 (day 1-2)__: Schemas + runner skeleton (load/next/back), session storage, minimal API.
 - __M2 (day 3-4)__: Mapping layer + Review & Submit, integrate with `create_filing()`.

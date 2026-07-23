@@ -1,4 +1,4 @@
-# Testing Help
+# Testing help
 
 ## Local S3 (LocalStack)
 

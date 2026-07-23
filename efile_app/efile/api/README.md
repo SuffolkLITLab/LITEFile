@@ -1,4 +1,4 @@
-# API Documentation
+# API documentation
 
 This directory contains the organized API endpoints for the Illinois eFile system.
 
@@ -18,7 +18,7 @@ api/
 └── urls.py                  # URL routing for all API endpoints
 ```
 
-## Base Classes
+## Base classes
 
 ### APIResponseMixin
 Provides consistent response formatting for all API endpoints:
@@ -29,7 +29,7 @@ Provides consistent response formatting for all API endpoints:
 - `get_auth_tokens(request)` - Retrieves auth tokens from session
 - `validate_request(request, required_params)` - Validates required parameters
 
-## Endpoint Categories
+## Endpoint categories
 
 ### Dropdown APIs (`/api/dropdowns/`)
 Cascading dropdown functionality with location-based prioritization and court-specific filtering:
@@ -41,12 +41,12 @@ Cascading dropdown functionality with location-based prioritization and court-sp
 - `optional-services/` - Get optional services for case types
 - `party-types/` - Get available party types
 
-### Form Configuration APIs (`/api/`)
+### Form configuration APIs (`/api/`)
 Dynamic form configuration with court-specific conditional requirements:
 - `form-config/` - Get complete form configuration with court-specific modifications
 - `case-type-config/` - Get case type configuration mapping and keywords
 
-### Suffolk LIT Lab Integration (`/api/suffolk/`)
+### Suffolk LIT Lab integration (`/api/suffolk/`)
 Integration with external Suffolk LIT Lab eFile API:
 - `lookup-case/` - Case lookup functionality
 
@@ -70,7 +70,7 @@ Filing creation and management:
 - `filings/<id>/update/` - Update filing
 - `filings/<id>/delete/` - Delete filing
 
-## Usage Examples
+## Usage examples
 
 ### Frontend JavaScript
 ```javascript

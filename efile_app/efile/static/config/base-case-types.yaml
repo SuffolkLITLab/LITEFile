@@ -5,7 +5,7 @@
 defaults:
   sections:
     parties:
-      title: "Required Parties"
+      title: "Required parties"
       show if:
         var: required_party_types.length
         op: gt
@@ -13,7 +13,7 @@ defaults:
       api_endpoint: "/api/dropdowns/party-types/"
       requires_params: ["court", "case_type"]
       fields:
-        - section_title: "The Other Side"
+        - section_title: "The other side"
           required: true
           conditional_requirements:
             # Default: show for all courts except those explicitly hidden
@@ -34,7 +34,7 @@ defaults:
               type: "text"
               required: true
               column_width: "col-6"
-        - section_title: "Their Physical Address"
+        - section_title: "Their physical address"
           required: true
           conditional_requirements:
             # Default: show for all courts except those explicitly hidden
@@ -64,7 +64,7 @@ defaults:
               type: "text"
               required: true
               column_width: "col-6"
-        - section_title: "Their Contact Information"
+        - section_title: "Their contact information"
           required: true
           conditional_requirements:
             # Default: show for all courts except those explicitly hidden
@@ -88,11 +88,11 @@ base_case_types:
     description: "Legal name change proceedings"
     sections:
       parties:
-        title: "Required Parties"
+        title: "Required parties"
         api_endpoint: "/api/dropdowns/party-types/"
         requires_params: ["court", "case_type"]
         fields:
-          - section_title: "Name Sought"
+          - section_title: "Name sought"
             required: false
             conditional_requirements:
               # Default: hidden for all courts except those explicitly required
@@ -121,7 +121,7 @@ base_case_types:
     description: "Legal dissolution of marriage proceedings"
     sections:
       parties:
-        title: "Required Parties"
+        title: "Required parties"
         api_endpoint: "/api/dropdowns/party-types/"
         requires_params: ["court", "case_type"]
         fields:
@@ -169,9 +169,9 @@ base_case_types:
   #   description: "Eviction, repossession, and property restoration proceedings"
   #   sections:
   #     case_information:
-  #       title: "Case Information"
+  #       title: "Case information"
   #       fields:
-  #         - section_title: "Case Details"
+  #         - section_title: "Case details"
   #           required: true
   #           fields:
   #             - name: "case_number"
@@ -188,7 +188,7 @@ base_case_types:
               #   column_width: "col-6"
               #   placeholder: "Additional case type information"
       # parties:
-      #   title: "Required Parties"
+      #   title: "Required parties"
       #   api_endpoint: "/api/dropdowns/party-types/"
       #   requires_params: ["court", "case_type"]
       #   fields:

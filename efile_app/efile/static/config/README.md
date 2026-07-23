@@ -1,19 +1,19 @@
-# Dynamic Case Form Configuration System
+# Dynamic case form configuration system
 
 This document explains how the Illinois eFile system uses YAML-based configuration files to dynamically generate form fields and control the cascading dropdown behavior in the expert form.
 
 ## Table of Contents
 
-1. [System Overview](#system-overview)
-2. [Configuration Files](#configuration-files)
-3. [How It Works](#how-it-works)
-4. [API Integration](#api-integration)
-5. [JavaScript Integration](#javascript-integration)
-6. [Adding New Case Types](#adding-new-case-types)
-7. [Court-Specific Customizations](#court-specific-customizations)
+1. [System overview](#system-overview)
+2. [Configuration files](#configuration-files)
+3. [How it works](#how-it-works)
+4. [Api integration](#api-integration)
+5. [Javascript integration](#javascript-integration)
+6. [Adding new case types](#adding-new-case-types)
+7. [Court-specific customizations](#court-specific-customizations)
 8. [Examples](#examples)
 
-## System Overview
+## System overview
 
 The configuration system provides a flexible, jurisdiction-aware approach to form generation that:
 
@@ -27,9 +27,9 @@ The configuration system provides a flexible, jurisdiction-aware approach to for
 User Selections → API Calls → YAML Config → Dynamic Form Fields → JavaScript Rendering
 ```
 
-## Configuration Files
+## Configuration files
 
-### File Structure
+### File structure
 
 ```
 efile/static/config/
@@ -40,7 +40,7 @@ efile/static/config/
     └── massachusetts.yaml       # Massachusetts-specific overrides
 ```
 
-### Configuration Hierarchy
+### Configuration file hierarchy
 
 1. **Base Configuration** (`base-case-types.yaml`)
    - Defines common case types and field structures
@@ -58,9 +58,9 @@ efile/static/config/
    - State configurations override base when conflicts exist
    - Court-specific rules further customize the merged configuration
 
-## How It Works
+## How it works
 
-### 1. User Interaction Flow
+### 1. User interaction flow
 
 ```mermaid
 graph TD
@@ -73,7 +73,7 @@ graph TD
     G --> H[Show/Hide Conditional Fields]
 ```
 
-### 2. Configuration Loading Process
+### 2. Configuration loading process
 
 #### Step 1: Dropdown Selection
 When a user makes selections in the cascading dropdowns:
@@ -97,7 +97,7 @@ def get_form_config(request):
     case_config = CaseFormAPIViews._find_case_type_config(case_type_id, jurisdiction)
 ```
 
-#### Step 3: Configuration Merging
+#### Step 3: Configuration merging
 ```python
 # api/case_form_views.py
 def _load_jurisdiction_configuration(jurisdiction='illinois'):
@@ -115,9 +115,9 @@ sections = _apply_court_specific_config(sections, court_code, case_type_key, jur
 #### Step 5: Form Rendering
 The merged configuration is returned as JSON and rendered by JavaScript.
 
-## API Integration
+## Api integration
 
-### Key API Endpoints
+### Key Api endpoints
 
 1. **Form Configuration**: `/api/form-config/`
    ```
@@ -132,7 +132,7 @@ The merged configuration is returned as JSON and rendered by JavaScript.
 
 3. **Party Types**: `/api/dropdowns/party-types/`
 
-### API Response Structure
+### Api response structure
 
 ```json
 {
@@ -164,9 +164,9 @@ The merged configuration is returned as JSON and rendered by JavaScript.
 }
 ```
 
-## JavaScript Integration
+## Javascript integration
 
-### Core Components
+### Core components
 
 1. **CascadingDropdowns** (`cascading-dropdowns.js`)
    - Handles dropdown interactions
@@ -178,7 +178,7 @@ The merged configuration is returned as JSON and rendered by JavaScript.
    - Creates HTML form elements
    - Applies conditional field logic
 
-### Key JavaScript Methods
+### Key Javascript methods
 
 ```javascript
 class CascadingDropdowns {
@@ -197,7 +197,7 @@ class CascadingDropdowns {
 }
 ```
 
-## Adding New Case Types
+## Adding new case types
 
 ### 1. Add to Base Configuration
 
@@ -252,9 +252,9 @@ court_specific_requirements:
                 required_for_courts: ["court:code"]
 ```
 
-## Court-Specific Customizations
+## Court-specific customizations
 
-### Use Cases
+### Use cases
 
 1. **Field Requirements**: Some courts require additional fields
 2. **Field Hiding**: Some courts don't need certain sections
@@ -301,7 +301,7 @@ court_specific_requirements:
 
 ## Examples
 
-### Name Change Configuration
+### Name change configuration
 
 **Base Configuration** (`base-case-types.yaml`):
 ```yaml
@@ -395,7 +395,7 @@ The system generates a form with:
 - Illinois validation (no special characters)
 - Cook County requirement (Name Sought section becomes required)
 
-## Configuration Schema Reference
+## Configuration schema reference
 
 ### Supported Case Types
 
@@ -409,7 +409,7 @@ Currently supported case type:
 
 **Note**: Other case types (divorce, order of protection, eviction/repossession) are defined in the YAML files but not currently active in the production system.
 
-### Court-Based Conditional Logic
+### Court-based conditional logic
 
 The system implements court-based conditional requirements for fine-grained control over section visibility:
 
@@ -428,7 +428,7 @@ conditional_requirements:
 - **Court code matching**: Exact court code matching (e.g., "bond" matches configuration for "bond")
 - **Fallback logic**: Sections show by default unless explicitly hidden
 
-### Field-Level Conditional Display (Planned)
+### Field-level conditional display (Planned)
 
 Field-level conditional display is documented but not yet fully implemented:
 
@@ -441,7 +441,7 @@ conditional_display:
 
 This feature is planned for future implementation when additional case types are activated.
 
-### Field Types
+### Field types
 
 ```yaml
 # Text input
@@ -480,14 +480,14 @@ This feature is planned for future implementation when additional case types are
     optional_for_counties: ["lake", "will"]
 ```
 
-### Column Width Options
+### Column width options
 
 - `col-12`: Full width
 - `col-6`: Half width
 - `col-4`: One-third width
 - `col-8`: Two-thirds width
 
-### Validation Rules
+### Validation rules
 
 ```yaml
 validation_rules:
@@ -511,11 +511,11 @@ validation_rules:
 
 
 
-### Keyword Matching Logic
+### Keyword matching logic
 
 The system uses intelligent keyword matching to determine which configuration to use:
 
-#### Example Keywords and Matches:
+#### Example keywords and matches:
 ```yaml
 # Name change case type (currently supported)
 keywords: ["name change", "name petition", "change of name"]
@@ -526,28 +526,28 @@ keywords: ["name change", "name petition", "change of name"]
 # Matches: Suffolk case types containing these keywords
 ```
 
-#### Matching Logic:
+#### Matching logic:
 1. **Exact match**: "name change" exactly matches "name change"
 2. **Substring (keyword in case type)**: "name change" matches "Name Change Petition"  
 3. **Substring (case type in keyword)**: "change of name" matches "Legal Name Change"
 
-### Debug Tips
+### Debug tips
 
 1. **Check browser console** for JavaScript errors
 2. **Inspect API responses** in browser developer tools
 3. **Verify YAML syntax** using online validators
 4. **Check Django logs** for configuration loading errors
 
-### Testing Configuration Changes
+### Testing configuration changes
 
 1. Restart Django server to reload YAML files
 2. Clear browser cache to refresh JavaScript
 3. Test with different court and case type combinations
 4. Verify field visibility and requirements work as expected
 
-## Current Implementation Status
+## Current implementation status
 
-### ✅ Fully Implemented Features
+### ✅ Fully implemented features
 - **Base case type inheritance**: States extend base configurations
 - **Court-specific conditional requirements**: Fields can be required/hidden based on court selection
 - **Dynamic form generation**: YAML configurations converted to HTML forms
@@ -558,20 +558,20 @@ keywords: ["name change", "name petition", "change of name"]
 - **Dynamic section visibility**: Sections and headers automatically hide when no content is rendered
 - **Court-specific field modifications**: Granular control over field visibility per court
 
-### ⚠️ Partially Implemented Features  
+### ⚠️ Partially implemented features  
 - **Field-level conditional display**: Structure documented but JavaScript implementation pending
   - `show_when_field`/`show_when_value` logic not yet active
   - Massachusetts config shows intended structure
   - Court-based conditional logic works as alternative
 
-### 📋 Configuration Coverage
+### 📋 Configuration coverage
 - **Name Change**: ✅ Base + Illinois implementation with court-specific variations
   - Cook County: Both sections required and visible
   - Bond Court: Both sections hidden (demonstrates section hiding functionality)
   - Other courts: Petitioner visible, Name Sought hidden by default
 - **Other Case Types**: ⚠️ Defined in YAML files but not active in production system
 
-### 🔧 Development Notes
+### 🔧 Development notes
 - **Field conditional display**: Requires JavaScript enhancement in `dynamic-form-sections.js` when additional case types are implemented
 - **Additional case types**: Available in YAML but not enabled for production use
 - **Court customizations**: Working system demonstrated with Cook County name change variations

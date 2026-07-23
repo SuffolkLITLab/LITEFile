@@ -1,8 +1,8 @@
-# Expert Form JavaScript Architecture
+# Expert form JavaScript architecture
 
 This document describes the modular JavaScript architecture for the expert form functionality with dynamic court-specific form rendering.
 
-## File Structure
+## File structure
 
 ```
 efile/static/js/
@@ -19,7 +19,7 @@ efile/static/config/
     └── illinois.yaml         # Illinois-specific court requirements and overrides
 ```
 
-## Module Overview
+## Module overview
 
 ### 1. api-utils.js
 **Purpose**: Centralized API communication with error handling and CSRF protection.
@@ -94,7 +94,7 @@ efile/static/config/
 - `window.ExpertForm` (class)
 - `window.getExpertFormInstance()` (active instance)
 
-## Loading Order
+## Loading order
 
 The scripts must be loaded in this specific order due to dependencies:
 
@@ -104,7 +104,7 @@ The scripts must be loaded in this specific order due to dependencies:
 4. `dynamic-form-sections.js` - Independent, integrates with cascading dropdowns
 5. `expert-form-main.js` - Coordinates all modules
 
-## API Endpoints Used
+## API endpoints used
 
 - `/api/auth/profile/` - User profile and location data
 - `/api/dropdowns/courts/` - Court listings with location prioritization
@@ -114,9 +114,9 @@ The scripts must be loaded in this specific order due to dependencies:
 - `/api/dropdowns/document-types/` - Document types for final selection
 - `/api/form-config/` - Dynamic form configuration with court-specific conditional requirements
 
-## Configuration System
+## Configuration system
 
-### YAML-Based Form Configuration
+### YAML-based form configuration
 The system uses a hierarchical YAML configuration structure:
 
 **Base Configuration (`base-case-types.yaml`)**:
@@ -131,7 +131,7 @@ The system uses a hierarchical YAML configuration structure:
   - `required_for_courts: ["cook:cd1"]` - Make sections required for specific courts
 - Supports inheritance from base templates with custom overrides
 
-### Court-Specific Conditional Logic
+### Court-specific conditional logic
 ```yaml
 # Example: Hide petitioner section for Bond County
 court_specific_requirements:
@@ -147,7 +147,7 @@ court_specific_requirements:
 
 ## Configuration
 
-### Location Intelligence
+### Location intelligence
 The system automatically prioritizes courts based on user location:
 - User's zip code → county mapping
 - County → court prioritization
@@ -155,30 +155,30 @@ The system automatically prioritizes courts based on user location:
 - Green recommendation notices positioned above dropdown labels
 - Notices persist during automatic cascading operations
 
-### Court-Specific Form Rendering
+### Court-specific form rendering
 - Dynamic form sections based on court selection
 - Conditional field visibility (hidden_for_courts, required_for_courts)
 - Automatic header management (hides "Parties" header when no sections render)
 - Real-time form updates when court selection changes
 - Form data preservation during court transitions
 
-### Draft Saving
+### Draft saving
 - Manual save only via "Save Draft" button (auto-save removed)
 - User-controlled draft creation for better user experience
 - Restoration on page reload (24-hour expiry)
 - localStorage backup for reliability
 - Visual feedback when saving drafts
 
-### Error Handling
+### Error handling
 - Network timeouts (30 seconds)
 - API error translation to user-friendly messages
 - Graceful degradation when APIs are unavailable
 - Console logging for debugging
 - Court-specific configuration validation
 
-## Usage Examples
+## Usage examples
 
-### Accessing the Form Instance
+### Accessing the form instance
 ```javascript
 const formInstance = getExpertFormInstance();
 const dropdowns = formInstance.getCascadingDropdowns();
@@ -186,7 +186,7 @@ const validation = formInstance.getFormValidation();
 const dynamicSections = formInstance.getDynamicFormSections();
 ```
 
-### Manual API Calls
+### Manual API calls
 ```javascript
 // Using the global API utility
 const response = await apiUtils.get('/api/dropdowns/courts/', {
@@ -201,13 +201,13 @@ const formConfig = await apiUtils.get('/api/form-config/', {
 });
 ```
 
-### Custom Validation
+### Custom validation
 ```javascript
 const validation = getExpertFormInstance().getFormValidation();
 validation.showNotification('Custom message', 'success');
 ```
 
-### Court-Specific Configuration Examples
+### Court-specific configuration examples
 ```javascript
 // Check if a section should show for current court
 const dynamicSections = getExpertFormInstance().getDynamicFormSections();
@@ -217,7 +217,7 @@ const shouldShow = dynamicSections.shouldShowSection(sectionConfig, 'bond');
 dynamicSections.handleCaseTypeChange();
 ```
 
-## Performance Considerations
+## Performance considerations
 
 - Scripts load asynchronously after DOM ready
 - API requests are cached where appropriate
@@ -226,7 +226,7 @@ dynamicSections.handleCaseTypeChange();
 - Court-specific form configurations are cached to reduce API calls
 - Dynamic form sections only re-render when necessary (court or case type changes)
 
-## Security Features
+## Security features
 
 - CSRF token automatic inclusion
 - XSS prevention through proper DOM manipulation
@@ -251,7 +251,7 @@ This will provide detailed logging for:
 
 ## Troubleshooting
 
-### Debug Commands
+### Debug commands
 ```javascript
 // Check current form configuration
 console.log(getExpertFormInstance().getDynamicFormSections().config);

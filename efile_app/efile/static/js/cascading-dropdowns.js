@@ -643,7 +643,7 @@ class CascadingDropdowns {
         }
 
         servicesContainer.innerHTML = `
-            <h5 class="mb-3">Optional Services</h5>
+            <h5 class="mb-3">Optional services</h5>
             <div class="form-check mb-2">
                 <input type="checkbox" class="form-check-input" id="service_expedited" name="optional_services" value="expedited">
                 <label class="form-check-label" for="service_expedited">Expedited Processing</label>
