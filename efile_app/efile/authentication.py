@@ -20,10 +20,11 @@ class SuffolkEFileBackend(BaseBackend):
 
         try:
             auth_data = auth_with_tyler_api(username, password, jurisdiction)
-            request.session["auth_tokens"] = auth_data["tokens"]
-            if not auth_data:
+            if not auth_data or "tokens" not in auth_data:
                 logger.info("Tyler auth failed for user %s", username)
                 return None
+
+            request.session["auth_tokens"] = auth_data["tokens"]
 
             logger.info("Auth data: %s", auth_data)
 

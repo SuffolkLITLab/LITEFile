@@ -10,7 +10,7 @@ services:
       DEBUG: "${DEBUG:-0}"
       SERVICES: s3
       AWS_DEFAULT_REGION: us-east-1
-      AWS_S3_BUCKET_NAME: forms-mvp-xf6361
+      AWS_S3_BUCKET_NAME: litefile-staging
     volumes:
       - localstack:/var/lib/localstack
       - /var/run/docker.sock:/var/run/docker.sock
@@ -25,7 +25,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: form-submission-mvp:web
+    image: litefile:web
     command: >-
       sh -c "uv run python manage.py migrate --noinput --fake-initial &&
              uv run python manage.py runserver 0.0.0.0:8000"
@@ -39,7 +39,7 @@ services:
       PYTHONUNBUFFERED: "1"
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
-      AWS_S3_BUCKET_NAME: forms-mvp-xf6361
+      AWS_S3_BUCKET_NAME: litefile-staging
       AWS_S3_REGION_NAME: us-east-1
       AWS_S3_ENDPOINT_URL: http://localstack:4566
       # botocore >= 1.35 routes S3 through account-ID-specific endpoints, which

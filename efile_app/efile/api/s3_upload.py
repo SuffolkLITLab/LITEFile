@@ -164,8 +164,8 @@ def mock_s3_upload(request):
             mock_upload_results.append(
                 {
                     "original_name": uploaded_file.name,
-                    "url": f"https://forms-mvp-xf6361.s3.amazonaws.com/efile-documents/{file_type}/{file_id}.pdf",
-                    "public_url": f"https://forms-mvp-xf6361.s3.amazonaws.com/efile-documents/{file_type}/{file_id}.pdf",
+                    "url": f"https://litefile-staging.s3.amazonaws.com/efile-documents/{file_type}/{file_id}.pdf",
+                    "public_url": f"https://litefile-staging.s3.amazonaws.com/efile-documents/{file_type}/{file_id}.pdf",
                     "key": f"efile-documents/{file_type}/{file_id}.pdf",
                     "size": uploaded_file.size,
                     "type": file_type,

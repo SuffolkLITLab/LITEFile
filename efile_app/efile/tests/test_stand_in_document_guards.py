@@ -29,7 +29,7 @@ def test_dev_settings_refuse_to_load_on_a_deployed_host(monkeypatch):
     A deploy that loses DJANGO_SETTINGS_MODULE would otherwise come up with
     DEBUG=True, where every DEBUG-keyed guard below is inert.
     """
-    monkeypatch.setenv("FLY_APP_NAME", "forms-mvp-staging")
+    monkeypatch.setenv("FLY_APP_NAME", "litefile-staging")
 
     import efile.settings_dev
 

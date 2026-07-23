@@ -1,9 +1,9 @@
-# fly.toml app configuration file generated for forms-mvp-staging on 2025-08-20T14:42:16-07:00
+# fly.toml app configuration file generated for litefile-staging on 2025-08-20T14:42:16-07:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'forms-mvp-staging'
+app = 'litefile-staging'
 primary_region = 'lax'
 
 [build]

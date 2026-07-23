@@ -27,8 +27,8 @@ jobs:
       # GH actions workflow in the future. The direct method is supposed to be faster so we'll leave it for
       # now. When we start to have more complex dependencies within the dockerfile we can swap over.
       # Sample run commands:
-      # docker build -t form-submission-mvp:ci .
-      # docker run --rm form-submission-mvp:ci uv run pytest -q
+      # docker build -t litefile:ci .
+      # docker run --rm litefile:ci uv run pytest -q
       - name: Install uv
         run: curl -LsSf https://astral.sh/uv/install.sh | sh
 

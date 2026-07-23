@@ -15,7 +15,7 @@ To poke at the bucket by hand, install
 
 ```bash
 pip install 'awscli-local[ver1]'
-awslocal s3 ls s3://forms-mvp-xf6361/efile-documents/ --recursive
+awslocal s3 ls s3://litefile-staging/efile-documents/ --recursive
 ```
 
 Also make sure that `AWS_S3_ENDPOINT_URL = "http://host.docker.internal:4566"` and `AWS_ACCOUNT_ID_ENDPOINT_MODE = "disabled"` in your env.
