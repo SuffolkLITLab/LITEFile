@@ -11,14 +11,17 @@ def auth_with_tyler_api(username, password, jurisdiction):
     try:
         api_key = getattr(settings, "SUFFOLK_EFILE_API_KEY", None)
         payload = {"api_key": api_key, f"tyler-{jurisdiction}": {"username": username, "password": password}}
-        headers = {"Content-Type": "application/json", "User-Agent": f"{jurisdiction.title()}-eFile-Client/1.0"}
+        headers = get_headers()
+        headers["User-Agent"] = f"{jurisdiction.title()}-eFile-Client/1.0"
         response = requests.post(url, json=payload, headers=headers, timeout=10)
-        logger.debug("Auth API response: status=%s url=%s", response.status_code, url)
+        logger.info("Auth API response: status=%s url=%s", response.status_code, url)
 
         if response.status_code == 200:
             return response.json()
+        else:
+            logger.warning("Auth endpoint returned status %s for user %s", response.status_code, username)
     except Exception as e:
-        logger.debug("Auth endpoint failed: %s - %s", url, str(e))
+        logger.error("Auth endpoint failed: %s - %s", url, str(e))
 
     return None
 

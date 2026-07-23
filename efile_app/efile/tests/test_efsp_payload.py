@@ -20,7 +20,7 @@ from efile.services.efsp_payload import (
     validate_required_party_types,
 )
 
-REAL_S3_URL = "https://forms-mvp-xf6361.s3.us-east-1.amazonaws.com/efile-documents/lead/abc.pdf?X-Amz-Signature=x"
+REAL_S3_URL = "https://litefile-staging.s3.us-east-1.amazonaws.com/efile-documents/lead/abc.pdf?X-Amz-Signature=x"
 STAND_IN_URL = "https://example.org/fixtures/blank.pdf"
 
 
@@ -117,7 +117,7 @@ def test_stand_in_url_replaces_every_document_url():
     efile_data = {
         "al_court_bundle": [
             {"data_url": REAL_S3_URL},
-            {"data_url": "https://forms-mvp-xf6361.s3.us-east-1.amazonaws.com/efile-documents/supporting/d.pdf"},
+            {"data_url": "https://litefile-staging.s3.us-east-1.amazonaws.com/efile-documents/supporting/d.pdf"},
         ]
     }
 

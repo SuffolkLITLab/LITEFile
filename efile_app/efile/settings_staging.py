@@ -13,8 +13,8 @@ from efile.settings_base import MIDDLEWARE as BASE_MIDDLEWARE
 DATABASES = BASE_DATABASES
 
 DEBUG = False
-ALLOWED_HOSTS = ["forms-mvp-staging.fly.dev"]
-CSRF_TRUSTED_ORIGINS = ["https://forms-mvp-staging.fly.dev"]
+ALLOWED_HOSTS = ["litefile-staging.fly.dev"]
+CSRF_TRUSTED_ORIGINS = ["https://litefile-staging.fly.dev"]
 
 # Security hardening suitable for staging
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")

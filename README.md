@@ -1,4 +1,4 @@
-# Form Submission MVP
+# LITEFile
 
 A minimal Django app for form submission and review. The Django project lives under `efile_app/` with settings in `efile_app/efile/`.
 
@@ -80,7 +80,7 @@ The application uses AWS S3 for document storage and file uploads. Follow these 
 ### 1. Create an S3 Bucket
 
 - Log into the AWS Console and navigate to S3
-- Create a new bucket (e.g., `forms-mvp-your-suffix`)
+- Create a new bucket (e.g., `litefile-your-suffix`)
 - Choose your preferred region (default: `us-east-1`)
 - Initially, turn off "Block all public access" in the S3 bucket settings. We will need this off initially so that the bucket policy can be applied. After we have created the bucket policy, we will block all public access by toggling back on "Block all public access".
 - Tags can be created to help track ownership of resources and is useful for cost tracking, environment tracking, etc.
