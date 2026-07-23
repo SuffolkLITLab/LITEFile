@@ -124,7 +124,11 @@ function stubFetch(response) {
     return client;
 }
 
-function jsonResponse({ ok, status, body }) {
+function jsonResponse({
+    ok,
+    status,
+    body
+}) {
     const response = {
         ok,
         status,
@@ -138,7 +142,10 @@ test("a failed request surfaces the server's own error message", async () => {
     const client = stubFetch(jsonResponse({
         ok: false,
         status: 400,
-        body: { success: false, error: "This case type requires a Plaintiff." },
+        body: {
+            success: false,
+            error: "This case type requires a Plaintiff."
+        },
     }));
 
     await assert.rejects(
@@ -176,7 +183,14 @@ test("a successful response is returned unchanged", async () => {
     const client = stubFetch(jsonResponse({
         ok: true,
         status: 200,
-        body: { success: true, api_response: { feesCalculationAmount: { value: 0 } } },
+        body: {
+            success: true,
+            api_response: {
+                feesCalculationAmount: {
+                    value: 0
+                }
+            }
+        },
     }));
 
     const result = await client.post("/api/payment-fees/", {});
@@ -195,10 +209,14 @@ test("fee quotes and submissions may raise the request timeout", async () => {
     let seenTimeout = null;
     client.makeRequest = async (endpoint, options) => {
         seenTimeout = options.timeout;
-        return { success: true };
+        return {
+            success: true
+        };
     };
 
-    await client.post("/api/payment-fees/", {}, {}, { timeout: ApiUtils.FILING_TIMEOUT_MS });
+    await client.post("/api/payment-fees/", {}, {}, {
+        timeout: ApiUtils.FILING_TIMEOUT_MS
+    });
 
     assert.strictEqual(seenTimeout, ApiUtils.FILING_TIMEOUT_MS);
     assert.ok(ApiUtils.FILING_TIMEOUT_MS > 60000, "must outlast the server's own 60s timeout");

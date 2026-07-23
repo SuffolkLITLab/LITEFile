@@ -181,8 +181,8 @@ const FilingPayload = {
         if (uploadData?.files?.supporting?.length > 0) {
             uploadData.files.supporting.forEach((doc, index) => {
                 const config = uploadData.supporting_documents?.[index] || {};
-                const filingComponent = componentCode(config.filing_component)
-                    || componentCode(doc.filing_component);
+                const filingComponent = componentCode(config.filing_component) ||
+                    componentCode(doc.filing_component);
                 const bundle = this.createDocumentBundle(
                     doc,
                     config.filing_type || caseData.filing_type_id,

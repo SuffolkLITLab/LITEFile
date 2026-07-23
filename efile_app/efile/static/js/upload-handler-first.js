@@ -77,7 +77,9 @@ class UploadHandler {
                     s3_key: uploadedLead.key,
                 },
             },
-            options: { lead: {} },
+            options: {
+                lead: {}
+            },
         };
     }
 
