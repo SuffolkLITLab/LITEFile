@@ -335,12 +335,12 @@ const UIUpdater = {
             const docName = uploadData.files.lead.name.includes("Name Change") ? "Name Change Form" : "Lead Document";
             html += this.createDocumentHTML(docName, uploadData.files.lead.name, 'lead', true);
         } else {
-            html += `<div class="document-group"><h6>1. Lead Document (required)</h6><div class="text-muted mb-2">No document found</div></div>`;
+            html += `<div class="document-group"><h6>1. Lead document (required)</h6><div class="text-muted mb-2">No document found</div></div>`;
         }
 
         // Supporting documents
         if (uploadData.files?.supporting?.length > 0) {
-            html += '<div class="document-group mt-4"><h6>2. Fee Waiver (optional)</h6><div class="text-muted mb-2">File or Files</div><div class="document-list">';
+            html += '<div class="document-group mt-4"><h6>2. Fee waiver (optional)</h6><div class="text-muted mb-2">File or Files</div><div class="document-list">';
 
             uploadData.files.supporting.forEach(file => {
                 html += `<div class="document-item">

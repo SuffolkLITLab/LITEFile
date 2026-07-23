@@ -1,5 +1,5 @@
 
-### Hypothetical Flow Config
+### Hypothetical flow config
 
 The Filing Flow config language follows these design principles:
 
@@ -20,7 +20,7 @@ The Filing Flow config language follows these design principles:
 - **Instructions**: Plain-language guidance at flow and step levels
 
 ```yaml
-# Illinois Adult Name Change - Cook County Filing Flow
+# Illinois adult name change - Cook County filing flow
 # NOTE: this is hypothetical and collects more data than necessary for the real e-filing since we merge data from 
 # the Tyler profile.
 # NOTE: to match the actual wireframes, this simple flow should've allowed for adult or child. We'd need a form

@@ -440,7 +440,7 @@ class DynamicFormSections {
                 // Create header and container for case information
                 const header = document.createElement("h3");
                 header.className = "subsection-header";
-                header.textContent = sectionConfig.title || getText("Case Information");
+                header.textContent = sectionConfig.title || getText("Case information");
 
                 const containerDiv = document.createElement("div");
                 containerDiv.id = "caseInfoContainer";
@@ -458,7 +458,7 @@ class DynamicFormSections {
                 // Create header and container for parties
                 const header = document.createElement("h3");
                 header.className = "subsection-header";
-                header.textContent = sectionConfig.title || getText("Required Parties");
+                header.textContent = sectionConfig.title || getText("Required parties");
 
                 const containerDiv = document.createElement("div");
                 containerDiv.id = "partiesContainer";

@@ -2,7 +2,7 @@
 
 A minimal Django app for form submission and review. The Django project lives under `efile_app/` with settings in `efile_app/efile/`.
 
-## Quick Start
+## Quick start
 
 - __Requirements__
   - Python 3.10+
@@ -73,11 +73,11 @@ Deactivate with `deactivate` when you're done.
 - __Static files__
   During development, static files are served automatically. No `collectstatic` is needed.
 
-## AWS S3 Setup (Required for File Uploads)
+## AWS S3 setup (required for file uploads)
 
 The application uses AWS S3 for document storage and file uploads. Follow these steps to set up your S3 bucket:
 
-### 1. Create an S3 Bucket
+### 1. Create an S3 bucket
 
 - Log into the AWS Console and navigate to S3
 - Create a new bucket (e.g., `litefile-your-suffix`)
@@ -86,7 +86,7 @@ The application uses AWS S3 for document storage and file uploads. Follow these 
 - Tags can be created to help track ownership of resources and is useful for cost tracking, environment tracking, etc.
 - Default encryption settings should be fine
 
-### 2. Configure Bucket Permissions
+### 2. Configure bucket permissions
 
 Apply this bucket policy to allow public read access for Tyler to download documents:
 
@@ -107,7 +107,7 @@ Apply this bucket policy to allow public read access for Tyler to download docum
 
 Replace `YOUR-BUCKET-NAME` with your actual bucket name.
 
-### 3. Create IAM User and Permissions
+### 3. Create IAM user and permissions
 
 Create an IAM user with the following policy for application access:
 
@@ -134,14 +134,14 @@ Create an IAM user with the following policy for application access:
 }
 ```
 
-### 4. Disable Public Access to the S3 Bucket
+### 4. Disable public access to the S3 bucket
 
 You can now turn on "Block all public access" in the S3 bucket settings. Go to Permissions. Click on the Edit button in the "Block public access (bucket settings)" section. Toggle on "Block all public access". Click "Save Changes" and confirm the action.
 
 This will keep the existing policy, which we use to generate the pre-signed URLs to Tyler access, but restrict the files from being made publicly accessible in other ways.
 
 
-### 5. Configure Environment Variables
+### 5. Configure environment variables
 
 Copy the example environment file and update the S3 settings:
 
@@ -152,7 +152,7 @@ cp efile_app/.env.example efile_app/.env
 Edit `efile_app/.env` with your AWS credentials:
 
 ```bash
-# AWS S3 Configuration
+# AWS S3 configuration
 AWS_ACCESS_KEY_ID = "your-aws-access-key-id-here"
 AWS_SECRET_ACCESS_KEY = "your-aws-secret-access-key-here"
 AWS_S3_BUCKET_NAME = "your-bucket-name-here"
@@ -224,7 +224,7 @@ Notes:
 - `DJANGO_SETTINGS_MODULE` is set to `efile.settings` in `[tool.pytest.ini_options]`.
 - Tests are discovered under `efile_app/`. An example smoke test lives at `efile_app/efile/tests/test_smoke.py`.
 
-## End-to-End Testing (Playwright)
+## End-to-end testing (Playwright)
 
 Playwright tests are located in `efile_app/tests/` and provide browser-based testing of the complete user workflow. These are intended to be run manually and are not part of the CI/CD pipeline because they produce
 side-effects (e.g. filing new cases in EFSP) and rely on external APIs (e.g. EFSP again). The tests stop short
@@ -259,7 +259,7 @@ The Playwright configuration includes several important settings:
 - **Parallel Execution**: Disabled on CI (1 worker) to avoid conflicts with external services
 - **Browser**: Currently configured for Chromium only (Firefox and Safari commented out)
 
-### Running Tests
+### Running tests
 
 - __Start the Django server__ first:
   ```bash
@@ -295,7 +295,7 @@ The Playwright configuration includes several important settings:
 
 **Note**: The global setup automatically validates your `.env` configuration before running tests. If environment variables are missing, tests will fail with a clear error message.
 
-### Test Architecture
+### Test architecture
 
 The Playwright tests use a modular architecture with shared utilities:
 
@@ -303,7 +303,7 @@ The Playwright tests use a modular architecture with shared utilities:
 - **`tests/test-utils.js`**: Shared utilities including `loginViaLogout()`, `loginViaLoginPage()`, and `getTestConfig()` functions
 - **`playwright.config.js`**: Playwright configuration with global setup enabled, extended timeout, and CI-specific settings
 
-#### Login Utilities
+#### Login utilities
 
 The `test-utils.js` module provides two login methods:
 
@@ -311,7 +311,7 @@ The `test-utils.js` module provides two login methods:
 - **`loginViaLoginPage(page, config)`**: Logs in via the `/login` page
 - **`loginUser(page, config)`**: Alias for `loginViaLogout()` for backward compatibility
 
-### Available Tests
+### Available tests
 
 - **`expert-form-name-change.spec.js`**: Tests the complete workflow for filing a name change case
 - **`expert-form-order-of-protection.spec.js`**: Tests the complete workflow for filing an order of protection case  
@@ -359,7 +359,7 @@ Pre-commit hooks are configured in `.pre-commit-config.yaml` to run Ruff formatt
 
 **Note**: The pytest hook runs on `pre-push` stage to keep commits fast. If you skip the pre-push hook installation, tests won't run automatically before pushing.
 
-## Project Layout
+## Project layout
 
 - `efile_app/manage.py` — Django management script
 - `efile_app/efile/settings.py` — Project settings (uses SQLite by default; DB file at `efile_app/db.sqlite3`)

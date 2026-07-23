@@ -82,7 +82,7 @@ court_specific_requirements:
             modifications:
               conditional_requirements:
                 required_for_courts: ["cook:cd1"]
-          - field_group: "Name Sought"
+          - field_group: "Name sought"
             modifications:
               conditional_requirements:
                 required_for_courts: ["cook:cd1"]
@@ -96,7 +96,7 @@ court_specific_requirements:
             modifications:
               conditional_requirements:
                 hidden_for_courts: ["bond"]
-          - field_group: "Name Sought"
+          - field_group: "Name sought"
             modifications:
               conditional_requirements:
                 hidden_for_courts: ["bond"]
