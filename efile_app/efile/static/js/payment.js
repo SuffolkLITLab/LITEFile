@@ -308,7 +308,9 @@ const FilingHandler = {
             this.handleFeesResponse(result);
         } catch (error) {
             console.warn("Error on submission: %o", error)
-            Messages.showError(gettext("An unexpected error occurred. Please try again."));
+            // Show what the server said when it said anything: "no party of type
+            // Plaintiff" is fixable by the filer, "an unexpected error" is not.
+            Messages.showError(error?.serverMessage || gettext("An unexpected error occurred. Please try again."));
             this.setFeesState(false);
         }
     },
@@ -369,6 +371,8 @@ const FilingHandler = {
             efile_data: efilingData,
             confirm_submission: true,
             payment_account_id: paymentAccountID
+        }, {}, {
+            timeout: ApiUtils.FILING_TIMEOUT_MS
         });
     }
 };

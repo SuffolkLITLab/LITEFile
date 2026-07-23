@@ -13,7 +13,8 @@ from django.views.decorators.http import require_http_methods
 
 from efile.utils.jurisdiction_stuff import get_jurisdiction_from_request
 
-from ..services.efsp_payload import prepare_efile_payload
+from ..services.efsp_errors import describe_efsp_error
+from ..services.efsp_payload import PayloadValidationError, prepare_efile_payload
 from ..utils.case_data_utils import get_case_data
 from ..utils.proxy_connection import get_headers
 from .base import APIResponseMixin
@@ -178,7 +179,12 @@ class FilingAPIViews(APIResponseMixin):
 
             # Must match what submit_final_filing sends, or fees are quoted
             # against a payload that differs from the one actually filed.
-            prepare_efile_payload(efile_data, jurisdiction_id, court_id)
+            try:
+                prepare_efile_payload(efile_data, jurisdiction_id, court_id)
+            except PayloadValidationError as error:
+                # Known-bad payload: answer with the specific reason rather than
+                # letting the EFSP reply with a code-list error no filer can act on.
+                return JsonResponse({"success": False, "error": str(error)}, status=400)
 
             url = f"{settings.EFSP_URL}/jurisdictions/{jurisdiction_id}/filingreview/courts/{court_id}/filing/fees"
 
@@ -213,31 +219,12 @@ class FilingAPIViews(APIResponseMixin):
             else:
                 # Debug, not info: fee responses echo party names and case details.
                 logger.debug("EFSP fee response body: %s", response.text[:2000])
-                try:
-                    error_data = response.json()
-                    if isinstance(error_data, dict):
-                        error_message = error_data.get("error", f"API returned status {response.status_code}")
-                    else:
-                        error_message = error_data
-                    logger.info(f"Sending back: {error_data}, {error_message}")
-
-                    # For 400 errors, include more details
-                    if response.status_code == 400:
-                        validation_errors = error_data.get("validation_errors", error_data.get("errors", []))
-                        if validation_errors:
-                            error_message += f" - Validation errors: {validation_errors}"
-
-                except json.JSONDecodeError:
-                    error_message = f"API returned status {response.status_code} - Response: {response.text}"
-                except Exception as parse_error:
-                    error_message = (
-                        f"API returned status {response.status_code} - Could not parse response: {str(parse_error)}"
-                    )
+                error_message = describe_efsp_error(response)
 
                 return JsonResponse(
                     {
                         "success": False,
-                        "error": f"Filing submission failed: {error_message}",
+                        "error": f"Could not get filing fees: {error_message}",
                         "api_status_code": response.status_code,
                         "api_response": response.text[:500] if response.text else "No response body",
                     },

@@ -13,6 +13,7 @@ from efile.services.drafts import (
     write_case_data,
     write_upload_data,
 )
+from efile.services.efsp_payload import PayloadValidationError
 from efile.workflow import WorkflowStepKey, get_workflow_step_choices
 
 
@@ -661,3 +662,39 @@ def test_partial_case_update_does_not_clear_omitted_fields(django_user_model):
 
     assert draft.court_code == "new-code"
     assert draft.court_name == "Court name to preserve"
+
+
+@pytest.mark.django_db
+def test_payload_validation_failure_releases_draft_for_a_corrected_retry(client, django_user_model, monkeypatch):
+    """A pre-flight rejection never reached the court, so the filer may fix and retry.
+
+    The submission wrapper decides between "release to DRAFT" and "park in ERROR"
+    largely by matching error text, and ERROR is not claimable. A validation
+    rejection landing in ERROR would lock a filer out of their own filing over a
+    party type they could have corrected in a minute, so the response carries an
+    explicit pre_submit marker instead of relying on its wording.
+    """
+
+    def reject(*_args, **_kwargs):
+        raise PayloadValidationError("This case type requires a party of every required type")
+
+    def unreachable_post(*_args, **_kwargs):
+        raise AssertionError("the filing API must not be called for an invalid payload")
+
+    monkeypatch.setattr("efile.views.session_api.prepare_efile_payload", reject)
+    monkeypatch.setattr("requests.post", unreachable_post)
+    user = django_user_model.objects.create_user(username="invalid-payload-user", tyler_jurisdiction="illinois")
+    draft = FilingDraft.objects.create(user=user, jurisdiction="illinois", current_step=WorkflowStepKey.REVIEW)
+    client.force_login(user)
+    _prepare_submission(client, draft)
+
+    response = client.post(
+        reverse("submit_final_filing"),
+        data={"confirm_submission": True, "efile_data": {"al_court_bundle": {}}},
+        content_type="application/json",
+    )
+
+    assert response.status_code == 400
+    assert "requires a party of every required type" in response.json()["error"]
+    draft.refresh_from_db()
+    assert draft.status == FilingDraft.Status.DRAFT

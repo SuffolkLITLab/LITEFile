@@ -36,12 +36,43 @@ load_dotenv(dotenv_path=_BASE_DIR / ".env", override=False)
 from efile.settings_base import *  # noqa: E402,F401,F403
 from efile.settings_base import ALLOWED_HOSTS as BASE_ALLOWED_HOSTS  # noqa: E402
 from efile.settings_base import DATABASES as BASE_DATABASES  # noqa: E402
+from efile.settings_base import INSTALLED_APPS as BASE_INSTALLED_APPS  # noqa: E402
+from efile.settings_base import MIDDLEWARE as BASE_MIDDLEWARE  # noqa: E402
 
 # Bind DATABASES explicitly to avoid F405 and make linter aware of the symbol
 DATABASES = BASE_DATABASES
 
 DEBUG = True
 ALLOWED_HOSTS = BASE_ALLOWED_HOSTS or ["localhost", "127.0.0.1", ".localhost", "[::1]", "testserver"]
+
+# Static files: serve dev assets through WhiteNoise, as staging and production do.
+#
+# `runserver`'s own static handler sends Last-Modified and an ETag but no
+# Cache-Control, which leaves the browser free to guess a freshness lifetime
+# (Chrome: a fraction of the file's age) and reuse a script for hours without
+# revalidating. A JS change then reaches the tests and never reaches the browser
+# -- which is how an upload page shipped a validation check that the running app
+# did not have, and let a filing go out with no filing type selected.
+#
+# ManifestStaticFilesStorage covers the deployed environments by content-hashing
+# each filename, so the fix belongs here rather than in a ?v= query string in the
+# templates: a hand-maintained cache-buster only helps the files someone
+# remembered to bump.
+#
+# `whitenoise.runserver_nostatic` must precede django.contrib.staticfiles to stop
+# runserver from installing its handler ahead of the middleware. USE_FINDERS
+# serves straight from STATICFILES_DIRS (no collectstatic in dev), AUTOREFRESH
+# re-stats each file per request, and MAX_AGE=0 makes the browser revalidate
+# every time.
+INSTALLED_APPS = ["whitenoise.runserver_nostatic", *BASE_INSTALLED_APPS]
+MIDDLEWARE = list(BASE_MIDDLEWARE)
+MIDDLEWARE.insert(
+    MIDDLEWARE.index("django.middleware.security.SecurityMiddleware") + 1,
+    "whitenoise.middleware.WhiteNoiseMiddleware",
+)
+WHITENOISE_USE_FINDERS = True
+WHITENOISE_AUTOREFRESH = True
+WHITENOISE_MAX_AGE = 0
 
 # Opt-in: send this URL to the EFSP proxy as every document's `data_url` instead
 # of the real S3 URL.

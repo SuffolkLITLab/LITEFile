@@ -3,6 +3,20 @@
  * Features: CSRF handling, request building, error handling
  */
 class ApiUtils {
+    /**
+     * Timeout for calls that reach the EFSP proxy, which in turn calls Tyler:
+     * fee quotes and filing submissions. Round trips over 40s have been observed
+     * on real courts (Adams County order-of-protection fees), against a 30s
+     * default that reported "Request timed out" for a request the server went on
+     * to answer with a valid $0.00 quote.
+     *
+     * Deliberately longer than the server's own 60s timeout on that call, so the
+     * server is what decides a request has failed. The browser giving up first
+     * only hides the outcome: this timeout does not abort the request, so the
+     * filing continues regardless of what the filer is shown.
+     */
+    static FILING_TIMEOUT_MS = 120000;
+
     constructor() {
         this.baseUrl = window.location.origin;
         this.csrfToken = this.getCSRFToken();
@@ -181,19 +195,39 @@ class ApiUtils {
                 requestOptions.body = JSON.stringify(data);
             }
 
-            // Create a timeout promise
+            // Create a timeout promise. The timer is cleared once the race
+            // settles: it is not cancelled by losing, and an uncleared one keeps
+            // a pending task alive for the full budget after the response is
+            // already in hand -- up to two minutes on a filing call.
+            let timeoutId;
             const timeoutPromise = new Promise((_, reject) => {
-                setTimeout(() => reject(new Error('Request timeout')), timeout);
+                timeoutId = setTimeout(() => reject(new Error('Request timeout')), timeout);
             });
 
             // Race between fetch and timeout
-            const response = await Promise.race([
-                fetch(url, requestOptions),
-                timeoutPromise
-            ]);
+            let response;
+            try {
+                response = await Promise.race([
+                    fetch(url, requestOptions),
+                    timeoutPromise
+                ]);
+            } finally {
+                clearTimeout(timeoutId);
+            }
 
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                // Prefer the server's own message. Our API answers failures with
+                // {success: false, error: "..."}, and that text is often the only
+                // actionable thing the filer can be told -- which required party
+                // is missing, which document the EFSP could not fetch. Collapsing
+                // every 400 to "Invalid request" throws exactly that away.
+                const serverMessage = await response.clone().json()
+                    .then(body => body?.error)
+                    .catch(() => null);
+                const error = new Error(serverMessage || `HTTP error! status: ${response.status}`);
+                error.status = response.status;
+                error.serverMessage = serverMessage || null;
+                throw error;
             }
 
             const result = await response.json();
@@ -218,6 +252,11 @@ class ApiUtils {
     }
 
     handleApiError(error) {
+        // A message the server wrote is always more useful than the status-code
+        // wording below, so it passes through untouched.
+        if (error.serverMessage) {
+            return error;
+        }
         if (error.message === 'Request timeout') {
             return new Error('Request timed out. Please check your connection and try again.');
         } else if (error.message.includes('Failed to fetch')) {
@@ -273,11 +312,12 @@ class ApiUtils {
     }
 
 
-    async post(endpoint, data = {}, params = {}) {
+    async post(endpoint, data = {}, params = {}, options = {}) {
         return this.makeRequest(endpoint, {
             method: 'POST',
             data,
-            params
+            params,
+            ...options
         });
     }
 

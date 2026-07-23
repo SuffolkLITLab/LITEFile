@@ -12,9 +12,12 @@ from django.core.exceptions import ImproperlyConfigured
 from django.test import override_settings
 
 from efile.services.efsp_payload import (
+    PayloadValidationError,
     prepare_efile_payload,
     resolve_placeholder_filing_components,
     substitute_test_document_urls,
+    validate_document_selections,
+    validate_required_party_types,
 )
 
 REAL_S3_URL = "https://forms-mvp-xf6361.s3.us-east-1.amazonaws.com/efile-documents/lead/abc.pdf?X-Amz-Signature=x"
@@ -166,6 +169,57 @@ def test_populated_cross_references_is_preserved():
     assert efile_data["cross_references"] == [{"code": "1", "value": "abc"}]
 
 
+# --- missing filing type ------------------------------------------------------
+#
+# A draft can reach the fee quote with no filing type on a document. The EFSP
+# answers with a wrong_vars entry and a list of bare code numbers, so the blank
+# is caught here while the document can still be named.
+
+
+@pytest.mark.parametrize("blank", ["", "   ", None])
+def test_document_without_a_filing_type_is_rejected(blank):
+    efile_data = _bundle(filing_type=blank, filename="petition.pdf")
+
+    with pytest.raises(PayloadValidationError, match="petition.pdf"):
+        validate_document_selections(efile_data)
+
+
+def test_missing_filing_type_names_every_affected_document():
+    efile_data = {
+        "al_court_bundle": [
+            {"filing_type": "27965", "filename": "petition.pdf"},
+            {"filing_type": "", "filename": "exhibit-a.pdf"},
+            {"filing_type": "", "filename": "exhibit-b.pdf"},
+        ]
+    }
+
+    with pytest.raises(PayloadValidationError) as rejection:
+        validate_document_selections(efile_data)
+
+    assert "exhibit-a.pdf" in str(rejection.value)
+    assert "exhibit-b.pdf" in str(rejection.value)
+    assert "petition.pdf" not in str(rejection.value)
+
+
+def test_unnamed_document_is_identified_by_position():
+    with pytest.raises(PayloadValidationError, match="document 2"):
+        validate_document_selections({"al_court_bundle": [{"filing_type": "27965"}, {"filing_type": ""}]})
+
+
+def test_document_type_is_left_to_the_court():
+    """Only the filing type is universally required; the rest varies by court."""
+    validate_document_selections({"al_court_bundle": [{"filing_type": "27965", "document_type": ""}]})
+
+
+def test_preparation_rejects_a_blank_filing_type_end_to_end():
+    """The exact payload the payment screen sent when its filing type was blank."""
+    efile_data = _bundle(filing_type="", filename="petition.pdf")
+
+    with override_settings(EFSP_TEST_DOCUMENT_URL=""):
+        with pytest.raises(PayloadValidationError, match="filing type"):
+            prepare_efile_payload(efile_data, "illinois", "edgar")
+
+
 # --- placeholder filing components -------------------------------------------
 
 
@@ -236,3 +290,112 @@ def test_unresolvable_component_is_left_for_the_efsp_to_reject(monkeypatch, sett
 
     # Guessing a code would file under the wrong component; leave it visibly wrong.
     assert efile_data["al_court_bundle"][0]["filing_component"] == "supporting"
+
+
+# --- required party types ----------------------------------------------------
+#
+# A case type names the party types a filing must include. Nothing in the UI stops
+# a filer from choosing the same type for themselves and the other side, and the
+# EFSP answers that with a code-list error ("Missing [173180]") that means nothing
+# to a filer, so the combination is caught here while it can still be explained.
+
+PLAINTIFF = {"code": "173180", "name": "Plaintiff", "isrequired": True}
+DEFENDANT = {"code": "173174", "name": "Defendant", "isrequired": True}
+OPTIONAL_GUARDIAN = {"code": "173999", "name": "Guardian", "isrequired": False}
+
+
+class _PartyTypesResponse:
+    status_code = 200
+
+    def __init__(self, party_types):
+        self._party_types = party_types
+
+    def json(self):
+        return self._party_types
+
+
+def _party_type_api(monkeypatch, settings, party_types):
+    settings.EFSP_URL = "https://efile-test.example"
+    monkeypatch.setattr(
+        "efile.services.efsp_payload.requests.get",
+        lambda *args, **kwargs: _PartyTypesResponse(party_types),
+    )
+
+
+def _payload(user_types, other_types=()):
+    return {
+        "efile_case_type": "186542",
+        "al_court_bundle": [],
+        "users": [{"party_type": code} for code in user_types],
+        "other_parties": [{"party_type": code} for code in other_types],
+    }
+
+
+def test_missing_required_party_type_is_rejected_with_the_missing_name(monkeypatch, settings):
+    """The exact case a filer hits by picking Defendant for both sides."""
+    _party_type_api(monkeypatch, settings, [PLAINTIFF, DEFENDANT])
+
+    with pytest.raises(PayloadValidationError, match="Plaintiff"):
+        validate_required_party_types(_payload(["173174"], ["173174"]), "illinois", "cook:chd1")
+
+
+def test_every_required_party_type_present_passes(monkeypatch, settings):
+    _party_type_api(monkeypatch, settings, [PLAINTIFF, DEFENDANT])
+
+    validate_required_party_types(_payload(["173180"], ["173174"]), "illinois", "cook:chd1")
+
+
+def test_other_parties_count_toward_coverage(monkeypatch, settings):
+    """The filer is one side; the other side is only ever in other_parties."""
+    _party_type_api(monkeypatch, settings, [PLAINTIFF, DEFENDANT])
+
+    validate_required_party_types(_payload(["173174"], ["173180"]), "illinois", "cook:chd1")
+
+
+def test_optional_party_types_are_not_required(monkeypatch, settings):
+    _party_type_api(monkeypatch, settings, [PLAINTIFF, DEFENDANT, OPTIONAL_GUARDIAN])
+
+    validate_required_party_types(_payload(["173180"], ["173174"]), "illinois", "cook:chd1")
+
+
+def test_string_valued_isrequired_is_honoured(monkeypatch, settings):
+    """Tyler's code lists are inconsistent about JSON booleans vs "true"."""
+    _party_type_api(monkeypatch, settings, [{"code": "173180", "name": "Plaintiff", "isrequired": "true"}])
+
+    with pytest.raises(PayloadValidationError, match="Plaintiff"):
+        validate_required_party_types(_payload(["173174"]), "illinois", "cook:chd1")
+
+
+def test_unreachable_party_type_list_does_not_block_the_filing(monkeypatch, settings):
+    """Fails open: the EFSP stays the authority, this check only improves the message."""
+    import requests
+
+    settings.EFSP_URL = "https://efile-test.example"
+
+    def boom(*args, **kwargs):
+        raise requests.RequestException("EFSP unreachable")
+
+    monkeypatch.setattr("efile.services.efsp_payload.requests.get", boom)
+
+    validate_required_party_types(_payload(["173174"], ["173174"]), "illinois", "cook:chd1")
+
+
+def test_payload_without_a_case_type_is_not_checked(monkeypatch, settings):
+    """No case type means no code list to check against -- and no API call."""
+    settings.EFSP_URL = "https://efile-test.example"
+
+    def fail(*args, **kwargs):
+        raise AssertionError("should not call the EFSP without a case type")
+
+    monkeypatch.setattr("efile.services.efsp_payload.requests.get", fail)
+
+    validate_required_party_types({"al_court_bundle": [], "users": []}, "illinois", "cook:chd1")
+
+
+def test_preparation_rejects_the_payload_end_to_end(monkeypatch, settings):
+    """prepare_efile_payload is what both the fee quote and the submission call."""
+    _party_type_api(monkeypatch, settings, [PLAINTIFF, DEFENDANT])
+
+    with override_settings(EFSP_TEST_DOCUMENT_URL=""):
+        with pytest.raises(PayloadValidationError):
+            prepare_efile_payload(_payload(["173174"], ["173174"]), "illinois", "cook:chd1")

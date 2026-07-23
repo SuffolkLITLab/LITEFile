@@ -12,7 +12,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from requests.exceptions import RequestException
 
-from efile.utils.case_data_utils import update_case_data
+from efile.utils.case_data_utils import get_case_data, update_case_data
 from efile.utils.jurisdiction_stuff import get_jurisdiction_from_request
 from efile.utils.proxy_connection import get_headers
 
@@ -293,19 +293,43 @@ def get_party_types_from_suffolk_api(request):
                         f"{party_types[0].get('name', 'Unknown')} ({selected_party_type})"
                     )
 
-                # Persist the resolved party type onto the current draft
-                update_case_data(
-                    request,
-                    {
-                        "determined_party_type": selected_party_type,
-                        "party_type": selected_party_type,
-                        "petitioner_party_type": selected_party_type,
-                        "existing_case": existing_case,
-                    },
-                    jurisdiction,
+                # Seed the draft's party type, but never overwrite one it already
+                # has. Everything above is a *guess* from the case type's name
+                # ("civil" -> plaintiff), and this endpoint is a GET called on
+                # page load -- including from review, long after the filer chose.
+                # Overwriting there silently replaced a filer who had picked
+                # Defendant/Respondent with the guessed Plaintiff/Petitioner,
+                # leaving both sides the same party type and the filing rejected
+                # by the court for a required party that no longer had anyone in
+                # it. The guess is a default for an empty draft, not an answer.
+                stored_case_data = get_case_data(request, jurisdiction) or {}
+                stored_party_type = next(
+                    (
+                        stored_case_data.get(key)
+                        for key in ("determined_party_type", "party_type", "petitioner_party_type")
+                        if stored_case_data.get(key)
+                    ),
+                    "",
                 )
 
-                logger.debug(f"Saved party type to draft: {selected_party_type}")
+                if stored_party_type:
+                    # Answer with what the draft holds, so the page cannot show a
+                    # different party type from the one that will be filed.
+                    selected_party_type = stored_party_type
+                    update_case_data(request, {"existing_case": existing_case}, jurisdiction)
+                    logger.debug("Kept the party type already on the draft: %s", stored_party_type)
+                else:
+                    update_case_data(
+                        request,
+                        {
+                            "determined_party_type": selected_party_type,
+                            "party_type": selected_party_type,
+                            "petitioner_party_type": selected_party_type,
+                            "existing_case": existing_case,
+                        },
+                        jurisdiction,
+                    )
+                    logger.debug(f"Saved party type to draft: {selected_party_type}")
 
                 if only_required:
                     filtered_party_types = [p for p in party_types if p.get("isrequired", False)]

@@ -103,7 +103,14 @@ const DataManager = {
                 },
                 ...options
             });
-            return response.ok ? await response.json() : null;
+            // Parse the body on failures too. This is the filing-submission call,
+            // and the API answers a rejection with {success: false, error: "..."}
+            // naming what the filer has to correct -- a missing required party,
+            // a document the EFSP could not fetch. Returning null on !ok threw
+            // that away and left "An error occurred during submission."
+            // handleSubmissionResult already keys off `success`, so a non-ok body
+            // routes to the same error branch, now with the reason in it.
+            return await response.json().catch(() => null);
         } catch (error) {
             console.error(`Fetch error for ${url}:`, error);
             return null;
@@ -446,7 +453,9 @@ const FilingHandler = {
             this.handleSubmissionResult(result);
         } catch (error) {
             console.error("Error on submission: %o", error)
-            Messages.showError(gettext("An unexpected error occurred. Please try again."));
+            // See payment.js: a message the server wrote names something the
+            // filer can actually correct.
+            Messages.showError(error?.serverMessage || gettext("An unexpected error occurred. Please try again."));
             this.setSubmissionState(false);
         }
     },
@@ -462,7 +471,7 @@ const FilingHandler = {
             this.handleFeesResponse(result);
         } catch (error) {
             console.error("Error on submission: %o", error)
-            Messages.showError(gettext("An unexpected error occurred. Please try again."));
+            Messages.showError(error?.serverMessage || gettext("An unexpected error occurred. Please try again."));
             this.setFeesState(false);
         }
     },
@@ -481,6 +490,8 @@ const FilingHandler = {
             efile_data: efilingData,
             confirm_submission: true,
             payment_account_id: paymentAccountID
+        }, {}, {
+            timeout: ApiUtils.FILING_TIMEOUT_MS
         });
     },
 

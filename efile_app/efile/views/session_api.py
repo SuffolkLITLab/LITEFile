@@ -9,7 +9,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from ..services.current_drafts import get_current_draft
-from ..services.efsp_payload import prepare_efile_payload
+from ..services.efsp_errors import describe_efsp_error
+from ..services.efsp_payload import PayloadValidationError, prepare_efile_payload
 from ..utils.case_data_utils import get_case_data, get_upload_data, update_case_data, update_upload_data
 from ..utils.llms import LlmError, extract_fields_from_file
 from ..utils.proxy_connection import get_party_type_code_from_api
@@ -302,7 +303,13 @@ def submit_final_filing(request):
             return JsonResponse({"success": False, "error": "Court ID is required for filing submission"}, status=400)
 
         # Same fixups the fee quote applied, so the filing matches the quote.
-        prepare_efile_payload(efile_data, jurisdiction_id, court_id)
+        try:
+            prepare_efile_payload(efile_data, jurisdiction_id, court_id)
+        except PayloadValidationError as error:
+            # `pre_submit` tells the submission wrapper that nothing reached the
+            # filing API, so the draft is released for a corrected retry instead
+            # of being parked in ERROR.
+            return JsonResponse({"success": False, "error": str(error), "pre_submit": True}, status=400)
 
         # Construct the Suffolk LIT Lab API endpoint
         api_url = f"{settings.EFSP_URL}/jurisdictions/{jurisdiction_id}/filingreview/courts/{court_id}/filings"
@@ -370,22 +377,7 @@ def submit_final_filing(request):
                 logger.error(f"API Error - Status: {response.status_code}")
                 logger.error(f"API Error - Response: {response.text}")
 
-                try:
-                    error_data = response.json()
-                    error_message = error_data.get("error", f"API returned status {response.status_code}")
-
-                    # For 400 errors, include more details
-                    if response.status_code == 400:
-                        validation_errors = error_data.get("validation_errors", error_data.get("errors", []))
-                        if validation_errors:
-                            error_message += f" - Validation errors: {validation_errors}"
-
-                except json.JSONDecodeError:
-                    error_message = f"API returned status {response.status_code} - Response: {response.text}"
-                except Exception as parse_error:
-                    error_message = (
-                        f"API returned status {response.status_code} - Could not parse response: {str(parse_error)}"
-                    )
+                error_message = describe_efsp_error(response)
 
                 return JsonResponse(
                     {
