@@ -69,7 +69,7 @@
                         status_icon = '<i class="fas fa-file-pen"></i>';
                         status_text = gettext("Under Review");
                     } else if (filing['filing_status'] === 'rejected' || filing['filing_status'] === 'returned') {
-                        status_icon = '<i class="fas fa-file-circle-exclaimation rejected"></i>';
+                        status_icon = '<i class="fas fa-file-circle-exclamation rejected"></i>';
                         status_text = gettext("Rejected");
                     }
                     if (filing['case_title']) {
@@ -120,7 +120,7 @@
             </div>
             <div class="button-group">
               <button class="btn btn-primary" tabindex="0" onclick="goToExpertForm('resume')">
-                {% translate "Resume " %}
+                {% translate "Resume" %}
               </button>
             </div>
           </div>

@@ -44,7 +44,7 @@
                     <form method="post">
                         {% csrf_token %}
                         <div class="mb-3">
-                            <label for="{{ login_form.email.id_for_label }}" class="form-label">{% translate "Email addres" %}</label>
+                            <label for="{{ login_form.email.id_for_label }}" class="form-label">{% translate "Email address" %}</label>
                             {{ login_form.email }}
                             {% if login_form.email.errors %}
                                 <div class="text-danger mt-1">

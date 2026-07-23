@@ -25,6 +25,20 @@ repos:
             (cd efile_app && uv run djlint --reformat "${files[@]}")
           - --
 
+      - id: djlint-lint
+        name: djlint (lint)
+        entry: bash -c
+        language: system
+        files: ^efile_app/.*\.html$
+        args:
+          - |
+            files=()
+            for file in "$@"; do
+              files+=("${file#efile_app/}")
+            done
+            (cd efile_app && uv run djlint "${files[@]}")
+          - --
+
       - id: css-beautify
         name: css-beautify (format)
         entry: bash -c
