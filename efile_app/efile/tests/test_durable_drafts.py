@@ -668,11 +668,8 @@ def test_partial_case_update_does_not_clear_omitted_fields(django_user_model):
 def test_payload_validation_failure_releases_draft_for_a_corrected_retry(client, django_user_model, monkeypatch):
     """A pre-flight rejection never reached the court, so the filer may fix and retry.
 
-    The submission wrapper decides between "release to DRAFT" and "park in ERROR"
-    largely by matching error text, and ERROR is not claimable. A validation
-    rejection landing in ERROR would lock a filer out of their own filing over a
-    party type they could have corrected in a minute, so the response carries an
-    explicit pre_submit marker instead of relying on its wording.
+    The response carries a stable error code so changing the human-readable
+    validation message cannot accidentally park the draft in ERROR.
     """
 
     def reject(*_args, **_kwargs):
@@ -695,6 +692,7 @@ def test_payload_validation_failure_releases_draft_for_a_corrected_retry(client,
     )
 
     assert response.status_code == 400
+    assert response.json()["error_code"] == "submission_payload_validation_failed"
     assert "requires a party of every required type" in response.json()["error"]
     draft.refresh_from_db()
     assert draft.status == FilingDraft.Status.DRAFT

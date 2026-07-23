@@ -11,6 +11,7 @@ from django.views.decorators.http import require_http_methods
 from ..services.current_drafts import get_current_draft
 from ..services.efsp_errors import describe_efsp_error
 from ..services.efsp_payload import PayloadValidationError, prepare_efile_payload
+from ..services.submission_errors import SubmissionErrorCode
 from ..utils.case_data_utils import get_case_data, get_upload_data, update_case_data, update_upload_data
 from ..utils.llms import LlmError, extract_fields_from_file
 from ..utils.proxy_connection import get_party_type_code_from_api
@@ -243,7 +244,14 @@ def submit_final_filing(request):
         data = json.loads(request.body)
 
         if not data.get("confirm_submission"):
-            return JsonResponse({"success": False, "error": "Submission confirmation is required"}, status=400)
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error_code": SubmissionErrorCode.CONFIRMATION_REQUIRED,
+                    "error": "Submission confirmation is required",
+                },
+                status=400,
+            )
 
         # Read the filing state from the current durable draft
         case_data = get_case_data(request)
@@ -260,6 +268,7 @@ def submit_final_filing(request):
             return JsonResponse(
                 {
                     "success": False,
+                    "error_code": SubmissionErrorCode.CASE_DATA_MISSING,
                     "error": "No case data found in session. Please go back and resubmit your case information.",
                     "debug_info": "Session case_data is empty",
                 },
@@ -270,6 +279,7 @@ def submit_final_filing(request):
             return JsonResponse(
                 {
                     "success": False,
+                    "error_code": SubmissionErrorCode.UPLOAD_DATA_MISSING,
                     "error": "No upload data found in session. Please go back and resubmit your documents.",
                     "debug_info": f"Upload data: {upload_data}",
                 },
@@ -279,7 +289,14 @@ def submit_final_filing(request):
         # Extract efile_data from the request
         efile_data = data.get("efile_data", {})
         if not efile_data:
-            return JsonResponse({"success": False, "error": "No efile data provided in request"}, status=400)
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error_code": SubmissionErrorCode.EFILE_DATA_MISSING,
+                    "error": "No efile data provided in request",
+                },
+                status=400,
+            )
 
         # Log the complete request data for debugging
         logger.debug("Complete request data received")
@@ -293,23 +310,39 @@ def submit_final_filing(request):
         missing_fields = [field for field in required_fields if field not in efile_data]
         if missing_fields:
             return JsonResponse(
-                {"success": False, "error": f"Missing required fields in efile_data: {missing_fields}"}, status=400
+                {
+                    "success": False,
+                    "error_code": SubmissionErrorCode.EFILE_DATA_INVALID,
+                    "error": f"Missing required fields in efile_data: {missing_fields}",
+                },
+                status=400,
             )
 
         # Get jurisdiction and court info from case data
         court_id = case_data.get("court", "")
 
         if not court_id:
-            return JsonResponse({"success": False, "error": "Court ID is required for filing submission"}, status=400)
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error_code": SubmissionErrorCode.COURT_ID_MISSING,
+                    "error": "Court ID is required for filing submission",
+                },
+                status=400,
+            )
 
         # Same fixups the fee quote applied, so the filing matches the quote.
         try:
             prepare_efile_payload(efile_data, jurisdiction_id, court_id)
         except PayloadValidationError as error:
-            # `pre_submit` tells the submission wrapper that nothing reached the
-            # filing API, so the draft is released for a corrected retry instead
-            # of being parked in ERROR.
-            return JsonResponse({"success": False, "error": str(error), "pre_submit": True}, status=400)
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error_code": SubmissionErrorCode.PAYLOAD_VALIDATION_FAILED,
+                    "error": str(error),
+                },
+                status=400,
+            )
 
         # Construct the Suffolk LIT Lab API endpoint
         api_url = f"{settings.EFSP_URL}/jurisdictions/{jurisdiction_id}/filingreview/courts/{court_id}/filings"
