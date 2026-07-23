@@ -13,8 +13,10 @@ from django.views.decorators.http import require_http_methods
 
 from efile.utils.jurisdiction_stuff import get_jurisdiction_from_request
 
+from ..services.efsp_errors import describe_efsp_error
+from ..services.efsp_payload import PayloadValidationError, prepare_efile_payload
 from ..utils.case_data_utils import get_case_data
-from ..utils.proxy_connection import get_headers, get_party_type_code_from_api
+from ..utils.proxy_connection import get_headers
 from .base import APIResponseMixin
 
 logger = logging.getLogger(__name__)
@@ -172,8 +174,18 @@ class FilingAPIViews(APIResponseMixin):
 
             jurisdiction_id = request.session.get("jurisdiction")
             auth_tokens = request.session.get("auth_tokens", {})
-            case_data = request.session.get("case_data", {})
+            case_data = get_case_data(request, jurisdiction_id)
             court_id = case_data.get("court", "")
+
+            # Must match what submit_final_filing sends, or fees are quoted
+            # against a payload that differs from the one actually filed.
+            try:
+                prepare_efile_payload(efile_data, jurisdiction_id, court_id)
+            except PayloadValidationError as error:
+                # Known-bad payload: answer with the specific reason rather than
+                # letting the EFSP reply with a code-list error no filer can act on.
+                return JsonResponse({"success": False, "error": str(error)}, status=400)
+
             url = f"{settings.EFSP_URL}/jurisdictions/{jurisdiction_id}/filingreview/courts/{court_id}/filing/fees"
 
             headers = get_headers()
@@ -190,7 +202,7 @@ class FilingAPIViews(APIResponseMixin):
                 logger.warning(f"No Tyler token found for jurisdiction '{jurisdiction_id}' in filing submission")
 
             logger.info(f"Making request!: {url}")
-            response = requests.post(url, json=efile_data, headers=headers)
+            response = requests.post(url, json=efile_data, headers=headers, timeout=60)
             logger.info(f"Made request: {response.status_code}")
 
             if response.status_code == 200 or response.status_code == 201:
@@ -205,28 +217,14 @@ class FilingAPIViews(APIResponseMixin):
                     }
                 )
             else:
-                try:
-                    error_data = response.json()
-                    error_message = error_data.get("error", f"API returned status {response.status_code}")
-                    logger.info(f"Sending back: {error_data}, {error_message}")
-
-                    # For 400 errors, include more details
-                    if response.status_code == 400:
-                        validation_errors = error_data.get("validation_errors", error_data.get("errors", []))
-                        if validation_errors:
-                            error_message += f" - Validation errors: {validation_errors}"
-
-                except json.JSONDecodeError:
-                    error_message = f"API returned status {response.status_code} - Response: {response.text}"
-                except Exception as parse_error:
-                    error_message = (
-                        f"API returned status {response.status_code} - Could not parse response: {str(parse_error)}"
-                    )
+                # Debug, not info: fee responses echo party names and case details.
+                logger.debug("EFSP fee response body: %s", response.text[:2000])
+                error_message = describe_efsp_error(response)
 
                 return JsonResponse(
                     {
                         "success": False,
-                        "error": f"Filing submission failed: {error_message}",
+                        "error": f"Could not get filing fees: {error_message}",
                         "api_status_code": response.status_code,
                         "api_response": response.text[:500] if response.text else "No response body",
                     },
@@ -319,285 +317,6 @@ class FilingAPIViews(APIResponseMixin):
 
         except Exception as e:
             return FilingAPIViews.error_response(f"Error: {str(e)}")
-
-
-@csrf_exempt
-@require_http_methods(["POST"])
-def _unused_create_filing(request):
-    """Create a filing with Suffolk LIT Lab API using collected case data."""
-
-    try:
-        # Get case data from session
-        case_data = get_case_data(request)
-
-        if not case_data:
-            return JsonResponse(
-                {"success": False, "error": "No case data found. Please complete the expert form first."}, status=400
-            )
-
-        # Get auth tokens
-        auth_tokens = request.session.get("auth_tokens")
-        if not auth_tokens or "token" not in auth_tokens:
-            return JsonResponse(
-                {"success": False, "error": "Authentication required. Please log in first."}, status=401
-            )
-
-        # Transform case data to Suffolk API payload format
-        filing_payload = transform_case_data_to_filing_payload(case_data, request)
-
-        # Make POST request to Suffolk LIT Lab filing API
-        path = "/filings/"
-        api_url = f"{settings.EFSP_URL}{path}"
-
-        headers = {"Authorization": f"Bearer {auth_tokens['token']}", "Content-Type": "application/json"}
-
-        # Safe pre-request logging
-        logger.debug(
-            "POST %s with headers keys=%s payload keys=%s",
-            api_url,
-            list(headers.keys()),
-            list(filing_payload.keys()),
-        )
-        response = requests.post(api_url, headers=headers, json=filing_payload, timeout=30)
-        logger.debug(
-            "Create filing response: status=%s content_type=%s",
-            response.status_code,
-            response.headers.get("Content-Type"),
-        )
-
-        if response.status_code == 201:
-            # Filing created successfully
-            filing_data = response.json()
-
-            # Save filing ID to session for future reference
-            request.session["current_filing_id"] = filing_data.get("id")
-            request.session.modified = True
-
-            return JsonResponse(
-                {
-                    "success": True,
-                    "filing_id": filing_data.get("id"),
-                    "message": "Filing created successfully",
-                    "data": filing_data,
-                }
-            )
-        else:
-            # API error
-            error_detail = response.text
-            try:
-                error_json = response.json()
-                error_detail = error_json.get("detail", error_json)
-            except ValueError:
-                pass
-
-            return JsonResponse(
-                {
-                    "success": False,
-                    "error": f"Filing creation failed: {error_detail}",
-                    "status_code": response.status_code,
-                },
-                status=response.status_code,
-            )
-
-    except requests.RequestException as e:
-        return JsonResponse({"success": False, "error": f"Network error: {str(e)}"}, status=500)
-    except Exception as e:
-        return JsonResponse({"success": False, "error": f"Unexpected error: {str(e)}"}, status=500)
-
-
-def transform_case_data_to_filing_payload(case_data, request=None):
-    """
-    Transform collected case data into Suffolk LIT Lab API filing payload format.
-    """
-
-    # Base filing payload structure
-    payload = {
-        "jurisdiction": case_data.get("jurisdiction"),
-        "court": case_data.get("court"),
-        "category": case_data.get("case_category"),
-        "case_type": case_data.get("case_type"),
-        "filing_type": case_data.get("filing_type"),
-        "document_type": case_data.get("document_type"),
-        "parties": [],
-        "optional_services": case_data.get("optional_services", []),
-    }
-
-    # Add petitioner party if this is a name change case
-    if "name change" in case_data.get("case_type", "").lower():
-        # Add petitioner
-        if case_data.get("petitioner_first_name") or case_data.get("petitioner_last_name"):
-            # Use party type from session data, or determine it from API
-            party_type = case_data.get("petitioner_party_type")
-            if not party_type:
-                party_type = determine_party_type_for_new_case(case_data)
-
-            petitioner = {
-                "party_type": party_type,
-                "name": {
-                    "first": case_data.get("petitioner_first_name", ""),
-                    "last": case_data.get("petitioner_last_name", ""),
-                    "full": (
-                        f"{case_data.get('petitioner_first_name', '')} {case_data.get('petitioner_last_name', '')}"
-                    ).strip(),
-                },
-                "address": case_data.get("petitioner_address", ""),
-                "role": "Petitioner",  # Keep role as readable text
-            }
-            payload["parties"].append(petitioner)
-    else:
-        # For non-name change cases, still add the party information if available
-        if case_data.get("first_name") or case_data.get("last_name"):
-            # Determine party type based on existing case status
-            existing_case = None
-            if request:
-                existing_case = request.session.get("existing_case")
-
-            # Also check if existing_case is stored in case_data
-            if not existing_case:
-                existing_case = case_data.get("existing_case")
-
-            if existing_case == "yes":
-                # When responding to existing case, use intelligent party type determination
-                party_type = case_data.get("party_type") or determine_party_type_for_existing_case(case_data)
-            else:
-                # For new cases, use intelligent party type determination
-                party_type = case_data.get("party_type") or determine_party_type_for_new_case(case_data)
-
-            # Determine role name for display (keep as readable text)
-            if existing_case == "yes":
-                role_name = "Defendant" if "DEF" in party_type else "Respondent" if "RES" in party_type else "Party"
-            else:
-                role_name = "Petitioner" if "PET" in party_type else "Plaintiff" if "PLA" in party_type else "Party"
-
-            party = {
-                "party_type": party_type,
-                "name": {
-                    "first": case_data.get("first_name", ""),
-                    "last": case_data.get("last_name", ""),
-                    "full": (f"{case_data.get('first_name', '')} {case_data.get('last_name', '')}").strip(),
-                },
-                "address": case_data.get("address", ""),
-                "role": role_name,
-            }
-            payload["parties"].append(party)
-
-        # Add name sought information as additional case details
-        if case_data.get("new_first_name") or case_data.get("new_last_name"):
-            payload["name_change_details"] = {
-                "new_name": {
-                    "first": case_data.get("new_first_name", ""),
-                    "last": case_data.get("new_last_name", ""),
-                    "full": (f"{case_data.get('new_first_name', '')} {case_data.get('new_last_name', '')}").strip(),
-                }
-            }
-
-    # Add case metadata
-    payload["metadata"] = {
-        "created_via": "illinois_efile_system",
-        "case_classification": {
-            "court": case_data.get("court"),
-            "category": case_data.get("case_category"),
-            "case_type": case_data.get("case_type"),
-            "filing_type": case_data.get("filing_type"),
-            "document_type": case_data.get("document_type"),
-        },
-    }
-
-    return payload
-
-
-def determine_party_type_for_new_case(case_data):
-    """
-    Determine the appropriate party type for a new case.
-    This fetches actual party type codes from the API.
-    """
-    court_code = case_data.get("court")
-    case_type_code = case_data.get("case_type")
-    case_type = case_data.get("case_type", "").lower()
-    jurisdiction = case_data.get("jurisdiction")
-
-    if not court_code or not case_type_code:
-        logger.warning("Missing court or case_type for party type determination")
-        return "PET"  # Default fallback code for petitioner
-
-    # Determine target party type name based on case type
-    target_party_name = None
-
-    if "name change" in case_type:
-        target_party_name = "petitioner"
-    elif "civil" in case_type:
-        target_party_name = "plaintiff"
-    elif "family" in case_type:
-        target_party_name = "petitioner"
-    elif "probate" in case_type:
-        target_party_name = "petitioner"
-    else:
-        target_party_name = "petitioner"
-
-    # Get the actual party type code from API
-    party_code = get_party_type_code_from_api(
-        court_code, case_type_code, jurisdiction, target_party_name=target_party_name
-    )
-
-    # Fallback codes if API call fails
-    if not party_code:
-        if target_party_name == "plaintiff":
-            return "PLA"
-        elif target_party_name == "petitioner":
-            return "PET"
-        else:
-            return "PET"
-
-    return party_code
-
-
-def determine_party_type_for_existing_case(case_data):
-    """
-    Determine the appropriate party type when responding to an existing case.
-    This fetches actual party type codes from the API.
-    """
-    court_code = case_data.get("court")
-    case_type_code = case_data.get("case_type")
-    case_type = case_data.get("case_type", "").lower()
-    filing_type = case_data.get("filing_type", "").lower()
-    jurisdiction = case_data.get("jurisdiction")
-
-    if not court_code or not case_type_code:
-        logger.warning("Missing court or case_type for party type determination")
-        return "DEF"  # Default fallback code
-
-    # Determine target party type name based on case and filing type
-    target_party_name = None
-
-    if "criminal" in case_type:
-        target_party_name = "defendant"
-    elif "civil" in case_type or "family" in case_type:
-        if "answer" in filing_type or "response" in filing_type:
-            target_party_name = "respondent"
-        else:
-            target_party_name = "defendant"
-    elif "probate" in case_type:
-        target_party_name = "interested party"
-    else:
-        target_party_name = "defendant"
-
-    # Get the actual party type code from API
-    party_code = get_party_type_code_from_api(
-        court_code, case_type_code, jurisdiction, target_party_name=target_party_name
-    )
-
-    # Fallback codes if API call fails
-    if not party_code:
-        if target_party_name == "defendant":
-            return "DEF"
-        elif target_party_name == "respondent":
-            return "RES"
-        elif target_party_name == "interested party":
-            return "INT"
-        else:
-            return "DEF"
-
-    return party_code
 
 
 # Individual view functions for URL mapping

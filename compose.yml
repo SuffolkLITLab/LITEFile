@@ -1,21 +1,67 @@
 services:
+  localstack:
+    # Keep the pre-auth Community Edition for local development. Newer
+    # calendar-versioned images require a LocalStack account token.
+    image: localstack/localstack:3.8.0
+    ports:
+      - "127.0.0.1:4566:4566"
+      - "127.0.0.1:4510-4559:4510-4559"
+    environment:
+      DEBUG: "${DEBUG:-0}"
+      SERVICES: s3
+      AWS_DEFAULT_REGION: us-east-1
+      AWS_S3_BUCKET_NAME: forms-mvp-xf6361
+    volumes:
+      - localstack:/var/lib/localstack
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./testing/localstack-init:/etc/localstack/init/ready.d:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
   web:
     build:
       context: .
       dockerfile: Dockerfile
     image: form-submission-mvp:web
     command: >-
-      sh -c "uv run python efile_app/manage.py migrate &&
-             uv run python efile_app/manage.py runserver 0.0.0.0:8000"
+      sh -c "uv run python manage.py migrate --noinput --fake-initial &&
+             uv run python manage.py runserver 0.0.0.0:8000"
+    depends_on:
+      localstack:
+        condition: service_healthy
     ports:
       - "8000:8000"
     environment:
       PYTHONDONTWRITEBYTECODE: "1"
       PYTHONUNBUFFERED: "1"
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_S3_BUCKET_NAME: forms-mvp-xf6361
+      AWS_S3_REGION_NAME: us-east-1
+      AWS_S3_ENDPOINT_URL: http://localstack:4566
+      # botocore >= 1.35 routes S3 through account-ID-specific endpoints, which
+      # LocalStack does not serve. Disable that routing.
+      AWS_ACCOUNT_ID_ENDPOINT_MODE: disabled
+      # A publicly readable PDF handed to the EFSP proxy in place of the uploaded
+      # document, so fee quotes work without exposing this machine. The proxy
+      # fetches every data_url itself and cannot resolve `localstack`, so a real
+      # presigned URL fails here with a 400. See testing/README.md.
+      #
+      # Read from the shell or the compose-level .env, NOT efile_app/.env: this
+      # value lands in the container environment, and settings_dev loads that
+      # .env with override=False, so whatever is set here wins. `-` rather than
+      # `:-` so an explicit empty value still turns the substitution off.
+      EFSP_TEST_DOCUMENT_URL: "${EFSP_TEST_DOCUMENT_URL-https://raw.githubusercontent.com/SuffolkLITLab/LITEFile/main/testing/sample_test.pdf}"
       # DJANGO_SETTINGS_MODULE: efile.settings  # manage.py sets this; uncomment to override
     volumes:
       - .:/app:delegated
-      - venv:/app/.venv
+      # The image builds its venv at /app/efile_app/.venv (Dockerfile WORKDIR).
+      # This must shadow that exact path, or the bind mount above exposes the
+      # host's venv to the container and root-owned files land in the checkout.
+      - venv:/app/efile_app/.venv
     # healthcheck:
     #   test: ["CMD-SHELL", "wget -qO- http://localhost:8000/ || exit 1"]
     #   interval: 10s
@@ -23,5 +69,7 @@ services:
     #   retries: 5
 
 volumes:
+  localstack:
+    driver: local
   venv:
     driver: local

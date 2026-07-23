@@ -30,6 +30,9 @@ class CascadingDropdowns {
             case_type: null,
             party_type: null,
         };
+        // A new filing has no uploaded document yet, so the upload-data
+        // response may not contain document classification guesses.
+        this.guesses = {};
         this.optionalServicesLoaded = false;
         this.isAutomaticSelection = false; // Track if selection is automatic
     }
@@ -135,8 +138,15 @@ class CascadingDropdowns {
     }
 
     async loadGuesses() {
-        const data = await apiUtils.getUploadData();
-        this.guesses = data['guesses']
+        try {
+            const data = await apiUtils.getUploadData();
+            this.guesses = data?.guesses || {};
+        } catch (error) {
+            // Guesses are optional and should never prevent a new filing from
+            // using the cascading dropdowns.
+            console.warn("Could not load upload guesses:", error);
+            this.guesses = {};
+        }
     }
 
     async loadDropdownData(fieldId, endpoint, params = {}) {
@@ -190,6 +200,9 @@ class CascadingDropdowns {
     }
 
     handleDropdownChange(dropdown) {
+        // Upload guesses are optional. Keep the change handler safe even if a
+        // stale/partial response or another caller clears the property.
+        this.guesses = this.guesses || {};
         const fieldId = dropdown.id;
         const selectedValue = dropdown.value;
         const mapping = this.dropdownMapping[fieldId];
@@ -259,8 +272,8 @@ class CascadingDropdowns {
             if (this.validateParameters(fieldId, params)) {
                 // Load data for the next dropdown only if there is a next dropdown
                 if (mapping.next && mapping.endpoint) {
-                    params.guessed_case_category = this.guesses['case category'];
-                    params.guessed_case_type = this.guesses['case type'];
+                    params.guessed_case_category = this.guesses?.['case category'];
+                    params.guessed_case_type = this.guesses?.['case type'];
                     params.only_required = true;
                     this.loadDropdownData(mapping.next, mapping.endpoint, params);
                 }

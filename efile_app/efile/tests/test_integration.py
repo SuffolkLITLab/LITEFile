@@ -12,15 +12,26 @@ from django.test import Client
 from efile.utils.config_loader import config_loader
 
 # =====================================================
-# Secrets loaded at runtime
+# Secrets loaded at runtime.
+#
+# These tests log in to the live Tyler test EFM. Without credentials they skip
+# rather than fail, so a missing local .env stays distinguishable from a real
+# regression. CI supplies both from repo secrets, so coverage there is unchanged.
+
+
+def _require_env(name):
+    value = os.environ.get(name)
+    if not value:
+        pytest.skip(f"{name} is not set; skipping test that needs the live Tyler EFM")
+    return value
 
 
 def get_test_username():
-    return os.environ["TESTS_TYLER_USERNAME"]
+    return _require_env("TESTS_TYLER_USERNAME")
 
 
 def get_test_password():
-    return os.environ["TESTS_TYLER_PASSWORD"]
+    return _require_env("TESTS_TYLER_PASSWORD")
 
 
 # =======================
@@ -74,7 +85,10 @@ class TestBasicFunctionality:
         if data["success"]:
             assert "data" in data
             assert data["data"]["username"] == username
-            assert data["data"]["first_name"] == "Bryce"
+            # Assert the shape, not one developer's Tyler account: whoever's
+            # credentials are configured, the profile must carry a real first name.
+            assert isinstance(data["data"]["first_name"], str)
+            assert data["data"]["first_name"]
 
     @pytest.mark.django_db
     def test_case_categories_api_basic_functionality(self):

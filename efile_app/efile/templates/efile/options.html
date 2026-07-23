@@ -92,18 +92,18 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
         <script src="{% url 'javascript-catalog' %}"></script>
         <script src="{% static 'js/api-utils.js' %}"></script>
+        {{ resume_url|json_script:"resume-url" }}
         <script>
             let is_logged_in = "{{is_logged_in}}" === "True";
             // Function to save existing_case data and redirect to expert form or case details
             function goToExpertForm(new_or_existing) {
                 if (new_or_existing === "new") {
-                    // Save the existing_case selection
-                    makeNewCaseData().then(() => {
-                        // For new cases, go directly to expert form with cache clearing and options page flag
-                        window.location.href = `/jurisdiction/{{jurisdiction}}/upload_first/?clear_session=true&from_options=true`;
+                    makeNewDraft().then((result) => {
+                        window.location.href = result.redirect_url || `/jurisdiction/{{jurisdiction}}/upload_first/`;
                     });
                 } else {
-                    // TODO(brycew): go straight to the page where the existing session was, reload everything
+                    const resumeUrl = JSON.parse(document.getElementById("resume-url").textContent);
+                    window.location.href = resumeUrl || `/jurisdiction/{{jurisdiction}}/upload_first/`;
                 }
             }
 
@@ -121,9 +121,26 @@
                 return false;
             }
 
+            async function makeNewDraft() {
+                try {
+                    sessionStorage.removeItem('session_id');
+                    const result = await apiUtils.post(`/jurisdiction/{{jurisdiction}}/drafts/`, {});
+                    if (!result.success) {
+                        throw new Error(result.error || 'Unable to create draft');
+                    }
+                    return result;
+                } catch (error) {
+                    console.warn('Error creating draft; falling back to session start:', error);
+                    await makeNewCaseData();
+                    return {
+                        redirect_url: `/jurisdiction/{{jurisdiction}}/upload_first/?clear_session=true&from_options=true`
+                    };
+                }
+            }
+
             // Function to save existing_case data to the session
             async function makeNewCaseData() {
-                // Save to session storage as immediate fallback
+                // Save to session storage as immediate fallback for the legacy start path
                 let new_uuid = self.crypto.randomUUID();
                 sessionStorage.setItem('session_id', new_uuid);
                 try {

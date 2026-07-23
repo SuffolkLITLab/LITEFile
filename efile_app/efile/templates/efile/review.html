@@ -239,6 +239,8 @@
                 {{ friendly_names|json_script:"friendly-names" }}
                 <!-- Review page JavaScript -->
                 <script src="{% static 'js/api-utils.js' %}"></script>
+                <!-- Must load before review.js, which mixes FilingPayload into FilingHandler. -->
+                <script src="{% static 'js/filing-payload.js' %}"></script>
                 <script src="{% static 'js/review.js' %}"></script>
                 <!-- Disclaimer checkbox functionality -->
                 <script>

@@ -262,7 +262,3 @@ class S3UploadHandler:
             pass
 
         return {"valid": True}
-
-
-# Global instance
-s3_handler = S3UploadHandler()

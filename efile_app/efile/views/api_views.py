@@ -1,4 +1,3 @@
-import json
 import logging
 
 import requests
@@ -8,81 +7,26 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import ensure_csrf_cookie
 
+from ..utils.case_data_utils import get_case_data
+
 logger = logging.getLogger(__name__)
 
 
 @method_decorator(ensure_csrf_cookie, name="dispatch")
 class GetCaseDataView(View):
-    """API endpoint to retrieve case data from session."""
+    """API endpoint to return the current draft as the case_data blob."""
 
     def get(self, request):
-        data = {}
         try:
-            for param_to_check in ["session_id", "jurisdiction", "existing_case", "case_data"]:
-                value = request.session.get(param_to_check)
+            case_data = get_case_data(request)
+            data = {"case_data": case_data}
+            for key in ("session_id", "jurisdiction", "existing_case"):
+                value = request.session.get(key) or case_data.get(key)
                 if value:
-                    data[param_to_check] = value
-
+                    data[key] = value
             return JsonResponse({"success": True, "data": data})
         except Exception:
-            logger.exception("Error retrieving case data: {e}")
-            return JsonResponse({"success": False, "error": "Server error occurred"}, status=500)
-
-
-@method_decorator(ensure_csrf_cookie, name="dispatch")
-class SaveCaseDataView(View):
-    """API endpoint to save case data to session."""
-
-    def post(self, request):
-        try:
-            data = json.loads(request.body)
-
-            # Extract case data from form submission
-            case_data = {
-                "court": data.get("court", ""),
-                "case_category": data.get("case_category", ""),
-                "case_type": data.get("case_type", ""),
-                "filing_type": data.get("filing_type", ""),
-                "document_type": data.get("document_type", ""),
-                "petitioner_first_name": data.get("petitioner_first_name", ""),
-                "petitioner_last_name": data.get("petitioner_last_name", ""),
-                "petitioner_address": data.get("petitioner_address", ""),
-                "petitioner_party_type": data.get("petitioner_party_type", ""),  # Add party type
-                "new_first_name": data.get("new_first_name", ""),
-                "new_last_name": data.get("new_last_name", ""),
-                "new_name_party_type": data.get("new_name_party_type", ""),  # Add party type
-                "optional_services": data.get("optional_services", []),
-            }
-
-            # Validate required fields
-            required_fields = ["court", "case_category", "case_type", "filing_type", "document_type"]
-            missing_fields = [field for field in required_fields if not case_data.get(field)]
-
-            if missing_fields:
-                err_missing = f"Missing required fields: {', '.join(missing_fields)}"
-                return JsonResponse({"success": False, "error": err_missing}, status=400)
-
-            # For name change cases, validate party information
-            if "name change" in case_data.get("case_type", "").lower():
-                party_fields = ["petitioner_first_name", "petitioner_last_name", "new_first_name", "new_last_name"]
-                missing_party_fields = [field for field in party_fields if not case_data.get(field)]
-
-                if missing_party_fields:
-                    err_party = f"Missing party information for name change case: {', '.join(missing_party_fields)}"
-                    return JsonResponse({"success": False, "error": err_party}, status=400)
-
-            # Save to session
-            request.session["case_data"] = case_data
-            request.session.modified = True
-
-            logger.debug(f"Saved case data to session: {case_data}")
-
-            return JsonResponse({"success": True, "message": "Case data saved successfully"})
-
-        except json.JSONDecodeError:
-            return JsonResponse({"success": False, "error": "Invalid JSON data"}, status=400)
-        except Exception:
-            logger.exception("Error saving case data: {e}")
+            logger.exception("Error retrieving case data")
             return JsonResponse({"success": False, "error": "Server error occurred"}, status=500)
 
 
@@ -97,9 +41,9 @@ class GetFilingComponentsView(View):
             jurisdiction = request.GET.get("jurisdiction")
             filing_type_id = request.GET.get("filing_type")
 
-            # If not provided in query, try to get from session
+            # If not provided in query, try to get from the current draft
             if not court or not filing_type_id:
-                case_data = request.session.get("case_data", {})
+                case_data = get_case_data(request)
                 court = court or case_data.get("court", "cook:cd")
                 filing_type_id = filing_type_id or case_data.get("filing_type")
 
@@ -153,5 +97,4 @@ class GetFilingComponentsView(View):
 
 # Function-based view wrapper for easy URL mapping
 get_case_data_api = GetCaseDataView.as_view()
-save_case_data = SaveCaseDataView.as_view()
 get_filing_components = GetFilingComponentsView.as_view()

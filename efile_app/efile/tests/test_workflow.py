@@ -6,6 +6,7 @@ from efile.workflow import (
     WorkflowStepKey,
     get_next_step,
     get_previous_step,
+    get_resume_step_url,
     get_step,
     get_step_url,
     get_workflow_context,
@@ -59,12 +60,14 @@ def test_get_previous_step_returns_none_for_first_step():
 def test_get_previous_step_returns_prior_step():
     previous_step = get_previous_step(WorkflowStepKey.CASE_INFORMATION)
 
+    assert previous_step is not None
     assert previous_step.key == WorkflowStepKey.UPLOAD_FIRST
 
 
 def test_get_next_step_returns_following_step():
     next_step = get_next_step(WorkflowStepKey.CASE_INFORMATION)
 
+    assert next_step is not None
     assert next_step.key == WorkflowStepKey.DOCUMENTS
 
 
@@ -76,6 +79,30 @@ def test_get_step_url_reverses_workflow_route():
     expected_url = reverse("payment", kwargs={"jurisdiction": "illinois"})
 
     assert get_step_url(WorkflowStepKey.PAYMENT, "illinois") == expected_url
+
+
+def test_get_resume_step_url_returns_the_drafts_own_step():
+    expected_url = reverse("upload", kwargs={"jurisdiction": "illinois"})
+
+    assert get_resume_step_url(WorkflowStepKey.DOCUMENTS, "illinois") == expected_url
+
+
+def test_get_resume_step_url_skips_options_so_resuming_does_not_loop():
+    # OPTIONS is the model default for older drafts; resuming there would just
+    # return the user to the page that offered to resume.
+    expected_url = reverse("upload_first", kwargs={"jurisdiction": "illinois"})
+
+    assert get_resume_step_url(WorkflowStepKey.OPTIONS, "illinois") == expected_url
+
+
+def test_get_resume_step_url_falls_back_for_an_unrecognised_step():
+    expected_url = reverse("upload_first", kwargs={"jurisdiction": "illinois"})
+
+    assert get_resume_step_url("a_step_that_was_removed", "illinois") == expected_url
+
+
+def test_get_resume_step_url_returns_none_without_a_draft():
+    assert get_resume_step_url(None, "illinois") is None
 
 
 def test_get_workflow_context_includes_current_previous_and_next_urls():

@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
-from ..utils.s3_upload_handler import s3_handler  # noqa: F401
+from ..utils.s3_upload_handler import S3UploadHandler
 
 logger = logging.getLogger(__name__)
 
@@ -15,10 +15,8 @@ logger = logging.getLogger(__name__)
 def test_s3_connection(request):
     """Test S3 connection and bucket access."""
     try:
-        # Reinitialize the global handler to pick up the corrected credentials
-        global s3_handler
-        from ..utils.s3_upload_handler import S3UploadHandler
-
+        # A fresh handler per request, so a credential change takes effect
+        # without a restart.
         s3_handler = S3UploadHandler()
 
         # Test S3 connection
@@ -63,10 +61,6 @@ def simple_s3_upload(request):
 
         if not uploaded_files:
             return JsonResponse({"success": False, "error": "No documents provided."}, status=400)
-
-        # Reinitialize S3 handler
-        global s3_handler
-        from ..utils.s3_upload_handler import S3UploadHandler
 
         s3_handler = S3UploadHandler()
 

@@ -55,18 +55,21 @@
                                         <strong>{% translate "Filing type" %}</strong>
                                         <span class="required">*</span>
                                     </label>
+                                    {# No `required` on either control below: search-dropdown.js hides #}
+                                    {# the input once a choice is made and the <select> is always d-none, #}
+                                    {# so the browser would refuse to submit with "not focusable" exactly #}
+                                    {# when the field IS filled in. UploadHandler.handleSubmit validates #}
+                                    {# these instead. #}
                                     <div class="search-dropdown-container" id="leadFilingType-container">
                                         <input type="text"
                                                class="form-control search-dropdown-input"
                                                id="leadFilingType_search"
                                                name="leadFilingType_search"
                                                placeholder="Search filing types..."
-                                               autocomplete="off"
-                                               required />
+                                               autocomplete="off" />
                                         <select class="form-select dropdown-field d-none"
                                                 id="leadFilingType"
-                                                name="lead_filing_type"
-                                                required>
+                                                name="lead_filing_type">
                                             <option value="">{% translate "Select filing type" %}</option>
                                         </select>
                                         <div class="search-dropdown-results"
@@ -89,8 +92,7 @@
                                     </label>
                                     <select class="form-select document-type-select"
                                             id="leadDocumentType"
-                                            name="lead_document_type"
-                                            required>
+                                            name="lead_document_type">
                                         <option value="">{% translate "Select filing type first" %}</option>
                                     </select>
                                 </div>

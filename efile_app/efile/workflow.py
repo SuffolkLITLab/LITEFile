@@ -60,6 +60,12 @@ def get_workflow_steps() -> tuple[WorkflowStep, ...]:
     return FILING_WORKFLOW
 
 
+def get_workflow_step_choices() -> tuple[tuple[str, str], ...]:
+    """Return Django model choices derived from the workflow registry."""
+
+    return tuple((step.key.value, step.label) for step in FILING_WORKFLOW)
+
+
 def get_step(step_key: WorkflowStepKey | str) -> WorkflowStep:
     try:
         return next(step for step in FILING_WORKFLOW if step.key == step_key)
@@ -92,6 +98,28 @@ def get_next_step(step_key: WorkflowStepKey | str) -> WorkflowStep | None:
 def get_step_url(step_key: WorkflowStepKey | str, jurisdiction: str) -> str:
     step = get_step(step_key)
     return reverse(step.url_name, kwargs={"jurisdiction": jurisdiction})
+
+
+def get_resume_step_url(current_step: WorkflowStepKey | str | None, jurisdiction: str) -> str | None:
+    """Return the URL to send someone back to when they resume a draft.
+
+    OPTIONS is the model default for drafts saved before ``current_step`` was
+    tracked, but resuming there just returns the user to the page offering to
+    resume. Those start at the first real filing step instead. An unrecognised
+    value is treated the same way rather than breaking the options page.
+    """
+    if current_step is None:
+        return None
+
+    try:
+        step_key = WorkflowStepKey(current_step)
+    except ValueError:
+        step_key = WorkflowStepKey.UPLOAD_FIRST
+
+    if step_key == WorkflowStepKey.OPTIONS:
+        step_key = WorkflowStepKey.UPLOAD_FIRST
+
+    return get_step_url(step_key, jurisdiction)
 
 
 def get_workflow_context(current_step: WorkflowStepKey | str, jurisdiction: str) -> dict:

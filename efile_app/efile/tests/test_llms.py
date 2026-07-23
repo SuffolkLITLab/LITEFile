@@ -1,5 +1,7 @@
 from unittest.mock import MagicMock, patch
+
 from django.conf import settings
+
 from efile.utils.llms import (
     LlmError,
     chat_completion,

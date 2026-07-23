@@ -5,6 +5,7 @@ from django.views.i18n import JavaScriptCatalog
 from .views.api_views import get_case_data_api, get_filing_components
 from .views.choose_jurisdiction import choose_jurisdiction
 from .views.confirmation import filing_confirmation
+from .views.draft_views import create_draft_view, get_current_draft_view
 from .views.expert_form import efile_expert_form
 from .views.filing_statuses import filing_statuses
 from .views.login import efile_login, efile_logout, efile_password_reset
@@ -21,8 +22,8 @@ from .views.session_api import (
     save_party_type_to_session,
     save_upload_data_to_session,
     save_upload_first_data,
-    submit_final_filing,
 )
+from .views.submission import submit_final_filing
 from .views.upload import efile_upload
 from .views.upload_first import efile_upload_first
 
@@ -45,6 +46,7 @@ urlpatterns = [
     path("jurisdiction/<jurisdiction>/register/", efile_register, name="efile_register"),
     path("jurisdiction/<jurisdiction>/password_reset/", efile_password_reset, name="efile_password_reset"),
     path("jurisdiction/<jurisdiction>/options/", efile_options, name="efile_options"),
+    path("jurisdiction/<jurisdiction>/drafts/", create_draft_view, name="create_draft"),
     path("jurisdiction/<jurisdiction>/filing_statuses/", filing_statuses, name="filing_statuses"),
     path("jurisdiction/<jurisdiction>/expert_form/", efile_expert_form, name="expert_form"),
     path("jurisdiction/<jurisdiction>/upload_first/", efile_upload_first, name="upload_first"),
@@ -55,6 +57,7 @@ urlpatterns = [
     # Session API endpoints
     path("api/get-case-data/", get_case_data_api, name="get_case_data_api"),
     path("api/get-filing-components/", get_filing_components, name="get_filing_components"),
+    path("api/draft/", get_current_draft_view, name="get_current_draft"),
     path("api/save-case-data/", api_save_case_data, name="save_case_data_api"),
     path("api/save-upload-data/", save_upload_data_to_session, name="save_upload_data_to_session"),
     path("api/save-upload-data-first/", save_upload_first_data, name="save_upload_data_to_session"),

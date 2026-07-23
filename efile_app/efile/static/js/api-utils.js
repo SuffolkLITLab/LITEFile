@@ -3,6 +3,20 @@
  * Features: CSRF handling, request building, error handling
  */
 class ApiUtils {
+    /**
+     * Timeout for calls that reach the EFSP proxy, which in turn calls Tyler:
+     * fee quotes and filing submissions. Round trips over 40s have been observed
+     * on real courts (Adams County order-of-protection fees), against a 30s
+     * default that reported "Request timed out" for a request the server went on
+     * to answer with a valid $0.00 quote.
+     *
+     * Deliberately longer than the server's own 60s timeout on that call, so the
+     * server is what decides a request has failed. The browser giving up first
+     * only hides the outcome: this timeout does not abort the request, so the
+     * filing continues regardless of what the filer is shown.
+     */
+    static FILING_TIMEOUT_MS = 120000;
+
     constructor() {
         this.baseUrl = window.location.origin;
         this.csrfToken = this.getCSRFToken();
@@ -181,19 +195,39 @@ class ApiUtils {
                 requestOptions.body = JSON.stringify(data);
             }
 
-            // Create a timeout promise
+            // Create a timeout promise. The timer is cleared once the race
+            // settles: it is not cancelled by losing, and an uncleared one keeps
+            // a pending task alive for the full budget after the response is
+            // already in hand -- up to two minutes on a filing call.
+            let timeoutId;
             const timeoutPromise = new Promise((_, reject) => {
-                setTimeout(() => reject(new Error('Request timeout')), timeout);
+                timeoutId = setTimeout(() => reject(new Error('Request timeout')), timeout);
             });
 
             // Race between fetch and timeout
-            const response = await Promise.race([
-                fetch(url, requestOptions),
-                timeoutPromise
-            ]);
+            let response;
+            try {
+                response = await Promise.race([
+                    fetch(url, requestOptions),
+                    timeoutPromise
+                ]);
+            } finally {
+                clearTimeout(timeoutId);
+            }
 
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                // Prefer the server's own message. Our API answers failures with
+                // {success: false, error: "..."}, and that text is often the only
+                // actionable thing the filer can be told -- which required party
+                // is missing, which document the EFSP could not fetch. Collapsing
+                // every 400 to "Invalid request" throws exactly that away.
+                const serverMessage = await response.clone().json()
+                    .then(body => body?.error)
+                    .catch(() => null);
+                const error = new Error(serverMessage || `HTTP error! status: ${response.status}`);
+                error.status = response.status;
+                error.serverMessage = serverMessage || null;
+                throw error;
             }
 
             const result = await response.json();
@@ -218,6 +252,11 @@ class ApiUtils {
     }
 
     handleApiError(error) {
+        // A message the server wrote is always more useful than the status-code
+        // wording below, so it passes through untouched.
+        if (error.serverMessage) {
+            return error;
+        }
         if (error.message === 'Request timeout') {
             return new Error('Request timed out. Please check your connection and try again.');
         } else if (error.message.includes('Failed to fetch')) {
@@ -272,37 +311,13 @@ class ApiUtils {
         return response;
     }
 
-    async cachedPost(endpoint, body) {
-        // Check cache first
-        const cachedResponse = this.getCachedResponse(endpoint, body);
-        if (cachedResponse !== null) {
-            return cachedResponse;
-        }
 
-        let headers = {
-            "Content-Type": "application/json",
-            "X-CSRFToken": apiUtils.getCSRFToken(),
-        };
-
-        // Make API request if not cached
-        const response = await this.makeRequest(endpoint, {
-            method: "POST",
-            headers,
-            data: body,
-        });
-
-        // Cache the response
-        this.setCachedResponse(endpoint, body, response);
-
-        return response;
-
-    }
-
-    async post(endpoint, data = {}, params = {}) {
+    async post(endpoint, data = {}, params = {}, options = {}) {
         return this.makeRequest(endpoint, {
             method: 'POST',
             data,
-            params
+            params,
+            ...options
         });
     }
 
@@ -329,42 +344,31 @@ class ApiUtils {
         });
     }
 
+    // Draft state (case/upload data) is owned by the server-side FilingDraft
+    // model. It must never be cached in localStorage: a stale blob could survive
+    // a submit/reset and leak into the next filing. These always hit the server.
     async getCaseData() {
-        return this.get("/api/get-case-data", {}, true);
+        return this.fetchJSON("/api/get-case-data", "GET");
     }
 
     async saveCaseData(body) {
-        let resp = this.fetchJSON("/api/save-case-data/", "POST", {}, body)
-        const cacheKey = this.getCacheKey("/api/get-case-data", {});
-        this.clearCache(cacheKey)
-        return resp;
+        return this.fetchJSON("/api/save-case-data/", "POST", {}, body);
     }
 
-    /** Calling `get-party-types` will set certain values on the case. For now, just nuke the cache.. */
     async getPartyTypes(params) {
-        let resp = this.fetchJSON("/api/get-party-types", "GET", params);
-        const cacheKey = this.getCacheKey("/api/get-case-data", {});
-        this.clearCache(cacheKey)
-        return resp;
+        return this.fetchJSON("/api/get-party-types", "GET", params);
     }
 
     async getUploadData() {
-        return this.get("/api/get-upload-data", {}, true);
+        return this.fetchJSON("/api/get-upload-data", "GET");
     }
 
     async saveUploadData(body) {
-        return this._saveUpload("/api/save-upload-data/", body);
+        return this.fetchJSON("/api/save-upload-data/", "POST", {}, body);
     }
 
     async saveFirstUploadData(body) {
-        return this._saveUpload("/api/save-upload-data-first/", body);
-    }
-
-    async _saveUpload(endpoint, body) {
-        let resp = this.fetchJSON(endpoint, "POST", {}, body);
-        const cacheKey = this.getCacheKey("/api/get-upload-data", {});
-        this.clearCache(cacheKey)
-        return resp;
+        return this.fetchJSON("/api/save-upload-data-first/", "POST", {}, body);
     }
 
     // Cache management methods

@@ -10,6 +10,49 @@ repos:
   # Ty: Rust-based Python type checker (configured in pyproject.toml under [tool.ty])
   - repo: local
     hooks:
+      # Keep the non-Python assets in sync with the formatters used by CI.
+      - id: djlint-format
+        name: djlint (format)
+        entry: bash -c
+        language: system
+        files: ^efile_app/.*\.html$
+        args:
+          - |
+            files=()
+            for file in "$@"; do
+              files+=("${file#efile_app/}")
+            done
+            (cd efile_app && uv run djlint --reformat "${files[@]}")
+          - --
+
+      - id: css-beautify
+        name: css-beautify (format)
+        entry: bash -c
+        language: system
+        files: ^efile_app/.*\.css$
+        args:
+          - |
+            files=()
+            for file in "$@"; do
+              files+=("${file#efile_app/}")
+            done
+            (cd efile_app && uv run css-beautify -r "${files[@]}")
+          - --
+
+      - id: js-beautify
+        name: js-beautify (format)
+        entry: bash -c
+        language: system
+        files: ^efile_app/.*\.js$
+        args:
+          - |
+            files=()
+            for file in "$@"; do
+              files+=("${file#efile_app/}")
+            done
+            (cd efile_app && uv run js-beautify -r "${files[@]}")
+          - --
+
       - id: ty
         name: ty (type check)
         entry: bash -lc

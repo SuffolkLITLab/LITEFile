@@ -14,6 +14,8 @@ class UploadHandler {
         this.successAlert = document.getElementById('successAlert');
 
         this.uploadedFile = null;
+        this.uploadPromise = null;
+        this.leadPersisted = false;
 
         this.initialized = false;
 
@@ -52,14 +54,42 @@ class UploadHandler {
         const lead = response?.files?.lead;
         if (lead) {
             this.uploadedFile = lead;
+            this.leadPersisted = true;
             this.updateFilePreview(this.leadDocumentArea, lead);
             document.getElementById("leadDocument").removeAttribute("required");
         }
     }
 
+    /**
+     * Build the durable-draft payload for a lead document that S3 has accepted.
+     * Used both by the save-on-upload path and by the save-on-Continue retry, so
+     * the two can never drift.
+     * @param {Object} uploadedLead - one entry from the upload response's `files`
+     */
+    buildLeadPayload(uploadedLead) {
+        return {
+            files: {
+                lead: {
+                    name: this.uploadedFile.name,
+                    size: this.uploadedFile.size,
+                    type: this.uploadedFile.type,
+                    url: uploadedLead.public_url || uploadedLead.url,
+                    s3_key: uploadedLead.key,
+                },
+            },
+            options: {
+                lead: {}
+            },
+        };
+    }
+
     async saveUploadDataToSession(uploadData) {
         try {
-            const result = await apiUtils.saveFirstUploadData(uploadData);
+            const payload = {
+                ...uploadData,
+                jurisdiction_id: uploadData.jurisdiction_id || apiUtils.getCurrentJurisdiction()
+            };
+            const result = await apiUtils.saveFirstUploadData(payload);
             if (!result.success) {
                 throw new Error(result.error || 'Failed to save upload data to session');
             }
@@ -165,7 +195,7 @@ class UploadHandler {
         }
 
         // Automatically upload lead document
-        this.uploadFileImmediately(validFiles[0], 0);
+        this.uploadPromise = this.uploadFileImmediately(validFiles[0], 0);
 
         this.updateSubmitButton();
     }
@@ -293,6 +323,21 @@ class UploadHandler {
             // Store the upload result for later use during form submission
             this.uploadedFile.uploadResult = result;
 
+            // Persist the lead as soon as S3 accepts it. This keeps a refresh
+            // or navigation from losing the document before the user clicks
+            // Continue.
+            const uploadedLead = result.files?.[0];
+            if (uploadedLead) {
+                try {
+                    await this.saveUploadDataToSession(this.buildLeadPayload(uploadedLead));
+                    this.leadPersisted = true;
+                } catch (error) {
+                    // Continue still retries the same save, so an interim
+                    // persistence failure should not discard the S3 result.
+                    console.warn('Could not persist lead upload immediately:', error);
+                }
+            }
+
         } catch (error) {
             console.error('Error uploading file immediately:', error);
             this.showFileUploadError(file.name, index, error.message);
@@ -344,6 +389,34 @@ class UploadHandler {
             return;
         }
 
+        // File selection starts an asynchronous S3 upload. Wait for both the
+        // upload and its durable-draft save before navigating away.
+        if (this.uploadPromise) {
+            await this.uploadPromise;
+            this.uploadPromise = null;
+        }
+
+        if (!this.uploadedFile.uploadResult && !(this.uploadedFile.url && this.uploadedFile.s3_key)) {
+            this.showError('The lead document upload did not finish. Please try again.');
+            return;
+        }
+
+        if (this.uploadedFile.uploadResult && !this.leadPersisted) {
+            this.showWaiting("Saving your document...");
+            try {
+                const uploadedLead = this.uploadedFile.uploadResult.files?.[0];
+                if (!uploadedLead) {
+                    throw new Error('The lead document upload did not return a file.');
+                }
+                await this.saveUploadDataToSession(this.buildLeadPayload(uploadedLead));
+                this.leadPersisted = true;
+            } catch (error) {
+                console.error('Error persisting lead upload:', error);
+                this.showError(error.message);
+                return;
+            }
+        }
+
         if (this.uploadedFile.url && this.uploadedFile.s3_key) {
             // We've already uploaded the file previously. Just continue.
             const jurisdiction = apiUtils.getCurrentJurisdiction();
@@ -376,8 +449,11 @@ class UploadHandler {
                 };
             }
 
-            // Save the complete upload data to session
-            await this.saveUploadDataToSession(uploadDataWithUrls);
+            // The lead was already saved after S3 accepted it. Only retry the
+            // legacy submit-time save if an upload result is unexpectedly absent.
+            if (!this.leadPersisted) {
+                await this.saveUploadDataToSession(uploadDataWithUrls);
+            }
 
 
             // Redirect to next page

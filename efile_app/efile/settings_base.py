@@ -16,7 +16,8 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-r1o&rohs_$%i1)u-8am
 DEBUG = True
 
 # Override in env-specific settings
-ALLOWED_HOSTS: list[str] = []
+_configured_allowed_hosts = os.getenv("DJANGO_ALLOWED_HOSTS", "")
+ALLOWED_HOSTS: list[str] = [host.strip() for host in _configured_allowed_hosts.split(",") if host.strip()]
 
 # Override in env-specific settings
 CSRF_TRUSTED_ORIGINS: list[str] = []
