@@ -177,7 +177,7 @@ class CascadingDropdowns {
                     dropdown.disabled = false;
                     if (response.data.length == 1 && dropdown.id == "party_type") {
                         dropdown.parentElement.hidden = true;
-                        dropdown.value = response.data[0].value || response.data[0].id;
+                        this.selectPartyTypeRadio(dropdown, response.data[0].value || response.data[0].id);
                     }
                 } else {
                     console.warn(`No data returned for ${fieldId}:`, response);
@@ -745,6 +745,13 @@ class CascadingDropdowns {
             return;
         }
 
+        // Party type is rendered as a radio group (usually 2-3 options) rather
+        // than a select, since a dropdown is unnecessary friction for so few choices.
+        if (dropdown.id === 'party_type') {
+            this.populatePartyTypeRadios(dropdown, options);
+            return;
+        }
+
         const placeholder = dropdown.querySelector('option[value=""]').textContent;
 
         // Clear dropdown and remove any visual selection indicators
@@ -826,6 +833,59 @@ class CascadingDropdowns {
                 }, 500);
             }
         }
+    }
+
+    populatePartyTypeRadios(container, options) {
+        container.innerHTML = "";
+
+        if (!options || !Array.isArray(options) || options.length === 0) {
+            container.innerHTML = '<p class="text-muted mb-0">No party types available</p>';
+            return;
+        }
+
+        options.forEach((option, index) => {
+            const value = option.value || option.id;
+            const label = option.label || option.name || option.text;
+
+            const wrapper = document.createElement("div");
+            wrapper.className = "form-check";
+
+            const input = document.createElement("input");
+            input.type = "radio";
+            input.className = "form-check-input";
+            input.name = "party_type";
+            input.id = `party_type_${index}`;
+            input.value = value;
+            input.required = true;
+
+            const radioLabel = document.createElement("label");
+            radioLabel.className = "form-check-label";
+            radioLabel.setAttribute("for", input.id);
+            radioLabel.textContent = label;
+
+            wrapper.appendChild(input);
+            wrapper.appendChild(radioLabel);
+            container.appendChild(wrapper);
+        });
+
+        // Radios are recreated on every populate call, so attach the listener
+        // once on the (stable) container rather than per-input.
+        if (!container.dataset.changeListenerAttached) {
+            container.addEventListener("change", (e) => {
+                if (e.target && e.target.name === "party_type") {
+                    this.selectedValues.party_type = e.target.value;
+                }
+            });
+            container.dataset.changeListenerAttached = "true";
+        }
+    }
+
+    selectPartyTypeRadio(container, value) {
+        const radio = container.querySelector(`input[value="${value}"]`);
+        if (radio) {
+            radio.checked = true;
+        }
+        this.selectedValues.party_type = value;
     }
 
     showRecommendationNotice(dropdown, type) {
@@ -951,6 +1011,13 @@ class CascadingDropdowns {
             return;
         }
 
+        // Party type is a radio group, not a select - reset it to its
+        // placeholder text instead of manipulating <option> elements.
+        if (dropdown.id === 'party_type') {
+            dropdown.innerHTML = '<p class="text-muted mb-0">Select a case type first</p>';
+            return;
+        }
+
         let placeholder =
             dropdown.querySelector('option[value=""]')?.textContent ||
             "Please select...";
@@ -984,6 +1051,10 @@ class CascadingDropdowns {
     }
 
     showError(dropdown, message) {
+        if (dropdown.id === 'party_type') {
+            dropdown.innerHTML = `<p class="text-danger mb-0">Error: ${message}</p>`;
+            return;
+        }
         dropdown.innerHTML = `<option value="">Error: ${message}</option>`;
         dropdown.disabled = false;
     }

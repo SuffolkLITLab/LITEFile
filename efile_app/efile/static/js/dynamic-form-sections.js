@@ -899,18 +899,20 @@ class DynamicFormSections {
                 break;
 
             case "party_type_dropdown":
-                // Create a dropdown for party types that will be populated via API
+                // Party type is a short, API-provided list (2-3 options in
+                // practice), so it's rendered as radio buttons rather than a
+                // dropdown. Populated later by loadPartyTypeDropdowns().
                 inputHtml = `
-                    <select class="form-select party-type-dropdown" 
-                            id="${fieldId}" 
-                            name="${fieldName}" 
+                    <div class="party-type-dropdown"
+                            id="${fieldId}"
+                            data-field-name="${fieldName}"
+                            data-required="${field.required ? "true" : "false"}"
                             data-api-endpoint="${
                               field.api_endpoint ||
                               "/api/dropdowns/party-types/"
-                            }"
-                            ${requiredAttr}>
-                        <option value="">Select Party Type</option>
-                    </select>
+                            }">
+                        <p class="text-muted mb-0">Select Party Type</p>
+                    </div>
                     <div class="loading-spinner" id="loading-${fieldId}" style="display: none;">
                         <i class="fas fa-spinner fa-spin"></i> Loading party types...
                     </div>`;
@@ -995,9 +997,6 @@ class DynamicFormSections {
                 if (result.success && result.data) {
                     const partyTypes = result.data;
 
-                    // Clear existing options except the first one
-                    dropdown.innerHTML = '<option value="">Select Party Type</option>';
-
                     // If no saved data, try to find intelligent default from API response
                     if (!defaultValue) {
                         // Find the parent section title
@@ -1037,20 +1036,7 @@ class DynamicFormSections {
                         }
                     }
 
-                    // Add all party type options
-                    let addedCount = 0;
-                    partyTypes.forEach((partyType) => {
-                        const option = document.createElement("option");
-                        option.value = partyType.code;
-                        option.textContent = partyType.name;
-                        // Set as selected if this is the default value
-                        if (partyType.code === defaultValue) {
-                            option.selected = true;
-                        }
-
-                        dropdown.appendChild(option);
-                        addedCount++;
-                    });
+                    this.renderPartyTypeRadios(dropdown, partyTypes, defaultValue);
                 } else {
                     console.error(
                         "Failed to load party types:",
@@ -1058,22 +1044,59 @@ class DynamicFormSections {
                         result
                     );
 
-                    // Add error option
                     dropdown.innerHTML =
-                        '<option value="">Error loading party types</option>';
+                        '<p class="text-danger mb-0">Error loading party types</p>';
                 }
             } catch (error) {
                 console.error(`Error loading party types for ${fieldId}:`, error);
 
-                // Add error option
                 dropdown.innerHTML =
-                    '<option value="">Error loading party types</option>';
+                    '<p class="text-danger mb-0">Error loading party types</p>';
             } finally {
                 // Hide loading spinner
                 if (loadingSpinner) {
                     loadingSpinner.style.display = "none";
                 }
             }
+        });
+    }
+
+    renderPartyTypeRadios(container, partyTypes, defaultValue) {
+        container.innerHTML = "";
+
+        if (!partyTypes || partyTypes.length === 0) {
+            container.innerHTML = '<p class="text-muted mb-0">No party types available</p>';
+            return;
+        }
+
+        const groupName = container.dataset.fieldName || container.id;
+        const isRequired = container.dataset.required === "true";
+
+        partyTypes.forEach((partyType, index) => {
+            const wrapper = document.createElement("div");
+            wrapper.className = "form-check";
+
+            const input = document.createElement("input");
+            input.type = "radio";
+            input.className = "form-check-input";
+            input.name = groupName;
+            input.id = `${container.id}_${index}`;
+            input.value = partyType.code;
+            if (isRequired) {
+                input.required = true;
+            }
+            if (partyType.code === defaultValue) {
+                input.checked = true;
+            }
+
+            const label = document.createElement("label");
+            label.className = "form-check-label";
+            label.setAttribute("for", input.id);
+            label.textContent = partyType.name;
+
+            wrapper.appendChild(input);
+            wrapper.appendChild(label);
+            container.appendChild(wrapper);
         });
     }
 
@@ -1119,6 +1142,9 @@ class DynamicFormSections {
                     if (field) {
                         if (field.type === "checkbox") {
                             formData[fieldName] = field.checked;
+                        } else if (field.type === "radio") {
+                            const checked = document.querySelector(`input[name="${fieldName}"]:checked`);
+                            formData[fieldName] = checked ? checked.value : "";
                         } else {
                             formData[fieldName] = field.value;
                         }
@@ -1142,6 +1168,11 @@ class DynamicFormSections {
                     if (field) {
                         if (field.type === "checkbox") {
                             field.checked = this.preservedFormData[fieldName];
+                        } else if (field.type === "radio") {
+                            const radio = document.querySelector(
+                                `input[name="${fieldName}"][value="${this.preservedFormData[fieldName]}"]`
+                            );
+                            if (radio) radio.checked = true;
                         } else {
                             field.value = this.preservedFormData[fieldName];
                         }
@@ -1202,35 +1233,33 @@ class DynamicFormSections {
                         field.checked = Array.isArray(data[key]) ?
                             data[key].includes(field.value) :
                             data[key] === field.value;
-                    } else if (field.classList.contains("party-type-dropdown")) {
-                        // For party type dropdowns, we may need to wait for options to load
-                        const setDropdownValue = () => {
-                            // Check if the option exists
-                            const option = field.querySelector(
-                                `option[value="${data[key]}"]`
+                    } else if (field.type === "radio") {
+                        // Party type radios are added asynchronously once the
+                        // API responds, so keep retrying until the matching
+                        // option exists.
+                        const setRadioValue = () => {
+                            const radio = document.querySelector(
+                                `input[name="${key}"][value="${data[key]}"]`
                             );
-                            if (option) {
-                                field.value = data[key];
-
-                                // Add visual validation feedback after successful population
-                                field.classList.remove("is-invalid");
-                                field.classList.add("is-valid");
-                            } else if (field.options.length <= 1) {
-                                // Options haven't loaded yet, wait a bit longer
-                                setTimeout(setDropdownValue, 500);
+                            if (radio) {
+                                radio.checked = true;
+                            } else if (
+                                document.querySelectorAll(`input[name="${key}"]`).length === 0
+                            ) {
+                                setTimeout(setRadioValue, 500);
                             }
                         };
-                        setDropdownValue();
+                        setRadioValue();
                     } else {
                         field.value = data[key];
                     }
                     fieldsPopulated++;
 
-                    // Add visual validation feedback (but not for dropdowns until they're populated)
+                    // Add visual validation feedback (but not for radios until they're populated)
                     if (
+                        field.type !== "radio" &&
                         field.value &&
-                        field.value.trim() &&
-                        !field.classList.contains("party-type-dropdown")
+                        field.value.trim()
                     ) {
                         field.classList.remove("is-invalid");
                         field.classList.add("is-valid");
