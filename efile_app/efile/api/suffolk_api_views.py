@@ -13,7 +13,7 @@ from django.views.decorators.http import require_http_methods
 from requests.exceptions import RequestException
 
 from efile.utils.case_data_utils import get_case_data, update_case_data
-from efile.utils.jurisdiction_stuff import get_jurisdiction_from_request
+from efile.utils.jurisdiction_stuff import get_jurisdiction_from_request, get_jurisdiction_token
 from efile.utils.proxy_connection import get_headers
 
 logger = logging.getLogger(__name__)
@@ -24,18 +24,7 @@ def get_tyler_token(request, jurisdiction=None):
     if jurisdiction is None:
         jurisdiction = get_jurisdiction_from_request(request)
 
-    # Fallback to session
-    auth_tokens = request.session.get("auth_tokens", {})
-    logger.debug(f"Auth tokens in session: {auth_tokens}")
-
-    # Try different Tyler token key formats
-    tyler_token = (
-        auth_tokens.get(f"TYLER-TOKEN-{jurisdiction.upper()}")
-        or auth_tokens.get(f"tyler_token_{jurisdiction}")
-        or auth_tokens.get(f"tyler-token-{jurisdiction}")
-    )
-
-    return tyler_token
+    return get_jurisdiction_token(request, jurisdiction)
 
 
 def set_access_control_headers(response):

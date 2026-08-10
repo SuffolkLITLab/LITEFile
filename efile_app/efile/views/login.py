@@ -31,11 +31,15 @@ def efile_login(request, jurisdiction):
                 email = login_form.cleaned_data["email"]
                 password = login_form.cleaned_data["password"]
                 try:
-                    user = authenticate(request, username=email, password=password)
+                    user = authenticate(request, username=email, password=password, jurisdiction=jurisdiction)
 
                     if user is not None:  # response.status_code == 200:
+                        auth_tokens = request.session.get("auth_tokens", {})
+                        request.session.flush()
                         login(request, user)
+                        request.session["auth_tokens"] = auth_tokens
                         request.session["user_email"] = user.email
+                        request.session["jurisdiction"] = jurisdiction
                         messages.success(request, "Successfully logged in!")
                         return redirect(f"/jurisdiction/{jurisdiction}/options/")
                     else:

@@ -41,9 +41,19 @@ class AuthAPIViews(APIResponseMixin):
             user = authenticate(request, username=username, password=password, jurisdiction=jurisdiction)
 
             if user is not None:
+                auth_tokens = request.session.get("auth_tokens", {})
+                request.session.flush()
                 login(request, user)
+                request.session["auth_tokens"] = auth_tokens
+                request.session["user_email"] = user.email
+                request.session["jurisdiction"] = jurisdiction
                 return AuthAPIViews.success_response(
-                    {"user_id": user.id, "username": user.username, "email": user.email, "is_authenticated": True},
+                    {
+                        "user_id": user.id,
+                        "username": user.account_email,
+                        "email": user.email,
+                        "is_authenticated": True,
+                    },
                     "Login successful",
                 )
             else:
@@ -132,7 +142,7 @@ class AuthAPIViews(APIResponseMixin):
                     "external_firm_data": external_data,
                     # Local user data (if authenticated)
                     "id": request.user.id if request.user.is_authenticated else None,
-                    "username": request.user.username if request.user.is_authenticated else "guest",
+                    "username": request.user.account_email if request.user.is_authenticated else "guest",
                     "email": request.user.email if request.user.is_authenticated else request.session.get("user_email"),
                     "first_name": self_json["firstName"],
                     "last_name": self_json["lastName"],

@@ -1,3 +1,29 @@
+from django.contrib.auth import logout
+
+from efile.utils.jurisdiction_stuff import get_jurisdiction_from_request
+
+
+class JurisdictionSessionMiddleware:
+    """End an authenticated session before it can cross a jurisdiction boundary."""
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        jurisdiction = get_jurisdiction_from_request(request)
+        user = getattr(request, "user", None)
+        account_jurisdiction = getattr(user, "tyler_jurisdiction", "")
+        if (
+            jurisdiction
+            and getattr(user, "is_authenticated", False)
+            and account_jurisdiction
+            and account_jurisdiction.casefold() != jurisdiction.casefold()
+        ):
+            logout(request)
+
+        return self.get_response(request)
+
+
 class NoCacheHTMLMiddleware:
     """Stop browsers from reusing a stale rendered page without asking the server first.
 

@@ -16,7 +16,7 @@ def efile_register(request, jurisdiction):
     if jurisdiction not in config_loader.get_available_jurisdictions():
         return redirect("efile_choose_jurisdiction")
     if request.method == "POST":
-        form = EFileRegistrationForm(request.POST)
+        form = EFileRegistrationForm(request.POST, jurisdiction=jurisdiction)
         required_fields = [
             "first_name",
             "last_name",
@@ -135,6 +135,6 @@ def efile_register(request, jurisdiction):
             messages.error(request, gettext("Please correct the errors below."))
     else:
         # Always show a blank form on reload
-        form = EFileRegistrationForm()
+        form = EFileRegistrationForm(jurisdiction=jurisdiction)
     config = config_loader.load_jurisdiction_config(jurisdiction)
     return render(request, "efile/register.html", {"form": form, "config": config})
