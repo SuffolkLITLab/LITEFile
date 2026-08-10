@@ -218,6 +218,169 @@
     margin-bottom: 1rem;
 }
 
+.payment-choice-field {
+    border: 0;
+    margin: 0;
+    padding: 0;
+}
+
+.payment-choice-field>legend,
+.fee-summary h2 {
+    color: #263c58;
+    float: none;
+    font-size: 1.05rem;
+    font-weight: 750;
+    margin-bottom: 0.8rem;
+    width: auto;
+}
+
+.fee-summary {
+    background: #eef5ff;
+    border: 1px solid #cbdcf1;
+    border-radius: 12px;
+    margin-top: 1.25rem;
+    padding: 1.1rem;
+}
+
+.fee-summary ul {
+    margin: 0.75rem 0 0;
+}
+
+.review-workflow-card {
+    max-width: 980px;
+}
+
+.review-summary-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.review-summary-card {
+    border: 1px solid #dce3ec;
+    border-radius: 12px;
+    padding: 1.1rem;
+}
+
+.review-summary-card--wide {
+    grid-column: 1 / -1;
+}
+
+.review-summary-card>header {
+    align-items: center;
+    border-bottom: 1px solid #e5e9ef;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.9rem;
+    padding-bottom: 0.7rem;
+}
+
+.review-summary-card h2 {
+    color: #263c58;
+    font-size: 1.05rem;
+    margin: 0;
+}
+
+.review-summary-card header a {
+    color: #2c5aa0;
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.review-summary-card dl {
+    margin: 0;
+}
+
+.review-summary-card dl>div {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: minmax(110px, 0.8fr) 1.5fr;
+    padding: 0.35rem 0;
+}
+
+.review-summary-card dt {
+    color: #68768a;
+    font-size: 0.85rem;
+}
+
+.review-summary-card dd {
+    color: #213957;
+    font-weight: 650;
+    margin: 0;
+    text-align: right;
+}
+
+.review-document-list article {
+    align-items: center;
+    display: flex;
+    gap: 0.8rem;
+    padding: 0.65rem 0;
+}
+
+.review-document-list article+article {
+    border-top: 1px solid #e7ebf0;
+}
+
+.review-document-list i {
+    color: #b23b3b;
+    font-size: 1.3rem;
+}
+
+.review-document-list strong,
+.review-document-list small,
+.review-party strong,
+.review-party small {
+    display: block;
+}
+
+.review-document-list small,
+.review-party small {
+    color: #6d798d;
+}
+
+.review-person-name {
+    color: #213957;
+    font-weight: 700;
+    margin-bottom: 0.35rem;
+}
+
+.review-summary-card address {
+    color: #526176;
+    line-height: 1.55;
+}
+
+.review-party {
+    padding: 0.45rem 0;
+}
+
+.review-party+.review-party {
+    border-top: 1px solid #e7ebf0;
+}
+
+.review-attestation {
+    background: #fffaf0;
+    border: 1px solid #ead8ad;
+    border-radius: 10px;
+    margin-top: 1.5rem;
+    padding: 1rem;
+}
+
+.review-attestation label {
+    align-items: flex-start;
+    display: flex;
+    gap: 0.75rem;
+}
+
+@media (max-width: 700px) {
+    .review-summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .review-summary-card--wide {
+        grid-column: auto;
+    }
+}
+
 /* Payment methods styles moved from review.html */
 .payment-methods-list {
     border: 1px solid #e0e0e0;

@@ -10,10 +10,10 @@ from .views.choose_jurisdiction import choose_jurisdiction
 from .views.confirmation import filing_confirmation
 from .views.document_checklist import document_checklist
 from .views.draft_views import create_draft_view, get_current_draft_view
-from .views.expert_form import efile_expert_form
 from .views.extraction_review import extraction_review
 from .views.filing_path import filing_path
 from .views.filing_statuses import filing_statuses
+from .views.legacy_workflow import legacy_workflow_redirect
 from .views.login import efile_login, efile_logout, efile_password_reset
 from .views.options import efile_options
 from .views.organize_documents import organize_documents
@@ -33,9 +33,7 @@ from .views.session_api import (
     save_upload_first_data,
 )
 from .views.submission import submit_final_filing
-from .views.upload import efile_upload
 from .views.upload_documents import upload_documents
-from .views.upload_first import efile_upload_first
 from .views.your_information import your_information
 
 
@@ -70,9 +68,24 @@ urlpatterns = [
     path("jurisdiction/<jurisdiction>/case-questions/", case_questions, name="case_questions"),
     path("jurisdiction/<jurisdiction>/drafts/", create_draft_view, name="create_draft"),
     path("jurisdiction/<jurisdiction>/filing_statuses/", filing_statuses, name="filing_statuses"),
-    path("jurisdiction/<jurisdiction>/expert_form/", efile_expert_form, name="expert_form"),
-    path("jurisdiction/<jurisdiction>/upload_first/", efile_upload_first, name="upload_first"),
-    path("jurisdiction/<jurisdiction>/upload/", efile_upload, name="upload"),
+    path(
+        "jurisdiction/<jurisdiction>/expert_form/",
+        legacy_workflow_redirect,
+        {"destination": "expert_form"},
+        name="expert_form",
+    ),
+    path(
+        "jurisdiction/<jurisdiction>/upload_first/",
+        legacy_workflow_redirect,
+        {"destination": "upload_first"},
+        name="upload_first",
+    ),
+    path(
+        "jurisdiction/<jurisdiction>/upload/",
+        legacy_workflow_redirect,
+        {"destination": "upload"},
+        name="upload",
+    ),
     path("jurisdiction/<jurisdiction>/payment/", efile_payment, name="payment"),
     path("jurisdiction/<jurisdiction>/review/", case_review, name="case_review"),
     path("jurisdiction/<jurisdiction>/filing-confirmation/", filing_confirmation, name="filing_confirmation"),

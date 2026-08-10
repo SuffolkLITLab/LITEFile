@@ -54,7 +54,7 @@ class FilingDraft(models.Model):
         choices=get_workflow_step_choices(),
         default=WorkflowStepKey.OPTIONS,
     )
-    workflow_version = models.PositiveSmallIntegerField(default=1)
+    workflow_version = models.PositiveSmallIntegerField(default=2)
 
     existing_case = models.CharField(
         max_length=20,

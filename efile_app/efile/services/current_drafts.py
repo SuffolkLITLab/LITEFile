@@ -83,7 +83,7 @@ def create_current_draft(
     jurisdiction: str,
     *,
     current_step: WorkflowStepKey | str = WorkflowStepKey.OPTIONS,
-    workflow_version: int = 1,
+    workflow_version: int = 2,
 ) -> FilingDraft:
     draft = create_draft(
         user=_authenticated_user(request),
@@ -109,7 +109,7 @@ def ensure_current_draft(
             request,
             jurisdiction,
             current_step=current_step or WorkflowStepKey.OPTIONS,
-            workflow_version=workflow_version or 1,
+            workflow_version=workflow_version or 2,
         )
     if current_step is not None:
         set_current_step(draft, current_step)

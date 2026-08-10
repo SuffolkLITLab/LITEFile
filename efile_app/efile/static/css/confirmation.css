@@ -5,6 +5,80 @@
     text-align: center;
 }
 
+.confirmation-workflow-card {
+    text-align: center;
+}
+
+.confirmation-workflow-card .workflow-lede {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.confirmation-reference {
+    background: #eef5ff;
+    border: 1px solid #cbdcf1;
+    border-radius: 12px;
+    margin: 0 auto 1.25rem;
+    padding: 1rem;
+}
+
+.confirmation-reference span,
+.confirmation-reference strong {
+    display: block;
+}
+
+.confirmation-reference span {
+    color: #68768a;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.confirmation-reference strong {
+    color: #173e73;
+    font-size: 1.35rem;
+    margin-top: 0.25rem;
+}
+
+.confirmation-summary {
+    border: 1px solid #dce3ec;
+    border-radius: 12px;
+    margin: 0;
+    text-align: left;
+}
+
+.confirmation-summary>div {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+}
+
+.confirmation-summary>div+div {
+    border-top: 1px solid #e5e9ef;
+}
+
+.confirmation-summary dt {
+    color: #68768a;
+}
+
+.confirmation-summary dd {
+    color: #213957;
+    font-weight: 700;
+    margin: 0;
+}
+
+.confirmation-next {
+    text-align: left;
+}
+
+.confirmation-actions {
+    display: flex;
+    gap: 0.8rem;
+    justify-content: center;
+    margin-top: 1.5rem;
+}
+
 .success-icon {
     color: var(--success);
     font-size: 4rem;

@@ -1,125 +1,50 @@
-import logging
-
-from django.conf import settings
 from django.contrib import messages
 from django.shortcuts import redirect, render
 
 from efile.api.suffolk_api_views import get_tyler_token
+from efile.models import FilingDocument, FilingParty
 from efile.services.current_drafts import ensure_current_draft
-from efile.services.drafts import draft_snapshot
+from efile.services.drafts import draft_snapshot, read_case_data, read_upload_data
+from efile.services.people import get_case_questions
 
-from ..utils.case_data_utils import get_case_classification, get_case_data, get_name_sought_info, get_petitioner_info
 from ..workflow import WorkflowStepKey, get_workflow_context
-
-logger = logging.getLogger(__name__)
 
 
 def case_review(request, jurisdiction):
-    """Review view for case details before final submission."""
-    if not request.user.is_authenticated:
+    """Render a single read-only summary from the durable draft before submit."""
+    if not request.user.is_authenticated or not get_tyler_token(request, jurisdiction):
         return redirect("efile_login", jurisdiction=jurisdiction)
 
-    if not get_tyler_token(request, jurisdiction):
-        return redirect("efile_login", jurisdiction=jurisdiction)
+    draft = ensure_current_draft(
+        request,
+        jurisdiction,
+        current_step=WorkflowStepKey.REVIEW,
+        workflow_version=2,
+    )
+    if not draft.selected_payment_account_id:
+        messages.error(request, "Choose a payment method before reviewing your filing.")
+        return redirect("payment", jurisdiction=jurisdiction)
 
-    # Get case data from session
-    case_data = get_case_data(request, jurisdiction)
-    logger.debug("Review view case_data %s", case_data)
-
-    # Add user email from session if available and not already in case_data
-    user_email = request.session.get("user_email")
-    if user_email and not case_data.get("email"):
-        case_data["email"] = user_email
-
-    # If no case data exists, redirect back to expert form
-    if not case_data:
-        messages.error(request, "Please complete the case details first.")
-        return redirect("expert_form", jurisdiction=jurisdiction)
-
-    filing_draft = ensure_current_draft(request, jurisdiction, current_step=WorkflowStepKey.REVIEW)
-
-    # Get organized case information
-    petitioner_info = get_petitioner_info(request, jurisdiction)
-    name_sought_info = get_name_sought_info(request, jurisdiction)
-    case_classification = get_case_classification(request, jurisdiction)
-
-    # Use friendly names if available, otherwise fallback to raw values
-    friendly_case_type = case_data.get("case_type_name", case_classification["case_type"])
-    friendly_filing_type = case_data.get("filing_type_name", case_classification["filing_type"])
-    friendly_court = case_data.get("court_name", case_classification["court"])
-    friendly_case_category = case_data.get("case_category_name", case_classification.get("case_category", ""))
-    friendly_document_type = case_data.get("document_type_name", case_classification.get("document_type", ""))
-
-    # Organize data for review
-    review_sections = {
-        "case_classification": {
-            "title": "Case Classification",
-            "items": [
-                {"label": "County/Court", "value": friendly_court, "raw": case_classification["court"]},
-                {
-                    "label": "Case Category",
-                    "value": friendly_case_category,
-                    "raw": case_classification.get("case_category", ""),
-                },
-                {"label": "Case Type", "value": friendly_case_type, "raw": case_classification["case_type"]},
-                {"label": "Filing Type", "value": friendly_filing_type, "raw": case_classification["filing_type"]},
-                {
-                    "label": "Document Type",
-                    "value": friendly_document_type,
-                    "raw": case_classification.get("document_type", ""),
-                },
-            ],
-        },
-        "petitioner_info": {
-            "title": "Petitioner Information",
-            "items": [
-                {"label": "First Name", "value": petitioner_info.get("first_name", "")},
-                {"label": "Last Name", "value": petitioner_info.get("last_name", "")},
-                {"label": "Address", "value": petitioner_info.get("address", "")},
-                {"label": "City", "value": petitioner_info.get("city", "")},
-                {"label": "State", "value": petitioner_info.get("state", "")},
-                {"label": "Zip Code", "value": petitioner_info.get("zip_code", "")},
-                {"label": "Phone", "value": petitioner_info.get("phone", "")},
-                {"label": "Email", "value": petitioner_info.get("email", "")},
-            ],
-        },
-    }
-
-    # Add name sought info if it's a name change case
-    if "name change" in friendly_case_type.lower():
-        review_sections["name_sought"] = {
-            "title": "Name Change Details",
-            "items": [
-                {"label": "First Name", "value": name_sought_info.get("first_name", "")},
-                {"label": "Last Name", "value": name_sought_info.get("last_name", "")},
-                {"label": "Reason for Change", "value": case_data.get("reason_for_name_change", "")},
-            ],
+    question_labels = {question["name"]: question["label"] for question in get_case_questions(draft)}
+    question_answers = [
+        {
+            "label": question_labels.get(key, key.replace("_", " ").title()),
+            "value": "Yes" if value is True else "No" if value is False else value,
         }
-
-    # Add optional services if any
-    optional_services = case_data.get("optional_services", [])
-    if optional_services:
-        review_sections["optional_services"] = {
-            "title": "Optional Services",
-            "items": [{"label": "Selected Services", "value": ", ".join(optional_services)}],
-        }
-
-    new_toga_url = f"{settings.EFSP_URL}/jurisdictions/{jurisdiction}/payments/new-toga-account"
-
+        for key, value in (draft.supplemental_fields or {}).items()
+        if not key.startswith("_") and value not in (None, "")
+    ]
+    parties = FilingParty.objects.filter(draft=draft)
     context = {
         "is_logged_in": True,
-        "new_toga_url": new_toga_url,
-        "case_data": case_data,
-        "filing_draft": draft_snapshot(filing_draft),
-        "review_sections": review_sections,
-        "friendly_names": {
-            "case_type": friendly_case_type,
-            "filing_type": friendly_filing_type,
-            "court": friendly_court,
-            "case_category": friendly_case_category,
-            "document_type": friendly_document_type,
-        },
+        "case_data": read_case_data(draft),
+        "upload_data": read_upload_data(draft),
+        "filing_draft": draft_snapshot(draft),
+        "draft": draft,
+        "filer": parties.filter(role="filer").first(),
+        "parties": parties.exclude(role="filer").order_by("sort_order", "created_at"),
+        "documents": FilingDocument.objects.filter(draft=draft).order_by("role", "sort_order", "created_at"),
+        "question_answers": question_answers,
     }
-    context.update(get_workflow_context(WorkflowStepKey.REVIEW, jurisdiction, filing_draft))
-
+    context.update(get_workflow_context(WorkflowStepKey.REVIEW, jurisdiction, draft))
     return render(request, "efile/review.html", context)

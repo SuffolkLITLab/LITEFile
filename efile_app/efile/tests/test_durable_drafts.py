@@ -343,11 +343,11 @@ def test_options_page_points_resume_to_draft_workflow_step(client, django_user_m
     response = client.get(reverse("efile_options", kwargs={"jurisdiction": "illinois"}))
 
     assert response.status_code == 200
-    assert reverse("upload", kwargs={"jurisdiction": "illinois"}).encode() in response.content
+    assert reverse("organize_documents", kwargs={"jurisdiction": "illinois"}).encode() in response.content
 
 
 @pytest.mark.django_db
-def test_documents_page_returns_to_lead_upload_when_lead_is_missing(client, django_user_model):
+def test_legacy_documents_url_redirects_into_reorganized_document_flow(client, django_user_model):
     user = django_user_model.objects.create_user(username="missing-lead-user", tyler_jurisdiction="illinois")
     draft = FilingDraft.objects.create(user=user, jurisdiction="illinois")
     write_case_data(draft, {"court": "cook:cd", "case_type": "Name Change"})
@@ -360,7 +360,7 @@ def test_documents_page_returns_to_lead_upload_when_lead_is_missing(client, djan
     response = client.get(reverse("upload", kwargs={"jurisdiction": "illinois"}))
 
     assert response.status_code == 302
-    assert response.url == reverse("upload_first", kwargs={"jurisdiction": "illinois"})
+    assert response.url == reverse("organize_documents", kwargs={"jurisdiction": "illinois"})
 
 
 @pytest.mark.django_db

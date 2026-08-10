@@ -90,6 +90,8 @@ def submit_final_filing(request):
 
     if response.status_code < 400 and payload.get("success") is True:
         draft.mark_submitted(payload.get("api_response") or {})
+        request.session["last_submitted_filing_draft_id"] = draft.pk
+        request.session.modified = True
         clear_current_draft(request)
     elif _failed_before_external_call(payload) or _confirmed_api_rejection(payload):
         # Nothing was filed (rejected before the call, or the API refused it),

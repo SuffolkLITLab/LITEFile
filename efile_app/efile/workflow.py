@@ -5,9 +5,8 @@ party details may repeat, and case questions only appear when configured. Keep
 those decisions here so templates and JavaScript do not each invent their own
 redirect rules.
 
-``LEGACY_WORKFLOW`` remains temporarily available while the reorganized screens
-land in stacked changes. A draft on a legacy step continues through the old flow;
-as soon as it enters a reorganized step it uses ``FILING_WORKFLOW``.
+Legacy step strings remain recognizable so saved bookmarks can be mapped into
+the reorganized flow, but there is now one canonical workflow for every draft.
 """
 
 from dataclasses import dataclass
@@ -95,8 +94,8 @@ class WorkflowStepKey(StrEnum):
     REVIEW = "review"
     CONFIRMATION = "confirmation"
 
-    # Removed after all screens have migrated. Keeping these values temporarily
-    # lets saved drafts and each independently reviewable stacked PR keep working.
+    # Compatibility aliases for pre-migration drafts and URLs. They are not
+    # exposed as model choices or active workflow steps.
     UPLOAD_FIRST = "upload_first"
     CASE_INFORMATION = "case_information"
     DOCUMENTS = "documents"
@@ -153,22 +152,12 @@ FILING_WORKFLOW: tuple[WorkflowStep, ...] = (
     WorkflowStep(WorkflowStepKey.CONFIRMATION, "Confirmation", "filing_confirmation", WorkflowStage.REVIEW),
 )
 
-LEGACY_WORKFLOW: tuple[WorkflowStep, ...] = (
-    WorkflowStep(WorkflowStepKey.OPTIONS, "Options", "efile_options", WorkflowStage.FILING),
-    WorkflowStep(WorkflowStepKey.UPLOAD_FIRST, "Upload lead document", "upload_first", WorkflowStage.UPLOAD),
-    WorkflowStep(WorkflowStepKey.CASE_INFORMATION, "Case information", "expert_form", WorkflowStage.CONFIRM_CASE),
-    WorkflowStep(WorkflowStepKey.DOCUMENTS, "Documents", "upload", WorkflowStage.ORGANIZE_DOCUMENTS),
-    WorkflowStep(WorkflowStepKey.PAYMENT, "Fees", "payment", WorkflowStage.FEES),
-    WorkflowStep(WorkflowStepKey.REVIEW, "Review", "case_review", WorkflowStage.REVIEW),
-    WorkflowStep(WorkflowStepKey.CONFIRMATION, "Confirmation", "filing_confirmation", WorkflowStage.REVIEW),
-)
+_STEPS_BY_KEY = {step.key: step for step in FILING_WORKFLOW}
 
-_STEPS_BY_KEY = {step.key: step for step in (*FILING_WORKFLOW, *LEGACY_WORKFLOW)}
-_LEGACY_KEYS = {step.key for step in LEGACY_WORKFLOW} - {
-    WorkflowStepKey.OPTIONS,
-    WorkflowStepKey.PAYMENT,
-    WorkflowStepKey.REVIEW,
-    WorkflowStepKey.CONFIRMATION,
+LEGACY_STEP_TARGETS = {
+    WorkflowStepKey.UPLOAD_FIRST: WorkflowStepKey.UPLOAD_DOCUMENTS,
+    WorkflowStepKey.CASE_INFORMATION: WorkflowStepKey.EXTRACTION_REVIEW,
+    WorkflowStepKey.DOCUMENTS: WorkflowStepKey.ORGANIZE_DOCUMENTS,
 }
 
 
@@ -179,7 +168,7 @@ def get_workflow_steps() -> tuple[WorkflowStep, ...]:
 
 
 def get_workflow_step_choices() -> tuple[tuple[str, str], ...]:
-    """Return choices for target and temporarily supported legacy draft steps."""
+    """Return choices for the canonical reorganized workflow."""
 
     return tuple((step.key.value, step.label) for step in _STEPS_BY_KEY.values())
 
@@ -202,13 +191,30 @@ def _has_incomplete_parties(draft: Any | None) -> bool:
     if parties is None:
         return bool(_draft_value(draft, "has_incomplete_parties", False))
     if hasattr(parties, "filter"):
-        incomplete = Q(organization_name="") & (Q(first_name="") | Q(last_name=""))
+        incomplete = (
+            Q(party_type="")
+            | (Q(organization_name="") & (Q(first_name="") | Q(last_name="")))
+            | Q(address_line_1="")
+            | Q(city="")
+            | Q(state="")
+            | Q(zip_code="")
+        )
         return parties.filter(incomplete).exists()
     try:
         party_list = list(parties.all())
     except (AttributeError, TypeError):
         party_list = list(parties)
-    return any(not (party.organization_name or (party.first_name and party.last_name)) for party in party_list)
+    return any(
+        not (
+            party.party_type
+            and (party.organization_name or (party.first_name and party.last_name))
+            and party.address_line_1
+            and party.city
+            and party.state
+            and party.zip_code
+        )
+        for party in party_list
+    )
 
 
 def _has_case_questions(draft: Any | None) -> bool:
@@ -220,35 +226,12 @@ def _has_case_questions(draft: Any | None) -> bool:
     return bool((_draft_value(draft, "supplemental_fields", {}) or {}).get("_case_questions_required"))
 
 
-def _uses_legacy_workflow(current_step: WorkflowStepKey | str | None, draft: Any | None) -> bool:
-    raw_step = current_step or _draft_value(draft, "current_step")
-    try:
-        key = WorkflowStepKey(raw_step)
-    except (TypeError, ValueError):
-        return False
-    if key in _LEGACY_KEYS:
-        return True
-    if draft is None and key in {
-        WorkflowStepKey.OPTIONS,
-        WorkflowStepKey.PAYMENT,
-        WorkflowStepKey.REVIEW,
-        WorkflowStepKey.CONFIRMATION,
-    }:
-        return True
-    if draft is not None:
-        return int(_draft_value(draft, "workflow_version", 1)) < 2
-    return False
-
-
 def get_visible_workflow(
     draft: Any | None = None,
     *,
     current_step: WorkflowStepKey | str | None = None,
 ) -> tuple[WorkflowStep, ...]:
     """Resolve the screens visible for this draft's branch."""
-
-    if _uses_legacy_workflow(current_step, draft):
-        return LEGACY_WORKFLOW
 
     existing_case = normalize_existing_case(_draft_value(draft, "existing_case"))
     current_key = None
@@ -320,9 +303,10 @@ def get_resume_step_url(current_step: WorkflowStepKey | str | None, jurisdiction
     try:
         step_key = WorkflowStepKey(current_step)
     except ValueError:
-        step_key = WorkflowStepKey.UPLOAD_FIRST
+        step_key = WorkflowStepKey.FILING_PATH
     if step_key == WorkflowStepKey.OPTIONS:
-        step_key = WorkflowStepKey.UPLOAD_FIRST
+        step_key = WorkflowStepKey.FILING_PATH
+    step_key = LEGACY_STEP_TARGETS.get(step_key, step_key)
     return get_step_url(step_key, jurisdiction)
 
 

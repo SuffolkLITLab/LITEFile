@@ -5,7 +5,6 @@ from django.urls import reverse
 
 from efile.workflow import (
     FILING_WORKFLOW,
-    LEGACY_WORKFLOW,
     ExistingCase,
     WorkflowStepKey,
     get_next_step,
@@ -58,25 +57,12 @@ def test_target_workflow_declares_every_reorganized_screen():
     ]
 
 
-def test_legacy_drafts_keep_the_current_linear_route_during_migration():
-    legacy_draft = draft(current_step=WorkflowStepKey.DOCUMENTS, workflow_version=1)
+def test_every_draft_uses_the_canonical_workflow_after_migration():
+    pre_migration_version = draft(current_step=WorkflowStepKey.PAYMENT, workflow_version=1)
 
-    assert get_visible_workflow(legacy_draft) == LEGACY_WORKFLOW
-    assert get_previous_step(WorkflowStepKey.PAYMENT, legacy_draft).key == WorkflowStepKey.DOCUMENTS
-    assert get_next_step(WorkflowStepKey.PAYMENT, legacy_draft).key == WorkflowStepKey.REVIEW
-
-
-@pytest.mark.parametrize(
-    "shared_step",
-    [
-        WorkflowStepKey.OPTIONS,
-        WorkflowStepKey.PAYMENT,
-        WorkflowStepKey.REVIEW,
-        WorkflowStepKey.CONFIRMATION,
-    ],
-)
-def test_shared_steps_without_draft_context_default_to_legacy(shared_step):
-    assert get_visible_workflow(current_step=shared_step) == LEGACY_WORKFLOW
+    assert get_visible_workflow(pre_migration_version) != ()
+    assert get_previous_step(WorkflowStepKey.PAYMENT, pre_migration_version).key == WorkflowStepKey.PARTIES
+    assert get_next_step(WorkflowStepKey.PAYMENT, pre_migration_version).key == WorkflowStepKey.REVIEW
 
 
 @pytest.mark.parametrize(
@@ -121,8 +107,26 @@ def test_unsure_case_stays_on_extraction_review():
 
 
 def test_party_details_only_appear_for_incomplete_parties():
-    incomplete = SimpleNamespace(first_name="Ada", last_name="", organization_name="")
-    complete = SimpleNamespace(first_name="Ada", last_name="Lovelace", organization_name="")
+    incomplete = SimpleNamespace(
+        party_type="PLA",
+        first_name="Ada",
+        last_name="",
+        organization_name="",
+        address_line_1="1 Main St",
+        city="Chicago",
+        state="IL",
+        zip_code="60601",
+    )
+    complete = SimpleNamespace(
+        party_type="PLA",
+        first_name="Ada",
+        last_name="Lovelace",
+        organization_name="",
+        address_line_1="1 Main St",
+        city="Chicago",
+        state="IL",
+        zip_code="60601",
+    )
 
     assert WorkflowStepKey.PARTY_DETAILS in keys(get_visible_workflow(draft(parties=[incomplete])))
     assert WorkflowStepKey.PARTY_DETAILS not in keys(get_visible_workflow(draft(parties=[complete])))
@@ -143,18 +147,18 @@ def test_get_step_url_reverses_an_available_route():
     assert get_step_url(WorkflowStepKey.PAYMENT, "illinois") == expected_url
 
 
-def test_resume_preserves_legacy_draft_routes():
-    expected_url = reverse("upload", kwargs={"jurisdiction": "illinois"})
+def test_resume_maps_legacy_document_step_into_reorganized_flow():
+    expected_url = reverse("organize_documents", kwargs={"jurisdiction": "illinois"})
     assert get_resume_step_url(WorkflowStepKey.DOCUMENTS, "illinois") == expected_url
 
 
-def test_resume_skips_options_for_pre_migration_drafts():
-    expected_url = reverse("upload_first", kwargs={"jurisdiction": "illinois"})
+def test_resume_skips_options_for_saved_drafts():
+    expected_url = reverse("filing_path", kwargs={"jurisdiction": "illinois"})
     assert get_resume_step_url(WorkflowStepKey.OPTIONS, "illinois") == expected_url
 
 
 def test_resume_falls_back_for_an_unrecognised_step():
-    expected_url = reverse("upload_first", kwargs={"jurisdiction": "illinois"})
+    expected_url = reverse("filing_path", kwargs={"jurisdiction": "illinois"})
     assert get_resume_step_url("a_step_that_was_removed", "illinois") == expected_url
 
 
@@ -163,19 +167,21 @@ def test_resume_returns_none_without_a_draft():
 
 
 def test_workflow_context_uses_draft_branch_and_includes_stage_progress():
-    legacy_draft = draft(current_step=WorkflowStepKey.PAYMENT, workflow_version=1)
-    context = get_workflow_context(WorkflowStepKey.PAYMENT, "illinois", legacy_draft)
+    current_draft = draft(current_step=WorkflowStepKey.PAYMENT)
+    context = get_workflow_context(WorkflowStepKey.PAYMENT, "illinois", current_draft)
 
     assert context["workflow_current_step"].key == WorkflowStepKey.PAYMENT
-    assert context["workflow_previous_step"].key == WorkflowStepKey.DOCUMENTS
+    assert context["workflow_previous_step"].key == WorkflowStepKey.PARTIES
     assert context["workflow_next_step"].key == WorkflowStepKey.REVIEW
-    assert context["workflow_previous_url"] == reverse("upload", kwargs={"jurisdiction": "illinois"})
+    assert context["workflow_previous_url"] == reverse("parties", kwargs={"jurisdiction": "illinois"})
     assert context["workflow_next_url"] == reverse("case_review", kwargs={"jurisdiction": "illinois"})
     assert [stage.value for stage in context["workflow_stages"]] == [
         "filing",
         "upload",
         "confirm_case",
+        "check_documents",
         "organize_documents",
+        "people",
         "fees",
         "review",
     ]

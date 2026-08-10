@@ -1,81 +1,67 @@
+{% extends "efile/workflow_base.html" %}
 {% load static %}
 {% load i18n %}
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Review Case Details</title>
-        <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
-              rel="stylesheet" />
-        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-              rel="stylesheet" />
-        <link rel="stylesheet" href="{% static 'css/common.css' %}" />
-        <link rel="stylesheet" href="{% static 'css/review.css' %}" />
-    </head>
-    <body>
-        {% csrf_token %}
-        {% include "efile/components/profile_header.html" %}
-        <div class="container">
-            <div class="review-container">
-                <h1 class="mb-4">{% translate "Payment information" %}</h1>
-                <p class="text-muted mb-4">{% translate "Choose how you want to pay the filing fees to the court." %}</p>
-                <div class="review-section">
-                    <h2 class="mb-4">{% translate "Choose your payment method" %}</h2>
-                    <!-- Inline fields: show text by default, input hidden until Edit clicked -->
-                    <!-- Payment Methods -->
-                    <div class="review-section">
-                        <h3>{% translate "Existing" %}</h3>
-                        <div id="paymentMethodsContainer">
-                            <!-- Payment methods will be loaded here -->
-                        </div>
-                    </div>
-                    <!-- Payment Information (will be loaded via API call) -->
-                    <div class="review-section" id="paymentSection" hidden="true">
-                        <h3>{% translate "Filing fees" %}</h3>
-                        <div class="payment-info" id="paymentInfo">
-                            <!-- Payment details will be loaded here -->
-                        </div>
-                    </div>
-                    <!-- Error/Success Messages -->
-                    <div id="errorMessage" class="error-message">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        <span id="errorText"></span>
-                    </div>
-                    <div id="successMessage" class="success-message">
-                        <i class="fas fa-check-circle me-2"></i>
-                        <span id="successText"></span>
-                    </div>
-                    <!-- Loading Spinner -->
-                    <div id="loadingSpinner" class="loading-spinner">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                        <p class="mt-2">{% translate "Calculating cost of filing..." %}</p>
-                    </div>
-                    <!-- Action Buttons -->
-                    <div class="action-buttons">
-                        <button type="button" class="btn-back" onclick="goBack()">{% translate "Back" %}</button>
-                        <button type="button"
-                                class="btn-continue"
-                                id="submitButton"
-                                onclick="toReview()"
-                                disabled>{% translate "Review your submission" %}</button>
+{% block title %}
+    {% translate "Payment information" %}
+{% endblock title %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/review.css' %}" />
+{% endblock extra_css %}
+{% block workflow_content %}
+    <section class="workflow-card workflow-card--narrow">
+        <div class="workflow-eyebrow">{% translate "Fees" %}</div>
+        <h1>{% translate "Choose how to pay court fees" %}</h1>
+        <p class="workflow-lede">
+            {% translate "Select a saved payment method. We will calculate the court's fees before you continue." %}
+        </p>
+        <form method="post" id="payment-form">
+            {% csrf_token %}
+            <input type="hidden"
+                   name="selected_payment_account"
+                   id="selected-payment-account" />
+            <input type="hidden"
+                   name="selected_payment_account_name"
+                   id="selected-payment-account-name" />
+            <fieldset class="payment-choice-field">
+                <legend>{% translate "Payment method" %}</legend>
+                <div id="paymentMethodsContainer" aria-live="polite">
+                    <div class="lookup-state">
+                        <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                        <span>{% translate "Loading payment methods…" %}</span>
                     </div>
                 </div>
+            </fieldset>
+            <section class="fee-summary" id="paymentSection" hidden>
+                <h2>{% translate "Estimated court fees" %}</h2>
+                <div id="paymentInfo"></div>
+            </section>
+            <div class="alert alert-danger" id="errorMessage" hidden>
+                <i class="fas fa-exclamation-triangle me-2"></i><span id="errorText"></span>
             </div>
-        </div>
-        {% include "efile/components/footer.html" %}
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-        <script src="{% url 'javascript-catalog' %}"></script>
-        <!-- Django template data for JavaScript -->
-        {{ case_data|json_script:"case-data" }}
-        {{ new_toga_url|json_script:"new-toga-url" }}
-        <!-- Review page JavaScript -->
-        <script src="{% static 'js/api-utils.js' %}"></script>
-        <!-- Must load before payment.js, which mixes FilingPayload into FilingHandler. -->
-        <script src="{% static 'js/filing-payload.js' %}"></script>
-        <script src="{% static 'js/payment.js' %}"></script>
-        <script src="{% url 'javascript-catalog' %}"></script>
-    </body>
-</html>
+            <div class="alert alert-success" id="successMessage" hidden>
+                <i class="fas fa-check-circle me-2"></i><span id="successText"></span>
+            </div>
+            <div id="loadingSpinner" class="loading-spinner" aria-live="polite">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">{% translate "Loading" %}</span>
+                </div>
+                <p class="mt-2">{% translate "Calculating court fees…" %}</p>
+            </div>
+            <div class="workflow-actions">
+                <a class="btn btn-outline-secondary" href="{{ workflow_previous_url }}">
+                    <i class="fa-solid fa-arrow-left"></i> {% translate "Back" %}
+                </a>
+                <button class="btn btn-primary" id="submitButton" type="submit" disabled>
+                    {% translate "Review your filing" %} <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </form>
+    </section>
+    {{ case_data|json_script:"case-data" }}
+    {{ new_toga_url|json_script:"new-toga-url" }}
+    {{ selected_payment_account_id|json_script:"selected-payment-account-id" }}
+{% endblock workflow_content %}
+{% block extra_js %}
+    <script src="{% static 'js/filing-payload.js' %}"></script>
+    <script src="{% static 'js/payment.js' %}"></script>
+{% endblock extra_js %}
