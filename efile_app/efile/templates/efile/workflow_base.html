@@ -1,0 +1,43 @@
+{% load static %}
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>
+            {% block title %}
+                {% translate "Make a court filing" %}
+            {% endblock title %}
+        </title>
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
+              rel="stylesheet" />
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+              rel="stylesheet" />
+        <link rel="stylesheet" href="{% static 'css/common.css' %}" />
+        <link rel="stylesheet" href="{% static 'css/reorganized-flow.css' %}" />
+        {% block extra_css %}
+        {% endblock extra_css %}
+    </head>
+    <body>
+        {% include "efile/components/profile_header.html" %}
+        <main class="workflow-shell">
+            {% include "efile/components/workflow_progress.html" %}
+            {% if messages %}
+                <div class="workflow-messages" aria-live="polite">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags|default:'info' }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            {% block workflow_content %}
+            {% endblock workflow_content %}
+        </main>
+        {% include "efile/components/footer.html" %}
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+        <script src="{% url 'javascript-catalog' %}"></script>
+        <script src="{% static 'js/api-utils.js' %}"></script>
+        {% block extra_js %}
+        {% endblock extra_js %}
+    </body>
+</html>

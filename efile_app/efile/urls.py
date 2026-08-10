@@ -7,7 +7,10 @@ from .views.choose_jurisdiction import choose_jurisdiction
 from .views.confirmation import filing_confirmation
 from .views.draft_views import create_draft_view, get_current_draft_view
 from .views.expert_form import efile_expert_form
+from .views.extraction_review import extraction_review
+from .views.filing_path import filing_path
 from .views.filing_statuses import filing_statuses
+from .views.legacy_workflow import legacy_workflow_redirect
 from .views.login import efile_login, efile_logout, efile_password_reset
 from .views.options import efile_options
 from .views.payment import efile_payment
@@ -25,6 +28,7 @@ from .views.session_api import (
 )
 from .views.submission import submit_final_filing
 from .views.upload import efile_upload
+from .views.upload_documents import upload_documents
 from .views.upload_first import efile_upload_first
 
 
@@ -46,6 +50,57 @@ urlpatterns = [
     path("jurisdiction/<jurisdiction>/register/", efile_register, name="efile_register"),
     path("jurisdiction/<jurisdiction>/password_reset/", efile_password_reset, name="efile_password_reset"),
     path("jurisdiction/<jurisdiction>/options/", efile_options, name="efile_options"),
+    path("jurisdiction/<jurisdiction>/filing-path/", filing_path, name="filing_path"),
+    path("jurisdiction/<jurisdiction>/upload-documents/", upload_documents, name="upload_documents"),
+    path("jurisdiction/<jurisdiction>/extraction-review/", extraction_review, name="extraction_review"),
+    path(
+        "jurisdiction/<jurisdiction>/case-lookup/",
+        legacy_workflow_redirect,
+        {"destination": "case_lookup"},
+        name="case_lookup",
+    ),
+    path(
+        "jurisdiction/<jurisdiction>/case-confirmation/",
+        legacy_workflow_redirect,
+        {"destination": "case_confirmation"},
+        name="case_confirmation",
+    ),
+    path(
+        "jurisdiction/<jurisdiction>/document-checklist/",
+        legacy_workflow_redirect,
+        {"destination": "document_checklist"},
+        name="document_checklist",
+    ),
+    path(
+        "jurisdiction/<jurisdiction>/organize-documents/",
+        legacy_workflow_redirect,
+        {"destination": "organize_documents"},
+        name="organize_documents",
+    ),
+    path(
+        "jurisdiction/<jurisdiction>/your-information/",
+        legacy_workflow_redirect,
+        {"destination": "your_information"},
+        name="your_information",
+    ),
+    path(
+        "jurisdiction/<jurisdiction>/parties/",
+        legacy_workflow_redirect,
+        {"destination": "parties"},
+        name="parties",
+    ),
+    path(
+        "jurisdiction/<jurisdiction>/party-details/",
+        legacy_workflow_redirect,
+        {"destination": "party_details"},
+        name="party_details",
+    ),
+    path(
+        "jurisdiction/<jurisdiction>/case-questions/",
+        legacy_workflow_redirect,
+        {"destination": "case_questions"},
+        name="case_questions",
+    ),
     path("jurisdiction/<jurisdiction>/drafts/", create_draft_view, name="create_draft"),
     path("jurisdiction/<jurisdiction>/filing_statuses/", filing_statuses, name="filing_statuses"),
     path("jurisdiction/<jurisdiction>/expert_form/", efile_expert_form, name="expert_form"),

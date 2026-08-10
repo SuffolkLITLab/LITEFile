@@ -54,6 +54,7 @@ def create_draft(
     user,
     jurisdiction: str,
     current_step: WorkflowStepKey | str = WorkflowStepKey.OPTIONS,
+    workflow_version: int = 1,
 ) -> FilingDraft:
     """Create a durable draft owned by an authenticated user."""
 
@@ -66,6 +67,7 @@ def create_draft(
         user=user,
         jurisdiction=jurisdiction,
         current_step=str(current_step),
+        workflow_version=workflow_version,
     )
 
 

@@ -1,0 +1,86 @@
+{% extends "efile/workflow_base.html" %}
+{% load i18n %}
+{% block title %}
+    {% translate "Review what we found" %}
+{% endblock title %}
+{% block workflow_content %}
+    <section class="workflow-card">
+        <div class="workflow-eyebrow">{% translate "Confirm case" %}</div>
+        <h1>{% translate "Here's what we found" %}</h1>
+        <p class="workflow-lede">
+            {% translate "We read your lead document to get a head start. Check these details and correct anything that is wrong." %}
+        </p>
+        <form method="post">
+            {% csrf_token %}
+            <div class="review-grid">
+                <label class="form-field">
+                    <span>{% translate "Court or county" %}</span>
+                    <input class="form-control"
+                           name="court_name"
+                           value="{{ court_name|default:'' }}"
+                           placeholder="e.g., Cook County" />
+                    <small>{% translate "From your document" %}</small>
+                </label>
+                <label class="form-field">
+                    <span>{% translate "Case category" %}</span>
+                    <input class="form-control"
+                           name="case_category_name"
+                           value="{{ case_category_name|default:'' }}"
+                           placeholder="e.g., Civil" />
+                    <small>{% translate "From your document" %}</small>
+                </label>
+                <label class="form-field">
+                    <span>{% translate "Case type" %}</span>
+                    <input class="form-control"
+                           name="case_type_name"
+                           value="{{ case_type_name|default:'' }}"
+                           placeholder="e.g., Name change" />
+                    <small>{% translate "From your document" %}</small>
+                </label>
+                <label class="form-field">
+                    <span>{% translate "Case number" %} <em>{% translate "if shown" %}</em></span>
+                    <input class="form-control"
+                           name="docket_number"
+                           value="{{ docket_number|default:'' }}" />
+                    <small>{% translate "Leave blank if the court has not assigned one." %}</small>
+                </label>
+            </div>
+            <fieldset class="path-confirmation">
+                <legend>{% translate "Is this for a new or existing court case?" %}</legend>
+                <label>
+                    <input type="radio"
+                           name="existing_case"
+                           value="new"
+                           {% if filing_draft.existing_case == "new" %}checked{% endif %} />
+                    <span><strong>{% translate "New case" %}</strong><small>{% translate "There is no case number yet." %}</small></span>
+                </label>
+                <label>
+                    <input type="radio"
+                           name="existing_case"
+                           value="existing"
+                           {% if filing_draft.existing_case == "existing" %}checked{% endif %} />
+                    <span><strong>{% translate "Existing case" %}</strong><small>{% translate "The case is already open with the court." %}</small></span>
+                </label>
+                <button class="help-toggle"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#path-help">
+                    <i class="fa-regular fa-circle-question"></i> {% translate "Help me decide" %}
+                </button>
+                <div class="collapse help-panel" id="path-help">
+                    <strong>{% translate "Look near the top of your document." %}</strong>
+                    <p>
+                        {% translate "A case number usually means the court has already opened the case. If your document starts a lawsuit or petition and has no case number, choose New case." %}
+                    </p>
+                </div>
+            </fieldset>
+            <div class="workflow-actions">
+                <a class="btn btn-outline-secondary"
+                   href="{% url 'upload_documents' jurisdiction %}"><i class="fa-solid fa-arrow-left"></i> {% translate "Back" %}</a>
+                <button class="btn btn-primary" type="submit">
+                    {% translate "Confirm and continue" %} <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </form>
+    </section>
+{% endblock workflow_content %}

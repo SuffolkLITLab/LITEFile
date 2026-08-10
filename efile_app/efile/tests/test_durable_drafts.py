@@ -297,11 +297,12 @@ def test_create_draft_view_creates_durable_draft(client, django_user_model):
     assert response.status_code == 200
     payload = response.json()
     assert payload["success"] is True
-    assert payload["redirect_url"] == reverse("upload_first", kwargs={"jurisdiction": "illinois"})
+    assert payload["redirect_url"] == reverse("filing_path", kwargs={"jurisdiction": "illinois"})
 
     draft = FilingDraft.objects.get(user=user)
     assert draft.jurisdiction == "illinois"
-    assert draft.current_step == WorkflowStepKey.UPLOAD_FIRST
+    assert draft.current_step == WorkflowStepKey.FILING_PATH
+    assert draft.workflow_version == 2
     assert payload["data"]["filing_draft"]["id"] == draft.pk
 
 

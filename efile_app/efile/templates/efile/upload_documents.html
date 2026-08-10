@@ -1,0 +1,88 @@
+{% extends "efile/workflow_base.html" %}
+{% load static %}
+{% load i18n %}
+{% block title %}
+    {% translate "Upload your documents" %}
+{% endblock title %}
+{% block workflow_content %}
+    <section class="workflow-card">
+        <div class="workflow-eyebrow">{% translate "Upload" %}</div>
+        <h1>{% translate "Upload your court documents" %}</h1>
+        <p class="workflow-lede">
+            {% translate "Add the forms and other documents you want to file. The first PDF will be your lead document." %}
+        </p>
+        <div class="requirements-strip">
+            <span><i class="fa-solid fa-file-pdf"></i> {% translate "PDF only" %}</span>
+            <span><i class="fa-solid fa-weight-hanging"></i> {% translate "10 MB per file" %}</span>
+            <span><i class="fa-solid fa-eye"></i> {% translate "Text must be readable" %}</span>
+        </div>
+        <form id="document-upload-form" enctype="multipart/form-data">
+            {% csrf_token %}
+            <label class="drop-zone" id="document-drop-zone" for="documents-input">
+                <input id="documents-input"
+                       type="file"
+                       name="documents"
+                       accept=".pdf,application/pdf"
+                       multiple />
+                <span class="drop-zone__icon"><i class="fa-solid fa-cloud-arrow-up"></i></span>
+                <strong>{% translate "Choose PDFs or drag them here" %}</strong>
+                <span>{% translate "You can select more than one file." %}</span>
+            </label>
+            <div class="upload-state" id="upload-state" hidden aria-live="polite">
+                <div class="spinner-border spinner-border-sm" aria-hidden="true"></div>
+                <strong id="upload-state-title">{% translate "Uploading your documents…" %}</strong>
+                <span id="upload-state-detail">{% translate "Keep this page open." %}</span>
+            </div>
+            <div class="alert alert-danger" id="upload-error" hidden></div>
+            <button class="btn btn-primary mt-3"
+                    id="upload-button"
+                    type="submit"
+                    disabled>{% translate "Upload selected files" %}</button>
+        </form>
+        <section class="document-list" aria-labelledby="uploaded-heading">
+            <div class="document-list__heading">
+                <h2 id="uploaded-heading">{% translate "Your documents" %}</h2>
+                <span class="badge text-bg-light">{{ documents|length }}</span>
+            </div>
+            {% if documents %}
+                {% for document in documents %}
+                    <article class="document-row" data-document-id="{{ document.id }}">
+                        <span class="document-row__icon"><i class="fa-solid fa-file-pdf"></i></span>
+                        <span class="document-row__details">
+                            <strong>{{ document.name|default:document.original_filename }}</strong>
+                            <small>
+                                {% if document.role == "lead" %}
+                                    {% translate "Lead document" %}
+                                {% else %}
+                                    {% translate "Supporting document" %}
+                                {% endif %}
+                            </small>
+                        </span>
+                        <span class="status-pill status-pill--ready"><i class="fa-solid fa-check"></i> {% translate "Ready" %}</span>
+                        <button class="btn btn-link text-danger remove-document"
+                                type="button"
+                                data-document-id="{{ document.id }}"
+                                aria-label='{% translate "Remove document" %}'>
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </article>
+                {% endfor %}
+            {% else %}
+                <div class="document-list__empty">
+                    <i class="fa-regular fa-file-lines"></i>
+                    <p>{% translate "No documents uploaded yet." %}</p>
+                </div>
+            {% endif %}
+        </section>
+        <div class="workflow-actions">
+            <a class="btn btn-outline-secondary"
+               href="{% url 'filing_path' jurisdiction %}"><i class="fa-solid fa-arrow-left"></i> {% translate "Back" %}</a>
+            <a class="btn btn-primary {% if not has_lead_document %}disabled{% endif %}"
+               id="continue-to-analysis"
+               href="{% url 'extraction_review' jurisdiction %}">{% translate "Review what we found" %} <i class="fa-solid fa-arrow-right"></i></a>
+        </div>
+    </section>
+{% endblock workflow_content %}
+{% block extra_js %}
+    <script src="{% static 'js/upload-documents.js' %}"></script>
+{% endblock extra_js %}

@@ -1,0 +1,125 @@
+from unittest.mock import MagicMock, patch
+
+import pytest
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.urls import reverse
+
+from efile.models import FilingDocument, FilingDraft
+from efile.services.current_drafts import CURRENT_DRAFT_SESSION_KEY
+from efile.workflow import ExistingCase, WorkflowStepKey
+
+
+def authorize(client, draft):
+    session = client.session
+    session[CURRENT_DRAFT_SESSION_KEY] = draft.pk
+    session["auth_tokens"] = {"TYLER-TOKEN-ILLINOIS": "token"}
+    session["jurisdiction"] = "illinois"
+    session.save()
+
+
+@pytest.fixture
+def reorganized_draft(client, django_user_model):
+    user = django_user_model.objects.create_user(username="flow-user", tyler_jurisdiction="illinois")
+    draft = FilingDraft.objects.create(user=user, jurisdiction="illinois", workflow_version=2)
+    client.force_login(user)
+    authorize(client, draft)
+    return draft
+
+
+@pytest.mark.django_db
+def test_filing_path_saves_normalized_branch(client, reorganized_draft):
+    response = client.post(
+        reverse("filing_path", kwargs={"jurisdiction": "illinois"}),
+        {"existing_case": ExistingCase.EXISTING},
+    )
+
+    reorganized_draft.refresh_from_db()
+    assert response.status_code == 302
+    assert response.url == reverse("upload_documents", kwargs={"jurisdiction": "illinois"})
+    assert reorganized_draft.existing_case == ExistingCase.EXISTING
+    assert reorganized_draft.current_step == WorkflowStepKey.UPLOAD_DOCUMENTS
+
+
+@pytest.mark.django_db
+def test_upload_documents_persists_lead_supporting_and_guesses(client, reorganized_draft):
+    handler = MagicMock()
+    handler._ensure_initialized.return_value = True
+    handler.validate_file.return_value = {"valid": True}
+    handler.upload_file.side_effect = [
+        {"success": True, "key": "lead.pdf"},
+        {"success": True, "key": "supporting.pdf"},
+    ]
+    handler.get_public_url.side_effect = ["https://example.com/lead.pdf", "https://example.com/supporting.pdf"]
+    lead = SimpleUploadedFile("petition.pdf", b"%PDF lead", content_type="application/pdf")
+    supporting = SimpleUploadedFile("exhibit.pdf", b"%PDF exhibit", content_type="application/pdf")
+
+    with (
+        patch("efile.views.upload_documents.S3UploadHandler", return_value=handler),
+        patch(
+            "efile.views.upload_documents._analyze_lead",
+            return_value={"court name": "Cook County", "case type": "Name Change"},
+        ),
+    ):
+        response = client.post(
+            reverse("upload_documents", kwargs={"jurisdiction": "illinois"}),
+            {"documents": [lead, supporting]},
+        )
+
+    assert response.status_code == 200
+    assert response.json()["success"] is True
+    reorganized_draft.refresh_from_db()
+    assert reorganized_draft.extracted_guesses["court"] == "Cook County"
+    assert reorganized_draft.documents.get(role=FilingDocument.Role.LEAD).name == "petition.pdf"
+    assert reorganized_draft.documents.get(role=FilingDocument.Role.SUPPORTING).name == "exhibit.pdf"
+
+
+@pytest.mark.django_db
+def test_extraction_review_branches_new_case_to_checklist(client, reorganized_draft):
+    FilingDocument.objects.create(
+        draft=reorganized_draft,
+        role=FilingDocument.Role.LEAD,
+        name="petition.pdf",
+    )
+
+    response = client.post(
+        reverse("extraction_review", kwargs={"jurisdiction": "illinois"}),
+        {
+            "existing_case": ExistingCase.NEW,
+            "court_name": "Cook County Circuit Court",
+            "case_category_name": "Miscellaneous Remedy",
+            "case_type_name": "Name Change",
+        },
+    )
+
+    reorganized_draft.refresh_from_db()
+    assert response.status_code == 302
+    assert response.url == reverse("document_checklist", kwargs={"jurisdiction": "illinois"})
+    assert reorganized_draft.existing_case == ExistingCase.NEW
+    assert reorganized_draft.case_type_name == "Name Change"
+
+
+@pytest.mark.django_db
+def test_extraction_review_requires_a_case_path(client, reorganized_draft):
+    FilingDocument.objects.create(
+        draft=reorganized_draft,
+        role=FilingDocument.Role.LEAD,
+        name="petition.pdf",
+    )
+
+    response = client.post(
+        reverse("extraction_review", kwargs={"jurisdiction": "illinois"}),
+        {"existing_case": ExistingCase.UNSURE},
+    )
+
+    assert response.status_code == 200
+    assert b"Choose whether this is a new or existing court case" in response.content
+
+
+@pytest.mark.django_db
+def test_unmigrated_downstream_screen_bridges_to_legacy_flow(client, reorganized_draft):
+    response = client.get(reverse("document_checklist", kwargs={"jurisdiction": "illinois"}))
+
+    reorganized_draft.refresh_from_db()
+    assert response.status_code == 302
+    assert response.url == reverse("expert_form", kwargs={"jurisdiction": "illinois"})
+    assert reorganized_draft.workflow_version == 1

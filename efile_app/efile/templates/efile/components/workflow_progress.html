@@ -1,0 +1,17 @@
+<nav class="workflow-progress" aria-label="Filing progress">
+    <ol>
+        {% for stage in workflow_stage_progress %}
+            <li class="workflow-progress__item workflow-progress__item--{{ stage.state }}"
+                {% if stage.state == "current" %}aria-current="step"{% endif %}>
+                <span class="workflow-progress__marker">
+                    {% if stage.state == "complete" %}
+                        <i class="fa-solid fa-check" aria-hidden="true"></i>
+                    {% else %}
+                        {{ forloop.counter }}
+                    {% endif %}
+                </span>
+                <span class="workflow-progress__label">{{ stage.label }}</span>
+            </li>
+        {% endfor %}
+    </ol>
+</nav>

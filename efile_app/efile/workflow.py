@@ -64,6 +64,18 @@ class WorkflowStage(StrEnum):
     REVIEW = "review"
 
 
+WORKFLOW_STAGE_LABELS = {
+    WorkflowStage.FILING: "Filing",
+    WorkflowStage.UPLOAD: "Upload",
+    WorkflowStage.CONFIRM_CASE: "Confirm case",
+    WorkflowStage.CHECK_DOCUMENTS: "Check documents",
+    WorkflowStage.ORGANIZE_DOCUMENTS: "Organize documents",
+    WorkflowStage.PEOPLE: "People",
+    WorkflowStage.FEES: "Fees",
+    WorkflowStage.REVIEW: "Review",
+}
+
+
 class WorkflowStepKey(StrEnum):
     """Stable identifiers for both reorganized and transitional workflow steps."""
 
@@ -102,7 +114,12 @@ FILING_WORKFLOW: tuple[WorkflowStep, ...] = (
     WorkflowStep(WorkflowStepKey.OPTIONS, "Options", "efile_options", WorkflowStage.FILING),
     WorkflowStep(WorkflowStepKey.FILING_PATH, "Filing", "filing_path", WorkflowStage.FILING),
     WorkflowStep(WorkflowStepKey.UPLOAD_DOCUMENTS, "Upload documents", "upload_documents", WorkflowStage.UPLOAD),
-    WorkflowStep(WorkflowStepKey.EXTRACTION_REVIEW, "Confirm filing", "extraction_review", WorkflowStage.UPLOAD),
+    WorkflowStep(
+        WorkflowStepKey.EXTRACTION_REVIEW,
+        "Confirm filing",
+        "extraction_review",
+        WorkflowStage.CONFIRM_CASE,
+    ),
     WorkflowStep(WorkflowStepKey.CASE_LOOKUP, "Find your case", "case_lookup", WorkflowStage.CONFIRM_CASE),
     WorkflowStep(
         WorkflowStepKey.CASE_CONFIRMATION,
@@ -318,9 +335,25 @@ def get_workflow_context(
     next_step = get_next_step(current_step, draft)
     visible_workflow = get_visible_workflow(draft, current_step=current_step)
 
+    stages = tuple(dict.fromkeys(step.stage for step in visible_workflow))
+    current_stage = get_step(current_step).stage
+    current_stage_index = stages.index(current_stage)
+
     return {
         "workflow_steps": visible_workflow,
-        "workflow_stages": tuple(dict.fromkeys(step.stage for step in visible_workflow)),
+        "workflow_stages": stages,
+        "workflow_stage_progress": tuple(
+            {
+                "key": stage.value,
+                "label": WORKFLOW_STAGE_LABELS[stage],
+                "state": "complete"
+                if index < current_stage_index
+                else "current"
+                if index == current_stage_index
+                else "upcoming",
+            }
+            for index, stage in enumerate(stages)
+        ),
         "workflow_current_step": get_step(current_step),
         "workflow_previous_step": previous_step,
         "workflow_next_step": next_step,
