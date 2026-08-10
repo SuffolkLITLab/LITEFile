@@ -4,7 +4,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
 
-from efile.workflow import WorkflowStepKey, get_workflow_step_choices
+from efile.workflow import ExistingCase, WorkflowStepKey, get_workflow_step_choices
 
 
 class UserProfile(AbstractUser):
@@ -54,8 +54,13 @@ class FilingDraft(models.Model):
         choices=get_workflow_step_choices(),
         default=WorkflowStepKey.OPTIONS,
     )
+    workflow_version = models.PositiveSmallIntegerField(default=1)
 
-    existing_case = models.CharField(max_length=20, blank=True)
+    existing_case = models.CharField(
+        max_length=20,
+        choices=[(value.value, value.name.title()) for value in ExistingCase],
+        blank=True,
+    )
     court_code = models.CharField(max_length=100, blank=True)
     court_name = models.CharField(max_length=255, blank=True)
     case_category_code = models.CharField(max_length=100, blank=True)

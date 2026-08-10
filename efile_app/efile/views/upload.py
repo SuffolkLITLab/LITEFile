@@ -66,6 +66,6 @@ def efile_upload(request, jurisdiction):
         "filing_type_raw": case_classification["filing_type"],
         "court_raw": case_classification["court"],
     }
-    context.update(get_workflow_context(WorkflowStepKey.DOCUMENTS, jurisdiction))
+    context.update(get_workflow_context(WorkflowStepKey.DOCUMENTS, jurisdiction, filing_draft))
 
     return render(request, "efile/upload.html", context)

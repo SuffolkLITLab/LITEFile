@@ -1,143 +1,318 @@
-"""Central filing workflow registry.
+"""Central filing workflow registry and branch-aware navigation.
 
-Use FILING_WORKFLOW as the single high-level map of the filing flow.
+The reorganized flow is stateful: new and existing cases take different paths,
+party details may repeat, and case questions only appear when configured. Keep
+those decisions here so templates and JavaScript do not each invent their own
+redirect rules.
 
-To add a step:
-1. Add a WorkflowStepKey member for the new step.
-2. Add the URL route and view.
-3. Add a WorkflowStep entry in the desired position below.
-4. Add get_workflow_context(WorkflowStepKey.YOUR_STEP, jurisdiction) to that view's context.
-5. Update any navigation copy that mentions the surrounding steps.
-6. Update efile/tests/test_workflow.py.
-
-To rearrange steps:
-1. Reorder FILING_WORKFLOW.
-2. Update affected labels, navigation copy, and workflow tests.
-
-This registry is intentionally linear for now. Future branching should be added
-here after the durable filing draft model exists as the workflow state source.
+``LEGACY_WORKFLOW`` remains temporarily available while the reorganized screens
+land in stacked changes. A draft on a legacy step continues through the old flow;
+as soon as it enters a reorganized step it uses ``FILING_WORKFLOW``.
 """
 
 from dataclasses import dataclass
 from enum import StrEnum
+from typing import Any
 
 from django.urls import reverse
 
 
+class ExistingCase(StrEnum):
+    """Controlled vocabulary used by durable drafts and workflow branches."""
+
+    NEW = "new"
+    EXISTING = "existing"
+    UNSURE = "unsure"
+
+
+LEGACY_EXISTING_CASE_VALUES = {
+    "no": ExistingCase.NEW,
+    "yes": ExistingCase.EXISTING,
+    "responding": ExistingCase.EXISTING,
+}
+
+
+def normalize_existing_case(value: str | ExistingCase | None) -> str:
+    """Normalize old yes/no values without making legacy clients branch incorrectly."""
+
+    if value in (None, ""):
+        return ""
+    normalized = str(value).strip().lower()
+    return str(LEGACY_EXISTING_CASE_VALUES.get(normalized, normalized))
+
+
+def legacy_existing_case_value(value: str | ExistingCase | None) -> str:
+    """Translate normalized state for the old screens during the migration."""
+
+    normalized = normalize_existing_case(value)
+    if normalized == ExistingCase.NEW:
+        return "no"
+    if normalized == ExistingCase.EXISTING:
+        return "yes"
+    return normalized
+
+
+class WorkflowStage(StrEnum):
+    FILING = "filing"
+    UPLOAD = "upload"
+    CONFIRM_CASE = "confirm_case"
+    CHECK_DOCUMENTS = "check_documents"
+    ORGANIZE_DOCUMENTS = "organize_documents"
+    PEOPLE = "people"
+    FEES = "fees"
+    REVIEW = "review"
+
+
 class WorkflowStepKey(StrEnum):
-    """Stable identifiers for filing workflow steps."""
+    """Stable identifiers for both reorganized and transitional workflow steps."""
 
     OPTIONS = "options"
-    UPLOAD_FIRST = "upload_first"
-    CASE_INFORMATION = "case_information"
-    DOCUMENTS = "documents"
+    FILING_PATH = "filing_path"
+    UPLOAD_DOCUMENTS = "upload_documents"
+    EXTRACTION_REVIEW = "extraction_review"
+    CASE_LOOKUP = "case_lookup"
+    CASE_CONFIRMATION = "case_confirmation"
+    DOCUMENT_CHECKLIST = "document_checklist"
+    ORGANIZE_DOCUMENTS = "organize_documents"
+    YOUR_INFORMATION = "your_information"
+    PARTIES = "parties"
+    PARTY_DETAILS = "party_details"
+    CASE_QUESTIONS = "case_questions"
     PAYMENT = "payment"
     REVIEW = "review"
     CONFIRMATION = "confirmation"
 
+    # Removed after all screens have migrated. Keeping these values temporarily
+    # lets saved drafts and each independently reviewable stacked PR keep working.
+    UPLOAD_FIRST = "upload_first"
+    CASE_INFORMATION = "case_information"
+    DOCUMENTS = "documents"
+
 
 @dataclass(frozen=True)
 class WorkflowStep:
-    """A single screen in the filing workflow."""
-
     key: WorkflowStepKey
     label: str
     url_name: str
+    stage: WorkflowStage
 
 
 FILING_WORKFLOW: tuple[WorkflowStep, ...] = (
-    WorkflowStep(WorkflowStepKey.OPTIONS, "Options", "efile_options"),
-    WorkflowStep(WorkflowStepKey.UPLOAD_FIRST, "Upload lead document", "upload_first"),
-    WorkflowStep(WorkflowStepKey.CASE_INFORMATION, "Case information", "expert_form"),
-    WorkflowStep(WorkflowStepKey.DOCUMENTS, "Documents", "upload"),
-    WorkflowStep(WorkflowStepKey.PAYMENT, "Payment", "payment"),
-    WorkflowStep(WorkflowStepKey.REVIEW, "Review", "case_review"),
-    WorkflowStep(WorkflowStepKey.CONFIRMATION, "Confirmation", "filing_confirmation"),
+    WorkflowStep(WorkflowStepKey.OPTIONS, "Options", "efile_options", WorkflowStage.FILING),
+    WorkflowStep(WorkflowStepKey.FILING_PATH, "Filing", "filing_path", WorkflowStage.FILING),
+    WorkflowStep(WorkflowStepKey.UPLOAD_DOCUMENTS, "Upload documents", "upload_documents", WorkflowStage.UPLOAD),
+    WorkflowStep(WorkflowStepKey.EXTRACTION_REVIEW, "Confirm filing", "extraction_review", WorkflowStage.UPLOAD),
+    WorkflowStep(WorkflowStepKey.CASE_LOOKUP, "Find your case", "case_lookup", WorkflowStage.CONFIRM_CASE),
+    WorkflowStep(
+        WorkflowStepKey.CASE_CONFIRMATION,
+        "Confirm your case",
+        "case_confirmation",
+        WorkflowStage.CONFIRM_CASE,
+    ),
+    WorkflowStep(
+        WorkflowStepKey.DOCUMENT_CHECKLIST,
+        "Check documents",
+        "document_checklist",
+        WorkflowStage.CHECK_DOCUMENTS,
+    ),
+    WorkflowStep(
+        WorkflowStepKey.ORGANIZE_DOCUMENTS,
+        "Organize documents",
+        "organize_documents",
+        WorkflowStage.ORGANIZE_DOCUMENTS,
+    ),
+    WorkflowStep(
+        WorkflowStepKey.YOUR_INFORMATION,
+        "Your information",
+        "your_information",
+        WorkflowStage.PEOPLE,
+    ),
+    WorkflowStep(WorkflowStepKey.PARTIES, "People in this filing", "parties", WorkflowStage.PEOPLE),
+    WorkflowStep(WorkflowStepKey.PARTY_DETAILS, "Person details", "party_details", WorkflowStage.PEOPLE),
+    WorkflowStep(WorkflowStepKey.CASE_QUESTIONS, "Case questions", "case_questions", WorkflowStage.PEOPLE),
+    WorkflowStep(WorkflowStepKey.PAYMENT, "Fees", "payment", WorkflowStage.FEES),
+    WorkflowStep(WorkflowStepKey.REVIEW, "Review", "case_review", WorkflowStage.REVIEW),
+    WorkflowStep(WorkflowStepKey.CONFIRMATION, "Confirmation", "filing_confirmation", WorkflowStage.REVIEW),
 )
+
+LEGACY_WORKFLOW: tuple[WorkflowStep, ...] = (
+    WorkflowStep(WorkflowStepKey.OPTIONS, "Options", "efile_options", WorkflowStage.FILING),
+    WorkflowStep(WorkflowStepKey.UPLOAD_FIRST, "Upload lead document", "upload_first", WorkflowStage.UPLOAD),
+    WorkflowStep(WorkflowStepKey.CASE_INFORMATION, "Case information", "expert_form", WorkflowStage.CONFIRM_CASE),
+    WorkflowStep(WorkflowStepKey.DOCUMENTS, "Documents", "upload", WorkflowStage.ORGANIZE_DOCUMENTS),
+    WorkflowStep(WorkflowStepKey.PAYMENT, "Fees", "payment", WorkflowStage.FEES),
+    WorkflowStep(WorkflowStepKey.REVIEW, "Review", "case_review", WorkflowStage.REVIEW),
+    WorkflowStep(WorkflowStepKey.CONFIRMATION, "Confirmation", "filing_confirmation", WorkflowStage.REVIEW),
+)
+
+_STEPS_BY_KEY = {step.key: step for step in (*FILING_WORKFLOW, *LEGACY_WORKFLOW)}
+_LEGACY_KEYS = {step.key for step in LEGACY_WORKFLOW} - {
+    WorkflowStepKey.OPTIONS,
+    WorkflowStepKey.PAYMENT,
+    WorkflowStepKey.REVIEW,
+    WorkflowStepKey.CONFIRMATION,
+}
 
 
 def get_workflow_steps() -> tuple[WorkflowStep, ...]:
+    """Return the complete target workflow for choices, docs, and tests."""
+
     return FILING_WORKFLOW
 
 
 def get_workflow_step_choices() -> tuple[tuple[str, str], ...]:
-    """Return Django model choices derived from the workflow registry."""
+    """Return choices for target and temporarily supported legacy draft steps."""
 
-    return tuple((step.key.value, step.label) for step in FILING_WORKFLOW)
+    return tuple((step.key.value, step.label) for step in _STEPS_BY_KEY.values())
 
 
 def get_step(step_key: WorkflowStepKey | str) -> WorkflowStep:
     try:
-        return next(step for step in FILING_WORKFLOW if step.key == step_key)
-    except StopIteration as exc:
+        return _STEPS_BY_KEY[WorkflowStepKey(step_key)]
+    except (KeyError, ValueError) as exc:
         raise KeyError(f"Unknown workflow step: {step_key}") from exc
 
 
-def get_step_index(step_key: WorkflowStepKey | str) -> int:
-    for index, step in enumerate(FILING_WORKFLOW):
-        if step.key == step_key:
+def _draft_value(draft: Any | None, name: str, default: Any = None) -> Any:
+    return getattr(draft, name, default) if draft is not None else default
+
+
+def _has_incomplete_parties(draft: Any | None) -> bool:
+    if draft is None:
+        return False
+    parties = getattr(draft, "parties", None)
+    if parties is None:
+        return bool(_draft_value(draft, "has_incomplete_parties", False))
+    try:
+        party_list = list(parties.all())
+    except (AttributeError, TypeError):
+        party_list = list(parties)
+    return any(not (party.organization_name or (party.first_name and party.last_name)) for party in party_list)
+
+
+def _has_case_questions(draft: Any | None) -> bool:
+    if draft is None:
+        return False
+    explicit = _draft_value(draft, "case_questions_required", None)
+    if explicit is not None:
+        return bool(explicit)
+    return bool((_draft_value(draft, "supplemental_fields", {}) or {}).get("_case_questions_required"))
+
+
+def _uses_legacy_workflow(current_step: WorkflowStepKey | str | None, draft: Any | None) -> bool:
+    raw_step = current_step or _draft_value(draft, "current_step")
+    try:
+        key = WorkflowStepKey(raw_step)
+    except (TypeError, ValueError):
+        return False
+    if key in _LEGACY_KEYS:
+        return True
+    if draft is not None:
+        return int(_draft_value(draft, "workflow_version", 1)) < 2
+    return False
+
+
+def get_visible_workflow(
+    draft: Any | None = None,
+    *,
+    current_step: WorkflowStepKey | str | None = None,
+) -> tuple[WorkflowStep, ...]:
+    """Resolve the screens visible for this draft's branch."""
+
+    if _uses_legacy_workflow(current_step, draft):
+        return LEGACY_WORKFLOW
+
+    existing_case = normalize_existing_case(_draft_value(draft, "existing_case"))
+    current_key = None
+    try:
+        current_key = WorkflowStepKey(current_step or _draft_value(draft, "current_step"))
+    except (TypeError, ValueError):
+        pass
+
+    visible: list[WorkflowStep] = []
+    for step in FILING_WORKFLOW:
+        if step.key in {WorkflowStepKey.CASE_LOOKUP, WorkflowStepKey.CASE_CONFIRMATION}:
+            if existing_case != ExistingCase.EXISTING and step.key != current_key:
+                continue
+        if step.key == WorkflowStepKey.PARTY_DETAILS:
+            if not _has_incomplete_parties(draft) and step.key != current_key:
+                continue
+        if step.key == WorkflowStepKey.CASE_QUESTIONS:
+            if not _has_case_questions(draft) and step.key != current_key:
+                continue
+        visible.append(step)
+    return tuple(visible)
+
+
+def get_step_index(
+    step_key: WorkflowStepKey | str,
+    draft: Any | None = None,
+) -> int:
+    workflow = get_visible_workflow(draft, current_step=step_key)
+    key = WorkflowStepKey(step_key)
+    for index, step in enumerate(workflow):
+        if step.key == key:
             return index
     raise KeyError(f"Unknown workflow step: {step_key}")
 
 
-def get_previous_step(step_key: WorkflowStepKey | str) -> WorkflowStep | None:
-    index = get_step_index(step_key)
+def get_previous_step(step_key: WorkflowStepKey | str, draft: Any | None = None) -> WorkflowStep | None:
+    workflow = get_visible_workflow(draft, current_step=step_key)
+    index = get_step_index(step_key, draft)
     if index == 0:
         return None
-    return FILING_WORKFLOW[index - 1]
+    return workflow[index - 1]
 
 
-def get_next_step(step_key: WorkflowStepKey | str) -> WorkflowStep | None:
-    index = get_step_index(step_key)
+def get_next_step(step_key: WorkflowStepKey | str, draft: Any | None = None) -> WorkflowStep | None:
+    key = WorkflowStepKey(step_key)
+    if key == WorkflowStepKey.EXTRACTION_REVIEW:
+        existing_case = normalize_existing_case(_draft_value(draft, "existing_case"))
+        if existing_case == ExistingCase.NEW:
+            return get_step(WorkflowStepKey.DOCUMENT_CHECKLIST)
+        if existing_case == ExistingCase.EXISTING:
+            return get_step(WorkflowStepKey.CASE_LOOKUP)
+        return None
+
+    workflow = get_visible_workflow(draft, current_step=key)
+    index = get_step_index(key, draft)
     try:
-        return FILING_WORKFLOW[index + 1]
+        return workflow[index + 1]
     except IndexError:
         return None
 
 
 def get_step_url(step_key: WorkflowStepKey | str, jurisdiction: str) -> str:
-    step = get_step(step_key)
-    return reverse(step.url_name, kwargs={"jurisdiction": jurisdiction})
+    return reverse(get_step(step_key).url_name, kwargs={"jurisdiction": jurisdiction})
 
 
 def get_resume_step_url(current_step: WorkflowStepKey | str | None, jurisdiction: str) -> str | None:
-    """Return the URL to send someone back to when they resume a draft.
-
-    OPTIONS is the model default for drafts saved before ``current_step`` was
-    tracked, but resuming there just returns the user to the page offering to
-    resume. Those start at the first real filing step instead. An unrecognised
-    value is treated the same way rather than breaking the options page.
-    """
     if current_step is None:
         return None
-
     try:
         step_key = WorkflowStepKey(current_step)
     except ValueError:
         step_key = WorkflowStepKey.UPLOAD_FIRST
-
     if step_key == WorkflowStepKey.OPTIONS:
         step_key = WorkflowStepKey.UPLOAD_FIRST
-
     return get_step_url(step_key, jurisdiction)
 
 
-def get_workflow_context(current_step: WorkflowStepKey | str, jurisdiction: str) -> dict:
-    previous_step = get_previous_step(current_step)
-    next_step = get_next_step(current_step)
-    previous_url = None
-    next_url = None
-
-    if previous_step:
-        previous_url = get_step_url(previous_step.key, jurisdiction)
-    if next_step:
-        next_url = get_step_url(next_step.key, jurisdiction)
+def get_workflow_context(
+    current_step: WorkflowStepKey | str,
+    jurisdiction: str,
+    draft: Any | None = None,
+) -> dict[str, Any]:
+    previous_step = get_previous_step(current_step, draft)
+    next_step = get_next_step(current_step, draft)
+    visible_workflow = get_visible_workflow(draft, current_step=current_step)
 
     return {
-        "workflow_steps": get_workflow_steps(),
+        "workflow_steps": visible_workflow,
+        "workflow_stages": tuple(dict.fromkeys(step.stage for step in visible_workflow)),
         "workflow_current_step": get_step(current_step),
         "workflow_previous_step": previous_step,
         "workflow_next_step": next_step,
-        "workflow_previous_url": previous_url,
-        "workflow_next_url": next_url,
+        "workflow_previous_url": get_step_url(previous_step.key, jurisdiction) if previous_step else None,
+        "workflow_next_url": get_step_url(next_step.key, jurisdiction) if next_step else None,
     }

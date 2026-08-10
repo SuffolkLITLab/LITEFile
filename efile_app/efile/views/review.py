@@ -120,6 +120,6 @@ def case_review(request, jurisdiction):
             "document_type": friendly_document_type,
         },
     }
-    context.update(get_workflow_context(WorkflowStepKey.REVIEW, jurisdiction))
+    context.update(get_workflow_context(WorkflowStepKey.REVIEW, jurisdiction, filing_draft))
 
     return render(request, "efile/review.html", context)

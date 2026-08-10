@@ -13,7 +13,7 @@ from django.db import transaction
 from django.db.models import QuerySet
 
 from efile.models import FilingDocument, FilingDraft, FilingParty
-from efile.workflow import WorkflowStepKey
+from efile.workflow import WorkflowStepKey, legacy_existing_case_value, normalize_existing_case
 
 ACTIVE_DRAFT_STATUSES = (FilingDraft.Status.DRAFT, FilingDraft.Status.ERROR)
 # A draft mid-submission is still the user's current draft (so the submit flow can
@@ -198,6 +198,8 @@ def write_case_data(
         if value is _MISSING:
             continue
         value = _as_str(value)
+        if field == "existing_case":
+            value = normalize_existing_case(value)
         if getattr(draft, field) != value:
             setattr(draft, field, value)
             update_fields.append(field)
@@ -246,7 +248,9 @@ def read_case_data(draft: FilingDraft | None) -> dict[str, Any]:
     data: dict[str, Any] = {}
     _put(data, "jurisdiction", draft.jurisdiction)
     _put(data, "jurisdiction_id", draft.jurisdiction)
-    _put(data, "existing_case", draft.existing_case)
+    # Old screens still branch on yes/no. The durable value is normalized now;
+    # remove this translation when the last legacy screen is retired.
+    _put(data, "existing_case", legacy_existing_case_value(draft.existing_case))
     _put(data, "court", draft.court_code)
     _put(data, "court_name", draft.court_name)
     _put(data, "case_category", draft.case_category_code)
@@ -475,6 +479,7 @@ def draft_snapshot(draft: FilingDraft | None) -> dict[str, Any] | None:
         "jurisdiction": draft.jurisdiction,
         "status": draft.status,
         "current_step": draft.current_step,
+        "workflow_version": draft.workflow_version,
         "existing_case": draft.existing_case,
         "court_code": draft.court_code,
         "court_name": draft.court_name,

@@ -65,6 +65,6 @@ def efile_expert_form(request, jurisdiction):
         "missing_required_fields": not has_all_required,
         "missing_party_info": has_all_required and not has_party_info,
     }
-    context.update(get_workflow_context(WorkflowStepKey.CASE_INFORMATION, jurisdiction))
+    context.update(get_workflow_context(WorkflowStepKey.CASE_INFORMATION, jurisdiction, filing_draft))
 
     return render(request, "efile/expert_form.html", context)

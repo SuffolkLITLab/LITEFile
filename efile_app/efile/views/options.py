@@ -33,6 +33,6 @@ def efile_options(request, jurisdiction):
         "resume_url": get_resume_step_url(active_draft.current_step if active_draft else None, jurisdiction),
         "has_case_data": bool(case_data or active_draft),
     }
-    context.update(get_workflow_context(WorkflowStepKey.OPTIONS, jurisdiction))
+    context.update(get_workflow_context(WorkflowStepKey.OPTIONS, jurisdiction, active_draft))
 
     return render(request, "efile/options.html", context)

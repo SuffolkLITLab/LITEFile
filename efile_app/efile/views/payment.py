@@ -46,6 +46,6 @@ def efile_payment(request, jurisdiction):
         "case_data": case_data,
         "filing_draft": draft_snapshot(filing_draft),
     }
-    context.update(get_workflow_context(WorkflowStepKey.PAYMENT, jurisdiction))
+    context.update(get_workflow_context(WorkflowStepKey.PAYMENT, jurisdiction, filing_draft))
 
     return render(request, "efile/payment.html", context)
