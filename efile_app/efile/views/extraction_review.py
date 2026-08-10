@@ -48,6 +48,7 @@ def extraction_review(request, jurisdiction):
             )
             next_step = get_next_step(WorkflowStepKey.EXTRACTION_REVIEW, draft)
             if next_step:
+                write_case_data(draft, {}, current_step=next_step.key)
                 return redirect(get_step_url(next_step.key, jurisdiction))
 
     guesses = draft.extracted_guesses or {}

@@ -74,6 +74,42 @@ def test_upload_documents_persists_lead_supporting_and_guesses(client, reorganiz
 
 
 @pytest.mark.django_db
+def test_removing_analyzed_document_cleans_storage_and_stale_guesses(client, reorganized_draft):
+    lead = FilingDocument.objects.create(
+        draft=reorganized_draft,
+        role=FilingDocument.Role.LEAD,
+        sort_order=0,
+        name="petition.pdf",
+        s3_key="lead/petition.pdf",
+    )
+    supporting = FilingDocument.objects.create(
+        draft=reorganized_draft,
+        role=FilingDocument.Role.SUPPORTING,
+        sort_order=0,
+        name="exhibit.pdf",
+    )
+    reorganized_draft.extracted_guesses = {"court": "Cook County"}
+    reorganized_draft.save(update_fields=["extracted_guesses", "updated_at"])
+    handler = MagicMock()
+    handler._ensure_initialized.return_value = True
+    handler.delete_file.return_value = {"success": True}
+
+    with patch("efile.views.upload_documents.S3UploadHandler", return_value=handler):
+        response = client.post(
+            reverse("upload_documents", kwargs={"jurisdiction": "illinois"}),
+            {"action": "remove", "document_id": lead.pk},
+        )
+
+    reorganized_draft.refresh_from_db()
+    supporting.refresh_from_db()
+    assert response.status_code == 200
+    assert response.json()["success"] is True
+    handler.delete_file.assert_called_once_with("lead/petition.pdf")
+    assert reorganized_draft.extracted_guesses == {}
+    assert supporting.role == FilingDocument.Role.LEAD
+
+
+@pytest.mark.django_db
 def test_extraction_review_branches_new_case_to_checklist(client, reorganized_draft):
     FilingDocument.objects.create(
         draft=reorganized_draft,
@@ -96,6 +132,7 @@ def test_extraction_review_branches_new_case_to_checklist(client, reorganized_dr
     assert response.url == reverse("document_checklist", kwargs={"jurisdiction": "illinois"})
     assert reorganized_draft.existing_case == ExistingCase.NEW
     assert reorganized_draft.case_type_name == "Name Change"
+    assert reorganized_draft.current_step == WorkflowStepKey.DOCUMENT_CHECKLIST
 
 
 @pytest.mark.django_db

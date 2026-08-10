@@ -113,6 +113,8 @@ def upload_documents(request, jurisdiction):
             document = FilingDocument.objects.filter(pk=document_id, draft=draft).first()
             if document is None:
                 return JsonResponse({"success": False, "error": "Document not found."}, status=404)
+            removed_lead = document.role == FilingDocument.Role.LEAD
+            s3_key = document.s3_key
             promote_document = None
             other_documents = FilingDocument.objects.filter(draft=draft).exclude(pk=document.pk)
             if document.role == FilingDocument.Role.LEAD and other_documents.exists():
@@ -125,6 +127,15 @@ def upload_documents(request, jurisdiction):
                 replacement.role = FilingDocument.Role.LEAD
                 replacement.sort_order = 0
                 replacement.save(update_fields=["role", "sort_order", "updated_at"])
+            if removed_lead and draft.extracted_guesses:
+                draft.extracted_guesses = {}
+                draft.save(update_fields=["extracted_guesses", "updated_at"])
+            if s3_key:
+                handler = S3UploadHandler()
+                if handler._ensure_initialized():
+                    deletion = handler.delete_file(s3_key)
+                    if not deletion.get("success"):
+                        logger.warning("Could not delete removed draft document %s from storage", s3_key)
             return JsonResponse({"success": True})
 
         uploaded_files = request.FILES.getlist("documents")
