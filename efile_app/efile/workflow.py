@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any
 
+from django.db.models import Q
 from django.urls import reverse
 
 
@@ -183,6 +184,9 @@ def _has_incomplete_parties(draft: Any | None) -> bool:
     parties = getattr(draft, "parties", None)
     if parties is None:
         return bool(_draft_value(draft, "has_incomplete_parties", False))
+    if hasattr(parties, "filter"):
+        incomplete = Q(organization_name="") & (Q(first_name="") | Q(last_name=""))
+        return parties.filter(incomplete).exists()
     try:
         party_list = list(parties.all())
     except (AttributeError, TypeError):
@@ -206,6 +210,13 @@ def _uses_legacy_workflow(current_step: WorkflowStepKey | str | None, draft: Any
     except (TypeError, ValueError):
         return False
     if key in _LEGACY_KEYS:
+        return True
+    if draft is None and key in {
+        WorkflowStepKey.OPTIONS,
+        WorkflowStepKey.PAYMENT,
+        WorkflowStepKey.REVIEW,
+        WorkflowStepKey.CONFIRMATION,
+    }:
         return True
     if draft is not None:
         return int(_draft_value(draft, "workflow_version", 1)) < 2

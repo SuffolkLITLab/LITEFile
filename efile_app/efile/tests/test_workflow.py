@@ -67,6 +67,19 @@ def test_legacy_drafts_keep_the_current_linear_route_during_migration():
 
 
 @pytest.mark.parametrize(
+    "shared_step",
+    [
+        WorkflowStepKey.OPTIONS,
+        WorkflowStepKey.PAYMENT,
+        WorkflowStepKey.REVIEW,
+        WorkflowStepKey.CONFIRMATION,
+    ],
+)
+def test_shared_steps_without_draft_context_default_to_legacy(shared_step):
+    assert get_visible_workflow(current_step=shared_step) == LEGACY_WORKFLOW
+
+
+@pytest.mark.parametrize(
     ("value", "expected"),
     [
         ("no", ExistingCase.NEW),
