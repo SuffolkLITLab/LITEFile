@@ -22,12 +22,15 @@ def party_details(request, jurisdiction):
         current_step=WorkflowStepKey.PARTY_DETAILS,
         workflow_version=2,
     )
-    party = get_object_or_404(FilingParty, draft=draft, pk=request.GET.get("party"))
+    party = get_object_or_404(FilingParty, draft=draft, role="other", pk=request.GET.get("party"))
     party_types = get_party_types(draft)
+    party_type_names = {item["code"]: item["name"] for item in party_types}
 
     if request.method == "POST":
         party_kind = request.POST.get("party_kind", "person")
         party_type = request.POST.get("party_type", "").strip()
+        if party_type and party_type not in party_type_names:
+            party_type = ""
         first_name = request.POST.get("first_name", "").strip()
         last_name = request.POST.get("last_name", "").strip()
         organization_name = request.POST.get("organization_name", "").strip()
@@ -41,9 +44,8 @@ def party_details(request, jurisdiction):
         if not party_type or not has_name or not all(required_address.values()):
             messages.error(request, "Complete the party role, name, and mailing address.")
         else:
-            names = {item["code"]: item["name"] for item in party_types}
             party.party_type = party_type
-            party.party_type_name = names.get(party_type, party.party_type_name)
+            party.party_type_name = party_type_names.get(party_type, party.party_type_name)
             party.organization_name = organization_name if party_kind == "organization" else ""
             party.first_name = first_name if party_kind == "person" else ""
             party.middle_name = request.POST.get("middle_name", "").strip() if party_kind == "person" else ""

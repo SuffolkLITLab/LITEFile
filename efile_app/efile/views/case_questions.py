@@ -27,7 +27,12 @@ def case_questions(request, jurisdiction):
         return redirect(get_step_url(WorkflowStepKey.PAYMENT, jurisdiction))
 
     for question in questions:
-        question["value"] = (draft.supplemental_fields or {}).get(question["name"], "")
+        raw_value = (draft.supplemental_fields or {}).get(question["name"], "")
+        if question["type"] == "radio":
+            raw_value = "" if raw_value in (None, "") else str(raw_value).lower()
+        elif raw_value is None:
+            raw_value = ""
+        question["value"] = raw_value
 
     if request.method == "POST":
         answers = {}

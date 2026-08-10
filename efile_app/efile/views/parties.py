@@ -7,7 +7,13 @@ from efile.api.suffolk_api_views import get_tyler_token
 from efile.models import FilingParty
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.drafts import draft_snapshot
-from efile.services.people import ensure_required_parties, get_case_questions, get_party_types, incomplete_parties
+from efile.services.people import (
+    ensure_required_parties,
+    get_case_questions,
+    get_party_types,
+    incomplete_parties,
+    party_is_complete,
+)
 from efile.workflow import WorkflowStepKey, get_step_url, get_workflow_context
 
 
@@ -56,7 +62,7 @@ def parties(request, jurisdiction):
             return redirect("parties", jurisdiction=jurisdiction)
 
         filer_type = request.POST.get("filer_party_type", "").strip()
-        if not filer_type:
+        if not filer_type or filer_type not in party_type_names:
             messages.error(request, "Choose your role in this case.")
         else:
             filer.party_type = filer_type
@@ -79,11 +85,7 @@ def parties(request, jurisdiction):
             return redirect(get_step_url(draft.current_step, jurisdiction))
 
     roster = [
-        {
-            "party": party,
-            "complete": bool(party.party_type and (party.organization_name or (party.first_name and party.last_name))),
-        }
-        for party in FilingParty.objects.filter(draft=draft)
+        {"party": party, "complete": party_is_complete(party)} for party in FilingParty.objects.filter(draft=draft)
     ]
     context = {
         "is_logged_in": True,
