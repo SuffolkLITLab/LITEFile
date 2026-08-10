@@ -17,7 +17,11 @@
             <div class="case-summary__primary">
                 <dt>{% translate "Case name" %}</dt>
                 <dd>
-                    {{ case.case_title|default:"Case title not available" }}
+                    {% if case.case_title %}
+                        {{ case.case_title }}
+                    {% else %}
+                        {% translate "Case title not available" %}
+                    {% endif %}
                 </dd>
             </div>
             <div>
@@ -35,13 +39,25 @@
             <div>
                 <dt>{% translate "Case category" %}</dt>
                 <dd>
-                    {{ case.case_category_name|default:case.case_category_code|default:"Not available" }}
+                    {% if case.case_category_name %}
+                        {{ case.case_category_name }}
+                    {% elif case.case_category_code %}
+                        {{ case.case_category_code }}
+                    {% else %}
+                        {% translate "Not available" %}
+                    {% endif %}
                 </dd>
             </div>
             <div>
                 <dt>{% translate "Case type" %}</dt>
                 <dd>
-                    {{ case.case_type_name|default:case.case_type_code|default:"Not available" }}
+                    {% if case.case_type_name %}
+                        {{ case.case_type_name }}
+                    {% elif case.case_type_code %}
+                        {{ case.case_type_code }}
+                    {% else %}
+                        {% translate "Not available" %}
+                    {% endif %}
                 </dd>
             </div>
         </dl>
