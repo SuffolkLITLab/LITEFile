@@ -516,6 +516,158 @@
     margin: 0.25rem 0 0;
 }
 
+.checklist-guidance {
+    align-items: flex-start;
+    background: #eef5ff;
+    border-left: 4px solid #3974ba;
+    border-radius: 8px;
+    color: #294565;
+    display: flex;
+    gap: 0.8rem;
+    margin: 1.5rem 0;
+    padding: 1rem;
+}
+
+.checklist-guidance i {
+    color: #3974ba;
+    margin-top: 0.2rem;
+}
+
+.checklist-guidance p {
+    margin: 0.2rem 0 0;
+}
+
+.checklist-files {
+    border: 1px solid #dce3ec;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.checklist-file {
+    align-items: center;
+    display: grid;
+    gap: 0.8rem;
+    grid-template-columns: auto auto 1fr auto;
+    padding: 0.9rem 1rem;
+}
+
+.checklist-file+.checklist-file {
+    border-top: 1px solid #e4e9f0;
+}
+
+.checklist-file__check {
+    align-items: center;
+    background: #e2f5e9;
+    border-radius: 50%;
+    color: #18733d;
+    display: flex;
+    font-size: 0.7rem;
+    height: 24px;
+    justify-content: center;
+    width: 24px;
+}
+
+.checklist-file__icon {
+    color: #b23b3b;
+    font-size: 1.35rem;
+}
+
+.checklist-file small,
+.checklist-confirmation small {
+    color: #6e7b8f;
+    display: block;
+}
+
+.add-missing-toggle {
+    background: none;
+    border: 0;
+    color: #2c5aa0;
+    font-weight: 700;
+    margin: 1rem 0;
+    padding: 0.4rem 0;
+}
+
+.missing-document-state {
+    background: #f7f9fc;
+    border: 1px dashed #bac7d6;
+    border-radius: 10px;
+    margin-bottom: 1.2rem;
+    padding: 1.2rem;
+}
+
+.checklist-confirmation {
+    align-items: flex-start;
+    background: #fffaf0;
+    border: 1px solid #ead8ad;
+    border-radius: 10px;
+    display: flex;
+    gap: 0.8rem;
+    margin-top: 1.5rem;
+    padding: 1rem;
+}
+
+.organize-list {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.organize-card {
+    border: 1px solid #dce3ec;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.organize-card__header {
+    align-items: center;
+    background: #f6f9fd;
+    display: grid;
+    gap: 0.8rem;
+    grid-template-columns: auto 1fr auto;
+    padding: 0.9rem 1rem;
+}
+
+.organize-card__icon {
+    color: #b23b3b;
+    font-size: 1.4rem;
+}
+
+.organize-card__header strong,
+.organize-card__position {
+    display: block;
+}
+
+.organize-card__position {
+    color: #66758a;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+.organize-card__fields {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 1rem;
+}
+
+.reorder-buttons {
+    display: flex;
+    gap: 0.35rem;
+}
+
+.certified-copy-details {
+    border-top: 1px solid #e3e8ef;
+    padding: 0.8rem 1rem 1rem;
+}
+
+.certified-copy-details summary {
+    color: #38567a;
+    cursor: pointer;
+    font-weight: 700;
+}
+
 @media (max-width: 700px) {
     .review-grid {
         grid-template-columns: 1fr;
@@ -540,5 +692,17 @@
 
     .status-pill {
         grid-column: 2;
+    }
+
+    .checklist-file {
+        grid-template-columns: auto auto 1fr;
+    }
+
+    .checklist-file .status-pill {
+        grid-column: 3;
+    }
+
+    .organize-card__fields {
+        grid-template-columns: 1fr;
     }
 }

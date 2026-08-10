@@ -54,9 +54,9 @@ def test_upload_documents_persists_lead_supporting_and_guesses(client, reorganiz
     supporting = SimpleUploadedFile("exhibit.pdf", b"%PDF exhibit", content_type="application/pdf")
 
     with (
-        patch("efile.views.upload_documents.S3UploadHandler", return_value=handler),
+        patch("efile.services.document_uploads.S3UploadHandler", return_value=handler),
         patch(
-            "efile.views.upload_documents._analyze_lead",
+            "efile.services.document_uploads._analyze_lead",
             return_value={"court name": "Cook County", "case type": "Name Change"},
         ),
     ):
@@ -153,8 +153,8 @@ def test_extraction_review_requires_a_case_path(client, reorganized_draft):
 
 
 @pytest.mark.django_db
-def test_unmigrated_downstream_screen_bridges_to_legacy_flow(client, reorganized_draft):
-    response = client.get(reverse("document_checklist", kwargs={"jurisdiction": "illinois"}))
+def test_unmigrated_people_screen_bridges_to_legacy_flow(client, reorganized_draft):
+    response = client.get(reverse("your_information", kwargs={"jurisdiction": "illinois"}))
 
     reorganized_draft.refresh_from_db()
     assert response.status_code == 302

@@ -504,6 +504,7 @@ def draft_snapshot(draft: FilingDraft | None) -> dict[str, Any] | None:
         "selected_payment_account_name": draft.selected_payment_account_name,
         "optional_services": draft.optional_services,
         "extracted_guesses": draft.extracted_guesses,
+        "document_checklist_acknowledged": draft.document_checklist_acknowledged,
         "supplemental_fields": draft.supplemental_fields,
         "document_count": FilingDocument.objects.filter(draft=draft).count(),
         "party_count": FilingParty.objects.filter(draft=draft).count(),

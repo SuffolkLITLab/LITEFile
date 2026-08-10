@@ -1,0 +1,98 @@
+{% extends "efile/workflow_base.html" %}
+{% load static %}
+{% load i18n %}
+{% block title %}
+    {% translate "Check your documents" %}
+{% endblock title %}
+{% block workflow_content %}
+    <section class="workflow-card">
+        <div class="workflow-eyebrow">{% translate "Check documents" %}</div>
+        <h1>{% translate "Do you have all your documents?" %}</h1>
+        <p class="workflow-lede">
+            {% translate "Review the files below. Add anything else you want the court to receive with this filing." %}
+        </p>
+        <div class="checklist-guidance" role="note">
+            <i class="fa-solid fa-circle-info"></i>
+            <div>
+                <strong>{% translate "Before you continue" %}</strong>
+                <p>
+                    {% translate "Include every completed court form, exhibit, translation, or proposed order that belongs with this filing. This list cannot determine which legal forms your case requires." %}
+                </p>
+            </div>
+        </div>
+        <div class="checklist-files">
+            {% for document in documents %}
+                <article class="checklist-file">
+                    <span class="checklist-file__check"><i class="fa-solid fa-check"></i></span>
+                    <span class="checklist-file__icon"><i class="fa-solid fa-file-pdf"></i></span>
+                    <span>
+                        <strong>{{ document.name|default:document.original_filename }}</strong>
+                        <small>
+                            {% if document.role == "lead" %}
+                                {% translate "Main court form" %}
+                            {% else %}
+                                {% translate "Additional document" %}
+                            {% endif %}
+                        </small>
+                    </span>
+                    <span class="status-pill status-pill--ready">{% translate "Added" %}</span>
+                </article>
+            {% endfor %}
+        </div>
+        <button class="add-missing-toggle"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#missing-document-state"
+                aria-expanded="false">
+            <i class="fa-solid fa-plus"></i> {% translate "Add a missing document" %}
+        </button>
+        <div class="collapse missing-document-state" id="missing-document-state">
+            <form id="checklist-upload-form" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="upload" />
+                <label for="checklist-documents" class="form-label">
+                    <strong>{% translate "Choose one or more PDFs" %}</strong>
+                </label>
+                <input class="form-control"
+                       id="checklist-documents"
+                       type="file"
+                       name="documents"
+                       accept=".pdf,application/pdf"
+                       multiple
+                       required />
+                <div class="upload-state"
+                     id="checklist-upload-state"
+                     hidden
+                     aria-live="polite">
+                    <div class="spinner-border spinner-border-sm" aria-hidden="true"></div>
+                    <strong>{% translate "Adding your documents…" %}</strong>
+                    <span>{% translate "Keep this page open." %}</span>
+                </div>
+                <div class="alert alert-danger mt-3" id="checklist-upload-error" hidden></div>
+                <button class="btn btn-outline-primary mt-3" type="submit">{% translate "Add documents" %}</button>
+            </form>
+        </div>
+        <form method="post" id="checklist-confirm-form">
+            {% csrf_token %}
+            <label class="checklist-confirmation">
+                <input class="form-check-input"
+                       type="checkbox"
+                       name="documents_complete"
+                       value="yes"
+                       {% if filing_draft.document_checklist_acknowledged %}checked{% endif %}
+                       required />
+                <span><strong>{% translate "I have added all the documents I want to file." %}</strong><small>{% translate "I understand that I can go back and add another PDF before submission." %}</small></span>
+            </label>
+            <div class="workflow-actions">
+                <a class="btn btn-outline-secondary"
+                   href="{% url 'extraction_review' jurisdiction %}"><i class="fa-solid fa-arrow-left"></i> {% translate "Back" %}</a>
+                <button class="btn btn-primary" type="submit">
+                    {% translate "Continue to organize" %} <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </form>
+    </section>
+{% endblock workflow_content %}
+{% block extra_js %}
+    <script src="{% static 'js/document-checklist.js' %}"></script>
+{% endblock extra_js %}

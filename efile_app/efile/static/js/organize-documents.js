@@ -1,0 +1,201 @@
+(function() {
+    const form = document.getElementById("organize-documents-form");
+    const contextElement = document.getElementById("organize-context");
+    if (!form || !contextElement) return;
+
+    const context = JSON.parse(contextElement.textContent);
+    const list = document.getElementById("organize-list");
+    const errorBox = document.getElementById("organize-error");
+    const cards = () => Array.from(list.querySelectorAll(".organize-card"));
+    let filingTypes = null;
+
+    function optionValue(item) {
+        return String(item.value || item.code || item.id || "");
+    }
+
+    function optionText(item) {
+        return item.text || item.name || item.description || optionValue(item);
+    }
+
+    function setOptions(select, options, savedValue, placeholder) {
+        select.innerHTML = "";
+        if (!options.length) {
+            const option = new Option(placeholder, "");
+            select.add(option);
+            select.disabled = true;
+            return;
+        }
+        select.add(new Option(placeholder, ""));
+        options.forEach((item) => select.add(new Option(optionText(item), optionValue(item))));
+        select.value = savedValue || "";
+        select.disabled = false;
+    }
+
+    async function getJson(url) {
+        const response = await fetch(url, {
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": apiUtils.getCSRFToken(),
+            },
+        });
+        const result = await response.json();
+        if (!response.ok || !result.success) {
+            throw new Error(result.error || "The court's document choices could not be loaded.");
+        }
+        return result.data || [];
+    }
+
+    async function loadFilingTypes() {
+        if (filingTypes) return filingTypes;
+        const params = new URLSearchParams({
+            jurisdiction: context.jurisdiction,
+            court: context.court,
+            case_category: context.case_category,
+            case_type: context.case_type,
+            existing_case: context.existing_case,
+            guessed_filing_type: context.guessed_filing_type || "",
+        });
+        filingTypes = await getJson(`/api/dropdowns/filing-types/?${params}`);
+        return filingTypes;
+    }
+
+    async function loadDependentOptions(card, filingType) {
+        const documentType = card.querySelector(".document-type");
+        const component = card.querySelector(".filing-component");
+        if (!filingType) {
+            setOptions(documentType, [], "", "Select a filing type first");
+            setOptions(component, [], "", "Select a filing type first");
+            return;
+        }
+
+        documentType.disabled = true;
+        component.disabled = true;
+        const documentParams = new URLSearchParams({
+            jurisdiction: context.jurisdiction,
+            court: context.court,
+            parent: filingType,
+        });
+        const componentParams = new URLSearchParams({
+            jurisdiction: context.jurisdiction,
+            court: context.court,
+            filing_type: filingType,
+        });
+        const [documentTypes, components] = await Promise.all([
+            getJson(`/api/dropdowns/document-types/?${documentParams}`),
+            getJson(`/api/get-filing-components/?${componentParams}`),
+        ]);
+        setOptions(documentType, documentTypes, card.dataset.documentType, "Choose public or confidential");
+
+        let savedComponent = card.dataset.filingComponent;
+        if (!savedComponent && components.length) {
+            const preferredWord = card.dataset.role === "lead" ? "lead" : "attachment";
+            const preferred = components.find((item) => optionText(item).toLowerCase().includes(preferredWord));
+            savedComponent = optionValue(preferred || components[0]);
+        }
+        setOptions(component, components, savedComponent, "Choose a document role");
+    }
+
+    async function initializeCard(card) {
+        const filingType = card.querySelector(".filing-type");
+        setOptions(filingType, await loadFilingTypes(), card.dataset.filingType, "Choose a filing type");
+        filingType.addEventListener("change", async () => {
+            card.dataset.documentType = "";
+            card.dataset.filingComponent = "";
+            try {
+                await loadDependentOptions(card, filingType.value);
+            } catch (error) {
+                showError(error.message);
+            }
+        });
+        await loadDependentOptions(card, filingType.value);
+
+        const checkbox = card.querySelector(".certified-copy");
+        const emailWrap = card.querySelector(".courtesy-email-wrap");
+        const email = card.querySelector(".courtesy-email");
+        checkbox.addEventListener("change", () => {
+            emailWrap.hidden = !checkbox.checked;
+            email.required = checkbox.checked;
+            if (!checkbox.checked) email.value = "";
+        });
+        email.required = checkbox.checked;
+    }
+
+    function updatePositions() {
+        const supporting = cards().filter((card) => card.dataset.role === "supporting");
+        supporting.forEach((card, index) => {
+            card.querySelector(".organize-card__position").textContent = `Additional document ${index + 1}`;
+            card.querySelector(".move-up").disabled = index === 0;
+            card.querySelector(".move-down").disabled = index === supporting.length - 1;
+        });
+    }
+
+    list.addEventListener("click", (event) => {
+        const button = event.target.closest(".move-up, .move-down");
+        if (!button) return;
+        const card = button.closest(".organize-card");
+        const supporting = cards().filter((item) => item.dataset.role === "supporting");
+        const index = supporting.indexOf(card);
+        if (button.classList.contains("move-up") && index > 0) {
+            list.insertBefore(card, supporting[index - 1]);
+        } else if (button.classList.contains("move-down") && index < supporting.length - 1) {
+            supporting[index + 1].after(card);
+        }
+        updatePositions();
+    });
+
+    function showError(message) {
+        errorBox.textContent = message;
+        errorBox.hidden = false;
+        errorBox.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+        });
+    }
+
+    form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        errorBox.hidden = true;
+        if (!form.reportValidity()) return;
+        const button = document.getElementById("save-document-details");
+        button.disabled = true;
+        const documents = cards().map((card) => {
+            const filingType = card.querySelector(".filing-type");
+            const documentType = card.querySelector(".document-type");
+            const component = card.querySelector(".filing-component");
+            const courtesyEmail = card.querySelector(".certified-copy").checked ?
+                card.querySelector(".courtesy-email").value : "";
+            return {
+                id: Number(card.dataset.documentId),
+                name: card.querySelector(".document-name").value,
+                filing_type: filingType.value,
+                filing_type_name: filingType.selectedOptions[0]?.text || "",
+                document_type: documentType.value,
+                document_type_name: documentType.selectedOptions[0]?.text || "",
+                filing_component: component.value,
+                filing_component_name: component.selectedOptions[0]?.text || "",
+                courtesy_copy_email: courtesyEmail,
+            };
+        });
+
+        try {
+            const response = await fetch(window.location.href, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": apiUtils.getCSRFToken(),
+                },
+                body: JSON.stringify({
+                    documents
+                }),
+            });
+            const result = await response.json();
+            if (!response.ok || !result.success) throw new Error(result.error || "Could not save document details.");
+            window.location.assign(result.redirect_url);
+        } catch (error) {
+            showError(error.message);
+            button.disabled = false;
+        }
+    });
+
+    Promise.all(cards().map(initializeCard)).then(updatePositions).catch((error) => showError(error.message));
+})();

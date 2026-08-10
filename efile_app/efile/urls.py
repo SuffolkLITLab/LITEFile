@@ -7,6 +7,7 @@ from .views.case_confirmation import case_confirmation
 from .views.case_lookup import case_lookup
 from .views.choose_jurisdiction import choose_jurisdiction
 from .views.confirmation import filing_confirmation
+from .views.document_checklist import document_checklist
 from .views.draft_views import create_draft_view, get_current_draft_view
 from .views.expert_form import efile_expert_form
 from .views.extraction_review import extraction_review
@@ -15,6 +16,7 @@ from .views.filing_statuses import filing_statuses
 from .views.legacy_workflow import legacy_workflow_redirect
 from .views.login import efile_login, efile_logout, efile_password_reset
 from .views.options import efile_options
+from .views.organize_documents import organize_documents
 from .views.payment import efile_payment
 from .views.register import efile_register
 from .views.review import case_review
@@ -57,18 +59,8 @@ urlpatterns = [
     path("jurisdiction/<jurisdiction>/extraction-review/", extraction_review, name="extraction_review"),
     path("jurisdiction/<jurisdiction>/case-lookup/", case_lookup, name="case_lookup"),
     path("jurisdiction/<jurisdiction>/case-confirmation/", case_confirmation, name="case_confirmation"),
-    path(
-        "jurisdiction/<jurisdiction>/document-checklist/",
-        legacy_workflow_redirect,
-        {"destination": "document_checklist"},
-        name="document_checklist",
-    ),
-    path(
-        "jurisdiction/<jurisdiction>/organize-documents/",
-        legacy_workflow_redirect,
-        {"destination": "organize_documents"},
-        name="organize_documents",
-    ),
+    path("jurisdiction/<jurisdiction>/document-checklist/", document_checklist, name="document_checklist"),
+    path("jurisdiction/<jurisdiction>/organize-documents/", organize_documents, name="organize_documents"),
     path(
         "jurisdiction/<jurisdiction>/your-information/",
         legacy_workflow_redirect,
