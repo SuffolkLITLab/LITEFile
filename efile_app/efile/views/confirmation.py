@@ -10,12 +10,16 @@ LAST_SUBMITTED_DRAFT_SESSION_KEY = "last_submitted_filing_draft_id"
 
 
 def _confirmation_number(response):
-    if not isinstance(response, dict):
+    if isinstance(response, dict):
+        for key in ("confirmation_number", "confirmationNumber", "filing_id", "filingId", "id"):
+            if response.get(key):
+                return str(response[key])
+        values = response.values()
+    elif isinstance(response, list):
+        values = response
+    else:
         return ""
-    for key in ("confirmation_number", "confirmationNumber", "filing_id", "filingId", "id"):
-        if response.get(key):
-            return str(response[key])
-    for value in response.values():
+    for value in values:
         found = _confirmation_number(value)
         if found:
             return found

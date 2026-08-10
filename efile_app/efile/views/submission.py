@@ -10,6 +10,7 @@ from efile.models import FilingDraft
 from efile.services.current_drafts import clear_current_draft, get_current_draft
 from efile.services.submission_errors import PRE_SUBMIT_ERROR_CODES
 
+from .confirmation import LAST_SUBMITTED_DRAFT_SESSION_KEY
 from .session_api import submit_final_filing as legacy_submit_final_filing
 
 logger = logging.getLogger(__name__)
@@ -90,7 +91,7 @@ def submit_final_filing(request):
 
     if response.status_code < 400 and payload.get("success") is True:
         draft.mark_submitted(payload.get("api_response") or {})
-        request.session["last_submitted_filing_draft_id"] = draft.pk
+        request.session[LAST_SUBMITTED_DRAFT_SESSION_KEY] = draft.pk
         request.session.modified = True
         clear_current_draft(request)
     elif _failed_before_external_call(payload) or _confirmed_api_rejection(payload):

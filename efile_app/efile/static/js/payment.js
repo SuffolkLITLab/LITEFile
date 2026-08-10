@@ -56,39 +56,24 @@ const PaymentPage = {
 
         const saved = paymentJSON("selected-payment-account-id");
         const waiverCount = accounts.filter((account) => account.paymentAccountTypeCode === "WV").length;
-        container.innerHTML = `<div class="compact-choice-list">${accounts.map((account, index) => {
+        const rows = accounts.map((account, index) => {
             let label = `${account.cardType?.value || gettext("Card")} ${gettext("ending in")} ${account.cardLast4 || "****"}`;
             if (account.paymentAccountTypeCode === "WV") {
                 label = waiverCount > 1 ? `${gettext("Payment waiver")}: ${account.accountName}` : gettext("Payment waiver");
             }
             const checked = saved ? String(saved) === String(account.paymentAccountID) : index === 0;
-            return ` < label > < input class = "form-check-input"
-        type = "radio"
-        name = "paymentMethod"
-        value = "${escapeAttribute(account.paymentAccountID)}"
-        data - name = "${escapeAttribute(label)}"
-        $ {
-            checked ? "checked" : ""
-        }
-        /> <
-        span > < strong > $ {
-            escapeHTML(label)
-        } < /strong></span > < /label>`;
-    }).join("")
-} < /div> <
-button type = "button"
-class = "btn btn-link ps-0 mt-2"
-id = "add-payment-method" > +$ {
-    gettext("Add another payment method")
-} < /button>`;
-container.querySelectorAll('input[name="paymentMethod"]').forEach((input) => {
-    input.addEventListener("change", () => this.selectAndQuote());
-});
-document.getElementById("add-payment-method").addEventListener("click", () => this.addAccount());
-await this.selectAndQuote();
-},
+            return `<label><input class="form-check-input" type="radio" name="paymentMethod" value="${escapeAttribute(account.paymentAccountID)}" data-name="${escapeAttribute(label)}" ${checked ? "checked" : ""}/> <span><strong>${escapeHTML(label)}</strong></span></label>`;
+        }).join("");
+        container.innerHTML = `<div class="compact-choice-list">${rows}</div>
+        <button type="button" class="btn btn-link ps-0 mt-2" id="add-payment-method">+ ${gettext("Add another payment method")}</button>`;
+        container.querySelectorAll('input[name="paymentMethod"]').forEach((input) => {
+            input.addEventListener("change", () => this.selectAndQuote());
+        });
+        document.getElementById("add-payment-method").addEventListener("click", () => this.addAccount());
+        await this.selectAndQuote();
+    },
 
-async selectAndQuote() {
+    async selectAndQuote() {
         const selected = document.querySelector('input[name="paymentMethod"]:checked');
         if (!selected) return;
         document.getElementById("selected-payment-account").value = selected.value;
@@ -115,42 +100,42 @@ async selectAndQuote() {
     },
 
     async addAccount() {
-            const authData = await apiUtils.fetchJSON(PAYMENT_URLS.token, "GET", {
-                jurisdiction: apiUtils.getCurrentJurisdiction()
-            });
-            if (!authData?.success || !authData.data?.tyler_token) {
-                paymentMessages.showError(gettext("Authentication failed. Please sign in again."));
-                return;
-            }
-            const jurisdiction = authData.data.state || apiUtils.getCurrentJurisdiction();
-            const form = document.createElement("form");
-            form.method = "post";
-            form.action = paymentJSON("new-toga-url");
-            const fields = {
-                account_name: `Payment account made on ${new Date().toDateString()}`,
-                global: "false",
-                type_code: "CC",
-                tyler_info: authData.data.tyler_token,
-                original_url: `${window.location.origin}/jurisdiction/${jurisdiction}/payment/?payment_status=success`,
-                error_url: `${window.location.origin}/jurisdiction/${jurisdiction}/payment/?payment_status=failure`
-            };
-            Object.entries(fields).forEach(([name, value]) => {
-                const input = document.createElement("input");
-                input.type = "hidden";
-                input.name = name;
-                input.value = value;
-                form.appendChild(input);
-            });
-            document.body.appendChild(form);
-            form.submit();
-        },
-
-        init() {
-            const status = new URLSearchParams(window.location.search).get("payment_status");
-            if (status === "failure") paymentMessages.showError(gettext("The payment method was not added."));
-            if (status === "success") paymentMessages.showSuccess(gettext("Payment method added."));
-            this.loadAccounts().catch(() => paymentMessages.showError(gettext("We could not load payment methods.")));
+        const authData = await apiUtils.fetchJSON(PAYMENT_URLS.token, "GET", {
+            jurisdiction: apiUtils.getCurrentJurisdiction()
+        });
+        if (!authData?.success || !authData.data?.tyler_token) {
+            paymentMessages.showError(gettext("Authentication failed. Please sign in again."));
+            return;
         }
+        const jurisdiction = authData.data.state || apiUtils.getCurrentJurisdiction();
+        const form = document.createElement("form");
+        form.method = "post";
+        form.action = paymentJSON("new-toga-url");
+        const fields = {
+            account_name: `Payment account made on ${new Date().toDateString()}`,
+            global: "false",
+            type_code: "CC",
+            tyler_info: authData.data.tyler_token,
+            original_url: `${window.location.origin}/jurisdiction/${jurisdiction}/payment/?payment_status=success`,
+            error_url: `${window.location.origin}/jurisdiction/${jurisdiction}/payment/?payment_status=failure`
+        };
+        Object.entries(fields).forEach(([name, value]) => {
+            const input = document.createElement("input");
+            input.type = "hidden";
+            input.name = name;
+            input.value = value;
+            form.appendChild(input);
+        });
+        document.body.appendChild(form);
+        form.submit();
+    },
+
+    init() {
+        const status = new URLSearchParams(window.location.search).get("payment_status");
+        if (status === "failure") paymentMessages.showError(gettext("The payment method was not added."));
+        if (status === "success") paymentMessages.showSuccess(gettext("Payment method added."));
+        this.loadAccounts().catch(() => paymentMessages.showError(gettext("We could not load payment methods.")));
+    }
 };
 
 Object.assign(PaymentPage, FilingPayload);
