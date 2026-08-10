@@ -43,7 +43,7 @@
         stateDetail.textContent = "Keep this page open.";
 
         const analyzingTimer = window.setTimeout(() => {
-            stateTitle.textContent = "Analyzing your lead document…";
+            stateTitle.textContent = "Analyzing your first PDF…";
             stateDetail.textContent = "We're looking for the court, case type, and case number.";
         }, 900);
 

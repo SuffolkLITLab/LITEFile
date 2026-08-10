@@ -9,7 +9,7 @@
         <div class="workflow-eyebrow">{% translate "Upload" %}</div>
         <h1>{% translate "Upload your court documents" %}</h1>
         <p class="workflow-lede">
-            {% translate "Add the forms and other documents you want to file. The first PDF will be your lead document." %}
+            {% translate "Add the forms and other documents you want to file. We will analyze the first PDF, and you can choose the main document later." %}
         </p>
         <div class="requirements-strip">
             <span><i class="fa-solid fa-file-pdf"></i> {% translate "PDF only" %}</span>
@@ -52,7 +52,7 @@
                             <strong>{{ document.name|default:document.original_filename }}</strong>
                             <small>
                                 {% if document.role == "lead" %}
-                                    {% translate "Lead document" %}
+                                    {% translate "Analyzed first" %}
                                 {% else %}
                                     {% translate "Supporting document" %}
                                 {% endif %}
