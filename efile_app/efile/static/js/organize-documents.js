@@ -226,6 +226,10 @@
                     main_document_id: Number(form.elements.namedItem("main_document").value),
                 }),
             });
+            if (response.redirected) {
+                window.location.assign(response.url);
+                return;
+            }
             const result = await response.json();
             if (!response.ok || !result.success) throw new Error(result.error || "Could not save document details.");
             window.location.assign(result.redirect_url);

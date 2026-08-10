@@ -18,6 +18,10 @@
                     "X-CSRFToken": apiUtils.getCSRFToken()
                 },
             });
+            if (response.redirected) {
+                window.location.assign(response.url);
+                return;
+            }
             const result = await response.json();
             if (!response.ok || !result.success) throw new Error(result.error || "Could not add documents.");
             window.location.reload();

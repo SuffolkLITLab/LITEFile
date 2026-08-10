@@ -1,6 +1,8 @@
 import json
 
 from django.contrib import messages
+from django.core.exceptions import ValidationError
+from django.core.validators import EmailValidator
 from django.db import transaction
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
@@ -44,7 +46,13 @@ def _save_document_details(draft, document_details, main_document_id):
         document.document_type_name = str(item.get("document_type_name") or "")[:255]
         document.filing_component_code = str(item.get("filing_component") or "")[:100]
         document.filing_component_name = str(item.get("filing_component_name") or "")[:255]
-        document.courtesy_copy_email = str(item.get("courtesy_copy_email") or "")[:254]
+        courtesy_copy_email = str(item.get("courtesy_copy_email") or "").strip()[:254]
+        if courtesy_copy_email:
+            try:
+                EmailValidator()(courtesy_copy_email)
+            except ValidationError as error:
+                raise ValueError(f"Enter a valid courtesy copy email address for {document.name}.") from error
+        document.courtesy_copy_email = courtesy_copy_email
         if document.pk == main_document_id:
             document.sort_order = 0
         else:
