@@ -150,13 +150,3 @@ def test_extraction_review_requires_a_case_path(client, reorganized_draft):
 
     assert response.status_code == 200
     assert b"Choose whether this is a new or existing court case" in response.content
-
-
-@pytest.mark.django_db
-def test_unmigrated_people_screen_bridges_to_legacy_flow(client, reorganized_draft):
-    response = client.get(reverse("your_information", kwargs={"jurisdiction": "illinois"}))
-
-    reorganized_draft.refresh_from_db()
-    assert response.status_code == 302
-    assert response.url == reverse("expert_form", kwargs={"jurisdiction": "illinois"})
-    assert reorganized_draft.workflow_version == 1

@@ -1,0 +1,127 @@
+{% extends "efile/workflow_base.html" %}
+{% load static %}
+{% load i18n %}
+{% block title %}
+    {% translate "Your information" %}
+{% endblock title %}
+{% block workflow_content %}
+    <section class="workflow-card">
+        <div class="workflow-eyebrow">{% translate "People" %}</div>
+        <h1>{% translate "Your information" %}</h1>
+        <p class="workflow-lede">
+            {% translate "Confirm how the court can contact you. We filled in what we could from your eFile account." %}
+        </p>
+        <form method="post" id="your-information-form">
+            {% csrf_token %}
+            <div class="people-section">
+                <h2>{% translate "Name" %}</h2>
+                <div class="people-grid people-grid--name">
+                    <label class="form-field">
+                        <span>{% translate "First name" %}</span>
+                        <input class="form-control"
+                               name="first_name"
+                               value="{{ filer.first_name }}"
+                               autocomplete="given-name"
+                               required />
+                    </label>
+                    <label class="form-field">
+                        <span>{% translate "Middle name" %} <em>{% translate "Optional" %}</em></span>
+                        <input class="form-control"
+                               name="middle_name"
+                               value="{{ filer.middle_name }}"
+                               autocomplete="additional-name" />
+                    </label>
+                    <label class="form-field">
+                        <span>{% translate "Last name" %}</span>
+                        <input class="form-control"
+                               name="last_name"
+                               value="{{ filer.last_name }}"
+                               autocomplete="family-name"
+                               required />
+                    </label>
+                    <label class="form-field">
+                        <span>{% translate "Suffix" %} <em>{% translate "Optional" %}</em></span>
+                        <input class="form-control" name="suffix" value="{{ filer.suffix }}" />
+                    </label>
+                </div>
+            </div>
+            <div class="people-section">
+                <h2>{% translate "Mailing address" %}</h2>
+                <div class="people-grid">
+                    <label class="form-field people-grid__wide">
+                        <span>{% translate "Street address" %}</span>
+                        <input class="form-control"
+                               name="address_line_1"
+                               value="{{ filer.address_line_1 }}"
+                               autocomplete="address-line1"
+                               required />
+                    </label>
+                    <label class="form-field people-grid__wide">
+                        <span>{% translate "Apartment, unit, or suite" %} <em>{% translate "Optional" %}</em></span>
+                        <input class="form-control"
+                               name="address_line_2"
+                               value="{{ filer.address_line_2 }}"
+                               autocomplete="address-line2" />
+                    </label>
+                    <label class="form-field">
+                        <span>{% translate "City" %}</span>
+                        <input class="form-control"
+                               name="city"
+                               value="{{ filer.city }}"
+                               autocomplete="address-level2"
+                               required />
+                    </label>
+                    <label class="form-field">
+                        <span>{% translate "State" %}</span>
+                        <input class="form-control"
+                               name="state"
+                               value="{{ filer.state|default:'IL' }}"
+                               maxlength="2"
+                               autocomplete="address-level1"
+                               required />
+                    </label>
+                    <label class="form-field">
+                        <span>{% translate "ZIP code" %}</span>
+                        <input class="form-control"
+                               name="zip_code"
+                               value="{{ filer.zip_code }}"
+                               autocomplete="postal-code"
+                               required />
+                    </label>
+                </div>
+            </div>
+            <div class="people-section">
+                <h2>{% translate "Contact information" %}</h2>
+                <div class="people-grid">
+                    <label class="form-field">
+                        <span>{% translate "Email" %}</span>
+                        <input class="form-control"
+                               type="email"
+                               name="email"
+                               value="{{ filer.email }}"
+                               autocomplete="email"
+                               required />
+                    </label>
+                    <label class="form-field">
+                        <span>{% translate "Phone" %} <em>{% translate "Optional" %}</em></span>
+                        <input class="form-control"
+                               type="tel"
+                               name="phone"
+                               value="{{ filer.phone }}"
+                               autocomplete="tel" />
+                    </label>
+                </div>
+            </div>
+            <div class="workflow-actions">
+                <a class="btn btn-outline-secondary"
+                   href="{% url 'organize_documents' jurisdiction %}"><i class="fa-solid fa-arrow-left"></i> {% translate "Back" %}</a>
+                <button class="btn btn-primary" type="submit">
+                    {% translate "Continue to parties" %} <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </form>
+    </section>
+{% endblock workflow_content %}
+{% block extra_js %}
+    <script src="{% static 'js/your-information.js' %}"></script>
+{% endblock extra_js %}

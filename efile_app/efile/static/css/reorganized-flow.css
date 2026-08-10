@@ -719,6 +719,169 @@
     padding: 0.6rem 0.75rem;
 }
 
+.compact-choice-list--horizontal {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.people-section {
+    border-top: 1px solid #e3e8ef;
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+}
+
+.people-section h2,
+.party-roster h2 {
+    color: #263c58;
+    font-size: 1.05rem;
+    margin-bottom: 1rem;
+}
+
+.people-section h2 em {
+    color: #778397;
+    font-size: 0.8rem;
+    font-style: normal;
+    font-weight: 500;
+}
+
+.people-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.people-grid--name {
+    grid-template-columns: 1fr 1fr 1fr 0.55fr;
+}
+
+.people-grid__wide {
+    grid-column: span 2;
+}
+
+.your-role-card {
+    align-items: end;
+    background: #f6f9fd;
+    border: 1px solid #dce3ec;
+    border-radius: 12px;
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: 0.8fr 1.5fr auto;
+    margin-top: 1.5rem;
+    padding: 1.1rem;
+}
+
+.your-role-card>div,
+.party-row {
+    align-items: center;
+    display: flex;
+    gap: 0.8rem;
+}
+
+.your-role-card small,
+.party-row small {
+    color: #6d798d;
+    display: block;
+}
+
+.party-avatar {
+    align-items: center;
+    background: #dfeaff;
+    border-radius: 50%;
+    color: #285ea8;
+    display: flex;
+    flex: 0 0 auto;
+    height: 44px;
+    justify-content: center;
+    width: 44px;
+}
+
+.party-avatar--small {
+    height: 34px;
+    width: 34px;
+}
+
+.party-roster {
+    margin-top: 2rem;
+}
+
+.party-roster__heading {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+}
+
+.party-roster__heading h2 {
+    margin: 0;
+}
+
+.party-row {
+    border: 1px solid #dce3ec;
+    border-radius: 10px;
+    display: grid;
+    grid-template-columns: auto 1fr auto auto auto;
+    margin-top: 0.75rem;
+    padding: 0.85rem 1rem;
+}
+
+.party-kind {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 1.5rem;
+}
+
+.party-kind legend {
+    color: #263c58;
+    font-size: 0.9rem;
+    font-weight: 700;
+    grid-column: 1 / -1;
+    margin-bottom: 0.5rem;
+    width: 100%;
+}
+
+.party-kind label {
+    background: #f6f9fd;
+    border: 1px solid #dce3ec;
+    border-radius: 8px;
+    padding: 0.7rem 1rem;
+}
+
+.question-list {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.question-card {
+    border: 1px solid #dce3ec;
+    border-radius: 12px;
+    padding: 1.1rem;
+}
+
+.question-card legend {
+    color: #263c58;
+    float: none;
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.8rem;
+    width: auto;
+}
+
+.question-options {
+    display: grid;
+    gap: 0.6rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.question-options label {
+    align-items: center;
+    background: #f6f9fd;
+    border: 1px solid #dce3ec;
+    border-radius: 8px;
+    display: flex;
+    gap: 0.7rem;
+    padding: 0.75rem;
+}
+
 @media (max-width: 700px) {
     .review-grid {
         grid-template-columns: 1fr;
@@ -755,5 +918,19 @@
 
     .organize-card__fields {
         grid-template-columns: 1fr;
+    }
+
+    .people-grid,
+    .people-grid--name,
+    .your-role-card {
+        grid-template-columns: 1fr;
+    }
+
+    .people-grid__wide {
+        grid-column: auto;
+    }
+
+    .party-row {
+        grid-template-columns: auto 1fr auto;
     }
 }

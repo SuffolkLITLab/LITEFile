@@ -171,6 +171,7 @@ class FilingParty(models.Model):
     sort_order = models.PositiveIntegerField(default=0)
 
     party_type = models.CharField(max_length=100, blank=True)
+    party_type_name = models.CharField(max_length=255, blank=True)
     external_party_id = models.CharField(max_length=255, blank=True)
 
     first_name = models.CharField(max_length=100, blank=True)

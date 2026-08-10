@@ -1,0 +1,65 @@
+{% extends "efile/workflow_base.html" %}
+{% load static %}
+{% load i18n %}
+{% block title %}
+    {% translate "Questions about your case" %}
+{% endblock title %}
+{% block workflow_content %}
+    <section class="workflow-card">
+        <div class="workflow-eyebrow">{% translate "People" %}</div>
+        <h1>{% translate "A few questions about your case" %}</h1>
+        <p class="workflow-lede">{% translate "The court needs these answers for the case type you selected." %}</p>
+        <form method="post" id="case-questions-form">
+            {% csrf_token %}
+            <div class="question-list">
+                {% for question in questions %}
+                    <fieldset class="question-card" data-question="{{ question.name }}">
+                        <legend>
+                            {{ question.label }}
+                            {% if question.required %}<span aria-hidden="true">*</span>{% endif %}
+                        </legend>
+                        {% if question.type == "radio" %}
+                            <div class="question-options">
+                                {% for option in question.options %}
+                                    <label>
+                                        <input class="form-check-input"
+                                               type="radio"
+                                               name="{{ question.name }}"
+                                               value="{{ option.value|lower }}"
+                                               {% if question.value == option.value %}checked{% endif %}
+                                               {% if question.required %}required{% endif %} />
+                                        <span>{{ option.label }}</span>
+                                    </label>
+                                {% endfor %}
+                            </div>
+                        {% elif question.type == "number" %}
+                            <input class="form-control"
+                                   type="number"
+                                   name="{{ question.name }}"
+                                   value="{{ question.value }}"
+                                   {% if question.min != None %}min="{{ question.min }}"{% endif %}
+                                   {% if question.max != None %}max="{{ question.max }}"{% endif %}
+                                   {% if question.required %}required{% endif %} />
+                        {% else %}
+                            <input class="form-control"
+                                   type="text"
+                                   name="{{ question.name }}"
+                                   value="{{ question.value }}"
+                                   {% if question.required %}required{% endif %} />
+                        {% endif %}
+                    </fieldset>
+                {% endfor %}
+            </div>
+            <div class="workflow-actions">
+                <a class="btn btn-outline-secondary"
+                   href="{% url 'parties' jurisdiction %}"><i class="fa-solid fa-arrow-left"></i> {% translate "Back" %}</a>
+                <button class="btn btn-primary" type="submit">
+                    {% translate "Continue to fees" %} <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </form>
+    </section>
+{% endblock workflow_content %}
+{% block extra_js %}
+    <script src="{% static 'js/case-questions.js' %}"></script>
+{% endblock extra_js %}

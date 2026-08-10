@@ -277,6 +277,16 @@ def read_case_data(draft: FilingDraft | None) -> dict[str, Any]:
     _put(data, "reason_for_change", draft.name_change_reason)
 
     for party in FilingParty.objects.filter(draft=draft):
+        if party.role == "filer":
+            _put(data, "petitioner_first_name", party.first_name)
+            _put(data, "petitioner_last_name", party.last_name)
+            _put(data, "petitioner_address", party.address_line_1)
+            _put(data, "petitioner_email", party.email)
+            _put(data, "petitioner_phone", party.phone)
+            if party.party_type:
+                for key in _PETITIONER_PARTY_TYPE_KEYS:
+                    _put(data, key, party.party_type)
+            continue
         spec = _PARTY_SPECS.get(party.role)
         if spec is None:
             continue
@@ -285,6 +295,30 @@ def read_case_data(draft: FilingDraft | None) -> dict[str, Any]:
         if party.role == "petitioner" and party.party_type:
             for key in _PETITIONER_PARTY_TYPE_KEYS:
                 _put(data, key, party.party_type)
+
+    filing_parties = [
+        {
+            "id": party.pk,
+            "role": party.role,
+            "party_type": party.party_type,
+            "party_type_name": party.party_type_name,
+            "first_name": party.first_name,
+            "middle_name": party.middle_name,
+            "last_name": party.last_name,
+            "suffix": party.suffix,
+            "organization_name": party.organization_name,
+            "email": party.email,
+            "phone": party.phone,
+            "address_line_1": party.address_line_1,
+            "address_line_2": party.address_line_2,
+            "city": party.city,
+            "state": party.state,
+            "zip_code": party.zip_code,
+            "country": party.country,
+        }
+        for party in FilingParty.objects.filter(draft=draft)
+    ]
+    _put(data, "filing_parties", filing_parties)
 
     # Supplemental answers are emitted as stored (a False/0 answer is meaningful).
     for key, value in (draft.supplemental_fields or {}).items():

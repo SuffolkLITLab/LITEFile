@@ -1,0 +1,163 @@
+{% extends "efile/workflow_base.html" %}
+{% load static %}
+{% load i18n %}
+{% block title %}
+    {% translate "Party details" %}
+{% endblock title %}
+{% block workflow_content %}
+    <section class="workflow-card">
+        <div class="workflow-eyebrow">{% translate "People" %}</div>
+        <h1>
+            {% if party.first_name or party.organization_name %}
+                {% translate "Check this party's details" %}
+            {% else %}
+                {% translate "Add the next party" %}
+            {% endif %}
+        </h1>
+        <p class="workflow-lede">
+            {% translate "Enter this person's or organization's court role, name, and mailing address." %}
+        </p>
+        <form method="post" id="party-details-form">
+            {% csrf_token %}
+            <fieldset class="form-field compact-choice-field">
+                <legend>{% translate "Role in the case" %}</legend>
+                <div class="compact-choice-list compact-choice-list--horizontal">
+                    {% for party_type in party_types %}
+                        <label>
+                            <input class="form-check-input"
+                                   type="radio"
+                                   name="party_type"
+                                   value="{{ party_type.code }}"
+                                   {% if party.party_type == party_type.code %}checked{% endif %}
+                                   required />
+                            <span>{{ party_type.name }}
+                                {% if party_type.required %}
+                                    — {% translate "required" %}
+                                {% endif %}
+                            </span>
+                        </label>
+                    {% endfor %}
+                </div>
+            </fieldset>
+            <fieldset class="party-kind">
+                <legend>{% translate "Is this a person or organization?" %}</legend>
+                <label>
+                    <input class="form-check-input"
+                           type="radio"
+                           name="party_kind"
+                           value="person"
+                           {% if party_kind == "person" %}checked{% endif %} />
+                    {% translate "Person" %}
+                </label>
+                <label>
+                    <input class="form-check-input"
+                           type="radio"
+                           name="party_kind"
+                           value="organization"
+                           {% if party_kind == "organization" %}checked{% endif %} />
+                    {% translate "Organization" %}
+                </label>
+            </fieldset>
+            <div class="people-section person-fields">
+                <h2>{% translate "Name" %}</h2>
+                <div class="people-grid people-grid--name">
+                    <label class="form-field">
+                        <span>{% translate "First name" %}</span>
+                        <input class="form-control" name="first_name" value="{{ party.first_name }}" />
+                    </label>
+                    <label class="form-field">
+                        <span>{% translate "Middle name" %} <em>{% translate "Optional" %}</em></span>
+                        <input class="form-control"
+                               name="middle_name"
+                               value="{{ party.middle_name }}" />
+                    </label>
+                    <label class="form-field">
+                        <span>{% translate "Last name" %}</span>
+                        <input class="form-control" name="last_name" value="{{ party.last_name }}" />
+                    </label>
+                    <label class="form-field">
+                        <span>{% translate "Suffix" %} <em>{% translate "Optional" %}</em></span>
+                        <input class="form-control" name="suffix" value="{{ party.suffix }}" />
+                    </label>
+                </div>
+            </div>
+            <div class="people-section organization-fields" hidden>
+                <h2>{% translate "Organization" %}</h2>
+                <label class="form-field">
+                    <span>{% translate "Organization name" %}</span>
+                    <input class="form-control"
+                           name="organization_name"
+                           value="{{ party.organization_name }}" />
+                </label>
+            </div>
+            <div class="people-section">
+                <h2>{% translate "Mailing address" %}</h2>
+                <div class="people-grid">
+                    <label class="form-field people-grid__wide">
+                        <span>{% translate "Street address" %}</span>
+                        <input class="form-control"
+                               name="address_line_1"
+                               value="{{ party.address_line_1 }}"
+                               required />
+                    </label>
+                    <label class="form-field people-grid__wide">
+                        <span>{% translate "Apartment, unit, or suite" %} <em>{% translate "Optional" %}</em></span>
+                        <input class="form-control"
+                               name="address_line_2"
+                               value="{{ party.address_line_2 }}" />
+                    </label>
+                    <label class="form-field">
+                        <span>{% translate "City" %}</span>
+                        <input class="form-control" name="city" value="{{ party.city }}" required />
+                    </label>
+                    <label class="form-field">
+                        <span>{% translate "State" %}</span>
+                        <input class="form-control"
+                               name="state"
+                               value="{{ party.state|default:'IL' }}"
+                               maxlength="2"
+                               required />
+                    </label>
+                    <label class="form-field">
+                        <span>{% translate "ZIP code" %}</span>
+                        <input class="form-control"
+                               name="zip_code"
+                               value="{{ party.zip_code }}"
+                               required />
+                    </label>
+                </div>
+            </div>
+            <div class="people-section">
+                <h2>
+                    {% translate "Contact information" %} <em>{% translate "Optional" %}</em>
+                </h2>
+                <div class="people-grid">
+                    <label class="form-field">
+                        <span>{% translate "Email" %}</span>
+                        <input class="form-control"
+                               type="email"
+                               name="email"
+                               value="{{ party.email }}" />
+                    </label>
+                    <label class="form-field">
+                        <span>{% translate "Phone" %}</span>
+                        <input class="form-control"
+                               type="tel"
+                               name="phone"
+                               value="{{ party.phone }}" />
+                    </label>
+                </div>
+            </div>
+            <div class="workflow-actions">
+                <a class="btn btn-outline-secondary"
+                   href="{% url 'parties' jurisdiction %}"><i class="fa-solid fa-arrow-left"></i> {% translate "Back to party list" %}</a>
+                <button class="btn btn-primary" type="submit">
+                    {% translate "Save and continue" %} <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </form>
+    </section>
+{% endblock workflow_content %}
+{% block extra_js %}
+    <script src="{% static 'js/party-details.js' %}"></script>
+{% endblock extra_js %}

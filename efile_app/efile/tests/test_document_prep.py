@@ -157,15 +157,13 @@ def test_organize_saves_details_and_supporting_order(client, document_draft):
     assert lead.role == FilingDocument.Role.SUPPORTING
     assert lead.filing_type_code == "petition"
     assert lead.courtesy_copy_email == "filer@example.com"
+    second.refresh_from_db()
+    assert second.role == FilingDocument.Role.LEAD
     assert list(
         document_draft.documents.filter(role=FilingDocument.Role.SUPPORTING)
         .order_by("sort_order")
         .values_list("pk", flat=True)
     ) == [lead.pk, first.pk]
-
-    second.refresh_from_db()
-    assert second.role == FilingDocument.Role.LEAD
-
     saved = read_upload_data(document_draft)
     assert saved["lead_filing_component"] == "attachment"
     assert saved["supporting_documents"][0]["filing_type"] == "petition"
