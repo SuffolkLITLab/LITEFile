@@ -1,3 +1,5 @@
+import logging
+
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
@@ -7,7 +9,10 @@ from efile.models import FilingDocument
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.document_uploads import upload_files
 from efile.services.drafts import draft_snapshot, read_upload_data
+from efile.utils.s3_upload_handler import S3UploadHandler
 from efile.workflow import WorkflowStepKey, get_step_url, get_workflow_context
+
+logger = logging.getLogger(__name__)
 
 
 @require_http_methods(["GET", "POST"])
