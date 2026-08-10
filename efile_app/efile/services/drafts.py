@@ -109,6 +109,7 @@ _DRAFT_FIELD_SOURCES: dict[str, tuple[str, ...]] = {
     "existing_case": ("existing_case",),
     "previous_case_id": ("case_tracking_id", "previous_case_id"),
     "docket_number": ("case_docket_id", "case_number", "docket_number"),
+    "case_title": ("case_title", "case_title_text"),
     "selected_payment_account_id": ("selected_payment_account", "payment_account_id"),
     "selected_payment_account_name": ("selected_payment_account_name",),
     "name_change_reason": ("reason_for_name_change", "reason_for_change"),
@@ -268,6 +269,7 @@ def read_case_data(draft: FilingDraft | None) -> dict[str, Any]:
     _put(data, "document_type_name", draft.document_type_name)
     _put(data, "previous_case_id", draft.previous_case_id)
     _put(data, "docket_number", draft.docket_number)
+    _put(data, "case_title", draft.case_title)
     _put(data, "selected_payment_account", draft.selected_payment_account_id)
     _put(data, "selected_payment_account_name", draft.selected_payment_account_name)
     _put(data, "optional_services", list(draft.optional_services or []))
@@ -497,6 +499,7 @@ def draft_snapshot(draft: FilingDraft | None) -> dict[str, Any] | None:
         "document_type_name": draft.document_type_name,
         "previous_case_id": draft.previous_case_id,
         "docket_number": draft.docket_number,
+        "case_title": draft.case_title,
         "selected_payment_account_id": draft.selected_payment_account_id,
         "selected_payment_account_name": draft.selected_payment_account_name,
         "optional_services": draft.optional_services,

@@ -1,0 +1,67 @@
+{% extends "efile/workflow_base.html" %}
+{% load i18n %}
+{% block title %}
+    {% translate "Confirm your court case" %}
+{% endblock title %}
+{% block workflow_content %}
+    <section class="workflow-card workflow-card--narrow">
+        <div class="workflow-eyebrow">{% translate "Confirm case" %}</div>
+        <div class="found-heading">
+            <span class="found-heading__icon"><i class="fa-solid fa-check"></i></span>
+            <div>
+                <h1>{% translate "Is this your court case?" %}</h1>
+                <p class="workflow-lede">{% translate "Check the details before adding this filing to the case." %}</p>
+            </div>
+        </div>
+        <dl class="case-summary">
+            <div class="case-summary__primary">
+                <dt>{% translate "Case name" %}</dt>
+                <dd>
+                    {{ case.case_title|default:"Case title not available" }}
+                </dd>
+            </div>
+            <div>
+                <dt>{% translate "Case number" %}</dt>
+                <dd>
+                    {{ case.docket_number }}
+                </dd>
+            </div>
+            <div>
+                <dt>{% translate "Court" %}</dt>
+                <dd>
+                    {{ case.court_name|default:case.court_code }}
+                </dd>
+            </div>
+            <div>
+                <dt>{% translate "Case category" %}</dt>
+                <dd>
+                    {{ case.case_category_name|default:case.case_category_code|default:"Not available" }}
+                </dd>
+            </div>
+            <div>
+                <dt>{% translate "Case type" %}</dt>
+                <dd>
+                    {{ case.case_type_name|default:case.case_type_code|default:"Not available" }}
+                </dd>
+            </div>
+        </dl>
+        <form method="post">
+            {% csrf_token %}
+            <div class="confirmation-question">
+                <strong>{% translate "Does this match your case?" %}</strong>
+                <p>{% translate "Choosing Yes will attach your documents to this case." %}</p>
+            </div>
+            <div class="workflow-actions workflow-actions--confirmation">
+                <button class="btn btn-outline-secondary"
+                        type="submit"
+                        name="confirmed"
+                        value="no">
+                    <i class="fa-solid fa-arrow-left"></i> {% translate "No, search again" %}
+                </button>
+                <button class="btn btn-primary" type="submit" name="confirmed" value="yes">
+                    {% translate "Yes, this is my case" %} <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </form>
+    </section>
+{% endblock workflow_content %}

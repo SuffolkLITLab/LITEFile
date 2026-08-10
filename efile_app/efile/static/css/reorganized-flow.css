@@ -414,6 +414,108 @@
     margin: 0.35rem 0 0;
 }
 
+.lookup-fields {
+    display: grid;
+    gap: 1.25rem;
+}
+
+.lookup-state {
+    align-items: center;
+    background: #eef5ff;
+    border-radius: 10px;
+    color: #234d84;
+    display: flex;
+    gap: 0.8rem;
+    margin-top: 1rem;
+    padding: 1rem;
+}
+
+.lookup-state strong,
+.lookup-state small {
+    display: block;
+}
+
+.lookup-state small {
+    color: #61748f;
+}
+
+.found-heading {
+    align-items: flex-start;
+    display: flex;
+    gap: 1rem;
+}
+
+.found-heading__icon {
+    align-items: center;
+    background: #e2f5e9;
+    border-radius: 50%;
+    color: #18733d;
+    display: flex;
+    flex: 0 0 auto;
+    height: 46px;
+    justify-content: center;
+    margin-top: 0.25rem;
+    width: 46px;
+}
+
+.case-summary {
+    border: 1px solid #dce3ec;
+    border-radius: 12px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0;
+    overflow: hidden;
+}
+
+.case-summary>div {
+    border-top: 1px solid #e3e8ef;
+    padding: 1rem 1.2rem;
+}
+
+.case-summary>div:nth-child(even):not(.case-summary__primary) {
+    border-left: 1px solid #e3e8ef;
+}
+
+.case-summary__primary {
+    background: #f6f9fd;
+    border-top: 0 !important;
+    grid-column: 1 / -1;
+}
+
+.case-summary dt {
+    color: #6b788c;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.2rem;
+    text-transform: uppercase;
+}
+
+.case-summary dd {
+    color: #1c314d;
+    font-size: 1rem;
+    font-weight: 650;
+    margin: 0;
+}
+
+.case-summary__primary dd {
+    font-size: 1.2rem;
+}
+
+.confirmation-question {
+    margin-top: 1.5rem;
+}
+
+.confirmation-question strong {
+    color: #263c58;
+    font-size: 1.05rem;
+}
+
+.confirmation-question p {
+    color: #69768a;
+    margin: 0.25rem 0 0;
+}
+
 @media (max-width: 700px) {
     .review-grid {
         grid-template-columns: 1fr;
@@ -426,6 +528,14 @@
 
     .document-row {
         grid-template-columns: auto 1fr auto;
+    }
+
+    .case-summary {
+        grid-template-columns: 1fr;
+    }
+
+    .case-summary>div:nth-child(even):not(.case-summary__primary) {
+        border-left: 0;
     }
 
     .status-pill {

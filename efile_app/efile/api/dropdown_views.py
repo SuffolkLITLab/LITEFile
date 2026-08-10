@@ -427,7 +427,7 @@ class DropdownAPIViews(APIResponseMixin):
             return courts
 
         # Determine user county from zip code if provided
-        target_county = user_county
+        target_county = user_county or guessed_court
         if user_zip and not target_county:
             target_county = get_county_by_zip(user_zip)
 

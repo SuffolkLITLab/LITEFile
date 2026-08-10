@@ -76,6 +76,7 @@ class FilingDraft(models.Model):
 
     previous_case_id = models.CharField(max_length=255, blank=True)
     docket_number = models.CharField(max_length=255, blank=True)
+    case_title = models.CharField(max_length=500, blank=True)
 
     selected_payment_account_id = models.CharField(max_length=255, blank=True)
     selected_payment_account_name = models.CharField(max_length=255, blank=True)

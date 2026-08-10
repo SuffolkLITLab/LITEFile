@@ -3,6 +3,8 @@ from django.urls import include, path
 from django.views.i18n import JavaScriptCatalog
 
 from .views.api_views import get_case_data_api, get_filing_components
+from .views.case_confirmation import case_confirmation
+from .views.case_lookup import case_lookup
 from .views.choose_jurisdiction import choose_jurisdiction
 from .views.confirmation import filing_confirmation
 from .views.draft_views import create_draft_view, get_current_draft_view
@@ -53,18 +55,8 @@ urlpatterns = [
     path("jurisdiction/<jurisdiction>/filing-path/", filing_path, name="filing_path"),
     path("jurisdiction/<jurisdiction>/upload-documents/", upload_documents, name="upload_documents"),
     path("jurisdiction/<jurisdiction>/extraction-review/", extraction_review, name="extraction_review"),
-    path(
-        "jurisdiction/<jurisdiction>/case-lookup/",
-        legacy_workflow_redirect,
-        {"destination": "case_lookup"},
-        name="case_lookup",
-    ),
-    path(
-        "jurisdiction/<jurisdiction>/case-confirmation/",
-        legacy_workflow_redirect,
-        {"destination": "case_confirmation"},
-        name="case_confirmation",
-    ),
+    path("jurisdiction/<jurisdiction>/case-lookup/", case_lookup, name="case_lookup"),
+    path("jurisdiction/<jurisdiction>/case-confirmation/", case_confirmation, name="case_confirmation"),
     path(
         "jurisdiction/<jurisdiction>/document-checklist/",
         legacy_workflow_redirect,

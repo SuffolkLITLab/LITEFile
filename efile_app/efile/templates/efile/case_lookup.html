@@ -1,0 +1,57 @@
+{% extends "efile/workflow_base.html" %}
+{% load static %}
+{% load i18n %}
+{% block title %}
+    {% translate "Find your court case" %}
+{% endblock title %}
+{% block workflow_content %}
+    <section class="workflow-card workflow-card--narrow">
+        <div class="workflow-eyebrow">{% translate "Confirm case" %}</div>
+        <h1>{% translate "Find your court case" %}</h1>
+        <p class="workflow-lede">
+            {% translate "Choose the court and enter the case number exactly as it appears on your documents." %}
+        </p>
+        <form id="case-lookup-form">
+            {% csrf_token %}
+            <div class="lookup-fields">
+                <label class="form-field" for="court">
+                    <span>{% translate "Court" %}</span>
+                    <select class="form-select" id="court" name="court" required>
+                        <option value="">{% translate "Loading Illinois courts…" %}</option>
+                    </select>
+                    {% if guessed_court %}
+                        <small>{% blocktranslate %}Suggested from your document: {{ guessed_court }}{% endblocktranslate %}</small>
+                    {% endif %}
+                </label>
+                <label class="form-field" for="case-number">
+                    <span>{% translate "Case number" %}</span>
+                    <input class="form-control"
+                           id="case-number"
+                           name="case_number"
+                           value="{{ docket_number }}"
+                           placeholder="e.g., 2025MR000123"
+                           autocomplete="off"
+                           required />
+                    <small>{% translate "Include letters and numbers. Spaces and dashes are okay." %}</small>
+                </label>
+            </div>
+            <div class="lookup-state" id="lookup-state" hidden aria-live="polite">
+                <div class="spinner-border spinner-border-sm" aria-hidden="true"></div>
+                <span><strong>{% translate "Searching court records…" %}</strong><small>{% translate "This may take a moment." %}</small></span>
+            </div>
+            <div class="alert alert-warning" id="lookup-error" hidden></div>
+            <div class="workflow-actions">
+                <a class="btn btn-outline-secondary"
+                   href="{% url 'extraction_review' jurisdiction %}"><i class="fa-solid fa-arrow-left"></i> {% translate "Back" %}</a>
+                <button class="btn btn-primary" id="find-case-button" type="submit">
+                    <i class="fa-solid fa-magnifying-glass"></i> {% translate "Find my case" %}
+                </button>
+            </div>
+        </form>
+    </section>
+    {{ guessed_court|json_script:"guessed-court" }}
+    {{ selected_court_code|json_script:"selected-court-code" }}
+{% endblock workflow_content %}
+{% block extra_js %}
+    <script src="{% static 'js/case-lookup.js' %}"></script>
+{% endblock extra_js %}
