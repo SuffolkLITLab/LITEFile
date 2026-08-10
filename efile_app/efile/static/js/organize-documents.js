@@ -31,6 +31,30 @@
         select.disabled = false;
     }
 
+    function setRadioOptions(container, options, savedValue, fieldName, placeholder) {
+        container.innerHTML = "";
+        if (!options.length) {
+            const message = document.createElement("small");
+            message.textContent = placeholder;
+            container.appendChild(message);
+            return;
+        }
+        options.forEach((item, index) => {
+            const label = document.createElement("label");
+            const input = document.createElement("input");
+            input.className = "form-check-input";
+            input.type = "radio";
+            input.name = fieldName;
+            input.value = optionValue(item);
+            input.required = true;
+            input.checked = input.value === savedValue || (!savedValue && options.length === 1 && index === 0);
+            const text = document.createElement("span");
+            text.textContent = optionText(item);
+            label.append(input, text);
+            container.appendChild(label);
+        });
+    }
+
     async function getJson(url) {
         const response = await fetch(url, {
             headers: {
@@ -60,16 +84,17 @@
     }
 
     async function loadDependentOptions(card, filingType) {
-        const documentType = card.querySelector(".document-type");
-        const component = card.querySelector(".filing-component");
+        const documentType = card.querySelector(".document-type-options");
+        const component = card.querySelector(".filing-component-options");
+        const documentId = card.dataset.documentId;
         if (!filingType) {
-            setOptions(documentType, [], "", "Select a filing type first");
-            setOptions(component, [], "", "Select a filing type first");
+            setRadioOptions(documentType, [], "", `document-type-${documentId}`, "Select a filing type first");
+            setRadioOptions(component, [], "", `filing-component-${documentId}`, "Select a filing type first");
             return;
         }
 
-        documentType.disabled = true;
-        component.disabled = true;
+        documentType.innerHTML = "<small>Loading choices…</small>";
+        component.innerHTML = "<small>Loading choices…</small>";
         const documentParams = new URLSearchParams({
             jurisdiction: context.jurisdiction,
             court: context.court,
@@ -84,7 +109,13 @@
             getJson(`/api/dropdowns/document-types/?${documentParams}`),
             getJson(`/api/get-filing-components/?${componentParams}`),
         ]);
-        setOptions(documentType, documentTypes, card.dataset.documentType, "Choose public or confidential");
+        setRadioOptions(
+            documentType,
+            documentTypes,
+            card.dataset.documentType,
+            `document-type-${documentId}`,
+            "No confidentiality choices are available",
+        );
 
         let savedComponent = card.dataset.filingComponent;
         if (!savedComponent && components.length) {
@@ -92,7 +123,13 @@
             const preferred = components.find((item) => optionText(item).toLowerCase().includes(preferredWord));
             savedComponent = optionValue(preferred || components[0]);
         }
-        setOptions(component, components, savedComponent, "Choose a document role");
+        setRadioOptions(
+            component,
+            components,
+            savedComponent,
+            `filing-component-${documentId}`,
+            "No document roles are available",
+        );
     }
 
     async function initializeCard(card) {
@@ -160,8 +197,8 @@
         button.disabled = true;
         const documents = cards().map((card) => {
             const filingType = card.querySelector(".filing-type");
-            const documentType = card.querySelector(".document-type");
-            const component = card.querySelector(".filing-component");
+            const documentType = card.querySelector('.document-type-options input:checked');
+            const component = card.querySelector('.filing-component-options input:checked');
             const courtesyEmail = card.querySelector(".certified-copy").checked ?
                 card.querySelector(".courtesy-email").value : "";
             return {
@@ -169,10 +206,10 @@
                 name: card.querySelector(".document-name").value,
                 filing_type: filingType.value,
                 filing_type_name: filingType.selectedOptions[0]?.text || "",
-                document_type: documentType.value,
-                document_type_name: documentType.selectedOptions[0]?.text || "",
-                filing_component: component.value,
-                filing_component_name: component.selectedOptions[0]?.text || "",
+                document_type: documentType?.value || "",
+                document_type_name: documentType?.closest("label")?.innerText.trim() || "",
+                filing_component: component?.value || "",
+                filing_component_name: component?.closest("label")?.innerText.trim() || "",
                 courtesy_copy_email: courtesyEmail,
             };
         });
@@ -185,7 +222,8 @@
                     "X-CSRFToken": apiUtils.getCSRFToken(),
                 },
                 body: JSON.stringify({
-                    documents
+                    documents,
+                    main_document_id: Number(form.elements.namedItem("main_document").value),
                 }),
             });
             const result = await response.json();

@@ -27,13 +27,7 @@
                     <span class="checklist-file__icon"><i class="fa-solid fa-file-pdf"></i></span>
                     <span>
                         <strong>{{ document.name|default:document.original_filename }}</strong>
-                        <small>
-                            {% if document.role == "lead" %}
-                                {% translate "Main court form" %}
-                            {% else %}
-                                {% translate "Additional document" %}
-                            {% endif %}
-                        </small>
+                        <small>{% translate "Uploaded document" %}</small>
                     </span>
                     <span class="status-pill status-pill--ready">{% translate "Added" %}</span>
                 </article>

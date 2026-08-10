@@ -145,7 +145,7 @@ def test_organize_saves_details_and_supporting_order(client, document_draft):
 
     response = client.post(
         reverse("organize_documents", kwargs={"jurisdiction": "illinois"}),
-        {"documents": details},
+        {"documents": details, "main_document_id": second.pk},
         content_type="application/json",
     )
 
@@ -154,14 +154,18 @@ def test_organize_saves_details_and_supporting_order(client, document_draft):
     assert response.status_code == 200
     assert response.json()["redirect_url"] == reverse("your_information", kwargs={"jurisdiction": "illinois"})
     assert document_draft.current_step == WorkflowStepKey.YOUR_INFORMATION
+    assert lead.role == FilingDocument.Role.SUPPORTING
     assert lead.filing_type_code == "petition"
     assert lead.courtesy_copy_email == "filer@example.com"
     assert list(
         document_draft.documents.filter(role=FilingDocument.Role.SUPPORTING)
         .order_by("sort_order")
         .values_list("pk", flat=True)
-    ) == [second.pk, first.pk]
+    ) == [lead.pk, first.pk]
+
+    second.refresh_from_db()
+    assert second.role == FilingDocument.Role.LEAD
 
     saved = read_upload_data(document_draft)
-    assert saved["lead_filing_component"] == "lead"
-    assert saved["supporting_documents"][0]["document_type"] == "sealed"
+    assert saved["lead_filing_component"] == "attachment"
+    assert saved["supporting_documents"][0]["filing_type"] == "petition"

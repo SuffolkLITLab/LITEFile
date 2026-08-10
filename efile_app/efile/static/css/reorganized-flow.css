@@ -612,6 +612,33 @@
     margin-top: 1.5rem;
 }
 
+.main-document-choice {
+    background: #f6f9fd;
+    border: 1px solid #dce3ec;
+    border-radius: 12px;
+    margin-top: 1.5rem;
+    padding: 1rem;
+}
+
+.main-document-choice legend {
+    color: #263c58;
+    float: none;
+    font-size: 1.05rem;
+    font-weight: 750;
+    margin: 0;
+    width: auto;
+}
+
+.main-document-choice>p {
+    color: #68768a;
+    margin: 0.25rem 0 0.8rem;
+}
+
+.main-document-choice small {
+    color: #6d798d;
+    display: block;
+}
+
 .organize-card {
     border: 1px solid #dce3ec;
     border-radius: 12px;
@@ -666,6 +693,30 @@
     color: #38567a;
     cursor: pointer;
     font-weight: 700;
+}
+
+.compact-choice-field legend {
+    color: #263c58;
+    float: none;
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.35rem;
+    width: auto;
+}
+
+.compact-choice-list {
+    display: grid;
+    gap: 0.45rem;
+}
+
+.compact-choice-list label {
+    align-items: center;
+    background: #f7f9fc;
+    border: 1px solid #dce3ec;
+    border-radius: 8px;
+    display: flex;
+    gap: 0.65rem;
+    padding: 0.6rem 0.75rem;
 }
 
 @media (max-width: 700px) {

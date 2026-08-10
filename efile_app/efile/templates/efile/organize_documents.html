@@ -14,6 +14,31 @@
         <div class="alert alert-danger" id="organize-error" hidden></div>
         <form id="organize-documents-form">
             {% csrf_token %}
+            <fieldset class="main-document-choice">
+                <legend>{% translate "Which PDF is the main document?" %}</legend>
+                <p>
+                    {% translate "Choose the document that starts or drives this filing, such as a petition. Upload order does not matter." %}
+                </p>
+                <div class="compact-choice-list">
+                    {% for document in documents %}
+                        <label>
+                            <input class="form-check-input"
+                                   type="radio"
+                                   name="main_document"
+                                   value="{{ document.id }}"
+                                   {% if document.role == "lead" %}checked{% endif %}
+                                   required />
+                            <span><strong>{{ document.name|default:document.original_filename }}</strong><small>
+                                {% if document.role == "lead" %}
+                                    {% translate "Current main document" %}
+                                {% else %}
+                                    {% translate "Additional document" %}
+                                {% endif %}
+                            </small></span>
+                        </label>
+                    {% endfor %}
+                </div>
+            </fieldset>
             <div class="organize-list" id="organize-list">
                 {% for document in documents %}
                     <article class="organize-card"
@@ -49,7 +74,7 @@
                                     </button>
                                 </div>
                             {% else %}
-                                <span class="status-pill status-pill--lead">{% translate "Filed first" %}</span>
+                                <span class="status-pill status-pill--lead">{% translate "Main document" %}</span>
                             {% endif %}
                         </header>
                         <div class="organize-card__fields">
@@ -66,19 +91,19 @@
                                     <option value="">{% translate "Loading filing types…" %}</option>
                                 </select>
                             </label>
-                            <label class="form-field">
-                                <span>{% translate "Should this document be confidential?" %}</span>
-                                <select class="form-select document-type" required disabled>
-                                    <option value="">{% translate "Select a filing type first" %}</option>
-                                </select>
-                            </label>
-                            <label class="form-field">
-                                <span>{% translate "Document role" %}</span>
-                                <select class="form-select filing-component" disabled>
-                                    <option value="">{% translate "Select a filing type first" %}</option>
-                                </select>
+                            <fieldset class="form-field compact-choice-field">
+                                <legend>{% translate "Should this document be confidential?" %}</legend>
+                                <div class="compact-choice-list document-type-options">
+                                    <small>{% translate "Select a filing type first" %}</small>
+                                </div>
+                            </fieldset>
+                            <fieldset class="form-field compact-choice-field">
+                                <legend>{% translate "Document role" %}</legend>
+                                <div class="compact-choice-list filing-component-options">
+                                    <small>{% translate "Select a filing type first" %}</small>
+                                </div>
                                 <small>{% translate "The court uses this to place the PDF in the filing." %}</small>
-                            </label>
+                            </fieldset>
                         </div>
                         <details class="certified-copy-details"
                                  {% if document.courtesy_copy_email %}open{% endif %}>

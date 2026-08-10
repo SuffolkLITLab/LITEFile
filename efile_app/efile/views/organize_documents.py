@@ -14,17 +14,20 @@ from efile.workflow import ExistingCase, WorkflowStepKey, get_step_url, get_work
 
 
 @transaction.atomic
-def _save_document_details(draft, document_details):
+def _save_document_details(draft, document_details, main_document_id):
     documents = {document.pk: document for document in FilingDocument.objects.select_for_update().filter(draft=draft)}
     if {item.get("id") for item in document_details} != set(documents):
         raise ValueError("The document list changed. Refresh the page and try again.")
+    if main_document_id not in documents:
+        raise ValueError("Choose the main document for this filing.")
 
-    # Move supporting documents out of the final range before applying a new
-    # order, so swapping positions cannot trip the unique (draft, role, order)
-    # constraint halfway through the transaction.
+    # Move every document out of the final ranges before changing the main
+    # document or order, so role/order swaps cannot trip the uniqueness rule.
     for document in documents.values():
-        if document.role == FilingDocument.Role.SUPPORTING:
-            FilingDocument.objects.filter(pk=document.pk).update(sort_order=1_000_000 + document.pk)
+        FilingDocument.objects.filter(pk=document.pk).update(sort_order=1_000_000 + document.pk)
+
+    for document in documents.values():
+        document.role = FilingDocument.Role.LEAD if document.pk == main_document_id else FilingDocument.Role.SUPPORTING
 
     supporting_order = 0
     for item in document_details:
@@ -42,7 +45,9 @@ def _save_document_details(draft, document_details):
         document.filing_component_code = str(item.get("filing_component") or "")[:100]
         document.filing_component_name = str(item.get("filing_component_name") or "")[:255]
         document.courtesy_copy_email = str(item.get("courtesy_copy_email") or "")[:254]
-        if document.role == FilingDocument.Role.SUPPORTING:
+        if document.pk == main_document_id:
+            document.sort_order = 0
+        else:
             document.sort_order = supporting_order
             supporting_order += 1
         document.save()
@@ -72,7 +77,11 @@ def organize_documents(request, jurisdiction):
             details = data.get("documents")
             if not isinstance(details, list):
                 raise ValueError("Document details are missing.")
-            _save_document_details(draft, details)
+            try:
+                main_document_id = int(data.get("main_document_id"))
+            except (TypeError, ValueError) as error:
+                raise ValueError("Choose the main document for this filing.") from error
+            _save_document_details(draft, details, main_document_id)
         except (json.JSONDecodeError, ValueError) as error:
             return JsonResponse({"success": False, "error": str(error)}, status=400)
 
