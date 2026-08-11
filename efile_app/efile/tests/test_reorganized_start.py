@@ -1,3 +1,4 @@
+import re
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -208,6 +209,27 @@ def test_extraction_review_requires_a_case_path(client, reorganized_draft):
 
     assert response.status_code == 200
     assert b"Choose whether this is a new or existing court case" in response.content
+
+
+@pytest.mark.django_db
+def test_extraction_review_hides_case_number_behind_a_checkbox(client, reorganized_draft):
+    """Tyler rejects a docket number on a new case, so it should not be
+    presented as a normal always-visible field -- see the "checked out
+    docket number on a new case" 500 that surfaced this."""
+    FilingDocument.objects.create(
+        draft=reorganized_draft,
+        role=FilingDocument.Role.LEAD,
+        name="petition.pdf",
+    )
+
+    response = client.get(reverse("extraction_review", kwargs={"jurisdiction": "illinois"}))
+
+    assert response.status_code == 200
+    content = response.content.decode()
+    assert 'id="has-docket-number"' in content
+    docket_input = re.search(r"<input[^>]*id=\"docket_number\"[^>]*>", content)
+    assert docket_input is not None
+    assert "hidden" in docket_input.group()
 
 
 @pytest.mark.django_db
