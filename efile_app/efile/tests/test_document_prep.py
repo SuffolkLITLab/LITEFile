@@ -91,6 +91,18 @@ def test_organize_requires_completed_checklist(client, document_draft):
 
 
 @pytest.mark.django_db
+def test_organize_redirects_when_court_is_missing(client, document_draft):
+    document_draft.court_code = ""
+    document_draft.document_checklist_acknowledged = True
+    document_draft.save(update_fields=["court_code", "document_checklist_acknowledged", "updated_at"])
+
+    response = client.get(reverse("organize_documents", kwargs={"jurisdiction": "illinois"}))
+
+    assert response.status_code == 302
+    assert response.url == reverse("extraction_review", kwargs={"jurisdiction": "illinois"})
+
+
+@pytest.mark.django_db
 def test_organize_saves_details_and_supporting_order(client, document_draft):
     first = FilingDocument.objects.create(
         draft=document_draft,
@@ -118,6 +130,7 @@ def test_organize_saves_details_and_supporting_order(client, document_draft):
             "filing_component": "lead",
             "filing_component_name": "Lead Document",
             "courtesy_copy_email": "filer@example.com",
+            "requested_optional_services": ["certified"],
         },
         {
             "id": second.pk,
@@ -157,6 +170,7 @@ def test_organize_saves_details_and_supporting_order(client, document_draft):
     assert lead.role == FilingDocument.Role.SUPPORTING
     assert lead.filing_type_code == "petition"
     assert lead.courtesy_copy_email == "filer@example.com"
+    assert lead.requested_optional_services == ["certified"]
     second.refresh_from_db()
     assert second.role == FilingDocument.Role.LEAD
     assert list(

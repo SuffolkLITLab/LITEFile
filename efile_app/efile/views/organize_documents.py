@@ -53,6 +53,10 @@ def _save_document_details(draft, document_details, main_document_id):
             except ValidationError as error:
                 raise ValueError(f"Enter a valid courtesy copy email address for {document.name}.") from error
         document.courtesy_copy_email = courtesy_copy_email
+        optional_services = item.get("requested_optional_services")
+        document.requested_optional_services = (
+            [str(code)[:100] for code in optional_services if code] if isinstance(optional_services, list) else []
+        )
         if document.pk == main_document_id:
             document.sort_order = 0
         else:
@@ -78,6 +82,17 @@ def organize_documents(request, jurisdiction):
     if not draft.document_checklist_acknowledged:
         messages.info(request, "Check that you have all of your documents before organizing them.")
         return redirect("document_checklist", jurisdiction=jurisdiction)
+    if not draft.court_code:
+        # Filing types can't be looked up without a court. Send the filer back
+        # to whichever step is responsible for setting one, instead of
+        # stranding them here with no way to recover.
+        fix_step = (
+            WorkflowStepKey.CASE_LOOKUP
+            if draft.existing_case == ExistingCase.EXISTING
+            else WorkflowStepKey.EXTRACTION_REVIEW
+        )
+        messages.error(request, "Confirm the court for this filing before organizing your documents.")
+        return redirect(get_step_url(fix_step, jurisdiction))
 
     if request.method == "POST":
         try:
