@@ -176,6 +176,45 @@ test("saved filer information drives the filing contact instead of account profi
     });
 });
 
+test("amount_in_controversy is sent when the draft has one", () => {
+    const handler = makeHandler();
+    const caseData = {
+        case_category: "cat",
+        case_type: "type",
+        amount_in_controversy: "12500.00",
+        filing_parties: [{
+            role: "filer",
+            party_type: "PLA",
+            first_name: "Jordan",
+            last_name: "Taylor"
+        }]
+    };
+    const userData = handler.userDataFromCaseData(caseData);
+
+    const result = handler.buildEFilingData(userData, caseData, {}, "pay-1");
+
+    assert.strictEqual(result.amount_in_controversy, "12500.00");
+});
+
+test("amount_in_controversy is omitted (not sent as empty/zero) when the draft has none", () => {
+    const handler = makeHandler();
+    const caseData = {
+        case_category: "cat",
+        case_type: "type",
+        filing_parties: [{
+            role: "filer",
+            party_type: "PLA",
+            first_name: "Jordan",
+            last_name: "Taylor"
+        }]
+    };
+    const userData = handler.userDataFromCaseData(caseData);
+
+    const result = handler.buildEFilingData(userData, caseData, {}, "pay-1");
+
+    assert.strictEqual("amount_in_controversy" in result, false);
+});
+
 test("durable non-filer parties are included without collapsing to one legacy party", () => {
     const handler = makeHandler();
     const caseData = {

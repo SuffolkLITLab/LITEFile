@@ -182,6 +182,12 @@ const FilingPayload = {
             al_court_bundle: [],
             comments_to_clerk: "",
             tyler_payment_id: paymentAccountID,
+            // Only sent when a chosen filing type requires it (case_questions
+            // asks for it in that case); the EFSP rejects the filing outright
+            // if it's required and missing, so leave it out rather than send 0.
+            ...(caseData?.amount_in_controversy ? {
+                amount_in_controversy: caseData.amount_in_controversy
+            } : {}),
             lead_contact: {
                 name: {
                     first: firstName,
