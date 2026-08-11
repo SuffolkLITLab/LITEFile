@@ -367,6 +367,106 @@ def test_case_questions_returns_to_review_when_edited_from_there(client, people_
 
 
 @pytest.mark.django_db
+def test_case_questions_asks_for_amount_in_controversy_with_no_other_questions(client, people_draft):
+    """The early "nothing to ask, skip ahead" exit used to fire even when a
+    document's filing type required an amount in controversy, since it only
+    checked the config-driven questions list."""
+    FilingDocument.objects.create(
+        draft=people_draft,
+        role=FilingDocument.Role.LEAD,
+        name="petition.pdf",
+        filing_requires_amount_in_controversy=True,
+    )
+    people_draft.current_step = WorkflowStepKey.CASE_QUESTIONS
+    people_draft.save(update_fields=["current_step", "updated_at"])
+
+    response = client.get(reverse("case_questions", kwargs={"jurisdiction": "illinois"}))
+
+    assert response.status_code == 200
+    assert b"Amount in controversy" in response.content
+
+
+@pytest.mark.django_db
+def test_case_questions_saves_a_valid_amount_in_controversy(client, people_draft):
+    FilingDocument.objects.create(
+        draft=people_draft,
+        role=FilingDocument.Role.LEAD,
+        name="petition.pdf",
+        filing_requires_amount_in_controversy=True,
+    )
+    people_draft.current_step = WorkflowStepKey.CASE_QUESTIONS
+    people_draft.save(update_fields=["current_step", "updated_at"])
+
+    response = client.post(
+        reverse("case_questions", kwargs={"jurisdiction": "illinois"}),
+        {"amount_in_controversy": "$12,500.00"},
+    )
+
+    people_draft.refresh_from_db()
+    assert response.status_code == 302
+    assert response.url == reverse("payment", kwargs={"jurisdiction": "illinois"})
+    assert people_draft.amount_in_controversy == "12500.00"
+
+
+@pytest.mark.django_db
+def test_case_questions_rejects_a_missing_or_invalid_amount(client, people_draft):
+    FilingDocument.objects.create(
+        draft=people_draft,
+        role=FilingDocument.Role.LEAD,
+        name="petition.pdf",
+        filing_requires_amount_in_controversy=True,
+    )
+    people_draft.current_step = WorkflowStepKey.CASE_QUESTIONS
+    people_draft.save(update_fields=["current_step", "updated_at"])
+
+    response = client.post(
+        reverse("case_questions", kwargs={"jurisdiction": "illinois"}),
+        {"amount_in_controversy": "not a number"},
+    )
+
+    people_draft.refresh_from_db()
+    assert response.status_code == 200
+    assert people_draft.amount_in_controversy == ""
+    assert people_draft.current_step == WorkflowStepKey.CASE_QUESTIONS
+
+
+@pytest.mark.django_db
+def test_parties_routes_to_case_questions_when_amount_in_controversy_is_needed(client, people_draft):
+    """Even with no config-driven case-type questions, a document that needs
+    an amount in controversy must still route through case_questions instead
+    of straight to payment."""
+    FilingParty.objects.create(
+        draft=people_draft,
+        role="filer",
+        sort_order=0,
+        party_type="plaintiff",
+        first_name="Jamie",
+        last_name="Rivera",
+        address_line_1="100 State Street",
+        city="Chicago",
+        state="IL",
+        zip_code="60601",
+    )
+    FilingDocument.objects.create(
+        draft=people_draft,
+        role=FilingDocument.Role.LEAD,
+        name="petition.pdf",
+        filing_requires_amount_in_controversy=True,
+    )
+
+    with patch("efile.views.parties.get_party_types", return_value=PARTY_TYPES):
+        response = client.post(
+            reverse("parties", kwargs={"jurisdiction": "illinois"}),
+            {"filer_party_type": "plaintiff"},
+        )
+
+    people_draft.refresh_from_db()
+    assert response.status_code == 302
+    assert response.url == reverse("case_questions", kwargs={"jurisdiction": "illinois"})
+    assert people_draft.current_step == WorkflowStepKey.CASE_QUESTIONS
+
+
+@pytest.mark.django_db
 def test_new_parties_are_available_to_legacy_payload_bridge(people_draft):
     FilingParty.objects.create(
         draft=people_draft,

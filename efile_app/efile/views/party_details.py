@@ -7,7 +7,7 @@ from efile.api.suffolk_api_views import get_tyler_token
 from efile.models import FilingParty
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.drafts import draft_snapshot
-from efile.services.people import get_case_questions, get_party_types, incomplete_parties
+from efile.services.people import get_case_questions, get_party_types, incomplete_parties, needs_amount_in_controversy
 from efile.workflow import RETURN_TO_REVIEW, WorkflowStepKey, get_step_url, get_workflow_context, with_return_to
 
 
@@ -64,7 +64,7 @@ def party_details(request, jurisdiction):
                 url = reverse("party_details", kwargs={"jurisdiction": jurisdiction})
                 return redirect(with_return_to(f"{url}?party={remaining[0].pk}", return_to))
 
-            has_questions = bool(get_case_questions(draft))
+            has_questions = bool(get_case_questions(draft)) or needs_amount_in_controversy(draft)
             draft.supplemental_fields = {
                 **(draft.supplemental_fields or {}),
                 "_case_questions_required": has_questions,
