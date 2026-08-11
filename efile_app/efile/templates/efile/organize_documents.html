@@ -16,28 +16,33 @@
             {% csrf_token %}
             <fieldset class="main-document-choice">
                 <legend>{% translate "Which PDF is the main document?" %}</legend>
-                <p>
-                    {% translate "Choose the document that starts or drives this filing, such as a petition. Upload order does not matter." %}
-                </p>
-                <div class="compact-choice-list">
-                    {% for document in documents %}
-                        <label>
-                            <input class="form-check-input"
-                                   type="radio"
-                                   name="main_document"
-                                   value="{{ document.id }}"
-                                   {% if document.role == "lead" %}checked{% endif %}
-                                   required />
-                            <span><strong>{{ document.name|default:document.original_filename }}</strong><small>
-                                {% if document.role == "lead" %}
-                                    {% translate "Current main document" %}
-                                {% else %}
-                                    {% translate "Additional document" %}
-                                {% endif %}
-                            </small></span>
-                        </label>
-                    {% endfor %}
-                </div>
+                {% if documents|length == 1 %}
+                    <p>{% translate "This is the only document in this filing, so it's the main document." %}</p>
+                    {% for document in documents %}<input type="hidden" name="main_document" value="{{ document.id }}" />{% endfor %}
+                {% else %}
+                    <p>
+                        {% translate "Choose the document that starts or drives this filing, such as a petition. Upload order does not matter." %}
+                    </p>
+                    <div class="compact-choice-list">
+                        {% for document in documents %}
+                            <label>
+                                <input class="form-check-input"
+                                       type="radio"
+                                       name="main_document"
+                                       value="{{ document.id }}"
+                                       {% if document.role == "lead" %}checked{% endif %}
+                                       required />
+                                <span><strong>{{ document.name|default:document.original_filename }}</strong><small>
+                                    {% if document.role == "lead" %}
+                                        {% translate "Current main document" %}
+                                    {% else %}
+                                        {% translate "Additional document" %}
+                                    {% endif %}
+                                </small></span>
+                            </label>
+                        {% endfor %}
+                    </div>
+                {% endif %}
             </fieldset>
             <div class="organize-list" id="organize-list">
                 {% for document in documents %}
