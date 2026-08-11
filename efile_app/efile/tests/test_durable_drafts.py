@@ -134,6 +134,17 @@ def test_case_data_round_trips_through_the_model(django_user_model):
 
 
 @pytest.mark.django_db
+def test_amount_in_controversy_is_read_back_from_the_draft(django_user_model):
+    """case_questions saves this directly on the model (it's not config-driven,
+    so it doesn't go through write_case_data), but the frontend still reads it
+    out of the same case_data blob everything else does."""
+    user = django_user_model.objects.create_user(username="amount-owner", tyler_jurisdiction="illinois")
+    draft = FilingDraft.objects.create(user=user, jurisdiction="illinois", amount_in_controversy="12500.00")
+
+    assert read_case_data(draft)["amount_in_controversy"] == "12500.00"
+
+
+@pytest.mark.django_db
 def test_supplemental_case_fields_round_trip(django_user_model):
     """Config-driven questionnaire answers survive a durable-draft round trip."""
     user = django_user_model.objects.create_user(username="supplemental-owner", tyler_jurisdiction="illinois")
