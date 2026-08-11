@@ -6,6 +6,7 @@ from django.urls import path
 
 from .auth_views import (
     external_profile,
+    payment_account_types,
     payment_accounts,
     tyler_token,
     user_login,
@@ -60,6 +61,7 @@ urlpatterns = [
     path("auth/tyler-token/", tyler_token, name="tyler_token"),
     # Payment API endpoints
     path("payment-accounts/", payment_accounts, name="payment_accounts"),
+    path("payment-account-types/", payment_account_types, name="payment_account_types"),
     path("payment-fees/", payment_fees, name="payment_fees"),
     # Filing API endpoints
     path("filings/", get_filings, name="get_filings"),

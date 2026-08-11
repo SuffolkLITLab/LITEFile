@@ -262,6 +262,50 @@ class AuthAPIViews(APIResponseMixin):
         except Exception as e:
             return AuthAPIViews.error_response(f"Error: {str(e)}")
 
+    @staticmethod
+    @require_http_methods(["GET"])
+    def payment_account_types(request):
+        """List the court's payment account types (e.g. "CC", "WV") with names.
+
+        A payment account only carries its type *code*, not a human-readable
+        name, so the frontend needs this list to label account types other
+        than the ones it special-cases (card, waiver).
+        """
+        try:
+            jurisdiction = get_jurisdiction_from_request(request)
+            tyler_token = get_tyler_token(request, jurisdiction)
+            api_key = getattr(settings, "SUFFOLK_EFILE_API_KEY", None)
+
+            headers = {
+                "Content-Type": "application/json",
+                "User-Agent": f"{jurisdiction.title()}-eFile-Client/1.0",
+                "X-API-Key": api_key if api_key else "",
+            }
+            if tyler_token:
+                headers[f"tyler-token-{jurisdiction}"] = tyler_token
+
+            url = f"{settings.EFSP_URL}/jurisdictions/{jurisdiction}/payments/types"
+            logger.debug("GET %s header keys=%s", url, list(headers.keys()))
+            api_response = requests.get(url, headers=headers, timeout=10)
+
+            if api_response.status_code == 200:
+                return AuthAPIViews.success_response(api_response.json())
+            elif api_response.status_code == 401:
+                return AuthAPIViews.success_response([])
+            else:
+                return AuthAPIViews.error_response(
+                    f"Payment account types API returned status {api_response.status_code}: "
+                    f"{api_response.text[:200]}",
+                    api_response.status_code,
+                )
+
+        except Timeout:
+            return AuthAPIViews.error_response("Payment account types API request timed out", 408)
+        except RequestException as e:
+            return AuthAPIViews.error_response(f"Could not connect to payment account types API: {str(e)}", 503)
+        except Exception as e:
+            return AuthAPIViews.error_response(f"Error: {str(e)}")
+
 
 # Individual view functions for URL mapping
 user_login = AuthAPIViews.user_login
@@ -269,4 +313,5 @@ user_logout = AuthAPIViews.user_logout
 user_profile = AuthAPIViews.user_profile
 external_profile = AuthAPIViews.external_profile
 payment_accounts = AuthAPIViews.payment_accounts
+payment_account_types = AuthAPIViews.payment_account_types
 tyler_token = AuthAPIViews.tyler_token

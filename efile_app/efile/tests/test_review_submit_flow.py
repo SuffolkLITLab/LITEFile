@@ -72,6 +72,32 @@ def test_payment_saves_account_and_advances_durable_step(client, submission_draf
     assert submission_draft.current_step == WorkflowStepKey.REVIEW
 
 
+class _PaymentAccountTypesResponse:
+    status_code = 200
+
+    @staticmethod
+    def json():
+        return [
+            {"code": "CC", "description": "Credit Card"},
+            {"code": "WV", "description": "Waiver"},
+        ]
+
+
+@pytest.mark.django_db
+def test_payment_account_types_proxies_the_courts_type_list(client, submission_draft, monkeypatch):
+    monkeypatch.setattr(
+        "efile.api.auth_views.requests.get",
+        lambda *args, **kwargs: _PaymentAccountTypesResponse(),
+    )
+
+    response = client.get(reverse("api:payment_account_types"), {"jurisdiction": "illinois"})
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["success"] is True
+    assert {"code": "CC", "description": "Credit Card"} in body["data"]
+
+
 @pytest.mark.django_db
 def test_payment_persists_account_type_and_quoted_fees(client, submission_draft):
     response = client.post(

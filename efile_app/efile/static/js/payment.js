@@ -1,5 +1,6 @@
 const PAYMENT_URLS = {
     accounts: "/api/payment-accounts/",
+    accountTypes: "/api/payment-account-types/",
     token: "/api/auth/tyler-token/",
     fees: "/api/payment-fees/"
 };
@@ -35,17 +36,38 @@ const escapeAttribute = (value) => escapeHTML(value).replaceAll('"', "&quot;").r
 
 const PaymentPage = {
     caseData: paymentJSON("case-data"),
+    // code -> the court's own name for that account type (e.g. "CC" -> "Credit
+    // Card"), fetched from GetPaymentAccountTypeList. Populated by
+    // loadAccountTypes(); empty if that call fails, which just means the
+    // generic fallback in accountLabel() is used instead.
+    typeDescriptions: {},
 
     setFeesState(loading) {
         document.getElementById("loadingSpinner").style.display = loading ? "block" : "none";
         document.getElementById("submitButton").disabled = loading || !document.querySelector('input[name="paymentMethod"]:checked');
     },
 
+    async loadAccountTypes() {
+        try {
+            const result = await apiUtils.fetchJSON(PAYMENT_URLS.accountTypes, "GET", {
+                jurisdiction: apiUtils.getCurrentJurisdiction()
+            });
+            const types = result?.success ? result.data : [];
+            (types || []).forEach((type) => {
+                if (type.code) this.typeDescriptions[type.code] = type.description || type.code;
+            });
+        } catch (error) {
+            // The court's own type names are a nicety, not a requirement --
+            // accountLabel() falls back to the account's own name if this
+            // list never loads.
+        }
+    },
+
     // Tyler's payment accounts aren't all cards -- assuming so mislabeled
     // waivers, ACH/bank accounts, and firm balances alike as "Card ending in
     // ****". Only claim "card" when the account actually carries card data;
-    // otherwise fall back to whatever Tyler calls the account rather than
-    // guessing a type we can't confirm.
+    // otherwise use the court's own name for the account type, falling back
+    // to whatever Tyler calls the account if that type list didn't load.
     accountLabel(account, waiverCount) {
         if (account.paymentAccountTypeCode === "WV") {
             return waiverCount > 1 ? `${gettext("Payment waiver")}: ${account.accountName}` : gettext("Payment waiver");
@@ -53,7 +75,9 @@ const PaymentPage = {
         if (account.cardLast4) {
             return `${account.cardType?.value || gettext("Card")} ${gettext("ending in")} ${account.cardLast4}`;
         }
-        return account.accountName || account.paymentAccountTypeCode?.value || gettext("Payment account");
+        const typeName = this.typeDescriptions[account.paymentAccountTypeCode];
+        if (typeName && account.accountName) return `${typeName}: ${account.accountName}`;
+        return typeName || account.accountName || gettext("Payment account");
     },
 
     async loadAccounts() {
@@ -162,10 +186,11 @@ const PaymentPage = {
         form.submit();
     },
 
-    init() {
+    async init() {
         const status = new URLSearchParams(window.location.search).get("payment_status");
         if (status === "failure") paymentMessages.showError(gettext("The payment method was not added."));
         if (status === "success") paymentMessages.showSuccess(gettext("Payment method added."));
+        await this.loadAccountTypes();
         this.loadAccounts().catch(() => paymentMessages.showError(gettext("We could not load payment methods.")));
     }
 };
