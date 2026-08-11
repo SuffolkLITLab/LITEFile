@@ -9,7 +9,7 @@
         <div class="workflow-eyebrow">{% translate "Organize documents" %}</div>
         <h1>{% translate "Organize your documents" %}</h1>
         <p class="workflow-lede">
-            {% translate "Tell the court what each PDF is and whether it should be public or confidential. You can also rename and reorder additional documents." %}
+            {% translate "Tell the court what each PDF is and if it should be public or confidential. You can also rename and reorder additional documents." %}
         </p>
         <div class="alert alert-danger" id="organize-error" role="alert" hidden></div>
         <form id="organize-documents-form">
@@ -17,12 +17,10 @@
             <fieldset class="main-document-choice">
                 <legend>{% translate "Which PDF is the main document?" %}</legend>
                 {% if documents|length == 1 %}
-                    <p>{% translate "This is the only document in this filing, so it's the main document." %}</p>
+                    <p>{% translate "This is the only document in this filing, so it is the main document." %}</p>
                     {% for document in documents %}<input type="hidden" name="main_document" value="{{ document.id }}" />{% endfor %}
                 {% else %}
-                    <p>
-                        {% translate "Choose the document that starts or drives this filing, such as a petition. Upload order does not matter." %}
-                    </p>
+                    <p>{% translate "Choose the document that starts this filing, like a petition. Upload order does not matter." %}</p>
                     <div class="compact-choice-list">
                         {% for document in documents %}
                             <label>

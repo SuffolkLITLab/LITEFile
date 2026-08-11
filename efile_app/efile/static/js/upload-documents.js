@@ -44,7 +44,7 @@
 
         const analyzingTimer = window.setTimeout(() => {
             stateTitle.textContent = "Analyzing your first PDF…";
-            stateDetail.textContent = "We're looking for the court, case type, and case number.";
+            stateDetail.textContent = "We are looking for the court, case type, and case number.";
         }, 900);
 
         try {
@@ -62,7 +62,7 @@
             const result = await response.json();
             if (!response.ok || !result.success) throw new Error(result.error || "Upload failed.");
             stateTitle.textContent = "Your documents are ready";
-            stateDetail.textContent = "Review what we found before continuing.";
+            stateDetail.textContent = "Review what we found before you continue.";
             window.setTimeout(() => window.location.reload(), 500);
         } catch (error) {
             state.hidden = true;

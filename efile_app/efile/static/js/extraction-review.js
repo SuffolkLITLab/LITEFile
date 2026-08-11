@@ -131,8 +131,8 @@
             await ADVANCE[key]();
         } else {
             field.hint.textContent = guesses[field.guessKey] ?
-                "We found a hint in your document, but couldn't match it to an exact choice below." :
-                "We couldn't find this in your document.";
+                "We found a hint in your document, but we could not match it to a choice below." :
+                "We could not find this in your document.";
             setMode(key, "edit");
         }
     }

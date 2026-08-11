@@ -8,14 +8,14 @@
     <section class="workflow-card">
         <div class="workflow-eyebrow">{% translate "Confirm case" %}</div>
         {% if has_guesses %}
-            <h1>{% translate "Here's what we found" %}</h1>
+            <h1>{% translate "Here is what we found" %}</h1>
             <p class="workflow-lede">
-                {% translate "We read your lead document to get a head start. Review each item below and correct anything that's wrong." %}
+                {% translate "We read your lead document and filled in what we could. Review each item below and fix anything that is wrong." %}
             </p>
         {% else %}
             <h1>{% translate "Tell us about your case" %}</h1>
             <div class="alert alert-info">
-                {% translate "We couldn't automatically identify any case details from your document. Enter them below, or" %}
+                {% translate "We could not find any case details in your document. Enter them below, or" %}
                 <a href="{% url 'upload_documents' jurisdiction %}">{% translate "go back and try a different document" %}</a>.
             </div>
         {% endif %}
@@ -118,7 +118,7 @@
                             <option value="">{% translate "Choose a case type first" %}</option>
                         </select>
                         <input type="hidden" name="filing_type_name" id="filing_type_name" />
-                        <small class="review-field__hint" id="filing_type_code-hint">{% translate "We'll confirm this again when you organize your documents." %}</small>
+                        <small class="review-field__hint" id="filing_type_code-hint">{% translate "We will confirm this again when you organize your documents." %}</small>
                     </div>
                 </div>
                 <div class="form-field" id="docket-number-field">
@@ -162,7 +162,7 @@
                 <div class="collapse help-panel" id="path-help">
                     <strong>{% translate "Look near the top of your document." %}</strong>
                     <p>
-                        {% translate "A case number usually means the court has already opened the case. If your document starts a lawsuit or petition and has no case number, choose New case." %}
+                        {% translate "A case number usually means the court already opened the case. If your document starts a case and has no case number, choose New case." %}
                     </p>
                 </div>
             </fieldset>

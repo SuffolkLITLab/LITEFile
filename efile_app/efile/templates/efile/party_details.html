@@ -14,9 +14,7 @@
                 {% translate "Add the next party" %}
             {% endif %}
         </h1>
-        <p class="workflow-lede">
-            {% translate "Enter this person's or organization's court role, name, and mailing address." %}
-        </p>
+        <p class="workflow-lede">{% translate "Enter the court role, name, and mailing address for this party." %}</p>
         <form method="post" id="party-details-form" data-court="{{ court_code }}">
             {% csrf_token %}
             <input type="hidden" name="return_to" value="{{ return_to }}" />

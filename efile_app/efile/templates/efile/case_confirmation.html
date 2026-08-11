@@ -10,7 +10,7 @@
             <span class="found-heading__icon"><i class="fa-solid fa-check" aria-hidden="true"></i></span>
             <div>
                 <h1>{% translate "Is this your court case?" %}</h1>
-                <p class="workflow-lede">{% translate "Check the details before adding this filing to the case." %}</p>
+                <p class="workflow-lede">{% translate "Check the details before you add this filing to the case." %}</p>
             </div>
         </div>
         <dl class="case-summary">
@@ -65,7 +65,7 @@
             {% csrf_token %}
             <div class="confirmation-question">
                 <strong>{% translate "Does this match your case?" %}</strong>
-                <p>{% translate "Choosing Yes will attach your documents to this case." %}</p>
+                <p>{% translate "If you choose Yes, we will attach your documents to this case." %}</p>
             </div>
             <div class="workflow-actions workflow-actions--confirmation">
                 <button class="btn btn-outline-secondary"

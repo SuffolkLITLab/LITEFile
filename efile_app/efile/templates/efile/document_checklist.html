@@ -9,14 +9,14 @@
         <div class="workflow-eyebrow">{% translate "Check documents" %}</div>
         <h1>{% translate "Do you have all your documents?" %}</h1>
         <p class="workflow-lede">
-            {% translate "Review the files below. Add anything else you want the court to receive with this filing." %}
+            {% translate "Review the files below. Add anything else you want the court to get with this filing." %}
         </p>
         <div class="checklist-guidance" role="note">
             <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
             <div>
                 <strong>{% translate "Before you continue" %}</strong>
                 <p>
-                    {% translate "Include every completed court form, exhibit, translation, or proposed order that belongs with this filing. This list cannot determine which legal forms your case requires." %}
+                    {% translate "Include every completed court form, exhibit, translation, or proposed order that belongs with this filing. This list cannot tell you which legal forms your case needs." %}
                 </p>
             </div>
         </div>
@@ -78,7 +78,7 @@
                        value="yes"
                        {% if filing_draft.document_checklist_acknowledged %}checked{% endif %}
                        required />
-                <span><strong>{% translate "I have added all the documents I want to file." %}</strong><small>{% translate "I understand that I can go back and add another PDF before submission." %}</small></span>
+                <span><strong>{% translate "I have added all the documents I want to file." %}</strong><small>{% translate "I understand that I can go back and add another PDF before I submit." %}</small></span>
             </label>
             <div class="workflow-actions">
                 <a class="btn btn-outline-secondary"

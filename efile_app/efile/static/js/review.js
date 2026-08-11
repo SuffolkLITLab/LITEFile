@@ -30,7 +30,7 @@ const FilingHandler = {
 
     async submitFiling() {
         if (!document.getElementById("confirm-filing").checked) {
-            Messages.showError(gettext("Confirm that you reviewed the filing before submitting."));
+            Messages.showError(gettext("Confirm that you reviewed the filing before you submit."));
             return;
         }
         Messages.hide();

@@ -92,7 +92,7 @@ const PaymentPage = {
         const accounts = result?.success ? result.data : [];
         const container = document.getElementById("paymentMethodsContainer");
         if (!accounts?.length) {
-            container.innerHTML = `<div class="alert alert-info">${gettext("No payment methods found. Add one to continue.")}</div>
+            container.innerHTML = `<div class="alert alert-info">${gettext("You have no saved payment methods. Add one to continue.")}</div>
                 <button type="button" class="btn btn-outline-primary" id="add-payment-method">${gettext("Add payment method")}</button>`;
             document.getElementById("add-payment-method").addEventListener("click", () => this.addAccount());
             return;
@@ -165,7 +165,7 @@ const PaymentPage = {
             jurisdiction: apiUtils.getCurrentJurisdiction()
         });
         if (!authData?.success || !authData.data?.tyler_token) {
-            paymentMessages.showError(gettext("Authentication failed. Please sign in again."));
+            paymentMessages.showError(gettext("We could not verify your account. Please sign in again."));
             return;
         }
         const jurisdiction = authData.data.state || apiUtils.getCurrentJurisdiction();
