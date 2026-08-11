@@ -106,13 +106,20 @@
                         <small class="review-field__hint">{% translate "We'll confirm this again when you organize your documents." %}</small>
                     </div>
                 </div>
-                <label class="form-field">
+                <div class="form-field" id="docket-number-field">
                     <span>{% translate "Case number" %} <em>{% translate "if shown" %}</em></span>
+                    <label class="form-check mb-2" id="docket-number-toggle" hidden>
+                        <input type="checkbox" class="form-check-input" id="has-docket-number" />
+                        <span class="form-check-label">{% translate "This case already has a number from the court" %}</span>
+                    </label>
                     <input class="form-control"
+                           type="text"
                            name="docket_number"
-                           value="{{ docket_number|default:'' }}" />
-                    <small>{% translate "Leave blank if the court has not assigned one." %}</small>
-                </label>
+                           id="docket_number"
+                           value="{{ docket_number|default:'' }}"
+                           hidden />
+                    <small id="docket-number-hint">{% translate "Leave blank if the court has not assigned one." %}</small>
+                </div>
             </div>
             <fieldset class="path-confirmation">
                 <legend>{% translate "Is this for a new or existing court case?" %}</legend>
