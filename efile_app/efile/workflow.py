@@ -297,6 +297,36 @@ def get_step_url(step_key: WorkflowStepKey | str, jurisdiction: str) -> str:
     return reverse(get_step(step_key).url_name, kwargs={"jurisdiction": jurisdiction})
 
 
+RETURN_TO_REVIEW = "review"
+
+
+def get_return_url(request: Any, jurisdiction: str, default_step: WorkflowStepKey | str) -> str:
+    """Resolve where a step's successful save should redirect to.
+
+    Following "Edit" from the Review screen carries a ``return_to=review``
+    marker through the step's form (a hidden field, or a query string for
+    JS-driven saves). Without it, saving always continues to ``default_step`` --
+    the next screen in the linear workflow -- which otherwise forces filers to
+    click through every later screen again just to get back to Review, even
+    when only one earlier answer needed correcting.
+    """
+
+    return_to = request.POST.get("return_to") or request.GET.get("return_to")
+    if return_to == RETURN_TO_REVIEW:
+        return get_step_url(WorkflowStepKey.REVIEW, jurisdiction)
+    return get_step_url(default_step, jurisdiction)
+
+
+def with_return_to(url: str, return_to: str | None) -> str:
+    """Carry the return_to marker across an intermediate redirect (e.g. to fill
+    in one more required party) so it survives to reach the step it names."""
+
+    if not return_to:
+        return url
+    separator = "&" if "?" in url else "?"
+    return f"{url}{separator}return_to={return_to}"
+
+
 def get_resume_step_url(current_step: WorkflowStepKey | str | None, jurisdiction: str) -> str | None:
     if current_step is None:
         return None

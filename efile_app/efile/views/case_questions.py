@@ -6,7 +6,7 @@ from efile.api.suffolk_api_views import get_tyler_token
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.drafts import draft_snapshot
 from efile.services.people import get_case_questions, parse_question_answer
-from efile.workflow import WorkflowStepKey, get_step_url, get_workflow_context
+from efile.workflow import RETURN_TO_REVIEW, WorkflowStepKey, get_step_url, get_workflow_context
 
 
 @require_http_methods(["GET", "POST"])
@@ -22,9 +22,11 @@ def case_questions(request, jurisdiction):
     )
     questions = get_case_questions(draft)
     if not questions:
-        draft.current_step = WorkflowStepKey.PAYMENT
+        return_to = request.POST.get("return_to") or request.GET.get("return_to")
+        next_step = WorkflowStepKey.REVIEW if return_to == RETURN_TO_REVIEW else WorkflowStepKey.PAYMENT
+        draft.current_step = next_step
         draft.save(update_fields=["current_step", "updated_at"])
-        return redirect(get_step_url(WorkflowStepKey.PAYMENT, jurisdiction))
+        return redirect(get_step_url(next_step, jurisdiction))
 
     for question in questions:
         raw_value = (draft.supplemental_fields or {}).get(question["name"], "")
@@ -58,15 +60,19 @@ def case_questions(request, jurisdiction):
                 **answers,
                 "_case_questions_required": True,
             }
-            draft.current_step = WorkflowStepKey.PAYMENT
+            next_step = (
+                WorkflowStepKey.REVIEW if request.POST.get("return_to") == RETURN_TO_REVIEW else WorkflowStepKey.PAYMENT
+            )
+            draft.current_step = next_step
             draft.save(update_fields=["supplemental_fields", "current_step", "updated_at"])
-            return redirect(get_step_url(WorkflowStepKey.PAYMENT, jurisdiction))
+            return redirect(get_step_url(next_step, jurisdiction))
 
     context = {
         "is_logged_in": True,
         "filing_draft": draft_snapshot(draft),
         "questions": questions,
         "answers": draft.supplemental_fields or {},
+        "return_to": request.GET.get("return_to", ""),
     }
     context.update(get_workflow_context(WorkflowStepKey.CASE_QUESTIONS, jurisdiction, draft))
     return render(request, "efile/case_questions.html", context)

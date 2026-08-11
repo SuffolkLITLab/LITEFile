@@ -13,6 +13,7 @@
         <form method="post" class="your-role-card">
             {% csrf_token %}
             <input type="hidden" name="action" value="continue" />
+            <input type="hidden" name="return_to" value="{{ return_to }}" />
             <div>
                 <span class="party-avatar"><i class="fa-solid fa-user"></i></span>
                 <div>
@@ -57,6 +58,7 @@
                 <form method="post">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="add" />
+                    <input type="hidden" name="return_to" value="{{ return_to }}" />
                     <button class="btn btn-outline-primary btn-sm" type="submit">
                         <i class="fa-solid fa-plus"></i> {% translate "Add another person" %}
                     </button>
@@ -88,11 +90,12 @@
                     </span>
                     {% if item.party.role == "other" %}
                         <a class="btn btn-sm btn-light"
-                           href="{% url 'party_details' jurisdiction %}?party={{ item.party.pk }}">{% translate "Edit" %}</a>
+                           href="{% url 'party_details' jurisdiction %}?party={{ item.party.pk }}{% if return_to %}&return_to={{ return_to }}{% endif %}">{% translate "Edit" %}</a>
                         <form method="post">
                             {% csrf_token %}
                             <input type="hidden" name="action" value="remove" />
                             <input type="hidden" name="party_id" value="{{ item.party.pk }}" />
+                            <input type="hidden" name="return_to" value="{{ return_to }}" />
                             <button class="btn btn-sm btn-link text-danger"
                                     type="submit"
                                     aria-label="{% translate "Remove party" %}">
@@ -104,8 +107,13 @@
             {% endfor %}
         </div>
         <div class="workflow-actions">
-            <a class="btn btn-outline-secondary"
-               href="{% url 'your_information' jurisdiction %}"><i class="fa-solid fa-arrow-left"></i> {% translate "Back" %}</a>
+            {% if return_to == "review" %}
+                <a class="btn btn-outline-secondary"
+                   href="{% url 'case_review' jurisdiction %}"><i class="fa-solid fa-arrow-left"></i> {% translate "Back to review" %}</a>
+            {% else %}
+                <a class="btn btn-outline-secondary"
+                   href="{% url 'your_information' jurisdiction %}"><i class="fa-solid fa-arrow-left"></i> {% translate "Back" %}</a>
+            {% endif %}
         </div>
     </section>
 {% endblock workflow_content %}

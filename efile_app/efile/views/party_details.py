@@ -8,7 +8,7 @@ from efile.models import FilingParty
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.drafts import draft_snapshot
 from efile.services.people import get_case_questions, get_party_types, incomplete_parties
-from efile.workflow import WorkflowStepKey, get_step_url, get_workflow_context
+from efile.workflow import RETURN_TO_REVIEW, WorkflowStepKey, get_step_url, get_workflow_context, with_return_to
 
 
 @require_http_methods(["GET", "POST"])
@@ -58,17 +58,21 @@ def party_details(request, jurisdiction):
             party.phone = request.POST.get("phone", "").strip()
             party.save()
 
+            return_to = request.POST.get("return_to")
             remaining = [item for item in incomplete_parties(draft) if item.pk != party.pk]
             if remaining:
                 url = reverse("party_details", kwargs={"jurisdiction": jurisdiction})
-                return redirect(f"{url}?party={remaining[0].pk}")
+                return redirect(with_return_to(f"{url}?party={remaining[0].pk}", return_to))
 
             has_questions = bool(get_case_questions(draft))
             draft.supplemental_fields = {
                 **(draft.supplemental_fields or {}),
                 "_case_questions_required": has_questions,
             }
-            draft.current_step = WorkflowStepKey.CASE_QUESTIONS if has_questions else WorkflowStepKey.PAYMENT
+            if return_to == RETURN_TO_REVIEW:
+                draft.current_step = WorkflowStepKey.REVIEW
+            else:
+                draft.current_step = WorkflowStepKey.CASE_QUESTIONS if has_questions else WorkflowStepKey.PAYMENT
             draft.save(update_fields=["supplemental_fields", "current_step", "updated_at"])
             return redirect(get_step_url(draft.current_step, jurisdiction))
 
@@ -78,6 +82,7 @@ def party_details(request, jurisdiction):
         "party": party,
         "party_types": party_types,
         "party_kind": "organization" if party.organization_name else "person",
+        "return_to": request.GET.get("return_to", ""),
     }
     context.update(get_workflow_context(WorkflowStepKey.PARTY_DETAILS, jurisdiction, draft))
     return render(request, "efile/party_details.html", context)

@@ -19,6 +19,7 @@
         </p>
         <form method="post" id="party-details-form">
             {% csrf_token %}
+            <input type="hidden" name="return_to" value="{{ return_to }}" />
             <fieldset class="form-field compact-choice-field">
                 <legend>{% translate "Role in the case" %}</legend>
                 <div class="compact-choice-list compact-choice-list--horizontal">
@@ -150,9 +151,14 @@
             </div>
             <div class="workflow-actions">
                 <a class="btn btn-outline-secondary"
-                   href="{% url 'parties' jurisdiction %}"><i class="fa-solid fa-arrow-left"></i> {% translate "Back to party list" %}</a>
+                   href="{% url 'parties' jurisdiction %}{% if return_to %}?return_to={{ return_to }}{% endif %}"><i class="fa-solid fa-arrow-left"></i> {% translate "Back to party list" %}</a>
                 <button class="btn btn-primary" type="submit">
-                    {% translate "Save and continue" %} <i class="fa-solid fa-arrow-right"></i>
+                    {% if return_to == "review" %}
+                        {% translate "Save and return to review" %}
+                    {% else %}
+                        {% translate "Save and continue" %}
+                    {% endif %}
+                    <i class="fa-solid fa-arrow-right"></i>
                 </button>
             </div>
         </form>

@@ -141,6 +141,34 @@ def test_extraction_review_branches_new_case_to_checklist(client, reorganized_dr
 
 
 @pytest.mark.django_db
+def test_extraction_review_returns_to_review_when_edited_from_there(client, reorganized_draft):
+    FilingDocument.objects.create(
+        draft=reorganized_draft,
+        role=FilingDocument.Role.LEAD,
+        name="petition.pdf",
+    )
+
+    response = client.post(
+        reverse("extraction_review", kwargs={"jurisdiction": "illinois"}),
+        {
+            "existing_case": ExistingCase.NEW,
+            "court_code": "cook",
+            "court_name": "Cook County Circuit Court",
+            "case_category_code": "MR",
+            "case_category_name": "Miscellaneous Remedy",
+            "case_type_code": "NC",
+            "case_type_name": "Name Change",
+            "return_to": "review",
+        },
+    )
+
+    reorganized_draft.refresh_from_db()
+    assert response.status_code == 302
+    assert response.url == reverse("case_review", kwargs={"jurisdiction": "illinois"})
+    assert reorganized_draft.current_step == WorkflowStepKey.REVIEW
+
+
+@pytest.mark.django_db
 def test_extraction_review_new_case_requires_matched_court_and_type(client, reorganized_draft):
     FilingDocument.objects.create(
         draft=reorganized_draft,
