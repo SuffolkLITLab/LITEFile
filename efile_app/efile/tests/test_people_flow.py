@@ -447,6 +447,19 @@ def test_parties_routes_to_case_questions_when_amount_in_controversy_is_needed(c
         state="IL",
         zip_code="60601",
     )
+    FilingParty.objects.create(
+        draft=people_draft,
+        role="other",
+        sort_order=0,
+        party_type="defendant",
+        party_type_name="Defendant",
+        first_name="Morgan",
+        last_name="Lee",
+        address_line_1="200 Court Avenue",
+        city="Chicago",
+        state="IL",
+        zip_code="60602",
+    )
     FilingDocument.objects.create(
         draft=people_draft,
         role=FilingDocument.Role.LEAD,

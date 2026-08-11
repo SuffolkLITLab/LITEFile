@@ -28,6 +28,7 @@ def test_prioritize_options_keeps_extra_fields_from_the_court():
 
 class _FilingTypesResponse:
     status_code = 200
+    headers = {"Content-Type": "application/json"}
 
     @staticmethod
     def json():
