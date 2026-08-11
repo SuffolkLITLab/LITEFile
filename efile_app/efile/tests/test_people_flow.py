@@ -68,6 +68,17 @@ def test_your_information_persists_filer_contact(client, people_draft):
 
 
 @pytest.mark.django_db
+def test_your_information_suffix_is_a_dropdown_fed_by_the_court(client, people_draft):
+    response = client.get(reverse("your_information", kwargs={"jurisdiction": "illinois"}))
+
+    assert response.status_code == 200
+    content = response.content.decode()
+    suffix_select = re.search(r"<select[^>]*id=\"suffix\"[^>]*>", content)
+    assert suffix_select is not None
+    assert 'data-court="cook:cvd1"' in content
+
+
+@pytest.mark.django_db
 def test_your_information_returns_to_review_when_edited_from_there(client, people_draft):
     response = client.post(
         reverse("your_information", kwargs={"jurisdiction": "illinois"}),
@@ -214,6 +225,20 @@ def test_parties_returns_to_review_when_edited_from_there(client, people_draft):
     assert response.status_code == 302
     assert response.url == reverse("case_review", kwargs={"jurisdiction": "illinois"})
     assert people_draft.current_step == WorkflowStepKey.REVIEW
+
+
+@pytest.mark.django_db
+def test_party_details_suffix_is_a_dropdown_fed_by_the_court(client, people_draft):
+    party = FilingParty.objects.create(draft=people_draft, role="other", sort_order=0)
+
+    with patch("efile.views.party_details.get_party_types", return_value=PARTY_TYPES):
+        response = client.get(f"{reverse('party_details', kwargs={'jurisdiction': 'illinois'})}?party={party.pk}")
+
+    assert response.status_code == 200
+    content = response.content.decode()
+    suffix_select = re.search(r"<select[^>]*id=\"suffix\"[^>]*>", content)
+    assert suffix_select is not None
+    assert 'data-court="cook:cvd1"' in content
 
 
 @pytest.mark.django_db

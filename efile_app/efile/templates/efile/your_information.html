@@ -11,7 +11,9 @@
         <p class="workflow-lede">
             {% translate "Confirm how the court can contact you. We filled in what we could from your eFile account." %}
         </p>
-        <form method="post" id="your-information-form">
+        <form method="post"
+              id="your-information-form"
+              data-court="{{ court_code }}">
             {% csrf_token %}
             <input type="hidden" name="return_to" value="{{ return_to }}" />
             <div class="people-section">
@@ -42,7 +44,12 @@
                     </label>
                     <label class="form-field">
                         <span>{% translate "Suffix" %} <em>{% translate "Optional" %}</em></span>
-                        <input class="form-control" name="suffix" value="{{ filer.suffix }}" />
+                        <select class="form-select"
+                                name="suffix"
+                                id="suffix"
+                                data-selected="{{ filer.suffix }}">
+                            <option value="">{% translate "None" %}</option>
+                        </select>
                     </label>
                 </div>
             </div>
