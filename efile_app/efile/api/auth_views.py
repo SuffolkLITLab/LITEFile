@@ -294,8 +294,7 @@ class AuthAPIViews(APIResponseMixin):
                 return AuthAPIViews.success_response([])
             else:
                 return AuthAPIViews.error_response(
-                    f"Payment account types API returned status {api_response.status_code}: "
-                    f"{api_response.text[:200]}",
+                    f"Payment account types API returned status {api_response.status_code}: {api_response.text[:200]}",
                     api_response.status_code,
                 )
 
