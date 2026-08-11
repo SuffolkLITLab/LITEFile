@@ -863,6 +863,19 @@
     display: block;
 }
 
+.party-type-hint {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem 1rem;
+    margin-bottom: 1rem;
+}
+
+.party-type-hint button {
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
 .party-avatar {
     align-items: center;
     background: #dfeaff;

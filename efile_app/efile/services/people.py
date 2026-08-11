@@ -6,10 +6,17 @@ from typing import Any
 import requests
 from django.conf import settings
 
-from efile.models import FilingDraft, FilingParty
+from efile.models import FilingDocument, FilingDraft, FilingParty
 from efile.utils.config_loader import config_loader
+from efile.workflow import ExistingCase
 
 logger = logging.getLogger(__name__)
+
+# Keywords matched against a court's own party-type names (e.g.
+# "Plaintiff/Petitioner") to turn a case-posture guess into one of that
+# court's actual codes.
+_INITIATING_PARTY_KEYWORDS = ("plaintiff", "petitioner")
+_RESPONDING_PARTY_KEYWORDS = ("defendant", "respondent")
 
 
 def party_is_complete(party: FilingParty) -> bool:
@@ -47,6 +54,33 @@ def get_party_types(draft: FilingDraft) -> list[dict[str, Any]]:
         for item in data
         if isinstance(item, dict) and item.get("code") and item.get("name")
     ]
+
+
+def guess_filer_party_type(draft: FilingDraft, party_types: list[dict[str, Any]]) -> dict[str, Any] | None:
+    """Suggest the filer's role from case posture alone -- never authoritative.
+
+    A brand new case is almost always opened by the plaintiff/petitioner; an
+    "Answer" is almost always filed by the defendant/respondent. Callers must
+    treat this as a one-click suggestion, never pre-fill it: it's a heuristic
+    that can be wrong (e.g. a co-plaintiff answering on their own claim), and
+    silently pre-selecting a party's legal role is the kind of mistake a filer
+    might not think to double check.
+    """
+    lead = FilingDocument.objects.filter(draft=draft, role=FilingDocument.Role.LEAD).first()
+    filing_type_name = (lead.filing_type_name if lead else "") or ""
+
+    if "answer" in filing_type_name.lower():
+        keywords = _RESPONDING_PARTY_KEYWORDS
+    elif draft.existing_case == ExistingCase.NEW:
+        keywords = _INITIATING_PARTY_KEYWORDS
+    else:
+        return None
+
+    for party_type in party_types:
+        name = party_type["name"].lower()
+        if any(keyword in name for keyword in keywords):
+            return party_type
+    return None
 
 
 def ensure_required_parties(draft: FilingDraft, party_types: list[dict[str, Any]]) -> None:
