@@ -13,6 +13,7 @@ from efile.services.people import (
     get_party_types,
     guess_filer_party_type,
     incomplete_parties,
+    needs_amount_in_controversy,
     party_is_complete,
 )
 from efile.workflow import RETURN_TO_REVIEW, WorkflowStepKey, get_step_url, get_workflow_context, with_return_to
@@ -82,7 +83,7 @@ def parties(request, jurisdiction):
                 draft.save(update_fields=["current_step", "updated_at"])
                 return redirect(_party_details_url(jurisdiction, incomplete[0], return_to))
 
-            has_questions = bool(get_case_questions(draft))
+            has_questions = bool(get_case_questions(draft)) or needs_amount_in_controversy(draft)
             draft.supplemental_fields = {
                 **(draft.supplemental_fields or {}),
                 "_case_questions_required": has_questions,

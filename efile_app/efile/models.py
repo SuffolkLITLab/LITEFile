@@ -93,6 +93,11 @@ class FilingDraft(models.Model):
     optional_services = models.JSONField(default=list, blank=True)
     extracted_guesses = models.JSONField(default=dict, blank=True)
     document_checklist_acknowledged = models.BooleanField(default=False)
+    # The dollar amount at stake, required by the EFSP when any document's
+    # filing type is flagged "amountincontroversy: Required". Stored as text
+    # (like the fee fields) since it's echoed back to the API rather than
+    # computed on.
+    amount_in_controversy = models.CharField(max_length=50, blank=True)
     # Area-of-law questionnaire answers (e.g. divorce children questions). These are
     # driven by the per-state/case-type config, not a fixed schema, so they live in a
     # structured JSON field rather than a column each. Only config-defined keys are
@@ -152,6 +157,11 @@ class FilingDocument(models.Model):
     document_type_name = models.CharField(max_length=255, blank=True)
     filing_component_code = models.CharField(max_length=100, blank=True)
     filing_component_name = models.CharField(max_length=255, blank=True)
+    # The court's own "amountincontroversy" flag for this document's filing
+    # type (from the filing-types codes API) is "Required" for some case
+    # types. Recorded per document, since each can carry a different filing
+    # type; case_questions asks for the dollar amount if any document needs it.
+    filing_requires_amount_in_controversy = models.BooleanField(default=False)
 
     courtesy_copy_email = models.EmailField(blank=True)
     # Codes selected from the court's optional-services list for this document

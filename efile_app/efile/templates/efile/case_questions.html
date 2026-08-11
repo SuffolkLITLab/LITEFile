@@ -50,6 +50,25 @@
                         {% endif %}
                     </fieldset>
                 {% endfor %}
+                {% if show_amount_field %}
+                    <fieldset class="question-card" data-question="amount_in_controversy">
+                        <legend>
+                            {% translate "Amount in controversy" %} <span aria-hidden="true">*</span>
+                        </legend>
+                        <p class="question-card__hint">
+                            {% translate "The dollar amount at stake in this case. The court requires this for the filing type you selected." %}
+                        </p>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input class="form-control"
+                                   type="text"
+                                   inputmode="decimal"
+                                   name="amount_in_controversy"
+                                   value="{{ amount_in_controversy }}"
+                                   required />
+                        </div>
+                    </fieldset>
+                {% endif %}
             </div>
             <div class="workflow-actions">
                 {% if return_to == "review" %}

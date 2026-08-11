@@ -103,6 +103,16 @@ def ensure_required_parties(draft: FilingDraft, party_types: list[dict[str, Any]
         next_order += 1
 
 
+def needs_amount_in_controversy(draft: FilingDraft) -> bool:
+    """True if any organized document's filing type requires a dollar amount.
+
+    Tyler flags this per filing type (FilingCode.amountincontroversy ==
+    "Required"), recorded onto FilingDocument when the filer picks it in
+    organize_documents. The EFSP rejects the whole filing without it.
+    """
+    return FilingDocument.objects.filter(draft=draft, filing_requires_amount_in_controversy=True).exists()
+
+
 def get_case_questions(draft: FilingDraft) -> list[dict[str, Any]]:
     case_type = draft.case_type_name or draft.case_type_code
     lowered = case_type.lower()
