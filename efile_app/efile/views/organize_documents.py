@@ -57,6 +57,7 @@ def _save_document_details(draft, document_details, main_document_id):
         document.requested_optional_services = (
             [str(code)[:100] for code in optional_services if code] if isinstance(optional_services, list) else []
         )
+        document.filing_requires_amount_in_controversy = bool(item.get("requires_amount_in_controversy"))
         if document.pk == main_document_id:
             document.sort_order = 0
         else:

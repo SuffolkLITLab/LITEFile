@@ -195,6 +195,7 @@ def test_organize_saves_details_and_supporting_order(client, document_draft):
             "filing_component_name": "Lead Document",
             "courtesy_copy_email": "filer@example.com",
             "requested_optional_services": ["certified"],
+            "requires_amount_in_controversy": True,
         },
         {
             "id": second.pk,
@@ -235,6 +236,7 @@ def test_organize_saves_details_and_supporting_order(client, document_draft):
     assert lead.filing_type_code == "petition"
     assert lead.courtesy_copy_email == "filer@example.com"
     assert lead.requested_optional_services == ["certified"]
+    assert lead.filing_requires_amount_in_controversy is True
     assert list(
         document_draft.documents.filter(role=FilingDocument.Role.SUPPORTING)
         .order_by("sort_order")

@@ -30,7 +30,11 @@ def prioritize_options(api_data, guessed):
     if isinstance(api_data, list):
         for opt in api_data:
             if isinstance(opt, dict) and "code" in opt and "name" in opt:
-                options.append({"value": opt["code"], "text": opt["name"]})
+                # Keep other fields the court sends (e.g. "amountincontroversy" on
+                # filing types) available to callers that need more than value/text,
+                # without every caller having to know the raw Tyler field names.
+                extra = {key: value for key, value in opt.items() if key not in ("code", "name")}
+                options.append({"value": opt["code"], "text": opt["name"], **extra})
     options.sort(key=lambda x: x["text"])
 
     if not guessed:
