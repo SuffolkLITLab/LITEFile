@@ -147,6 +147,10 @@ class FilingDocument(models.Model):
     filing_component_name = models.CharField(max_length=255, blank=True)
 
     courtesy_copy_email = models.EmailField(blank=True)
+    # Codes selected from the court's optional-services list for this document
+    # (e.g. a certified copy), scoped per document since each can have its own
+    # filing type. See efile.api.dropdown_views.get_optional_services.
+    requested_optional_services = models.JSONField(default=list, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

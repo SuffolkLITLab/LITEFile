@@ -132,6 +132,60 @@
         );
     }
 
+    async function loadOptionalServices(card, filingType) {
+        const container = card.querySelector(".optional-services-list");
+        if (!filingType) {
+            container.innerHTML = "<small>Select a filing type first</small>";
+            return;
+        }
+        container.innerHTML = "<small>Loading choices…</small>";
+        const params = new URLSearchParams({
+            jurisdiction: context.jurisdiction,
+            court: context.court,
+            filing_type_id: filingType,
+        });
+        let services;
+        try {
+            services = await getJson(`/api/dropdowns/optional-services/?${params}`);
+        } catch (error) {
+            container.innerHTML = "";
+            return;
+        }
+        if (!services.length) {
+            container.innerHTML = "";
+            return;
+        }
+
+        const saved = new Set((card.dataset.optionalServices || "").split(",").filter(Boolean));
+        container.innerHTML = "";
+        services.forEach((service) => {
+            const code = String(service.code ?? service.id ?? "");
+            if (!code) return;
+            const label = document.createElement("label");
+            label.className = "form-check mb-2";
+            const input = document.createElement("input");
+            input.type = "checkbox";
+            input.className = "form-check-input optional-service";
+            input.value = code;
+            input.checked = Boolean(service.required) || saved.has(code);
+            input.disabled = Boolean(service.required);
+            const span = document.createElement("span");
+            span.className = "form-check-label";
+            let text = service.name || service.text || code;
+            const fee = parseFloat(service.fee);
+            if (fee > 0) text += ` ($${fee.toFixed(2)})`;
+            span.textContent = text;
+            label.append(input, span);
+            container.appendChild(label);
+            if (service.description) {
+                const description = document.createElement("small");
+                description.className = "d-block optional-service-description";
+                description.textContent = service.description;
+                container.appendChild(description);
+            }
+        });
+    }
+
     async function initializeCard(card) {
         const filingType = card.querySelector(".filing-type");
         setOptions(filingType, await loadFilingTypes(), card.dataset.filingType, "Choose a filing type");
@@ -139,14 +193,20 @@
             card.dataset.documentType = "";
             card.dataset.filingComponent = "";
             try {
-                await loadDependentOptions(card, filingType.value);
+                await Promise.all([
+                    loadDependentOptions(card, filingType.value),
+                    loadOptionalServices(card, filingType.value),
+                ]);
             } catch (error) {
                 showError(error.message);
             }
         });
-        await loadDependentOptions(card, filingType.value);
+        await Promise.all([
+            loadDependentOptions(card, filingType.value),
+            loadOptionalServices(card, filingType.value),
+        ]);
 
-        const checkbox = card.querySelector(".certified-copy");
+        const checkbox = card.querySelector(".courtesy-copy-toggle");
         const emailWrap = card.querySelector(".courtesy-email-wrap");
         const email = card.querySelector(".courtesy-email");
         checkbox.addEventListener("change", () => {
@@ -199,8 +259,10 @@
             const filingType = card.querySelector(".filing-type");
             const documentType = card.querySelector('.document-type-options input:checked');
             const component = card.querySelector('.filing-component-options input:checked');
-            const courtesyEmail = card.querySelector(".certified-copy").checked ?
+            const courtesyEmail = card.querySelector(".courtesy-copy-toggle").checked ?
                 card.querySelector(".courtesy-email").value : "";
+            const requestedOptionalServices = Array.from(card.querySelectorAll(".optional-service:checked"))
+                .map((input) => input.value);
             return {
                 id: Number(card.dataset.documentId),
                 name: card.querySelector(".document-name").value,
@@ -211,6 +273,7 @@
                 filing_component: component?.value || "",
                 filing_component_name: component?.closest("label")?.innerText.trim() || "",
                 courtesy_copy_email: courtesyEmail,
+                requested_optional_services: requestedOptionalServices,
             };
         });
 

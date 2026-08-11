@@ -46,7 +46,8 @@
                              data-role="{{ document.role }}"
                              data-filing-type="{{ document.filing_type_code }}"
                              data-document-type="{{ document.document_type_code }}"
-                             data-filing-component="{{ document.filing_component_code }}">
+                             data-filing-component="{{ document.filing_component_code }}"
+                             data-optional-services="{{ document.requested_optional_services|join:',' }}">
                         <header class="organize-card__header">
                             <span class="organize-card__icon"><i class="fa-solid fa-file-pdf"></i></span>
                             <div>
@@ -106,10 +107,13 @@
                             </fieldset>
                         </div>
                         <details class="certified-copy-details"
-                                 {% if document.courtesy_copy_email %}open{% endif %}>
+                                 {% if document.courtesy_copy_email or document.requested_optional_services %}open{% endif %}>
                             <summary>{% translate "Certified copy and courtesy email" %}</summary>
+                            <div class="optional-services-list">
+                                <small>{% translate "Select a filing type first" %}</small>
+                            </div>
                             <label class="form-check mt-3">
-                                <input class="form-check-input certified-copy"
+                                <input class="form-check-input courtesy-copy-toggle"
                                        type="checkbox"
                                        {% if document.courtesy_copy_email %}checked{% endif %} />
                                 <span class="form-check-label">{% translate "Email me a copy when this document is filed" %}</span>

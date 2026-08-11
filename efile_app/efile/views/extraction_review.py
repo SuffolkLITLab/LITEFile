@@ -15,6 +15,17 @@ from efile.workflow import (
 )
 
 
+def _set_lead_filing_type(draft, filing_type_code, filing_type_name):
+    if not filing_type_code:
+        return
+    lead = FilingDocument.objects.filter(draft=draft, role=FilingDocument.Role.LEAD).first()
+    if lead is None:
+        return
+    lead.filing_type_code = filing_type_code
+    lead.filing_type_name = filing_type_name
+    lead.save(update_fields=["filing_type_code", "filing_type_name", "updated_at"])
+
+
 @require_http_methods(["GET", "POST"])
 def extraction_review(request, jurisdiction):
     if not request.user.is_authenticated or not get_tyler_token(request, jurisdiction):
@@ -32,19 +43,36 @@ def extraction_review(request, jurisdiction):
 
     if request.method == "POST":
         existing_case = request.POST.get("existing_case", draft.existing_case)
+        court_code = request.POST.get("court_code", "")
+        case_category_code = request.POST.get("case_category_code", "")
+        case_type_code = request.POST.get("case_type_code", "")
+
         if existing_case not in {ExistingCase.NEW, ExistingCase.EXISTING}:
             messages.error(request, "Choose whether this is a new or existing court case to continue.")
+        elif existing_case == ExistingCase.NEW and not (court_code and case_category_code and case_type_code):
+            # Tyler's e-filing API only accepts exact court/category/type codes, so
+            # a new case can't proceed on free-text guesses -- unlike an existing
+            # case, which resolves these from the case lookup step instead.
+            messages.error(request, "Choose a court, case category, and case type from the lists to continue.")
         else:
             write_case_data(
                 draft,
                 {
                     "existing_case": existing_case,
+                    "court": court_code,
                     "court_name": request.POST.get("court_name", ""),
+                    "case_category": case_category_code,
                     "case_category_name": request.POST.get("case_category_name", ""),
+                    "case_type": case_type_code,
                     "case_type_name": request.POST.get("case_type_name", ""),
                     "docket_number": request.POST.get("docket_number", ""),
                 },
                 current_step=WorkflowStepKey.EXTRACTION_REVIEW,
+            )
+            _set_lead_filing_type(
+                draft,
+                request.POST.get("filing_type_code", ""),
+                request.POST.get("filing_type_name", ""),
             )
             next_step = get_next_step(WorkflowStepKey.EXTRACTION_REVIEW, draft)
             if next_step:
@@ -52,14 +80,26 @@ def extraction_review(request, jurisdiction):
                 return redirect(get_step_url(next_step.key, jurisdiction))
 
     guesses = draft.extracted_guesses or {}
+    lead = FilingDocument.objects.filter(draft=draft, role=FilingDocument.Role.LEAD).first()
+    extraction_context = {
+        "jurisdiction": jurisdiction,
+        "guesses": guesses,
+        "existing_case": draft.existing_case,
+        "court_code": draft.court_code,
+        "court_name": draft.court_name,
+        "case_category_code": draft.case_category_code,
+        "case_category_name": draft.case_category_name,
+        "case_type_code": draft.case_type_code,
+        "case_type_name": draft.case_type_name,
+        "filing_type_code": lead.filing_type_code if lead else "",
+        "filing_type_name": lead.filing_type_name if lead else "",
+    }
     context = {
         "is_logged_in": True,
         "filing_draft": draft_snapshot(draft),
-        "guesses": guesses,
-        "court_name": draft.court_name or guesses.get("court"),
-        "case_category_name": draft.case_category_name or guesses.get("case category"),
-        "case_type_name": draft.case_type_name or guesses.get("case type"),
+        "has_guesses": bool(guesses),
         "docket_number": draft.docket_number or guesses.get("docket number"),
+        "extraction_context": extraction_context,
     }
     context.update(get_workflow_context(WorkflowStepKey.EXTRACTION_REVIEW, jurisdiction, draft))
     return render(request, "efile/extraction_review.html", context)
