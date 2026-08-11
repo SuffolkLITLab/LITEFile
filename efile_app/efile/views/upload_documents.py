@@ -65,6 +65,7 @@ def upload_documents(request, jurisdiction):
         try:
             upload_data = upload_files(draft, uploaded_files, jurisdiction)
         except ValueError as error:
+            logger.exception("Upload failed for draft %s", draft.pk)
             return JsonResponse({"success": False, "error": str(error)}, status=400)
         return JsonResponse(
             {

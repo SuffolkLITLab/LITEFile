@@ -56,15 +56,19 @@ def upload_files(draft, uploaded_files, jurisdiction, *, current_step=WorkflowSt
     current = read_upload_data(draft)
     files = current.setdefault("files", {})
     supporting = list(files.get("supporting", []))
-    lead_file = None
+    found_lead = False
 
     for uploaded_file in uploaded_files:
         validation = handler.validate_file(uploaded_file, max_size_mb=10, allowed_types=[".pdf"])
         if not validation["valid"]:
             raise ValueError(f"{uploaded_file.name}: {validation['error']}")
 
-        is_lead = not files.get("lead") and lead_file is None
+        is_lead = not files.get("lead") and not found_lead
         role = FilingDocument.Role.LEAD if is_lead else FilingDocument.Role.SUPPORTING
+
+        # Analyze the file while it's still open; boto3 closes the fileobj it's given once uploaded.
+        guesses = _guess_payload(_analyze_lead(uploaded_file, jurisdiction)) if is_lead else None
+
         uploaded_file.seek(0)
         result = handler.upload_file(uploaded_file, file_type=role)
         if not result["success"]:
@@ -79,12 +83,11 @@ def upload_files(draft, uploaded_files, jurisdiction, *, current_step=WorkflowSt
         }
         if is_lead:
             files["lead"] = file_data
-            lead_file = uploaded_file
+            found_lead = True
+            current["guesses"] = guesses
         else:
             supporting.append(file_data)
 
     files["supporting"] = supporting
-    if lead_file is not None:
-        current["guesses"] = _guess_payload(_analyze_lead(lead_file, jurisdiction))
     write_upload_data(draft, current, current_step=current_step)
     return current
