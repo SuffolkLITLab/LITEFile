@@ -132,6 +132,64 @@
         );
     }
 
+    // Keywords for the optional services filers actually look for. Courts can
+    // list a dozen+ services (interpreter requests, sealed filings, various
+    // process-server fees...); surfacing all of them by default buries the
+    // handful people come here for, so only these -- plus anything marked
+    // required -- show before the "Show more options" toggle.
+    const COMMON_OPTIONAL_SERVICE_KEYWORDS = [
+        "certified",
+        "copy",
+        "copies",
+        "expedit",
+        "priority",
+        "rush",
+        "courtesy",
+    ];
+
+    function isCommonOptionalService(name) {
+        const lower = (name || "").toLowerCase();
+        return COMMON_OPTIONAL_SERVICE_KEYWORDS.some((keyword) => lower.includes(keyword));
+    }
+
+    function buildOptionalServiceLabel(service, saved) {
+        const code = String(service.code ?? service.id ?? "");
+        const label = document.createElement("label");
+        label.className = "form-check mb-2";
+        const input = document.createElement("input");
+        input.type = "checkbox";
+        input.className = "form-check-input optional-service";
+        input.value = code;
+        input.checked = Boolean(service.required) || saved.has(code);
+        input.disabled = Boolean(service.required);
+        const span = document.createElement("span");
+        span.className = "form-check-label";
+        let text = service.name || service.text || code;
+        const fee = parseFloat(service.fee);
+        if (fee > 0) text += ` ($${fee.toFixed(2)})`;
+        span.textContent = text;
+        label.append(input, span);
+        return {
+            code,
+            label
+        };
+    }
+
+    function appendOptionalService(container, service, saved) {
+        const {
+            code,
+            label
+        } = buildOptionalServiceLabel(service, saved);
+        if (!code) return;
+        container.appendChild(label);
+        if (service.description) {
+            const description = document.createElement("small");
+            description.className = "d-block optional-service-description";
+            description.textContent = service.description;
+            container.appendChild(description);
+        }
+    }
+
     async function loadOptionalServices(card, filingType) {
         const container = card.querySelector(".optional-services-list");
         if (!filingType) {
@@ -151,39 +209,41 @@
             container.innerHTML = "";
             return;
         }
+        services = services.filter((service) => service.code ?? service.id);
         if (!services.length) {
             container.innerHTML = "";
             return;
         }
 
         const saved = new Set((card.dataset.optionalServices || "").split(",").filter(Boolean));
+        let primary = services.filter((service) => service.required || isCommonOptionalService(service.name));
+        let rest = services.filter((service) => !primary.includes(service));
+        if (!primary.length) {
+            primary = services.slice(0, 4);
+            rest = services.slice(4);
+        }
+
         container.innerHTML = "";
-        services.forEach((service) => {
-            const code = String(service.code ?? service.id ?? "");
-            if (!code) return;
-            const label = document.createElement("label");
-            label.className = "form-check mb-2";
-            const input = document.createElement("input");
-            input.type = "checkbox";
-            input.className = "form-check-input optional-service";
-            input.value = code;
-            input.checked = Boolean(service.required) || saved.has(code);
-            input.disabled = Boolean(service.required);
-            const span = document.createElement("span");
-            span.className = "form-check-label";
-            let text = service.name || service.text || code;
-            const fee = parseFloat(service.fee);
-            if (fee > 0) text += ` ($${fee.toFixed(2)})`;
-            span.textContent = text;
-            label.append(input, span);
-            container.appendChild(label);
-            if (service.description) {
-                const description = document.createElement("small");
-                description.className = "d-block optional-service-description";
-                description.textContent = service.description;
-                container.appendChild(description);
-            }
-        });
+        primary.forEach((service) => appendOptionalService(container, service, saved));
+
+        if (rest.length) {
+            const moreContainer = document.createElement("div");
+            moreContainer.hidden = true;
+            rest.forEach((service) => appendOptionalService(moreContainer, service, saved));
+
+            const toggle = document.createElement("button");
+            toggle.type = "button";
+            toggle.className = "btn btn-link optional-services-toggle";
+            const showMoreText = interpolate(ngettext("Show %s more option", "Show %s more options", rest.length), [rest.length]);
+            toggle.textContent = showMoreText;
+            toggle.addEventListener("click", () => {
+                const wasExpanded = !moreContainer.hidden;
+                moreContainer.hidden = wasExpanded;
+                toggle.textContent = wasExpanded ? showMoreText : gettext("Show fewer options");
+            });
+
+            container.append(toggle, moreContainer);
+        }
     }
 
     async function initializeCard(card) {
@@ -287,6 +347,7 @@
                 body: JSON.stringify({
                     documents,
                     main_document_id: Number(form.elements.namedItem("main_document").value),
+                    return_to: context.return_to || "",
                 }),
             });
             if (response.redirected) {

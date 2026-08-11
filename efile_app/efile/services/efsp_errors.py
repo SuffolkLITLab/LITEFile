@@ -72,6 +72,13 @@ def describe_efsp_error(response) -> str:
             message += f" - Validation errors: {validation_errors}"
         return message
 
+    # "Malformed Interview" errors (e.g. a docket number on a case the court has
+    # no record of) arrive as {"type": ..., "description": ...} instead.
+    description = body.get("description")
+    if description:
+        error_type = str(body.get("type") or "").strip()
+        return f"{error_type}: {description}" if error_type else str(description)
+
     return f"the court's filing service returned status {response.status_code}"
 
 

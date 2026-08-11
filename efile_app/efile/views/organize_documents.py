@@ -12,7 +12,7 @@ from efile.api.suffolk_api_views import get_tyler_token
 from efile.models import FilingDocument
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.drafts import draft_snapshot
-from efile.workflow import ExistingCase, WorkflowStepKey, get_step_url, get_workflow_context
+from efile.workflow import RETURN_TO_REVIEW, ExistingCase, WorkflowStepKey, get_step_url, get_workflow_context
 
 
 @transaction.atomic
@@ -108,12 +108,14 @@ def organize_documents(request, jurisdiction):
         except (json.JSONDecodeError, ValueError) as error:
             return JsonResponse({"success": False, "error": str(error)}, status=400)
 
-        draft.current_step = WorkflowStepKey.YOUR_INFORMATION
+        return_to_review = data.get("return_to") == RETURN_TO_REVIEW
+        next_step = WorkflowStepKey.REVIEW if return_to_review else WorkflowStepKey.YOUR_INFORMATION
+        draft.current_step = next_step
         draft.save(update_fields=["current_step", "updated_at"])
         return JsonResponse(
             {
                 "success": True,
-                "redirect_url": get_step_url(WorkflowStepKey.YOUR_INFORMATION, jurisdiction),
+                "redirect_url": get_step_url(next_step, jurisdiction),
             }
         )
 
@@ -121,6 +123,7 @@ def organize_documents(request, jurisdiction):
         "is_logged_in": True,
         "filing_draft": draft_snapshot(draft),
         "documents": documents,
+        "return_to": request.GET.get("return_to", ""),
         "organize_context": {
             "jurisdiction": jurisdiction,
             "court": draft.court_code,
@@ -128,6 +131,7 @@ def organize_documents(request, jurisdiction):
             "case_type": draft.case_type_code,
             "existing_case": "yes" if draft.existing_case == ExistingCase.EXISTING else "no",
             "guessed_filing_type": (draft.extracted_guesses or {}).get("filing type", ""),
+            "return_to": request.GET.get("return_to", ""),
         },
     }
     context.update(get_workflow_context(WorkflowStepKey.ORGANIZE_DOCUMENTS, jurisdiction, draft))

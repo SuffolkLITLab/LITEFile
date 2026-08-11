@@ -103,6 +103,36 @@ def test_organize_redirects_when_court_is_missing(client, document_draft):
 
 
 @pytest.mark.django_db
+def test_organize_returns_to_review_when_edited_from_there(client, document_draft):
+    document_draft.document_checklist_acknowledged = True
+    document_draft.save(update_fields=["document_checklist_acknowledged", "updated_at"])
+    lead = document_draft.documents.get(role=FilingDocument.Role.LEAD)
+    details = [
+        {
+            "id": lead.pk,
+            "name": "Petition",
+            "filing_type": "petition",
+            "filing_type_name": "Petition",
+            "document_type": "public",
+            "document_type_name": "No (Public)",
+            "filing_component": "lead",
+            "filing_component_name": "Lead Document",
+        },
+    ]
+
+    response = client.post(
+        reverse("organize_documents", kwargs={"jurisdiction": "illinois"}),
+        {"documents": details, "main_document_id": lead.pk, "return_to": "review"},
+        content_type="application/json",
+    )
+
+    document_draft.refresh_from_db()
+    assert response.status_code == 200
+    assert response.json()["redirect_url"] == reverse("case_review", kwargs={"jurisdiction": "illinois"})
+    assert document_draft.current_step == WorkflowStepKey.REVIEW
+
+
+@pytest.mark.django_db
 def test_organize_saves_details_and_supporting_order(client, document_draft):
     first = FilingDocument.objects.create(
         draft=document_draft,
