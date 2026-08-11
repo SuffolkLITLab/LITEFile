@@ -26,7 +26,15 @@
             return;
         }
         select.add(new Option(placeholder, ""));
-        options.forEach((item) => select.add(new Option(optionText(item), optionValue(item))));
+        options.forEach((item) => {
+            const option = new Option(optionText(item), optionValue(item));
+            // Some filing types require an amount in controversy; case_questions
+            // asks for it later, but only needs to if this is set on the chosen
+            // filing type for at least one document in the filing.
+            option.dataset.amountInControversyRequired =
+                String(item.amountincontroversy || "").toLowerCase() === "required";
+            select.add(option);
+        });
         select.value = savedValue || "";
         select.disabled = false;
     }
@@ -334,6 +342,7 @@
                 filing_component_name: component?.closest("label")?.innerText.trim() || "",
                 courtesy_copy_email: courtesyEmail,
                 requested_optional_services: requestedOptionalServices,
+                requires_amount_in_controversy: filingType.selectedOptions[0]?.dataset.amountInControversyRequired === "true",
             };
         });
 
