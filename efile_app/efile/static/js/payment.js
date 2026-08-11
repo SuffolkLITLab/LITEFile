@@ -41,6 +41,21 @@ const PaymentPage = {
         document.getElementById("submitButton").disabled = loading || !document.querySelector('input[name="paymentMethod"]:checked');
     },
 
+    // Tyler's payment accounts aren't all cards -- assuming so mislabeled
+    // waivers, ACH/bank accounts, and firm balances alike as "Card ending in
+    // ****". Only claim "card" when the account actually carries card data;
+    // otherwise fall back to whatever Tyler calls the account rather than
+    // guessing a type we can't confirm.
+    accountLabel(account, waiverCount) {
+        if (account.paymentAccountTypeCode === "WV") {
+            return waiverCount > 1 ? `${gettext("Payment waiver")}: ${account.accountName}` : gettext("Payment waiver");
+        }
+        if (account.cardLast4) {
+            return `${account.cardType?.value || gettext("Card")} ${gettext("ending in")} ${account.cardLast4}`;
+        }
+        return account.accountName || account.paymentAccountTypeCode?.value || gettext("Payment account");
+    },
+
     async loadAccounts() {
         const result = await apiUtils.fetchJSON(PAYMENT_URLS.accounts, "GET", {
             jurisdiction: apiUtils.getCurrentJurisdiction()
@@ -57,12 +72,9 @@ const PaymentPage = {
         const saved = paymentJSON("selected-payment-account-id");
         const waiverCount = accounts.filter((account) => account.paymentAccountTypeCode === "WV").length;
         const rows = accounts.map((account, index) => {
-            let label = `${account.cardType?.value || gettext("Card")} ${gettext("ending in")} ${account.cardLast4 || "****"}`;
-            if (account.paymentAccountTypeCode === "WV") {
-                label = waiverCount > 1 ? `${gettext("Payment waiver")}: ${account.accountName}` : gettext("Payment waiver");
-            }
+            const label = this.accountLabel(account, waiverCount);
             const checked = saved ? String(saved) === String(account.paymentAccountID) : index === 0;
-            return `<label><input class="form-check-input" type="radio" name="paymentMethod" value="${escapeAttribute(account.paymentAccountID)}" data-name="${escapeAttribute(label)}" ${checked ? "checked" : ""}/> <span><strong>${escapeHTML(label)}</strong></span></label>`;
+            return `<label><input class="form-check-input" type="radio" name="paymentMethod" value="${escapeAttribute(account.paymentAccountID)}" data-name="${escapeAttribute(label)}" data-type="${escapeAttribute(account.paymentAccountTypeCode || "")}" ${checked ? "checked" : ""}/> <span><strong>${escapeHTML(label)}</strong></span></label>`;
         }).join("");
         container.innerHTML = `<div class="compact-choice-list">${rows}</div>
         <button type="button" class="btn btn-link ps-0 mt-2" id="add-payment-method">+ ${gettext("Add another payment method")}</button>`;
@@ -78,7 +90,10 @@ const PaymentPage = {
         if (!selected) return;
         document.getElementById("selected-payment-account").value = selected.value;
         document.getElementById("selected-payment-account-name").value = selected.dataset.name;
+        document.getElementById("selected-payment-account-type").value = selected.dataset.type || "";
         document.getElementById("paymentSection").hidden = true;
+        document.getElementById("quoted-fee-total").value = "";
+        document.getElementById("quoted-fee-breakdown").value = "";
         paymentMessages.hide();
         this.setFeesState(true);
         try {
@@ -93,10 +108,27 @@ const PaymentPage = {
                 timeout: ApiUtils.FILING_TIMEOUT_MS
             });
             this.handleFeesResponse(result);
+            this.storeFeeQuote(result);
         } catch (error) {
             paymentMessages.showError(error?.serverMessage || gettext("We could not calculate fees. Please try again."));
             this.setFeesState(false);
         }
+    },
+
+    // Persist the quote Review will later display, so it shows the same
+    // numbers the filer already saw here instead of sending them back to
+    // look them up again.
+    storeFeeQuote(result) {
+        if (!result?.success) return;
+        const response = result.api_response || {};
+        const fees = (response.allowanceCharge || [])
+            .filter((fee) => fee.chargeIndicator?.value)
+            .map((fee) => ({
+                label: fee.allowanceChargeReason?.value || gettext("Court fee"),
+                amount: fee.amount?.value || "0.00"
+            }));
+        document.getElementById("quoted-fee-total").value = response.feesCalculationAmount?.value || "0.00";
+        document.getElementById("quoted-fee-breakdown").value = JSON.stringify(fees);
     },
 
     async addAccount() {

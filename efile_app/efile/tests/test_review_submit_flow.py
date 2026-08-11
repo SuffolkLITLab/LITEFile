@@ -73,6 +73,88 @@ def test_payment_saves_account_and_advances_durable_step(client, submission_draf
 
 
 @pytest.mark.django_db
+def test_payment_persists_account_type_and_quoted_fees(client, submission_draft):
+    response = client.post(
+        reverse("payment", kwargs={"jurisdiction": "illinois"}),
+        {
+            "selected_payment_account": "pay-123",
+            "selected_payment_account_name": "Card ending in 4242",
+            "selected_payment_account_type": "CC",
+            "quoted_fee_total": "125.00",
+            "quoted_fee_breakdown": '[{"label": "Filing fee", "amount": "100.00"}, {"label": "Technology fee", "amount": "25.00"}]',
+        },
+    )
+
+    assert response.status_code == 302
+    submission_draft.refresh_from_db()
+    assert submission_draft.selected_payment_account_type == "CC"
+    assert submission_draft.quoted_fee_total == "125.00"
+    assert submission_draft.quoted_fee_breakdown == [
+        {"label": "Filing fee", "amount": "100.00"},
+        {"label": "Technology fee", "amount": "25.00"},
+    ]
+
+
+@pytest.mark.django_db
+def test_payment_tolerates_malformed_fee_breakdown(client, submission_draft):
+    response = client.post(
+        reverse("payment", kwargs={"jurisdiction": "illinois"}),
+        {
+            "selected_payment_account": "pay-123",
+            "selected_payment_account_name": "Payment waiver",
+            "selected_payment_account_type": "WV",
+            "quoted_fee_breakdown": "not json",
+        },
+    )
+
+    assert response.status_code == 302
+    submission_draft.refresh_from_db()
+    assert submission_draft.selected_payment_account_type == "WV"
+    assert submission_draft.quoted_fee_breakdown == []
+
+
+@pytest.mark.django_db
+def test_review_shows_waiver_messaging_instead_of_fee_reference(client, submission_draft):
+    submission_draft.selected_payment_account_id = "pay-123"
+    submission_draft.selected_payment_account_name = "Payment waiver"
+    submission_draft.selected_payment_account_type = "WV"
+    submission_draft.save(
+        update_fields=["selected_payment_account_id", "selected_payment_account_name", "selected_payment_account_type"]
+    )
+
+    response = client.get(reverse("case_review", kwargs={"jurisdiction": "illinois"}))
+
+    assert response.status_code == 200
+    assert b"fee waiver" in response.content
+    assert b"the previous screen" not in response.content
+
+
+@pytest.mark.django_db
+def test_review_shows_previously_calculated_fee_total(client, submission_draft):
+    submission_draft.selected_payment_account_id = "pay-123"
+    submission_draft.selected_payment_account_name = "Card ending in 4242"
+    submission_draft.selected_payment_account_type = "CC"
+    submission_draft.quoted_fee_total = "125.00"
+    submission_draft.quoted_fee_breakdown = [{"label": "Filing fee", "amount": "125.00"}]
+    submission_draft.save(
+        update_fields=[
+            "selected_payment_account_id",
+            "selected_payment_account_name",
+            "selected_payment_account_type",
+            "quoted_fee_total",
+            "quoted_fee_breakdown",
+        ]
+    )
+
+    response = client.get(reverse("case_review", kwargs={"jurisdiction": "illinois"}))
+
+    assert response.status_code == 200
+    assert b"125.00" in response.content
+    assert b"Filing fee" in response.content
+    assert b"the previous screen" not in response.content
+
+
+@pytest.mark.django_db
 def test_review_uses_new_edit_routes_and_durable_summary(client, submission_draft):
     submission_draft.selected_payment_account_id = "pay-123"
     submission_draft.selected_payment_account_name = "Card ending in 4242"
@@ -83,6 +165,8 @@ def test_review_uses_new_edit_routes_and_durable_summary(client, submission_draf
     assert response.status_code == 200
     assert b"Jordan" in response.content
     assert b"Petition.pdf" in response.content
+    assert b"Filing type:" in response.content
+    assert b"review-document-tag" in response.content
     assert reverse("organize_documents", kwargs={"jurisdiction": "illinois"}).encode() in response.content
     assert reverse("your_information", kwargs={"jurisdiction": "illinois"}).encode() in response.content
     assert reverse("expert_form", kwargs={"jurisdiction": "illinois"}).encode() not in response.content

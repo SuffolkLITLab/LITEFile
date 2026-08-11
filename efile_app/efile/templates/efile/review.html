@@ -18,7 +18,7 @@
             <section class="review-summary-card">
                 <header>
                     <h2>{% translate "Case" %}</h2>
-                    <a href="{% url 'extraction_review' jurisdiction %}">{% translate "Edit" %}</a>
+                    <a href="{% url 'extraction_review' jurisdiction %}?return_to=review">{% translate "Edit" %}</a>
                 </header>
                 <dl>
                     <div>
@@ -66,7 +66,7 @@
             <section class="review-summary-card review-summary-card--wide">
                 <header>
                     <h2>{% translate "Documents" %}</h2>
-                    <a href="{% url 'organize_documents' jurisdiction %}">{% translate "Edit" %}</a>
+                    <a href="{% url 'organize_documents' jurisdiction %}?return_to=review">{% translate "Edit" %}</a>
                 </header>
                 <div class="review-document-list">
                     {% for document in documents %}
@@ -80,9 +80,11 @@
                                     {% else %}
                                         {% translate "Additional document" %}
                                     {% endif %}
-                                    {% if document.filing_type_name %}· {{ document.filing_type_name }}{% endif %}
                                     {% if document.document_type_name %}· {{ document.document_type_name }}{% endif %}
                                 </small>
+                                {% if document.filing_type_name %}
+                                    <span class="review-document-tag">{% translate "Filing type:" %} {{ document.filing_type_name }}</span>
+                                {% endif %}
                             </div>
                         </article>
                     {% endfor %}
@@ -91,7 +93,7 @@
             <section class="review-summary-card">
                 <header>
                     <h2>{% translate "Your information" %}</h2>
-                    <a href="{% url 'your_information' jurisdiction %}">{% translate "Edit" %}</a>
+                    <a href="{% url 'your_information' jurisdiction %}?return_to=review">{% translate "Edit" %}</a>
                 </header>
                 {% if filer %}
                     <p class="review-person-name">{{ filer.first_name }} {{ filer.middle_name }} {{ filer.last_name }}</p>
@@ -113,7 +115,7 @@
             <section class="review-summary-card">
                 <header>
                     <h2>{% translate "Other people" %}</h2>
-                    <a href="{% url 'parties' jurisdiction %}">{% translate "Edit" %}</a>
+                    <a href="{% url 'parties' jurisdiction %}?return_to=review">{% translate "Edit" %}</a>
                 </header>
                 {% for party in parties %}
                     <div class="review-party">
@@ -134,7 +136,7 @@
                 <section class="review-summary-card">
                     <header>
                         <h2>{% translate "Case questions" %}</h2>
-                        <a href="{% url 'case_questions' jurisdiction %}">{% translate "Edit" %}</a>
+                        <a href="{% url 'case_questions' jurisdiction %}?return_to=review">{% translate "Edit" %}</a>
                     </header>
                     <dl>
                         {% for answer in question_answers %}
@@ -154,7 +156,25 @@
                     <a href="{% url 'payment' jurisdiction %}">{% translate "Edit" %}</a>
                 </header>
                 <p class="review-person-name">{{ draft.selected_payment_account_name }}</p>
-                <small class="text-muted">{% translate "The court will charge the fees shown on the previous screen." %}</small>
+                {% if draft.selected_payment_account_type == "WV" %}
+                    <small class="text-muted">{% translate "This filing has an approved fee waiver. No payment will be charged." %}</small>
+                {% elif draft.quoted_fee_total %}
+                    <dl class="review-fee-total">
+                        <div>
+                            <dt>{% translate "Total" %}</dt>
+                            <dd>
+                                ${{ draft.quoted_fee_total }}
+                            </dd>
+                        </div>
+                    </dl>
+                    {% if draft.quoted_fee_breakdown %}
+                        <ul class="review-fee-breakdown">
+                            {% for fee in draft.quoted_fee_breakdown %}<li>{{ fee.label }}: ${{ fee.amount }}</li>{% endfor %}
+                        </ul>
+                    {% endif %}
+                {% else %}
+                    <small class="text-muted">{% translate "Confirm the fee amount on the Payment step." %}</small>
+                {% endif %}
             </section>
         </div>
         <div class="alert alert-danger mt-4" id="errorMessage" hidden>

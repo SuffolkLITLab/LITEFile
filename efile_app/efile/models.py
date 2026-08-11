@@ -80,6 +80,13 @@ class FilingDraft(models.Model):
 
     selected_payment_account_id = models.CharField(max_length=255, blank=True)
     selected_payment_account_name = models.CharField(max_length=255, blank=True)
+    # Tyler's paymentAccountTypeCode for the selected account (e.g. "WV" for a fee
+    # waiver). Drives whether Review shows a fee total or waiver messaging.
+    selected_payment_account_type = models.CharField(max_length=50, blank=True)
+    # The fee quote shown on the Payment step, carried forward so Review can
+    # display the same numbers instead of telling the filer to go look again.
+    quoted_fee_total = models.CharField(max_length=50, blank=True)
+    quoted_fee_breakdown = models.JSONField(default=list, blank=True)
 
     name_change_reason = models.TextField(blank=True)
 

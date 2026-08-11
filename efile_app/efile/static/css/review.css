@@ -344,6 +344,31 @@
     margin-bottom: 0.35rem;
 }
 
+.review-document-tag {
+    background: #eef2f8;
+    border-radius: 999px;
+    color: #38567a;
+    display: inline-block;
+    font-size: 0.78rem;
+    font-weight: 650;
+    margin-top: 0.3rem;
+    padding: 0.15rem 0.55rem;
+}
+
+.review-fee-breakdown {
+    color: #6d798d;
+    font-size: 0.85rem;
+    list-style: none;
+    margin: 0.3rem 0 0;
+    padding: 0;
+}
+
+.review-fee-breakdown li {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.15rem 0;
+}
+
 .review-summary-card address {
     color: #526176;
     line-height: 1.55;
