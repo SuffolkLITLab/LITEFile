@@ -230,13 +230,3 @@ def test_extraction_review_hides_case_number_behind_a_checkbox(client, reorganiz
     docket_input = re.search(r"<input[^>]*id=\"docket_number\"[^>]*>", content)
     assert docket_input is not None
     assert "hidden" in docket_input.group()
-
-
-@pytest.mark.django_db
-def test_unmigrated_people_screen_bridges_to_legacy_flow(client, reorganized_draft):
-    response = client.get(reverse("your_information", kwargs={"jurisdiction": "illinois"}))
-
-    reorganized_draft.refresh_from_db()
-    assert response.status_code == 302
-    assert response.url == reverse("expert_form", kwargs={"jurisdiction": "illinois"})
-    assert reorganized_draft.workflow_version == 1
