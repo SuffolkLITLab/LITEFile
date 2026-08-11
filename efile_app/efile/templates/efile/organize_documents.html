@@ -130,10 +130,20 @@
                 {% endfor %}
             </div>
             <div class="workflow-actions">
-                <a class="btn btn-outline-secondary"
-                   href="{% url 'document_checklist' jurisdiction %}"><i class="fa-solid fa-arrow-left"></i> {% translate "Back" %}</a>
+                {% if return_to == "review" %}
+                    <a class="btn btn-outline-secondary"
+                       href="{% url 'case_review' jurisdiction %}"><i class="fa-solid fa-arrow-left"></i> {% translate "Back to review" %}</a>
+                {% else %}
+                    <a class="btn btn-outline-secondary"
+                       href="{% url 'document_checklist' jurisdiction %}"><i class="fa-solid fa-arrow-left"></i> {% translate "Back" %}</a>
+                {% endif %}
                 <button class="btn btn-primary" id="save-document-details" type="submit">
-                    {% translate "Save and continue" %} <i class="fa-solid fa-arrow-right"></i>
+                    {% if return_to == "review" %}
+                        {% translate "Save and return to review" %}
+                    {% else %}
+                        {% translate "Save and continue" %}
+                    {% endif %}
+                    <i class="fa-solid fa-arrow-right"></i>
                 </button>
             </div>
         </form>

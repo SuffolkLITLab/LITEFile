@@ -7,6 +7,7 @@ from efile.models import FilingDocument
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.drafts import draft_snapshot, write_case_data
 from efile.workflow import (
+    RETURN_TO_REVIEW,
     ExistingCase,
     WorkflowStepKey,
     get_next_step,
@@ -74,6 +75,9 @@ def extraction_review(request, jurisdiction):
                 request.POST.get("filing_type_code", ""),
                 request.POST.get("filing_type_name", ""),
             )
+            if request.POST.get("return_to") == RETURN_TO_REVIEW:
+                write_case_data(draft, {}, current_step=WorkflowStepKey.REVIEW)
+                return redirect(get_step_url(WorkflowStepKey.REVIEW, jurisdiction))
             next_step = get_next_step(WorkflowStepKey.EXTRACTION_REVIEW, draft)
             if next_step:
                 write_case_data(draft, {}, current_step=next_step.key)
@@ -100,6 +104,7 @@ def extraction_review(request, jurisdiction):
         "has_guesses": bool(guesses),
         "docket_number": draft.docket_number or guesses.get("docket number"),
         "extraction_context": extraction_context,
+        "return_to": request.GET.get("return_to", ""),
     }
     context.update(get_workflow_context(WorkflowStepKey.EXTRACTION_REVIEW, jurisdiction, draft))
     return render(request, "efile/extraction_review.html", context)

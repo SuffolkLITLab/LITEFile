@@ -111,6 +111,26 @@ def test_validation_errors_are_appended_to_a_plain_message():
     assert "bad bundle" in message
 
 
+def test_malformed_interview_description_is_surfaced():
+    """The EFSP's "Malformed Interview" shape has no error/message/detail key,
+    only type + description -- without this, the filer only ever saw the bare
+    status code even though the body explains exactly what to fix."""
+    body = {
+        "type": "Malformed Interview",
+        "description": (
+            "Court adams doesn't allow subsequent filing into non-indexed cases. "
+            "If this case is in the court system, provide the Case tracking ID. "
+            "If it's not, don't provide the docket number."
+        ),
+    }
+
+    message = describe_efsp_error(FakeResponse(500, body))
+
+    assert "Malformed Interview" in message
+    assert "non-indexed cases" in message
+    assert "500" not in message
+
+
 def test_non_json_body_falls_back_to_the_status_and_text():
     message = describe_efsp_error(FakeResponse(502, text="<html>Bad Gateway</html>"))
 

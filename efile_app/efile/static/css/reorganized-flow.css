@@ -768,6 +768,14 @@
     margin: -0.35rem 0 0.35rem 1.6rem;
 }
 
+.optional-services-toggle {
+    font-size: 0.85rem;
+    font-weight: 700;
+    justify-self: start;
+    padding: 0.2rem 0;
+    text-decoration: none;
+}
+
 .compact-choice-field legend {
     color: #263c58;
     float: none;

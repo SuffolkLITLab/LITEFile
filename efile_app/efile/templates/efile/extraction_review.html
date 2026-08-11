@@ -21,6 +21,7 @@
         {% endif %}
         <form method="post" id="extraction-review-form">
             {% csrf_token %}
+            <input type="hidden" name="return_to" value="{{ return_to }}" />
             <div class="review-grid">
                 <div class="review-field" data-field="court" data-guess-key="court">
                     <span>{% translate "Court or county" %}</span>
@@ -144,8 +145,13 @@
             </fieldset>
             <div class="alert alert-danger" id="extraction-review-error" hidden></div>
             <div class="workflow-actions">
-                <a class="btn btn-outline-secondary"
-                   href="{% url 'upload_documents' jurisdiction %}"><i class="fa-solid fa-arrow-left"></i> {% translate "Back" %}</a>
+                {% if return_to == "review" %}
+                    <a class="btn btn-outline-secondary"
+                       href="{% url 'case_review' jurisdiction %}"><i class="fa-solid fa-arrow-left"></i> {% translate "Back to review" %}</a>
+                {% else %}
+                    <a class="btn btn-outline-secondary"
+                       href="{% url 'upload_documents' jurisdiction %}"><i class="fa-solid fa-arrow-left"></i> {% translate "Back" %}</a>
+                {% endif %}
                 <button class="btn btn-primary" type="submit">
                     {% translate "Confirm and continue" %} <i class="fa-solid fa-arrow-right"></i>
                 </button>
