@@ -273,6 +273,7 @@ def read_case_data(draft: FilingDraft | None) -> dict[str, Any]:
     _put(data, "selected_payment_account", draft.selected_payment_account_id)
     _put(data, "selected_payment_account_name", draft.selected_payment_account_name)
     _put(data, "optional_services", list(draft.optional_services or []))
+    _put(data, "amount_in_controversy", draft.amount_in_controversy)
     _put(data, "reason_for_name_change", draft.name_change_reason)
     _put(data, "reason_for_change", draft.name_change_reason)
 
