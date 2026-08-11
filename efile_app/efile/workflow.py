@@ -334,6 +334,16 @@ def get_return_url(request: Any, jurisdiction: str, default_step: WorkflowStepKe
     return get_step_url(default_step, jurisdiction)
 
 
+def with_return_to(url: str, return_to: str | None) -> str:
+    """Carry the return_to marker across an intermediate redirect (e.g. to fill
+    in one more required party) so it survives to reach the step it names."""
+
+    if not return_to:
+        return url
+    separator = "&" if "?" in url else "?"
+    return f"{url}{separator}return_to={return_to}"
+
+
 def get_resume_step_url(current_step: WorkflowStepKey | str | None, jurisdiction: str) -> str | None:
     if current_step is None:
         return None

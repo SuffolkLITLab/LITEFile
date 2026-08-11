@@ -6,7 +6,7 @@ from efile.api.suffolk_api_views import get_tyler_token
 from efile.models import FilingParty
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.drafts import draft_snapshot
-from efile.workflow import WorkflowStepKey, get_step_url, get_workflow_context
+from efile.workflow import RETURN_TO_REVIEW, WorkflowStepKey, get_return_url, get_workflow_context
 
 
 @require_http_methods(["GET", "POST"])
@@ -44,14 +44,18 @@ def your_information(request, jurisdiction):
             filer.address_line_2 = request.POST.get("address_line_2", "").strip()
             filer.phone = request.POST.get("phone", "").strip()
             filer.save()
-            draft.current_step = WorkflowStepKey.PARTIES
+            next_step = (
+                WorkflowStepKey.REVIEW if request.POST.get("return_to") == RETURN_TO_REVIEW else WorkflowStepKey.PARTIES
+            )
+            draft.current_step = next_step
             draft.save(update_fields=["current_step", "updated_at"])
-            return redirect(get_step_url(WorkflowStepKey.PARTIES, jurisdiction))
+            return redirect(get_return_url(request, jurisdiction, WorkflowStepKey.PARTIES))
 
     context = {
         "is_logged_in": True,
         "filing_draft": draft_snapshot(draft),
         "filer": filer,
+        "return_to": request.GET.get("return_to", ""),
     }
     context.update(get_workflow_context(WorkflowStepKey.YOUR_INFORMATION, jurisdiction, draft))
     return render(request, "efile/your_information.html", context)

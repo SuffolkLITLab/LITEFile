@@ -14,11 +14,16 @@ from efile.services.people import (
     incomplete_parties,
     party_is_complete,
 )
-from efile.workflow import WorkflowStepKey, get_step_url, get_workflow_context
+from efile.workflow import RETURN_TO_REVIEW, WorkflowStepKey, get_step_url, get_workflow_context, with_return_to
 
 
-def _party_details_url(jurisdiction, party):
-    return f"{reverse('party_details', kwargs={'jurisdiction': jurisdiction})}?party={party.pk}"
+def _party_details_url(jurisdiction, party, return_to=None):
+    url = f"{reverse('party_details', kwargs={'jurisdiction': jurisdiction})}?party={party.pk}"
+    return with_return_to(url, return_to)
+
+
+def _parties_url(jurisdiction, return_to=None):
+    return with_return_to(reverse("parties", kwargs={"jurisdiction": jurisdiction}), return_to)
 
 
 @require_http_methods(["GET", "POST"])
@@ -40,6 +45,7 @@ def parties(request, jurisdiction):
 
     if request.method == "POST":
         action = request.POST.get("action", "continue")
+        return_to = request.POST.get("return_to")
         if action == "add":
             last_order = (
                 FilingParty.objects.filter(draft=draft, role="other")
@@ -54,12 +60,12 @@ def parties(request, jurisdiction):
             )
             draft.current_step = WorkflowStepKey.PARTY_DETAILS
             draft.save(update_fields=["current_step", "updated_at"])
-            return redirect(_party_details_url(jurisdiction, party))
+            return redirect(_party_details_url(jurisdiction, party, return_to))
         if action == "remove":
             party = get_object_or_404(FilingParty, pk=request.POST.get("party_id"), draft=draft, role="other")
             party.delete()
             messages.success(request, "Party removed.")
-            return redirect("parties", jurisdiction=jurisdiction)
+            return redirect(_parties_url(jurisdiction, return_to))
 
         filer_type = request.POST.get("filer_party_type", "").strip()
         if not filer_type or filer_type not in party_type_names:
@@ -73,14 +79,17 @@ def parties(request, jurisdiction):
             if incomplete:
                 draft.current_step = WorkflowStepKey.PARTY_DETAILS
                 draft.save(update_fields=["current_step", "updated_at"])
-                return redirect(_party_details_url(jurisdiction, incomplete[0]))
+                return redirect(_party_details_url(jurisdiction, incomplete[0], return_to))
 
             has_questions = bool(get_case_questions(draft))
             draft.supplemental_fields = {
                 **(draft.supplemental_fields or {}),
                 "_case_questions_required": has_questions,
             }
-            draft.current_step = WorkflowStepKey.CASE_QUESTIONS if has_questions else WorkflowStepKey.PAYMENT
+            if return_to == RETURN_TO_REVIEW:
+                draft.current_step = WorkflowStepKey.REVIEW
+            else:
+                draft.current_step = WorkflowStepKey.CASE_QUESTIONS if has_questions else WorkflowStepKey.PAYMENT
             draft.save(update_fields=["supplemental_fields", "current_step", "updated_at"])
             return redirect(get_step_url(draft.current_step, jurisdiction))
 
@@ -91,6 +100,7 @@ def parties(request, jurisdiction):
         "is_logged_in": True,
         "filing_draft": draft_snapshot(draft),
         "filer": filer,
+        "return_to": request.GET.get("return_to", ""),
         "party_types": party_types,
         "roster": roster,
     }

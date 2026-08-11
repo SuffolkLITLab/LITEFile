@@ -13,6 +13,7 @@
         </p>
         <form method="post" id="your-information-form">
             {% csrf_token %}
+            <input type="hidden" name="return_to" value="{{ return_to }}" />
             <div class="people-section">
                 <h2>{% translate "Name" %}</h2>
                 <div class="people-grid people-grid--name">
@@ -113,11 +114,19 @@
                 </div>
             </div>
             <div class="workflow-actions">
-                <a class="btn btn-outline-secondary"
-                   href="{% url 'organize_documents' jurisdiction %}"><i class="fa-solid fa-arrow-left"></i> {% translate "Back" %}</a>
-                <button class="btn btn-primary" type="submit">
-                    {% translate "Continue to parties" %} <i class="fa-solid fa-arrow-right"></i>
-                </button>
+                {% if return_to == "review" %}
+                    <a class="btn btn-outline-secondary"
+                       href="{% url 'case_review' jurisdiction %}"><i class="fa-solid fa-arrow-left"></i> {% translate "Back to review" %}</a>
+                    <button class="btn btn-primary" type="submit">
+                        {% translate "Save and return to review" %} <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                {% else %}
+                    <a class="btn btn-outline-secondary"
+                       href="{% url 'organize_documents' jurisdiction %}"><i class="fa-solid fa-arrow-left"></i> {% translate "Back" %}</a>
+                    <button class="btn btn-primary" type="submit">
+                        {% translate "Continue to parties" %} <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                {% endif %}
             </div>
         </form>
     </section>
