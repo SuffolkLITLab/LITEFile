@@ -13,10 +13,20 @@ Reading only ``error`` out of that leaves the filer with "API returned status
 400" and no way to act, while the response says exactly which document is
 missing exactly which field. Shared by the fee quote and the submission so both
 describe the same rejection the same way.
+
+Some rejections instead arrive as a single free-text sentence (a "Malformed
+Interview" body, or a plain ``error`` string) written for a developer reading
+the proxy's logs, not a filer. ``_KNOWN_MESSAGE_HINTS`` recognizes the ones
+that come up in practice -- lifted from the literal strings the proxy raises,
+in ~/EfileProxyServer (see e.g. ``Ecf4Filer.java`` and
+``FilingInformationDocassembleJacksonDeserializer.java``) -- and appends a
+sentence saying what to actually do about it. Unrecognized messages still pass
+through unchanged rather than being hidden.
 """
 
 import json
 import re
+from collections.abc import Callable
 
 # Field names the EFSP uses, in the words the UI uses for them.
 _FIELD_LABELS = {
@@ -36,6 +46,66 @@ _FIELD_LABELS = {
 _BUNDLE_FIELD = re.compile(r"^al_court_bundle\.elements\[(\d+)\]\.(.+)$")
 
 _MAX_RAW_BODY = 300
+
+# (pattern, hint builder) pairs checked in order against a free-text EFSP
+# message; the first match wins. Each hint tells the filer what to actually do,
+# not just what went wrong. Patterns are deliberately specific substrings of
+# the proxy's own wording so an unrelated message never matches by accident.
+_KNOWN_MESSAGE_HINTS: list[tuple[re.Pattern, Callable[[re.Match], str]]] = [
+    (
+        re.compile(r"doesn't allow subsequent filing into non-indexed cases", re.IGNORECASE),
+        lambda m: (
+            "Go back to the case details step: choose New case and remove the case number, "
+            "or choose Existing case and look up the case instead."
+        ),
+    ),
+    (
+        re.compile(r"needs docket number, but not present", re.IGNORECASE),
+        lambda m: "Go back to the case details step and provide the court's case number for this existing case.",
+    ),
+    (
+        re.compile(r"Document .*? is too big! Must be max (\d+)", re.IGNORECASE),
+        lambda m: (
+            f"One of your PDFs is over the court's {int(m.group(1)):,}-byte limit. "
+            "Compress it or split it into smaller files, then re-upload."
+        ),
+    ),
+    (
+        re.compile(r"All Documents combined are too big! Must be max\s*(\d+)", re.IGNORECASE),
+        lambda m: (
+            f"Your documents add up to more than the court's {int(m.group(1)):,}-byte combined limit. "
+            "Remove or compress some documents and try again."
+        ),
+    ),
+    (
+        re.compile(r"Need a filing type! FilingTypes are empty", re.IGNORECASE),
+        lambda m: (
+            "This court doesn't offer any filing types for that case category and case type "
+            "together. Go back and double-check the case category, case type, and whether "
+            "this is a new or existing case."
+        ),
+    ),
+    (
+        re.compile(r"Amount in controversy required", re.IGNORECASE),
+        lambda m: (
+            "This case type requires an amount in controversy, which this tool doesn't collect yet. "
+            "Contact the court about filing this case another way."
+        ),
+    ),
+]
+
+
+def _actionable_hint(message: str) -> str | None:
+    for pattern, build_hint in _KNOWN_MESSAGE_HINTS:
+        match = pattern.search(message)
+        if match:
+            return build_hint(match)
+    return None
+
+
+def _with_hint(message: str) -> str:
+    hint = _actionable_hint(message)
+    return f"{message} {hint}" if hint else message
 
 
 def describe_efsp_error(response) -> str:
@@ -70,14 +140,15 @@ def describe_efsp_error(response) -> str:
         validation_errors = body.get("validation_errors") or body.get("errors")
         if validation_errors:
             message += f" - Validation errors: {validation_errors}"
-        return message
+        return _with_hint(message)
 
     # "Malformed Interview" errors (e.g. a docket number on a case the court has
     # no record of) arrive as {"type": ..., "description": ...} instead.
     description = body.get("description")
     if description:
         error_type = str(body.get("type") or "").strip()
-        return f"{error_type}: {description}" if error_type else str(description)
+        message = f"{error_type}: {description}" if error_type else str(description)
+        return _with_hint(message)
 
     return f"the court's filing service returned status {response.status_code}"
 
