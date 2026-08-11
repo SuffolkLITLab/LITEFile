@@ -9,7 +9,7 @@ import json
 
 import pytest
 
-from efile.services.efsp_errors import describe_efsp_error
+from efile.services.efsp_errors import _actionable_hint, describe_efsp_error
 
 WRONG_FILING_TYPE = {
     "required_vars": [],
@@ -129,6 +129,75 @@ def test_malformed_interview_description_is_surfaced():
     assert "Malformed Interview" in message
     assert "non-indexed cases" in message
     assert "500" not in message
+    # The known-message catalog (lifted from the EFSP source) should recognize
+    # this exact rejection and say what to do about it, not just repeat it.
+    assert "New case" in message
+    assert "Existing case" in message
+
+
+@pytest.mark.parametrize(
+    ("message", "expected_snippet"),
+    [
+        (
+            "Court adams doesn't allow subsequent filing into non-indexed cases. If this case is "
+            "in the court system, provide the Case tracking ID. If it's not, don't provide the "
+            "docket number.",
+            "New case",
+        ),
+        (
+            "Subsequent filing case type (12345) needs docket number, but not present",
+            "case number for this existing case",
+        ),
+        (
+            "Document affidavit.pdf is too big! Must be max 10485760, is 20000000",
+            "10,485,760-byte limit",
+        ),
+        (
+            "All Documents combined are too big! Must be max10485760, are 15000000",
+            "10,485,760-byte combined limit",
+        ),
+        (
+            "Need a filing type! FilingTypes are empty, so CAT and TYPE are restricted",
+            "double-check the case category",
+        ),
+        (
+            "ad danum amount, Amount in controversy required",
+            "doesn't collect yet",
+        ),
+    ],
+)
+def test_known_messages_get_an_actionable_hint(message, expected_snippet):
+    hint = _actionable_hint(message)
+
+    assert hint is not None
+    assert expected_snippet in hint
+
+
+def test_unrecognized_messages_get_no_hint():
+    assert _actionable_hint("Something entirely new went wrong") is None
+
+
+def test_plain_error_message_gets_its_hint_appended_too():
+    body = {"error": "Subsequent filing case type (12345) needs docket number, but not present"}
+
+    message = describe_efsp_error(FakeResponse(400, body))
+
+    assert message.startswith(body["error"])
+    assert "case number for this existing case" in message
+
+
+def test_hint_still_matches_once_the_type_prefix_is_prepended():
+    """describe_efsp_error prepends "{type}: " to description bodies, so a hint
+    pattern anchored to the start of the raw message would never fire -- this
+    caught that exact bug for the "Document ... too big" pattern."""
+    body = {
+        "type": "Malformed Interview",
+        "description": "Document affidavit.pdf is too big! Must be max 10485760, is 20000000",
+    }
+
+    message = describe_efsp_error(FakeResponse(400, body))
+
+    assert "10,485,760-byte limit" in message
 
 
 def test_non_json_body_falls_back_to_the_status_and_text():
