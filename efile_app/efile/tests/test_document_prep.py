@@ -133,6 +133,40 @@ def test_organize_returns_to_review_when_edited_from_there(client, document_draf
 
 
 @pytest.mark.django_db
+def test_organize_shows_no_radio_choice_for_a_single_document(client, document_draft):
+    document_draft.document_checklist_acknowledged = True
+    document_draft.save(update_fields=["document_checklist_acknowledged", "updated_at"])
+    lead = document_draft.documents.get(role=FilingDocument.Role.LEAD)
+
+    response = client.get(reverse("organize_documents", kwargs={"jurisdiction": "illinois"}))
+
+    assert response.status_code == 200
+    content = response.content.decode()
+    assert "only document in this filing" in content
+    assert 'type="radio"' not in content
+    assert f'name="main_document" value="{lead.pk}"' in content
+
+
+@pytest.mark.django_db
+def test_organize_shows_radio_choice_for_multiple_documents(client, document_draft):
+    document_draft.document_checklist_acknowledged = True
+    document_draft.save(update_fields=["document_checklist_acknowledged", "updated_at"])
+    FilingDocument.objects.create(
+        draft=document_draft,
+        role=FilingDocument.Role.SUPPORTING,
+        sort_order=0,
+        name="exhibit.pdf",
+    )
+
+    response = client.get(reverse("organize_documents", kwargs={"jurisdiction": "illinois"}))
+
+    assert response.status_code == 200
+    content = response.content.decode()
+    assert "only document in this filing" not in content
+    assert content.count('type="radio"') == 2
+
+
+@pytest.mark.django_db
 def test_organize_saves_details_and_supporting_order(client, document_draft):
     first = FilingDocument.objects.create(
         draft=document_draft,
