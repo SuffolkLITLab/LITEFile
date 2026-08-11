@@ -11,6 +11,7 @@ from efile.services.people import (
     ensure_required_parties,
     get_case_questions,
     get_party_types,
+    guess_filer_party_type,
     incomplete_parties,
     party_is_complete,
 )
@@ -96,6 +97,7 @@ def parties(request, jurisdiction):
     roster = [
         {"party": party, "complete": party_is_complete(party)} for party in FilingParty.objects.filter(draft=draft)
     ]
+    guessed_party_type = None if filer.party_type else guess_filer_party_type(draft, party_types)
     context = {
         "is_logged_in": True,
         "filing_draft": draft_snapshot(draft),
@@ -103,6 +105,7 @@ def parties(request, jurisdiction):
         "return_to": request.GET.get("return_to", ""),
         "party_types": party_types,
         "roster": roster,
+        "guessed_party_type": guessed_party_type,
     }
     context.update(get_workflow_context(WorkflowStepKey.PARTIES, jurisdiction, draft))
     return render(request, "efile/parties.html", context)

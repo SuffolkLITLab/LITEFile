@@ -1,4 +1,5 @@
 {% extends "efile/workflow_base.html" %}
+{% load static %}
 {% load i18n %}
 {% block title %}
     {% translate "People in this filing" %}
@@ -23,6 +24,16 @@
             </div>
             <fieldset class="form-field compact-choice-field">
                 <legend>{% translate "What is your role in this case?" %}</legend>
+                {% if guessed_party_type %}
+                    <div class="alert alert-info party-type-hint" id="party-type-hint">
+                        <i class="fa-regular fa-lightbulb"></i>
+                        {% blocktranslate with name=guessed_party_type.name %}Based on this filing, you're likely the {{ name }}. We're not certain, so pick below to confirm.{% endblocktranslate %}
+                        <button type="button"
+                                class="btn btn-sm btn-outline-primary"
+                                id="apply-party-type-guess"
+                                data-value="{{ guessed_party_type.code }}">{% translate "Apply guess" %}</button>
+                    </div>
+                {% endif %}
                 <div class="compact-choice-list">
                     {% for party_type in party_types %}
                         <label>
@@ -117,3 +128,6 @@
         </div>
     </section>
 {% endblock workflow_content %}
+{% block extra_js %}
+    <script src="{% static 'js/parties.js' %}"></script>
+{% endblock extra_js %}

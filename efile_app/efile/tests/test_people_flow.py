@@ -1,11 +1,13 @@
+import re
 from unittest.mock import patch
 
 import pytest
 from django.urls import reverse
 
-from efile.models import FilingDraft, FilingParty
+from efile.models import FilingDocument, FilingDraft, FilingParty
 from efile.services.current_drafts import CURRENT_DRAFT_SESSION_KEY
 from efile.services.drafts import read_case_data
+from efile.services.people import guess_filer_party_type
 from efile.workflow import ExistingCase, WorkflowStepKey
 
 PARTY_TYPES = [
@@ -85,6 +87,64 @@ def test_your_information_returns_to_review_when_edited_from_there(client, peopl
     assert response.status_code == 302
     assert response.url == reverse("case_review", kwargs={"jurisdiction": "illinois"})
     assert people_draft.current_step == WorkflowStepKey.REVIEW
+
+
+@pytest.mark.django_db
+def test_guess_filer_party_type_suggests_the_initiator_for_a_new_case(people_draft):
+    guess = guess_filer_party_type(people_draft, PARTY_TYPES)
+
+    assert guess == {"code": "plaintiff", "name": "Plaintiff", "required": True}
+
+
+@pytest.mark.django_db
+def test_guess_filer_party_type_suggests_the_respondent_for_an_answer(people_draft):
+    people_draft.existing_case = ExistingCase.EXISTING
+    people_draft.save(update_fields=["existing_case", "updated_at"])
+    FilingDocument.objects.create(
+        draft=people_draft,
+        role=FilingDocument.Role.LEAD,
+        name="answer.pdf",
+        filing_type_name="Answer to Complaint",
+    )
+
+    guess = guess_filer_party_type(people_draft, PARTY_TYPES)
+
+    assert guess == {"code": "defendant", "name": "Defendant", "required": True}
+
+
+@pytest.mark.django_db
+def test_guess_filer_party_type_is_none_without_a_clear_signal(people_draft):
+    people_draft.existing_case = ExistingCase.EXISTING
+    people_draft.save(update_fields=["existing_case", "updated_at"])
+
+    assert guess_filer_party_type(people_draft, PARTY_TYPES) is None
+
+
+@pytest.mark.django_db
+def test_parties_page_offers_the_guess_as_a_button_not_a_prefill(client, people_draft):
+    FilingParty.objects.create(draft=people_draft, role="filer", sort_order=0)
+
+    with patch("efile.views.parties.get_party_types", return_value=PARTY_TYPES):
+        response = client.get(reverse("parties", kwargs={"jurisdiction": "illinois"}))
+
+    assert response.status_code == 200
+    content = response.content.decode()
+    assert 'id="apply-party-type-guess"' in content
+    assert 'data-value="plaintiff"' in content
+    plaintiff_radio = re.search(r'<input[^>]*name="filer_party_type"[^>]*value="plaintiff"[^>]*>', content)
+    assert plaintiff_radio is not None
+    assert "checked" not in plaintiff_radio.group()
+
+
+@pytest.mark.django_db
+def test_parties_page_hides_the_guess_once_a_role_is_chosen(client, people_draft):
+    FilingParty.objects.create(draft=people_draft, role="filer", sort_order=0, party_type="defendant")
+
+    with patch("efile.views.parties.get_party_types", return_value=PARTY_TYPES):
+        response = client.get(reverse("parties", kwargs={"jurisdiction": "illinois"}))
+
+    assert response.status_code == 200
+    assert b'id="apply-party-type-guess"' not in response.content
 
 
 @pytest.mark.django_db
