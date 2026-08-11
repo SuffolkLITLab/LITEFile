@@ -123,15 +123,15 @@
             <div class="workflow-actions">
                 {% if return_to == "review" %}
                     <a class="btn btn-outline-secondary"
-                       href="{% url 'case_review' jurisdiction %}"><i class="fa-solid fa-arrow-left"></i> {% translate "Back to review" %}</a>
+                       href="{% url 'case_review' jurisdiction %}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {% translate "Back to review" %}</a>
                     <button class="btn btn-primary" type="submit">
-                        {% translate "Save and return to review" %} <i class="fa-solid fa-arrow-right"></i>
+                        {% translate "Save and return to review" %} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
                     </button>
                 {% else %}
                     <a class="btn btn-outline-secondary"
-                       href="{% url 'organize_documents' jurisdiction %}"><i class="fa-solid fa-arrow-left"></i> {% translate "Back" %}</a>
+                       href="{% url 'organize_documents' jurisdiction %}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {% translate "Back" %}</a>
                     <button class="btn btn-primary" type="submit">
-                        {% translate "Continue to parties" %} <i class="fa-solid fa-arrow-right"></i>
+                        {% translate "Continue to parties" %} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
                     </button>
                 {% endif %}
             </div>

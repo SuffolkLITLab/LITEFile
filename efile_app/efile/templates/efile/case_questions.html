@@ -17,7 +17,9 @@
                     <fieldset class="question-card" data-question="{{ question.name }}">
                         <legend>
                             {{ question.label }}
-                            {% if question.required %}<span aria-hidden="true">*</span>{% endif %}
+                            {% if question.required %}
+                                — {% translate "required" %}
+                            {% endif %}
                         </legend>
                         {% if question.type == "radio" %}
                             <div class="question-options">
@@ -52,9 +54,7 @@
                 {% endfor %}
                 {% if show_amount_field %}
                     <fieldset class="question-card" data-question="amount_in_controversy">
-                        <legend>
-                            {% translate "Amount in controversy" %} <span aria-hidden="true">*</span>
-                        </legend>
+                        <legend>{% translate "Amount in controversy" %} — {% translate "required" %}</legend>
                         <p class="question-card__hint">
                             {% translate "The dollar amount at stake in this case. The court requires this for the filing type you selected." %}
                         </p>
@@ -73,15 +73,15 @@
             <div class="workflow-actions">
                 {% if return_to == "review" %}
                     <a class="btn btn-outline-secondary"
-                       href="{% url 'case_review' jurisdiction %}"><i class="fa-solid fa-arrow-left"></i> {% translate "Back to review" %}</a>
+                       href="{% url 'case_review' jurisdiction %}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {% translate "Back to review" %}</a>
                     <button class="btn btn-primary" type="submit">
-                        {% translate "Save and return to review" %} <i class="fa-solid fa-arrow-right"></i>
+                        {% translate "Save and return to review" %} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
                     </button>
                 {% else %}
                     <a class="btn btn-outline-secondary"
-                       href="{% url 'parties' jurisdiction %}"><i class="fa-solid fa-arrow-left"></i> {% translate "Back" %}</a>
+                       href="{% url 'parties' jurisdiction %}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {% translate "Back" %}</a>
                     <button class="btn btn-primary" type="submit">
-                        {% translate "Continue to fees" %} <i class="fa-solid fa-arrow-right"></i>
+                        {% translate "Continue to fees" %} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
                     </button>
                 {% endif %}
             </div>

@@ -11,7 +11,7 @@
         <p class="workflow-lede">
             {% translate "Tell the court what each PDF is and whether it should be public or confidential. You can also rename and reorder additional documents." %}
         </p>
-        <div class="alert alert-danger" id="organize-error" hidden></div>
+        <div class="alert alert-danger" id="organize-error" role="alert" hidden></div>
         <form id="organize-documents-form">
             {% csrf_token %}
             <fieldset class="main-document-choice">
@@ -54,7 +54,7 @@
                              data-filing-component="{{ document.filing_component_code }}"
                              data-optional-services="{{ document.requested_optional_services|join:',' }}">
                         <header class="organize-card__header">
-                            <span class="organize-card__icon"><i class="fa-solid fa-file-pdf"></i></span>
+                            <span class="organize-card__icon"><i class="fa-solid fa-file-pdf" aria-hidden="true"></i></span>
                             <div>
                                 <span class="organize-card__position">
                                     {% if document.role == "lead" %}
@@ -71,12 +71,12 @@
                                     <button class="btn btn-sm btn-light move-up"
                                             type="button"
                                             aria-label="{% translate "Move up" %}">
-                                        <i class="fa-solid fa-arrow-up"></i>
+                                        <i class="fa-solid fa-arrow-up" aria-hidden="true"></i>
                                     </button>
                                     <button class="btn btn-sm btn-light move-down"
                                             type="button"
                                             aria-label="{% translate "Move down" %}">
-                                        <i class="fa-solid fa-arrow-down"></i>
+                                        <i class="fa-solid fa-arrow-down" aria-hidden="true"></i>
                                     </button>
                                 </div>
                             {% else %}
@@ -137,10 +137,10 @@
             <div class="workflow-actions">
                 {% if return_to == "review" %}
                     <a class="btn btn-outline-secondary"
-                       href="{% url 'case_review' jurisdiction %}"><i class="fa-solid fa-arrow-left"></i> {% translate "Back to review" %}</a>
+                       href="{% url 'case_review' jurisdiction %}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {% translate "Back to review" %}</a>
                 {% else %}
                     <a class="btn btn-outline-secondary"
-                       href="{% url 'document_checklist' jurisdiction %}"><i class="fa-solid fa-arrow-left"></i> {% translate "Back" %}</a>
+                       href="{% url 'document_checklist' jurisdiction %}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {% translate "Back" %}</a>
                 {% endif %}
                 <button class="btn btn-primary" id="save-document-details" type="submit">
                     {% if return_to == "review" %}
@@ -148,7 +148,7 @@
                     {% else %}
                         {% translate "Save and continue" %}
                     {% endif %}
-                    <i class="fa-solid fa-arrow-right"></i>
+                    <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
                 </button>
             </div>
         </form>

@@ -27,17 +27,23 @@
                     <span>{% translate "Court or county" %}</span>
                     <div class="review-field__display" hidden>
                         <div class="review-field__found">
-                            <i class="fa-solid fa-circle-check"></i>
+                            <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
                             <strong class="review-field__value"></strong>
                         </div>
-                        <button class="btn btn-link review-field__edit" type="button">{% translate "Edit" %}</button>
+                        <button class="btn btn-link review-field__edit"
+                                type="button"
+                                aria-label="{% translate "Edit court or county" %}">{% translate "Edit" %}</button>
                     </div>
                     <div class="review-field__input">
-                        <select class="form-select" name="court_code" id="court_code" disabled>
+                        <select class="form-select"
+                                name="court_code"
+                                id="court_code"
+                                aria-describedby="court_code-hint"
+                                disabled>
                             <option value="">{% translate "Loading courts…" %}</option>
                         </select>
                         <input type="hidden" name="court_name" id="court_name" />
-                        <small class="review-field__hint"></small>
+                        <small class="review-field__hint" id="court_code-hint"></small>
                     </div>
                 </div>
                 <div class="review-field"
@@ -46,20 +52,23 @@
                     <span>{% translate "Case category" %}</span>
                     <div class="review-field__display" hidden>
                         <div class="review-field__found">
-                            <i class="fa-solid fa-circle-check"></i>
+                            <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
                             <strong class="review-field__value"></strong>
                         </div>
-                        <button class="btn btn-link review-field__edit" type="button">{% translate "Edit" %}</button>
+                        <button class="btn btn-link review-field__edit"
+                                type="button"
+                                aria-label="{% translate "Edit case category" %}">{% translate "Edit" %}</button>
                     </div>
                     <div class="review-field__input">
                         <select class="form-select"
                                 name="case_category_code"
                                 id="case_category_code"
+                                aria-describedby="case_category_code-hint"
                                 disabled>
                             <option value="">{% translate "Choose a court first" %}</option>
                         </select>
                         <input type="hidden" name="case_category_name" id="case_category_name" />
-                        <small class="review-field__hint"></small>
+                        <small class="review-field__hint" id="case_category_code-hint"></small>
                     </div>
                 </div>
                 <div class="review-field"
@@ -68,20 +77,23 @@
                     <span>{% translate "Case type" %}</span>
                     <div class="review-field__display" hidden>
                         <div class="review-field__found">
-                            <i class="fa-solid fa-circle-check"></i>
+                            <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
                             <strong class="review-field__value"></strong>
                         </div>
-                        <button class="btn btn-link review-field__edit" type="button">{% translate "Edit" %}</button>
+                        <button class="btn btn-link review-field__edit"
+                                type="button"
+                                aria-label="{% translate "Edit case type" %}">{% translate "Edit" %}</button>
                     </div>
                     <div class="review-field__input">
                         <select class="form-select"
                                 name="case_type_code"
                                 id="case_type_code"
+                                aria-describedby="case_type_code-hint"
                                 disabled>
                             <option value="">{% translate "Choose a case category first" %}</option>
                         </select>
                         <input type="hidden" name="case_type_name" id="case_type_name" />
-                        <small class="review-field__hint"></small>
+                        <small class="review-field__hint" id="case_type_code-hint"></small>
                     </div>
                 </div>
                 <div class="review-field"
@@ -90,20 +102,23 @@
                     <span>{% translate "Filing type" %} <em>{% translate "if known" %}</em></span>
                     <div class="review-field__display" hidden>
                         <div class="review-field__found">
-                            <i class="fa-solid fa-circle-check"></i>
+                            <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
                             <strong class="review-field__value"></strong>
                         </div>
-                        <button class="btn btn-link review-field__edit" type="button">{% translate "Edit" %}</button>
+                        <button class="btn btn-link review-field__edit"
+                                type="button"
+                                aria-label="{% translate "Edit filing type" %}">{% translate "Edit" %}</button>
                     </div>
                     <div class="review-field__input">
                         <select class="form-select"
                                 name="filing_type_code"
                                 id="filing_type_code"
+                                aria-describedby="filing_type_code-hint"
                                 disabled>
                             <option value="">{% translate "Choose a case type first" %}</option>
                         </select>
                         <input type="hidden" name="filing_type_name" id="filing_type_name" />
-                        <small class="review-field__hint">{% translate "We'll confirm this again when you organize your documents." %}</small>
+                        <small class="review-field__hint" id="filing_type_code-hint">{% translate "We'll confirm this again when you organize your documents." %}</small>
                     </div>
                 </div>
                 <div class="form-field" id="docket-number-field">
@@ -117,6 +132,7 @@
                            name="docket_number"
                            id="docket_number"
                            value="{{ docket_number|default:'' }}"
+                           aria-describedby="docket-number-hint"
                            hidden />
                     <small id="docket-number-hint">{% translate "Leave blank if the court has not assigned one." %}</small>
                 </div>
@@ -141,7 +157,7 @@
                         type="button"
                         data-bs-toggle="collapse"
                         data-bs-target="#path-help">
-                    <i class="fa-regular fa-circle-question"></i> {% translate "Help me decide" %}
+                    <i class="fa-regular fa-circle-question" aria-hidden="true"></i> {% translate "Help me decide" %}
                 </button>
                 <div class="collapse help-panel" id="path-help">
                     <strong>{% translate "Look near the top of your document." %}</strong>
@@ -150,17 +166,20 @@
                     </p>
                 </div>
             </fieldset>
-            <div class="alert alert-danger" id="extraction-review-error" hidden></div>
+            <div class="alert alert-danger"
+                 id="extraction-review-error"
+                 role="alert"
+                 hidden></div>
             <div class="workflow-actions">
                 {% if return_to == "review" %}
                     <a class="btn btn-outline-secondary"
-                       href="{% url 'case_review' jurisdiction %}"><i class="fa-solid fa-arrow-left"></i> {% translate "Back to review" %}</a>
+                       href="{% url 'case_review' jurisdiction %}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {% translate "Back to review" %}</a>
                 {% else %}
                     <a class="btn btn-outline-secondary"
-                       href="{% url 'upload_documents' jurisdiction %}"><i class="fa-solid fa-arrow-left"></i> {% translate "Back" %}</a>
+                       href="{% url 'upload_documents' jurisdiction %}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {% translate "Back" %}</a>
                 {% endif %}
                 <button class="btn btn-primary" type="submit">
-                    {% translate "Confirm and continue" %} <i class="fa-solid fa-arrow-right"></i>
+                    {% translate "Confirm and continue" %} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
                 </button>
             </div>
         </form>

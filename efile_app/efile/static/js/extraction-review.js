@@ -40,7 +40,12 @@
         field.input = root.querySelector(".review-field__input");
         field.valueEl = root.querySelector(".review-field__value");
         field.hint = root.querySelector(".review-field__hint");
-        root.querySelector(".review-field__edit").addEventListener("click", () => setMode(key, "edit"));
+        root.querySelector(".review-field__edit").addEventListener("click", () => {
+            setMode(key, "edit");
+            // The Edit button lives inside the display panel that setMode just
+            // hid, so without this the click would strand focus on <body>.
+            field.select.focus();
+        });
     });
 
     function setMode(key, mode) {

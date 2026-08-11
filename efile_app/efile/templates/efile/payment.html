@@ -40,11 +40,11 @@
                 <h2>{% translate "Estimated court fees" %}</h2>
                 <div id="paymentInfo"></div>
             </section>
-            <div class="alert alert-danger" id="errorMessage" hidden>
-                <i class="fas fa-exclamation-triangle me-2"></i><span id="errorText"></span>
+            <div class="alert alert-danger" id="errorMessage" role="alert" hidden>
+                <i class="fas fa-exclamation-triangle me-2" aria-hidden="true"></i><span id="errorText"></span>
             </div>
-            <div class="alert alert-success" id="successMessage" hidden>
-                <i class="fas fa-check-circle me-2"></i><span id="successText"></span>
+            <div class="alert alert-success" id="successMessage" role="alert" hidden>
+                <i class="fas fa-check-circle me-2" aria-hidden="true"></i><span id="successText"></span>
             </div>
             <div id="loadingSpinner" class="loading-spinner" aria-live="polite">
                 <div class="spinner-border text-primary" role="status">
@@ -54,10 +54,10 @@
             </div>
             <div class="workflow-actions">
                 <a class="btn btn-outline-secondary" href="{{ workflow_previous_url }}">
-                    <i class="fa-solid fa-arrow-left"></i> {% translate "Back" %}
+                    <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {% translate "Back" %}
                 </a>
                 <button class="btn btn-primary" id="submitButton" type="submit" disabled>
-                    {% translate "Review your filing" %} <i class="fa-solid fa-arrow-right"></i>
+                    {% translate "Review your filing" %} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
                 </button>
             </div>
         </form>

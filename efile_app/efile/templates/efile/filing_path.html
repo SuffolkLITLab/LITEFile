@@ -20,7 +20,7 @@
                            value="new"
                            {% if selected_path == "new" %}checked{% endif %}
                            required />
-                    <span class="choice-card__icon"><i class="fa-regular fa-file-lines"></i></span>
+                    <span class="choice-card__icon"><i class="fa-regular fa-file-lines" aria-hidden="true"></i></span>
                     <span><strong>{% translate "Start a new court case" %}</strong><small>{% translate "The court has not assigned a case number yet." %}</small></span>
                 </label>
                 <label class="choice-card">
@@ -28,7 +28,7 @@
                            name="existing_case"
                            value="existing"
                            {% if selected_path == "existing" %}checked{% endif %} />
-                    <span class="choice-card__icon"><i class="fa-solid fa-folder-open"></i></span>
+                    <span class="choice-card__icon"><i class="fa-solid fa-folder-open" aria-hidden="true"></i></span>
                     <span><strong>{% translate "File in an existing case" %}</strong><small>{% translate "You have a case number or the case is already open." %}</small></span>
                 </label>
                 <label class="choice-card">
@@ -36,15 +36,15 @@
                            name="existing_case"
                            value="unsure"
                            {% if selected_path == "unsure" %}checked{% endif %} />
-                    <span class="choice-card__icon"><i class="fa-regular fa-circle-question"></i></span>
+                    <span class="choice-card__icon"><i class="fa-regular fa-circle-question" aria-hidden="true"></i></span>
                     <span><strong>{% translate "I'm not sure" %}</strong><small>{% translate "Upload your documents and we'll help you decide." %}</small></span>
                 </label>
             </fieldset>
             <div class="workflow-actions">
                 <a class="btn btn-outline-secondary"
-                   href="{% url 'efile_options' jurisdiction %}"><i class="fa-solid fa-arrow-left"></i> {% translate "Back" %}</a>
+                   href="{% url 'efile_options' jurisdiction %}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {% translate "Back" %}</a>
                 <button class="btn btn-primary" type="submit">
-                    {% translate "Continue" %} <i class="fa-solid fa-arrow-right"></i>
+                    {% translate "Continue" %} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
                 </button>
             </div>
         </form>

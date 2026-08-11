@@ -12,7 +12,7 @@
             {% translate "Review the files below. Add anything else you want the court to receive with this filing." %}
         </p>
         <div class="checklist-guidance" role="note">
-            <i class="fa-solid fa-circle-info"></i>
+            <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
             <div>
                 <strong>{% translate "Before you continue" %}</strong>
                 <p>
@@ -23,8 +23,8 @@
         <div class="checklist-files">
             {% for document in documents %}
                 <article class="checklist-file">
-                    <span class="checklist-file__check"><i class="fa-solid fa-check"></i></span>
-                    <span class="checklist-file__icon"><i class="fa-solid fa-file-pdf"></i></span>
+                    <span class="checklist-file__check"><i class="fa-solid fa-check" aria-hidden="true"></i></span>
+                    <span class="checklist-file__icon"><i class="fa-solid fa-file-pdf" aria-hidden="true"></i></span>
                     <span>
                         <strong>{{ document.name|default:document.original_filename }}</strong>
                         <small>{% translate "Uploaded document" %}</small>
@@ -38,7 +38,7 @@
                 data-bs-toggle="collapse"
                 data-bs-target="#missing-document-state"
                 aria-expanded="false">
-            <i class="fa-solid fa-plus"></i> {% translate "Add a missing document" %}
+            <i class="fa-solid fa-plus" aria-hidden="true"></i> {% translate "Add a missing document" %}
         </button>
         <div class="collapse missing-document-state" id="missing-document-state">
             <form id="checklist-upload-form" enctype="multipart/form-data">
@@ -62,7 +62,10 @@
                     <strong>{% translate "Adding your documents…" %}</strong>
                     <span>{% translate "Keep this page open." %}</span>
                 </div>
-                <div class="alert alert-danger mt-3" id="checklist-upload-error" hidden></div>
+                <div class="alert alert-danger mt-3"
+                     id="checklist-upload-error"
+                     role="alert"
+                     hidden></div>
                 <button class="btn btn-outline-primary mt-3" type="submit">{% translate "Add documents" %}</button>
             </form>
         </div>
@@ -79,9 +82,9 @@
             </label>
             <div class="workflow-actions">
                 <a class="btn btn-outline-secondary"
-                   href="{% url 'extraction_review' jurisdiction %}"><i class="fa-solid fa-arrow-left"></i> {% translate "Back" %}</a>
+                   href="{% url 'extraction_review' jurisdiction %}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {% translate "Back" %}</a>
                 <button class="btn btn-primary" type="submit">
-                    {% translate "Continue to organize" %} <i class="fa-solid fa-arrow-right"></i>
+                    {% translate "Continue to organize" %} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
                 </button>
             </div>
         </form>

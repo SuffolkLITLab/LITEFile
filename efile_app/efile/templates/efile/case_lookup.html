@@ -16,11 +16,15 @@
             <div class="lookup-fields">
                 <label class="form-field" for="court">
                     <span>{% translate "Court" %}</span>
-                    <select class="form-select" id="court" name="court" required>
+                    <select class="form-select"
+                            id="court"
+                            name="court"
+                            {% if guessed_court %}aria-describedby="court-hint"{% endif %}
+                            required>
                         <option value="">{% translate "Loading Illinois courts…" %}</option>
                     </select>
                     {% if guessed_court %}
-                        <small>{% blocktranslate %}Suggested from your document: {{ guessed_court }}{% endblocktranslate %}</small>
+                        <small id="court-hint">{% blocktranslate %}Suggested from your document: {{ guessed_court }}{% endblocktranslate %}</small>
                     {% endif %}
                 </label>
                 <label class="form-field" for="case-number">
@@ -31,20 +35,21 @@
                            value="{{ docket_number }}"
                            placeholder="e.g., 2025MR000123"
                            autocomplete="off"
+                           aria-describedby="case-number-hint"
                            required />
-                    <small>{% translate "Include letters and numbers. Spaces and dashes are okay." %}</small>
+                    <small id="case-number-hint">{% translate "Include letters and numbers. Spaces and dashes are okay." %}</small>
                 </label>
             </div>
             <div class="lookup-state" id="lookup-state" hidden aria-live="polite">
                 <div class="spinner-border spinner-border-sm" aria-hidden="true"></div>
                 <span><strong>{% translate "Searching court records…" %}</strong><small>{% translate "This may take a moment." %}</small></span>
             </div>
-            <div class="alert alert-warning" id="lookup-error" hidden></div>
+            <div class="alert alert-warning" id="lookup-error" role="alert" hidden></div>
             <div class="workflow-actions">
                 <a class="btn btn-outline-secondary"
-                   href="{% url 'extraction_review' jurisdiction %}"><i class="fa-solid fa-arrow-left"></i> {% translate "Back" %}</a>
+                   href="{% url 'extraction_review' jurisdiction %}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {% translate "Back" %}</a>
                 <button class="btn btn-primary" id="find-case-button" type="submit">
-                    <i class="fa-solid fa-magnifying-glass"></i> {% translate "Find my case" %}
+                    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> {% translate "Find my case" %}
                 </button>
             </div>
         </form>

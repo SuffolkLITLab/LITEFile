@@ -18,7 +18,8 @@
             <section class="review-summary-card">
                 <header>
                     <h2>{% translate "Case" %}</h2>
-                    <a href="{% url 'extraction_review' jurisdiction %}?return_to=review">{% translate "Edit" %}</a>
+                    <a href="{% url 'extraction_review' jurisdiction %}?return_to=review"
+                       aria-label="{% translate "Edit case information" %}">{% translate "Edit" %}</a>
                 </header>
                 <dl>
                     <div>
@@ -66,12 +67,13 @@
             <section class="review-summary-card review-summary-card--wide">
                 <header>
                     <h2>{% translate "Documents" %}</h2>
-                    <a href="{% url 'organize_documents' jurisdiction %}?return_to=review">{% translate "Edit" %}</a>
+                    <a href="{% url 'organize_documents' jurisdiction %}?return_to=review"
+                       aria-label="{% translate "Edit documents" %}">{% translate "Edit" %}</a>
                 </header>
                 <div class="review-document-list">
                     {% for document in documents %}
                         <article>
-                            <i class="fa-solid fa-file-pdf"></i>
+                            <i class="fa-solid fa-file-pdf" aria-hidden="true"></i>
                             <div>
                                 <strong>{{ document.name|default:document.original_filename }}</strong>
                                 <small>
@@ -93,7 +95,8 @@
             <section class="review-summary-card">
                 <header>
                     <h2>{% translate "Your information" %}</h2>
-                    <a href="{% url 'your_information' jurisdiction %}?return_to=review">{% translate "Edit" %}</a>
+                    <a href="{% url 'your_information' jurisdiction %}?return_to=review"
+                       aria-label="{% translate "Edit your information" %}">{% translate "Edit" %}</a>
                 </header>
                 {% if filer %}
                     <p class="review-person-name">{{ filer.first_name }} {{ filer.middle_name }} {{ filer.last_name }}</p>
@@ -115,7 +118,8 @@
             <section class="review-summary-card">
                 <header>
                     <h2>{% translate "Other people" %}</h2>
-                    <a href="{% url 'parties' jurisdiction %}?return_to=review">{% translate "Edit" %}</a>
+                    <a href="{% url 'parties' jurisdiction %}?return_to=review"
+                       aria-label="{% translate "Edit other people" %}">{% translate "Edit" %}</a>
                 </header>
                 {% for party in parties %}
                     <div class="review-party">
@@ -136,7 +140,8 @@
                 <section class="review-summary-card">
                     <header>
                         <h2>{% translate "Case questions" %}</h2>
-                        <a href="{% url 'case_questions' jurisdiction %}?return_to=review">{% translate "Edit" %}</a>
+                        <a href="{% url 'case_questions' jurisdiction %}?return_to=review"
+                           aria-label="{% translate "Edit case questions" %}">{% translate "Edit" %}</a>
                     </header>
                     <dl>
                         {% for answer in question_answers %}
@@ -153,7 +158,8 @@
             <section class="review-summary-card">
                 <header>
                     <h2>{% translate "Payment" %}</h2>
-                    <a href="{% url 'payment' jurisdiction %}">{% translate "Edit" %}</a>
+                    <a href="{% url 'payment' jurisdiction %}"
+                       aria-label="{% translate "Edit payment" %}">{% translate "Edit" %}</a>
                 </header>
                 <p class="review-person-name">{{ draft.selected_payment_account_name }}</p>
                 {% if draft.selected_payment_account_type == "WV" %}
@@ -177,11 +183,14 @@
                 {% endif %}
             </section>
         </div>
-        <div class="alert alert-danger mt-4" id="errorMessage" hidden>
-            <i class="fas fa-exclamation-triangle me-2"></i><span id="errorText"></span>
+        <div class="alert alert-danger mt-4" id="errorMessage" role="alert" hidden>
+            <i class="fas fa-exclamation-triangle me-2" aria-hidden="true"></i><span id="errorText"></span>
         </div>
-        <div class="alert alert-success mt-4" id="successMessage" hidden>
-            <i class="fas fa-check-circle me-2"></i><span id="successText"></span>
+        <div class="alert alert-success mt-4"
+             id="successMessage"
+             role="alert"
+             hidden>
+            <i class="fas fa-check-circle me-2" aria-hidden="true"></i><span id="successText"></span>
         </div>
         <div class="review-attestation">
             <label>
@@ -196,9 +205,9 @@
             <p class="mt-2">{% translate "Submitting your filing to the court. Do not close this page." %}</p>
         </div>
         <div class="workflow-actions">
-            <a class="btn btn-outline-secondary" href="{{ workflow_previous_url }}"><i class="fa-solid fa-arrow-left"></i> {% translate "Back" %}</a>
+            <a class="btn btn-outline-secondary" href="{{ workflow_previous_url }}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {% translate "Back" %}</a>
             <button class="btn btn-primary" id="submitButton" type="button" disabled>
-                {% translate "Submit filing" %} <i class="fa-solid fa-paper-plane"></i>
+                {% translate "Submit filing" %} <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
             </button>
         </div>
     </section>

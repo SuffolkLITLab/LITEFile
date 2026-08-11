@@ -7,7 +7,7 @@
     <section class="workflow-card workflow-card--narrow">
         <div class="workflow-eyebrow">{% translate "Confirm case" %}</div>
         <div class="found-heading">
-            <span class="found-heading__icon"><i class="fa-solid fa-check"></i></span>
+            <span class="found-heading__icon"><i class="fa-solid fa-check" aria-hidden="true"></i></span>
             <div>
                 <h1>{% translate "Is this your court case?" %}</h1>
                 <p class="workflow-lede">{% translate "Check the details before adding this filing to the case." %}</p>
@@ -72,10 +72,10 @@
                         type="submit"
                         name="confirmed"
                         value="no">
-                    <i class="fa-solid fa-arrow-left"></i> {% translate "No, search again" %}
+                    <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {% translate "No, search again" %}
                 </button>
                 <button class="btn btn-primary" type="submit" name="confirmed" value="yes">
-                    {% translate "Yes, this is my case" %} <i class="fa-solid fa-arrow-right"></i>
+                    {% translate "Yes, this is my case" %} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
                 </button>
             </div>
         </form>

@@ -64,7 +64,10 @@
                 <div class="people-grid people-grid--name">
                     <label class="form-field">
                         <span>{% translate "First name" %}</span>
-                        <input class="form-control" name="first_name" value="{{ party.first_name }}" />
+                        <input class="form-control"
+                               name="first_name"
+                               value="{{ party.first_name }}"
+                               {% if party_kind != "organization" %}required{% endif %} />
                     </label>
                     <label class="form-field">
                         <span>{% translate "Middle name" %} <em>{% translate "Optional" %}</em></span>
@@ -74,7 +77,10 @@
                     </label>
                     <label class="form-field">
                         <span>{% translate "Last name" %}</span>
-                        <input class="form-control" name="last_name" value="{{ party.last_name }}" />
+                        <input class="form-control"
+                               name="last_name"
+                               value="{{ party.last_name }}"
+                               {% if party_kind != "organization" %}required{% endif %} />
                     </label>
                     <label class="form-field">
                         <span>{% translate "Suffix" %} <em>{% translate "Optional" %}</em></span>
@@ -93,7 +99,8 @@
                     <span>{% translate "Organization name" %}</span>
                     <input class="form-control"
                            name="organization_name"
-                           value="{{ party.organization_name }}" />
+                           value="{{ party.organization_name }}"
+                           {% if party_kind == "organization" %}required{% endif %} />
                 </label>
             </div>
             <div class="people-section">
@@ -156,14 +163,14 @@
             </div>
             <div class="workflow-actions">
                 <a class="btn btn-outline-secondary"
-                   href="{% url 'parties' jurisdiction %}{% if return_to %}?return_to={{ return_to }}{% endif %}"><i class="fa-solid fa-arrow-left"></i> {% translate "Back to party list" %}</a>
+                   href="{% url 'parties' jurisdiction %}{% if return_to %}?return_to={{ return_to }}{% endif %}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {% translate "Back to party list" %}</a>
                 <button class="btn btn-primary" type="submit">
                     {% if return_to == "review" %}
                         {% translate "Save and return to review" %}
                     {% else %}
                         {% translate "Save and continue" %}
                     {% endif %}
-                    <i class="fa-solid fa-arrow-right"></i>
+                    <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
                 </button>
             </div>
         </form>

@@ -242,11 +242,13 @@
             const toggle = document.createElement("button");
             toggle.type = "button";
             toggle.className = "btn btn-link optional-services-toggle";
+            toggle.setAttribute("aria-expanded", "false");
             const showMoreText = interpolate(ngettext("Show %s more option", "Show %s more options", rest.length), [rest.length]);
             toggle.textContent = showMoreText;
             toggle.addEventListener("click", () => {
                 const wasExpanded = !moreContainer.hidden;
                 moreContainer.hidden = wasExpanded;
+                toggle.setAttribute("aria-expanded", String(!wasExpanded));
                 toggle.textContent = wasExpanded ? showMoreText : gettext("Show fewer options");
             });
 

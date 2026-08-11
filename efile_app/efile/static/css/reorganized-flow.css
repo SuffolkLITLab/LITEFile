@@ -62,12 +62,12 @@
 
 .workflow-progress__item--complete::before,
 .workflow-progress__item--current::before {
-    background: #2c5aa0;
+    background: var(--better-blue);
 }
 
 .workflow-progress__item--complete .workflow-progress__marker {
-    background: #2c5aa0;
-    border-color: #2c5aa0;
+    background: var(--better-blue);
+    border-color: var(--better-blue);
     color: #fff;
 }
 
@@ -76,7 +76,7 @@
 }
 
 .workflow-progress__item--current .workflow-progress__marker {
-    border-color: #2c5aa0;
+    border-color: var(--better-blue);
     box-shadow: 0 0 0 4px rgb(44 90 160 / 14%);
     color: #163f75;
 }
@@ -96,7 +96,7 @@
 }
 
 .workflow-eyebrow {
-    color: #2c5aa0;
+    color: var(--better-blue);
     font-size: 0.82rem;
     font-weight: 750;
     letter-spacing: 0.08em;
@@ -105,7 +105,7 @@
 }
 
 .workflow-card h1 {
-    color: #172b46;
+    color: var(--better-blue);
     font-size: clamp(1.8rem, 4vw, 2.5rem);
     letter-spacing: -0.025em;
     margin-bottom: 0.8rem;
@@ -138,7 +138,7 @@
 
 .choice-card:has(input:checked) {
     background: #f0f6ff;
-    border-color: #2c5aa0;
+    border-color: var(--better-blue);
     box-shadow: 0 0 0 3px rgb(44 90 160 / 10%);
 }
 
@@ -151,7 +151,7 @@
     align-items: center;
     background: #eaf1fb;
     border-radius: 10px;
-    color: #2c5aa0;
+    color: var(--better-blue);
     display: flex;
     font-size: 1.15rem;
     height: 44px;
@@ -204,7 +204,7 @@
 }
 
 .requirements-strip i {
-    color: #2c5aa0;
+    color: var(--better-blue);
     margin-right: 0.35rem;
 }
 
@@ -226,7 +226,12 @@
 .drop-zone--active,
 .drop-zone:hover {
     background: #f0f6ff;
-    border-color: #2c5aa0;
+    border-color: var(--better-blue);
+}
+
+.drop-zone:focus-within {
+    outline: 3px solid var(--better-blue);
+    outline-offset: 2px;
 }
 
 .drop-zone input {
@@ -237,7 +242,7 @@
 }
 
 .drop-zone__icon {
-    color: #2c5aa0;
+    color: var(--better-blue);
     font-size: 2.2rem;
 }
 
@@ -317,6 +322,11 @@
 .status-pill--ready {
     background: #e5f6eb;
     color: #16703a;
+}
+
+.status-pill--lead {
+    background: #e8f0fc;
+    color: var(--better-blue);
 }
 
 .document-list__empty {
@@ -456,7 +466,7 @@
 .help-toggle {
     background: none;
     border: 0;
-    color: #2c5aa0;
+    color: var(--better-blue);
     font-weight: 650;
     justify-self: start;
     padding: 0.35rem 0;
@@ -639,7 +649,7 @@
 .add-missing-toggle {
     background: none;
     border: 0;
-    color: #2c5aa0;
+    color: var(--better-blue);
     font-weight: 700;
     margin: 1rem 0;
     padding: 0.4rem 0;

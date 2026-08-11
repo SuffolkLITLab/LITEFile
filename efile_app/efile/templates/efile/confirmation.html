@@ -10,7 +10,7 @@
 {% block workflow_content %}
     <section class="workflow-card workflow-card--narrow confirmation-workflow-card">
         <div class="success-icon">
-            <i class="fas fa-check-circle"></i>
+            <i class="fas fa-check-circle" aria-hidden="true"></i>
         </div>
         <div class="workflow-eyebrow">{% translate "Submitted" %}</div>
         <h1>{% translate "Your filing was sent to the court" %}</h1>
@@ -56,7 +56,7 @@
             </dl>
         {% endif %}
         <div class="checklist-guidance confirmation-next">
-            <i class="fas fa-info-circle"></i>
+            <i class="fas fa-info-circle" aria-hidden="true"></i>
             <div>
                 <strong>{% translate "What happens next" %}</strong>
                 <p>
@@ -67,7 +67,7 @@
         <div class="confirmation-actions">
             <a href="{% url 'filing_statuses' jurisdiction %}"
                class="btn btn-primary">
-                <i class="fas fa-list-check me-2"></i>{% translate "View filing status" %}
+                <i class="fas fa-list-check me-2" aria-hidden="true"></i>{% translate "View filing status" %}
             </a>
             <a href="{% url 'efile_options' jurisdiction %}"
                class="btn btn-outline-secondary">{% translate "Return to filing options" %}</a>

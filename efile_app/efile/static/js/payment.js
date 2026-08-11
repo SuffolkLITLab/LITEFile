@@ -17,7 +17,12 @@ const paymentMessages = {
     },
     showError(message) {
         document.getElementById("errorText").textContent = message;
-        document.getElementById("errorMessage").hidden = false;
+        const box = document.getElementById("errorMessage");
+        box.hidden = false;
+        box.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+        });
     },
     showSuccess(message) {
         document.getElementById("successText").textContent = message;

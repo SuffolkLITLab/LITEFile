@@ -1,10 +1,3 @@
-.confirmation-container {
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 2rem;
-    text-align: center;
-}
-
 .confirmation-workflow-card {
     text-align: center;
 }
@@ -85,27 +78,7 @@
     margin-bottom: 1rem;
 }
 
-.success-message {
-    color: #155724;
-    font-size: 1.25rem;
-    margin-bottom: 2rem;
-}
-
-.btn-primary.custom-confirm {
-    background: var(--better-blue);
-    border-color: var(--better-blue);
-}
-
-.btn-primary.custom-confirm:hover {
-    background: #1e3d6f;
-    border-color: #1e3d6f;
-}
-
-@media (max-width: 576px) {
-    .confirmation-container {
-        padding: 1rem;
-    }
-
+@media (max-width: 700px) {
     .success-icon {
         font-size: 3rem;
     }
