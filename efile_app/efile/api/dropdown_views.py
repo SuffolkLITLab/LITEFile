@@ -536,6 +536,48 @@ class DropdownAPIViews(APIResponseMixin):
 
     @staticmethod
     @require_http_methods(["GET"])
+    def get_name_suffixes(request):
+        """Get the court's accepted name suffixes (Jr., Sr., II, ...).
+
+        A suffix has to exactly match one of these for Tyler to accept the
+        party -- it isn't free text, even though it looks like it could be.
+        """
+        try:
+            court_code = request.GET.get("court")
+            jurisdiction = get_jurisdiction_from_request(request)
+
+            if not jurisdiction:
+                return DropdownAPIViews.error_response("Missing required jurisdiction parameter")
+
+            if not court_code:
+                return DropdownAPIViews.error_response("Missing required court parameter")
+
+            api_url = f"{settings.EFSP_URL}/jurisdictions/{jurisdiction}/codes/courts/{court_code}/name_suffixes"
+            logger.debug("GET %s", api_url)
+            response = requests.get(api_url, timeout=10)
+
+            if response.status_code == 200:
+                api_data = response.json()
+                suffixes = (
+                    [
+                        {"value": item["code"], "text": item["name"]}
+                        for item in api_data
+                        if isinstance(item, dict) and item.get("code") and item.get("name")
+                    ]
+                    if isinstance(api_data, list)
+                    else []
+                )
+                return DropdownAPIViews.success_response(suffixes)
+            else:
+                return DropdownAPIViews.error_response(f"API request failed with status {response.status_code}")
+
+        except (requests.RequestException, requests.Timeout) as api_error:
+            return DropdownAPIViews.error_response(f"API request failed: {str(api_error)}")
+        except Exception as e:
+            return DropdownAPIViews.error_response(f"Error: {str(e)}")
+
+    @staticmethod
+    @require_http_methods(["GET"])
     def get_optional_services(request):
         """Get optional services for a filing type from Suffolk LIT Lab API"""
         try:
@@ -685,3 +727,4 @@ get_courts = DropdownAPIViews.get_courts
 get_document_types = DropdownAPIViews.get_document_types
 get_optional_services = DropdownAPIViews.get_optional_services
 get_party_types = DropdownAPIViews.get_party_types
+get_name_suffixes = DropdownAPIViews.get_name_suffixes

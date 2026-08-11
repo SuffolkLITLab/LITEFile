@@ -56,6 +56,7 @@ def your_information(request, jurisdiction):
         "filing_draft": draft_snapshot(draft),
         "filer": filer,
         "return_to": request.GET.get("return_to", ""),
+        "court_code": draft.court_code,
     }
     context.update(get_workflow_context(WorkflowStepKey.YOUR_INFORMATION, jurisdiction, draft))
     return render(request, "efile/your_information.html", context)

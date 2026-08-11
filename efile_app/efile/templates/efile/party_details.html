@@ -17,7 +17,7 @@
         <p class="workflow-lede">
             {% translate "Enter this person's or organization's court role, name, and mailing address." %}
         </p>
-        <form method="post" id="party-details-form">
+        <form method="post" id="party-details-form" data-court="{{ court_code }}">
             {% csrf_token %}
             <input type="hidden" name="return_to" value="{{ return_to }}" />
             <fieldset class="form-field compact-choice-field">
@@ -78,7 +78,12 @@
                     </label>
                     <label class="form-field">
                         <span>{% translate "Suffix" %} <em>{% translate "Optional" %}</em></span>
-                        <input class="form-control" name="suffix" value="{{ party.suffix }}" />
+                        <select class="form-select"
+                                name="suffix"
+                                id="suffix"
+                                data-selected="{{ party.suffix }}">
+                            <option value="">{% translate "None" %}</option>
+                        </select>
                     </label>
                 </div>
             </div>

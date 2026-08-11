@@ -83,6 +83,7 @@ def party_details(request, jurisdiction):
         "party_types": party_types,
         "party_kind": "organization" if party.organization_name else "person",
         "return_to": request.GET.get("return_to", ""),
+        "court_code": draft.court_code,
     }
     context.update(get_workflow_context(WorkflowStepKey.PARTY_DETAILS, jurisdiction, draft))
     return render(request, "efile/party_details.html", context)
