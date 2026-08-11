@@ -8,8 +8,8 @@
 }
 
 .confirmation-reference {
-    background: #eef5ff;
-    border: 1px solid #cbdcf1;
+    background: var(--surface-accent);
+    border: 1px solid var(--border-accent);
     border-radius: 12px;
     margin: 0 auto 1.25rem;
     padding: 1rem;
@@ -21,7 +21,7 @@
 }
 
 .confirmation-reference span {
-    color: #68768a;
+    color: var(--text-muted);
     font-size: 0.8rem;
     font-weight: 700;
     letter-spacing: 0.04em;
@@ -29,13 +29,13 @@
 }
 
 .confirmation-reference strong {
-    color: #173e73;
+    color: var(--better-blue);
     font-size: 1.35rem;
     margin-top: 0.25rem;
 }
 
 .confirmation-summary {
-    border: 1px solid #dce3ec;
+    border: 1px solid var(--border-default);
     border-radius: 12px;
     margin: 0;
     text-align: left;
@@ -48,15 +48,15 @@
 }
 
 .confirmation-summary>div+div {
-    border-top: 1px solid #e5e9ef;
+    border-top: 1px solid var(--border-subtle);
 }
 
 .confirmation-summary dt {
-    color: #68768a;
+    color: var(--text-muted);
 }
 
 .confirmation-summary dd {
-    color: #213957;
+    color: var(--text-heading);
     font-weight: 700;
     margin: 0;
 }

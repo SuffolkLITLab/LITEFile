@@ -12,7 +12,7 @@
 
 .payment-choice-field>legend,
 .fee-summary h2 {
-    color: #263c58;
+    color: var(--text-heading);
     float: none;
     font-size: 1.05rem;
     font-weight: 750;
@@ -21,8 +21,8 @@
 }
 
 .fee-summary {
-    background: #eef5ff;
-    border: 1px solid #cbdcf1;
+    background: var(--surface-accent);
+    border: 1px solid var(--border-accent);
     border-radius: 12px;
     margin-top: 1.25rem;
     padding: 1.1rem;
@@ -43,7 +43,7 @@
 }
 
 .review-summary-card {
-    border: 1px solid #dce3ec;
+    border: 1px solid var(--border-default);
     border-radius: 12px;
     padding: 1.1rem;
 }
@@ -54,7 +54,7 @@
 
 .review-summary-card>header {
     align-items: center;
-    border-bottom: 1px solid #e5e9ef;
+    border-bottom: 1px solid var(--border-subtle);
     display: flex;
     justify-content: space-between;
     margin-bottom: 0.9rem;
@@ -62,7 +62,7 @@
 }
 
 .review-summary-card h2 {
-    color: #263c58;
+    color: var(--text-heading);
     font-size: 1.05rem;
     margin: 0;
 }
@@ -85,12 +85,12 @@
 }
 
 .review-summary-card dt {
-    color: #68768a;
+    color: var(--text-muted);
     font-size: 0.85rem;
 }
 
 .review-summary-card dd {
-    color: #213957;
+    color: var(--text-heading);
     font-weight: 650;
     margin: 0;
     text-align: right;
@@ -104,11 +104,11 @@
 }
 
 .review-document-list article+article {
-    border-top: 1px solid #e7ebf0;
+    border-top: 1px solid var(--border-subtle);
 }
 
 .review-document-list i {
-    color: #b23b3b;
+    color: var(--danger-icon);
     font-size: 1.3rem;
 }
 
@@ -121,19 +121,19 @@
 
 .review-document-list small,
 .review-party small {
-    color: #6d798d;
+    color: var(--text-muted);
 }
 
 .review-person-name {
-    color: #213957;
+    color: var(--text-heading);
     font-weight: 700;
     margin-bottom: 0.35rem;
 }
 
 .review-document-tag {
-    background: #eef2f8;
+    background: var(--surface-accent);
     border-radius: 999px;
-    color: #38567a;
+    color: var(--text-body);
     display: inline-block;
     font-size: 0.78rem;
     font-weight: 650;
@@ -142,7 +142,7 @@
 }
 
 .review-fee-breakdown {
-    color: #6d798d;
+    color: var(--text-muted);
     font-size: 0.85rem;
     list-style: none;
     margin: 0.3rem 0 0;
@@ -156,7 +156,7 @@
 }
 
 .review-summary-card address {
-    color: #526176;
+    color: var(--text-body);
     line-height: 1.55;
 }
 
@@ -165,12 +165,12 @@
 }
 
 .review-party+.review-party {
-    border-top: 1px solid #e7ebf0;
+    border-top: 1px solid var(--border-subtle);
 }
 
 .review-attestation {
-    background: #fffaf0;
-    border: 1px solid #ead8ad;
+    background: var(--warning-surface);
+    border: 1px solid var(--warning-border);
     border-radius: 10px;
     margin-top: 1.5rem;
     padding: 1rem;

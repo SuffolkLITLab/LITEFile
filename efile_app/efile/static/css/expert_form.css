@@ -44,7 +44,7 @@
 .form-select:focus,
 .form-control:focus {
     border-color: var(--primary-btn-color);
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    box-shadow: 0 0 0 0.2rem rgba(44, 90, 160, 0.25);
 }
 
 .btn-outline-secondary {
