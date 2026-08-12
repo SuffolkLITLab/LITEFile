@@ -41,6 +41,7 @@ const escapeAttribute = (value) => escapeHTML(value).replaceAll('"', "&quot;").r
 
 const PaymentPage = {
     caseData: paymentJSON("case-data"),
+    feeQuoteReady: false,
     // code -> the court's own name for that account type (e.g. "CC" -> "Credit
     // Card"), fetched from GetPaymentAccountTypeList. Populated by
     // loadAccountTypes(); empty if that call fails, which just means the
@@ -49,7 +50,7 @@ const PaymentPage = {
 
     setFeesState(loading) {
         document.getElementById("loadingSpinner").style.display = loading ? "block" : "none";
-        document.getElementById("submitButton").disabled = loading || !document.querySelector('input[name="paymentMethod"]:checked');
+        document.getElementById("submitButton").disabled = loading || !this.feeQuoteReady || !document.querySelector('input[name="paymentMethod"]:checked');
     },
 
     async loadAccountTypes() {
@@ -123,6 +124,7 @@ const PaymentPage = {
         document.getElementById("paymentSection").hidden = true;
         document.getElementById("quoted-fee-total").value = "";
         document.getElementById("quoted-fee-breakdown").value = "";
+        this.feeQuoteReady = false;
         paymentMessages.hide();
         this.setFeesState(true);
         try {
@@ -136,9 +138,11 @@ const PaymentPage = {
             }, {}, {
                 timeout: ApiUtils.FILING_TIMEOUT_MS
             });
+            this.feeQuoteReady = Boolean(result?.success);
             this.handleFeesResponse(result);
             this.storeFeeQuote(result);
         } catch (error) {
+            this.feeQuoteReady = false;
             paymentMessages.showError(error?.serverMessage || gettext("We could not calculate fees. Please try again."));
             this.setFeesState(false);
         }

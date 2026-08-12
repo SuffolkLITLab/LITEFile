@@ -148,6 +148,32 @@ test("the same module object serves both pages, so payloads cannot drift", () =>
     assert.strictEqual(paymentHandler.createDocumentBundle, reviewHandler.createDocumentBundle);
 });
 
+test("Cook and DuPage get their court-specific self-represented cross references", () => {
+    const handler = makeHandler();
+    const cook = {
+        al_court_bundle: []
+    };
+    const dupage = {
+        al_court_bundle: []
+    };
+
+    handler.addCourtBundles(cook, {}, {
+        ...CASE_DATA,
+        court_name: "Cook County"
+    }, []);
+    handler.addCourtBundles(dupage, {}, {
+        ...CASE_DATA,
+        court_name: "DuPage County"
+    }, []);
+
+    assert.deepStrictEqual(cook.cross_references, {
+        254500: "99500"
+    });
+    assert.deepStrictEqual(dupage.cross_references, {
+        136524: "99500"
+    });
+});
+
 test("saved filer information drives the filing contact instead of account profile data", () => {
     const handler = makeHandler();
     const caseData = {
