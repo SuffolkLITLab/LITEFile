@@ -1,5 +1,8 @@
 from django import forms
 from django.contrib.auth import get_user_model
+from django.db.models import Q
+
+from efile.utils.account_ids import jurisdiction_account_username
 
 User = get_user_model()
 
@@ -22,6 +25,10 @@ class EFilePasswordResetForm(forms.Form):
 
 
 class EFileRegistrationForm(forms.Form):
+    def __init__(self, *args, jurisdiction=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.jurisdiction = jurisdiction
+
     # Legal Name
     first_name = forms.CharField(
         max_length=100,
@@ -135,7 +142,12 @@ class EFileRegistrationForm(forms.Form):
 
     def clean_email(self):
         email = self.cleaned_data["email"]
-        if User.objects.filter(email=email).exists():
+        existing_accounts = User.objects.filter(
+            Q(tyler_username__iexact=email) | Q(username__iexact=email) | Q(email__iexact=email)
+        )
+        if self.jurisdiction:
+            existing_accounts = existing_accounts.filter(tyler_jurisdiction__iexact=self.jurisdiction)
+        if existing_accounts.exists():
             raise forms.ValidationError("A user with this email already exists.")
         return email
 
@@ -160,9 +172,13 @@ class EFileRegistrationForm(forms.Form):
         return cleaned_data
 
     def save(self):
+        if not self.jurisdiction:
+            raise ValueError("A jurisdiction is required to create an eFile account")
         user = User.objects.create_user(
-            username=self.cleaned_data["email"],
+            username=jurisdiction_account_username(self.cleaned_data["email"], self.jurisdiction),
             email=self.cleaned_data["email"],
+            tyler_username=self.cleaned_data["email"],
+            tyler_jurisdiction=self.jurisdiction,
             password=self.cleaned_data["password"],
             first_name=self.cleaned_data["first_name"],
             last_name=self.cleaned_data["last_name"],

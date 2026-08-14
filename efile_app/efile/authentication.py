@@ -3,6 +3,7 @@ import logging
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import BaseBackend
 
+from efile.utils.account_ids import jurisdiction_account_username
 from efile.utils.jurisdiction_stuff import get_jurisdiction_from_request
 from efile.utils.proxy_connection import auth_with_tyler_api
 
@@ -47,28 +48,37 @@ class SuffolkEFileBackend(BaseBackend):
             return None
 
     def _get_or_create_user(self, username, auth_data, jurisdiction):
-        try:
-            user = User.objects.get(username=username)
-        except User.DoesNotExist:
-            user = None
+        user = User.objects.filter(
+            tyler_username__iexact=username,
+            tyler_jurisdiction__iexact=jurisdiction,
+        ).first()
+        if user is None:
+            # Accounts created before ``tyler_username`` was introduced stored the
+            # Tyler login directly in Django's username field.
+            user = User.objects.filter(
+                username__iexact=username,
+                tyler_jurisdiction__iexact=jurisdiction,
+                tyler_username="",
+            ).first()
 
         user_data = self._extract_user_data(auth_data, username, jurisdiction)
         if not user:
             user = User.objects.create_user(
-                username=username,
+                username=jurisdiction_account_username(username, jurisdiction),
                 tyler_jurisdiction=jurisdiction,
+                tyler_username=username,
                 tyler_user_id=user_data.get("user_id", None),
                 email=user_data.get("email", username),
                 first_name=user_data.get("first_name", ""),
                 last_name=user_data.get("last_name", ""),
             )
         else:
-            user.tyler_jurisdiction = jurisdiction
+            user.tyler_username = username
             user.tyler_user_id = user_data.get("user_id", None)
             user.email = user_data.get("email", username)
-            user.save()
+            user.save(update_fields=["tyler_username", "tyler_user_id", "email", "updated_at"])
 
-            logger.info("Created new user: %s, %s", user.username, user.email)
+        logger.info("Authenticated local account %s for %s", user.pk, jurisdiction)
         return user
 
     def _extract_user_data(self, auth_data, username, jurisdiction):

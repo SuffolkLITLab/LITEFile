@@ -18,11 +18,12 @@ repos:
         files: ^efile_app/.*\.html$
         args:
           - |
+            ROOT_DIR=$(git rev-parse --show-toplevel)
             files=()
             for file in "$@"; do
-              files+=("${file#efile_app/}")
+              files+=("$ROOT_DIR/$file")
             done
-            (cd efile_app && uv run djlint --reformat "${files[@]}")
+            uv run --directory "$ROOT_DIR/efile_app" djlint --reformat "${files[@]}"
           - --
 
       - id: djlint-lint
@@ -32,11 +33,12 @@ repos:
         files: ^efile_app/.*\.html$
         args:
           - |
+            ROOT_DIR=$(git rev-parse --show-toplevel)
             files=()
             for file in "$@"; do
-              files+=("${file#efile_app/}")
+              files+=("$ROOT_DIR/$file")
             done
-            (cd efile_app && uv run djlint "${files[@]}")
+            uv run --directory "$ROOT_DIR/efile_app" djlint "${files[@]}"
           - --
 
       - id: css-beautify
@@ -46,11 +48,12 @@ repos:
         files: ^efile_app/.*\.css$
         args:
           - |
+            ROOT_DIR=$(git rev-parse --show-toplevel)
             files=()
             for file in "$@"; do
-              files+=("${file#efile_app/}")
+              files+=("$ROOT_DIR/$file")
             done
-            (cd efile_app && uv run css-beautify -r "${files[@]}")
+            uv run --directory "$ROOT_DIR/efile_app" css-beautify -r "${files[@]}"
           - --
 
       - id: js-beautify
@@ -60,32 +63,38 @@ repos:
         files: ^efile_app/.*\.js$
         args:
           - |
+            ROOT_DIR=$(git rev-parse --show-toplevel)
             files=()
             for file in "$@"; do
-              files+=("${file#efile_app/}")
+              files+=("$ROOT_DIR/$file")
             done
-            (cd efile_app && uv run js-beautify -r "${files[@]}")
+            uv run --directory "$ROOT_DIR/efile_app" js-beautify -r "${files[@]}"
           - --
 
       - id: ty
         name: ty (type check)
-        entry: bash -lc
+        entry: bash -c
         language: system
         types: [python]
         pass_filenames: false
         args:
-          - cd efile_app && uv run ty check
+          - |
+            ROOT_DIR=$(git rev-parse --show-toplevel)
+            uv run --directory "$ROOT_DIR/efile_app" ty check
 
   # Run tests on pre-push to keep commits snappy
   - repo: local
     hooks:
       - id: pytest
         name: pytest (pre-push)
-        entry: bash -lc
+        entry: bash -c
         language: system
         stages: [pre-push]
         pass_filenames: false
         args:
-          - cd efile_app && uv run pytest -q
+          - |
+            ROOT_DIR=$(git rev-parse --show-toplevel)
+            uv run --directory "$ROOT_DIR/efile_app" pytest -q
+
           # If needed, override Django settings here instead of pyproject:
           # - --ds=efile.settings

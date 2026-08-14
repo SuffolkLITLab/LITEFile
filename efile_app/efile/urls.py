@@ -2,11 +2,14 @@ from django.shortcuts import redirect
 from django.urls import include, path
 from django.views.i18n import JavaScriptCatalog
 
+from efile.utils.config_loader import config_loader
+from efile.utils.jurisdiction_stuff import has_jurisdiction_login
+
 from .views.api_views import get_case_data_api, get_filing_components
 from .views.case_confirmation import case_confirmation
 from .views.case_lookup import case_lookup
 from .views.case_questions import case_questions
-from .views.choose_jurisdiction import choose_jurisdiction
+from .views.choose_jurisdiction import change_jurisdiction, choose_jurisdiction
 from .views.confirmation import filing_confirmation
 from .views.document_checklist import document_checklist
 from .views.draft_views import create_draft_view, get_current_draft_view
@@ -42,6 +45,10 @@ def homepage(request):
 
 
 def jurisdiction_homepage(request, jurisdiction):
+    if jurisdiction not in config_loader.get_available_jurisdictions():
+        return redirect("efile_choose_jurisdiction")
+    if has_jurisdiction_login(request, jurisdiction):
+        return redirect("efile_options", jurisdiction)
     return redirect("efile_login", jurisdiction)
 
 
@@ -52,6 +59,11 @@ urlpatterns = [
     path("jurisdiction/<jurisdiction>", jurisdiction_homepage, name="jurisdiction_homepage"),
     path("jurisdiction/<jurisdiction>/login/", efile_login, name="efile_login"),
     path("jurisdiction/<jurisdiction>/logout/", efile_logout, name="efile_logout"),
+    path(
+        "jurisdiction/<jurisdiction>/change-jurisdiction/",
+        change_jurisdiction,
+        name="change_jurisdiction",
+    ),
     path("jurisdiction/<jurisdiction>/register/", efile_register, name="efile_register"),
     path("jurisdiction/<jurisdiction>/password_reset/", efile_password_reset, name="efile_password_reset"),
     path("jurisdiction/<jurisdiction>/options/", efile_options, name="efile_options"),
