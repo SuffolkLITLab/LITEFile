@@ -68,8 +68,8 @@
 }
 
 .form-control:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
+    border-color: var(--better-blue);
+    box-shadow: 0 0 0 0.2rem rgba(44, 90, 160, 0.25);
 }
 
 .btn-sign-in,
@@ -103,7 +103,7 @@
 
 .show-password:hover,
 .forgot-password:hover {
-    color: #3b82f6;
+    color: var(--better-blue);
     text-decoration: underline;
 }
 

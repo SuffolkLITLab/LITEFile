@@ -408,12 +408,11 @@ class TestExpertFormIntegration:
         return client
 
     def test_expert_form_page_loads(self, authenticated_client):
-        """Test that the expert form page loads correctly."""
+        """The retired expert form URL safely returns users to the active flow."""
         response = authenticated_client.get("/jurisdiction/illinois/expert_form/")
 
-        assert response.status_code == 200
-        assert b"Case Information" in response.content or b"Expert Form" in response.content
-        assert b"cascading-dropdowns.js" in response.content or b"dynamic-form-sections.js" in response.content
+        assert response.status_code == 302
+        assert response.url == "/jurisdiction/illinois/options/"
 
     @patch("efile.api.dropdown_views.requests.get")
     def test_complete_dropdown_flow(self, mock_get, authenticated_client):

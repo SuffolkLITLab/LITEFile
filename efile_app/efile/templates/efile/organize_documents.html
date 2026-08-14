@@ -1,0 +1,158 @@
+{% extends "efile/workflow_base.html" %}
+{% load static %}
+{% load i18n %}
+{% block title %}
+    {% translate "Organize your documents" %}
+{% endblock title %}
+{% block workflow_content %}
+    <section class="workflow-card">
+        <div class="workflow-eyebrow">{% translate "Organize documents" %}</div>
+        <h1>{% translate "Organize your documents" %}</h1>
+        <p class="workflow-lede">
+            {% translate "Tell the court what each PDF is and if it should be public or confidential. You can also rename and reorder additional documents." %}
+        </p>
+        <div class="alert alert-danger" id="organize-error" role="alert" hidden></div>
+        <form id="organize-documents-form">
+            {% csrf_token %}
+            <fieldset class="main-document-choice">
+                <legend>{% translate "Which PDF is the main document?" %}</legend>
+                {% if documents|length == 1 %}
+                    <p>{% translate "This is the only document in this filing, so it is the main document." %}</p>
+                    {% for document in documents %}<input type="hidden" name="main_document" value="{{ document.id }}" />{% endfor %}
+                {% else %}
+                    <p>{% translate "Choose the document that starts this filing, like a petition. Upload order does not matter." %}</p>
+                    <div class="compact-choice-list">
+                        {% for document in documents %}
+                            <label>
+                                <input class="form-check-input"
+                                       type="radio"
+                                       name="main_document"
+                                       value="{{ document.id }}"
+                                       {% if document.role == "lead" %}checked{% endif %}
+                                       required />
+                                <span><strong>{{ document.name|default:document.original_filename }}</strong><small>
+                                    {% if document.role == "lead" %}
+                                        {% translate "Current main document" %}
+                                    {% else %}
+                                        {% translate "Additional document" %}
+                                    {% endif %}
+                                </small></span>
+                            </label>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </fieldset>
+            <div class="organize-list" id="organize-list">
+                {% for document in documents %}
+                    <article class="organize-card"
+                             data-document-id="{{ document.id }}"
+                             data-role="{{ document.role }}"
+                             data-filing-type="{{ document.filing_type_code }}"
+                             data-document-type="{{ document.document_type_code }}"
+                             data-filing-component="{{ document.filing_component_code }}"
+                             data-optional-services="{{ document.requested_optional_services|join:',' }}">
+                        <header class="organize-card__header">
+                            <span class="organize-card__icon"><i class="fa-solid fa-file-pdf" aria-hidden="true"></i></span>
+                            <div>
+                                <span class="organize-card__position">
+                                    {% if document.role == "lead" %}
+                                        {% translate "Lead document" %}
+                                    {% else %}
+                                        {% blocktranslate with number=forloop.counter0 %}Additional document {{ number }}{% endblocktranslate %}
+                                    {% endif %}
+                                </span>
+                                <strong>{{ document.name|default:document.original_filename }}</strong>
+                            </div>
+                            {% if document.role == "supporting" %}
+                                <div class="reorder-buttons"
+                                     aria-label="{% translate "Reorder document" %}">
+                                    <button class="btn btn-sm btn-light move-up"
+                                            type="button"
+                                            aria-label="{% translate "Move up" %}">
+                                        <i class="fa-solid fa-arrow-up" aria-hidden="true"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-light move-down"
+                                            type="button"
+                                            aria-label="{% translate "Move down" %}">
+                                        <i class="fa-solid fa-arrow-down" aria-hidden="true"></i>
+                                    </button>
+                                </div>
+                            {% else %}
+                                <span class="status-pill status-pill--lead">{% translate "Main document" %}</span>
+                            {% endif %}
+                        </header>
+                        <div class="organize-card__fields">
+                            <label class="form-field">
+                                <span>{% translate "Document name" %}</span>
+                                <input class="form-control document-name"
+                                       value="{{ document.name|default:document.original_filename }}"
+                                       maxlength="255"
+                                       required />
+                            </label>
+                            <label class="form-field">
+                                <span>{% translate "Filing type" %}</span>
+                                <select class="form-select filing-type" required>
+                                    <option value="">{% translate "Loading filing types…" %}</option>
+                                </select>
+                            </label>
+                            <fieldset class="form-field compact-choice-field">
+                                <legend>{% translate "Should this document be confidential?" %}</legend>
+                                <div class="compact-choice-list document-type-options">
+                                    <small>{% translate "Select a filing type first" %}</small>
+                                </div>
+                            </fieldset>
+                            <fieldset class="form-field compact-choice-field">
+                                <legend>{% translate "Document role" %}</legend>
+                                <div class="compact-choice-list filing-component-options">
+                                    <small>{% translate "Select a filing type first" %}</small>
+                                </div>
+                                <small>{% translate "The court uses this to place the PDF in the filing." %}</small>
+                            </fieldset>
+                        </div>
+                        <details class="certified-copy-details"
+                                 {% if document.courtesy_copy_email or document.requested_optional_services %}open{% endif %}>
+                            <summary>{% translate "Certified copy and courtesy email" %}</summary>
+                            <div class="optional-services-list">
+                                <small>{% translate "Select a filing type first" %}</small>
+                            </div>
+                            <label class="form-check mt-3">
+                                <input class="form-check-input courtesy-copy-toggle"
+                                       type="checkbox"
+                                       {% if document.courtesy_copy_email %}checked{% endif %} />
+                                <span class="form-check-label">{% translate "Email me a copy when this document is filed" %}</span>
+                            </label>
+                            <label class="form-field courtesy-email-wrap mt-2"
+                                   {% if not document.courtesy_copy_email %}hidden{% endif %}>
+                                <span>{% translate "Email address" %}</span>
+                                <input class="form-control courtesy-email"
+                                       type="email"
+                                       value="{{ document.courtesy_copy_email }}" />
+                            </label>
+                        </details>
+                    </article>
+                {% endfor %}
+            </div>
+            <div class="workflow-actions">
+                {% if return_to == "review" %}
+                    <a class="btn btn-outline-secondary"
+                       href="{% url 'case_review' jurisdiction %}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {% translate "Back to review" %}</a>
+                {% else %}
+                    <a class="btn btn-outline-secondary"
+                       href="{% url 'document_checklist' jurisdiction %}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {% translate "Back" %}</a>
+                {% endif %}
+                <button class="btn btn-primary" id="save-document-details" type="submit">
+                    {% if return_to == "review" %}
+                        {% translate "Save and return to review" %}
+                    {% else %}
+                        {% translate "Save and continue" %}
+                    {% endif %}
+                    <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                </button>
+            </div>
+        </form>
+    </section>
+    {{ organize_context|json_script:"organize-context" }}
+{% endblock workflow_content %}
+{% block extra_js %}
+    <script src="{% static 'js/organize-documents.js' %}"></script>
+{% endblock extra_js %}

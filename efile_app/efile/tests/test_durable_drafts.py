@@ -134,6 +134,17 @@ def test_case_data_round_trips_through_the_model(django_user_model):
 
 
 @pytest.mark.django_db
+def test_amount_in_controversy_is_read_back_from_the_draft(django_user_model):
+    """case_questions saves this directly on the model (it's not config-driven,
+    so it doesn't go through write_case_data), but the frontend still reads it
+    out of the same case_data blob everything else does."""
+    user = django_user_model.objects.create_user(username="amount-owner", tyler_jurisdiction="illinois")
+    draft = FilingDraft.objects.create(user=user, jurisdiction="illinois", amount_in_controversy="12500.00")
+
+    assert read_case_data(draft)["amount_in_controversy"] == "12500.00"
+
+
+@pytest.mark.django_db
 def test_supplemental_case_fields_round_trip(django_user_model):
     """Config-driven questionnaire answers survive a durable-draft round trip."""
     user = django_user_model.objects.create_user(username="supplemental-owner", tyler_jurisdiction="illinois")
@@ -297,11 +308,12 @@ def test_create_draft_view_creates_durable_draft(client, django_user_model):
     assert response.status_code == 200
     payload = response.json()
     assert payload["success"] is True
-    assert payload["redirect_url"] == reverse("upload_first", kwargs={"jurisdiction": "illinois"})
+    assert payload["redirect_url"] == reverse("filing_path", kwargs={"jurisdiction": "illinois"})
 
     draft = FilingDraft.objects.get(user=user)
     assert draft.jurisdiction == "illinois"
-    assert draft.current_step == WorkflowStepKey.UPLOAD_FIRST
+    assert draft.current_step == WorkflowStepKey.FILING_PATH
+    assert draft.workflow_version == 2
     assert payload["data"]["filing_draft"]["id"] == draft.pk
 
 
@@ -342,11 +354,11 @@ def test_options_page_points_resume_to_draft_workflow_step(client, django_user_m
     response = client.get(reverse("efile_options", kwargs={"jurisdiction": "illinois"}))
 
     assert response.status_code == 200
-    assert reverse("upload", kwargs={"jurisdiction": "illinois"}).encode() in response.content
+    assert reverse("organize_documents", kwargs={"jurisdiction": "illinois"}).encode() in response.content
 
 
 @pytest.mark.django_db
-def test_documents_page_returns_to_lead_upload_when_lead_is_missing(client, django_user_model):
+def test_legacy_documents_url_redirects_into_reorganized_document_flow(client, django_user_model):
     user = django_user_model.objects.create_user(username="missing-lead-user", tyler_jurisdiction="illinois")
     draft = FilingDraft.objects.create(user=user, jurisdiction="illinois")
     write_case_data(draft, {"court": "cook:cd", "case_type": "Name Change"})
@@ -359,7 +371,7 @@ def test_documents_page_returns_to_lead_upload_when_lead_is_missing(client, djan
     response = client.get(reverse("upload", kwargs={"jurisdiction": "illinois"}))
 
     assert response.status_code == 302
-    assert response.url == reverse("upload_first", kwargs={"jurisdiction": "illinois"})
+    assert response.url == reverse("organize_documents", kwargs={"jurisdiction": "illinois"})
 
 
 @pytest.mark.django_db

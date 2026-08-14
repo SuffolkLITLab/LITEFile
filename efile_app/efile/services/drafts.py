@@ -13,7 +13,7 @@ from django.db import transaction
 from django.db.models import QuerySet
 
 from efile.models import FilingDocument, FilingDraft, FilingParty
-from efile.workflow import WorkflowStepKey
+from efile.workflow import WorkflowStepKey, legacy_existing_case_value, normalize_existing_case
 
 ACTIVE_DRAFT_STATUSES = (FilingDraft.Status.DRAFT, FilingDraft.Status.ERROR)
 # A draft mid-submission is still the user's current draft (so the submit flow can
@@ -54,6 +54,7 @@ def create_draft(
     user,
     jurisdiction: str,
     current_step: WorkflowStepKey | str = WorkflowStepKey.OPTIONS,
+    workflow_version: int = 2,
 ) -> FilingDraft:
     """Create a durable draft owned by an authenticated user."""
 
@@ -66,6 +67,7 @@ def create_draft(
         user=user,
         jurisdiction=jurisdiction,
         current_step=str(current_step),
+        workflow_version=workflow_version,
     )
 
 
@@ -107,6 +109,7 @@ _DRAFT_FIELD_SOURCES: dict[str, tuple[str, ...]] = {
     "existing_case": ("existing_case",),
     "previous_case_id": ("case_tracking_id", "previous_case_id"),
     "docket_number": ("case_docket_id", "case_number", "docket_number"),
+    "case_title": ("case_title", "case_title_text"),
     "selected_payment_account_id": ("selected_payment_account", "payment_account_id"),
     "selected_payment_account_name": ("selected_payment_account_name",),
     "name_change_reason": ("reason_for_name_change", "reason_for_change"),
@@ -198,6 +201,8 @@ def write_case_data(
         if value is _MISSING:
             continue
         value = _as_str(value)
+        if field == "existing_case":
+            value = normalize_existing_case(value)
         if getattr(draft, field) != value:
             setattr(draft, field, value)
             update_fields.append(field)
@@ -246,7 +251,9 @@ def read_case_data(draft: FilingDraft | None) -> dict[str, Any]:
     data: dict[str, Any] = {}
     _put(data, "jurisdiction", draft.jurisdiction)
     _put(data, "jurisdiction_id", draft.jurisdiction)
-    _put(data, "existing_case", draft.existing_case)
+    # Old screens still branch on yes/no. The durable value is normalized now;
+    # remove this translation when the last legacy screen is retired.
+    _put(data, "existing_case", legacy_existing_case_value(draft.existing_case))
     _put(data, "court", draft.court_code)
     _put(data, "court_name", draft.court_name)
     _put(data, "case_category", draft.case_category_code)
@@ -262,13 +269,25 @@ def read_case_data(draft: FilingDraft | None) -> dict[str, Any]:
     _put(data, "document_type_name", draft.document_type_name)
     _put(data, "previous_case_id", draft.previous_case_id)
     _put(data, "docket_number", draft.docket_number)
+    _put(data, "case_title", draft.case_title)
     _put(data, "selected_payment_account", draft.selected_payment_account_id)
     _put(data, "selected_payment_account_name", draft.selected_payment_account_name)
     _put(data, "optional_services", list(draft.optional_services or []))
+    _put(data, "amount_in_controversy", draft.amount_in_controversy)
     _put(data, "reason_for_name_change", draft.name_change_reason)
     _put(data, "reason_for_change", draft.name_change_reason)
 
     for party in FilingParty.objects.filter(draft=draft):
+        if party.role == "filer":
+            _put(data, "petitioner_first_name", party.first_name)
+            _put(data, "petitioner_last_name", party.last_name)
+            _put(data, "petitioner_address", party.address_line_1)
+            _put(data, "petitioner_email", party.email)
+            _put(data, "petitioner_phone", party.phone)
+            if party.party_type:
+                for key in _PETITIONER_PARTY_TYPE_KEYS:
+                    _put(data, key, party.party_type)
+            continue
         spec = _PARTY_SPECS.get(party.role)
         if spec is None:
             continue
@@ -277,6 +296,30 @@ def read_case_data(draft: FilingDraft | None) -> dict[str, Any]:
         if party.role == "petitioner" and party.party_type:
             for key in _PETITIONER_PARTY_TYPE_KEYS:
                 _put(data, key, party.party_type)
+
+    filing_parties = [
+        {
+            "id": party.pk,
+            "role": party.role,
+            "party_type": party.party_type,
+            "party_type_name": party.party_type_name,
+            "first_name": party.first_name,
+            "middle_name": party.middle_name,
+            "last_name": party.last_name,
+            "suffix": party.suffix,
+            "organization_name": party.organization_name,
+            "email": party.email,
+            "phone": party.phone,
+            "address_line_1": party.address_line_1,
+            "address_line_2": party.address_line_2,
+            "city": party.city,
+            "state": party.state,
+            "zip_code": party.zip_code,
+            "country": party.country,
+        }
+        for party in FilingParty.objects.filter(draft=draft)
+    ]
+    _put(data, "filing_parties", filing_parties)
 
     # Supplemental answers are emitted as stored (a False/0 answer is meaningful).
     for key, value in (draft.supplemental_fields or {}).items():
@@ -475,6 +518,7 @@ def draft_snapshot(draft: FilingDraft | None) -> dict[str, Any] | None:
         "jurisdiction": draft.jurisdiction,
         "status": draft.status,
         "current_step": draft.current_step,
+        "workflow_version": draft.workflow_version,
         "existing_case": draft.existing_case,
         "court_code": draft.court_code,
         "court_name": draft.court_name,
@@ -490,10 +534,12 @@ def draft_snapshot(draft: FilingDraft | None) -> dict[str, Any] | None:
         "document_type_name": draft.document_type_name,
         "previous_case_id": draft.previous_case_id,
         "docket_number": draft.docket_number,
+        "case_title": draft.case_title,
         "selected_payment_account_id": draft.selected_payment_account_id,
         "selected_payment_account_name": draft.selected_payment_account_name,
         "optional_services": draft.optional_services,
         "extracted_guesses": draft.extracted_guesses,
+        "document_checklist_acknowledged": draft.document_checklist_acknowledged,
         "supplemental_fields": draft.supplemental_fields,
         "document_count": FilingDocument.objects.filter(draft=draft).count(),
         "party_count": FilingParty.objects.filter(draft=draft).count(),

@@ -83,11 +83,13 @@ def create_current_draft(
     jurisdiction: str,
     *,
     current_step: WorkflowStepKey | str = WorkflowStepKey.OPTIONS,
+    workflow_version: int = 2,
 ) -> FilingDraft:
     draft = create_draft(
         user=_authenticated_user(request),
         jurisdiction=jurisdiction,
         current_step=current_step,
+        workflow_version=workflow_version,
     )
     attach_current_draft(request, draft)
     return draft
@@ -99,6 +101,7 @@ def ensure_current_draft(
     jurisdiction: str,
     *,
     current_step: WorkflowStepKey | str | None = None,
+    workflow_version: int | None = None,
 ) -> FilingDraft:
     draft = get_current_draft(request, jurisdiction=jurisdiction)
     if draft is None:
@@ -106,7 +109,11 @@ def ensure_current_draft(
             request,
             jurisdiction,
             current_step=current_step or WorkflowStepKey.OPTIONS,
+            workflow_version=workflow_version or 2,
         )
     if current_step is not None:
         set_current_step(draft, current_step)
+    if workflow_version is not None and draft.workflow_version != workflow_version:
+        draft.workflow_version = workflow_version
+        draft.save(update_fields=["workflow_version", "updated_at"])
     return draft

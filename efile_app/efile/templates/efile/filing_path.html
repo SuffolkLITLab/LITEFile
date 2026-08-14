@@ -1,0 +1,52 @@
+{% extends "efile/workflow_base.html" %}
+{% load i18n %}
+{% block title %}
+    {% translate "Choose your filing path" %}
+{% endblock title %}
+{% block workflow_content %}
+    <section class="workflow-card workflow-card--narrow">
+        <div class="workflow-eyebrow">{% translate "Filing" %}</div>
+        <h1>{% translate "What are you trying to do?" %}</h1>
+        <p class="workflow-lede">
+            {% translate "Choose the option that best describes your filing. You can change this after we review your documents." %}
+        </p>
+        <form method="post">
+            {% csrf_token %}
+            <fieldset class="choice-stack">
+                <legend class="visually-hidden">{% translate "Filing path" %}</legend>
+                <label class="choice-card">
+                    <input type="radio"
+                           name="existing_case"
+                           value="new"
+                           {% if selected_path == "new" %}checked{% endif %}
+                           required />
+                    <span class="choice-card__icon"><i class="fa-regular fa-file-lines" aria-hidden="true"></i></span>
+                    <span><strong>{% translate "Start a new court case" %}</strong><small>{% translate "The court has not assigned a case number yet." %}</small></span>
+                </label>
+                <label class="choice-card">
+                    <input type="radio"
+                           name="existing_case"
+                           value="existing"
+                           {% if selected_path == "existing" %}checked{% endif %} />
+                    <span class="choice-card__icon"><i class="fa-solid fa-folder-open" aria-hidden="true"></i></span>
+                    <span><strong>{% translate "File in an existing case" %}</strong><small>{% translate "You have a case number or the case is already open." %}</small></span>
+                </label>
+                <label class="choice-card">
+                    <input type="radio"
+                           name="existing_case"
+                           value="unsure"
+                           {% if selected_path == "unsure" %}checked{% endif %} />
+                    <span class="choice-card__icon"><i class="fa-regular fa-circle-question" aria-hidden="true"></i></span>
+                    <span><strong>{% translate "I am not sure" %}</strong><small>{% translate "Upload your documents and we will help you decide." %}</small></span>
+                </label>
+            </fieldset>
+            <div class="workflow-actions">
+                <a class="btn btn-outline-secondary"
+                   href="{% url 'efile_options' jurisdiction %}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {% translate "Back" %}</a>
+                <button class="btn btn-primary" type="submit">
+                    {% translate "Continue" %} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                </button>
+            </div>
+        </form>
+    </section>
+{% endblock workflow_content %}

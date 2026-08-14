@@ -6,27 +6,27 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+_FILING_SESSION_KEYS = {
+    "case_data",
+    "existing_case",
+    "filing_draft_id",
+    "jurisdiction",
+    "last_submitted_filing_draft_id",
+    "session_id",
+    "upload_data",
+}
+
 
 def flush_cache_stay_logged_in(session):
-    # Store auth info before clearing everything
-    to_save = {
-        k: session.get(k, None)
-        for k in ["auth_tokens", "user_email", "_auth_user_id", "_auth_user_backend", "_auth_user_hash"]
-    }
+    """Discard filing state without rotating the authenticated session.
 
-    logger.debug("Before cache clear - session keys: %s", list(session.keys()))
-
-    # Clear ALL session data
-    session.flush()
-
-    for key, value in to_save.items():
-        if value:
-            session[key] = value
-
-    # Force session to save changes
+    ``session.flush()`` deletes the session and creates a new key. On the options
+    page that can race with its in-flight draft lookup, leaving the newly created
+    draft attached to a session that Django no longer recognizes as logged in.
+    Filing state has a small, explicit namespace, so remove only those keys.
+    """
+    removed = [key for key in _FILING_SESSION_KEYS if key in session]
+    for key in removed:
+        del session[key]
     session.modified = True
-
-    logger.debug(
-        "FULL cache cleared from expert form via options page - session keys after clear: %s",
-        list(session.keys()),
-    )
+    logger.debug("Cleared filing session keys: %s", sorted(removed))

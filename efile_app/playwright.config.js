@@ -38,7 +38,10 @@ module.exports = defineConfig({
     // Shared settings for all the projects below
     use: {
         // Base URL to use in actions like `await page.goto('/')`
-        baseURL: 'http://localhost:8000',
+        // Keep relative page.goto() calls on the same deployment used by the
+        // login helpers. This matters when a developer isolates an E2E run on
+        // a non-default port or points the suite at a shared test deployment.
+        baseURL: process.env.E2E_TEST_BASE_URL || 'http://localhost:8000',
 
         // Collect trace when retrying the failed test
         trace: 'on-first-retry',

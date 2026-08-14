@@ -145,7 +145,7 @@ def lookup_case(request):
                                     api_url = f"{settings.EFSP_URL}/jurisdictions/{state}/codes/courts/{court}/case_types/{case_info['caseTypeCode']}"
                                     case_resp = requests.get(api_url, headers=headers, timeout=30)
                                     if case_resp.ok:
-                                        data = category_resp.json()
+                                        data = case_resp.json()
                                         case_info["caseTypeName"] = data["name"]
                                     break
             else:

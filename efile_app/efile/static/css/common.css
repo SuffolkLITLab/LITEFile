@@ -1,10 +1,51 @@
+/* Single source of truth for color across every screen.
+   Anything user-facing should reference a token from this block rather than
+   its own hex value, so the app reads as one product instead of a set of
+   pages that each invented a slightly different blue. */
 :root {
+    /* Brand blues. --better-blue is the one action color: primary buttons,
+       links, and accents all use it. */
     --suffolk-blue: #1e3a5f;
     --better-blue: #2c5aa0;
-    --primary-btn-color: #007bff;
-    --success: #28a745;
-    --failure: #dc3545;
+    --brand-blue-hover: #24497f;
+    --brand-blue-active: #1e3a5f;
+
+    /* Older pages theme their buttons through this name. Pointing it at the
+       brand blue keeps them in step with the rest of the app. */
+    --primary-btn-color: var(--better-blue);
+
+    /* Text tiers. Every value below clears WCAG AA (4.5:1) on white and on
+       both tinted surfaces defined here. */
+    --text-heading: #1e3a5f;
+    --text-body: #48576c;
+    --text-muted: #616c82;
+
+    /* Surfaces */
+    --surface-subtle: #f6f9fd;
+    --surface-accent: #eef5ff;
     --light-blue-background: #f8f9fa;
+
+    /* Borders. --border-strong is for edges that outline a control; the
+       lighter two are decorative dividers. */
+    --border-subtle: #e3e8ef;
+    --border-default: #dce3ec;
+    --border-accent: #cbdcf1;
+    --border-strong: #7d8ca3;
+
+    /* Status */
+    --success: #28a745;
+    --success-text: #16703a;
+    --success-surface: #e5f6eb;
+    --success-border: #cde8d5;
+    --failure: #dc3545;
+    --danger-icon: #b23b3b;
+    --warning-surface: #fffaf0;
+    --warning-border: #ead8ad;
+
+    /* Links follow the brand blue rather than Bootstrap's default indigo. */
+    --bs-link-color: var(--better-blue);
+    --bs-link-hover-color: var(--brand-blue-hover);
+    --bs-link-color-rgb: 44, 90, 160;
 }
 
 body {
@@ -26,4 +67,27 @@ h1 {
 h2 {
     color: var(--better-blue);
     font-weight: 500;
+}
+
+/* One primary action color on every screen. Bootstrap themes buttons through
+   its own custom properties, so setting those keeps the hover, active, and
+   disabled states in step instead of repainting only the resting state. */
+.btn-primary {
+    --bs-btn-bg: var(--better-blue);
+    --bs-btn-border-color: var(--better-blue);
+    --bs-btn-hover-bg: var(--brand-blue-hover);
+    --bs-btn-hover-border-color: var(--brand-blue-hover);
+    --bs-btn-active-bg: var(--brand-blue-active);
+    --bs-btn-active-border-color: var(--brand-blue-active);
+    --bs-btn-disabled-bg: var(--better-blue);
+    --bs-btn-disabled-border-color: var(--better-blue);
+}
+
+.btn-outline-primary {
+    --bs-btn-color: var(--better-blue);
+    --bs-btn-border-color: var(--better-blue);
+    --bs-btn-hover-bg: var(--better-blue);
+    --bs-btn-hover-border-color: var(--better-blue);
+    --bs-btn-active-bg: var(--brand-blue-active);
+    --bs-btn-active-border-color: var(--brand-blue-active);
 }

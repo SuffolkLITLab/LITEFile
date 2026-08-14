@@ -6,6 +6,7 @@ from django.urls import path
 
 from .auth_views import (
     external_profile,
+    payment_account_types,
     payment_accounts,
     tyler_token,
     user_login,
@@ -20,6 +21,7 @@ from .dropdown_views import (
     get_courts,
     get_document_types,
     get_filing_types,
+    get_name_suffixes,
     get_optional_services,
     get_party_types,
 )
@@ -47,6 +49,7 @@ urlpatterns = [
     path("dropdowns/document-types/", get_document_types, name="document_types"),
     path("dropdowns/optional-services/", get_optional_services, name="optional_services"),
     path("dropdowns/party-types/", get_party_types, name="party_types"),
+    path("dropdowns/name-suffixes/", get_name_suffixes, name="name_suffixes"),
     # Form configuration endpoints
     path("form-config/", get_form_config, name="form_config"),
     path("case-type-config/", get_case_type_config, name="case_type_config"),
@@ -60,6 +63,7 @@ urlpatterns = [
     path("auth/tyler-token/", tyler_token, name="tyler_token"),
     # Payment API endpoints
     path("payment-accounts/", payment_accounts, name="payment_accounts"),
+    path("payment-account-types/", payment_account_types, name="payment_account_types"),
     path("payment-fees/", payment_fees, name="payment_fees"),
     # Filing API endpoints
     path("filings/", get_filings, name="get_filings"),

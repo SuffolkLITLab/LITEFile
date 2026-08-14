@@ -1,6 +1,9 @@
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import httpx
 from django.conf import settings
+from openai import NotFoundError
 
 from efile.utils.llms import (
     LlmError,
@@ -55,3 +58,38 @@ def test_llms_exports():
     assert callable(extract_fields_from_file)
     assert callable(list_available_models)
     assert issubclass(LlmError, Exception)
+
+
+@patch("efile.utils.llms.extract_fields_from_text")
+@patch("efile.utils.llms.MarkItDown")
+def test_pdf_extraction_falls_back_when_gateway_cannot_read_uploaded_file(
+    mock_markitdown_cls, mock_extract_text, tmp_path: Path
+):
+    pdf_path = tmp_path / "filing.pdf"
+    pdf_path.write_bytes(b"%PDF-1.4 test")
+    openai_client = MagicMock()
+    openai_client.files.create.return_value.id = "file-test"
+    openai_client.chat.completions.create.side_effect = NotFoundError(
+        "Files [file-test] were not found",
+        response=httpx.Response(404, request=httpx.Request("POST", "https://llm.example/v1/chat/completions")),
+        body={"error": {"message": "Files [file-test] were not found"}},
+    )
+    mock_markitdown_cls.return_value.convert.return_value.text_content = "Court: Lake County"
+    mock_extract_text.return_value = {"court name": "Lake County"}
+
+    result = extract_fields_from_file(
+        pdf_path,
+        {"court name": "Court name"},
+        openai_client=openai_client,
+        model="gpt-test",
+    )
+
+    assert result == {"court name": "Lake County"}
+    mock_extract_text.assert_called_once_with(
+        "Court: Lake County",
+        {"court name": "Court name"},
+        openai_client=openai_client,
+        model="gpt-test",
+        reasoning_effort="low",
+    )
+    openai_client.files.delete.assert_called_once_with("file-test")
