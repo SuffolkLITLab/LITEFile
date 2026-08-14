@@ -99,11 +99,11 @@
             function goToExpertForm(new_or_existing) {
                 if (new_or_existing === "new") {
                     makeNewDraft().then((result) => {
-                        window.location.href = result.redirect_url || `/jurisdiction/{{jurisdiction}}/upload_first/`;
+                        window.location.href = result.redirect_url || `/jurisdiction/{{jurisdiction}}/filing-path/`;
                     });
                 } else {
                     const resumeUrl = JSON.parse(document.getElementById("resume-url").textContent);
-                    window.location.href = resumeUrl || `/jurisdiction/{{jurisdiction}}/upload_first/`;
+                    window.location.href = resumeUrl || `/jurisdiction/{{jurisdiction}}/filing-path/`;
                 }
             }
 
@@ -133,7 +133,7 @@
                     console.warn('Error creating draft; falling back to session start:', error);
                     await makeNewCaseData();
                     return {
-                        redirect_url: `/jurisdiction/{{jurisdiction}}/upload_first/?clear_session=true&from_options=true`
+                        redirect_url: `/jurisdiction/{{jurisdiction}}/filing-path/`
                     };
                 }
             }

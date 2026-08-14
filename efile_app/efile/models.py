@@ -4,7 +4,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
 
-from efile.workflow import WorkflowStepKey, get_workflow_step_choices
+from efile.workflow import ExistingCase, WorkflowStepKey, get_workflow_step_choices
 
 
 class UserProfile(AbstractUser):
@@ -54,8 +54,13 @@ class FilingDraft(models.Model):
         choices=get_workflow_step_choices(),
         default=WorkflowStepKey.OPTIONS,
     )
+    workflow_version = models.PositiveSmallIntegerField(default=2)
 
-    existing_case = models.CharField(max_length=20, blank=True)
+    existing_case = models.CharField(
+        max_length=20,
+        choices=[(value.value, value.name.title()) for value in ExistingCase],
+        blank=True,
+    )
     court_code = models.CharField(max_length=100, blank=True)
     court_name = models.CharField(max_length=255, blank=True)
     case_category_code = models.CharField(max_length=100, blank=True)
@@ -71,14 +76,28 @@ class FilingDraft(models.Model):
 
     previous_case_id = models.CharField(max_length=255, blank=True)
     docket_number = models.CharField(max_length=255, blank=True)
+    case_title = models.CharField(max_length=500, blank=True)
 
     selected_payment_account_id = models.CharField(max_length=255, blank=True)
     selected_payment_account_name = models.CharField(max_length=255, blank=True)
+    # Tyler's paymentAccountTypeCode for the selected account (e.g. "WV" for a fee
+    # waiver). Drives whether Review shows a fee total or waiver messaging.
+    selected_payment_account_type = models.CharField(max_length=50, blank=True)
+    # The fee quote shown on the Payment step, carried forward so Review can
+    # display the same numbers instead of telling the filer to go look again.
+    quoted_fee_total = models.CharField(max_length=50, blank=True)
+    quoted_fee_breakdown = models.JSONField(default=list, blank=True)
 
     name_change_reason = models.TextField(blank=True)
 
     optional_services = models.JSONField(default=list, blank=True)
     extracted_guesses = models.JSONField(default=dict, blank=True)
+    document_checklist_acknowledged = models.BooleanField(default=False)
+    # The dollar amount at stake, required by the EFSP when any document's
+    # filing type is flagged "amountincontroversy: Required". Stored as text
+    # (like the fee fields) since it's echoed back to the API rather than
+    # computed on.
+    amount_in_controversy = models.CharField(max_length=50, blank=True)
     # Area-of-law questionnaire answers (e.g. divorce children questions). These are
     # driven by the per-state/case-type config, not a fixed schema, so they live in a
     # structured JSON field rather than a column each. Only config-defined keys are
@@ -138,8 +157,17 @@ class FilingDocument(models.Model):
     document_type_name = models.CharField(max_length=255, blank=True)
     filing_component_code = models.CharField(max_length=100, blank=True)
     filing_component_name = models.CharField(max_length=255, blank=True)
+    # The court's own "amountincontroversy" flag for this document's filing
+    # type (from the filing-types codes API) is "Required" for some case
+    # types. Recorded per document, since each can carry a different filing
+    # type; case_questions asks for the dollar amount if any document needs it.
+    filing_requires_amount_in_controversy = models.BooleanField(default=False)
 
     courtesy_copy_email = models.EmailField(blank=True)
+    # Codes selected from the court's optional-services list for this document
+    # (e.g. a certified copy), scoped per document since each can have its own
+    # filing type. See efile.api.dropdown_views.get_optional_services.
+    requested_optional_services = models.JSONField(default=list, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -164,6 +192,7 @@ class FilingParty(models.Model):
     sort_order = models.PositiveIntegerField(default=0)
 
     party_type = models.CharField(max_length=100, blank=True)
+    party_type_name = models.CharField(max_length=255, blank=True)
     external_party_id = models.CharField(max_length=255, blank=True)
 
     first_name = models.CharField(max_length=100, blank=True)

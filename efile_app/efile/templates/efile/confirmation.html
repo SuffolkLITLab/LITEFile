@@ -1,45 +1,76 @@
+{% extends "efile/workflow_base.html" %}
 {% load static %}
 {% load i18n %}
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>{{ page_title }}</title>
-        <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
-              rel="stylesheet">
-        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-              rel="stylesheet">
-        <link rel="stylesheet" href="{% static 'css/common.css' %}" />
-        <link rel="stylesheet" href="{% static 'css/confirmation.css' %}">
-    </head>
-    <body>
-        <div class="container">
-            <div class="confirmation-container">
-                <div class="success-icon">
-                    <i class="fas fa-check-circle"></i>
+{% block title %}
+    {% translate "Filing confirmation" %}
+{% endblock title %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/confirmation.css' %}" />
+{% endblock extra_css %}
+{% block workflow_content %}
+    <section class="workflow-card workflow-card--narrow confirmation-workflow-card">
+        <div class="success-icon">
+            <i class="fas fa-check-circle" aria-hidden="true"></i>
+        </div>
+        <div class="workflow-eyebrow">{% translate "Submitted" %}</div>
+        <h1>{% translate "Your filing was sent to the court" %}</h1>
+        <p class="workflow-lede">
+            {% translate "We will email you when the court accepts, returns, or asks for changes to this filing." %}
+        </p>
+        {% if confirmation_number %}
+            <div class="confirmation-reference">
+                <span>{% translate "Confirmation number" %}</span>
+                <strong>{{ confirmation_number }}</strong>
+            </div>
+        {% endif %}
+        {% if draft %}
+            <dl class="confirmation-summary">
+                {% if draft.case_title %}
+                    <div>
+                        <dt>{% translate "Case" %}</dt>
+                        <dd>
+                            {{ draft.case_title }}
+                        </dd>
+                    </div>
+                {% endif %}
+                {% if draft.docket_number %}
+                    <div>
+                        <dt>{% translate "Case number" %}</dt>
+                        <dd>
+                            {{ draft.docket_number }}
+                        </dd>
+                    </div>
+                {% endif %}
+                <div>
+                    <dt>{% translate "Court" %}</dt>
+                    <dd>
+                        {{ draft.court_name|default:draft.court_code }}
+                    </dd>
                 </div>
-                <h1 class="h2 mb-3" style="color: #2c5aa0;">{% translate "Filing submitted successfully!" %}</h1>
-                <div class="success-message">{{ success_message }}</div>
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle me-2"></i>
-                    <strong>{% translate "What's Next?" %}</strong>
-                    <br>
-                    {% translate "You will receive email confirmation shortly. The court will review your filing and contact you if any additional information is needed." %}
+                <div>
+                    <dt>{% translate "Documents sent" %}</dt>
+                    <dd>
+                        {{ draft.documents.count }}
+                    </dd>
                 </div>
-                <div class="mt-4">
-                    <a href="{% url 'efile_options' jurisdiction %}"
-                       class="btn btn-primary custom-confirm me-2">
-                        <i class="fas fa-home me-2"></i>{% translate "Return to Dashboard" %}
-                    </a>
-                    <a href="{% url 'efile_logout' jurisdiction %}"
-                       class="btn btn-outline-secondary">
-                        <i class="fas fa-arrow-right me-2"></i>{% translate "Sign out" %}
-                    </a>
-                </div>
+            </dl>
+        {% endif %}
+        <div class="checklist-guidance confirmation-next">
+            <i class="fas fa-info-circle" aria-hidden="true"></i>
+            <div>
+                <strong>{% translate "What happens next" %}</strong>
+                <p>
+                    {% translate "The court will review the filing. Keep the confirmation email for your records and check your filing status for updates." %}
+                </p>
             </div>
         </div>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-        <script src="{% url 'javascript-catalog' %}"></script>
-    </body>
-</html>
+        <div class="confirmation-actions">
+            <a href="{% url 'filing_statuses' jurisdiction %}"
+               class="btn btn-primary">
+                <i class="fas fa-list-check me-2" aria-hidden="true"></i>{% translate "View filing status" %}
+            </a>
+            <a href="{% url 'efile_options' jurisdiction %}"
+               class="btn btn-outline-secondary">{% translate "Return to filing options" %}</a>
+        </div>
+    </section>
+{% endblock workflow_content %}

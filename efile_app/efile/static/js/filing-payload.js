@@ -32,13 +32,56 @@ function componentCode(value) {
 }
 
 const FilingPayload = {
+    userDataFromCaseData(caseData) {
+        const filer = (caseData.filing_parties || []).find((party) => party.role === "filer") || {};
+        const fullName = [filer.first_name, filer.middle_name, filer.last_name]
+            .filter(Boolean)
+            .join(" ") || [caseData.petitioner_first_name, caseData.petitioner_last_name].filter(Boolean).join(" ");
+        return {
+            fullName,
+            address: filer.address_line_1 || caseData.petitioner_address || "",
+            addressLine2: filer.address_line_2 || "",
+            city: filer.city || "",
+            state: filer.state || "",
+            zip: filer.zip_code || "",
+            email: filer.email || caseData.petitioner_email || "",
+            phone: filer.phone || caseData.petitioner_phone || ""
+        };
+    },
+
+    partyFromDraft(party) {
+        return {
+            party_type: party.party_type,
+            name: {
+                first: party.first_name || party.organization_name || "",
+                middle: party.middle_name || "",
+                last: party.last_name || "",
+                suffix: party.suffix || ""
+            },
+            address: {
+                address: party.address_line_1 || "",
+                unit: party.address_line_2 || "",
+                city: party.city || "",
+                state: party.state || "",
+                zip: party.zip_code || "",
+                country: party.country || "US"
+            },
+            email: party.email || "",
+            phone_number: party.phone || "",
+            is_new: !party.external_party_id
+        };
+    },
+
     buildEFilingData(userData, caseData, uploadData, paymentAccountID) {
         const nameParts = userData.fullName.split(" ");
         const firstName = nameParts[0] || "";
         const lastName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : "";
         const middleName = nameParts.length > 2 ? nameParts.slice(1, -1).join(" ") : "";
 
-        const partyType = caseData.determined_party_type || caseData.petitioner_party_type || caseData.party_type;
+        const durableParties = caseData.filing_parties || [];
+        const durableFiler = durableParties.find((party) => party.role === "filer");
+        const partyType = durableFiler?.party_type || caseData.determined_party_type ||
+            caseData.petitioner_party_type || caseData.party_type;
 
         if (!partyType) {
             throw new Error('Party type could not be determined. This is required for eFiling.');
@@ -102,9 +145,11 @@ const FilingPayload = {
             });
         }
 
-        let other_parties = [];
+        let other_parties = durableParties
+            .filter((party) => party.role !== "filer" && party.party_type)
+            .map((party) => this.partyFromDraft(party));
 
-        if (caseData.other_first_name && caseData.other_party_type) {
+        if (other_parties.length === 0 && caseData.other_first_name && caseData.other_party_type) {
             other_parties.push({
                 party_type: caseData.other_party_type,
                 name: {
@@ -137,6 +182,12 @@ const FilingPayload = {
             al_court_bundle: [],
             comments_to_clerk: "",
             tyler_payment_id: paymentAccountID,
+            // Only sent when a chosen filing type requires it (case_questions
+            // asks for it in that case); the EFSP rejects the filing outright
+            // if it's required and missing, so leave it out rather than send 0.
+            ...(caseData?.amount_in_controversy ? {
+                amount_in_controversy: caseData.amount_in_controversy
+            } : {}),
             lead_contact: {
                 name: {
                     first: firstName,
@@ -156,9 +207,16 @@ const FilingPayload = {
 
     addCourtBundles(efilingData, uploadData, caseData, users) {
         const courtName = caseData.court_name || caseData.court || "";
-        if (courtName.toLowerCase().includes("cook") || courtName.toLowerCase().includes("dupage")) {
+        // Cook and DuPage require a local attorney/SRL identifier. The code-list
+        // entry is the map key; 99500 is the value both courts publish for a
+        // self-represented filer. The two courts use different entry codes.
+        if (courtName.toLowerCase().includes("cook")) {
             efilingData.cross_references = {
-                254500: "254500"
+                254500: "99500"
+            };
+        } else if (courtName.toLowerCase().includes("dupage")) {
+            efilingData.cross_references = {
+                136524: "99500"
             };
         }
 
@@ -199,11 +257,7 @@ const FilingPayload = {
     },
 
     createDocumentBundle(doc, filingType, documentType, filingComponent, users, description, docDescription, cc_email) {
-        if (cc_email) {
-            courtesy_copies = [cc_email]
-        } else {
-            courtesy_copies = []
-        }
+        const courtesy_copies = cc_email ? [cc_email] : [];
         return {
             proxy_enabled: true,
             filing_type: filingType,
@@ -215,7 +269,7 @@ const FilingPayload = {
             filing_comment: "",
             courtesy_copies: courtesy_copies,
             preliminary_copies: [],
-            filing_parties: users.length === 1 ? ["users[0]"] : ["users[0]", "users[1]"],
+            filing_parties: users.map((_user, index) => `users[${index}]`),
             filing_action: "efile",
             tyler_merge_attachments: false,
             document_type: documentType,
@@ -241,20 +295,25 @@ const FilingPayload = {
 
     handleFeesResponse(result) {
         if (result?.success) {
-            let htmlStr = `
-            <strong>Total</strong>: $${result.api_response.feesCalculationAmount.value}
-            
-            <ul>
-            `;
-            for (let specificFee of result.api_response.allowanceCharge) {
-                if (specificFee.chargeIndicator.value) {
-                    htmlStr += `<li><em>${specificFee.allowanceChargeReason.value}</em>:  $${specificFee.amount.value}</li>`;
-                }
-            }
-            htmlStr += "</ul>";
+            const response = result.api_response || {};
+            const infoElem = document.getElementById("paymentInfo");
+            infoElem.replaceChildren();
+            const total = document.createElement("p");
+            const label = document.createElement("strong");
+            label.textContent = gettext("Total");
+            total.append(label, `: $${response.feesCalculationAmount?.value || "0.00"}`);
+            infoElem.appendChild(total);
 
-            let infoElem = document.getElementById("paymentInfo");
-            infoElem.innerHTML = htmlStr;
+            const fees = (response.allowanceCharge || []).filter((fee) => fee.chargeIndicator?.value);
+            if (fees.length) {
+                const list = document.createElement("ul");
+                fees.forEach((fee) => {
+                    const item = document.createElement("li");
+                    item.textContent = `${fee.allowanceChargeReason?.value || gettext("Court fee")}: $${fee.amount?.value || "0.00"}`;
+                    list.appendChild(item);
+                });
+                infoElem.appendChild(list);
+            }
             document.getElementById("paymentSection").removeAttribute("hidden");
         } else {
             Messages.showError(result?.error || "An error occurred when calculating fees.");

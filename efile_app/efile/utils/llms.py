@@ -502,21 +502,39 @@ def extract_fields_from_file(
         file_upload = openai_client.files.create(file=file_handle, purpose="user_data")
 
     try:
-        result = openai_client.chat.completions.create(
-            model=model,
-            messages=[
-                {"role": "system", "content": system_message},
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "file", "file": {"file_id": file_upload.id}},
-                        {"type": "text", "text": user_message},
-                    ],
-                },
-            ],
-            response_format={"type": "json_object"},
-            reasoning_effort=reasoning_effort,
-        )
+        try:
+            result = openai_client.chat.completions.create(
+                model=model,
+                messages=[
+                    {"role": "system", "content": system_message},
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "file", "file": {"file_id": file_upload.id}},
+                            {"type": "text", "text": user_message},
+                        ],
+                    },
+                ],
+                response_format={"type": "json_object"},
+                reasoning_effort=reasoning_effort,
+            )
+        except NotFoundError:
+            # Some OpenAI-compatible gateways accept Files API uploads but do
+            # not make those IDs available to Chat Completions. Text PDFs can
+            # still use the same extraction prompt without losing the feature.
+            log("The LLM gateway could not read its uploaded file; extracting PDF text instead.", "warning")
+            try:
+                text = MarkItDown().convert(file_path).text_content
+            except Exception as error:
+                log(f"Error converting PDF {file_path}: {error}", "error")
+                return {}
+            return extract_fields_from_text(
+                text,
+                field_list,
+                openai_client=openai_client,
+                model=model,
+                reasoning_effort=reasoning_effort,
+            )
     finally:
         try:
             openai_client.files.delete(file_upload.id)

@@ -1,0 +1,133 @@
+{% extends "efile/workflow_base.html" %}
+{% load static %}
+{% load i18n %}
+{% block title %}
+    {% translate "People in this filing" %}
+{% endblock title %}
+{% block workflow_content %}
+    <section class="workflow-card">
+        <div class="workflow-eyebrow">{% translate "People" %}</div>
+        <h1>{% translate "Who is involved in this case?" %}</h1>
+        <p class="workflow-lede">
+            {% translate "Start with your role. Then we will ask about any other people, one at a time." %}
+        </p>
+        <form method="post" class="your-role-card">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="continue" />
+            <input type="hidden" name="return_to" value="{{ return_to }}" />
+            <div>
+                <span class="party-avatar"><i class="fa-solid fa-user" aria-hidden="true"></i></span>
+                <div>
+                    <strong>{{ filer.first_name }} {{ filer.last_name }}</strong>
+                    <small>{% translate "You — the person filing" %}</small>
+                </div>
+            </div>
+            <fieldset class="form-field compact-choice-field">
+                <legend>{% translate "What is your role in this case?" %}</legend>
+                {% if guessed_party_type %}
+                    <div class="alert alert-info party-type-hint" id="party-type-hint">
+                        <i class="fa-regular fa-lightbulb" aria-hidden="true"></i>
+                        {% blocktranslate with name=guessed_party_type.name %}Based on this filing, you are likely the {{ name }}. We are not certain, so choose below to confirm.{% endblocktranslate %}
+                        <button type="button"
+                                class="btn btn-sm btn-outline-primary"
+                                id="apply-party-type-guess"
+                                data-value="{{ guessed_party_type.code }}">{% translate "Apply guess" %}</button>
+                    </div>
+                {% endif %}
+                <div class="compact-choice-list">
+                    {% for party_type in party_types %}
+                        <label>
+                            <input class="form-check-input"
+                                   type="radio"
+                                   name="filer_party_type"
+                                   value="{{ party_type.code }}"
+                                   {% if filer.party_type == party_type.code %}checked{% endif %}
+                                   required />
+                            <span>{{ party_type.name }}
+                                {% if party_type.required %}
+                                    — {% translate "required" %}
+                                {% endif %}
+                            </span>
+                        </label>
+                    {% endfor %}
+                </div>
+            </fieldset>
+            {% if not party_types %}
+                <p class="alert alert-warning">
+                    {% translate "We could not load the court party roles. Refresh this page before you continue." %}
+                </p>
+            {% endif %}
+            <button class="btn btn-primary"
+                    type="submit"
+                    {% if not party_types %}disabled{% endif %}>
+                {% translate "Save role and check required parties" %}
+            </button>
+        </form>
+        <div class="party-roster">
+            <div class="party-roster__heading">
+                <h2>{% translate "Party list" %}</h2>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="add" />
+                    <input type="hidden" name="return_to" value="{{ return_to }}" />
+                    <button class="btn btn-outline-primary btn-sm" type="submit">
+                        <i class="fa-solid fa-plus" aria-hidden="true"></i> {% translate "Add another person" %}
+                    </button>
+                </form>
+            </div>
+            {% for item in roster %}
+                <article class="party-row">
+                    <span class="party-avatar party-avatar--small"><i class="fa-solid fa-user" aria-hidden="true"></i></span>
+                    <span>
+                        <strong>
+                            {% if item.party.organization_name %}
+                                {{ item.party.organization_name }}
+                            {% else %}
+                                {{ item.party.first_name }} {{ item.party.last_name }}
+                            {% endif %}
+                        </strong>
+                        <small>{{ item.party.party_type_name|default:"Role not chosen" }}
+                            {% if item.party.role == "filer" %}
+                                · {% translate "You" %}
+                            {% endif %}
+                        </small>
+                    </span>
+                    <span class="status-pill {% if item.complete %}status-pill--ready{% endif %}">
+                        {% if item.complete %}
+                            {% translate "Complete" %}
+                        {% else %}
+                            {% translate "Needs details" %}
+                        {% endif %}
+                    </span>
+                    {% if item.party.role == "other" %}
+                        <a class="btn btn-sm btn-light"
+                           href="{% url 'party_details' jurisdiction %}?party={{ item.party.pk }}{% if return_to %}&return_to={{ return_to }}{% endif %}">{% translate "Edit" %}</a>
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="remove" />
+                            <input type="hidden" name="party_id" value="{{ item.party.pk }}" />
+                            <input type="hidden" name="return_to" value="{{ return_to }}" />
+                            <button class="btn btn-sm btn-link text-danger"
+                                    type="submit"
+                                    aria-label="{% translate "Remove party" %}">
+                                <i class="fa-solid fa-trash" aria-hidden="true"></i>
+                            </button>
+                        </form>
+                    {% endif %}
+                </article>
+            {% endfor %}
+        </div>
+        <div class="workflow-actions">
+            {% if return_to == "review" %}
+                <a class="btn btn-outline-secondary"
+                   href="{% url 'case_review' jurisdiction %}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {% translate "Back to review" %}</a>
+            {% else %}
+                <a class="btn btn-outline-secondary"
+                   href="{% url 'your_information' jurisdiction %}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {% translate "Back" %}</a>
+            {% endif %}
+        </div>
+    </section>
+{% endblock workflow_content %}
+{% block extra_js %}
+    <script src="{% static 'js/parties.js' %}"></script>
+{% endblock extra_js %}

@@ -30,14 +30,19 @@ def create_draft_view(request, jurisdiction):
         return JsonResponse({"success": False, "error": "JSON body must be an object"}, status=400)
 
     flush_cache_stay_logged_in(request.session)
-    draft = create_current_draft(request, jurisdiction, current_step=WorkflowStepKey.UPLOAD_FIRST)
+    draft = create_current_draft(
+        request,
+        jurisdiction,
+        current_step=WorkflowStepKey.FILING_PATH,
+        workflow_version=2,
+    )
     logger.info("Created durable draft id=%s jurisdiction=%s", draft.pk, jurisdiction)
 
     return JsonResponse(
         {
             "success": True,
             "data": {"filing_draft": draft_snapshot(draft)},
-            "redirect_url": get_step_url(WorkflowStepKey.UPLOAD_FIRST, jurisdiction),
+            "redirect_url": get_step_url(WorkflowStepKey.FILING_PATH, jurisdiction),
         }
     )
 

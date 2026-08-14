@@ -61,6 +61,6 @@ def efile_upload_first(request, jurisdiction):
         "name_sought_info": name_sought_info,
         "case_classification": case_classification,
     }
-    context.update(get_workflow_context(WorkflowStepKey.UPLOAD_FIRST, jurisdiction))
+    context.update(get_workflow_context(WorkflowStepKey.UPLOAD_FIRST, jurisdiction, filing_draft))
 
     return render(request, "efile/upload_first.html", context)

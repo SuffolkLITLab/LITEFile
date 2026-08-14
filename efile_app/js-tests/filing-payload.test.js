@@ -147,3 +147,126 @@ test("the same module object serves both pages, so payloads cannot drift", () =>
     assert.strictEqual(paymentHandler.addCourtBundles, reviewHandler.addCourtBundles);
     assert.strictEqual(paymentHandler.createDocumentBundle, reviewHandler.createDocumentBundle);
 });
+
+test("Cook and DuPage get their court-specific self-represented cross references", () => {
+    const handler = makeHandler();
+    const cook = {
+        al_court_bundle: []
+    };
+    const dupage = {
+        al_court_bundle: []
+    };
+
+    handler.addCourtBundles(cook, {}, {
+        ...CASE_DATA,
+        court_name: "Cook County"
+    }, []);
+    handler.addCourtBundles(dupage, {}, {
+        ...CASE_DATA,
+        court_name: "DuPage County"
+    }, []);
+
+    assert.deepStrictEqual(cook.cross_references, {
+        254500: "99500"
+    });
+    assert.deepStrictEqual(dupage.cross_references, {
+        136524: "99500"
+    });
+});
+
+test("saved filer information drives the filing contact instead of account profile data", () => {
+    const handler = makeHandler();
+    const caseData = {
+        filing_parties: [{
+            role: "filer",
+            first_name: "Jordan",
+            last_name: "Taylor",
+            address_line_1: "123 Main Street",
+            city: "Springfield",
+            state: "IL",
+            zip_code: "62701",
+            email: "jordan@example.com",
+            phone: "217-555-0100"
+        }]
+    };
+
+    assert.deepStrictEqual(handler.userDataFromCaseData(caseData), {
+        fullName: "Jordan Taylor",
+        address: "123 Main Street",
+        addressLine2: "",
+        city: "Springfield",
+        state: "IL",
+        zip: "62701",
+        email: "jordan@example.com",
+        phone: "217-555-0100"
+    });
+});
+
+test("amount_in_controversy is sent when the draft has one", () => {
+    const handler = makeHandler();
+    const caseData = {
+        case_category: "cat",
+        case_type: "type",
+        amount_in_controversy: "12500.00",
+        filing_parties: [{
+            role: "filer",
+            party_type: "PLA",
+            first_name: "Jordan",
+            last_name: "Taylor"
+        }]
+    };
+    const userData = handler.userDataFromCaseData(caseData);
+
+    const result = handler.buildEFilingData(userData, caseData, {}, "pay-1");
+
+    assert.strictEqual(result.amount_in_controversy, "12500.00");
+});
+
+test("amount_in_controversy is omitted (not sent as empty/zero) when the draft has none", () => {
+    const handler = makeHandler();
+    const caseData = {
+        case_category: "cat",
+        case_type: "type",
+        filing_parties: [{
+            role: "filer",
+            party_type: "PLA",
+            first_name: "Jordan",
+            last_name: "Taylor"
+        }]
+    };
+    const userData = handler.userDataFromCaseData(caseData);
+
+    const result = handler.buildEFilingData(userData, caseData, {}, "pay-1");
+
+    assert.strictEqual("amount_in_controversy" in result, false);
+});
+
+test("durable non-filer parties are included without collapsing to one legacy party", () => {
+    const handler = makeHandler();
+    const caseData = {
+        case_category: "cat",
+        case_type: "type",
+        filing_parties: [{
+            role: "filer",
+            party_type: "PLA",
+            first_name: "Jordan",
+            last_name: "Taylor"
+        }, {
+            role: "other",
+            party_type: "DEF",
+            first_name: "Alex",
+            last_name: "Morgan"
+        }, {
+            role: "other",
+            party_type: "DEF",
+            organization_name: "Example LLC"
+        }]
+    };
+    const userData = handler.userDataFromCaseData(caseData);
+    const result = handler.buildEFilingData(userData, caseData, {}, "pay-1");
+
+    assert.strictEqual(result.users[0].party_type, "PLA");
+    assert.strictEqual(result.other_parties.length, 2);
+    assert.strictEqual(result.other_parties[0].name.first, "Alex");
+    assert.strictEqual(result.other_parties[1].name.first, "Example LLC");
+});

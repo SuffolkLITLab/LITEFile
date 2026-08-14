@@ -3,13 +3,22 @@ from django.urls import include, path
 from django.views.i18n import JavaScriptCatalog
 
 from .views.api_views import get_case_data_api, get_filing_components
+from .views.case_confirmation import case_confirmation
+from .views.case_lookup import case_lookup
+from .views.case_questions import case_questions
 from .views.choose_jurisdiction import choose_jurisdiction
 from .views.confirmation import filing_confirmation
+from .views.document_checklist import document_checklist
 from .views.draft_views import create_draft_view, get_current_draft_view
-from .views.expert_form import efile_expert_form
+from .views.extraction_review import extraction_review
+from .views.filing_path import filing_path
 from .views.filing_statuses import filing_statuses
+from .views.legacy_workflow import legacy_workflow_redirect
 from .views.login import efile_login, efile_logout, efile_password_reset
 from .views.options import efile_options
+from .views.organize_documents import organize_documents
+from .views.parties import parties
+from .views.party_details import party_details
 from .views.payment import efile_payment
 from .views.register import efile_register
 from .views.review import case_review
@@ -24,8 +33,8 @@ from .views.session_api import (
     save_upload_first_data,
 )
 from .views.submission import submit_final_filing
-from .views.upload import efile_upload
-from .views.upload_first import efile_upload_first
+from .views.upload_documents import upload_documents
+from .views.your_information import your_information
 
 
 def homepage(request):
@@ -46,11 +55,37 @@ urlpatterns = [
     path("jurisdiction/<jurisdiction>/register/", efile_register, name="efile_register"),
     path("jurisdiction/<jurisdiction>/password_reset/", efile_password_reset, name="efile_password_reset"),
     path("jurisdiction/<jurisdiction>/options/", efile_options, name="efile_options"),
+    path("jurisdiction/<jurisdiction>/filing-path/", filing_path, name="filing_path"),
+    path("jurisdiction/<jurisdiction>/upload-documents/", upload_documents, name="upload_documents"),
+    path("jurisdiction/<jurisdiction>/extraction-review/", extraction_review, name="extraction_review"),
+    path("jurisdiction/<jurisdiction>/case-lookup/", case_lookup, name="case_lookup"),
+    path("jurisdiction/<jurisdiction>/case-confirmation/", case_confirmation, name="case_confirmation"),
+    path("jurisdiction/<jurisdiction>/document-checklist/", document_checklist, name="document_checklist"),
+    path("jurisdiction/<jurisdiction>/organize-documents/", organize_documents, name="organize_documents"),
+    path("jurisdiction/<jurisdiction>/your-information/", your_information, name="your_information"),
+    path("jurisdiction/<jurisdiction>/parties/", parties, name="parties"),
+    path("jurisdiction/<jurisdiction>/party-details/", party_details, name="party_details"),
+    path("jurisdiction/<jurisdiction>/case-questions/", case_questions, name="case_questions"),
     path("jurisdiction/<jurisdiction>/drafts/", create_draft_view, name="create_draft"),
     path("jurisdiction/<jurisdiction>/filing_statuses/", filing_statuses, name="filing_statuses"),
-    path("jurisdiction/<jurisdiction>/expert_form/", efile_expert_form, name="expert_form"),
-    path("jurisdiction/<jurisdiction>/upload_first/", efile_upload_first, name="upload_first"),
-    path("jurisdiction/<jurisdiction>/upload/", efile_upload, name="upload"),
+    path(
+        "jurisdiction/<jurisdiction>/expert_form/",
+        legacy_workflow_redirect,
+        {"destination": "expert_form"},
+        name="expert_form",
+    ),
+    path(
+        "jurisdiction/<jurisdiction>/upload_first/",
+        legacy_workflow_redirect,
+        {"destination": "upload_first"},
+        name="upload_first",
+    ),
+    path(
+        "jurisdiction/<jurisdiction>/upload/",
+        legacy_workflow_redirect,
+        {"destination": "upload"},
+        name="upload",
+    ),
     path("jurisdiction/<jurisdiction>/payment/", efile_payment, name="payment"),
     path("jurisdiction/<jurisdiction>/review/", case_review, name="case_review"),
     path("jurisdiction/<jurisdiction>/filing-confirmation/", filing_confirmation, name="filing_confirmation"),

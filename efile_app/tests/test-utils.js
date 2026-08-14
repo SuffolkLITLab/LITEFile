@@ -27,6 +27,22 @@ function getTestConfig() {
     };
 }
 
+async function waitForLogin(page) {
+    try {
+        await page.waitForURL(/\/options\/?$/, {
+            timeout: 120000
+        });
+    } catch (error) {
+        const alert = page.locator('[role="alert"]').first();
+        const detail = await alert.isVisible().catch(() => false) ?
+            `: ${await alert.innerText()}` :
+            '';
+        throw new Error(`Login did not reach the filing options page${detail}`, {
+            cause: error
+        });
+    }
+}
+
 /**
  * Common login flow for tests (via logout page - ensures clean session)
  * @param {Page} page - Playwright page object
@@ -51,7 +67,7 @@ async function loginViaLogout(page, config = getTestConfig()) {
     }).click();
 
     // Wait for navigation to complete
-    await page.waitForURL(/\/options\/?$/);
+    await waitForLogin(page);
 }
 
 /**
@@ -75,7 +91,7 @@ async function loginViaLoginPage(page, config = getTestConfig()) {
     }).click();
 
     // Wait for navigation to complete
-    await page.waitForURL(/\/options\/?$/);
+    await waitForLogin(page);
 }
 
 // Alias for backward compatibility
