@@ -72,4 +72,8 @@ jobs:
         env:
           DJANGO_SETTINGS_MODULE: efile.settings
         working-directory: efile_app
-        run: uv run pytest -q
+        run: |
+          # Keep the migration graph deployable. pytest uses --nomigrations, so
+          # the test suite alone would not catch conflicting migration leaves.
+          uv run python manage.py makemigrations --check --dry-run
+          uv run pytest -q

@@ -12,9 +12,11 @@ class UserProfile(AbstractUser):
     Extended user profile to store eFile registration information.
     """
 
-    # TODO(brycew): what happens if someone is trying to do stuff in multiple jurisdictions?
+    # Tyler identities are jurisdiction-specific; ``tyler_username`` may repeat
+    # across jurisdictions while each row remains a separate local account.
     tyler_jurisdiction = models.CharField(max_length=20)
     tyler_user_id = models.CharField(max_length=100, blank=True, null=True)
+    tyler_username = models.CharField(max_length=254, blank=True)
 
     # TODO(brycew): uncomment when https://github.com/SuffolkLITLab/EfileProxyServer/issues/334 is in
     # token_expires_at = models.DateTimeField(blank=True, null=True)
@@ -30,6 +32,19 @@ class UserProfile(AbstractUser):
     class Meta:
         verbose_name = "User Profile"
         verbose_name_plural = "User Profiles"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["tyler_jurisdiction", "tyler_username"],
+                condition=~models.Q(tyler_username=""),
+                name="unique_tyler_account_per_jurisdiction",
+            )
+        ]
+
+    @property
+    def account_email(self):
+        """The external Tyler login shown to the user, never the internal username."""
+
+        return self.tyler_username or self.email or self.username
 
 
 class FilingPlan(models.Model):

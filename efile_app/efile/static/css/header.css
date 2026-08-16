@@ -11,9 +11,10 @@
     font-weight: 500;
 }
 
-.profile-icon {
+.profile-menu-toggle {
     width: 40px;
     height: 40px;
+    border: 2px solid transparent;
     background-color: white;
     border-radius: 50%;
     display: flex;
@@ -21,6 +22,63 @@
     justify-content: center;
     color: var(--suffolk-blue);
     cursor: pointer;
+}
+
+.profile-menu-toggle:hover {
+    background-color: #f3f4f6;
+}
+
+.profile-menu-toggle:focus-visible {
+    border-color: white;
+    outline: 3px solid var(--suffolk-blue);
+    outline-offset: 2px;
+}
+
+.profile-menu {
+    width: min(22rem, calc(100vw - 2rem));
+    margin-top: 0.5rem !important;
+    padding: 0.5rem 0;
+    border: 0;
+    box-shadow: 0 0.75rem 2rem rgb(0 0 0 / 18%);
+}
+
+.profile-menu-summary {
+    padding: 0.75rem 1rem;
+    color: #1f2937;
+}
+
+.profile-menu-label,
+.profile-menu-name,
+.profile-menu-detail {
+    margin: 0;
+}
+
+.profile-menu-label,
+.profile-menu-detail {
+    color: #4b5563;
+    font-size: 0.875rem;
+}
+
+.profile-menu-name {
+    overflow-wrap: anywhere;
+    font-weight: 700;
+}
+
+.profile-menu-detail+.profile-menu-detail {
+    margin-top: 0.25rem;
+}
+
+.profile-menu .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 44px;
+    white-space: normal;
+}
+
+.profile-menu .dropdown-item i {
+    width: 1.25rem;
+    text-align: center;
 }
 
 .scales-icon {
