@@ -133,6 +133,47 @@ class JurisdictionConfigLoader:
     def get_short_jurisdiction_config(self, jurisdiction):
         return self.load_jurisdiction_config(jurisdiction)["jurisdiction"]
 
+    def get_document_checklist_config(self, jurisdiction, court=None):
+        """
+        Get the config sections that carry partner document checklists.
+
+        Case types and case categories are returned separately because a
+        checklist is matched against the court's own case type name first and
+        its case category name only as a fallback. Court entries in
+        ``court_specific_requirements`` are deep merged in, so one court can
+        change a single checklist item, or add its own local form, without
+        restating the rest of the list.
+
+        Args:
+            jurisdiction (str): The jurisdiction code
+            court (str, optional): Court code whose overrides should be applied
+
+        Returns:
+            dict: {"case_types": {...}, "case_categories": {...}}
+        """
+        jurisdiction_config = self.load_jurisdiction_config(jurisdiction) or {}
+
+        # Base case types are the shared starting point; a state's own case_types
+        # (already merged with whatever they extend) layer on top.
+        case_types = JurisdictionConfigLoader._deep_merge(
+            jurisdiction_config.get("base_case_types") or {},
+            jurisdiction_config.get("case_types") or {},
+        )
+        sections = {
+            "case_types": case_types,
+            "case_categories": deepcopy(jurisdiction_config.get("case_categories") or {}),
+        }
+
+        court_requirements = (jurisdiction_config.get("court_specific_requirements") or {}).get(court or "", {})
+        for section_name, section in sections.items():
+            overrides = court_requirements.get(section_name) or {}
+            for key, override in overrides.items():
+                if not isinstance(override, dict):
+                    continue
+                section[key] = JurisdictionConfigLoader._deep_merge(section.get(key, {}), override)
+
+        return sections
+
     def _find_with_keywords(self, key, cases):
         """
         Given a dictionary with keys and keywords (as a list in the key's value),

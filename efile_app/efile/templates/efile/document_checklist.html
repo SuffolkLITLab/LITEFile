@@ -15,11 +15,51 @@
             <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
             <div>
                 <strong>{% translate "Before you continue" %}</strong>
-                <p>
-                    {% translate "Include every completed court form, exhibit, translation, or proposed order that belongs with this filing. This list cannot tell you which legal forms your case needs." %}
-                </p>
+                {% if checklist_groups %}
+                    <p>
+                        {% blocktranslate with court=plan.court_name|default:filing_draft.court_name %}The list below is a guide for cases like yours at {{ court }}. Your case may need more or fewer documents.{% endblocktranslate %}
+                    </p>
+                {% else %}
+                    <p>
+                        {% translate "Include every completed court form, exhibit, translation, or proposed order that belongs with this filing. This list cannot tell you which legal forms your case needs." %}
+                    </p>
+                {% endif %}
             </div>
         </div>
+        {% if checklist_groups %}
+            <section class="document-plan" aria-labelledby="document-plan-heading">
+                <h2 id="document-plan-heading">{% translate "Your document plan" %}</h2>
+                <p class="document-plan__lede">
+                    {% translate "Check off what you have. We save this list, so you can come back to it." %}
+                </p>
+                {% for group in checklist_groups %}
+                    <fieldset class="document-plan__group">
+                        <legend class="document-plan__level document-plan__level--{{ group.requirement }}">{{ group.label }}</legend>
+                        {% for item in group.items %}
+                            <label class="document-plan__item">
+                                <input class="form-check-input"
+                                       type="checkbox"
+                                       form="checklist-confirm-form"
+                                       name="gathered"
+                                       value="{{ item.id }}"
+                                       {% if item.complete %}checked{% endif %} />
+                                <span>
+                                    <strong>{{ item.label }}</strong>
+                                    {% if item.description %}<small>{{ item.description }}</small>{% endif %}
+                                </span>
+                            </label>
+                        {% endfor %}
+                    </fieldset>
+                {% endfor %}
+                <button class="btn btn-outline-secondary btn-sm document-plan__save"
+                        type="submit"
+                        form="checklist-confirm-form"
+                        name="action"
+                        value="save_progress"
+                        formnovalidate>{% translate "Save my list" %}</button>
+            </section>
+        {% endif %}
+        <h2 class="checklist-files__heading">{% translate "Files you have added" %}</h2>
         <div class="checklist-files">
             {% for document in documents %}
                 <article class="checklist-file">

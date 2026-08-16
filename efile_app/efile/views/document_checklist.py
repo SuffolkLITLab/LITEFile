@@ -8,6 +8,7 @@ from efile.models import FilingDocument
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.document_uploads import upload_files
 from efile.services.drafts import draft_snapshot
+from efile.services.filing_plans import ensure_plan_for_draft, grouped_checklist, set_checklist_progress
 from efile.workflow import WorkflowStepKey, get_step_url, get_workflow_context
 
 
@@ -45,7 +46,16 @@ def document_checklist(request, jurisdiction):
             draft.save(update_fields=["document_checklist_acknowledged", "updated_at"])
         return JsonResponse({"success": True, "document_count": FilingDocument.objects.filter(draft=draft).count()})
 
+    # The plan holds the filer's own list for this matter. It outlives this
+    # filing, so it is created here and only read from the draft.
+    plan = ensure_plan_for_draft(draft)
+
     if request.method == "POST":
+        if plan is not None:
+            set_checklist_progress(plan, request.POST.getlist("gathered"))
+        if request.POST.get("action") == "save_progress":
+            messages.success(request, "We saved your document list.")
+            return redirect("document_checklist", jurisdiction=jurisdiction)
         if request.POST.get("documents_complete") != "yes":
             messages.error(request, "Confirm that you have added every document you want to file.")
         else:
@@ -58,6 +68,8 @@ def document_checklist(request, jurisdiction):
         "is_logged_in": True,
         "filing_draft": draft_snapshot(draft),
         "documents": documents,
+        "plan": plan,
+        "checklist_groups": grouped_checklist(plan),
     }
     context.update(get_workflow_context(WorkflowStepKey.DOCUMENT_CHECKLIST, jurisdiction, draft))
     return render(request, "efile/document_checklist.html", context)

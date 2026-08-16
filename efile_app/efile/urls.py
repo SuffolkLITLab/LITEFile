@@ -9,7 +9,7 @@ from .views.case_questions import case_questions
 from .views.choose_jurisdiction import choose_jurisdiction
 from .views.confirmation import filing_confirmation
 from .views.document_checklist import document_checklist
-from .views.draft_views import create_draft_view, get_current_draft_view
+from .views.draft_views import create_draft_view, get_current_draft_view, start_filing_from_plan
 from .views.extraction_review import extraction_review
 from .views.filing_path import filing_path
 from .views.filing_statuses import filing_statuses
@@ -67,6 +67,11 @@ urlpatterns = [
     path("jurisdiction/<jurisdiction>/party-details/", party_details, name="party_details"),
     path("jurisdiction/<jurisdiction>/case-questions/", case_questions, name="case_questions"),
     path("jurisdiction/<jurisdiction>/drafts/", create_draft_view, name="create_draft"),
+    path(
+        "jurisdiction/<jurisdiction>/plans/<int:plan_id>/filings/",
+        start_filing_from_plan,
+        name="start_filing_from_plan",
+    ),
     path("jurisdiction/<jurisdiction>/filing_statuses/", filing_statuses, name="filing_statuses"),
     path(
         "jurisdiction/<jurisdiction>/expert_form/",

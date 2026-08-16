@@ -11,7 +11,8 @@ This document explains how the Illinois eFile system uses YAML-based configurati
 5. [Javascript integration](#javascript-integration)
 6. [Adding new case types](#adding-new-case-types)
 7. [Court-specific customizations](#court-specific-customizations)
-8. [Examples](#examples)
+8. [Document checklists](#document-checklists)
+9. [Examples](#examples)
 
 ## System overview
 
@@ -298,6 +299,131 @@ court_specific_requirements:
 - **Cook County (cook:cd1)**: Both Petitioner and Name Sought sections are visible and required
 - **Bond Court (bond)**: Both sections are hidden, and "Required Parties" header is automatically hidden
 - **Other courts**: Petitioner shows by default, Name Sought hidden by default (unless configured otherwise)
+
+## Document checklists
+
+A checklist tells the filer which documents a case like theirs usually needs. It
+is guidance shown on the "Check your documents" screen, not validation: nothing
+in a checklist blocks a submission.
+
+### Names, never codes
+
+Checklist configuration identifies a case category, case type, or filing type by
+the **name** the court's e-filing service returns. Tyler's numeric codes are
+still fetched live and used for the actual filing, but they never appear here:
+each court numbers the same concept differently, and the numbers change without
+notice. When a court renames something, add the new name — nothing else changes.
+
+```yaml
+case_types:
+  name_change:
+    extends: "base_case_types.name_change"
+    matches:
+      names:
+        - "Name Change"          # Cook County, County Division
+        - "Change of Name"       # every other circuit checked
+      aliases:
+        - "Petition - Change of Name"
+    documents:
+      petition:
+        label: "Request for name change"
+        requirement: always
+        role: lead
+      publication_notice:
+        label: "Proof that a newspaper published your notice"
+        requirement: usually
+        description: "A newspaper must run the notice once a week for three weeks."
+```
+
+### Requirement levels
+
+`requirement` is one of three values, and it sets the group the item appears in:
+
+| Value | Shown as | Means |
+| --- | --- | --- |
+| `always` | Always needed | The case does not go anywhere without it |
+| `usually` | Usually needed | Standard for this kind of case; some cases skip it |
+| `sometimes` | Sometimes needed | Only when particular facts apply |
+
+An unknown value is logged and treated as `sometimes`.
+
+### Matching rules
+
+Matching is deterministic, never fuzzy. Names are normalized first — case,
+runs of whitespace, and the difference between a hyphen, an en dash, and an em
+dash — and then compared exactly. Cook County spells one dissolution case type
+with a dash and its pair with a hyphen, so that normalizing matters; anything
+beyond it does not, and guessing at legal guidance is not worth the risk.
+
+Resolution order:
+
+1. the case type whose `matches` include the court's case type name;
+2. otherwise the case category whose `matches` include the case category name;
+3. otherwise no checklist at all.
+
+A case type checklist **replaces** category guidance. The two are never merged.
+
+### Guidance that depends on the lead document
+
+Some items only make sense for one kind of lead filing. Add a `when` condition
+naming the filing types, again by name:
+
+```yaml
+      minor_consent:
+        label: "Written consent from the child"
+        requirement: sometimes
+        when:
+          lead_filing_type_names:
+            - "Request for Name Change (Minor Children)"
+```
+
+The item appears only when the lead document's filing type name matches. If the
+lead filing type is not known yet, conditional items stay hidden.
+
+### Court-specific checklists
+
+`documents` is a dictionary keyed by your own IDs, and court overrides deep
+merge into it, so a court can change one item, add a local form, or drop an
+inherited item without restating the list:
+
+```yaml
+court_specific_requirements:
+  "cook:cd1":
+    case_types:
+      name_change:
+        documents:
+          publication_notice:
+            requirement: always      # change one field of an inherited item
+          county_division_cover_sheet:
+            label: "County Division information sheet"
+            requirement: always      # add a local form
+          fee_waiver:
+            include: false           # drop an inherited item
+```
+
+### Category-level guidance
+
+Broad guidance for cases whose case type nobody has configured yet:
+
+```yaml
+case_categories:
+  small_claims:
+    matches:
+      names:
+        - "Small Claims"
+    documents:
+      supporting_records:
+        label: "Papers that back up your side"
+        requirement: usually
+```
+
+### What the filer sees
+
+The resolved checklist is copied into the filer's `FilingPlan` — their matter —
+the first time they reach the checklist screen, along with a `complete` flag per
+item that they tick themselves. Because it is a snapshot, editing this YAML
+later changes what **new** plans get and leaves plans people are already working
+through alone.
 
 ## Examples
 

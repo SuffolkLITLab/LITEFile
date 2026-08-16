@@ -69,6 +69,15 @@
                class="btn btn-primary">
                 <i class="fas fa-list-check me-2" aria-hidden="true"></i>{% translate "View filing status" %}
             </a>
+            {% if draft.plan_id %}
+                <form method="post"
+                      action="{% url 'start_filing_from_plan' jurisdiction draft.plan_id %}">
+                    {% csrf_token %}
+                    <button class="btn btn-outline-secondary" type="submit">
+                        {% blocktranslate with title=draft.plan.title %}File something else for {{ title }}{% endblocktranslate %}
+                    </button>
+                </form>
+            {% endif %}
             <a href="{% url 'efile_options' jurisdiction %}"
                class="btn btn-outline-secondary">{% translate "Return to filing options" %}</a>
         </div>

@@ -24,8 +24,57 @@ case_types:
   name_change:
     # Inherit from base but add Illinois-specific requirements
     extends: "base_case_types.name_change"
-    
-    # Illinois-specific field modifications (this will be handled by court-specific logic)
+
+    # Case type names Illinois courts publish for a name change. "Name Change"
+    # is Cook County's County Division; every other circuit checked calls it
+    # "Change of Name". These replace the base list rather than adding to it.
+    matches:
+      names:
+        - "Name Change"
+        - "Change of Name"
+
+    # 735 ILCS 5/21-101 and following. Requirement levels are guidance for the
+    # filer, not court validation.
+    documents:
+      petition:
+        label: "Request for name change"
+        requirement: always
+        role: lead
+        description: "Your name now, the name you want, and how long you have lived in Illinois."
+      proposed_order:
+        label: "Proposed order for the judge to sign"
+        requirement: always
+      notice_of_court_date:
+        label: "Notice of your court date"
+        requirement: usually
+      publication_notice:
+        label: "Proof that a newspaper published your notice"
+        requirement: usually
+        description: "A newspaper must run the notice once a week for three weeks, unless the judge excuses you."
+      motion_to_waive_publication:
+        label: "Motion to skip the newspaper notice"
+        requirement: sometimes
+        description: "Ask for this if publishing your name would put you in danger."
+      minor_consent:
+        # Only meaningful when the lead document is the minor-name-change form,
+        # so it is tied to the filing type names Illinois courts use for it.
+        label: "Written consent from the child"
+        requirement: sometimes
+        description: "A child who is 14 or older has to agree to the new name."
+        when:
+          lead_filing_type_names:
+            - "Request for Name Change (Minor Children)"
+            - "Request for Name Change (Child Information)"
+            - "Request for Name Change (Additional Children)"
+      notice_to_other_parent:
+        label: "Notice for the other parent"
+        requirement: sometimes
+        when:
+          lead_filing_type_names:
+            - "Request for Name Change (Minor Children)"
+            - "Request for Name Change (Child Information)"
+            - "Request for Name Change (Additional Children)"
+            - "Request for Name Change (Additional Parent)"
 
     # Illinois-specific validation rules
     validation_rules:
@@ -39,7 +88,64 @@ case_types:
 
   divorce:
     extends: "base_case_types.divorce"
-    
+
+    # Cook County's Domestic Relations Division names the case type after the
+    # petition; the other circuits use the "Dissolution (with children)" family.
+    # Matching ignores case, extra spaces, and the difference between a hyphen
+    # and a dash, so one entry covers every spelling of the same name.
+    matches:
+      names:
+        - "Petition for Dissolution of Marriage - Children"
+        - "Petition for Dissolution of Marriage - No Children"
+        - "Petition for Dissolution (Civil Union) - Children"
+        - "Petition for Dissolution (Civil Union) - No Children"
+        - "Joint Petition For Simplified Dissolution"
+        - "Dissolution (with children)"
+        - "Dissolution (without children)"
+        - "Dissolution of Civil Union (with children)"
+        - "Dissolution of Civil Union (without children)"
+        - "Domestic Violence Dissolution (with Children)"
+        - "Domestic Violence Dissolution (without Children)"
+        - "Domestic Violence Dissolution of Civil Union (with Children)"
+        - "Domestic Violence Dissolution of Civil Union (without Children)"
+
+    # 750 ILCS 5/401 and following, plus Illinois Supreme Court Rules 138 and 298.
+    documents:
+      petition:
+        label: "Petition to end your marriage"
+        requirement: always
+        role: lead
+      summons:
+        label: "Summons for your spouse"
+        requirement: usually
+        description: "You do not need this if your spouse files an appearance or signs a waiver."
+      financial_affidavit:
+        label: "Financial affidavit"
+        requirement: usually
+        description: "The court needs this to decide support, maintenance, or who pays the fees."
+      certificate_of_dissolution:
+        label: "Certificate of dissolution of marriage"
+        requirement: usually
+        description: "The state health department form the judge needs before signing the judgment."
+      proof_of_service:
+        label: "Proof that your spouse got a copy"
+        requirement: usually
+      parenting_plan:
+        label: "Parenting plan"
+        requirement: sometimes
+        description: "File this if you have children under 18."
+      marital_settlement_agreement:
+        label: "Marital settlement agreement"
+        requirement: sometimes
+        description: "File this if you and your spouse already agree on money and property."
+      proposed_judgment:
+        label: "Proposed judgment for the judge to sign"
+        requirement: sometimes
+      fee_waiver:
+        label: "Request to waive court fees"
+        requirement: sometimes
+        description: "File this if you cannot afford the filing fee."
+
     # Illinois-specific additions
     sections:
       parties:
@@ -71,11 +177,159 @@ case_types:
                   # show_when_field: "has_children"
                   # show_when_value: true
 
+  # Eviction is checklist-only: it has no dynamic form sections yet, so it does
+  # not extend a base case type.
+  eviction:
+    description: "Residential eviction cases, from either side"
+    matches:
+      names:
+        # Cook County Municipal Civil Division
+        - "Eviction - Possession - Residential Complaint Filed - Non-Jury"
+        - "Eviction - Possession - Residential Complaint Filed - Jury"
+        - "Eviction - Joint Action - Residential Complaint Filed - Non-Jury"
+        - "Eviction - Joint Action - Residential Complaint Filed - Jury"
+        - "Eviction - Non-ERP Case - Residential - Possession Only"
+        - "Eviction - Non-ERP Case - Residential - Joint Action"
+        - "CHA Eviction - Non-Jury"
+        - "CHA Eviction - Jury"
+        # Circuits outside Cook County
+        - "Residential - Eviction"
+        - "Residential - Eviction Possession Only"
+        - "Eviction - Residential - Eviction"
+        - "Eviction - Residential - Eviction Possession Only"
+
+    # 735 ILCS 5/9-101 and following. The landlord and the tenant file different
+    # documents in the same case type, so the lead filing type name decides which
+    # of the two lead documents is shown.
+    documents:
+      complaint:
+        label: "Eviction complaint"
+        requirement: always
+        role: lead
+        when:
+          lead_filing_type_names:
+            - "Complaint"
+            - "Eviction Complaint"
+            - "Complaint / Petition - Eviction - Residential - Possession Only - Fee"
+            - "Complaint / Petition - Eviction - Residential - Possession Only (Govn't) - Fee"
+      appearance:
+        label: "Appearance form"
+        requirement: always
+        description: "This tells the court you are in the case, so the judge does not rule without you."
+        when:
+          lead_filing_type_names:
+            - "Appearance"
+            - "Appearance Filed"
+            - "Appearance (No Fee)"
+            - "Appearance Filed - Fee"
+            - "Appearance Filed - Eviction - Possession Only"
+            - "Answer"
+            - "Answer Filed"
+      answer:
+        label: "Answer to the complaint"
+        requirement: usually
+        description: "Your response to what the landlord says, and any defenses you have."
+        when:
+          lead_filing_type_names:
+            - "Appearance"
+            - "Appearance Filed"
+            - "Appearance (No Fee)"
+            - "Appearance Filed - Fee"
+            - "Appearance Filed - Eviction - Possession Only"
+            - "Answer"
+            - "Answer Filed"
+      fee_waiver:
+        label: "Request to waive court fees"
+        requirement: usually
+        description: "File this if you cannot afford the fee to answer."
+      proof_of_service:
+        label: "Proof that the other side got a copy"
+        requirement: usually
+      lease:
+        label: "Your lease"
+        requirement: sometimes
+      landlord_notice:
+        label: "The written notice your landlord gave you"
+        requirement: sometimes
+        description: "For example, a 5, 10, or 30 day notice."
+      jury_demand:
+        label: "Request for a jury"
+        requirement: sometimes
+        description: "Ask for this by your first court date if you want a jury."
+
+# Broad guidance for a case category, used when no case type matches. A case
+# type checklist replaces this list; the two are never merged.
+case_categories:
+  domestic_relations:
+    matches:
+      names:
+        - "Domestic Relations - General Proceedings"
+        - "Domestic Relations - Parentage/Child Support"
+        - "Dissolution (Divorce) with Children"
+        - "Dissolution (Divorce) without Children"
+        - "Family"
+    documents:
+      financial_information:
+        label: "Your financial information"
+        requirement: usually
+        description: "Pay stubs, tax returns, and a list of what you own and owe."
+      proof_of_service:
+        label: "Proof that the other side got a copy"
+        requirement: usually
+      fee_waiver:
+        label: "Request to waive court fees"
+        requirement: sometimes
+
+  eviction:
+    matches:
+      names:
+        - "Eviction"
+        - "Housing"
+    documents:
+      lease:
+        label: "Your lease"
+        requirement: usually
+      landlord_notice:
+        label: "The written notice your landlord gave you"
+        requirement: usually
+      fee_waiver:
+        label: "Request to waive court fees"
+        requirement: sometimes
+
+  small_claims:
+    matches:
+      names:
+        - "Small Claims"
+    documents:
+      supporting_records:
+        label: "Papers that back up your side"
+        requirement: usually
+        description: "For example, a contract, bills, receipts, or letters."
+      proof_of_service:
+        label: "Proof that the other side got a copy"
+        requirement: usually
+      fee_waiver:
+        label: "Request to waive court fees"
+        requirement: sometimes
+
 # Illinois-specific court mappings
 court_specific_requirements:
   "cook:cd1":  # Cook County Circuit Court - County Division
     case_types:
       name_change:
+        # Checklist overrides are merged item by item into the case type above,
+        # so a court can change one entry or add its own local form without
+        # repeating the rest of the list. Source: Cook County County Division
+        # general administrative orders, not the e-filing API.
+        documents:
+          county_division_cover_sheet:
+            label: "County Division information sheet"
+            requirement: always
+            description: "Cook County asks for this cover sheet with every name change."
+          criminal_history_statement:
+            label: "Statement about your criminal history"
+            requirement: usually
+
         # Cook County specific requirements - both sections show
         field_modifications:
           - field_group: "Petitioner"
@@ -87,7 +341,29 @@ court_specific_requirements:
               conditional_requirements:
                 required_for_courts: ["cook:cd1"]
   
-  "bond":  # Bond Court 
+  "cook:dr1":  # Cook County Circuit Court - Domestic Relations Division
+    case_types:
+      divorce:
+        documents:
+          domestic_relations_cover_sheet:
+            label: "Domestic Relations Division cover sheet"
+            requirement: always
+            description: "Cook County asks for form CCDR 0001 on every new case."
+          financial_affidavit:
+            # Cook County Local Rule 13.3.1 asks for the standard financial
+            # affidavit in every contested money question, so it moves up a level.
+            requirement: always
+
+  "cook:cvd1":  # Cook County Circuit Court - Municipal Civil Division
+    case_types:
+      eviction:
+        documents:
+          early_resolution_program_notice:
+            label: "Early Resolution Program notice"
+            requirement: always
+            description: "Cook County sends eviction cases to this free program for help and mediation."
+
+  "bond":  # Bond Court
     case_types:
       name_change:
         # Hide both sections for Bond Court

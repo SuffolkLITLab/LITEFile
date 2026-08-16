@@ -604,6 +604,106 @@
     margin: 0.2rem 0 0;
 }
 
+.document-plan {
+    background: var(--surface-subtle);
+    border: 1px solid var(--border-default);
+    border-radius: 12px;
+    margin-bottom: 1.75rem;
+    padding: 1.25rem;
+}
+
+.document-plan h2 {
+    color: var(--text-heading);
+    font-size: 1.25rem;
+    font-weight: 750;
+    margin: 0;
+}
+
+.document-plan__lede {
+    color: var(--text-muted);
+    margin: 0.35rem 0 1.1rem;
+}
+
+.document-plan__group {
+    border: 0;
+    margin: 0 0 1.1rem;
+    padding: 0;
+}
+
+.document-plan__group:last-of-type {
+    margin-bottom: 0.75rem;
+}
+
+.document-plan__level {
+    color: var(--text-heading);
+    float: none;
+    font-size: 0.78rem;
+    font-weight: 750;
+    letter-spacing: 0.06em;
+    margin: 0 0 0.5rem;
+    text-transform: uppercase;
+    width: auto;
+}
+
+.document-plan__level::before {
+    border-radius: 50%;
+    content: "";
+    display: inline-block;
+    height: 9px;
+    margin-right: 0.45rem;
+    vertical-align: baseline;
+    width: 9px;
+}
+
+.document-plan__level--always::before {
+    background: var(--danger-icon);
+}
+
+.document-plan__level--usually::before {
+    background: var(--better-blue);
+}
+
+.document-plan__level--sometimes::before {
+    background: var(--border-strong);
+}
+
+.document-plan__item {
+    align-items: flex-start;
+    background: #fff;
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    display: flex;
+    gap: 0.7rem;
+    margin-bottom: 0.5rem;
+    padding: 0.7rem 0.85rem;
+}
+
+.document-plan__item:last-child {
+    margin-bottom: 0;
+}
+
+.document-plan__item:has(input:checked) {
+    background: var(--success-surface);
+    border-color: var(--success-border);
+}
+
+.document-plan__item strong {
+    color: var(--text-heading);
+    font-weight: 650;
+}
+
+.document-plan__item small {
+    color: var(--text-muted);
+    display: block;
+}
+
+.checklist-files__heading {
+    color: var(--text-heading);
+    font-size: 1.25rem;
+    font-weight: 750;
+    margin: 0 0 0.75rem;
+}
+
 .checklist-files {
     border: 1px solid var(--border-default);
     border-radius: 12px;

@@ -82,6 +82,78 @@ def test_document_checklist_adds_missing_documents_inline(client, document_draft
     assert upload_files.call_args.kwargs["current_step"] == WorkflowStepKey.DOCUMENT_CHECKLIST
 
 
+@pytest.fixture
+def planned_draft(document_draft):
+    """A draft whose case is one the Illinois configuration has guidance for."""
+
+    document_draft.court_code = "cook:cd1"
+    document_draft.court_name = "Cook County Circuit Court - County Division"
+    document_draft.case_category_name = "Miscellaneous"
+    document_draft.case_type_name = "Name Change"
+    document_draft.save()
+    lead = document_draft.documents.get(role=FilingDocument.Role.LEAD)
+    lead.filing_type_name = "Petition for Name Change"
+    lead.save(update_fields=["filing_type_name", "updated_at"])
+    return document_draft
+
+
+@pytest.mark.django_db
+def test_document_checklist_shows_configured_guidance(client, planned_draft):
+    response = client.get(reverse("document_checklist", kwargs={"jurisdiction": "illinois"}))
+
+    planned_draft.refresh_from_db()
+    page = response.content.decode()
+    assert response.status_code == 200
+    assert "Your document plan" in page
+    assert "Always needed" in page
+    assert "Request for name change" in page
+    assert "County Division information sheet" in page
+    assert planned_draft.plan.checklist["petition"]["requirement"] == "always"
+
+
+@pytest.mark.django_db
+def test_document_checklist_keeps_its_disclaimer_without_configured_guidance(client, document_draft):
+    response = client.get(reverse("document_checklist", kwargs={"jurisdiction": "illinois"}))
+
+    document_draft.refresh_from_db()
+    page = response.content.decode()
+    assert "Your document plan" not in page
+    assert "cannot tell you which legal forms your case needs" in page
+    assert document_draft.plan_id is None
+
+
+@pytest.mark.django_db
+def test_document_checklist_saves_gathered_documents(client, planned_draft):
+    response = client.post(
+        reverse("document_checklist", kwargs={"jurisdiction": "illinois"}),
+        {"action": "save_progress", "gathered": ["petition", "proposed_order"]},
+    )
+
+    planned_draft.refresh_from_db()
+    checklist = planned_draft.plan.checklist
+    assert response.status_code == 302
+    assert response.url == reverse("document_checklist", kwargs={"jurisdiction": "illinois"})
+    assert checklist["petition"]["complete"] is True
+    assert checklist["proposed_order"]["complete"] is True
+    assert checklist["publication_notice"]["complete"] is False
+    # Saving the matter checklist is not the same as saying this filing is ready.
+    assert planned_draft.document_checklist_acknowledged is False
+
+
+@pytest.mark.django_db
+def test_document_checklist_saves_gathered_documents_when_continuing(client, planned_draft):
+    response = client.post(
+        reverse("document_checklist", kwargs={"jurisdiction": "illinois"}),
+        {"documents_complete": "yes", "gathered": ["petition"]},
+    )
+
+    planned_draft.refresh_from_db()
+    assert response.status_code == 302
+    assert response.url == reverse("organize_documents", kwargs={"jurisdiction": "illinois"})
+    assert planned_draft.document_checklist_acknowledged is True
+    assert planned_draft.plan.checklist["petition"]["complete"] is True
+
+
 @pytest.mark.django_db
 def test_organize_requires_completed_checklist(client, document_draft):
     response = client.get(reverse("organize_documents", kwargs={"jurisdiction": "illinois"}))

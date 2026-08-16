@@ -32,6 +32,53 @@ class UserProfile(AbstractUser):
         verbose_name_plural = "User Profiles"
 
 
+class FilingPlan(models.Model):
+    """A filer's long-lived matter: the documents they are gathering for it.
+
+    A plan outlives any one envelope. It stores what the filer's case *is* in
+    semantic terms -- the court, case category, case type, and lead filing type
+    by name -- and never the court's numeric codes for them. Those codes belong
+    to a filing: they differ per court and change without notice, so a later
+    filing resolves the stored names against the live code lists instead of
+    trusting a code saved months ago.
+
+    ``checklist`` is a snapshot of the configured guidance, taken when the plan
+    is created, plus the filer's own progress. Snapshotting means a partner
+    editing the YAML later does not silently rewrite a checklist someone is
+    already working through.
+    """
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="filing_plans",
+    )
+    title = models.CharField(max_length=255)
+    jurisdiction = models.CharField(max_length=40, db_index=True)
+
+    court_code = models.CharField(max_length=100, blank=True)
+    court_name = models.CharField(max_length=255, blank=True)
+    case_category_name = models.CharField(max_length=255, blank=True)
+    case_type_name = models.CharField(max_length=255, blank=True)
+    lead_filing_type_name = models.CharField(max_length=255, blank=True)
+
+    # {item_id: {"label": str, "requirement": "always|usually|sometimes",
+    #            "description": str (optional), "complete": bool}}
+    checklist = models.JSONField(default=dict, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at"]
+        indexes = [
+            models.Index(fields=["user", "jurisdiction"], name="plan_user_jurisdiction_idx"),
+        ]
+
+    def __str__(self):
+        return self.title or f"Filing plan #{self.pk}"
+
+
 class FilingDraft(models.Model):
     """Durable aggregate for a single in-progress or submitted court filing."""
 
@@ -45,6 +92,15 @@ class FilingDraft(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
+        related_name="filing_drafts",
+    )
+    # The matter this filing belongs to, when the filer has one. A plan can
+    # gather several filings over time; losing the plan must not lose the filing.
+    plan = models.ForeignKey(
+        "FilingPlan",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
         related_name="filing_drafts",
     )
     jurisdiction = models.CharField(max_length=40, db_index=True)
