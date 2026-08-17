@@ -81,43 +81,18 @@ defaults:
               column_width: "col-12"
 
 
-# Base case type templates that states can inherit from
+# Base case type templates that states can inherit from.
+#
+# Form structure only. Document checklists (`matches`, `documents`, `about`,
+# `filer_roles`) are deliberately not here: which forms a case needs, and what
+# the court calls them, is a question of state law and local practice, and the
+# answer is rarely the same in two states. Those live in
+# `states/<jurisdiction>.yaml` -- see the "Document checklists" section of
+# README.md.
 base_case_types:
   name_change:
     keywords: ["name change", "name petition", "change of name"]
     description: "Legal name change proceedings"
-    # Names the court's own e-filing lists use for this concept. Matching is on
-    # names, never on Tyler's numeric codes: the codes differ per court and
-    # change without notice, while the names are stable and readable. Add an
-    # alias here when a court starts calling the same thing something new.
-    matches:
-      names:
-        - "Name Change"
-        - "Change of Name"
-        - "Petition for Change of Name"
-        - "Name Change Petition"
-    # Document guidance shown to the filer. Keys are ours; requirement is one of
-    # always, usually, or sometimes. This is advice, not validation -- nothing
-    # here blocks a filing.
-    documents:
-      petition:
-        label: "Request to change a name"
-        requirement: always
-        role: lead
-      proposed_order:
-        label: "Proposed order for the judge to sign"
-        requirement: usually
-      fee_waiver:
-        label: "Request to waive court fees"
-        requirement: sometimes
-        description: "File this if you cannot afford the filing fee."
-        # What the court calls this when it is filed, most preferred first. See
-        # the "Filing types for a checklist item" section of config/README.md.
-        filing_type_names:
-          - "Fee Waiver Petition Filed"                  # Cook County
-          - "Application for Waiver of Court Fees"
-          - "Fee Waiver"
-          - "Waiver"                                     # Kane
     sections:
       parties:
         title: "Required parties"
@@ -151,24 +126,6 @@ base_case_types:
   divorce:
     keywords: ["divorce", "dissolution of marriage", "annulment", "dissolution"]
     description: "Legal dissolution of marriage proceedings"
-    matches:
-      names:
-        - "Dissolution of Marriage"
-        - "Petition for Dissolution of Marriage"
-        - "Divorce"
-    documents:
-      petition:
-        label: "Petition to end a marriage"
-        requirement: always
-        role: lead
-      summons:
-        label: "Summons for the other spouse"
-        requirement: usually
-        description: "You do not need this if the other spouse signs an appearance or a waiver."
-      fee_waiver:
-        label: "Request to waive court fees"
-        requirement: sometimes
-        description: "File this if you cannot afford the filing fee."
     sections:
       parties:
         title: "Required parties"

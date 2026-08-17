@@ -27,7 +27,8 @@ case_types:
 
     # Case type names Illinois courts publish for a name change. "Name Change"
     # is Cook County's County Division; every other circuit checked calls it
-    # "Change of Name". These replace the base list rather than adding to it.
+    # "Change of Name". Names are per state: the base file carries no list to
+    # inherit, because another state's courts call this something else.
     matches:
       names:
         - "Name Change"
@@ -98,6 +99,15 @@ case_types:
         # wrong thing.
         filing_type_names:
           - "Motion"                      # Kane
+      fee_waiver:
+        label: "Request to waive court fees"
+        requirement: sometimes
+        description: "File this if you cannot afford the filing fee."
+        filing_type_names:
+          - "Fee Waiver Petition Filed"                  # Cook County
+          - "Application for Waiver of Court Fees"
+          - "Fee Waiver"
+          - "Waiver"                                     # Kane
       minor_consent:
         # Only meaningful when the lead document is the minor-name-change form,
         # so it is tied to the filing type names Illinois courts use for it.

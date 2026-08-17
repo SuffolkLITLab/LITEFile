@@ -38,7 +38,12 @@ case_types:
   name_change:
     # Inherit from base but add Massachusetts-specific requirements
     extends: "base_case_types.name_change"
-    
+
+    # Form structure only so far. Document checklists are state-specific -- what
+    # Massachusetts requires, and what its courts call each form, is not what
+    # Illinois requires -- so add `matches` and `documents` here to turn one on.
+    # See the "Document checklists" section of ../README.md.
+
     # Override with Massachusetts terminology
     sections:
       parties:

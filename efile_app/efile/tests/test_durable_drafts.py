@@ -4,7 +4,7 @@ from unittest.mock import patch
 import pytest
 from django.urls import reverse
 
-from efile.models import FilingDocument, FilingDraft, FilingParty
+from efile.models import FilingDocument, FilingDraft, FilingParty, FilingPlan
 from efile.services.current_drafts import CURRENT_DRAFT_SESSION_KEY, get_current_draft
 from efile.services.drafts import (
     draft_snapshot,
@@ -512,6 +512,45 @@ def test_final_submission_marks_current_draft_submitted(client, django_user_mode
     assert draft.current_step == WorkflowStepKey.CONFIRMATION
     assert draft.submission_response == {"filing_id": "abc-123"}
     assert CURRENT_DRAFT_SESSION_KEY not in client.session
+
+
+@pytest.mark.django_db
+def test_final_submission_marks_attached_plan_documents_as_filed(client, django_user_model, monkeypatch):
+    def fake_post(*_args, **_kwargs):
+        return FakeApiResponse(201, {"filing_id": "abc-123"})
+
+    monkeypatch.setattr("requests.post", fake_post)
+    user = django_user_model.objects.create_user(username="plan-submit-user", tyler_jurisdiction="illinois")
+    plan = FilingPlan.objects.create(
+        user=user,
+        title="Name change",
+        jurisdiction="illinois",
+        checklist={"petition": {"label": "Petition", "requirement": "always", "status": "have"}},
+    )
+    draft = FilingDraft.objects.create(
+        user=user,
+        plan=plan,
+        jurisdiction="illinois",
+        current_step=WorkflowStepKey.REVIEW,
+    )
+    FilingDocument.objects.create(
+        draft=draft,
+        role=FilingDocument.Role.LEAD,
+        sort_order=0,
+        checklist_item_id="petition",
+    )
+    client.force_login(user)
+    _prepare_submission(client, draft)
+
+    response = client.post(
+        reverse("submit_final_filing"),
+        data={"confirm_submission": True, "efile_data": {"al_court_bundle": {}}},
+        content_type="application/json",
+    )
+
+    assert response.status_code == 200
+    plan.refresh_from_db()
+    assert plan.checklist["petition"]["status"] == "filed"
 
 
 @pytest.mark.django_db

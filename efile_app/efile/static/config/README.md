@@ -37,9 +37,16 @@ efile/static/config/
 ├── README.md                    # This documentation
 ├── base-case-types.yaml         # Base configuration (all jurisdictions)
 └── states/
-    ├── illinois.yaml            # Illinois-specific overrides
-    └── massachusetts.yaml       # Massachusetts-specific overrides
+    ├── illinois.yaml            # Everything specific to Illinois
+    ├── massachusetts.yaml       # Everything specific to Massachusetts
+    └── vermont.yaml             # Everything specific to Vermont
 ```
+
+A state file is named for its jurisdiction and nothing else — `illinois.yaml`,
+not `illinois-case-types.yaml` — because it holds everything that is specific to
+that state, and that list grows: case types, document checklists, court
+overrides, and jurisdiction display settings such as the navigation title and
+logo all live in the one file.
 
 ### Configuration file hierarchy
 
@@ -47,12 +54,14 @@ efile/static/config/
    - Defines common case types and field structures
    - Provides default field types and validation rules
    - Acts as a template for state-specific extensions
+   - Carries **no** document checklists — see below
 
 2. **State Configuration** (`states/{jurisdiction}.yaml`)
    - Inherits from base configuration
    - Adds state-specific case types
    - Overrides field requirements, labels, and validation
    - Defines court-specific customizations
+   - Holds the document checklists, which are always state-specific
 
 3. **Runtime Merging**
    - Base + State configurations are merged at runtime
@@ -305,6 +314,17 @@ court_specific_requirements:
 A checklist tells the filer which documents a case like theirs usually needs. It
 is guidance shown on the "Check your documents" screen, not validation: nothing
 in a checklist blocks a submission.
+
+### Checklists belong to a state
+
+Every checklist key — `matches`, `documents`, `about`, `filer_roles` — is
+configured in `states/{jurisdiction}.yaml`, never in `base-case-types.yaml`.
+A name change needs a publication notice in Illinois and does not in most other
+states, and the courts of two states rarely call the same document, case type,
+or filing type by the same name. There is no useful national default to inherit,
+so a state that has not been configured yet simply shows no checklist rather
+than another state's list. `base-case-types.yaml` still supplies the shared
+*form* structure that a state case type `extends`.
 
 ### Names, never codes
 

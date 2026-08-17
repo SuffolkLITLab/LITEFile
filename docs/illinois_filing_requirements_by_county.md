@@ -1,7 +1,7 @@
 # Illinois E-Filing Document Requirements by County
 ## Research and Live EFSP Proxy Validation for High-Volume Filing Needs
 
-This document provides a comprehensive analysis and empirical validation of the documents, filing codes, party requirements, and court-specific rules for **five high-volume Illinois civil court filing needs**. 
+This document provides a comprehensive analysis and empirical validation of the documents, filing codes, party requirements, and court-specific rules for **five high-volume Illinois civil court filing needs**.
 
 The findings are validated directly against the live development e-file proxy server (`https://efile-test.suffolklitlab.org` / Tyler Technologies Illinois ECF 4.01/5.0 system) across **11 court jurisdictions** representing urban, suburban collar, and downstate circuits:
 1. **Cook County – Domestic Relations Division** (`cook:dr1`)

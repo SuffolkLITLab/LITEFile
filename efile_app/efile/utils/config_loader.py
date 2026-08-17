@@ -153,8 +153,11 @@ class JurisdictionConfigLoader:
         """
         jurisdiction_config = self.load_jurisdiction_config(jurisdiction) or {}
 
-        # Base case types are the shared starting point; a state's own case_types
-        # (already merged with whatever they extend) layer on top.
+        # A state's own case_types (already merged with whatever they extend)
+        # layer on top of the base case types. Nothing shipped in the base file
+        # carries a checklist -- required forms differ too much from state to
+        # state for a national default to be safe -- but the merge stays so a
+        # state case type keeps whatever it extends.
         case_types = JurisdictionConfigLoader._deep_merge(
             jurisdiction_config.get("base_case_types") or {},
             jurisdiction_config.get("case_types") or {},

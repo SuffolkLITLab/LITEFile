@@ -435,6 +435,42 @@ def mark_item_have(plan: FilingPlan, item_id: str) -> None:
     plan.save(update_fields=["checklist", "updated_at"])
 
 
+def mark_attached_items_filed(draft: FilingDraft) -> None:
+    """Record that this envelope's checklist documents reached the court.
+
+    An attached document is only "I have it" while its envelope is still in
+    progress. Once the filing succeeds, the plan must say "I already filed
+    this" so a later envelope does not ask for the same document again.
+    """
+
+    plan = draft.plan
+    if plan is None:
+        return
+
+    filed_item_ids = set(
+        FilingDocument.objects.filter(draft=draft)
+        .exclude(checklist_item_id="")
+        .values_list("checklist_item_id", flat=True)
+    )
+    if not filed_item_ids:
+        return
+
+    checklist = dict(plan.checklist or {})
+    changed = False
+    for item_id in filed_item_ids:
+        item = checklist.get(item_id)
+        if not isinstance(item, dict) or item_status(item) == STATUS_FILED:
+            continue
+        updated = {**item, "status": STATUS_FILED}
+        updated.pop("complete", None)
+        updated.pop("due_date", None)
+        checklist[item_id] = updated
+        changed = True
+    if changed:
+        plan.checklist = checklist
+        plan.save(update_fields=["checklist", "updated_at"])
+
+
 def checklist_items(plan: FilingPlan | None, draft: FilingDraft | None = None) -> list[dict[str, Any]]:
     """Flatten a plan's checklist, in requirement order, with envelope state."""
 
@@ -496,7 +532,7 @@ def plans_for(user, jurisdiction: str) -> list[dict[str, Any]]:
     """List a filer's matters, most recently worked on first."""
 
     return [
-        {"plan": plan, "progress": plan_progress(plan), "items": checklist_items(plan)}
+        {"plan": plan, "progress": plan_progress(plan)}
         for plan in FilingPlan.objects.filter(user=user, jurisdiction=jurisdiction)
     ]
 

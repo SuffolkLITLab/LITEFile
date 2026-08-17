@@ -343,18 +343,28 @@ def test_the_options_page_offers_a_plan_i_already_started(client, signed_in):
 
 
 @pytest.mark.django_db
-def test_linking_a_plan_to_one_of_my_court_cases(client, signed_in):
+def test_linking_a_plan_to_one_of_my_court_cases(client, signed_in, monkeypatch):
     plan = configured_plan(signed_in)
 
+    monkeypatch.setattr(
+        "efile.views.filing_plans.accepted_case_for_user",
+        lambda *_args, **_kwargs: {
+            "filing_status": "accepted",
+            "case_tracking_id": "tracking-123",
+            "case_number": "2025MR000123",
+            "case_title": "In re Ada Lovelace",
+            "court_code": "cook:cd1",
+        },
+    )
     client.post(
         PLANS_URL,
         {
             "action": "link_case",
             "plan_id": plan.pk,
             "case_tracking_id": "tracking-123",
-            "docket_number": "2025MR000123",
-            "case_title": "In re Ada Lovelace",
-            "court_code": "cook:cd1",
+            "docket_number": "not-trusted",
+            "case_title": "Not trusted",
+            "court_code": "not-trusted",
             "court_name": "Cook County Circuit Court - County Division",
         },
     )
@@ -362,6 +372,28 @@ def test_linking_a_plan_to_one_of_my_court_cases(client, signed_in):
     plan.refresh_from_db()
     assert plan.is_linked_to_a_case
     assert plan.docket_number == "2025MR000123"
+    assert plan.case_title == "In re Ada Lovelace"
+    assert plan.court_code == "cook:cd1"
+
+
+@pytest.mark.django_db
+def test_a_plan_cannot_link_a_case_the_account_did_not_file_into(client, signed_in, monkeypatch):
+    plan = configured_plan(signed_in)
+    monkeypatch.setattr("efile.views.filing_plans.accepted_case_for_user", lambda *_args, **_kwargs: None)
+
+    client.post(
+        PLANS_URL,
+        {
+            "action": "link_case",
+            "plan_id": plan.pk,
+            "case_tracking_id": "someone-elses-case",
+            "docket_number": "2025MR999999",
+            "court_code": "cook:cd1",
+        },
+    )
+
+    plan.refresh_from_db()
+    assert not plan.is_linked_to_a_case
 
 
 @pytest.mark.django_db

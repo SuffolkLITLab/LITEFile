@@ -52,15 +52,13 @@
     }
 
     function caseFormHtml(planId, courtCase) {
-        const hidden = ["case_tracking_id", "docket_number", "case_title", "court_code", "court_name"]
-            .map((field) => `<input type="hidden" name="${field}" value="${escapeHtml(courtCase[field])}" />`)
-            .join("");
         return `
       <form method="post" class="plan-case-option">
         <input type="hidden" name="csrfmiddlewaretoken" value="${escapeHtml(csrfToken)}" />
         <input type="hidden" name="action" value="link_case" />
         <input type="hidden" name="plan_id" value="${escapeHtml(planId)}" />
-        ${hidden}
+        <input type="hidden" name="case_tracking_id" value="${escapeHtml(courtCase.case_tracking_id)}" />
+        <input type="hidden" name="court_name" value="${escapeHtml(courtCase.court_name)}" />
         <span>
           <strong>${escapeHtml(courtCase.docket_number)}</strong>
           <small>${escapeHtml([courtCase.case_title, courtCase.court_name].filter(Boolean).join(" · "))}</small>
