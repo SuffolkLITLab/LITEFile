@@ -16,6 +16,7 @@ from efile.services.document_checklists import (
     party_type_keywords_for_role,
     resolve_document_checklist,
     resolve_filer_roles,
+    resolve_plan_guidance,
 )
 from efile.utils.config_loader import JurisdictionConfigLoader
 
@@ -462,3 +463,52 @@ class TestShippedIllinoisConfig:
         )
 
         assert list(checklist) == ["supporting_records", "proof_of_service", "fee_waiver"]
+
+
+def test_each_side_of_a_case_gets_its_own_explanation():
+    landlord = resolve_plan_guidance(
+        "illinois",
+        court_code="cook:cvd1",
+        case_type_name="Eviction - Possession - Residential Complaint Filed - Non-Jury",
+        filer_role="landlord",
+    )
+    tenant = resolve_plan_guidance(
+        "illinois",
+        court_code="cook:cvd1",
+        case_type_name="Eviction - Possession - Residential Complaint Filed - Non-Jury",
+        filer_role="tenant",
+    )
+
+    assert landlord["summary"] != tenant["summary"]
+    assert landlord["learn_more_url"] != tenant["learn_more_url"]
+    assert tenant["summary"].startswith("Your landlord")
+
+
+def test_a_learn_more_link_has_to_be_a_web_address(tmp_path, monkeypatch):
+    """A 'link' that runs script is not a link to a website."""
+    (tmp_path / "base-case-types.yaml").write_text(yaml.safe_dump({}))
+    (tmp_path / "states").mkdir(exist_ok=True)
+    (tmp_path / "states" / "testland.yaml").write_text(
+        yaml.safe_dump(
+            {
+                "case_types": {
+                    "thing": {
+                        "matches": {"names": ["Thing"]},
+                        "about": {"summary": "About the thing.", "learn_more_url": "javascript:alert(1)"},
+                        "documents": {"a_form": {"label": "A form", "requirement": "always"}},
+                    }
+                }
+            }
+        )
+    )
+    loader = JurisdictionConfigLoader(config_dir=tmp_path)
+    monkeypatch.setattr("efile.services.document_checklists.config_loader", loader)
+
+    guidance = resolve_plan_guidance("testland", case_type_name="Thing")
+
+    assert guidance["summary"] == "About the thing."
+    assert "learn_more_url" not in guidance
+
+
+def test_a_case_type_with_nothing_written_about_it_has_no_narrative():
+    assert resolve_plan_guidance("illinois", case_type_name="Nothing Configured") == {}

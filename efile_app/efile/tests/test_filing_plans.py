@@ -1,5 +1,4 @@
-"""Tests for the filer's plan: the matter a checklist and its filings belong to."""
-
+from datetime import date
 from unittest.mock import Mock, patch
 
 import pytest
@@ -7,10 +6,14 @@ from django.urls import reverse
 
 from efile.models import FilingDocument, FilingDraft, FilingPlan
 from efile.services.filing_plans import (
+    checklist_items,
     create_draft_from_plan,
     ensure_plan_for_draft,
+    filing_type_for_item,
     grouped_checklist,
+    plan_progress,
     resolve_plan_case_codes,
+    set_checklist_answers,
     set_checklist_progress,
 )
 from efile.workflow import ExistingCase, WorkflowStepKey
@@ -314,3 +317,163 @@ def test_another_filing_from_a_plan_uses_todays_codes(user):
     assert second.case_category_code == "999001"
     assert second.current_step == WorkflowStepKey.UPLOAD_DOCUMENTS
     assert list(FilingDraft.objects.filter(plan=plan).order_by("pk")) == [first, second]
+
+
+# --- Statuses, due dates, and guidance ---------------------------------------
+
+
+def plan_item(plan, item_id, draft=None):
+    return next(entry for entry in checklist_items(plan, draft) if entry["id"] == item_id)
+
+
+@pytest.mark.django_db
+def test_a_document_can_be_already_filed(user):
+    plan = make_plan(make_draft(user))
+
+    set_checklist_answers(plan, {"publication_notice": {"status": "filed"}})
+
+    assert plan_item(plan, "publication_notice")["status"] == "filed"
+    assert plan_item(plan, "publication_notice")["settled"] is True
+
+
+@pytest.mark.django_db
+def test_a_document_can_be_left_until_later_with_a_date(user):
+    plan = make_plan(make_draft(user))
+
+    set_checklist_answers(plan, {"publication_notice": {"status": "later", "due_date": "2026-09-30"}})
+
+    answered = plan_item(plan, "publication_notice")
+    assert answered["status"] == "later"
+    assert answered["due_date"] == date(2026, 9, 30)
+    assert answered["settled"] is False
+
+
+@pytest.mark.django_db
+def test_a_date_is_optional_and_a_date_we_cannot_read_is_not_kept(user):
+    plan = make_plan(make_draft(user))
+
+    set_checklist_answers(plan, {"publication_notice": {"status": "later", "due_date": "next Tuesday"}})
+
+    assert plan_item(plan, "publication_notice")["status"] == "later"
+    assert plan_item(plan, "publication_notice")["due_date"] is None
+    assert "due_date" not in plan.checklist["publication_notice"]
+
+
+@pytest.mark.django_db
+def test_a_date_is_dropped_when_the_answer_stops_being_later(user):
+    plan = make_plan(make_draft(user))
+    set_checklist_answers(plan, {"publication_notice": {"status": "later", "due_date": "2026-09-30"}})
+
+    set_checklist_answers(plan, {"publication_notice": {"status": "have"}})
+
+    assert plan_item(plan, "publication_notice")["due_date"] is None
+
+
+@pytest.mark.django_db
+def test_an_answer_the_plan_never_offered_is_not_recorded(user):
+    plan = make_plan(make_draft(user))
+
+    set_checklist_answers(plan, {"publication_notice": {"status": "burned it"}})
+
+    assert plan_item(plan, "publication_notice")["status"] == ""
+
+
+@pytest.mark.django_db
+def test_plans_written_before_there_were_statuses_still_read(user):
+    plan = make_plan(make_draft(user))
+    FilingPlan.objects.filter(pk=plan.pk).update(
+        checklist={"publication_notice": {"label": "Notice", "requirement": "usually", "complete": True}}
+    )
+    plan.refresh_from_db()
+
+    assert plan_item(plan, "publication_notice")["status"] == "have"
+
+
+@pytest.mark.django_db
+def test_progress_counts_filed_as_done_and_later_separately(user):
+    plan = make_plan(make_draft(user))
+
+    set_checklist_answers(
+        plan,
+        {
+            "petition": {"status": "have"},
+            "proposed_order": {"status": "filed"},
+            "publication_notice": {"status": "later"},
+        },
+    )
+
+    progress = plan_progress(plan)
+    assert progress["complete"] == 2
+    assert progress["later"] == 1
+    assert progress["outstanding"] == progress["total"] - 3
+
+
+@pytest.mark.django_db
+def test_a_plan_keeps_what_its_partner_says_about_this_kind_of_filing(user):
+    plan = make_plan(make_draft(user))
+
+    assert "name change" in plan.guidance["summary"].lower()
+    assert plan.guidance["learn_more_url"].startswith("https://")
+    assert plan.guidance["learn_more_label"]
+
+
+# --- Resolving filing types for checklist items ------------------------------
+
+KANE_FILING_TYPES = [
+    {"code": "6529", "name": "Waiver"},
+    {"code": "6714", "name": "Motion"},
+    {"code": "25946", "name": "Other Document Not Listed"},
+    {"code": "25955", "name": "Petition"},
+]
+
+
+def court_publishes(filing_types):
+    return patch(
+        "efile.services.filing_plans.requests.get",
+        return_value=Mock(raise_for_status=Mock(), json=Mock(return_value=filing_types)),
+    )
+
+
+@pytest.mark.django_db
+def test_the_plan_knows_what_the_court_calls_a_proposed_order(user):
+    draft = make_draft(
+        user, court_code="kane", court_name="Kane County", case_type_code="10589", case_type_name="Change of Name"
+    )
+    ensure_plan_for_draft(draft)
+
+    with court_publishes(KANE_FILING_TYPES):
+        code, name = filing_type_for_item(draft, "proposed_order")
+
+    assert (code, name) == ("25946", "Other Document Not Listed")
+
+
+@pytest.mark.django_db
+def test_the_most_preferred_name_the_court_offers_wins(user):
+    draft = make_draft(
+        user, court_code="kane", court_name="Kane County", case_type_code="10589", case_type_name="Change of Name"
+    )
+    ensure_plan_for_draft(draft)
+
+    with court_publishes([{"code": "40001", "name": "Proposed Order"}, *KANE_FILING_TYPES]):
+        code, name = filing_type_for_item(draft, "proposed_order")
+
+    assert (code, name) == ("40001", "Proposed Order")
+
+
+@pytest.mark.django_db
+def test_a_court_that_names_it_nothing_leaves_the_choice_alone(user):
+    draft = make_draft(user)
+    ensure_plan_for_draft(draft)
+
+    with court_publishes([{"code": "78690", "name": "Petition for Name Change"}]):
+        assert filing_type_for_item(draft, "proposed_order") == ("", "")
+
+
+@pytest.mark.django_db
+def test_an_item_with_no_configured_names_asks_the_court_nothing(user):
+    draft = make_draft(user)
+    ensure_plan_for_draft(draft)
+
+    with court_publishes(KANE_FILING_TYPES) as request:
+        assert filing_type_for_item(draft, "county_division_cover_sheet") == ("", "")
+        assert request.call_count == 0

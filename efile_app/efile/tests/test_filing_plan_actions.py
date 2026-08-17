@@ -6,6 +6,8 @@ putting it in the envelope, to being told before you file if it is still not
 there -- and the home the plan lives at between filings.
 """
 
+from unittest.mock import Mock, patch
+
 import pytest
 from django.urls import reverse
 
@@ -15,6 +17,7 @@ from efile.services.drafts import read_upload_data, write_upload_data
 from efile.services.filing_plans import (
     documents_missing_from_envelope,
     ensure_plan_for_draft,
+    set_checklist_answers,
     set_checklist_progress,
 )
 from efile.workflow import ExistingCase, WorkflowStepKey
@@ -238,6 +241,108 @@ def test_always_needed_documents_are_missed_even_unticked(signed_in):
     assert {item_id: "always" for item_id in always_needed}.items() <= missing.items()
 
 
+@pytest.mark.django_db
+def test_adding_a_document_from_the_checklist_fills_in_its_filing_type(client, signed_in):
+    document = a_supporting_document(signed_in)
+    document.filing_type_code = ""
+    document.filing_type_name = ""
+    document.save()
+
+    with patch(
+        "efile.services.filing_plans.requests.get",
+        return_value=Mock(
+            raise_for_status=Mock(),
+            json=Mock(return_value=[{"code": "6529", "name": "Application for Waiver of Court Fees"}]),
+        ),
+    ):
+        client.post(
+            CHECKLIST_URL,
+            {"action": "attach_item", "item_id": "fee_waiver", "document_id": document.pk},
+        )
+
+    document.refresh_from_db()
+    assert document.filing_type_code == "6529"
+    assert document.filing_type_name == "Application for Waiver of Court Fees"
+
+
+@pytest.mark.django_db
+def test_a_filing_type_the_filer_chose_is_never_overwritten(client, signed_in):
+    document = a_supporting_document(signed_in)
+    document.filing_type_code = "6714"
+    document.filing_type_name = "Motion"
+    document.save()
+
+    with patch(
+        "efile.services.filing_plans.requests.get",
+        return_value=Mock(
+            raise_for_status=Mock(),
+            json=Mock(return_value=[{"code": "6529", "name": "Application for Waiver of Court Fees"}]),
+        ),
+    ):
+        client.post(
+            CHECKLIST_URL,
+            {"action": "attach_item", "item_id": "fee_waiver", "document_id": document.pk},
+        )
+
+    document.refresh_from_db()
+    assert document.filing_type_name == "Motion"
+
+
+@pytest.mark.django_db
+def test_a_court_lookup_that_fails_still_attaches_the_document(client, signed_in):
+    document = a_supporting_document(signed_in)
+    document.filing_type_code = ""
+    document.filing_type_name = ""
+    document.save()
+
+    with patch("efile.services.filing_plans.requests.get", side_effect=OSError("boom")):
+        client.post(
+            CHECKLIST_URL,
+            {"action": "attach_item", "item_id": "fee_waiver", "document_id": document.pk},
+        )
+
+    document.refresh_from_db()
+    assert document.checklist_item_id == "fee_waiver"
+    assert document.filing_type_code == ""
+
+
+@pytest.mark.django_db
+def test_the_checklist_offers_every_answer(client, signed_in):
+    page = client.get(CHECKLIST_URL).content.decode()
+
+    assert "I have it now" in page
+    assert "I already filed this" in page
+    assert "I will file it later" in page
+    assert 'name="due_publication_notice"' in page
+
+
+@pytest.mark.django_db
+def test_answering_on_the_checklist_is_saved(client, signed_in):
+    client.post(
+        CHECKLIST_URL,
+        {
+            "action": "save_progress",
+            "status_proposed_order": "filed",
+            "status_publication_notice": "later",
+            "due_publication_notice": "2026-09-30",
+        },
+    )
+
+    signed_in.refresh_from_db()
+    checklist = signed_in.plan.checklist
+    assert checklist["proposed_order"]["status"] == "filed"
+    assert checklist["publication_notice"]["status"] == "later"
+    assert checklist["publication_notice"]["due_date"] == "2026-09-30"
+
+
+@pytest.mark.django_db
+def test_the_checklist_step_explains_the_list_too(client, signed_in):
+    page = client.get(CHECKLIST_URL).content.decode()
+
+    assert "About this list" in page
+    assert "a guide, not legal advice" in page
+
+
 # --- The warning before filing ----------------------------------------------
 
 
@@ -254,6 +359,33 @@ def test_review_names_what_the_plan_expects_and_the_envelope_lacks(client, signe
     assert "not in this filing" in page
     assert "Request to waive court fees" in page
     assert f"{CHECKLIST_URL}?return_to=review" in page
+
+
+@pytest.mark.django_db
+def test_a_document_already_filed_is_not_a_gap(signed_in):
+    plan = configured_plan(signed_in)
+    set_checklist_answers(plan, {"fee_waiver": {"status": "filed"}})
+
+    missing = {entry["id"] for entry in documents_missing_from_envelope(plan, signed_in)}
+    assert "fee_waiver" not in missing
+
+
+@pytest.mark.django_db
+def test_a_document_left_until_later_is_not_a_gap(signed_in):
+    plan = configured_plan(signed_in)
+    set_checklist_answers(plan, {"fee_waiver": {"status": "later", "due_date": "2026-10-01"}})
+
+    missing = {entry["id"] for entry in documents_missing_from_envelope(plan, signed_in)}
+    assert "fee_waiver" not in missing
+
+
+@pytest.mark.django_db
+def test_a_document_in_hand_but_not_attached_is_still_a_gap(signed_in):
+    plan = configured_plan(signed_in)
+    set_checklist_answers(plan, {"fee_waiver": {"status": "have"}})
+
+    missing = {entry["id"]: entry["reason"] for entry in documents_missing_from_envelope(plan, signed_in)}
+    assert missing["fee_waiver"] == "have"
 
 
 @pytest.mark.django_db
@@ -296,13 +428,33 @@ def test_my_plans_lists_the_matters_i_am_working_on(client, signed_in):
 
 
 @pytest.mark.django_db
+def test_the_plans_page_explains_the_list_and_links_onward(client, signed_in):
+    plan = configured_plan(signed_in)
+
+    page = client.get(PLANS_URL).content.decode()
+
+    assert "About this list" in page
+    assert plan.guidance["learn_more_url"] in page
+    assert "a guide, not legal advice" in page
+
+
+@pytest.mark.django_db
 def test_i_can_work_on_my_plan_between_filings(client, signed_in):
     plan = configured_plan(signed_in)
 
-    client.post(PLANS_URL, {"action": "save_progress", "plan_id": plan.pk, "status_fee_waiver": "have"})
+    client.post(
+        PLANS_URL,
+        {
+            "action": "save_progress",
+            "plan_id": plan.pk,
+            "status_publication_notice": "later",
+            "due_publication_notice": "2026-09-30",
+        },
+    )
 
     plan.refresh_from_db()
-    assert plan.checklist["fee_waiver"]["status"] == "have"
+    assert plan.checklist["publication_notice"]["status"] == "later"
+    assert plan.checklist["publication_notice"]["due_date"] == "2026-09-30"
 
 
 @pytest.mark.django_db
