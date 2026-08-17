@@ -11,7 +11,8 @@ This document explains how the Illinois eFile system uses YAML-based configurati
 5. [Javascript integration](#javascript-integration)
 6. [Adding new case types](#adding-new-case-types)
 7. [Court-specific customizations](#court-specific-customizations)
-8. [Examples](#examples)
+8. [Document checklists](#document-checklists)
+9. [Examples](#examples)
 
 ## System overview
 
@@ -36,9 +37,16 @@ efile/static/config/
 ├── README.md                    # This documentation
 ├── base-case-types.yaml         # Base configuration (all jurisdictions)
 └── states/
-    ├── illinois.yaml            # Illinois-specific overrides
-    └── massachusetts.yaml       # Massachusetts-specific overrides
+    ├── illinois.yaml            # Everything specific to Illinois
+    ├── massachusetts.yaml       # Everything specific to Massachusetts
+    └── vermont.yaml             # Everything specific to Vermont
 ```
+
+A state file is named for its jurisdiction and nothing else — `illinois.yaml`,
+not `illinois-case-types.yaml` — because it holds everything that is specific to
+that state, and that list grows: case types, document checklists, court
+overrides, and jurisdiction display settings such as the navigation title and
+logo all live in the one file.
 
 ### Configuration file hierarchy
 
@@ -46,12 +54,14 @@ efile/static/config/
    - Defines common case types and field structures
    - Provides default field types and validation rules
    - Acts as a template for state-specific extensions
+   - Carries **no** document checklists — see below
 
 2. **State Configuration** (`states/{jurisdiction}.yaml`)
    - Inherits from base configuration
    - Adds state-specific case types
    - Overrides field requirements, labels, and validation
    - Defines court-specific customizations
+   - Holds the document checklists, which are always state-specific
 
 3. **Runtime Merging**
    - Base + State configurations are merged at runtime
@@ -298,6 +308,257 @@ court_specific_requirements:
 - **Cook County (cook:cd1)**: Both Petitioner and Name Sought sections are visible and required
 - **Bond Court (bond)**: Both sections are hidden, and "Required Parties" header is automatically hidden
 - **Other courts**: Petitioner shows by default, Name Sought hidden by default (unless configured otherwise)
+
+## Document checklists
+
+A checklist tells the filer which documents a case like theirs usually needs. It
+is guidance shown on the "Check your documents" screen, not validation: nothing
+in a checklist blocks a submission.
+
+### Checklists belong to a state
+
+Every checklist key — `matches`, `documents`, `about`, `filer_roles` — is
+configured in `states/{jurisdiction}.yaml`, never in `base-case-types.yaml`.
+A name change needs a publication notice in Illinois and does not in most other
+states, and the courts of two states rarely call the same document, case type,
+or filing type by the same name. There is no useful national default to inherit,
+so a state that has not been configured yet simply shows no checklist rather
+than another state's list. `base-case-types.yaml` still supplies the shared
+*form* structure that a state case type `extends`.
+
+### Names, never codes
+
+Checklist configuration identifies a case category, case type, or filing type by
+the **name** the court's e-filing service returns. Tyler's numeric codes are
+still fetched live and used for the actual filing, but they never appear here:
+each court numbers the same concept differently, and the numbers change without
+notice. When a court renames something, add the new name — nothing else changes.
+
+```yaml
+case_types:
+  name_change:
+    extends: "base_case_types.name_change"
+    matches:
+      names:
+        - "Name Change"          # Cook County, County Division
+        - "Change of Name"       # every other circuit checked
+      aliases:
+        - "Petition - Change of Name"
+    documents:
+      petition:
+        label: "Request for name change"
+        requirement: always
+        role: lead
+      publication_notice:
+        label: "Proof that a newspaper published your notice"
+        requirement: usually
+        description: "A newspaper must run the notice once a week for three weeks."
+```
+
+### Requirement levels
+
+`requirement` is one of three values, and it sets the group the item appears in:
+
+| Value | Shown as | Means |
+| --- | --- | --- |
+| `always` | Always needed | The case does not go anywhere without it |
+| `usually` | Usually needed | Standard for this kind of case; some cases skip it |
+| `sometimes` | Sometimes needed | Only when particular facts apply |
+
+An unknown value is logged and treated as `sometimes`.
+
+### Matching rules
+
+Matching is deterministic, never fuzzy. Names are normalized first — case,
+runs of whitespace, and the difference between a hyphen, an en dash, and an em
+dash — and then compared exactly. Cook County spells one dissolution case type
+with a dash and its pair with a hyphen, so that normalizing matters; anything
+beyond it does not, and guessing at legal guidance is not worth the risk.
+
+Resolution order:
+
+1. the case type whose `matches` include the court's case type name;
+2. otherwise the case category whose `matches` include the case category name;
+3. otherwise no checklist at all.
+
+A case type checklist **replaces** category guidance. The two are never merged.
+
+### Guidance that depends on the lead document
+
+Some items only make sense for one kind of lead filing. Add a `when` condition
+naming the filing types, again by name:
+
+```yaml
+      minor_consent:
+        label: "Written consent from the child"
+        requirement: sometimes
+        when:
+          lead_filing_type_names:
+            - "Request for Name Change (Minor Children)"
+```
+
+The item appears only when the lead document's filing type name matches. If the
+lead filing type is not known yet, conditional items stay hidden.
+
+### Filing types for a checklist item
+
+A document added from the checklist has to be filed as *something*, and the
+court's list of filing types runs to dozens of entries. `filing_type_names` says
+what this document is called when it is filed, most preferred first:
+
+```yaml
+      proposed_order:
+        label: "Proposed order for the judge to sign"
+        requirement: always
+        filing_type_names:
+          - "Proposed Order"
+          - "Order"
+          - "Other Document Not Listed"   # Kane
+```
+
+The first name the court actually publishes for this case type wins, so one
+entry covers courts that name the same thing differently. Nothing is guessed:
+when no configured name matches, the filing type is left empty and the filer
+chooses it on the organize step, exactly as before. **A wrong filing type is
+worse than a blank one** — list only names that really mean this document.
+Cook County, for instance, publishes no order or catch-all type for a name
+change, so `proposed_order` is deliberately left unresolved there.
+
+Only ever fills a blank: a filing type the filer picked themselves is never
+overwritten.
+
+### Explaining the list
+
+A list of documents raises a fair question — "is this everything?" — and the
+honest answer does not fit in a caption. `about` is where a case type says what
+this kind of filing is, and what the list cannot know. It appears on the filer's
+plan behind an "About this list" accordion, folded away so it never stands
+between them and filing.
+
+```yaml
+    about:
+      summary: >-
+        A name change asks a judge to make your new name official. Courts differ
+        about the rest, and yours may ask for something this list does not
+        mention.
+      learn_more_url: "https://www.illinoislegalaid.org/legal-information/changing-your-name"
+      learn_more_label: "Changing your name in Illinois (Illinois Legal Aid Online)"
+```
+
+- `learn_more_url` must be an `http://` or `https://` address; anything else is
+  logged and dropped. The link opens in a new tab.
+- Both fields are optional, and most case types will have neither.
+- `by_role` works here too, so each side of a two-sided case gets its own
+  explanation and its own place to read more.
+
+A standing sentence about the list being a guide rather than legal advice is
+always shown underneath, whatever a partner writes, so the caveat cannot be
+configured away.
+
+### Cases with two sides
+
+In a two-sided case, one case type means two different jobs. The landlord in an
+eviction files a complaint; the tenant files an appearance and an answer, and
+needs the same fee waiver described in the opposite direction. A case type that
+declares `filer_roles` is asked about on the confirm-filing screen — "Which side
+of this case are you on?" — and every list below it is that side's list, in that
+side's words.
+
+```yaml
+    filer_roles:
+      landlord:
+        label: "The landlord, or someone filing for the landlord"
+        description: "You are asking the court to end a tenancy."
+        # Matched against the party-type names the court publishes, to suggest
+        # the filer's own party type later. Codes are never named here.
+        party_type_keywords: ["plaintiff", "petitioner"]
+        # Marks a side as the likely one, for the filer to confirm. It is never
+        # chosen for them: which side you are on is a legal fact about you.
+        suggested_when:
+          lead_filing_type_names: ["Complaint", "Eviction Complaint"]
+      tenant:
+        label: "The tenant"
+        party_type_keywords: ["defendant", "respondent"]
+    documents:
+      complaint:
+        label: "Eviction complaint"
+        requirement: always
+        role: lead
+        for_roles: ["landlord"]      # the other side never sees this item
+      proof_of_service:
+        label: "Proof that the other side got a copy"
+        requirement: usually
+        by_role:                     # one requirement, two sentences
+          landlord:
+            label: "Proof that the tenant got the court papers"
+            description: "The sheriff or a special process server files this."
+          tenant:
+            label: "Proof that the landlord got a copy"
+            requirement: always
+```
+
+- `for_roles` limits an item to the sides listed. An item without it belongs to
+  everyone, including cases that declare no sides at all.
+- `by_role` rewrites `label`, `description`, and `requirement` for one side.
+  Nothing else can be overridden: a side may hear about the same document in its
+  own words, but must not be handed a different document under an ID the other
+  side uses for something else.
+- A case type that declares `filer_roles` has **no** checklist until the filer
+  picks a side. Half a list is worse than none: the other half belongs to the
+  party on the other side of the case.
+
+Most case types have no sides, and should not declare any. Asking a name-change
+filer which side they are on is noise.
+
+### Court-specific checklists
+
+`documents` is a dictionary keyed by your own IDs, and court overrides deep
+merge into it, so a court can change one item, add a local form, or drop an
+inherited item without restating the list:
+
+```yaml
+court_specific_requirements:
+  "cook:cd1":
+    case_types:
+      name_change:
+        documents:
+          publication_notice:
+            requirement: always      # change one field of an inherited item
+          county_division_cover_sheet:
+            label: "County Division information sheet"
+            requirement: always      # add a local form
+          fee_waiver:
+            include: false           # drop an inherited item
+```
+
+### Category-level guidance
+
+Broad guidance for cases whose case type nobody has configured yet:
+
+```yaml
+case_categories:
+  small_claims:
+    matches:
+      names:
+        - "Small Claims"
+    documents:
+      supporting_records:
+        label: "Papers that back up your side"
+        requirement: usually
+```
+
+### What the filer sees
+
+The resolved checklist and `about` block are copied into the filer's
+`FilingPlan` — their matter — the first time they reach the checklist screen.
+Because it is a snapshot, editing this YAML later changes what **new** plans get
+and leaves plans people are already working through alone.
+
+Against each item the filer records where they are with it: nothing yet, *I have
+it now*, *I already filed this*, or *I will file it later* with an optional date.
+Only the first two count as sorted out. A document they have but have not
+attached is what the review step warns about; one they have already filed, or
+have deliberately left for later, is not a gap and is not raised again.
 
 ## Examples
 

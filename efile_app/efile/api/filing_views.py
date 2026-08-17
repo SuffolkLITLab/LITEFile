@@ -45,6 +45,55 @@ def get_tyler_token(request, jurisdiction=None):
     return tyler_token
 
 
+def list_filing_data(request, jurisdiction, *, start_date=None):
+    """Return the current Tyler account's filings in its normalized API shape.
+
+    Both the filing-history endpoint and the plan case-link action need this
+    account-scoped list. Keeping the proxy call here means the latter cannot
+    accidentally validate a browser-supplied case ID instead.
+    """
+
+    api_url = f"{settings.EFSP_URL}/jurisdictions/{jurisdiction}/filingreview/courts/0/filings"
+    headers = get_headers()
+    tyler_token = get_tyler_token(request, jurisdiction)
+    if tyler_token:
+        headers[f"tyler-token-{jurisdiction}"] = tyler_token
+    else:
+        logger.info("No Tyler token found for state '%s' in filing-history request", jurisdiction)
+
+    response = requests.get(
+        api_url,
+        params={"start_date": start_date or None, "before_date": None},
+        headers=headers,
+        timeout=30,
+    )
+    logger.debug(
+        "Get filings response: status=%s content_type=%s",
+        response.status_code,
+        response.headers.get("Content-Type"),
+    )
+    response.raise_for_status()
+    return [FilingAPIViews.convert_filing_data(filing) for filing in response.json()]
+
+
+def accepted_case_for_user(request, jurisdiction, case_tracking_id, *, start_date=None):
+    """Return an accepted case the current account has filed into, if any."""
+
+    wanted = str(case_tracking_id or "")
+    if not wanted:
+        return None
+    return next(
+        (
+            filing
+            for filing in list_filing_data(request, jurisdiction, start_date=start_date)
+            if str(filing.get("filing_status", "")).lower() == "accepted"
+            and str(filing.get("case_tracking_id", "")) == wanted
+            and filing.get("case_number")
+        ),
+        None,
+    )
+
+
 class FilingAPIViews(APIResponseMixin):
     """API views for filing operations"""
 
@@ -59,43 +108,7 @@ class FilingAPIViews(APIResponseMixin):
             if not jurisdiction:
                 return JsonResponse({"success": False, "error": "Jurisdiction parameter is required"}, status=400)
 
-            court = "0"  # hardcoded to get filings from all courts
-            before_date = None  # defaults to now
-
-            api_url = f"{settings.EFSP_URL}/jurisdictions/{jurisdiction}/filingreview/courts/{court}/filings"
-
-            # Add query parameter for docket number
-            params = {
-                "start_date": start_date if start_date else None,
-                "before_date": before_date if before_date else None,
-            }
-
-            logger.info(f"Looking up filings in all courts at {api_url}")
-
-            # Get authentication credentials dynamically
-            tyler_token = get_tyler_token(request, jurisdiction)
-
-            headers = get_headers()
-            # Add Tyler token if available
-            if tyler_token:
-                headers[f"tyler-token-{jurisdiction}"] = tyler_token
-            else:
-                # Log that no token was found for debugging
-                logger.info(
-                    "No Tyler token found for state '%s' in Suffolk case lookup request",
-                    jurisdiction,
-                )
-
-            # Make the API request - using GET with query parameters
-            response = requests.get(api_url, params=params, headers=headers, timeout=30)
-            logger.debug(
-                "Get filings response: status=%s content_type=%s",
-                response.status_code,
-                response.headers.get("Content-Type"),
-            )
-            response.raise_for_status()
-            api_data = [FilingAPIViews.convert_filing_data(filing) for filing in response.json()]
-            return FilingAPIViews.success_response(api_data)
+            return FilingAPIViews.success_response(list_filing_data(request, jurisdiction, start_date=start_date))
         except requests.RequestException as e:
             logger.exception("Network error calling Suffolk API")
             return FilingAPIViews.error_response(f"Network error: {str(e)}", status_code=500)

@@ -58,6 +58,12 @@
         return String(item.value ?? item.code ?? item.id ?? "");
     }
 
+    function escapeHtml(value) {
+        const holder = document.createElement("span");
+        holder.textContent = value ?? "";
+        return holder.innerHTML;
+    }
+
     function optionText(item) {
         return (item.text || item.name || optionValue(item)).replace(/\s*\(Recommended\)$/, "");
     }
@@ -233,10 +239,68 @@
         }
     }
 
+    // Which side of the case the filer is on. Only some case types have sides
+    // -- an eviction is two different filings depending on who is making it --
+    // and which ones depends on the case type chosen above, so the question
+    // appears and disappears with it.
+    const roleField = document.getElementById("filer-role-field");
+    const roleOptions = document.getElementById("filer-role-options");
+    let savedRole = context.filer_role || "";
+
+    function chosenRole() {
+        return roleOptions.querySelector('input[name="filer_role"]:checked')?.value || "";
+    }
+
+    function roleOptionHtml(role) {
+        const hint = role.suggested && !savedRole ?
+            ` <em class="filer-role__hint">${gettext("probably you, from the document you uploaded")}</em>` :
+            "";
+        const description = role.description ? `<small>${escapeHtml(role.description)}</small>` : "";
+        return `
+      <label>
+        <input type="radio" name="filer_role" value="${escapeHtml(role.id)}"${role.id === savedRole ? " checked" : ""} />
+        <span><strong>${escapeHtml(role.label)}${hint}</strong>${description}</span>
+      </label>`;
+    }
+
+    async function loadFilerRoles() {
+        // Keep an answer the filer already gave while they edit other fields.
+        savedRole = chosenRole() || savedRole;
+        const caseTypeName = fields.case_type.nameInput.value;
+        if (!caseTypeName) {
+            roleField.hidden = true;
+            roleOptions.innerHTML = "";
+            return;
+        }
+        let roles = [];
+        try {
+            roles = await getJson(`/api/filer-roles/?${new URLSearchParams({
+                jurisdiction: context.jurisdiction,
+                court: fields.court.select.value,
+                case_category_name: fields.case_category.nameInput.value,
+                case_type_name: caseTypeName,
+                filing_type_name: fields.filing_type.nameInput.value,
+            })}`);
+        } catch (error) {
+            // A case type with no sides is the norm, and so is the answer to
+            // this call being nothing. Failing quietly leaves the filer with
+            // the screen they had before, rather than an error about a
+            // question most cases never ask.
+            console.warn("Could not load the sides of this case:", error);
+        }
+        roleOptions.innerHTML = roles.map(roleOptionHtml).join("");
+        roleField.hidden = roles.length === 0;
+    }
+
+    async function loadFilingTypesAndRoles() {
+        await loadFilingTypes();
+        await loadFilerRoles();
+    }
+
     const ADVANCE = {
         court: loadCaseCategories,
         case_category: loadCaseTypes,
-        case_type: loadFilingTypes,
+        case_type: loadFilingTypesAndRoles,
         filing_type: async () => {},
     };
 
@@ -250,15 +314,16 @@
     });
     fields.case_type.select.addEventListener("change", () => {
         fields.case_type.nameInput.value = fields.case_type.select.selectedOptions[0]?.textContent || "";
-        loadFilingTypes();
+        loadFilingTypesAndRoles();
     });
     fields.filing_type.select.addEventListener("change", () => {
         fields.filing_type.nameInput.value = fields.filing_type.select.selectedOptions[0]?.textContent || "";
+        loadFilerRoles();
     });
 
     form.querySelectorAll('input[name="existing_case"]').forEach((radio) => {
         radio.addEventListener("change", () => {
-            if (fields.case_type.select.value) loadFilingTypes();
+            if (fields.case_type.select.value) loadFilingTypesAndRoles();
         });
     });
 
@@ -294,16 +359,19 @@
 
     form.addEventListener("submit", (event) => {
         const isNew = form.querySelector('input[name="existing_case"]:checked')?.value === "new";
-        const missing = isNew && (!fields.court.select.value || !fields.case_category.select.value || !fields.case_type.select.value);
-        if (missing) {
-            event.preventDefault();
-            errorBox.textContent = "Choose a court, case category, and case type from the lists to continue.";
-            errorBox.hidden = false;
-            errorBox.scrollIntoView({
-                behavior: "smooth",
-                block: "center"
-            });
-        }
+        const missingCase = isNew && (!fields.court.select.value || !fields.case_category.select.value || !fields.case_type.select.value);
+        const missingRole = !roleField.hidden && !chosenRole();
+        if (!missingCase && !missingRole) return;
+
+        event.preventDefault();
+        errorBox.textContent = missingCase ?
+            "Choose a court, case category, and case type from the lists to continue." :
+            "Choose which side of this case you are on to continue.";
+        errorBox.hidden = false;
+        (missingCase ? errorBox : roleField).scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+        });
     });
 
     loadCourts();

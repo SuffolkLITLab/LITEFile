@@ -1,6 +1,7 @@
 import json
 import logging
 
+from django.db import transaction
 from django.http import JsonResponse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
@@ -8,6 +9,7 @@ from django.views.decorators.http import require_http_methods
 
 from efile.models import FilingDraft
 from efile.services.current_drafts import clear_current_draft, get_current_draft
+from efile.services.filing_plans import mark_attached_items_filed
 from efile.services.submission_errors import PRE_SUBMIT_ERROR_CODES
 
 from .confirmation import LAST_SUBMITTED_DRAFT_SESSION_KEY
@@ -90,7 +92,9 @@ def submit_final_filing(request):
         return response
 
     if response.status_code < 400 and payload.get("success") is True:
-        draft.mark_submitted(payload.get("api_response") or {})
+        with transaction.atomic():
+            draft.mark_submitted(payload.get("api_response") or {})
+            mark_attached_items_filed(draft)
         request.session[LAST_SUBMITTED_DRAFT_SESSION_KEY] = draft.pk
         request.session.modified = True
         clear_current_draft(request)

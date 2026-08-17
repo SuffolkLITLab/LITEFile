@@ -1,0 +1,185 @@
+{% load static %}
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>{% translate "My filing plans" %}</title>
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
+              rel="stylesheet" />
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+              rel="stylesheet" />
+        <link rel="stylesheet" href="{% static 'css/common.css' %}" />
+        <link rel="stylesheet" href="{% static 'css/options.css' %}" />
+        {# The checklist item styling is shared with the in-flow Check documents step. #}
+        <link rel="stylesheet" href="{% static 'css/reorganized-flow.css' %}" />
+        <link rel="stylesheet" href="{% static 'css/filing_plans.css' %}" />
+    </head>
+    <body>
+        {% include "efile/components/profile_header.html" %}
+        <div style="display: flex; flex-direction: column; align-items:center;">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show"
+                         role="alert"
+                         style="max-width: 50%">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+        <div class="container">
+            <h1>{% translate "My filing plans" %}</h1>
+            <div class="row justify-content-center">
+                <div class="col-xl-7">
+                    <p>
+                        {% translate "A plan is everything you are gathering for one court matter. It stays here between filings, so you can pick up where you left off." %}
+                    </p>
+                    {% for entry in plans %}
+                        <section class="option-card plan-card"
+                                 aria-labelledby="plan-{{ entry.plan.pk }}-title">
+                            <div class="plan-card__head">
+                                <div>
+                                    <h2 id="plan-{{ entry.plan.pk }}-title">{{ entry.plan.title }}</h2>
+                                    <p class="plan-card__case">
+                                        {% if entry.plan.court_name %}{{ entry.plan.court_name }}{% endif %}
+                                        {% if entry.plan.case_type_name %}· {{ entry.plan.case_type_name }}{% endif %}
+                                    </p>
+                                </div>
+                                <div class="plan-card__tally">
+                                    <p class="plan-card__progress">
+                                        {% blocktranslate with complete=entry.progress.complete total=entry.progress.total %}{{ complete }} of {{ total }} sorted out{% endblocktranslate %}
+                                    </p>
+                                    {% if entry.progress.later %}
+                                        <small>{% blocktranslate count counter=entry.progress.later %}1 to file later{% plural %}{{ counter }} to file later{% endblocktranslate %}</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% if entry.plan.is_linked_to_a_case %}
+                                <p class="plan-card__linked">
+                                    <i class="fas fa-link" aria-hidden="true"></i>
+                                    <span>
+                                        {% blocktranslate with docket=entry.plan.docket_number %}Files into case {{ docket }}{% endblocktranslate %}
+                                        {% if entry.plan.case_title %}<small>{{ entry.plan.case_title }}</small>{% endif %}
+                                    </span>
+                                    <button class="btn btn-link btn-sm"
+                                            type="submit"
+                                            form="unlink-{{ entry.plan.pk }}">{% translate "Unlink" %}</button>
+                                </p>
+                            {% else %}
+                                <div class="plan-card__link-case">
+                                    <p>
+                                        <i class="fas fa-circle-info" aria-hidden="true"></i>
+                                        {% translate "Link this plan to one of your court cases, and your next filing goes straight into that case." %}
+                                    </p>
+                                    <div class="plan-case-picker"
+                                         data-plan-id="{{ entry.plan.pk }}"
+                                         aria-live="polite">
+                                        <p class="text-muted">{% translate "Looking for your accepted cases…" %}</p>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            {% with plan_id=entry.plan.pk|stringformat:"s" %}
+                                {% include "efile/components/plan_about.html" with guidance=entry.plan.guidance panel_id="about-"|add:plan_id %}
+                                <form method="post"
+                                      class="plan-card__checklist"
+                                      id="plan-{{ entry.plan.pk }}-form">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="plan_id" value="{{ entry.plan.pk }}" />
+                                    {% for group in entry.groups %}
+                                        <fieldset class="document-plan__group">
+                                            <legend class="document-plan__level document-plan__level--{{ group.requirement }}">{{ group.label }}</legend>
+                                            {% for item in group.items %}
+                                                <div class="document-plan__item document-plan__item--{{ item.status|default:'none' }}">
+                                                    <span>
+                                                        <strong>{{ item.label }}</strong>
+                                                        {% if item.description %}<small>{{ item.description }}</small>{% endif %}
+                                                        {% if item.due_date %}
+                                                            <small class="plan-item-status__promise">
+                                                                {% blocktranslate with when=item.due_date|date:"j F Y" %}You plan to file this by {{ when }}{% endblocktranslate %}
+                                                            </small>
+                                                        {% endif %}
+                                                    </span>
+                                                    {% include "efile/components/checklist_item_status.html" with item=item status_choices=status_choices form_id="plan-"|add:plan_id|add:"-form" %}
+                                                </div>
+                                            {% endfor %}
+                                        </fieldset>
+                                    {% empty %}
+                                        <p class="text-muted">{% translate "This plan has no document list." %}</p>
+                                    {% endfor %}
+                                    <div class="plan-card__actions">
+                                        <button class="btn btn-outline-secondary btn-sm"
+                                                type="submit"
+                                                name="action"
+                                                value="save_progress">{% translate "Save my list" %}</button>
+                                        <button class="btn btn-primary btn-sm"
+                                                type="submit"
+                                                form="start-{{ entry.plan.pk }}">
+                                            {% if entry.plan.is_linked_to_a_case %}
+                                                {% translate "File into this case" %}
+                                            {% else %}
+                                                {% translate "Start a filing for this plan" %}
+                                            {% endif %}
+                                        </button>
+                                    </div>
+                                </form>
+                            {% endwith %}
+                            <details class="plan-card__rename">
+                                <summary>{% translate "Rename this plan" %}</summary>
+                                <form method="post" class="plan-card__rename-form">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="plan_id" value="{{ entry.plan.pk }}" />
+                                    <input type="hidden" name="action" value="rename" />
+                                    <label class="visually-hidden" for="title-{{ entry.plan.pk }}">{% translate "Plan name" %}</label>
+                                    <input class="form-control form-control-sm"
+                                           id="title-{{ entry.plan.pk }}"
+                                           name="title"
+                                           value="{{ entry.plan.title }}"
+                                           maxlength="255" />
+                                    <button class="btn btn-outline-secondary btn-sm" type="submit">{% translate "Save name" %}</button>
+                                </form>
+                            </details>
+                        </section>
+                    {% empty %}
+                        <div class="option-card">
+                            <p>
+                                {% translate "You do not have a filing plan yet. We make one for you when you start a filing in a kind of case we have a document list for." %}
+                            </p>
+                            <a href="{% url 'efile_options' jurisdiction %}" class="btn btn-primary">{% translate "Start a filing" %}</a>
+                        </div>
+                    {% endfor %}
+                    <a href="{% url 'efile_options' jurisdiction %}"
+                       class="btn btn-outline-secondary mb-3">{% translate "Go back" %}</a>
+                </div>
+            </div>
+        </div>
+        {% comment %}
+        Forms that act on a whole plan live outside the checklist form: HTML
+        does not allow a form inside a form, and the buttons above reach these
+        by id.
+        {% endcomment %}
+        {% for entry in plans %}
+            <form method="post"
+                  id="start-{{ entry.plan.pk }}"
+                  class="visually-hidden"
+                  action="{% url 'start_filing_from_plan' jurisdiction entry.plan.pk %}">
+                {% csrf_token %}
+            </form>
+            {% if entry.plan.is_linked_to_a_case %}
+                <form method="post" id="unlink-{{ entry.plan.pk }}" class="visually-hidden">
+                    {% csrf_token %}
+                    <input type="hidden" name="plan_id" value="{{ entry.plan.pk }}" />
+                    <input type="hidden" name="action" value="unlink_case" />
+                </form>
+            {% endif %}
+        {% endfor %}
+        {% include "efile/components/footer.html" %}
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+        <script src="{% url 'javascript-catalog' %}"></script>
+        <script src="{% static 'js/api-utils.js' %}"></script>
+        <script src="{% static 'js/checklist-status.js' %}"></script>
+        <script src="{% static 'js/filing-plans.js' %}"></script>
+    </body>
+</html>

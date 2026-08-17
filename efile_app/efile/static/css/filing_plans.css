@@ -1,0 +1,132 @@
+/* The filer's saved matters. Shares the option-card shell with the options
+   page, and the checklist item styling with the in-flow checklist step. */
+
+.plan-card:hover {
+    border-color: var(--border-default);
+    box-shadow: none;
+    transform: none;
+}
+
+.plan-card__head {
+    align-items: baseline;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: space-between;
+}
+
+.plan-card__head h2 {
+    color: var(--text-heading);
+    font-size: 1.35rem;
+    font-weight: 750;
+    margin: 0;
+}
+
+.plan-card__case {
+    color: var(--text-muted);
+    margin: 0.2rem 0 0;
+}
+
+.plan-card__progress {
+    background: var(--surface-accent);
+    border-radius: 999px;
+    color: var(--better-blue);
+    font-weight: 650;
+    margin: 0;
+    padding: 0.25rem 0.8rem;
+    white-space: nowrap;
+}
+
+.plan-card__linked {
+    align-items: center;
+    background: var(--success-surface);
+    border: 1px solid var(--success-border);
+    border-radius: 10px;
+    color: var(--success-text);
+    display: flex;
+    gap: 0.6rem;
+    margin: 1rem 0;
+    padding: 0.7rem 0.9rem;
+}
+
+.plan-card__linked small {
+    color: var(--text-muted);
+    display: block;
+}
+
+.plan-card__linked button {
+    margin-left: auto;
+    padding: 0;
+}
+
+.plan-card__link-case {
+    background: var(--surface-subtle);
+    border: 1px dashed var(--border-strong);
+    border-radius: 10px;
+    margin: 1rem 0;
+    padding: 0.85rem 1rem;
+}
+
+.plan-card__link-case>p {
+    color: var(--text-muted);
+    margin: 0 0 0.6rem;
+}
+
+.plan-case-option {
+    align-items: center;
+    background: #fff;
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    display: flex;
+    gap: 0.75rem;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    padding: 0.6rem 0.8rem;
+}
+
+.plan-case-option:last-child {
+    margin-bottom: 0;
+}
+
+.plan-case-option small {
+    color: var(--text-muted);
+    display: block;
+}
+
+.plan-card__checklist {
+    margin-top: 1rem;
+}
+
+.plan-card__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.plan-card__rename {
+    margin-top: 1rem;
+}
+
+.plan-card__rename summary {
+    color: var(--better-blue);
+    cursor: pointer;
+    font-weight: 650;
+}
+
+.plan-card__rename-form {
+    display: flex;
+    gap: 0.6rem;
+    margin-top: 0.6rem;
+    max-width: 32rem;
+}
+
+.plan-card__tally {
+    text-align: right;
+}
+
+.plan-card__tally small {
+    color: var(--text-muted);
+    display: block;
+    margin-top: 0.25rem;
+}

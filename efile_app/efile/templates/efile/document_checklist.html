@@ -15,11 +15,178 @@
             <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
             <div>
                 <strong>{% translate "Before you continue" %}</strong>
-                <p>
-                    {% translate "Include every completed court form, exhibit, translation, or proposed order that belongs with this filing. This list cannot tell you which legal forms your case needs." %}
-                </p>
+                {% if checklist_groups %}
+                    <p>
+                        {% blocktranslate with court=plan.court_name|default:filing_draft.court_name %}The list below is a guide for cases like yours at {{ court }}. Your case may need more or fewer documents.{% endblocktranslate %}
+                    </p>
+                {% else %}
+                    <p>
+                        {% translate "Include every completed court form, exhibit, translation, or proposed order that belongs with this filing. This list cannot tell you which legal forms your case needs." %}
+                    </p>
+                {% endif %}
             </div>
         </div>
+        {% if choosing_filer_role %}
+            <section class="document-plan filer-role" aria-labelledby="filer-role-heading">
+                <h2 id="filer-role-heading">{% translate "Which side of this case are you on?" %}</h2>
+                <p class="document-plan__lede">
+                    {% translate "Each side files different documents, so we need to know yours before we can list them." %}
+                </p>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="set_filer_role" />
+                    <input type="hidden" name="return_to" value="{{ return_to }}" />
+                    <fieldset class="choice-stack">
+                        <legend class="visually-hidden">{% translate "Your side of the case" %}</legend>
+                        {% for role in filer_roles %}
+                            <label class="choice-card">
+                                <input type="radio"
+                                       name="filer_role"
+                                       value="{{ role.id }}"
+                                       {% if role.id == filer_role %}checked{% endif %}
+                                       required />
+                                <span>
+                                    <strong>{{ role.label }}
+                                        {% if role.suggested and not filer_role %}
+                                            <em class="filer-role__hint">{% translate "probably you, from the document you uploaded" %}</em>
+                                        {% endif %}
+                                    </strong>
+                                    {% if role.description %}<small>{{ role.description }}</small>{% endif %}
+                                </span>
+                            </label>
+                        {% endfor %}
+                    </fieldset>
+                    <button class="btn btn-primary" type="submit">{% translate "Show my documents" %}</button>
+                </form>
+            </section>
+        {% endif %}
+        {% if checklist_groups %}
+            <section class="document-plan" aria-labelledby="document-plan-heading">
+                <h2 id="document-plan-heading">{% translate "Your document plan" %}</h2>
+                <p class="document-plan__lede">
+                    {% translate "Say where you are with each document, and add the ones you have. We save this list, so you can come back to it." %}
+                </p>
+                {% include "efile/components/plan_about.html" with guidance=guidance panel_id="checklist-about" %}
+                {% if filer_role_label %}
+                    <p class="filer-role__chosen">
+                        <i class="fa-solid fa-user-check" aria-hidden="true"></i>
+                        <span>{% blocktranslate with side=filer_role_label %}This list is for <strong>{{ side }}</strong>.{% endblocktranslate %}</span>
+                        <a href="{% url 'extraction_review' jurisdiction %}">{% translate "Not you?" %}</a>
+                    </p>
+                {% endif %}
+                {% if ready_to_add %}
+                    <div class="plan-alert plan-alert--action" role="note">
+                        <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                        <div>
+                            <strong>{% blocktranslate count counter=ready_to_add|length %}You have 1 document that is not in this filing yet{% plural %}You have {{ counter }} documents that are not in this filing yet{% endblocktranslate %}</strong>
+                            <ul>
+                                {% for item in ready_to_add %}
+                                    <li>{{ item.label }}</li>
+                                {% endfor %}
+                            </ul>
+                            <p>
+                                {% translate "Add them below if they are ready. If you send them later, the clerk may wait for them before acting on your case." %}
+                            </p>
+                        </div>
+                    </div>
+                {% endif %}
+                {% for group in checklist_groups %}
+                    <fieldset class="document-plan__group">
+                        <legend class="document-plan__level document-plan__level--{{ group.requirement }}">{{ group.label }}</legend>
+                        {% for item in group.items %}
+                            <div class="document-plan__row">
+                                <div class="document-plan__item document-plan__item--{{ item.status|default:'none' }}">
+                                    <span>
+                                        <strong>{{ item.label }}</strong>
+                                        {% if item.description %}<small>{{ item.description }}</small>{% endif %}
+                                    </span>
+                                    {% if not item.attached %}
+                                        {% include "efile/components/checklist_item_status.html" with item=item status_choices=status_choices form_id="checklist-confirm-form" %}
+                                    {% endif %}
+                                </div>
+                                {% if item.attached %}
+                                    <p class="document-plan__attached">
+                                        <i class="fa-solid fa-paperclip" aria-hidden="true"></i>
+                                        <span>{% blocktranslate with filename=item.attached.name|default:item.attached.original_filename %}In this filing as <strong>{{ filename }}</strong>{% endblocktranslate %}</span>
+                                        <button class="btn btn-link btn-sm" type="submit" form="detach-{{ item.id }}">{% translate "Not this file" %}</button>
+                                    </p>
+                                {% else %}
+                                    <div class="document-plan__attach"
+                                         id="attach-{{ item.id }}"
+                                         {% if item.status != "have" %}hidden{% endif %}>
+                                        <p class="document-plan__attach-lede">
+                                            {% translate "Add it to this filing now, so the court gets it with everything else." %}
+                                        </p>
+                                        <div class="document-plan__attach-fields">
+                                            <label class="form-field">
+                                                <span class="visually-hidden">{% blocktranslate with label=item.label %}PDF for {{ label }}{% endblocktranslate %}</span>
+                                                <input class="form-control form-control-sm"
+                                                       type="file"
+                                                       name="document"
+                                                       accept=".pdf,application/pdf"
+                                                       form="attach-form-{{ item.id }}" />
+                                            </label>
+                                            {% if documents %}
+                                                <label class="form-field">
+                                                    <span>{% translate "or a file you already added" %}</span>
+                                                    <select class="form-select form-select-sm"
+                                                            name="document_id"
+                                                            form="attach-form-{{ item.id }}">
+                                                        <option value="">{% translate "Choose a file…" %}</option>
+                                                        {% for document in documents %}
+                                                            <option value="{{ document.pk }}">{{ document.name|default:document.original_filename }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </label>
+                                            {% endif %}
+                                            <button class="btn btn-outline-primary btn-sm"
+                                                    type="submit"
+                                                    form="attach-form-{{ item.id }}">
+                                                {% translate "Add to this filing" %}
+                                            </button>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </fieldset>
+                {% endfor %}
+                <button class="btn btn-outline-secondary btn-sm document-plan__save"
+                        type="submit"
+                        form="checklist-confirm-form"
+                        name="action"
+                        value="save_progress"
+                        formnovalidate>{% translate "Save my list" %}</button>
+            </section>
+            {% comment %}
+            One form per checklist item, kept out of the list markup: a form
+            cannot be nested inside the confirm form, and the controls above
+            reach these by id with the form attribute.
+            {% endcomment %}
+            {% for group in checklist_groups %}
+                {% for item in group.items %}
+                    {% if item.attached %}
+                        <form method="post" id="detach-{{ item.id }}" class="visually-hidden">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="detach_item" />
+                            <input type="hidden" name="item_id" value="{{ item.id }}" />
+                            <input type="hidden" name="return_to" value="{{ return_to }}" />
+                        </form>
+                    {% else %}
+                        <form method="post"
+                              id="attach-form-{{ item.id }}"
+                              class="visually-hidden"
+                              enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="attach_item" />
+                            <input type="hidden" name="item_id" value="{{ item.id }}" />
+                            <input type="hidden" name="return_to" value="{{ return_to }}" />
+                        </form>
+                    {% endif %}
+                {% endfor %}
+            {% endfor %}
+        {% endif %}
+        <h2 class="checklist-files__heading">{% translate "Files you have added" %}</h2>
         <div class="checklist-files">
             {% for document in documents %}
                 <article class="checklist-file">
@@ -71,6 +238,7 @@
         </div>
         <form method="post" id="checklist-confirm-form">
             {% csrf_token %}
+            <input type="hidden" name="return_to" value="{{ return_to }}" />
             <label class="checklist-confirmation">
                 <input class="form-check-input"
                        type="checkbox"
@@ -84,12 +252,24 @@
                 <a class="btn btn-outline-secondary"
                    href="{% url 'extraction_review' jurisdiction %}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {% translate "Back" %}</a>
                 <button class="btn btn-primary" type="submit">
-                    {% translate "Continue to organize" %} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                    {% if return_to == "review" %}
+                        {% translate "Back to review" %}
+                    {% else %}
+                        {% translate "Continue to organize" %}
+                    {% endif %}
+                    <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
                 </button>
             </div>
         </form>
+        {% if plan %}
+            <p class="document-plan__link">
+                <i class="fa-solid fa-list-check" aria-hidden="true"></i>
+                <a href="{% url 'filing_plans' jurisdiction %}">{% blocktranslate with title=plan.title %}See all my filing plans, including {{ title }}{% endblocktranslate %}</a>
+            </p>
+        {% endif %}
     </section>
 {% endblock workflow_content %}
 {% block extra_js %}
+    <script src="{% static 'js/checklist-status.js' %}"></script>
     <script src="{% static 'js/document-checklist.js' %}"></script>
 {% endblock extra_js %}

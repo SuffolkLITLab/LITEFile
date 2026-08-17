@@ -19,3 +19,7 @@ inherits_from: "base-case-types.yaml"
 case_types:
   name_change:
     extends: "base_case_types.name_change"
+    # Form structure only so far. Document checklists are state-specific -- what
+    # Vermont requires, and what its courts call each form, is not what Illinois
+    # requires -- so add `matches` and `documents` here to turn one on. See the
+    # "Document checklists" section of ../README.md.

@@ -1,0 +1,38 @@
+{% load i18n %}
+{% comment %}
+One document on the plan, and where the filer is with it. Having it is only one
+way to be done: it may already be at the court from an earlier filing, or be
+deliberately left until later. All four answers are on show rather than folded
+into a menu, so the choice is one click and the shape of the question is visible
+at a glance. Expects `item`, `status_choices`, and `form_id` (the form these
+controls belong to, which is not their parent element).
+{% endcomment %}
+<div class="plan-item-status">
+    <fieldset class="segmented">
+        <legend class="visually-hidden">
+            {% blocktranslate with label=item.label %}Where you are with {{ label }}{% endblocktranslate %}
+        </legend>
+        {% for choice in status_choices %}
+            <label class="segmented__option">
+                <input type="radio"
+                       name="status_{{ item.id }}"
+                       value="{{ choice.value }}"
+                       form="{{ form_id }}"
+                       aria-label="{{ choice.label }}"
+                       data-due-target="due-{{ form_id }}-{{ item.id }}"
+                       {% if choice.value == item.status %}checked{% endif %} />
+                <span>{{ choice.short }}</span>
+            </label>
+        {% endfor %}
+    </fieldset>
+    <label class="plan-item-status__due"
+           id="due-{{ form_id }}-{{ item.id }}"
+           {% if item.status != "later" %}hidden{% endif %}>
+        <span>{% translate "By when?" %} <em>{% translate "optional" %}</em></span>
+        <input class="form-control form-control-sm"
+               type="date"
+               name="due_{{ item.id }}"
+               form="{{ form_id }}"
+               value="{{ item.due_date|date:'Y-m-d' }}" />
+    </label>
+</div>

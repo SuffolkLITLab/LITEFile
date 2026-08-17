@@ -137,6 +137,19 @@
                     <small id="docket-number-hint">{% translate "Leave blank if the court has not assigned one." %}</small>
                 </div>
             </div>
+            {% comment %}
+            Only case types that mean different jobs for different parties --
+            an eviction, say -- offer sides. The list depends on the case type
+            being chosen just above, so it is filled in by extraction-review.js
+            and stays hidden for every other case.
+            {% endcomment %}
+            <fieldset class="path-confirmation filer-role" id="filer-role-field" hidden>
+                <legend>{% translate "Which side of this case are you on?" %}</legend>
+                <p class="filer-role__lede">
+                    {% translate "Each side files different documents, so we need to know yours before we can list them." %}
+                </p>
+                <div class="filer-role__options" id="filer-role-options"></div>
+            </fieldset>
             <fieldset class="path-confirmation">
                 <legend>{% translate "Is this for a new or existing court case?" %}</legend>
                 <label>

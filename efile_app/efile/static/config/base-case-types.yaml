@@ -81,7 +81,14 @@ defaults:
               column_width: "col-12"
 
 
-# Base case type templates that states can inherit from
+# Base case type templates that states can inherit from.
+#
+# Form structure only. Document checklists (`matches`, `documents`, `about`,
+# `filer_roles`) are deliberately not here: which forms a case needs, and what
+# the court calls them, is a question of state law and local practice, and the
+# answer is rarely the same in two states. Those live in
+# `states/<jurisdiction>.yaml` -- see the "Document checklists" section of
+# README.md.
 base_case_types:
   name_change:
     keywords: ["name change", "name petition", "change of name"]

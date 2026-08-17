@@ -7,6 +7,7 @@ import logging
 
 from django.views.decorators.http import require_http_methods
 
+from ..services.document_checklists import resolve_filer_roles
 from ..utils.config_loader import config_loader
 from .base import APIResponseMixin
 
@@ -70,6 +71,33 @@ class ConfigAPIViews(APIResponseMixin):
         except Exception as e:
             return ConfigAPIViews.error_response(f"Error: {str(e)}")
 
+    @staticmethod
+    @require_http_methods(["GET"])
+    def get_filer_roles(request):
+        """Get the sides a filing in this case can come from.
+
+        Empty for most case types. Where it is not empty -- an eviction, where
+        the landlord and the tenant file different documents under one case
+        type -- the confirm-filing screen asks which side the filer is on, so
+        it must ask while the case type is still being chosen, before anything
+        is saved. Everything here is looked up by name from partner
+        configuration; no court codes are involved.
+        """
+
+        jurisdiction = request.GET.get("jurisdiction") or request.session.get("jurisdiction")
+        if not jurisdiction:
+            return ConfigAPIViews.error_response("Missing required parameter: jurisdiction")
+
+        roles = resolve_filer_roles(
+            jurisdiction=jurisdiction,
+            court_code=request.GET.get("court", ""),
+            case_category_name=request.GET.get("case_category_name", ""),
+            case_type_name=request.GET.get("case_type_name", ""),
+            lead_filing_type_name=request.GET.get("filing_type_name", ""),
+        )
+        return ConfigAPIViews.success_response(roles)
+
 
 # Individual view functions for URL mapping
 get_form_config = ConfigAPIViews.get_form_config
+get_filer_roles = ConfigAPIViews.get_filer_roles

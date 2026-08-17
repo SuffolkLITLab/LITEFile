@@ -36,6 +36,11 @@ def keys(workflow):
     return [step.key for step in workflow]
 
 
+def key_of(step):
+    assert step is not None
+    return step.key
+
+
 def test_target_workflow_declares_every_reorganized_screen():
     assert get_workflow_steps() == FILING_WORKFLOW
     assert keys(FILING_WORKFLOW) == [
@@ -61,8 +66,8 @@ def test_every_draft_uses_the_canonical_workflow_after_migration():
     pre_migration_version = draft(current_step=WorkflowStepKey.PAYMENT, workflow_version=1)
 
     assert get_visible_workflow(pre_migration_version) != ()
-    assert get_previous_step(WorkflowStepKey.PAYMENT, pre_migration_version).key == WorkflowStepKey.PARTIES
-    assert get_next_step(WorkflowStepKey.PAYMENT, pre_migration_version).key == WorkflowStepKey.REVIEW
+    assert key_of(get_previous_step(WorkflowStepKey.PAYMENT, pre_migration_version)) == WorkflowStepKey.PARTIES
+    assert key_of(get_next_step(WorkflowStepKey.PAYMENT, pre_migration_version)) == WorkflowStepKey.REVIEW
 
 
 @pytest.mark.parametrize(
@@ -89,7 +94,7 @@ def test_new_case_skips_lookup_and_confirmation():
 
     assert WorkflowStepKey.CASE_LOOKUP not in keys(get_visible_workflow(new_case))
     assert WorkflowStepKey.CASE_CONFIRMATION not in keys(get_visible_workflow(new_case))
-    assert get_next_step(WorkflowStepKey.EXTRACTION_REVIEW, new_case).key == WorkflowStepKey.DOCUMENT_CHECKLIST
+    assert key_of(get_next_step(WorkflowStepKey.EXTRACTION_REVIEW, new_case)) == WorkflowStepKey.DOCUMENT_CHECKLIST
 
 
 def test_existing_case_uses_lookup_and_confirmation():
@@ -97,7 +102,7 @@ def test_existing_case_uses_lookup_and_confirmation():
 
     assert WorkflowStepKey.CASE_LOOKUP in keys(get_visible_workflow(existing_case))
     assert WorkflowStepKey.CASE_CONFIRMATION in keys(get_visible_workflow(existing_case))
-    assert get_next_step(WorkflowStepKey.EXTRACTION_REVIEW, existing_case).key == WorkflowStepKey.CASE_LOOKUP
+    assert key_of(get_next_step(WorkflowStepKey.EXTRACTION_REVIEW, existing_case)) == WorkflowStepKey.CASE_LOOKUP
 
 
 def test_unsure_case_stays_on_extraction_review():

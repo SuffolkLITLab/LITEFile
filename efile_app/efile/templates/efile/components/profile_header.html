@@ -31,6 +31,15 @@
                             </p>
                         </div>
                         <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="{% url 'filing_plans' jurisdiction %}">
+                            <i class="fas fa-list-check" aria-hidden="true"></i>
+                            <span>{% translate "My filing plans" %}</span>
+                        </a>
+                        <a class="dropdown-item" href="{% url 'filing_statuses' jurisdiction %}">
+                            <i class="fas fa-file-circle-check" aria-hidden="true"></i>
+                            <span>{% translate "My past filings" %}</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
                     {% else %}
                         <div class="profile-menu-summary">
                             <p class="profile-menu-name">{% translate "You are not signed in" %}</p>
