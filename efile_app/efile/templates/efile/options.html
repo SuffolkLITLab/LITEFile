@@ -34,6 +34,10 @@
             <div class="row justify-content-center">
                 <div class="col-xl-7">
                     <p>{{ config.jurisdiction.copyedit.landing_text | md_to_html }}</p>
+                    <div class="alert alert-danger"
+                         id="start-filing-error"
+                         role="alert"
+                         hidden></div>
                     {% if not is_logged_in %}
                         <div class="option-card">
                             <div class="d-flex align-items-center mb-3">
@@ -53,6 +57,56 @@
                         </div>
                     {% else %}
                         <div id="existing-placeholder"></div>
+                        {% if plans %}
+                            <div class="option-card">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="option-icon">
+                                        <i class="fas fa-list-check"></i>
+                                    </div>
+                                    <div class="option-content">
+                                        <h2>{% translate "My filing plans" %}</h2>
+                                        <p>{% translate "Pick up a court matter you already started gathering documents for." %}</p>
+                                    </div>
+                                </div>
+                                <ul class="options-plan-list">
+                                    {% for entry in plans %}
+                                        <li>
+                                            <span>
+                                                <strong>{{ entry.plan.title }}</strong>
+                                                <small>
+                                                    {% blocktranslate with complete=entry.progress.complete total=entry.progress.total %}{{ complete }} of {{ total }} documents sorted out{% endblocktranslate %}
+                                                    {% if entry.plan.is_linked_to_a_case %}
+                                                        {% blocktranslate with docket=entry.plan.docket_number %}· files into case {{ docket }}{% endblocktranslate %}
+                                                    {% endif %}
+                                                </small>
+                                            </span>
+                                            <form method="post"
+                                                  action="{% url 'start_filing_from_plan' jurisdiction entry.plan.pk %}">
+                                                {% csrf_token %}
+                                                <button class="btn btn-outline-primary btn-sm" type="submit">
+                                                    {% if entry.plan.is_linked_to_a_case %}
+                                                        {% translate "File into this case" %}
+                                                    {% else %}
+                                                        {% translate "Start a filing" %}
+                                                    {% endif %}
+                                                </button>
+                                            </form>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                                <div class="button-group">
+                                    <a href="{% url 'filing_plans' jurisdiction %}"
+                                       class="btn btn-primary"
+                                       tabindex="0">
+                                        {% if plan_count > plans|length %}
+                                            {% blocktranslate %}See all {{ plan_count }}{% endblocktranslate %}
+                                        {% else %}
+                                            {% translate "See my plans" %}
+                                        {% endif %}
+                                    </a>
+                                </div>
+                            </div>
+                        {% endif %}
                         <div class="option-card">
                             <div class="d-flex align-items-center mb-3">
                                 <div class="option-icon">
@@ -99,7 +153,12 @@
             function goToExpertForm(new_or_existing) {
                 if (new_or_existing === "new") {
                     makeNewDraft().then((result) => {
-                        window.location.href = result.redirect_url || `/jurisdiction/{{jurisdiction}}/filing-path/`;
+                        window.location.href = result.redirect_url;
+                    }).catch((error) => {
+                        console.error('Could not start a new filing:', error);
+                        const box = document.getElementById('start-filing-error');
+                        box.textContent = gettext('We could not start a new filing. Check your connection and try again.');
+                        box.hidden = false;
                     });
                 } else {
                     const resumeUrl = JSON.parse(document.getElementById("resume-url").textContent);
@@ -121,38 +180,17 @@
                 return false;
             }
 
+            // Starting a filing means creating one. There is no falling back to
+            // "just go to the first screen": a screen with no filing of its own
+            // used to pick up whichever one was most recent, which is how a new
+            // filing could open holding last month's documents.
             async function makeNewDraft() {
-                try {
-                    sessionStorage.removeItem('session_id');
-                    const result = await apiUtils.post(`/jurisdiction/{{jurisdiction}}/drafts/`, {});
-                    if (!result.success) {
-                        throw new Error(result.error || 'Unable to create draft');
-                    }
-                    return result;
-                } catch (error) {
-                    console.warn('Error creating draft; falling back to session start:', error);
-                    await makeNewCaseData();
-                    return {
-                        redirect_url: `/jurisdiction/{{jurisdiction}}/filing-path/`
-                    };
+                sessionStorage.removeItem('session_id');
+                const result = await apiUtils.post(`/jurisdiction/{{jurisdiction}}/drafts/`, {});
+                if (!result.success || !result.redirect_url) {
+                    throw new Error(result.error || 'Unable to start a new filing');
                 }
-            }
-
-            // Function to save existing_case data to the session
-            async function makeNewCaseData() {
-                // Save to session storage as immediate fallback for the legacy start path
-                let new_uuid = self.crypto.randomUUID();
-                sessionStorage.setItem('session_id', new_uuid);
-                try {
-                    // Also make an API call to save server-side if needed
-                    await apiUtils.saveCaseData({
-                        session_id: new_uuid,
-                        jurisdiction: `{{jurisdiction}}`,
-                    });
-                } catch (error) {
-                    console.warn('Error saving case data:', error);
-                    // Session storage fallback is already in place
-                }
+                return result;
             }
 
             function useExistingCardHtml() {

@@ -77,9 +77,30 @@ class FilingPlan(models.Model):
     case_type_name = models.CharField(max_length=255, blank=True)
     lead_filing_type_name = models.CharField(max_length=255, blank=True)
 
+    # Which side of the case the filer is on, as one of the role IDs the
+    # partner configured for this case type ("landlord", "tenant"). It decides
+    # which documents the checklist lists and how they are worded, so it is
+    # part of what the matter *is*, not of any one envelope.
+    filer_role = models.CharField(max_length=60, blank=True)
+
+    # The court case this matter has become, once one exists: Tyler's case
+    # tracking ID plus the docket number and title a person recognizes. Unlike
+    # the code fields above, a tracking ID is a permanent identifier for one
+    # case rather than a lookup key into a list the court renumbers, so it is
+    # safe to keep. A plan that has one can file into that case directly.
+    case_tracking_id = models.CharField(max_length=255, blank=True)
+    docket_number = models.CharField(max_length=255, blank=True)
+    case_title = models.CharField(max_length=500, blank=True)
+
     # {item_id: {"label": str, "requirement": "always|usually|sometimes",
-    #            "description": str (optional), "complete": bool}}
+    #            "description": str (optional), "status": "|have|filed|later",
+    #            "due_date": "YYYY-MM-DD" (optional)}}
     checklist = models.JSONField(default=dict, blank=True)
+
+    # What this kind of filing is about, in the partner's words, snapshotted the
+    # same way and for the same reason as the checklist:
+    # {"summary": str, "learn_more_url": str, "learn_more_label": str}
+    guidance = models.JSONField(default=dict, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -92,6 +113,10 @@ class FilingPlan(models.Model):
 
     def __str__(self):
         return self.title or f"Filing plan #{self.pk}"
+
+    @property
+    def is_linked_to_a_case(self) -> bool:
+        return bool(self.case_tracking_id and self.docket_number)
 
 
 class FilingDraft(models.Model):
@@ -164,6 +189,10 @@ class FilingDraft(models.Model):
     optional_services = models.JSONField(default=list, blank=True)
     extracted_guesses = models.JSONField(default=dict, blank=True)
     document_checklist_acknowledged = models.BooleanField(default=False)
+    # The side of the case this filer is on, when the case type distinguishes
+    # them (see FilingPlan.filer_role). Held here as well as on the plan so the
+    # question can be answered before a plan exists.
+    filer_role = models.CharField(max_length=60, blank=True)
     # The dollar amount at stake, required by the EFSP when any document's
     # filing type is flagged "amountincontroversy: Required". Stored as text
     # (like the fee fields) since it's echoed back to the API rather than
@@ -233,6 +262,12 @@ class FilingDocument(models.Model):
     # types. Recorded per document, since each can carry a different filing
     # type; case_questions asks for the dollar amount if any document needs it.
     filing_requires_amount_in_controversy = models.BooleanField(default=False)
+
+    # The plan checklist item this document answers, when the filer said which
+    # one it is. It is how "I have my fee waiver" becomes "my fee waiver is in
+    # this envelope", so the checklist can stop asking and the review step can
+    # warn about anything the filer has but has not attached.
+    checklist_item_id = models.CharField(max_length=100, blank=True)
 
     courtesy_copy_email = models.EmailField(blank=True)
     # Codes selected from the court's optional-services list for this document

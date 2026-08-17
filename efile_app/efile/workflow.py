@@ -327,7 +327,18 @@ def with_return_to(url: str, return_to: str | None) -> str:
     return f"{url}{separator}return_to={return_to}"
 
 
-def get_resume_step_url(current_step: WorkflowStepKey | str | None, jurisdiction: str) -> str | None:
+def get_resume_step_url(
+    current_step: WorkflowStepKey | str | None,
+    jurisdiction: str,
+    draft_id: int | None = None,
+) -> str | None:
+    """Where "continue where you left off" goes, naming the draft it means.
+
+    The draft is named in the URL because resuming is the filer's decision.
+    Screens do not otherwise go looking for a filing to continue, so this is
+    what tells them which one.
+    """
+
     if current_step is None:
         return None
     try:
@@ -337,7 +348,11 @@ def get_resume_step_url(current_step: WorkflowStepKey | str | None, jurisdiction
     if step_key == WorkflowStepKey.OPTIONS:
         step_key = WorkflowStepKey.FILING_PATH
     step_key = LEGACY_STEP_TARGETS.get(step_key, step_key)
-    return get_step_url(step_key, jurisdiction)
+    url = get_step_url(step_key, jurisdiction)
+    if draft_id is None:
+        return url
+    separator = "&" if "?" in url else "?"
+    return f"{url}{separator}draft={draft_id}"
 
 
 def get_workflow_context(

@@ -5,6 +5,7 @@ from django.views.decorators.http import require_http_methods
 from efile.api.suffolk_api_views import get_tyler_token
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.drafts import draft_snapshot, write_case_data
+from efile.services.filing_plans import link_case_to_plan, remember_case_for_plan
 from efile.workflow import ExistingCase, WorkflowStepKey, get_step_url, get_workflow_context
 
 
@@ -27,9 +28,18 @@ def case_confirmation(request, jurisdiction):
 
     if request.method == "POST":
         if request.POST.get("confirmed") == "yes":
+            # The filer has just told us which court case this matter is. Keep
+            # it on the plan so their next filing goes into the same case
+            # without searching for it again.
+            remember_case_for_plan(draft)
             draft.current_step = WorkflowStepKey.DOCUMENT_CHECKLIST
             draft.save(update_fields=["current_step", "updated_at"])
             return redirect(get_step_url(WorkflowStepKey.DOCUMENT_CHECKLIST, jurisdiction))
+
+        # Saying "this is not my case" about the case the plan proposed means
+        # the plan is pointing at the wrong one, so it stops pointing anywhere.
+        if draft.plan is not None and draft.plan.case_tracking_id == draft.previous_case_id:
+            link_case_to_plan(draft.plan, case_tracking_id="", docket_number="", case_title="")
 
         write_case_data(
             draft,

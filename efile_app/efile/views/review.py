@@ -5,6 +5,7 @@ from efile.api.suffolk_api_views import get_tyler_token
 from efile.models import FilingDocument, FilingParty
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.drafts import draft_snapshot, read_case_data, read_upload_data
+from efile.services.filing_plans import documents_missing_from_envelope
 from efile.services.people import get_case_questions
 
 from ..workflow import WorkflowStepKey, get_workflow_context
@@ -45,6 +46,10 @@ def case_review(request, jurisdiction):
         "parties": parties.exclude(role="filer").order_by("sort_order", "created_at"),
         "documents": FilingDocument.objects.filter(draft=draft).order_by("role", "sort_order", "created_at"),
         "question_answers": question_answers,
+        # Everything in one envelope reaches the clerk together. This is the
+        # last point at which adding a document is still free and easy, so say
+        # what the filer's own plan expects and this envelope does not have.
+        "plan_missing_documents": documents_missing_from_envelope(draft.plan, draft),
     }
     context.update(get_workflow_context(WorkflowStepKey.REVIEW, jurisdiction, draft))
     return render(request, "efile/review.html", context)

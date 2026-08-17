@@ -1,0 +1,26 @@
+{% load i18n %}
+{% comment %}
+What this list is for, and what it cannot know. Folded away by default: a filer
+who wants to get on with filing should not have to read it, and a filer who
+wonders "is this really everything?" deserves a straight answer. Expects
+`guidance` (a plan's snapshotted about block) and `panel_id`.
+{% endcomment %}
+<details class="plan-about" id="{{ panel_id }}">
+    <summary>{% translate "About this list" %}</summary>
+    <div class="plan-about__body">
+        {% if guidance.summary %}<p>{{ guidance.summary }}</p>{% endif %}
+        <p>
+            {% translate "This list is a guide, not legal advice. We built it from what cases like yours usually need, so your case may need documents that are not here, and may not need some that are. Only the court can tell you for certain, and the clerk cannot give you legal advice." %}
+        </p>
+        {% if guidance.learn_more_url %}
+            <p class="plan-about__link">
+                <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+                <a href="{{ guidance.learn_more_url }}"
+                   target="_blank"
+                   rel="noopener noreferrer">
+                    {% firstof guidance.learn_more_label _("Read more about this kind of case") %}
+                </a>
+            </p>
+        {% endif %}
+    </div>
+</details>

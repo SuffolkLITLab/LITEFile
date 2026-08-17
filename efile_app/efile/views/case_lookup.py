@@ -25,6 +25,12 @@ def case_lookup(request, jurisdiction):
     if draft.existing_case != ExistingCase.EXISTING:
         messages.info(request, "Case lookup is only needed for an existing court case.")
         return redirect("document_checklist", jurisdiction=jurisdiction)
+    if request.method == "GET" and draft.previous_case_id and draft.docket_number:
+        # The case is already known -- usually because this filing came from a
+        # plan that files into it. Searching for a case we have is busywork;
+        # the confirm step is where the filer says whether it is the right one,
+        # and answering no there comes back here with the case cleared.
+        return redirect(get_step_url(WorkflowStepKey.CASE_CONFIRMATION, jurisdiction))
 
     if request.method == "POST":
         try:

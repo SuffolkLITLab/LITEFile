@@ -7,6 +7,7 @@ import requests
 from django.conf import settings
 
 from efile.models import FilingDocument, FilingDraft, FilingParty
+from efile.services.document_checklists import party_type_keywords_for_role
 from efile.utils.config_loader import config_loader
 from efile.workflow import ExistingCase
 
@@ -57,24 +58,34 @@ def get_party_types(draft: FilingDraft) -> list[dict[str, Any]]:
 
 
 def guess_filer_party_type(draft: FilingDraft, party_types: list[dict[str, Any]]) -> dict[str, Any] | None:
-    """Suggest the filer's role from case posture alone -- never authoritative.
+    """Suggest the filer's role -- a suggestion, never authoritative.
 
-    A brand new case is almost always opened by the plaintiff/petitioner; an
-    "Answer" is almost always filed by the defendant/respondent. Callers must
-    treat this as a one-click suggestion, never pre-fill it: it's a heuristic
-    that can be wrong (e.g. a co-plaintiff answering on their own claim), and
-    silently pre-selecting a party's legal role is the kind of mistake a filer
-    might not think to double check.
+    When the case type has sides and the filer has already said which one is
+    theirs, that answer decides the suggestion. Otherwise it falls back to case
+    posture: a brand new case is almost always opened by the
+    plaintiff/petitioner; an "Answer" is almost always filed by the
+    defendant/respondent. Callers must treat the result as a one-click
+    suggestion, never pre-fill it: it can be wrong (e.g. a co-plaintiff
+    answering on their own claim), and silently pre-selecting a party's legal
+    role is the kind of mistake a filer might not think to double check.
     """
     lead = FilingDocument.objects.filter(draft=draft, role=FilingDocument.Role.LEAD).first()
     filing_type_name = (lead.filing_type_name if lead else "") or ""
 
-    if "answer" in filing_type_name.lower():
-        keywords = _RESPONDING_PARTY_KEYWORDS
-    elif draft.existing_case == ExistingCase.NEW:
-        keywords = _INITIATING_PARTY_KEYWORDS
-    else:
-        return None
+    keywords = party_type_keywords_for_role(
+        jurisdiction=draft.jurisdiction,
+        court_code=draft.court_code,
+        case_category_name=draft.case_category_name,
+        case_type_name=draft.case_type_name,
+        filer_role=draft.filer_role,
+    )
+    if not keywords:
+        if "answer" in filing_type_name.lower():
+            keywords = _RESPONDING_PARTY_KEYWORDS
+        elif draft.existing_case == ExistingCase.NEW:
+            keywords = _INITIATING_PARTY_KEYWORDS
+        else:
+            return None
 
     for party_type in party_types:
         name = party_type["name"].lower()

@@ -183,6 +183,33 @@
                 {% endif %}
             </section>
         </div>
+        {% if plan_missing_documents %}
+            <div class="plan-alert plan-alert--review" role="alert">
+                <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                <div>
+                    <strong>{% translate "Your plan lists documents that are not in this filing" %}</strong>
+                    <ul>
+                        {% for item in plan_missing_documents %}
+                            <li>
+                                {{ item.label }}
+                                {% if item.reason == "have" %}
+                                    <small>{% translate "you said you have this" %}</small>
+                                {% else %}
+                                    <small>{% translate "this court always wants one" %}</small>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    <p>
+                        {% translate "You can add them to this envelope now, so the court gets everything at once. If you send them in a later filing, the clerk may wait for them before acting on your case." %}
+                    </p>
+                    <div class="plan-alert__actions">
+                        <a class="btn btn-outline-primary btn-sm"
+                           href="{% url 'document_checklist' jurisdiction %}?return_to=review">{% translate "Add them to this filing" %}</a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
         <div class="alert alert-danger mt-4" id="errorMessage" role="alert" hidden>
             <i class="fas fa-exclamation-triangle me-2" aria-hidden="true"></i><span id="errorText"></span>
         </div>

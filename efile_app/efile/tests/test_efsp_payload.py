@@ -224,11 +224,17 @@ def test_preparation_rejects_a_blank_filing_type_end_to_end():
 
 
 class _ComponentsResponse:
+    """The shape Illinois courts publish: an optional attachment slot, and one
+    required lead document that every filing of this type has to carry."""
+
     status_code = 200
 
     @staticmethod
     def json():
-        return [{"code": "331", "name": "Lead Document"}, {"code": "332", "name": "Attachments"}]
+        return [
+            {"code": "331", "name": "Attachments", "required": False, "efspcode": "ATTACH"},
+            {"code": "332", "name": "Lead Document", "required": True, "efspcode": "LEAD"},
+        ]
 
 
 def test_placeholder_component_label_is_resolved_to_the_court_code(monkeypatch, settings):
@@ -274,6 +280,44 @@ def test_repeated_filing_type_is_looked_up_once(monkeypatch, settings):
 
     assert len(calls) == 1
     assert [b["filing_component"] for b in efile_data["al_court_bundle"]] == ["332", "332"]
+
+
+def test_a_bundle_without_a_component_gets_the_one_its_filing_type_requires(monkeypatch, settings):
+    """Every bundle is its own filing, so every bundle needs a lead document.
+
+    Filling the blank with the attachment slot instead leaves that filing with
+    no lead document, and the court answers "Required filing component '332'
+    not found" -- long after the filer has left the screen where they could
+    have fixed it.
+    """
+
+    monkeypatch.setattr("efile.services.efsp_payload.requests.get", lambda *args, **kwargs: _ComponentsResponse())
+    settings.EFSP_URL = "https://efile-test.example"
+    efile_data = _bundle(filing_component="attachment")
+
+    resolve_placeholder_filing_components(efile_data, "illinois", "kane")
+
+    assert efile_data["al_court_bundle"][0]["filing_component"] == "332"
+
+
+def test_the_lead_component_is_found_by_code_when_nothing_is_flagged_required(monkeypatch, settings):
+    class _Unflagged:
+        status_code = 200
+
+        @staticmethod
+        def json():
+            return [
+                {"code": "331", "name": "Attachments", "efspcode": "ATTACH"},
+                {"code": "332", "name": "Lead Document", "efspcode": "LEAD"},
+            ]
+
+    monkeypatch.setattr("efile.services.efsp_payload.requests.get", lambda *args, **kwargs: _Unflagged())
+    settings.EFSP_URL = "https://efile-test.example"
+    efile_data = _bundle(filing_component="")
+
+    resolve_placeholder_filing_components(efile_data, "illinois", "kane")
+
+    assert efile_data["al_court_bundle"][0]["filing_component"] == "332"
 
 
 def test_unresolvable_component_is_left_for_the_efsp_to_reject(monkeypatch, settings):

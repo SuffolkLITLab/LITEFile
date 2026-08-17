@@ -212,7 +212,9 @@ def test_retired_screen_urls_redirect_forward(client, submission_draft, route, t
     response = client.get(reverse(route, kwargs={"jurisdiction": "illinois"}))
 
     assert response.status_code == 302
-    assert response.url == reverse(target, kwargs={"jurisdiction": "illinois"})
+    # The filing is named in the URL: following an old link carries on with that
+    # filing rather than leaving the next screen to guess which one it is.
+    assert response.url == (reverse(target, kwargs={"jurisdiction": "illinois"}) + f"?draft={submission_draft.pk}")
 
 
 @pytest.mark.django_db

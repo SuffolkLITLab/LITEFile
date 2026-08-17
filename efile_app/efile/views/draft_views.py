@@ -70,7 +70,10 @@ def start_filing_from_plan(request, jurisdiction, plan_id):
     attach_current_draft(request, draft)
     logger.info("Started draft id=%s from plan id=%s", draft.pk, plan.pk)
 
-    messages.success(request, f"We started another filing for {plan.title}.")
+    if plan.is_linked_to_a_case:
+        messages.success(request, f"We started another filing for {plan.title}, in case {plan.docket_number}.")
+    else:
+        messages.success(request, f"We started another filing for {plan.title}.")
     return redirect(get_step_url(WorkflowStepKey.UPLOAD_DOCUMENTS, jurisdiction))
 
 

@@ -155,7 +155,7 @@ def resolve_placeholder_filing_components(efile_data, jurisdiction_id, court_id)
         if not filing_type:
             continue
         if filing_type not in resolved_codes:
-            resolved_codes[filing_type] = _lookup_attachment_component(jurisdiction_id, court_id, filing_type)
+            resolved_codes[filing_type] = _lookup_lead_component(jurisdiction_id, court_id, filing_type)
         code = resolved_codes[filing_type]
         if code:
             bundle["filing_component"] = code
@@ -234,8 +234,14 @@ def _lookup_required_party_types(jurisdiction_id, court_id, case_type):
     }
 
 
-def _lookup_attachment_component(jurisdiction_id, court_id, filing_type):
-    """Return the court's attachment filing-component code, or None if unavailable."""
+def _lookup_lead_component(jurisdiction_id, court_id, filing_type):
+    """Return the component a filing of this type must carry, or None.
+
+    Every entry in ``al_court_bundle`` is one filing of one filing type, and a
+    filing type declares one component as required -- its lead document. A
+    bundle without it is refused ("Required filing component '332' not found"),
+    so a bundle that never got a component gets that one rather than a guess.
+    """
     url = (
         f"{settings.EFSP_URL}/jurisdictions/{jurisdiction_id}/codes/courts/{court_id}/"
         f"filing_types/{filing_type}/filing_components"
@@ -252,7 +258,13 @@ def _lookup_attachment_component(jurisdiction_id, court_id, filing_type):
     if not isinstance(components, list):
         return None
 
+    components = [component for component in components if isinstance(component, dict)]
     for component in components:
-        if isinstance(component, dict) and str(component.get("name", "")).lower() in {"attachment", "attachments"}:
+        # The EFSP renders this as a JSON boolean; Tyler has been seen sending
+        # the string "true" for the same kind of field elsewhere.
+        if str(component.get("required", "")).lower() == "true":
+            return component.get("code")
+    for component in components:
+        if str(component.get("efspcode", "")).upper() == "LEAD":
             return component.get("code")
     return None

@@ -11,7 +11,12 @@ from unittest.mock import patch
 import pytest
 import yaml
 
-from efile.services.document_checklists import normalize_name, resolve_document_checklist
+from efile.services.document_checklists import (
+    normalize_name,
+    party_type_keywords_for_role,
+    resolve_document_checklist,
+    resolve_filer_roles,
+)
 from efile.utils.config_loader import JurisdictionConfigLoader
 
 BASE_CONFIG = {
@@ -42,7 +47,27 @@ STATE_CONFIG = {
         },
         "eviction": {
             "matches": {"names": ["Residential - Eviction"]},
-            "documents": {"answer": {"label": "Answer", "requirement": "always"}},
+            "filer_roles": {
+                "landlord": {
+                    "label": "The landlord",
+                    "party_type_keywords": ["plaintiff", "petitioner"],
+                    "suggested_when": {"lead_filing_type_names": ["Complaint"]},
+                },
+                "tenant": {"label": "The tenant"},
+            },
+            "documents": {
+                "complaint": {"label": "Complaint", "requirement": "always", "for_roles": ["landlord"]},
+                "answer": {"label": "Answer", "requirement": "always", "for_roles": ["tenant"]},
+                "proof_of_service": {
+                    "label": "Proof the other side got a copy",
+                    "requirement": "usually",
+                    "by_role": {
+                        "landlord": {"label": "Proof the tenant got a copy"},
+                        "tenant": {"label": "Proof the landlord got a copy", "requirement": "always"},
+                    },
+                },
+                "photographs": {"label": "Photographs", "requirement": "sometimes"},
+            },
         },
     },
     "case_categories": {
@@ -109,7 +134,8 @@ def test_checklist_holds_no_court_codes(checklist_config):
 
 def test_matching_ignores_case_spacing_and_dash_style(checklist_config):
     assert resolve_document_checklist("testland", case_type_name="  CHANGE   OF NAME ")
-    assert resolve_document_checklist("testland", case_type_name="Residential – Eviction")
+    # An en dash where the configuration has a hyphen, on a case type with sides.
+    assert resolve_document_checklist("testland", case_type_name="Residential – Eviction", filer_role="tenant")
 
 
 def test_matching_accepts_configured_aliases(checklist_config):
@@ -181,6 +207,101 @@ def test_case_type_checklist_replaces_category_guidance(checklist_config):
 
     assert "supporting_records" not in checklist
     assert "petition" in checklist
+
+
+def eviction(filer_role, lead_filing_type_name=""):
+    return resolve_document_checklist(
+        "testland",
+        case_type_name="Residential - Eviction",
+        lead_filing_type_name=lead_filing_type_name,
+        filer_role=filer_role,
+    )
+
+
+def test_an_item_belongs_only_to_the_sides_it_names(checklist_config):
+    assert "complaint" in eviction("landlord")
+    assert "answer" not in eviction("landlord")
+    assert "answer" in eviction("tenant")
+    assert "complaint" not in eviction("tenant")
+
+
+def test_an_item_that_names_no_side_belongs_to_everyone(checklist_config):
+    assert "photographs" in eviction("landlord")
+    assert "photographs" in eviction("tenant")
+
+
+def test_a_shared_item_is_worded_for_the_side_reading_it(checklist_config):
+    assert eviction("landlord")["proof_of_service"]["label"] == "Proof the tenant got a copy"
+    assert eviction("tenant")["proof_of_service"]["label"] == "Proof the landlord got a copy"
+
+
+def test_a_side_can_need_a_shared_item_more_than_the_other(checklist_config):
+    assert eviction("landlord")["proof_of_service"]["requirement"] == "usually"
+    assert eviction("tenant")["proof_of_service"]["requirement"] == "always"
+
+
+def test_an_override_cannot_turn_an_item_into_a_different_document(tmp_path):
+    """Only wording and requirement bend per side; identity does not."""
+
+    (tmp_path / "base-case-types.yaml").write_text(yaml.safe_dump({}))
+    (tmp_path / "states").mkdir(exist_ok=True)
+    (tmp_path / "states" / "testland.yaml").write_text(
+        yaml.safe_dump(
+            {
+                "case_types": {
+                    "eviction": {
+                        "matches": {"names": ["Eviction"]},
+                        "filer_roles": {"tenant": {"label": "The tenant"}},
+                        "documents": {
+                            "lease": {
+                                "label": "The lease",
+                                "requirement": "usually",
+                                "by_role": {"tenant": {"role": "lead", "for_roles": ["landlord"]}},
+                            }
+                        },
+                    }
+                }
+            }
+        )
+    )
+    loader = JurisdictionConfigLoader(config_dir=tmp_path)
+    with patch("efile.services.document_checklists.config_loader", loader):
+        checklist = resolve_document_checklist("testland", case_type_name="Eviction", filer_role="tenant")
+
+    assert "role" not in checklist["lease"]
+    assert "for_roles" not in checklist["lease"]
+
+
+def test_a_case_with_sides_has_no_list_until_one_is_chosen(checklist_config):
+    assert eviction("") == {}
+    assert eviction("squatter") == {}
+
+
+def test_sides_are_offered_with_the_likely_one_marked(checklist_config):
+    roles = resolve_filer_roles("testland", case_type_name="Residential - Eviction", lead_filing_type_name="Complaint")
+
+    assert [role["id"] for role in roles] == ["landlord", "tenant"]
+    assert roles[0]["label"] == "The landlord"
+    assert roles[0]["suggested"] is True
+    # A side with no suggested_when is never the suggestion.
+    assert roles[1]["suggested"] is False
+
+
+def test_a_case_without_sides_offers_none(checklist_config):
+    assert resolve_filer_roles("testland", case_type_name="Name Change") == []
+    assert resolve_filer_roles("testland", case_type_name="Nothing Configured") == []
+
+
+def test_a_side_carries_the_words_that_find_its_party_type(checklist_config):
+    keywords = party_type_keywords_for_role(
+        "testland",
+        case_type_name="Residential - Eviction",
+        filer_role="landlord",
+    )
+
+    assert keywords == ["plaintiff", "petitioner"]
+    assert party_type_keywords_for_role("testland", case_type_name="Residential - Eviction", filer_role="") == []
+    assert party_type_keywords_for_role("testland", case_type_name="Name Change", filer_role="landlord") == []
 
 
 def test_unmatched_case_returns_no_checklist(checklist_config):
@@ -270,25 +391,67 @@ class TestShippedIllinoisConfig:
         assert checklist["financial_affidavit"]["requirement"] == "usually"
         assert "domestic_relations_cover_sheet" not in checklist
 
-    def test_eviction_checklist_depends_on_who_is_filing(self):
-        landlord = resolve_document_checklist(
+    def eviction_checklist(self, filer_role):
+        return resolve_document_checklist(
             "illinois",
             court_code="cook:cvd1",
             case_type_name="Eviction - Possession - Residential Complaint Filed - Non-Jury",
             lead_filing_type_name="Complaint / Petition - Eviction - Residential - Possession Only - Fee",
+            filer_role=filer_role,
         )
-        tenant = resolve_document_checklist(
+
+    def test_eviction_checklist_depends_on_who_is_filing(self):
+        landlord = self.eviction_checklist("landlord")
+        tenant = self.eviction_checklist("tenant")
+
+        assert "complaint" in landlord
+        assert "answer" not in landlord
+        assert "appearance" not in landlord
+        assert "complaint" not in tenant
+        assert "appearance" in tenant
+        assert "answer" in tenant
+        # Cook's Early Resolution Program notice is served by the landlord.
+        assert "early_resolution_program_notice" in landlord
+        assert "early_resolution_program_notice" not in tenant
+
+    def test_each_side_of_an_eviction_is_addressed_as_themselves(self):
+        landlord = self.eviction_checklist("landlord")
+        tenant = self.eviction_checklist("tenant")
+
+        assert landlord["landlord_notice"]["label"] == "The notice you gave the tenant"
+        assert tenant["landlord_notice"]["label"] == "The written notice your landlord gave you"
+        # The notice is what makes an eviction filable, and only one side files it.
+        assert landlord["landlord_notice"]["requirement"] == "always"
+        assert tenant["landlord_notice"]["requirement"] == "sometimes"
+        assert "tenant" in landlord["proof_of_service"]["label"]
+        assert "landlord" in tenant["proof_of_service"]["label"]
+
+    def test_an_eviction_has_no_checklist_until_a_side_is_chosen(self):
+        """Half a list is worse than none: the rest is the other party's."""
+
+        assert self.eviction_checklist("") == {}
+        assert self.eviction_checklist("not-a-side") == {}
+
+    def test_the_sides_of_an_eviction_are_offered_with_a_suggestion(self):
+        roles = resolve_filer_roles(
             "illinois",
             court_code="cook:cvd1",
             case_type_name="Eviction - Possession - Residential Complaint Filed - Non-Jury",
             lead_filing_type_name="Appearance Filed - Eviction - Possession Only",
         )
 
-        assert "complaint" in landlord
-        assert "answer" not in landlord
-        assert "appearance" in tenant
-        assert "answer" in tenant
-        assert tenant["early_resolution_program_notice"]["requirement"] == "always"
+        assert [role["id"] for role in roles] == ["landlord", "tenant"]
+        assert [role["id"] for role in roles if role["suggested"]] == ["tenant"]
+
+    def test_a_name_change_has_no_sides_to_ask_about(self):
+        """Only two-sided cases get the question; everyone else is spared it."""
+
+        assert resolve_filer_roles("illinois", court_code="cook:cd1", case_type_name="Name Change") == []
+        assert "petition" in resolve_document_checklist(
+            "illinois",
+            court_code="cook:cd1",
+            case_type_name="Name Change",
+        )
 
     def test_category_guidance_for_a_case_type_with_no_checklist(self):
         checklist = resolve_document_checklist(

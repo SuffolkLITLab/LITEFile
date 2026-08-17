@@ -111,6 +111,13 @@ base_case_types:
         label: "Request to waive court fees"
         requirement: sometimes
         description: "File this if you cannot afford the filing fee."
+        # What the court calls this when it is filed, most preferred first. See
+        # the "Filing types for a checklist item" section of config/README.md.
+        filing_type_names:
+          - "Fee Waiver Petition Filed"                  # Cook County
+          - "Application for Waiver of Court Fees"
+          - "Fee Waiver"
+          - "Waiver"                                     # Kane
     sections:
       parties:
         title: "Required parties"

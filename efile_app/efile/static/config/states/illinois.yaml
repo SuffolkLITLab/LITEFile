@@ -33,28 +33,71 @@ case_types:
         - "Name Change"
         - "Change of Name"
 
+    # Shown on the filer's plan, folded away until they ask for it. This is the
+    # place to be honest about what the list is and what it cannot know.
+    about:
+      summary: >-
+        A name change asks a judge to make your new name official. Most of the
+        work is paperwork: a request that says who you are and what you want to
+        be called, notice in a newspaper so the change is public, and an order
+        for the judge to sign. Courts differ about the rest, and yours may ask
+        for something this list does not mention.
+      learn_more_url: "https://www.illinoislegalaid.org/legal-information/changing-your-name"
+      learn_more_label: "Changing your name in Illinois (Illinois Legal Aid Online)"
+
     # 735 ILCS 5/21-101 and following. Requirement levels are guidance for the
     # filer, not court validation.
     documents:
+      # filing_type_names says what the court calls each document when it is
+      # filed, most preferred first, so a document added from this list arrives
+      # already knowing its filing type instead of leaving the filer to pick it
+      # out of forty. Courts name the same thing differently and some offer no
+      # name for it at all, which is why it is a list and why nothing breaks
+      # when none of them match.
       petition:
         label: "Request for name change"
         requirement: always
         role: lead
         description: "Your name now, the name you want, and how long you have lived in Illinois."
+        filing_type_names:
+          - "Petition for Name Change"    # Cook County, County Division
+          - "Petition"                    # Kane, and most circuits
+          - "Complaint"
       proposed_order:
         label: "Proposed order for the judge to sign"
         requirement: always
+        # No circuit checked publishes an "Order" filing type for a name change,
+        # so this usually lands on the court's catch-all -- and on courts with
+        # no catch-all either, the filer still chooses it themselves.
+        filing_type_names:
+          - "Proposed Order"
+          - "Order"
+          - "Other Document Not Listed"   # Kane
+          - "Other Document not listed here"
       notice_of_court_date:
         label: "Notice of your court date"
         requirement: usually
+        filing_type_names:
+          - "Notice of Motion"            # Cook County, County Division
+          - "Notice"                      # Kane
       publication_notice:
         label: "Proof that a newspaper published your notice"
         requirement: usually
         description: "A newspaper must run the notice once a week for three weeks, unless the judge excuses you."
+        filing_type_names:
+          - "Proof of Service by Publication"      # Cook County, County Division
+          - "Affidavit of Service by Publication"
+          - "Publications"                         # Kane
       motion_to_waive_publication:
         label: "Motion to skip the newspaper notice"
         requirement: sometimes
         description: "Ask for this if publishing your name would put you in danger."
+        # Only a real motion type. "Notice of Motion", which is what Cook offers
+        # here, is notice that a motion will be heard rather than the motion, so
+        # leaving this blank for the filer to choose beats filing it as the
+        # wrong thing.
+        filing_type_names:
+          - "Motion"                      # Kane
       minor_consent:
         # Only meaningful when the lead document is the minor-name-change form,
         # so it is tied to the filing type names Illinois courts use for it.
@@ -198,64 +241,143 @@ case_types:
         - "Eviction - Residential - Eviction"
         - "Eviction - Residential - Eviction Possession Only"
 
-    # 735 ILCS 5/9-101 and following. The landlord and the tenant file different
-    # documents in the same case type, so the lead filing type name decides which
-    # of the two lead documents is shown.
-    documents:
-      complaint:
-        label: "Eviction complaint"
-        requirement: always
-        role: lead
-        when:
+    # 735 ILCS 5/9-101 and following. An eviction is two different filings
+    # depending on who is making it, so this case type declares both sides. The
+    # filer picks one on the Check documents screen, and gets that side's
+    # documents, described in the second person to that side.
+    filer_roles:
+      landlord:
+        label: "The landlord, or someone filing for the landlord"
+        description: "You are asking the court to end a tenancy, or for rent the tenant owes."
+        # Used to suggest the filer's own party type later. Matched against the
+        # party-type names the court publishes, not against Tyler codes.
+        party_type_keywords:
+          - "plaintiff"
+          - "petitioner"
+        # A hint only: the side is a legal fact about the filer, so it is
+        # offered for confirmation and never decided for them.
+        suggested_when:
           lead_filing_type_names:
             - "Complaint"
             - "Eviction Complaint"
             - "Complaint / Petition - Eviction - Residential - Possession Only - Fee"
             - "Complaint / Petition - Eviction - Residential - Possession Only (Govn't) - Fee"
+      tenant:
+        label: "The tenant"
+        description: "You live in the place, and the landlord has started a case against you."
+        party_type_keywords:
+          - "defendant"
+          - "respondent"
+        suggested_when:
+          lead_filing_type_names:
+            - "Appearance"
+            - "Appearance Filed"
+            - "Appearance (No Fee)"
+            - "Appearance Filed - Fee"
+            - "Appearance Filed - Eviction - Possession Only"
+            - "Answer"
+            - "Answer Filed"
+
+    # Each side of an eviction is doing a different thing, so each side gets its
+    # own explanation and its own place to read more.
+    about:
+      summary: >-
+        An eviction case decides who has the right to live in a home. It moves
+        faster than most court cases, so dates matter more than usual.
+      by_role:
+        landlord:
+          summary: >-
+            An eviction case asks the court for possession of a property, and
+            sometimes for unpaid rent. It starts with the written notice you
+            gave the tenant: the case can be dismissed if that notice was wrong
+            or is missing, so it belongs with the complaint. This list covers
+            the usual paperwork, not the local rules of your courtroom.
+          learn_more_url: "https://www.illinoiscourts.gov/documents-and-forms/approved-forms/"
+          learn_more_label: "Illinois Supreme Court approved eviction forms"
+        tenant:
+          summary: >-
+            Your landlord has asked the court to make you leave. Filing an
+            appearance is what keeps you in the case, so the judge does not
+            decide it without hearing from you, and an answer is where you say
+            what you disagree with and why. Eviction moves quickly, and there
+            may be defenses or rent help this list cannot tell you about, so it
+            is worth talking to a lawyer as early as you can.
+          learn_more_url: "https://www.illinoislegalaid.org/legal-information/eviction"
+          learn_more_label: "Eviction: your rights as a tenant (Illinois Legal Aid Online)"
+
+    documents:
+      # One side's lead document is not on the other side's list at all: a
+      # tenant should never be told they might need to file a complaint.
+      complaint:
+        label: "Eviction complaint"
+        requirement: always
+        role: lead
+        for_roles: ["landlord"]
+        description: "This starts the case. It says who lives there and what you are asking the court to do."
       appearance:
         label: "Appearance form"
         requirement: always
+        role: lead
+        for_roles: ["tenant"]
         description: "This tells the court you are in the case, so the judge does not rule without you."
-        when:
-          lead_filing_type_names:
-            - "Appearance"
-            - "Appearance Filed"
-            - "Appearance (No Fee)"
-            - "Appearance Filed - Fee"
-            - "Appearance Filed - Eviction - Possession Only"
-            - "Answer"
-            - "Answer Filed"
       answer:
         label: "Answer to the complaint"
         requirement: usually
+        for_roles: ["tenant"]
         description: "Your response to what the landlord says, and any defenses you have."
-        when:
-          lead_filing_type_names:
-            - "Appearance"
-            - "Appearance Filed"
-            - "Appearance (No Fee)"
-            - "Appearance Filed - Fee"
-            - "Appearance Filed - Eviction - Possession Only"
-            - "Answer"
-            - "Answer Filed"
-      fee_waiver:
-        label: "Request to waive court fees"
-        requirement: usually
-        description: "File this if you cannot afford the fee to answer."
+
+      # Both sides file these, but they are not the same sentence to each of
+      # them. by_role changes only the wording and how often it is needed.
+      landlord_notice:
+        label: "The written notice about ending the tenancy"
+        requirement: sometimes
+        by_role:
+          landlord:
+            label: "The notice you gave the tenant"
+            requirement: always
+            description: "The 5, 10, or 30 day notice you served before filing, and how the tenant got it."
+          tenant:
+            label: "The written notice your landlord gave you"
+            requirement: sometimes
+            description: "For example, a 5, 10, or 30 day notice."
+      lease:
+        label: "The lease"
+        requirement: sometimes
+        by_role:
+          landlord:
+            label: "The lease"
+            requirement: usually
+            description: "Attach it if the tenancy is in writing. It shows what the tenant agreed to."
+          tenant:
+            label: "Your lease"
+            description: "If you have a written lease, the judge will want to see it."
       proof_of_service:
         label: "Proof that the other side got a copy"
         requirement: usually
-      lease:
-        label: "Your lease"
-        requirement: sometimes
-      landlord_notice:
-        label: "The written notice your landlord gave you"
-        requirement: sometimes
-        description: "For example, a 5, 10, or 30 day notice."
+        by_role:
+          landlord:
+            label: "Proof that the tenant got the court papers"
+            description: "The sheriff or a special process server files this after serving the summons."
+          tenant:
+            label: "Proof that the landlord got a copy"
+            description: "Send the landlord a copy of everything you file, and tell the court you did."
+      fee_waiver:
+        label: "Request to waive court fees"
+        requirement: usually
+        by_role:
+          landlord:
+            requirement: sometimes
+            description: "File this if you cannot afford the fee to start the case."
+          tenant:
+            description: "File this if you cannot afford the fee to file your appearance."
       jury_demand:
         label: "Request for a jury"
         requirement: sometimes
-        description: "Ask for this by your first court date if you want a jury."
+        by_role:
+          landlord:
+            description: "Ask for this when you file if you want a jury."
+          tenant:
+            description: "Ask for this by your first court date if you want a jury."
 
 # Broad guidance for a case category, used when no case type matches. A case
 # type checklist replaces this list; the two are never merged.
@@ -361,7 +483,10 @@ court_specific_requirements:
           early_resolution_program_notice:
             label: "Early Resolution Program notice"
             requirement: always
-            description: "Cook County sends eviction cases to this free program for help and mediation."
+            # The landlord serves this with the summons, so it is on their list
+            # and not the tenant's, who receives it rather than files it.
+            for_roles: ["landlord"]
+            description: "Cook County asks you to give the tenant this notice about its free help and mediation program."
 
   "bond":  # Bond Court
     case_types:

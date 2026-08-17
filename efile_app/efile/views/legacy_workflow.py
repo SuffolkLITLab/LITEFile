@@ -21,6 +21,8 @@ def legacy_workflow_redirect(request, jurisdiction, destination=None):
         "expert_form": WorkflowStepKey.EXTRACTION_REVIEW,
         "upload": WorkflowStepKey.ORGANIZE_DOCUMENTS,
     }.get(destination)
-    url = get_step_url(target, jurisdiction) if target else get_resume_step_url(draft.current_step, jurisdiction)
+    # Following an old URL for a filing is a request to carry on with *that*
+    # filing, so the draft is named in the URL the way resuming names it.
+    url = get_resume_step_url(target or draft.current_step, jurisdiction, draft_id=draft.pk)
     messages.info(request, "This filing now uses the updated filing screens.")
     return redirect(url or get_step_url(WorkflowStepKey.FILING_PATH, jurisdiction))

@@ -30,13 +30,8 @@ def clear_current_draft(request) -> None:
         request.session.modified = True
 
 
-def get_current_draft(
-    request,
-    *,
-    jurisdiction: str | None = None,
-    resume_latest: bool = True,
-) -> FilingDraft | None:
-    """Resolve the current user's draft without trusting a bare session ID.
+def pointed_at_draft(request, *, jurisdiction: str | None = None) -> FilingDraft | None:
+    """Resolve the draft this browser says it is editing, or nothing.
 
     The session only stores a pointer. Ownership, active status, and (when
     supplied) jurisdiction are enforced on every lookup.
@@ -48,33 +43,81 @@ def get_current_draft(
         return None
 
     draft_id = request.session.get(CURRENT_DRAFT_SESSION_KEY)
-    if draft_id is not None:
-        try:
-            draft_id = int(draft_id)
-        except (TypeError, ValueError):
-            clear_current_draft(request)
-            draft_id = None
-
-    if draft_id is not None:
-        # The pointed-at draft may be mid-submission (SUBMITTING); it is still the
-        # user's current draft, so resolve it even though resume/listings would not.
-        draft = get_active_draft(
-            user=user,
-            draft_id=draft_id,
-            jurisdiction=jurisdiction,
-            statuses=CURRENT_DRAFT_STATUSES,
-        )
-        if draft is not None:
-            return draft
+    if draft_id is None:
+        return None
+    try:
+        draft_id = int(draft_id)
+    except (TypeError, ValueError):
         clear_current_draft(request)
-
-    if not resume_latest:
         return None
 
-    draft = get_active_draft(user=user, jurisdiction=jurisdiction)
+    # The pointed-at draft may be mid-submission (SUBMITTING); it is still the
+    # user's current draft, so resolve it even though resume/listings would not.
+    draft = get_active_draft(
+        user=user,
+        draft_id=draft_id,
+        jurisdiction=jurisdiction,
+        statuses=CURRENT_DRAFT_STATUSES,
+    )
+    if draft is None:
+        clear_current_draft(request)
+    return draft
+
+
+def resumable_draft(request, *, jurisdiction: str | None = None) -> FilingDraft | None:
+    """The draft a "continue where you left off" offer would resume.
+
+    Read-only, deliberately: finding a draft is not the same as deciding the
+    filer is working on it. See ``adopt_draft``.
+    """
+
+    user = _authenticated_user(request)
+    if user is None:
+        return None
+    return get_active_draft(user=user, jurisdiction=jurisdiction)
+
+
+def adopt_draft(request, draft_id, *, jurisdiction: str | None = None) -> FilingDraft | None:
+    """Make an owned draft the current one, at the filer's explicit request."""
+
+    user = _authenticated_user(request)
+    if user is None or draft_id in (None, ""):
+        return None
+    try:
+        draft_id = int(draft_id)
+    except (TypeError, ValueError):
+        return None
+    draft = get_active_draft(
+        user=user,
+        draft_id=draft_id,
+        jurisdiction=jurisdiction,
+        statuses=CURRENT_DRAFT_STATUSES,
+    )
     if draft is not None:
         attach_current_draft(request, draft)
     return draft
+
+
+def get_current_draft(
+    request,
+    *,
+    jurisdiction: str | None = None,
+    resume_latest: bool = True,
+) -> FilingDraft | None:
+    """Resolve the current user's draft, without ever choosing one for them.
+
+    Reading is not choosing. This used to attach whatever draft it found to the
+    session, which meant that merely loading a page -- or an API call that page
+    fired -- could make an old filing the current one, and could do so *after* a
+    new filing had been started, silently putting the filer back in the old one.
+    Nothing here writes to the session now: adoption is ``adopt_draft``, and it
+    happens only where the filer asked for it.
+    """
+
+    draft = pointed_at_draft(request, jurisdiction=jurisdiction)
+    if draft is not None or not resume_latest:
+        return draft
+    return resumable_draft(request, jurisdiction=jurisdiction)
 
 
 @transaction.atomic
@@ -95,6 +138,9 @@ def create_current_draft(
     return draft
 
 
+RESUME_DRAFT_PARAM = "draft"
+
+
 @transaction.atomic
 def ensure_current_draft(
     request,
@@ -103,7 +149,20 @@ def ensure_current_draft(
     current_step: WorkflowStepKey | str | None = None,
     workflow_version: int | None = None,
 ) -> FilingDraft:
-    draft = get_current_draft(request, jurisdiction=jurisdiction)
+    """Return the draft this screen is for, creating a blank one if there is none.
+
+    A workflow screen works on the draft the browser is pointing at, or on the
+    one the filer named by resuming it. It never reaches for the newest filing
+    lying around: someone starting a filing gets an empty one, not the documents
+    from a matter they finished last month.
+    """
+
+    # A named draft wins over the one the session is holding: naming it is the
+    # filer saying "this one", and they may well be switching away from
+    # whatever they were last in.
+    draft = adopt_draft(request, request.GET.get(RESUME_DRAFT_PARAM), jurisdiction=jurisdiction)
+    if draft is None:
+        draft = pointed_at_draft(request, jurisdiction=jurisdiction)
     if draft is None:
         return create_current_draft(
             request,

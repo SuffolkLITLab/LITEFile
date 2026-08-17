@@ -67,7 +67,7 @@ def test_plan_snapshots_the_configured_checklist(user):
     assert plan.case_type_name == "Name Change"
     assert plan.lead_filing_type_name == "Petition for Name Change"
     assert plan.checklist["petition"]["requirement"] == "always"
-    assert plan.checklist["petition"]["complete"] is False
+    assert plan.checklist["petition"]["status"] == ""
 
 
 @pytest.mark.django_db
@@ -121,7 +121,7 @@ def test_plan_follows_the_draft_when_the_filer_picks_a_different_case(user):
     assert "publication_notice" not in refreshed.checklist
     assert refreshed.checklist["domestic_relations_cover_sheet"]["requirement"] == "always"
     # Progress on an item the new case still asks for is the filer's, and stays.
-    assert refreshed.checklist["fee_waiver"]["complete"] is True
+    assert refreshed.checklist["fee_waiver"]["status"] == "have"
 
 
 @pytest.mark.django_db
@@ -168,7 +168,7 @@ def test_saved_checklist_does_not_change_when_partner_config_changes(user):
 
     plan.refresh_from_db()
     assert "something_new" not in plan.checklist
-    assert plan.checklist["petition"]["complete"] is True
+    assert plan.checklist["petition"]["status"] == "have"
 
 
 @pytest.mark.django_db
@@ -178,8 +178,8 @@ def test_progress_only_records_items_the_plan_knows(user):
     set_checklist_progress(plan, ["petition", "not_a_real_item"])
 
     plan.refresh_from_db()
-    assert plan.checklist["petition"]["complete"] is True
-    assert plan.checklist["proposed_order"]["complete"] is False
+    assert plan.checklist["petition"]["status"] == "have"
+    assert plan.checklist["proposed_order"]["status"] == ""
     assert "not_a_real_item" not in plan.checklist
 
 
@@ -193,7 +193,7 @@ def test_progress_survives_the_filing_it_started_with(user):
     draft.delete()
 
     plan.refresh_from_db()
-    assert plan.checklist["petition"]["complete"] is True
+    assert plan.checklist["petition"]["status"] == "have"
 
 
 @pytest.mark.django_db
@@ -216,7 +216,7 @@ def test_grouped_checklist_orders_levels_and_keeps_progress(user):
 
     assert [group["requirement"] for group in groups] == ["always", "usually", "sometimes"]
     assert groups[0]["label"] == "Always needed"
-    assert groups[0]["items"][0]["complete"] is True
+    assert groups[0]["items"][0]["status"] == "have"
     assert grouped_checklist(None) == []
 
 

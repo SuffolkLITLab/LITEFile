@@ -371,7 +371,7 @@ def test_legacy_documents_url_redirects_into_reorganized_document_flow(client, d
     response = client.get(reverse("upload", kwargs={"jurisdiction": "illinois"}))
 
     assert response.status_code == 302
-    assert response.url == reverse("organize_documents", kwargs={"jurisdiction": "illinois"})
+    assert response.url == reverse("organize_documents", kwargs={"jurisdiction": "illinois"}) + f"?draft={draft.pk}"
 
 
 @pytest.mark.django_db

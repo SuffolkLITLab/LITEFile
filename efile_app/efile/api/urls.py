@@ -14,7 +14,7 @@ from .auth_views import (
     user_profile,
 )
 from .case_type_config import get_case_type_config
-from .config_views import get_form_config
+from .config_views import get_filer_roles, get_form_config
 from .dropdown_views import (
     get_case_categories,
     get_case_types,
@@ -53,6 +53,7 @@ urlpatterns = [
     # Form configuration endpoints
     path("form-config/", get_form_config, name="form_config"),
     path("case-type-config/", get_case_type_config, name="case_type_config"),
+    path("filer-roles/", get_filer_roles, name="filer_roles"),
     # Suffolk API endpoints
     path("suffolk/lookup-case/", lookup_case, name="lookup_case"),
     # Authentication API endpoints

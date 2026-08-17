@@ -127,8 +127,14 @@
 
         let savedComponent = card.dataset.filingComponent;
         if (!savedComponent && components.length) {
-            const preferredWord = card.dataset.role === "lead" ? "lead" : "attachment";
-            const preferred = components.find((item) => optionText(item).toLowerCase().includes(preferredWord));
+            // Each document goes to the court as its own filing, under its own
+            // filing type, so each one needs that filing type's *required*
+            // component -- the lead document. Defaulting a supporting document
+            // to "Attachments" leaves its filing with no lead document at all,
+            // which the court rejects ("Required filing component '332' not
+            // found") long after the filer has left this screen.
+            const preferred = components.find((item) => item.required === true || item.required === "true") ||
+                components.find((item) => String(item.efspcode || "").toUpperCase() === "LEAD");
             savedComponent = optionValue(preferred || components[0]);
         }
         setRadioOptions(

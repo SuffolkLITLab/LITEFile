@@ -5,6 +5,7 @@ from django.views.decorators.http import require_http_methods
 from efile.api.suffolk_api_views import get_tyler_token
 from efile.models import FilingDocument
 from efile.services.current_drafts import ensure_current_draft
+from efile.services.document_checklists import resolve_filer_roles
 from efile.services.drafts import draft_snapshot, write_case_data
 from efile.workflow import (
     RETURN_TO_REVIEW,
@@ -14,6 +15,23 @@ from efile.workflow import (
     get_step_url,
     get_workflow_context,
 )
+
+
+def _offered_filer_roles(request, jurisdiction):
+    """The sides on offer for the case the filer is choosing right now.
+
+    Resolved from what was submitted rather than from the draft: the case type
+    on this screen is not saved until the form is, and a role only means
+    something against the case it was offered for.
+    """
+
+    return resolve_filer_roles(
+        jurisdiction=jurisdiction,
+        court_code=request.POST.get("court_code", ""),
+        case_category_name=request.POST.get("case_category_name", ""),
+        case_type_name=request.POST.get("case_type_name", ""),
+        lead_filing_type_name=request.POST.get("filing_type_name", ""),
+    )
 
 
 def _set_lead_filing_type(draft, filing_type_code, filing_type_name):
@@ -48,6 +66,9 @@ def extraction_review(request, jurisdiction):
         case_category_code = request.POST.get("case_category_code", "")
         case_type_code = request.POST.get("case_type_code", "")
 
+        offered_roles = {role["id"] for role in _offered_filer_roles(request, jurisdiction)}
+        filer_role = request.POST.get("filer_role", "")
+
         if existing_case not in {ExistingCase.NEW, ExistingCase.EXISTING}:
             messages.error(request, "Choose whether this is a new or existing court case to continue.")
         elif existing_case == ExistingCase.NEW and not (court_code and case_category_code and case_type_code):
@@ -55,7 +76,15 @@ def extraction_review(request, jurisdiction):
             # a new case can't proceed on free-text guesses -- unlike an existing
             # case, which resolves these from the case lookup step instead.
             messages.error(request, "Choose a court, case category, and case type from the lists to continue.")
+        elif offered_roles and filer_role not in offered_roles:
+            # This case type means two different jobs, and the documents follow
+            # the side rather than the case, so there is nothing to show until
+            # the filer says which side is theirs.
+            messages.error(request, "Choose which side of this case you are on to continue.")
         else:
+            if offered_roles and draft.filer_role != filer_role:
+                draft.filer_role = filer_role
+                draft.save(update_fields=["filer_role", "updated_at"])
             write_case_data(
                 draft,
                 {
@@ -97,6 +126,9 @@ def extraction_review(request, jurisdiction):
         "case_type_name": draft.case_type_name,
         "filing_type_code": lead.filing_type_code if lead else "",
         "filing_type_name": lead.filing_type_name if lead else "",
+        # Only some case types have sides. The screen asks for one as soon as
+        # the chosen case type turns out to be one of them.
+        "filer_role": draft.filer_role,
     }
     context = {
         "is_logged_in": True,

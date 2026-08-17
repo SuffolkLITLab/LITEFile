@@ -126,16 +126,16 @@ def test_document_checklist_keeps_its_disclaimer_without_configured_guidance(cli
 def test_document_checklist_saves_gathered_documents(client, planned_draft):
     response = client.post(
         reverse("document_checklist", kwargs={"jurisdiction": "illinois"}),
-        {"action": "save_progress", "gathered": ["petition", "proposed_order"]},
+        {"action": "save_progress", "status_petition": "have", "status_proposed_order": "filed"},
     )
 
     planned_draft.refresh_from_db()
     checklist = planned_draft.plan.checklist
     assert response.status_code == 302
     assert response.url == reverse("document_checklist", kwargs={"jurisdiction": "illinois"})
-    assert checklist["petition"]["complete"] is True
-    assert checklist["proposed_order"]["complete"] is True
-    assert checklist["publication_notice"]["complete"] is False
+    assert checklist["petition"]["status"] == "have"
+    assert checklist["proposed_order"]["status"] == "filed"
+    assert checklist["publication_notice"]["status"] == ""
     # Saving the matter checklist is not the same as saying this filing is ready.
     assert planned_draft.document_checklist_acknowledged is False
 
@@ -144,14 +144,14 @@ def test_document_checklist_saves_gathered_documents(client, planned_draft):
 def test_document_checklist_saves_gathered_documents_when_continuing(client, planned_draft):
     response = client.post(
         reverse("document_checklist", kwargs={"jurisdiction": "illinois"}),
-        {"documents_complete": "yes", "gathered": ["petition"]},
+        {"documents_complete": "yes", "status_petition": "have"},
     )
 
     planned_draft.refresh_from_db()
     assert response.status_code == 302
     assert response.url == reverse("organize_documents", kwargs={"jurisdiction": "illinois"})
     assert planned_draft.document_checklist_acknowledged is True
-    assert planned_draft.plan.checklist["petition"]["complete"] is True
+    assert planned_draft.plan.checklist["petition"]["status"] == "have"
 
 
 @pytest.mark.django_db

@@ -380,6 +380,116 @@ naming the filing types, again by name:
 The item appears only when the lead document's filing type name matches. If the
 lead filing type is not known yet, conditional items stay hidden.
 
+### Filing types for a checklist item
+
+A document added from the checklist has to be filed as *something*, and the
+court's list of filing types runs to dozens of entries. `filing_type_names` says
+what this document is called when it is filed, most preferred first:
+
+```yaml
+      proposed_order:
+        label: "Proposed order for the judge to sign"
+        requirement: always
+        filing_type_names:
+          - "Proposed Order"
+          - "Order"
+          - "Other Document Not Listed"   # Kane
+```
+
+The first name the court actually publishes for this case type wins, so one
+entry covers courts that name the same thing differently. Nothing is guessed:
+when no configured name matches, the filing type is left empty and the filer
+chooses it on the organize step, exactly as before. **A wrong filing type is
+worse than a blank one** — list only names that really mean this document.
+Cook County, for instance, publishes no order or catch-all type for a name
+change, so `proposed_order` is deliberately left unresolved there.
+
+Only ever fills a blank: a filing type the filer picked themselves is never
+overwritten.
+
+### Explaining the list
+
+A list of documents raises a fair question — "is this everything?" — and the
+honest answer does not fit in a caption. `about` is where a case type says what
+this kind of filing is, and what the list cannot know. It appears on the filer's
+plan behind an "About this list" accordion, folded away so it never stands
+between them and filing.
+
+```yaml
+    about:
+      summary: >-
+        A name change asks a judge to make your new name official. Courts differ
+        about the rest, and yours may ask for something this list does not
+        mention.
+      learn_more_url: "https://www.illinoislegalaid.org/legal-information/changing-your-name"
+      learn_more_label: "Changing your name in Illinois (Illinois Legal Aid Online)"
+```
+
+- `learn_more_url` must be an `http://` or `https://` address; anything else is
+  logged and dropped. The link opens in a new tab.
+- Both fields are optional, and most case types will have neither.
+- `by_role` works here too, so each side of a two-sided case gets its own
+  explanation and its own place to read more.
+
+A standing sentence about the list being a guide rather than legal advice is
+always shown underneath, whatever a partner writes, so the caveat cannot be
+configured away.
+
+### Cases with two sides
+
+In a two-sided case, one case type means two different jobs. The landlord in an
+eviction files a complaint; the tenant files an appearance and an answer, and
+needs the same fee waiver described in the opposite direction. A case type that
+declares `filer_roles` is asked about on the confirm-filing screen — "Which side
+of this case are you on?" — and every list below it is that side's list, in that
+side's words.
+
+```yaml
+    filer_roles:
+      landlord:
+        label: "The landlord, or someone filing for the landlord"
+        description: "You are asking the court to end a tenancy."
+        # Matched against the party-type names the court publishes, to suggest
+        # the filer's own party type later. Codes are never named here.
+        party_type_keywords: ["plaintiff", "petitioner"]
+        # Marks a side as the likely one, for the filer to confirm. It is never
+        # chosen for them: which side you are on is a legal fact about you.
+        suggested_when:
+          lead_filing_type_names: ["Complaint", "Eviction Complaint"]
+      tenant:
+        label: "The tenant"
+        party_type_keywords: ["defendant", "respondent"]
+    documents:
+      complaint:
+        label: "Eviction complaint"
+        requirement: always
+        role: lead
+        for_roles: ["landlord"]      # the other side never sees this item
+      proof_of_service:
+        label: "Proof that the other side got a copy"
+        requirement: usually
+        by_role:                     # one requirement, two sentences
+          landlord:
+            label: "Proof that the tenant got the court papers"
+            description: "The sheriff or a special process server files this."
+          tenant:
+            label: "Proof that the landlord got a copy"
+            requirement: always
+```
+
+- `for_roles` limits an item to the sides listed. An item without it belongs to
+  everyone, including cases that declare no sides at all.
+- `by_role` rewrites `label`, `description`, and `requirement` for one side.
+  Nothing else can be overridden: a side may hear about the same document in its
+  own words, but must not be handed a different document under an ID the other
+  side uses for something else.
+- A case type that declares `filer_roles` has **no** checklist until the filer
+  picks a side. Half a list is worse than none: the other half belongs to the
+  party on the other side of the case.
+
+Most case types have no sides, and should not declare any. Asking a name-change
+filer which side they are on is noise.
+
 ### Court-specific checklists
 
 `documents` is a dictionary keyed by your own IDs, and court overrides deep
@@ -419,11 +529,16 @@ case_categories:
 
 ### What the filer sees
 
-The resolved checklist is copied into the filer's `FilingPlan` — their matter —
-the first time they reach the checklist screen, along with a `complete` flag per
-item that they tick themselves. Because it is a snapshot, editing this YAML
-later changes what **new** plans get and leaves plans people are already working
-through alone.
+The resolved checklist and `about` block are copied into the filer's
+`FilingPlan` — their matter — the first time they reach the checklist screen.
+Because it is a snapshot, editing this YAML later changes what **new** plans get
+and leaves plans people are already working through alone.
+
+Against each item the filer records where they are with it: nothing yet, *I have
+it now*, *I already filed this*, or *I will file it later* with an optional date.
+Only the first two count as sorted out. A document they have but have not
+attached is what the review step warns about; one they have already filed, or
+have deliberately left for later, is not a gap and is not raised again.
 
 ## Examples
 
