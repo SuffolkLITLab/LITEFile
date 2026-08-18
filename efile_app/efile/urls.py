@@ -12,12 +12,7 @@ from .views.case_questions import case_questions
 from .views.choose_jurisdiction import change_jurisdiction, choose_jurisdiction
 from .views.confirmation import filing_confirmation
 from .views.document_checklist import document_checklist
-from .views.draft_views import (
-    create_draft_view,
-    get_current_draft_view,
-    start_filing,
-    start_filing_from_plan,
-)
+from .views.draft_views import get_current_draft_view, start_filing, start_filing_from_plan
 from .views.extraction_review import extraction_review
 from .views.filing_path import filing_path
 from .views.filing_plans import filing_plans
@@ -39,8 +34,6 @@ from .views.session_api import (
     fetch_and_save_party_type,
     get_upload_data_from_session,
     save_party_type_to_session,
-    save_upload_data_to_session,
-    save_upload_first_data,
 )
 from .views.submission import submit_final_filing
 from .views.upload_documents import upload_documents
@@ -85,7 +78,6 @@ urlpatterns = [
     path("jurisdiction/<jurisdiction>/parties/", parties, name="parties"),
     path("jurisdiction/<jurisdiction>/party-details/", party_details, name="party_details"),
     path("jurisdiction/<jurisdiction>/case-questions/", case_questions, name="case_questions"),
-    path("jurisdiction/<jurisdiction>/drafts/", create_draft_view, name="create_draft"),
     path("jurisdiction/<jurisdiction>/plans/", filing_plans, name="filing_plans"),
     path(
         "jurisdiction/<jurisdiction>/plans/<int:plan_id>/filings/",
@@ -126,15 +118,12 @@ urlpatterns = [
     path("api/get-filing-components/", get_filing_components, name="get_filing_components"),
     path("api/draft/", get_current_draft_view, name="get_current_draft"),
     path("api/save-case-data/", api_save_case_data, name="save_case_data_api"),
-    path("api/save-upload-data/", save_upload_data_to_session, name="save_upload_data_to_session"),
-    path("api/save-upload-data-first/", save_upload_first_data, name="save_upload_data_to_session"),
     path("api/get-upload-data/", get_upload_data_from_session, name="get_upload_data_from_session"),
     path("api/fetch-party-type/", fetch_and_save_party_type, name="fetch_party_type"),
     path("api/save-party-type/", save_party_type_to_session, name="save_party_type"),
     path("api/submit-final-filing/", submit_final_filing, name="submit_final_filing"),
     path("api/clear-session/", clear_session_data, name="clear_session_data"),
     path("api/debug-session/", debug_session_data, name="debug_session_data"),
-    path("api/debug-session-data/", debug_session_data, name="debug_session_data"),
     # API endpoints for dropdowns
     path("api/", include("efile.api.urls")),
     # Legacy endpoints for backward compatibility (can be removed later)

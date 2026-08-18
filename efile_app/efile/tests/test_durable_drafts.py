@@ -1,5 +1,4 @@
 import json
-from unittest.mock import patch
 
 import pytest
 from django.urls import reverse
@@ -290,50 +289,6 @@ def test_draft_snapshot_is_json_serializable(django_user_model):
 
 
 @pytest.mark.django_db
-def test_create_draft_view_creates_durable_draft(client, django_user_model):
-    user = django_user_model.objects.create_user(
-        username="testuser",
-        password="testpass123",
-        tyler_jurisdiction="illinois",
-    )
-    client.force_login(user)
-    _authorize_jurisdiction_session(client)
-
-    response = client.post(
-        reverse("create_draft", kwargs={"jurisdiction": "illinois"}),
-        data={},
-        content_type="application/json",
-    )
-
-    assert response.status_code == 200
-    payload = response.json()
-    assert payload["success"] is True
-    assert payload["redirect_url"] == reverse("filing_path", kwargs={"jurisdiction": "illinois"})
-
-    draft = FilingDraft.objects.get(user=user)
-    assert draft.jurisdiction == "illinois"
-    assert draft.current_step == WorkflowStepKey.FILING_PATH
-    assert draft.workflow_version == 2
-    assert payload["data"]["filing_draft"]["id"] == draft.pk
-
-
-@pytest.mark.django_db
-def test_create_draft_view_requires_jurisdiction_token(client, django_user_model):
-    user = django_user_model.objects.create_user(username="no-token", tyler_jurisdiction="illinois")
-    client.force_login(user)
-
-    response = client.post(
-        reverse("create_draft", kwargs={"jurisdiction": "illinois"}),
-        data={},
-        content_type="application/json",
-    )
-
-    assert response.status_code == 403
-    assert response.json()["success"] is False
-    assert not FilingDraft.objects.exists()
-
-
-@pytest.mark.django_db
 def test_options_page_points_resume_to_draft_workflow_step(client, django_user_model):
     user = django_user_model.objects.create_user(
         username="resume-user",
@@ -375,43 +330,6 @@ def test_legacy_documents_url_redirects_into_reorganized_document_flow(client, d
 
 
 @pytest.mark.django_db
-def test_first_upload_save_uses_current_draft_jurisdiction(client, django_user_model):
-    """A first-upload request without a jurisdiction must not fall into ``default``."""
-    user = django_user_model.objects.create_user(username="first-upload-owner", tyler_jurisdiction="illinois")
-    draft = FilingDraft.objects.create(user=user, jurisdiction="illinois")
-    client.force_login(user)
-    session = client.session
-    session[CURRENT_DRAFT_SESSION_KEY] = draft.pk
-    session["jurisdiction"] = "illinois"
-    session.save()
-
-    with (
-        patch("efile.views.session_api.requests.get") as get_file,
-        patch("efile.views.session_api.extract_fields_from_file", return_value={}),
-    ):
-        get_file.return_value.content = b"%PDF-1.7"
-        response = client.post(
-            reverse("save_upload_data_to_session"),
-            data=json.dumps(
-                {
-                    "files": {
-                        "lead": {
-                            "name": "petition.pdf",
-                            "url": "http://localstack:4566/forms/petition.pdf",
-                            "s3_key": "efile-documents/lead/petition.pdf",
-                        }
-                    }
-                }
-            ),
-            content_type="application/json",
-        )
-
-    assert response.status_code == 200
-    assert FilingDocument.objects.filter(draft=draft, role=FilingDocument.Role.LEAD).exists()
-    assert not FilingDraft.objects.filter(user=user, jurisdiction="default").exists()
-
-
-@pytest.mark.django_db
 def test_current_draft_enforces_owner(client, django_user_model):
     illinois_user = django_user_model.objects.create_user(username="illinois-user", tyler_jurisdiction="illinois")
     other_user = django_user_model.objects.create_user(username="other-user", tyler_jurisdiction="massachusetts")
@@ -450,11 +368,7 @@ def test_save_case_endpoint_persists_into_current_draft(client, django_user_mode
     user = django_user_model.objects.create_user(username="endpoint-user", tyler_jurisdiction="illinois")
     client.force_login(user)
     _authorize_jurisdiction_session(client)
-    client.post(
-        reverse("create_draft", kwargs={"jurisdiction": "illinois"}),
-        data={},
-        content_type="application/json",
-    )
+    client.post(reverse("start_filing", kwargs={"jurisdiction": "illinois"}), {"existing_case": "new"})
 
     response = client.post(
         reverse("save_case_data_api"),

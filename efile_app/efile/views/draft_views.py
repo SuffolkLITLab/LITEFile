@@ -1,4 +1,3 @@
-import json
 import logging
 
 from django.contrib import messages
@@ -15,40 +14,6 @@ from efile.utils.django_helpers import flush_cache_stay_logged_in
 from efile.workflow import ExistingCase, WorkflowStepKey, get_step_url, normalize_existing_case
 
 logger = logging.getLogger(__name__)
-
-
-@require_http_methods(["POST"])
-def create_draft_view(request, jurisdiction):
-    """Start a durable draft for the current user/session."""
-
-    if not request.user.is_authenticated:
-        return JsonResponse({"success": False, "error": "Authentication required"}, status=401)
-    if not get_tyler_token(request, jurisdiction):
-        return JsonResponse({"success": False, "error": "Jurisdiction authorization required"}, status=403)
-
-    try:
-        payload = json.loads(request.body or "{}")
-    except json.JSONDecodeError:
-        return JsonResponse({"success": False, "error": "Invalid JSON data"}, status=400)
-    if not isinstance(payload, dict):
-        return JsonResponse({"success": False, "error": "JSON body must be an object"}, status=400)
-
-    flush_cache_stay_logged_in(request.session)
-    draft = create_current_draft(
-        request,
-        jurisdiction,
-        current_step=WorkflowStepKey.FILING_PATH,
-        workflow_version=2,
-    )
-    logger.info("Created durable draft id=%s jurisdiction=%s", draft.pk, jurisdiction)
-
-    return JsonResponse(
-        {
-            "success": True,
-            "data": {"filing_draft": draft_snapshot(draft)},
-            "redirect_url": get_step_url(WorkflowStepKey.FILING_PATH, jurisdiction),
-        }
-    )
 
 
 @require_http_methods(["POST"])

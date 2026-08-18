@@ -112,19 +112,6 @@ class TestBasicFunctionality:
             assert "data" in data
             assert isinstance(data["data"], list)
 
-    def test_form_page_loads(self):
-        """Test that the expert form page loads without errors."""
-        client = Client()
-
-        # Test the form page (might need authentication)
-        try:
-            response = client.get("/illinois/expert-form/")
-            # Page should load (200) or redirect to login (302)
-            assert response.status_code in [200, 302, 404]  # 404 if route doesn't exist
-        except Exception:
-            # If the route doesn't exist, that's okay for this test
-            assert True
-
     def test_login_page_functionality(self):
         """Test that login functionality works."""
         client = Client()
@@ -160,51 +147,3 @@ class TestUtilityFunctions:
         assert hasattr(DropdownAPIViews, "_prioritize_courts_by_location")
         assert hasattr(DropdownAPIViews, "get_case_categories")
         assert hasattr(DropdownAPIViews, "get_courts")
-
-
-class TestJavaScriptFileStructure:
-    """Test that our refactored JavaScript files exist."""
-
-    def test_javascript_files_exist(self):
-        """Test that all required JavaScript files exist."""
-        import os
-
-        from django.conf import settings
-
-        # Get the static files directory
-        static_root = os.path.join(settings.BASE_DIR, "efile", "static", "js")
-
-        required_files = [
-            "api-utils.js",
-            "cascading-dropdowns.js",
-            "form-validation.js",
-            "expert-form-main.js",
-            "README.md",
-        ]
-
-        for filename in required_files:
-            file_path = os.path.join(static_root, filename)
-            assert os.path.exists(file_path), f"Required file {filename} not found at {file_path}"
-
-    def test_javascript_files_have_content(self):
-        """Test that JavaScript files contain expected content."""
-        import os
-
-        from django.conf import settings
-
-        static_root = os.path.join(settings.BASE_DIR, "efile", "static", "js")
-
-        # Test that files contain expected classes/functions
-        tests = [
-            ("api-utils.js", "class ApiUtils"),
-            ("cascading-dropdowns.js", "class CascadingDropdowns"),
-            ("form-validation.js", "class FormValidation"),
-            ("expert-form-main.js", "class ExpertForm"),
-        ]
-
-        for filename, expected_content in tests:
-            file_path = os.path.join(static_root, filename)
-            if os.path.exists(file_path):
-                with open(file_path) as f:
-                    content = f.read()
-                    assert expected_content in content, f"{filename} should contain '{expected_content}'"

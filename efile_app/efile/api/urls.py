@@ -25,7 +25,7 @@ from .dropdown_views import (
     get_optional_services,
     get_party_types,
 )
-from .filing_views import create_filing, delete_filing, get_filing_detail, get_filings, payment_fees, update_filing
+from .filing_views import get_filings, payment_fees
 from .s3_upload import (
     mock_s3_upload,
     simple_s3_upload,
@@ -40,7 +40,6 @@ urlpatterns = [
     path("simple-s3-upload/", simple_s3_upload, name="simple_s3_upload"),
     path("mock-s3-upload/", mock_s3_upload, name="mock_s3_upload"),
     path("test-s3-connection/", test_s3_connection, name="test_s3_connection"),
-    # path("api/create-filing/", create_filing, name="create_filing"),
     # Dropdown API endpoints
     path("dropdowns/case-categories/", get_case_categories, name="case_categories"),
     path("dropdowns/case-types/", get_case_types, name="case_types"),
@@ -68,8 +67,4 @@ urlpatterns = [
     path("payment-fees/", payment_fees, name="payment_fees"),
     # Filing API endpoints
     path("filings/", get_filings, name="get_filings"),
-    path("filings/create/", create_filing, name="create_filing"),
-    path("filings/<int:filing_id>/", get_filing_detail, name="filing_detail"),
-    path("filings/<int:filing_id>/update/", update_filing, name="update_filing"),
-    path("filings/<int:filing_id>/delete/", delete_filing, name="delete_filing"),
 ]

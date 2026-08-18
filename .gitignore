@@ -171,3 +171,7 @@ test-results/
 efile_app/screenshots
 efile_app/playwright-report
 efile_app/tmp
+
+# Cookie jars left behind by curl-based manual testing
+session_cookies.txt
+*.cookies

@@ -133,6 +133,19 @@ def test_starting_a_filing_needs_a_signed_in_filer(client):
 
 
 @pytest.mark.django_db
+def test_starting_a_filing_needs_the_jurisdiction_signed_in_too(client, user):
+    """Django login is not Tyler login: without the court's token there is nothing to file with."""
+
+    client.force_login(user)
+
+    response = client.post(START_URL, {"existing_case": "new"})
+
+    assert response.status_code == 302
+    assert "/login/" in response.url
+    assert not FilingDraft.objects.exists()
+
+
+@pytest.mark.django_db
 def test_the_menu_does_not_start_filings_on_a_get(client, user):
     sign_in(client, user)
 
