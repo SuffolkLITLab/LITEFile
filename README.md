@@ -273,12 +273,10 @@ The Playwright configuration includes several important settings:
   npx playwright test
   ```
 
-- __Run specific tests__:
+- __Run one spec__:
   ```bash
   cd efile_app
-  npx playwright test tests/expert-form-name-change.spec.js
-  npx playwright test tests/expert-form-order-of-protection.spec.js
-  npx playwright test tests/expert-form-forfeiture-of-seized-property.spec.js
+  npx playwright test tests/reorganized-filing-matrix.spec.js
   ```
 
 - __Run with UI mode__ (interactive):
@@ -313,17 +311,17 @@ The `test-utils.js` module provides two login methods:
 
 ### Available tests
 
-- **`expert-form-name-change.spec.js`**: Tests the complete workflow for filing a name change case
-- **`expert-form-order-of-protection.spec.js`**: Tests the complete workflow for filing an order of protection case  
-- **`expert-form-forfeiture-of-seized-property.spec.js`**: Tests the complete workflow for filing a forfeiture of seized property case
+- **`reorganized-filing-matrix.spec.js`**: Files one envelope per scenario through
+  the whole workflow -- start a filing, upload a document, confirm the case codes,
+  answer the people and fees screens, submit -- for both new cases and filings into
+  an existing case, across a matrix of Illinois courts and case types.
 
-All tests:
-1. Use shared login utilities from `test-utils.js`
-2. Navigate to the appropriate expert form section
-3. Fill out court selection and case details
-4. Complete required party information
-5. Verify the document upload page loads correctly
-6. Take screenshots for visual verification
+It really files, in the Tyler test EFSP, so it is skipped unless you ask for it:
+
+```bash
+cd efile_app
+RUN_FILING_MATRIX=1 npx playwright test tests/reorganized-filing-matrix.spec.js
+```
 
 Screenshots are saved to `screenshots/` directory and excluded from git via `.gitignore`.
 

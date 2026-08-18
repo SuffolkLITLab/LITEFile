@@ -309,6 +309,27 @@ court_specific_requirements:
 - **Bond Court (bond)**: Both sections are hidden, and "Required Parties" header is automatically hidden
 - **Other courts**: Petitioner shows by default, Name Sought hidden by default (unless configured otherwise)
 
+### Who the filer should call about a filing
+
+When a clerk rejects a filing, the only person who can explain it works at the
+court. The e-filing code lists carry no contact details at all, so a court's
+phone number, email, or page lives here, under the same court key:
+
+```yaml
+court_specific_requirements:
+  "cook:cd1":
+    contact:
+      name: "Clerk of the Circuit Court of Cook County - County Division"
+      phone: "312-555-0100"
+      email: "countydivision@example.gov"
+      url: "https://www.cookcountyclerkofcourt.org/"
+```
+
+Everything in the block is optional. What is configured shows on the filing
+details screen ("My cases" &rarr; a filing); anything missing falls back to the
+jurisdiction-wide `help_url` and `help_number`, and a court with neither shows no
+contact rather than a guess.
+
 ## Document checklists
 
 A checklist tells the filer which documents a case like theirs usually needs. It

@@ -6,8 +6,6 @@ change?"). This screen is that home. It is deliberately outside the filing
 workflow, so nothing here has to be finished before something else can start.
 """
 
-from datetime import date
-
 import requests
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect, render
@@ -24,18 +22,11 @@ from efile.services.filing_plans import (
     set_checklist_answers,
     status_choices,
 )
+from efile.services.filings import history_start_date
 
 
 def _plan_for(request, jurisdiction, plan_id):
     return get_object_or_404(FilingPlan, pk=plan_id, user=request.user, jurisdiction=jurisdiction)
-
-
-def _five_years_ago():
-    today = date.today()
-    try:
-        return today.replace(year=today.year - 5).isoformat()
-    except ValueError:  # February 29
-        return today.replace(year=today.year - 5, day=28).isoformat()
 
 
 @require_http_methods(["GET", "POST"])
@@ -68,7 +59,7 @@ def filing_plans(request, jurisdiction):
                         request,
                         jurisdiction,
                         case_tracking_id,
-                        start_date=_five_years_ago(),
+                        start_date=history_start_date(),
                     )
                 except (requests.RequestException, TypeError, ValueError, KeyError):
                     messages.error(request, "We could not verify your court cases. Try again shortly.")
@@ -94,6 +85,13 @@ def filing_plans(request, jurisdiction):
         elif action == "unlink_case":
             link_case_to_plan(plan, case_tracking_id="", docket_number="", case_title="")
             messages.success(request, f"{plan.title} is no longer linked to a court case.")
+        elif action == "delete":
+            # A plan is the filer's own list, so throwing it away is theirs to
+            # decide. Filings made under it keep their own record: the draft's
+            # link to the plan is nulled, not cascaded.
+            title = plan.title
+            plan.delete()
+            messages.success(request, f"We deleted {title}. Filings you already made are still in My cases.")
 
         return redirect("filing_plans", jurisdiction=jurisdiction)
 

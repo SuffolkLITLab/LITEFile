@@ -363,14 +363,6 @@ class ApiUtils {
         return this.fetchJSON("/api/get-upload-data", "GET");
     }
 
-    async saveUploadData(body) {
-        return this.fetchJSON("/api/save-upload-data/", "POST", {}, body);
-    }
-
-    async saveFirstUploadData(body) {
-        return this.fetchJSON("/api/save-upload-data-first/", "POST", {}, body);
-    }
-
     // Cache management methods
     clearAllCache() {
         this.cache = {};

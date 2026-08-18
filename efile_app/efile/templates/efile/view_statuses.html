@@ -5,17 +5,17 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>{{ config.jurisdiction.name }}</title>
+        <title>{% translate "My cases" %}</title>
         <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
               rel="stylesheet" />
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
               rel="stylesheet" />
         <link rel="stylesheet" href="{% static 'css/common.css' %}" />
-        <link rel="stylesheet" href="{% static 'css/view_statuses.css' %}" />
+        <link rel="stylesheet" href="{% static 'css/options.css' %}" />
+        <link rel="stylesheet" href="{% static 'css/my_lists.css' %}" />
     </head>
     <body>
         {% include "efile/components/profile_header.html" %}
-        <!-- Django Messages -->
         <div style="display: flex; flex-direction: column; align-items:center;">
             {% if messages %}
                 {% for message in messages %}
@@ -29,122 +29,132 @@
             {% endif %}
         </div>
         <div class="container">
-            <h1>{% translate "Filing statuses" %}</h1>
+            <h1>
+                {% if showing_archived %}
+                    {% translate "My archived cases" %}
+                {% else %}
+                    {% translate "My cases" %}
+                {% endif %}
+            </h1>
             <div class="row justify-content-center">
-                <p class="col-xl-7">{{ config.jurisdiction.copyedit.filing_statuses }}</p>
-            </div>
-            <div id="filing_statuses"></div>
-            <div>
-                <a href="{% url 'efile_options' jurisdiction %}"
-                   class="btn btn-primary mb-3">{% translate "Go Back" %}</a>
+                <div class="col-xl-7">
+                    <p>{{ config.jurisdiction.copyedit.filing_statuses }}</p>
+                    {% if lookup_failed %}
+                        <div class="alert alert-danger" role="alert">
+                            {% translate "We could not reach the court to load your filings. Try again in a few minutes." %}
+                        </div>
+                    {% endif %}
+                    <div class="list-toolbar">
+                        {% if showing_archived %}
+                            <a class="btn btn-outline-secondary btn-sm"
+                               href="{% url 'filing_statuses' jurisdiction %}">
+                                {% blocktranslate count counter=active_count %}Back to my 1 case{% plural %}Back to my {{ counter }} cases{% endblocktranslate %}
+                            </a>
+                        {% elif archived_count %}
+                            <a class="btn btn-outline-secondary btn-sm"
+                               href="{% url 'filing_statuses' jurisdiction %}?archived=1">
+                                {% blocktranslate count counter=archived_count %}See 1 archived case{% plural %}See {{ counter }} archived cases{% endblocktranslate %}
+                            </a>
+                        {% endif %}
+                    </div>
+                    {% for case in cases %}
+                        <section class="option-card list-card"
+                                 aria-labelledby="case-{{ forloop.counter }}-title">
+                            <div class="list-card__head">
+                                <div>
+                                    <h2 id="case-{{ forloop.counter }}-title">
+                                        {% if case.case_title %}
+                                            {{ case.case_title }}
+                                        {% elif case.docket_number %}
+                                            {% blocktranslate with docket=case.docket_number %}Case {{ docket }}{% endblocktranslate %}
+                                        {% elif case.filings.0.filing_code %}
+                                            {# A filing the court has not indexed into a case yet: name it by what it is. #}
+                                            {% blocktranslate with what=case.filings.0.filing_code %}{{ what }}, waiting for a case number{% endblocktranslate %}
+                                        {% else %}
+                                            {% translate "Filing without a case number yet" %}
+                                        {% endif %}
+                                    </h2>
+                                    <p class="list-card__detail">
+                                        {% if case.docket_number and case.case_title %}{{ case.docket_number }} ·{% endif %}
+                                        {{ case.court_name }}
+                                        ·
+                                        {% blocktranslate count counter=case.filing_count %}1 filing{% plural %}{{ counter }} filings{% endblocktranslate %}
+                                    </p>
+                                </div>
+                                <span class="list-card__status list-card__status--{{ case.latest_status.tone }}">
+                                    <i class="fas {{ case.latest_status.icon }}" aria-hidden="true"></i>
+                                    {{ case.latest_status.label }}
+                                </span>
+                            </div>
+                            <ul class="case-filings">
+                                {% for filing in case.filings %}
+                                    <li class="case-filing">
+                                        <span class="case-filing__status case-filing__status--{{ filing.status_presentation.tone }}">
+                                            <i class="fas {{ filing.status_presentation.icon }}" aria-hidden="true"></i>
+                                            {{ filing.status_presentation.label }}
+                                        </span>
+                                        <span class="case-filing__what">
+                                            <strong>{% firstof filing.filing_code _("Filing") %}</strong>
+                                            <small>
+                                                {% if filing.received_at %}
+                                                    {% blocktranslate with when=filing.received_at|date:"j F Y" %}Sent {{ when }}{% endblocktranslate %}
+                                                {% endif %}
+                                            </small>
+                                        </span>
+                                        {% if filing.filing_id %}
+                                            <a class="btn btn-outline-primary btn-sm"
+                                               href="{% url 'filing_detail' jurisdiction filing.court_code filing.filing_id %}">
+                                                {% translate "See details and documents" %}
+                                            </a>
+                                        {% endif %}
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                            {% if case.case_tracking_id %}
+                                <form method="post" class="list-card__actions">
+                                    {% csrf_token %}
+                                    <input type="hidden"
+                                           name="case_tracking_id"
+                                           value="{{ case.case_tracking_id }}" />
+                                    <input type="hidden" name="docket_number" value="{{ case.docket_number }}" />
+                                    <input type="hidden" name="case_title" value="{{ case.case_title }}" />
+                                    {% if showing_archived %}
+                                        <input type="hidden" name="archived" value="1" />
+                                        <button class="btn btn-outline-secondary btn-sm"
+                                                type="submit"
+                                                name="action"
+                                                value="unarchive">
+                                            <i class="fas fa-box-open" aria-hidden="true"></i> {% translate "Put back in my cases" %}
+                                        </button>
+                                    {% else %}
+                                        <button class="btn btn-outline-secondary btn-sm"
+                                                type="submit"
+                                                name="action"
+                                                value="archive">
+                                            <i class="fas fa-box-archive" aria-hidden="true"></i> {% translate "Archive this case" %}
+                                        </button>
+                                    {% endif %}
+                                </form>
+                            {% endif %}
+                        </section>
+                    {% empty %}
+                        <div class="option-card">
+                            {% if showing_archived %}
+                                <p>{% translate "You have not archived any cases." %}</p>
+                            {% elif not lookup_failed %}
+                                <p>
+                                    {% translate "The court has no filings for your account yet. Anything you file here will show up on this page." %}
+                                </p>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                    <a href="{% url 'efile_options' jurisdiction %}"
+                       class="btn btn-outline-secondary mb-3">{% translate "Go back" %}</a>
+                </div>
             </div>
         </div>
         {% include "efile/components/footer.html" %}
         <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
         <script src="{% url 'javascript-catalog' %}"></script>
-        <script src="{% static 'js/api-utils.js' %}"></script>
-        <script>
-            // Function to save existing_case data and redirect to expert form or case details
-            async function getFilingStatuses() {
-                let now = new Date();
-                now.setFullYear(now.getFullYear() - 5);
-                let resp = await apiUtils.get("/api/filings", {
-                    "start_date": `${now.toISOString().split("T")[0]}`
-                }, true);
-                let filings = resp.data;
-                let courts = (await apiUtils.get("/api/dropdowns/courts")).data;
-                let courts_dict = courts.reduce((dict, court) => {
-                    dict[court.value] = court.text;
-                    return dict;
-                }, {});
-                let htmlStr = "";
-                for (let filing of filings) {
-                    let status_icon = '<i class="fas fa-file"></i>';
-                    let status_text = gettext("Waiting on Court");
-                    let case_info = "";
-                    if (filing['filing_status'] === 'accepted') {
-                        status_icon = '<i class="fas fa-file-circle-check accepted"></i>';
-                        status_text = gettext("Accepted");
-                    } else if (filing['filing_status'] === 'under-review') {
-                        status_icon = '<i class="fas fa-file-pen"></i>';
-                        status_text = gettext("Under Review");
-                    } else if (filing['filing_status'] === 'rejected' || filing['filing_status'] === 'returned') {
-                        status_icon = '<i class="fas fa-file-circle-exclamation rejected"></i>';
-                        status_text = gettext("Rejected");
-                    }
-                    if (filing['case_title']) {
-                        case_info = `<li><strong>{% translate "Case" %}</strong>: ${filing['case_title']} (${filing['case_number']})</li>`;
-                    }
-                    let date_string = new Date(filing['received_timestamp']).toLocaleDateString();
-                    htmlStr += `
-            <div class="row justify-content-center">
-                <div class="col-xl-7">
-                    <div id="existing-placeholder"></div>
-                    <div class="option-card">
-                        <div class="d-flex align-items-center">
-                            <!--div class="option-icon">
-                                <i class="fas fa-university"></i>
-                            </div -->
-                            <div style="display: flex; flex-direction: column; align-items: center;">
-                               ${status_icon}
-                               <span>${status_text}</span>
-                               <span>${date_string}</span>
-                            </div>
-                            <div class="option-content">
-                                <ul>
-                                <li><strong>{% translate "Court" %}</strong>: ${courts_dict[filing['court_code']]}</li>
-                                <li><strong>{% translate "Filing" %}</strong>: ${filing['filing_code']}</li>
-                                ${case_info}
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            `;
-                }
-                return htmlStr;
-            }
-
-            function useExistingCardHtml() {
-                let html = `
-          <div class="option-card">
-            <div class="d-flex align-items-center mb-3">
-              <div class="option-icon">
-                <i class="fas fa-reply"></i>
-              </div>
-              <div class="option-content">
-                <h2>{% translate "Continue a draft filing" %}</h2>
-                <p>{% translate "Resume your filing where you left off." %}</p>
-              </div>
-            </div>
-            <div class="button-group">
-              <button class="btn btn-primary" tabindex="0" onclick="goToExpertForm('resume')">
-                {% translate "Resume" %}
-              </button>
-            </div>
-          </div>
-          `;
-                return html;
-            }
-
-
-            // Add keyboard navigation
-            document.addEventListener("keydown", function(e) {
-                if (e.key === "Enter") {
-                    const focusedElement = document.activeElement;
-                    if (focusedElement.classList.contains("btn")) {
-                        focusedElement.click();
-                    }
-                }
-            });
-
-            getFilingStatuses().then(value => {
-                if (value) {
-                    let elem = document.getElementById('filing_statuses');
-                    elem.innerHTML = value;
-                }
-            });
-        </script>
-</body>
+    </body>
 </html>

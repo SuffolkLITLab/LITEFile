@@ -457,26 +457,6 @@ class TestExpertFormIntegration:
         )
         assert response.status_code == 200
 
-    def test_form_submission_validation(self, authenticated_client):
-        """Test form submission with validation."""
-        response = authenticated_client.post(
-            "/jurisdiction/illinois/expert_form/",
-            {
-                "court": "cook:law1",
-                "case_category": "civil",
-                "case_type": "contract",
-                "filing_type": "complaint",
-                "document_type": "motion",
-                "petitioner_first_name": "John",
-                "petitioner_last_name": "Doe",
-                "new_first_name": "Jane",
-                "new_last_name": "Smith",
-            },
-        )
-
-        # Should redirect or show success (depending on implementation)
-        assert response.status_code in [200, 302]
-
 
 # ============================================================================
 # ERROR HANDLING TESTS

@@ -468,6 +468,27 @@ def test_i_can_rename_a_plan_to_something_i_recognize(client, signed_in):
 
 
 @pytest.mark.django_db
+def test_i_can_delete_a_plan_i_am_done_with(client, signed_in):
+    """The list is the filer's own, so clearing something off it is theirs to do."""
+
+    plan = configured_plan(signed_in)
+    draft = signed_in
+    draft.plan = plan
+    draft.save(update_fields=["plan"])
+
+    page = client.get(PLANS_URL).content.decode()
+    assert "Delete this plan" in page
+
+    client.post(PLANS_URL, {"action": "delete", "plan_id": plan.pk})
+
+    assert not FilingPlan.objects.filter(pk=plan.pk).exists()
+    # The filing made under it is not collateral damage.
+    draft.refresh_from_db()
+    assert draft.plan_id is None
+    assert FilingDraft.objects.filter(pk=draft.pk).exists()
+
+
+@pytest.mark.django_db
 def test_i_cannot_touch_someone_elses_plan(client, signed_in, django_user_model):
     plan = configured_plan(signed_in)
     intruder = django_user_model.objects.create_user(username="intruder", tyler_jurisdiction="illinois")

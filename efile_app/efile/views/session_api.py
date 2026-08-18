@@ -1,19 +1,15 @@
 import json
 import logging
-from tempfile import NamedTemporaryFile
 
-import requests
 from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
-from ..services.current_drafts import get_current_draft
 from ..services.efsp_errors import describe_efsp_error
 from ..services.efsp_payload import PayloadValidationError, prepare_efile_payload
 from ..services.submission_errors import SubmissionErrorCode
-from ..utils.case_data_utils import get_case_data, get_upload_data, update_case_data, update_upload_data
-from ..utils.llms import LlmError, extract_fields_from_file
+from ..utils.case_data_utils import get_case_data, get_upload_data, update_case_data
 from ..utils.proxy_connection import get_party_type_code_from_api
 
 logger = logging.getLogger(__name__)
@@ -135,99 +131,6 @@ def determine_party_type_for_existing_case(case_data):
 
     logger.info(f"Selected party type code: {party_code}")
     return party_code
-
-
-@csrf_exempt
-@require_http_methods(["POST"])
-def save_upload_first_data(request):
-    """Save upload data and file information to Django session for review."""
-    logger.debug("Received POST request to save upload data")
-    logger.debug(f"Request body: {request.body.decode('utf-8')}")
-
-    if not request.user.is_authenticated:
-        return JsonResponse({"success": False, "error": "Authentication required"}, status=401)
-
-    data = json.loads(request.body)
-    current_draft = get_current_draft(request, resume_latest=False)
-    jurisdiction_id = (
-        data.get("jurisdiction_id")
-        or (current_draft.jurisdiction if current_draft is not None else None)
-        or request.session.get("jurisdiction")
-        or "default"
-    )
-    if data.get("jurisdiction_id"):
-        request.session["jurisdiction"] = jurisdiction_id
-    upload_data = {"files": data.get("files", {})}
-
-    try:
-        url = upload_data["files"]["lead"]["url"]
-        file_resp = requests.get(url)
-        with NamedTemporaryFile(delete_on_close=False, suffix=".pdf") as f:
-            f.write(file_resp.content)
-            f.close()
-
-            # noqa: E501
-            llm_hint = llm_hints.get(jurisdiction_id)
-            fields: dict[str, str] = llm_fields.get(jurisdiction_id, {})
-            found_fields = extract_fields_from_file(
-                f.name,
-                fields,
-                llm_hint=llm_hint,
-            )
-            logger.debug("Found fields: %s", found_fields)
-
-    except LlmError as e:
-        logger.exception("Error processing upload data to session: %s", e)
-        found_fields = {}
-    except Exception as e:
-        logger.exception("Error saving upload data to session: %s", e)
-        found_fields = {}
-
-    upload_data["guesses"] = {}
-    upload_data["guesses"]["court"] = found_fields.get("court name")
-    upload_data["guesses"]["filing type"] = found_fields.get("filing type")
-    upload_data["guesses"]["case category"] = found_fields.get("case category")
-    upload_data["guesses"]["case type"] = found_fields.get("case type")
-    upload_data["guesses"]["docket number"] = found_fields.get("docket number")
-
-    update_upload_data(request, upload_data, jurisdiction_id)
-
-    logger.info("Persisted lead upload to the current draft")
-    return JsonResponse({"success": True, "message": "Upload data saved"})
-
-
-@csrf_exempt
-@require_http_methods(["POST"])
-def save_upload_data_to_session(request):
-    """Persist supporting documents and lead filing config onto the current draft."""
-    try:
-        if not request.user.is_authenticated:
-            return JsonResponse({"success": False, "error": "Authentication required"}, status=401)
-
-        data = json.loads(request.body)
-
-        upload_data = {
-            "files": {"supporting": data.get("files", [])},
-            # Lead document filing information (updates the already-persisted lead doc)
-            "lead_filing_type": data.get("lead_filing_type", ""),
-            "lead_filing_type_name": data.get("lead_filing_type_name", ""),
-            "lead_document_type": data.get("lead_document_type", ""),
-            "lead_document_type_name": data.get("lead_document_type_name", ""),
-            "lead_filing_component": data.get("lead_filing_component", ""),
-            "lead_filing_component_name": data.get("lead_filing_component_name", ""),
-            "lead_cc_email": data.get("lead_cc_email", ""),
-            # Supporting documents filing information
-            "supporting_documents": data.get("supporting_documents", []),
-        }
-
-        update_upload_data(request, upload_data)
-
-        logger.info("Persisted supporting documents to the current draft")
-        return JsonResponse({"success": True, "message": "Upload data saved"})
-
-    except Exception as e:
-        logger.exception("Error saving upload data")
-        return JsonResponse({"success": False, "error": str(e)}, status=500)
 
 
 @require_http_methods(["GET"])

@@ -16,7 +16,7 @@ from efile.workflow import ExistingCase, WorkflowStepKey
 
 OPTIONS_URL = reverse("efile_options", kwargs={"jurisdiction": "illinois"})
 UPLOAD_URL = reverse("upload_documents", kwargs={"jurisdiction": "illinois"})
-CREATE_DRAFT_URL = reverse("create_draft", kwargs={"jurisdiction": "illinois"})
+START_FILING_URL = reverse("start_filing", kwargs={"jurisdiction": "illinois"})
 
 
 @pytest.fixture
@@ -91,8 +91,8 @@ def test_a_late_read_cannot_undo_a_new_filing(signed_in, last_months_filing):
     """The bug, in the order it happened: start a filing, then a page load that
     was already in flight comes back and answers "which filing?" as well."""
 
-    started = signed_in.post(CREATE_DRAFT_URL, data="{}", content_type="application/json")
-    new_draft_id = started.json()["data"]["filing_draft"]["id"]
+    signed_in.post(START_FILING_URL, {"existing_case": "new"})
+    new_draft_id = current_draft_id(signed_in)
 
     signed_in.get(reverse("get_case_data_api"))
     signed_in.get(OPTIONS_URL)
@@ -109,7 +109,7 @@ def test_a_late_read_cannot_undo_a_new_filing(signed_in, last_months_filing):
 @pytest.mark.django_db
 def test_a_new_filing_starts_with_no_documents(signed_in, last_months_filing):
     signed_in.get(OPTIONS_URL)
-    signed_in.post(CREATE_DRAFT_URL, data="{}", content_type="application/json")
+    signed_in.post(START_FILING_URL, {"existing_case": "new"})
 
     page = signed_in.get(UPLOAD_URL)
 
@@ -155,8 +155,8 @@ def test_resuming_a_filing_by_name_picks_it_back_up(signed_in, last_months_filin
 def test_resuming_switches_away_from_the_filing_you_were_in(signed_in, last_months_filing):
     """Naming a filing is the filer saying "this one", whatever they were last in."""
 
-    started = signed_in.post(CREATE_DRAFT_URL, data="{}", content_type="application/json")
-    new_draft_id = started.json()["data"]["filing_draft"]["id"]
+    signed_in.post(START_FILING_URL, {"existing_case": "new"})
+    new_draft_id = current_draft_id(signed_in)
     assert current_draft_id(signed_in) == new_draft_id
 
     page = signed_in.get(f"{UPLOAD_URL}?draft={last_months_filing.pk}")

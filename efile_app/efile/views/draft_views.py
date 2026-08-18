@@ -1,4 +1,3 @@
-import json
 import logging
 
 from django.contrib import messages
@@ -9,30 +8,32 @@ from django.views.decorators.http import require_http_methods
 from efile.api.suffolk_api_views import get_tyler_token
 from efile.models import FilingPlan
 from efile.services.current_drafts import attach_current_draft, create_current_draft, get_current_draft
-from efile.services.drafts import draft_snapshot
+from efile.services.drafts import draft_snapshot, write_case_data
 from efile.services.filing_plans import create_draft_from_plan
 from efile.utils.django_helpers import flush_cache_stay_logged_in
-from efile.workflow import WorkflowStepKey, get_step_url
+from efile.workflow import ExistingCase, WorkflowStepKey, get_step_url, normalize_existing_case
 
 logger = logging.getLogger(__name__)
 
 
 @require_http_methods(["POST"])
-def create_draft_view(request, jurisdiction):
-    """Start a durable draft for the current user/session."""
+def start_filing(request, jurisdiction):
+    """Start a filing from anywhere, already knowing which kind it is.
 
-    if not request.user.is_authenticated:
-        return JsonResponse({"success": False, "error": "Authentication required"}, status=401)
-    if not get_tyler_token(request, jurisdiction):
-        return JsonResponse({"success": False, "error": "Jurisdiction authorization required"}, status=403)
+    The navigation menu offers "Start a new case" and "File into an existing
+    case" as two destinations, because that is how filers describe what they
+    are about to do. Both land on the same workflow; naming the path here just
+    saves answering the first question again.
 
-    try:
-        payload = json.loads(request.body or "{}")
-    except json.JSONDecodeError:
-        return JsonResponse({"success": False, "error": "Invalid JSON data"}, status=400)
-    if not isinstance(payload, dict):
-        return JsonResponse({"success": False, "error": "JSON body must be an object"}, status=400)
+    Starting a filing always makes a new one. Nothing is carried over from the
+    filing the browser was last pointed at, which is the whole point of the
+    menu item: it is how a filer gets out of a draft they no longer want.
+    """
 
+    if not request.user.is_authenticated or not get_tyler_token(request, jurisdiction):
+        return redirect("efile_login", jurisdiction=jurisdiction)
+
+    path = normalize_existing_case(request.POST.get("existing_case"))
     flush_cache_stay_logged_in(request.session)
     draft = create_current_draft(
         request,
@@ -40,15 +41,13 @@ def create_draft_view(request, jurisdiction):
         current_step=WorkflowStepKey.FILING_PATH,
         workflow_version=2,
     )
-    logger.info("Created durable draft id=%s jurisdiction=%s", draft.pk, jurisdiction)
+    logger.info("Started draft id=%s from the navigation menu (path=%s)", draft.pk, path or "unset")
 
-    return JsonResponse(
-        {
-            "success": True,
-            "data": {"filing_draft": draft_snapshot(draft)},
-            "redirect_url": get_step_url(WorkflowStepKey.FILING_PATH, jurisdiction),
-        }
-    )
+    if path in {ExistingCase.NEW, ExistingCase.EXISTING}:
+        write_case_data(draft, {"existing_case": path}, current_step=WorkflowStepKey.UPLOAD_DOCUMENTS)
+        return redirect(get_step_url(WorkflowStepKey.UPLOAD_DOCUMENTS, jurisdiction))
+    # No path named (or one we do not recognize): ask, rather than guess.
+    return redirect(get_step_url(WorkflowStepKey.FILING_PATH, jurisdiction))
 
 
 @require_http_methods(["POST"])

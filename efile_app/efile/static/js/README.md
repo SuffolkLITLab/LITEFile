@@ -1,264 +1,53 @@
-# Expert form JavaScript architecture
+# Front-end JavaScript
 
-This document describes the modular JavaScript architecture for the expert form functionality with dynamic court-specific form rendering.
+There is no front-end framework here, and no client-side router. Each workflow
+screen is a Django template that posts to its own view; the script beside it
+handles only what a page reload cannot do -- showing and hiding fields, dragging
+documents into order, calling a code list as the filer types. A screen with no
+JavaScript is a screen that did not need any.
 
-## File structure
+Every module is an IIFE that starts by looking for the element it belongs to and
+returns immediately when it is not on the page, so any script can be loaded
+anywhere without checking which template it landed in.
 
-```
-efile/static/js/
-├── api-utils.js              # API communication utilities
-├── cascading-dropdowns.js    # Smart dropdown functionality with location-based recommendations
-├── form-validation.js        # Form validation and user feedback
-├── dynamic-form-sections.js  # Dynamic form rendering with court-specific conditional logic
-├── expert-form-main.js       # Main coordinator and initialization
-└── README.md                # This documentation
+## Shared modules
 
-efile/static/config/
-├── base-case-types.yaml      # Base form configuration templates
-└── states/
-    └── illinois.yaml         # Illinois-specific court requirements and overrides
-```
+| File | What it is for |
+| --- | --- |
+| `api-utils.js` | The only place that talks to `/api/…`: CSRF tokens, timeouts, error shaping, and a small response cache for code lists. Exposed as `window.apiUtils`. |
+| `filing-payload.js` | Builds the `efile_data` blob the EFSP expects. Review and Payment must send the same one -- fees quoted against a different payload are not the fees the filer pays. |
+| `checklist-status.js` | The document checklist's answer buttons, shared by the in-flow step and the filing-plans page. |
 
-## Module overview
+## Screen modules
 
-### 1. api-utils.js
-**Purpose**: Centralized API communication with error handling and CSRF protection.
+`case-lookup.js`, `case-questions.js`, `document-checklist.js`,
+`extraction-review.js`, `filing-plans.js`, `organize-documents.js`,
+`parties.js`, `party-details.js`, `payment.js`, `review.js`,
+`upload-documents.js`, and `your-information.js` each belong to the template of
+the same name.
 
-**Key Features**:
-- Automatic CSRF token handling
-- Request timeout management
-- Standardized error handling
-- URL building with parameters
-- Convenient HTTP verb methods (get, post, put, etc.)
+## API endpoints these call
 
-**Global Access**: `window.apiUtils`
-
-### 2. cascading-dropdowns.js
-**Purpose**: Intelligent form dropdown behavior with location-based recommendations and persistent user notifications.
-
-**Key Features**:
-- User profile integration for location-based defaults
-- Court-specific case category filtering
-- Progressive form enablement (court → case category → case type, etc.)
-- Auto-selection with persistent recommendation notices
-- Smart placeholder management
-- Court-specific form section triggering
-
-**Dependencies**: 
-- `api-utils.js` for API communication
-- User profile API endpoint (`/api/auth/profile/`)
-- Dynamic form sections integration
-
-**Global Access**: `window.CascadingDropdowns`
-
-### 3. form-validation.js
-**Purpose**: Real-time form validation with enhanced user experience.
-
-**Key Features**:
-- Real-time field validation with visual feedback
-- Draft saving to localStorage
-- Enhanced error messaging and notifications
-- Form data collection and restoration
-- Accessibility-friendly error handling
-
-**Global Access**: `window.FormValidation`
-
-### 4. dynamic-form-sections.js
-**Purpose**: Dynamic form rendering with court-specific conditional logic and automatic header management.
-
-**Key Features**:
-- YAML-based configuration system for form structures
-- Court-specific field visibility and requirements (hidden_for_courts, required_for_courts)
-- Dynamic section rendering with conditional logic
-- Automatic header hiding when no sections are rendered
-- Form data preservation during court changes
-- Real-time form updates based on dropdown selections
-
-**Dependencies**:
-- `/api/form-config/` endpoint for court-specific configurations
-- YAML configuration files (base-case-types.yaml, states/illinois.yaml)
-- Integration with cascading dropdowns for court selection
-
-**Global Access**: `window.DynamicFormSections`
-
-### 5. expert-form-main.js
-**Purpose**: Main coordinator that initializes and manages all form components.
-
-**Key Features**:
-- Component initialization and coordination
-- Draft restoration from previous sessions
-- Global instance management
-- Error handling and recovery
-
-**Global Access**: 
-- `window.ExpertForm` (class)
-- `window.getExpertFormInstance()` (active instance)
-
-## Loading order
-
-The scripts must be loaded in this specific order due to dependencies:
-
-1. `api-utils.js` - Provides `apiUtils` global
-2. `cascading-dropdowns.js` - Uses `apiUtils`
-3. `form-validation.js` - Independent
-4. `dynamic-form-sections.js` - Independent, integrates with cascading dropdowns
-5. `expert-form-main.js` - Coordinates all modules
-
-## API endpoints used
-
-- `/api/auth/profile/` - User profile and location data
-- `/api/dropdowns/courts/` - Court listings with location prioritization
-- `/api/dropdowns/case-categories/` - Case categories filtered by court
-- `/api/dropdowns/case-types/` - Case types based on category
-- `/api/dropdowns/filing-types/` - Filing types based on case type
-- `/api/dropdowns/document-types/` - Document types for final selection
-- `/api/form-config/` - Dynamic form configuration with court-specific conditional requirements
-
-## Configuration system
-
-### YAML-based form configuration
-The system uses a hierarchical YAML configuration structure:
-
-**Base Configuration (`base-case-types.yaml`)**:
-- Defines common form structures and field templates
-- Provides conditional_requirements framework for court-specific modifications
-- Sets default field types, validation rules, and column widths
-
-**State-Specific Configuration (`states/illinois.yaml`)**:
-- Extends base configuration with state-specific requirements
-- Defines court-specific field modifications using arrays:
-  - `hidden_for_courts: ["bond"]` - Hide sections for specific courts
-  - `required_for_courts: ["cook:cd1"]` - Make sections required for specific courts
-- Supports inheritance from base templates with custom overrides
-
-### Court-specific conditional logic
-```yaml
-# Example: Hide petitioner section for Bond County
-court_specific_requirements:
-  "bond":
-    case_types:
-      name_change:
-        field_modifications:
-          - field_group: "Petitioner"
-            modifications:
-              conditional_requirements:
-                hidden_for_courts: ["bond"]
-```
+- `/api/dropdowns/…` — court code lists (courts, case categories and types,
+  filing and document types, party types, optional services)
+- `/api/filer-roles/`, `/api/form-config/`, `/api/case-type-config/` — partner
+  configuration for the current jurisdiction and case type
+- `/api/suffolk/lookup-case/` — finding an existing court case
+- `/api/payment-accounts/`, `/api/payment-account-types/`,
+  `/api/payment-fees/`, `/api/auth/tyler-token/` — the fees step
+- `/api/get-case-data/`, `/api/get-upload-data/`, `/api/save-case-data/` — the
+  draft's own state, always read from the server rather than from localStorage:
+  a stale copy could outlive a submit and leak into the next filing
+- `/api/submit-final-filing/` — filing, from the review screen
 
 ## Configuration
 
-### Location intelligence
-The system automatically prioritizes courts based on user location:
-- User's zip code → county mapping
-- County → court prioritization
-- Auto-selection with persistent user notification
-- Green recommendation notices positioned above dropdown labels
-- Notices persist during automatic cascading operations
+What the forms ask for is configured in YAML, not in JavaScript. See
+`../config/README.md`.
 
-### Court-specific form rendering
-- Dynamic form sections based on court selection
-- Conditional field visibility (hidden_for_courts, required_for_courts)
-- Automatic header management (hides "Parties" header when no sections render)
-- Real-time form updates when court selection changes
-- Form data preservation during court transitions
+## Tests
 
-### Draft saving
-- Manual save only via "Save Draft" button (auto-save removed)
-- User-controlled draft creation for better user experience
-- Restoration on page reload (24-hour expiry)
-- localStorage backup for reliability
-- Visual feedback when saving drafts
-
-### Error handling
-- Network timeouts (30 seconds)
-- API error translation to user-friendly messages
-- Graceful degradation when APIs are unavailable
-- Console logging for debugging
-- Court-specific configuration validation
-
-## Usage examples
-
-### Accessing the form instance
-```javascript
-const formInstance = getExpertFormInstance();
-const dropdowns = formInstance.getCascadingDropdowns();
-const validation = formInstance.getFormValidation();
-const dynamicSections = formInstance.getDynamicFormSections();
-```
-
-### Manual API calls
-```javascript
-// Using the global API utility
-const response = await apiUtils.get('/api/dropdowns/courts/', {
-    user_county: 'Cook',
-    jurisdiction: 'illinois'
-});
-
-// Get court-specific form configuration
-const formConfig = await apiUtils.get('/api/form-config/', {
-    case_type: 'name_change',
-    court: 'cook:cd1'
-});
-```
-
-### Custom validation
-```javascript
-const validation = getExpertFormInstance().getFormValidation();
-validation.showNotification('Custom message', 'success');
-```
-
-### Court-specific configuration examples
-```javascript
-// Check if a section should show for current court
-const dynamicSections = getExpertFormInstance().getDynamicFormSections();
-const shouldShow = dynamicSections.shouldShowSection(sectionConfig, 'bond');
-
-// Trigger form re-rendering after court change
-dynamicSections.handleCaseTypeChange();
-```
-
-## Performance considerations
-
-- Scripts load asynchronously after DOM ready
-- API requests are cached where appropriate
-- Loading spinners prevent multiple simultaneous requests
-- Manual draft saving prevents excessive storage operations
-- Court-specific form configurations are cached to reduce API calls
-- Dynamic form sections only re-render when necessary (court or case type changes)
-
-## Security features
-
-- CSRF token automatic inclusion
-- XSS prevention through proper DOM manipulation
-- Input validation on both client and server
-- Secure localStorage usage for draft data
-- YAML configuration validation prevents injection attacks
-
-## Debugging
-
-Enable console logging by setting:
-```javascript
-window.debugFormModules = true;
-```
-
-This will provide detailed logging for:
-- API requests and responses
-- Form state changes
-- Validation events
-- Draft save operations (manual only)
-- Court-specific configuration loading
-- Dynamic form section rendering decisions
-
-## Troubleshooting
-
-### Debug commands
-```javascript
-// Check current form configuration
-console.log(getExpertFormInstance().getDynamicFormSections().config);
-
-// Check court-specific modifications
-console.log(window.CascadingDropdowns.selectedValues);
-
-// View current form data
-console.log(getExpertFormInstance().getFormValidation().collectFormData());
-```
+`js-tests/` holds `node --test` unit tests for the modules worth testing on
+their own (`api-utils.js`, `filing-payload.js`). Run them with
+`npm run test:unit`. Whole-flow coverage lives in the Playwright specs under
+`efile_app/tests/`.

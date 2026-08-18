@@ -337,23 +337,22 @@ async function finishFiling(page, scenario, ordinal) {
     })).toBeVisible();
 }
 
-async function runNewCase(page, scenario, ordinal) {
-    console.log(`${scenario.label}: opening options`);
+async function startFiling(page, path) {
+    // The options screen (and the header menu) start a filing that already
+    // knows which kind it is, so there is no filing-path screen to answer.
     await page.goto('/jurisdiction/illinois/options/');
-    console.log(`${scenario.label}: starting draft`);
-    const begin = page.locator('button[onclick="goToExpertForm(\'new\')"]');
-    await Promise.all([
-        page.waitForURL(/\/filing-path\//),
-        begin.evaluate(element => element.click()),
-    ]);
-    console.log(`${scenario.label}: choosing new case`);
-    await page.locator('input[name="existing_case"][value="new"]').check();
+    const form = page.locator(`form[action$="/start-filing/"]:has(input[name="existing_case"][value="${path}"])`);
     await Promise.all([
         page.waitForURL(/\/upload-documents\//),
-        page.getByRole('button', {
-            name: /^Continue/
+        form.getByRole('button', {
+            name: /^Begin/
         }).click(),
     ]);
+}
+
+async function runNewCase(page, scenario, ordinal) {
+    console.log(`${scenario.label}: starting a new-case draft`);
+    await startFiling(page, 'new');
 
     console.log(`${scenario.label}: uploading document`);
     await page.locator('#documents-input').setInputFiles(SAMPLE_PDF);
@@ -388,19 +387,7 @@ async function runNewCase(page, scenario, ordinal) {
 
 async function runExistingCase(page, scenario, ordinal) {
     console.log(`${scenario.label}: starting existing-case draft`);
-    await page.goto('/jurisdiction/illinois/options/');
-    const begin = page.locator('button[onclick="goToExpertForm(\'new\')"]');
-    await Promise.all([
-        page.waitForURL(/\/filing-path\//),
-        begin.evaluate(element => element.click()),
-    ]);
-    await page.locator('input[name="existing_case"][value="existing"]').check();
-    await Promise.all([
-        page.waitForURL(/\/upload-documents\//),
-        page.getByRole('button', {
-            name: /^Continue/
-        }).click(),
-    ]);
+    await startFiling(page, 'existing');
     await page.locator('#documents-input').setInputFiles(SAMPLE_PDF);
     await page.getByRole('button', {
         name: 'Upload selected files'

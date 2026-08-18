@@ -34,10 +34,6 @@
             <div class="row justify-content-center">
                 <div class="col-xl-7">
                     <p>{{ config.jurisdiction.copyedit.landing_text | md_to_html }}</p>
-                    <div class="alert alert-danger"
-                         id="start-filing-error"
-                         role="alert"
-                         hidden></div>
                     {% if not is_logged_in %}
                         <div class="option-card">
                             <div class="d-flex align-items-center mb-3">
@@ -110,16 +106,20 @@
                         <div class="option-card">
                             <div class="d-flex align-items-center mb-3">
                                 <div class="option-icon">
-                                    <i class="fas fa-university"></i>
+                                    <i class="fas fa-file-circle-plus"></i>
                                 </div>
                                 <div class="option-content">
-                                    <h2>{% translate "Start a new filing" %}</h2>
-                                    <p>{% translate "Begin a new case or file a response." %}</p>
+                                    <h2>{% translate "Start a new case" %}</h2>
+                                    <p>{% translate "The court has not given you a case number yet." %}</p>
                                 </div>
                             </div>
-                            <div class="button-group">
-                                <button class="btn btn-primary" tabindex="0" onclick="goToExpertForm('new')">{% translate "Begin" %}</button>
-                            </div>
+                            <form method="post" action="{% url 'start_filing' jurisdiction %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="existing_case" value="new" />
+                                <div class="button-group">
+                                    <button class="btn btn-primary" tabindex="0" type="submit">{% translate "Begin" %}</button>
+                                </div>
+                            </form>
                         </div>
                         <div class="option-card">
                             <div class="d-flex align-items-center mb-3">
@@ -127,8 +127,28 @@
                                     <i class="fas fa-folder-open"></i>
                                 </div>
                                 <div class="option-content">
-                                    <h2>{% translate "View past filings" %}</h2>
-                                    <p>{% translate "See if a filing you have made was accepted or rejected." %}</p>
+                                    <h2>{% translate "File into an existing case" %}</h2>
+                                    <p>{% translate "You have a case number, or the case is already open." %}</p>
+                                </div>
+                            </div>
+                            <form method="post" action="{% url 'start_filing' jurisdiction %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="existing_case" value="existing" />
+                                <div class="button-group">
+                                    <button class="btn btn-primary" tabindex="0" type="submit">{% translate "Begin" %}</button>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="option-card">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="option-icon">
+                                    <i class="fas fa-folder-open"></i>
+                                </div>
+                                <div class="option-content">
+                                    <h2>{% translate "My cases" %}</h2>
+                                    <p>
+                                        {% translate "See whether the court accepted a filing, read what the clerk said, and get copies of what you filed." %}
+                                    </p>
                                 </div>
                             </div>
                             <div class="button-group">
@@ -147,23 +167,25 @@
         <script src="{% url 'javascript-catalog' %}"></script>
         <script src="{% static 'js/api-utils.js' %}"></script>
         {{ resume_url|json_script:"resume-url" }}
+        {{ drafts_url|json_script:"drafts-url" }}
+        {{ draft_count|json_script:"draft-count" }}
         <script>
             let is_logged_in = "{{is_logged_in}}" === "True";
-            // Function to save existing_case data and redirect to expert form or case details
-            function goToExpertForm(new_or_existing) {
-                if (new_or_existing === "new") {
-                    makeNewDraft().then((result) => {
-                        window.location.href = result.redirect_url;
-                    }).catch((error) => {
-                        console.error('Could not start a new filing:', error);
-                        const box = document.getElementById('start-filing-error');
-                        box.textContent = gettext('We could not start a new filing. Check your connection and try again.');
-                        box.hidden = false;
-                    });
-                } else {
-                    const resumeUrl = JSON.parse(document.getElementById("resume-url").textContent);
-                    window.location.href = resumeUrl || `/jurisdiction/{{jurisdiction}}/filing-path/`;
+            const draftCount = JSON.parse(document.getElementById("draft-count").textContent);
+            const draftsUrl = JSON.parse(document.getElementById("drafts-url").textContent);
+            // Starting a filing is a plain form post now (see the cards above and
+            // the header menu), so the only thing left for JavaScript is picking
+            // up an existing one.
+            function continueDraftFiling() {
+                // One draft can be resumed straight away. Several cannot:
+                // "where you left off" names no filing in particular, so the
+                // filer picks the one they meant.
+                if (draftCount > 1) {
+                    window.location.href = draftsUrl;
+                    return;
                 }
+                const resumeUrl = JSON.parse(document.getElementById("resume-url").textContent);
+                window.location.href = resumeUrl || `/jurisdiction/{{jurisdiction}}/filing-path/`;
             }
 
             async function checkExistingCaseData() {
@@ -180,20 +202,12 @@
                 return false;
             }
 
-            // Starting a filing means creating one. There is no falling back to
-            // "just go to the first screen": a screen with no filing of its own
-            // used to pick up whichever one was most recent, which is how a new
-            // filing could open holding last month's documents.
-            async function makeNewDraft() {
-                sessionStorage.removeItem('session_id');
-                const result = await apiUtils.post(`/jurisdiction/{{jurisdiction}}/drafts/`, {});
-                if (!result.success || !result.redirect_url) {
-                    throw new Error(result.error || 'Unable to start a new filing');
-                }
-                return result;
-            }
-
             function useExistingCardHtml() {
+                const many = draftCount > 1;
+                const description = many ?
+                    interpolate(gettext("You have %s filings in progress. Pick the one you want to work on."), [draftCount]) :
+                    gettext("Resume your filing where you left off.");
+                const buttonLabel = many ? gettext("Choose a draft") : gettext("Resume");
                 let html = `
           <div class="option-card">
             <div class="d-flex align-items-center mb-3">
@@ -202,12 +216,12 @@
               </div>
               <div class="option-content">
                 <h2>{% translate "Continue a draft filing" %}</h2>
-                <p>{% translate "Resume your filing where you left off." %}</p>
+                <p>${description}</p>
               </div>
             </div>
             <div class="button-group">
-              <button class="btn btn-primary" tabindex="0" onclick="goToExpertForm('resume')">
-                {% translate "Resume" %}
+              <button class="btn btn-primary" tabindex="0" onclick="continueDraftFiling()">
+                ${buttonLabel}
               </button>
             </div>
           </div>

@@ -91,3 +91,33 @@
     font-weight: 600;
     margin: 0;
 }
+
+.header-menus {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.nav-menu-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 40px;
+    padding: 0 1rem;
+    border: 2px solid transparent;
+    border-radius: 20px;
+    background-color: white;
+    color: var(--suffolk-blue);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.nav-menu-toggle:hover {
+    background-color: #f3f4f6;
+}
+
+.nav-menu-toggle:focus-visible {
+    border-color: white;
+    outline: 3px solid var(--suffolk-blue);
+    outline-offset: 2px;
+}
