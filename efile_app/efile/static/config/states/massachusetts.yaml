@@ -7,18 +7,27 @@ jurisdiction:
   name: "Massachusetts eFile"
   code: "massachusetts"
   display_name: "Massachusetts"
+  brand_name: "LITEFile"
+  logo: "img/litefile-logo.svg"
+  logo_alt: "LITEFile logo"
   icon: "fas fa-balance-scale"
   svg: "img/MA.svg"
   api_endpoint: "/api/massachusetts"
-  help_url: "https://www.mass.gov/orgs/massachusetts-court-system"
+  official_court_name: "the Massachusetts Trial Court"
+  official_tool_statement: "LITEFile is an official, approved electronic filing tool of the Massachusetts Trial Court."
+  court_logos:
+    - name: "Massachusetts Trial Court"
+      src: "img/court-logo-massachusetts.png"
+      alt: "Seal of the Massachusetts Trial Court"
+  help_url: "https://www.mass.gov/orgs/court-service-centers"
   help_number: "711"
+  contact_email: "litlab@suffolk.edu"
+  contact_address: "Suffolk University Law School LIT Lab, 120 Tremont Street, Boston, MA"
   copyedit:
     landing_text: |
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed fringilla enim ut nibh aliquam venenatis. Vivamus lacinia risus vitae massa aliquet, id hendrerit mi tincidunt. Vestibulum aliquet sapien ut velit laoreet, in blandit lectus congue. Ut at massa in eros sodales porta id sit amet urna. Proin suscipit venenatis justo sit amet condimentum. Donec volutpat sem nec facilisis tristique. Sed elementum ante nisi, id lacinia eros pellentesque in. Curabitur quis ante ut nunc pharetra tincidunt. Maecenas ornare augue eu diam condimentum congue. Pellentesque ac lorem quis magna rutrum euismod pharetra ac massa. Nulla felis erat, consectetur eu lacus ac, scelerisque rhoncus diam. Sed gravida ex ut maximus dapibus. Sed eu hendrerit est. Maecenas in porta lacus.
+      Welcome to LITEFile for Massachusetts. Use this tool to prepare and submit electronic court filings to the Massachusetts Trial Court.
     post_action_text: |
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed fringilla enim ut nibh aliquam venenatis. Vivamus lacinia risus vitae massa aliquet, id hendrerit mi tincidunt. Vestibulum aliquet sapien ut velit laoreet, in blandit lectus congue. Ut at massa in eros sodales porta id sit amet urna. Proin suscipit venenatis justo sit amet condimentum. Donec volutpat sem nec facilisis tristique. Sed elementum ante nisi, id lacinia eros pellentesque in. Curabitur quis ante ut nunc pharetra tincidunt. Maecenas ornare augue eu diam condimentum congue. Pellentesque ac lorem quis magna rutrum euismod pharetra ac massa. Nulla felis erat, consectetur eu lacus ac, scelerisque rhoncus diam. Sed gravida ex ut maximus dapibus. Sed eu hendrerit est. Maecenas in porta lacus.
-
-      Nulla at blandit risus, vel vehicula magna. Quisque ullamcorper lorem eget erat dignissim, id posuere ante lacinia. Quisque luctus vitae velit sed vulputate. Ut gravida ipsum in consectetur tincidunt. Quisque ac purus nunc. Sed sit amet accumsan dolor, in ullamcorper orci. Donec maximus imperdiet libero. Pellentesque vel feugiat magna, congue fermentum mi. Mauris vel molestie ex. Sed quis augue semper, tempus est vitae, porta felis.
+      Your filing has been submitted to the Massachusetts Trial Court for processing. Check your filing status for updates. If you have questions about a specific filing, contact the court.
     filing_statuses: |
       These are filings that you have already sent to the courts, either through this website or elsewhere.
 
@@ -107,26 +116,14 @@ case_types:
 
 # Massachusetts court-specific requirements
 court_specific_requirements:
-  "suffolk:probate":  # Suffolk County Probate Court
+  "suffolk:probate":
     case_types:
       name_change:
-        additional_fields:
-          - name: "publication_notice"
-            label: "Do you request waiver of publication notice?"
-            type: "radio"
-            required: true
-            column_width: "col-12"
-            options:
-              - value: "yes"
-                label: "Yes, I request waiver"
-              - value: "no"
-                label: "No, I will publish notice"
-        
-        additional_validation:
-          - field: "petitioner_age"
-            rule: "min_value"
-            value: 18
-            message: "Petitioner must be at least 18 years old in Suffolk County"
+        field_modifications:
+          - field_group: "Requested name"
+            modifications:
+              conditional_requirements:
+                required_for_courts: ["suffolk:probate"]
 
 # Massachusetts-specific terminology overrides
 terminology:

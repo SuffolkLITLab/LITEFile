@@ -6,9 +6,28 @@ jurisdiction:
   name: "Illinois eFile"
   code: "illinois"
   display_name: "Illinois"
+  brand_name: "LITEFile"
+  logo: "img/litefile-logo.svg"
+  logo_alt: "LITEFile logo"
   icon: "fas fa-balance-scale"
   svg: "img/IL.svg"
   api_endpoint: "/api/illinois"
+  official_court_name: "the Illinois Courts"
+  official_tool_statement: "LITEFile is an official, approved electronic filing tool of the Illinois Courts."
+  court_logos:
+    - name: "Illinois Courts"
+      src: "img/court-logo-illinois.svg"
+      alt: "Seal of the Supreme Court of Illinois"
+  partner_logos:
+    - name: "Illinois Legal Aid Online (ILAO)"
+      src: "img/logo-ilao.png"
+      alt: "Illinois Legal Aid Online logo"
+      url: "https://www.illinoislegalaid.org/"
+      role: "Project & Funding Partner"
+  help_url: "https://www.ilcourthelp.gov/"
+  help_number: "833-411-1121"
+  contact_email: "litlab@suffolk.edu"
+  contact_address: "Suffolk University Law School LIT Lab, 120 Tremont Street, Boston, MA"
 
 # State metadata, for the address
 state:
@@ -205,7 +224,7 @@ case_types:
         fields:
           - section_title: "Children"
             required: false
-            conditional_requirements:
+            conditional_requirements: {}
               # show_when_field: "has_children"
               # show_when_value: true
             fields:

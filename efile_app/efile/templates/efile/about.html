@@ -1,0 +1,286 @@
+{% extends "efile/site_base.html" %}
+{% load static %}
+{% load i18n %}
+{% block title %}
+    {% translate "About LITEFile" %}
+{% endblock title %}
+{% block public_content %}
+    <div class="public-hero">
+        <img class="public-page-logo"
+             src="{% static config.jurisdiction.logo|default:'img/litefile-logo.svg' %}"
+             alt="{{ config.jurisdiction.logo_alt|default:'LITEFile logo' }}" />
+        <div>
+            <h1>{% translate "About LITEFile" %}</h1>
+            <p class="lead">{% translate "A secure, official way to file documents with the court online." %}</p>
+        </div>
+    </div>
+    <section aria-labelledby="what-is-litefile">
+        <h2 id="what-is-litefile">{% translate "What is LITEFile?" %}</h2>
+        <div class="d-flex flex-wrap align-items-center gap-4 my-3">
+            <a href="https://suffolklitlab.org/"
+               target="_blank"
+               rel="noopener noreferrer"
+               class="d-inline-block">
+                <img src="{% static 'img/lit-lab-logo-large.svg' %}"
+                     alt="{% translate "Suffolk University Law School Legal Innovation &amp; Technology Lab logo" %}"
+                     class="suffolk-logo img-fluid"
+                     width="220"
+                     height="72" />
+            </a>
+            <div style="flex: 1; min-width: 260px;">
+                <p class="mb-2">
+                    {% translate "LITEFile is a product built by the" %}
+                    <a href="https://suffolklitlab.org/">{% translate "Suffolk University Law School Legal Innovation &amp; Technology (LIT) Lab" %}</a>.
+                    {% translate "It helps people prepare and submit electronic court filings through a guided, step-by-step process." %}
+                </p>
+                <p class="mb-0">
+                    {% translate "The LIT Lab builds and maintains the technology. The court remains responsible for its rules, filing requirements, decisions, and the official court record." %}
+                </p>
+            </div>
+        </div>
+        {% if jurisdiction %}
+            <div class="official-tool-callout" role="note">
+                <i class="fas fa-circle-check" aria-hidden="true"></i>
+                <strong>{{ config.jurisdiction.official_tool_statement }}</strong>
+            </div>
+        {% endif %}
+    </section>
+    <section aria-labelledby="how-it-works">
+        <h2 id="how-it-works">{% translate "How does it work?" %}</h2>
+        <p>
+            {% translate "LITEFile asks questions about your filing, helps you organize your documents, and sends your completed filing through the jurisdiction's electronic filing system. You can use it on a computer or mobile device." %}
+        </p>
+        <p>
+            {% translate "A submission confirmation means that LITEFile sent the filing for processing. It does not by itself mean that the court accepted the filing. Check your filing status and follow any instructions from the court." %}
+        </p>
+    </section>
+    <section aria-labelledby="court-partners">
+        <h2 id="court-partners">{% translate "Court partners" %}</h2>
+        {% if jurisdiction %}
+            <p>
+                {% blocktranslate with court=config.jurisdiction.official_court_name %}This LITEFile experience is configured for {{ court }}.{% endblocktranslate %}
+            </p>
+            <div class="logo-grid">
+                {% for court_logo in config.jurisdiction.court_logos %}
+                    <figure class="partner-logo-card">
+                        <img src="{% static court_logo.src %}" alt="{{ court_logo.alt }}" />
+                        <figcaption>{{ court_logo.name }}</figcaption>
+                    </figure>
+                {% empty %}
+                    <figure class="partner-logo-card">
+                        <figcaption>{% translate "Court partner" %}</figcaption>
+                    </figure>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>
+                {% translate "LITEFile works with courts that have approved us to integrate with their electronic filing systems. Each state integration is tailored to the specific court rules, forms, and filing standards of that jurisdiction:" %}
+            </p>
+            <div class="logo-grid">
+                <a href="{% url 'jurisdiction_about' 'illinois' %}"
+                   class="partner-logo-card text-decoration-none">
+                    <img src="{% static 'img/court-logo-illinois.svg' %}"
+                         alt="{% translate "Seal of the Supreme Court of Illinois" %}" />
+                    <figcaption class="fw-semibold mt-2">{% translate "Illinois Courts" %}</figcaption>
+                </a>
+                <a href="{% url 'jurisdiction_about' 'massachusetts' %}"
+                   class="partner-logo-card text-decoration-none">
+                    <img src="{% static 'img/court-logo-massachusetts.png' %}"
+                         alt="{% translate "Seal of the Massachusetts Trial Court" %}" />
+                    <figcaption class="fw-semibold mt-2">{% translate "Massachusetts Trial Court" %}</figcaption>
+                </a>
+                <a href="{% url 'jurisdiction_about' 'vermont' %}"
+                   class="partner-logo-card text-decoration-none">
+                    <img src="{% static 'img/court-logo-vermont.svg' %}"
+                         alt="{% translate "Seal of the State of Vermont" %}" />
+                    <figcaption class="fw-semibold mt-2">{% translate "Vermont Judiciary" %}</figcaption>
+                </a>
+            </div>
+        {% endif %}
+    </section>
+    {% if not jurisdiction or jurisdiction == "illinois" or jurisdiction == "vermont" %}
+        <section aria-labelledby="project-partners">
+            <h2 id="project-partners">
+                {% if jurisdiction %}
+                    {% translate "Project partner" %}
+                {% else %}
+                    {% translate "Project partners" %}
+                {% endif %}
+            </h2>
+            {% if jurisdiction == "illinois" %}
+                <p>
+                    {% translate "LITEFile's Illinois e-filing integration was developed in close partnership with Illinois Legal Aid Online (ILAO), who provided project leadership, co-development, and funding to expand accessible electronic court filing for self-represented litigants in Illinois." %}
+                </p>
+                <div class="logo-grid">
+                    <a href="https://www.illinoislegalaid.org/"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="partner-logo-card text-decoration-none">
+                        <img src="{% static 'img/logo-ilao.png' %}"
+                             alt="{% translate "Illinois Legal Aid Online logo" %}" />
+                        <figcaption class="fw-semibold mt-2">{% translate "Illinois Legal Aid Online (ILAO)" %}</figcaption>
+                    </a>
+                </div>
+            {% elif jurisdiction == "vermont" %}
+                <p>
+                    {% translate "LITEFile's Vermont e-filing integration was developed in partnership with Legal Services Vermont (LSV) and Vermont Legal Aid, who collaborated on funding, building, and deploying the tools through VTLawHelp to make court filing accessible throughout Vermont." %}
+                </p>
+                <div class="logo-grid">
+                    <a href="https://legalservicesvt.org/"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="partner-logo-card text-decoration-none">
+                        <img src="{% static 'img/logo-lsv.png' %}"
+                             alt="{% translate "Legal Services Vermont logo" %}" />
+                        <figcaption class="fw-semibold mt-2">{% translate "Legal Services Vermont (LSV)" %}</figcaption>
+                    </a>
+                </div>
+            {% else %}
+                <p>
+                    {% translate "LITEFile is developed in close collaboration with legal aid organizations that help fund, build, and deploy user-friendly electronic filing tools in their states:" %}
+                </p>
+                <div class="logo-grid">
+                    <a href="https://www.illinoislegalaid.org/"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="partner-logo-card text-decoration-none">
+                        <img src="{% static 'img/logo-ilao.png' %}"
+                             alt="{% translate "Illinois Legal Aid Online logo" %}" />
+                        <figcaption class="fw-semibold mt-2">{% translate "Illinois Legal Aid Online (ILAO)" %}</figcaption>
+                    </a>
+                    <a href="https://legalservicesvt.org/"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="partner-logo-card text-decoration-none">
+                        <img src="{% static 'img/logo-lsv.png' %}"
+                             alt="{% translate "Legal Services Vermont logo" %}" />
+                        <figcaption class="fw-semibold mt-2">{% translate "Legal Services Vermont (LSV)" %}</figcaption>
+                    </a>
+                </div>
+            {% endif %}
+        </section>
+    {% endif %}
+    <section aria-labelledby="project-funders">
+        <h2 id="project-funders">{% translate "Project funders" %}</h2>
+        <p>
+            {% translate "The development of LITEFile and its court filing integrations has received generous grant support from national organizations dedicated to advancing equal access to justice:" %}
+        </p>
+        <div class="logo-grid">
+            <a href="https://www.lsc.gov/"
+               target="_blank"
+               rel="noopener noreferrer"
+               class="partner-logo-card text-decoration-none">
+                <img src="{% static 'img/logo-lsc.svg' %}"
+                     alt="{% translate "Legal Services Corporation logo" %}" />
+                <figcaption class="fw-semibold mt-2">{% translate "Legal Services Corporation" %}</figcaption>
+            </a>
+            <a href="https://www.sji.gov/"
+               target="_blank"
+               rel="noopener noreferrer"
+               class="partner-logo-card text-decoration-none">
+                <img src="{% static 'img/logo-sji.png' %}"
+                     alt="{% translate "State Justice Institute logo" %}" />
+                <figcaption class="fw-semibold mt-2">{% translate "State Justice Institute" %}</figcaption>
+            </a>
+        </div>
+    </section>
+    <section aria-labelledby="privacy-and-security">
+        <h2 id="privacy-and-security">{% translate "Your information is safe and private" %}</h2>
+        <p>
+            {% translate "LITEFile is designed to keep your filing information safe and private. Information you enter is used to prepare, submit, and track your filing, and is shared with the court and filing services needed to process it. We do not sell your personal information." %}
+        </p>
+        <p>
+            {% translate "We use HTTPS encryption, access controls, firewalls, monitoring, and regular security updates to protect information. Access is limited to authorized people who need it to operate or improve the service." %}
+            <a href="{% if jurisdiction %}{% url 'jurisdiction_terms_of_service' jurisdiction %}{% else %}{% url 'terms_of_service' %}{% endif %}">{% translate "Read the Terms of Service and Privacy Policy." %}</a>
+        </p>
+    </section>
+    <section aria-labelledby="get-involved">
+        <h2 id="get-involved">{% translate "Get involved" %}</h2>
+        <p>
+            {% translate "LITEFile is built with free and open-source technology. Visit the" %}
+            <a href="https://github.com/SuffolkLITLab/LITEFile">{% translate "public LITEFile GitHub repository" %}</a>
+            {% translate "to learn about the project, report an issue, or contribute." %}
+        </p>
+        <p>
+            {% translate "The Document Assembly Line community welcomes volunteers to test, build, translate, and improve legal technology." %}
+        </p>
+        <p>
+            <a class="btn btn-primary"
+               href="https://assemblyline.suffolklitlab.org/docs/volunteer">{% translate "Learn about volunteering" %}</a>
+        </p>
+    </section>
+    <section aria-labelledby="legal-help">
+        <h2 id="legal-help">{% translate "Need legal help?" %}</h2>
+        <p>
+            {% translate "LITEFile provides legal information and filing technology, not legal advice or representation. If you need legal advice, representation, or assistance with your situation, free and low-cost help may be available through local legal aid organizations and court resource centers:" %}
+        </p>
+        <div class="row g-3 my-2">
+            {% if not jurisdiction or jurisdiction == "illinois" %}
+                <div class="col-md-6">
+                    <div class="p-3 border rounded h-100"
+                         style="background: var(--surface-subtle)">
+                        <h3 class="h5 mb-2" style="color: var(--text-heading);">{% translate "Illinois" %}</h3>
+                        <p class="mb-2">
+                            {% translate "Explore free legal information, guided forms, and legal aid referrals through" %}
+                            <a href="https://www.illinoislegalaid.org/"
+                               target="_blank"
+                               rel="noopener noreferrer"><strong>{% translate "Illinois Legal Aid Online (ILAO)" %}</strong></a>.
+                        </p>
+                        <p class="mb-0">
+                            {% translate "Connect with official court navigators and self-help resources at" %}
+                            <a href="https://www.ilcourthelp.gov/"
+                               target="_blank"
+                               rel="noopener noreferrer"><strong>{% translate "Illinois Court Help" %}</strong></a>
+                            {% translate "(or call 833-411-1121)." %}
+                        </p>
+                    </div>
+                </div>
+            {% endif %}
+            {% if not jurisdiction or jurisdiction == "vermont" %}
+                <div class="col-md-6">
+                    <div class="p-3 border rounded h-100"
+                         style="background: var(--surface-subtle)">
+                        <h3 class="h5 mb-2" style="color: var(--text-heading);">{% translate "Vermont" %}</h3>
+                        <p class="mb-2">
+                            {% translate "Access free civil legal information, self-help tools, and assistance from" %}
+                            <a href="https://vtlawhelp.org/"
+                               target="_blank"
+                               rel="noopener noreferrer"><strong>{% translate "VTLawHelp.org" %}</strong></a>,
+                            {% translate "a joint project of Legal Services Vermont and Vermont Legal Aid." %}
+                        </p>
+                        <p class="mb-0">
+                            {% translate "Find court guidance and forms from the" %}
+                            <a href="https://www.vtcourts.gov/self-help"
+                               target="_blank"
+                               rel="noopener noreferrer"><strong>{% translate "Vermont Judiciary Self-Help Services" %}</strong></a>.
+                        </p>
+                    </div>
+                </div>
+            {% endif %}
+            {% if not jurisdiction or jurisdiction == "massachusetts" %}
+                <div class="col-md-6">
+                    <div class="p-3 border rounded h-100"
+                         style="background: var(--surface-subtle)">
+                        <h3 class="h5 mb-2" style="color: var(--text-heading);">{% translate "Massachusetts" %}</h3>
+                        <p class="mb-2">
+                            {% translate "Find legal aid programs and resources across Massachusetts using the" %}
+                            <a href="https://masslrf.org/" target="_blank" rel="noopener noreferrer"><strong>{% translate "Massachusetts Legal Resource Finder" %}</strong></a>.
+                        </p>
+                        <p class="mb-0">
+                            {% translate "Get one-on-one help with court forms and procedure at" %}
+                            <a href="https://www.mass.gov/orgs/court-service-centers"
+                               target="_blank"
+                               rel="noopener noreferrer"><strong>{% translate "Massachusetts Court Service Centers" %}</strong></a>.
+                        </p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        {% if jurisdiction %}
+            <p class="text-muted mt-3" style="font-size: 0.9rem;">
+                {% translate "Looking for resources in other states?" %}
+                <a href="{% url 'about' %}">{% translate "View resources for all supported jurisdictions on the main About page." %}</a>
+            </p>
+        {% endif %}
+    </section>
+{% endblock public_content %}

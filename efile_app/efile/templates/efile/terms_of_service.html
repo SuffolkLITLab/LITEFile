@@ -1,0 +1,99 @@
+{% extends "efile/site_base.html" %}
+{% load i18n %}
+{% block title %}
+    {% translate "Terms of Service and Privacy Policy" %}
+{% endblock title %}
+{% block public_content %}
+    <h1>{% translate "LITEFile Terms of Service and Privacy Policy" %}</h1>
+    <p class="public-page-intro">
+        {% translate "These terms apply to your use of LITEFile, an electronic filing service built by Suffolk University Law School's Legal Innovation &amp; Technology (LIT) Lab." %}
+    </p>
+    <section aria-labelledby="important-disclaimers">
+        <h2 id="important-disclaimers">{% translate "Important information" %}</h2>
+        <p class="official-tool-callout">
+            <strong>{{ config.jurisdiction.official_tool_statement }}</strong>
+        </p>
+        <ul>
+            <li>
+                {% translate "LITEFile is an official, approved electronic filing tool for the configured jurisdiction, but it does not provide legal advice or representation." %}
+            </li>
+            <li>
+                {% translate "The LIT Lab and LITEFile do not decide whether a filing is legally sufficient or accepted. Court rules, local practices, and laws can change, and you are responsible for reviewing your filing before submitting it." %}
+            </li>
+            <li>
+                {% translate "A transmission or confirmation from LITEFile is not a court acceptance. The court's filing system, clerk, or other authorized court official determines whether a filing is accepted and the effective filing date." %}
+            </li>
+            <li>
+                {% translate "Information and document tools are provided as-is and without warranties. To the extent allowed by law, the LIT Lab and Suffolk University Law School are not liable for losses resulting from your use of LITEFile or reliance on information provided through it." %}
+            </li>
+            <li>
+                {% translate "Information you enter may not be protected by attorney-client privilege or the attorney work-product doctrine. Do not use LITEFile for unauthorized practice of law." %}
+            </li>
+        </ul>
+    </section>
+    <section aria-labelledby="permitted-use">
+        <h2 id="permitted-use">{% translate "Using LITEFile" %}</h2>
+        <ul>
+            <li>{% translate "You must be at least 13 years old to use LITEFile." %}</li>
+            <li>
+                {% translate "LITEFile is provided as a free public service. You may not resell access to it or use it in a way that is illegal, abusive, interferes with other users, or attempts to bypass security controls." %}
+            </li>
+            <li>
+                {% translate "If you are filing for another person, you are responsible for having permission to provide their information and documents." %}
+            </li>
+            <li>
+                {% translate "Keep your account credentials and filing links private. Anyone who can access your account or a shared link may be able to see the information connected to it." %}
+            </li>
+        </ul>
+    </section>
+    <section aria-labelledby="information-collected">
+        <h2 id="information-collected">{% translate "Information we collect" %}</h2>
+        <p>
+            {% translate "To provide e-filing, we may collect information you enter or upload, including your name, contact information, addresses, party information, case details, filing documents, payment information, and account credentials. We may also collect browser, device, IP address, and activity information needed for security, troubleshooting, and service improvement." %}
+        </p>
+        <p>
+            {% translate "We retain filing and account information for as long as needed to provide the service, support court processing and filing history, meet legal or operational requirements, and protect the security of the system. Retention can vary by jurisdiction and filing type." %}
+        </p>
+    </section>
+    <section aria-labelledby="information-sharing">
+        <h2 id="information-sharing">{% translate "How information is shared" %}</h2>
+        <ul>
+            <li>
+                {% translate "We share your filing information and documents with the configured court and the electronic filing services needed to process your submission." %}
+            </li>
+            <li>
+                {% translate "We may share information with service providers that host, secure, maintain, or support LITEFile, under appropriate restrictions." %}
+            </li>
+            <li>
+                {% translate "We do not sell your personal information. We may use anonymous or aggregated information to improve legal technology and may disclose information when required by law or to protect the service and its users." %}
+            </li>
+        </ul>
+    </section>
+    <section aria-labelledby="keeping-information-safe">
+        <h2 id="keeping-information-safe">{% translate "Keeping your information safe and private" %}</h2>
+        <p>
+            {% translate "We take reasonable technical and administrative steps to keep your information safe and private. These steps include HTTPS encryption for information in transit, access controls, software firewalls, monitoring, security updates, and limiting access to authorized personnel who need it to operate or improve LITEFile." %}
+        </p>
+        <p>
+            {% translate "No internet service can guarantee absolute security. If you believe your information has been accessed improperly, contact us promptly so we can investigate and respond." %}
+        </p>
+    </section>
+    <section aria-labelledby="changes-and-law">
+        <h2 id="changes-and-law">{% translate "Changes and general terms" %}</h2>
+        <p>
+            {% translate "We may update these terms and this privacy policy when the service, law, or court requirements change. Continued use of LITEFile after an update means that you accept the updated terms." %}
+        </p>
+        <p>
+            {% translate "If a court finds one provision unenforceable, the remaining provisions will continue to apply. These terms are governed by the law that applies to the service and the configured jurisdiction, without limiting any rights that cannot legally be waived." %}
+        </p>
+    </section>
+    <section aria-labelledby="contact-us">
+        <h2 id="contact-us">{% translate "Questions or privacy requests" %}</h2>
+        <p>
+            {% translate "Contact the Suffolk LIT Lab at" %}
+            <a href="mailto:{{ config.jurisdiction.contact_email|default:'litlab@suffolk.edu' }}">{{ config.jurisdiction.contact_email|default:"litlab@suffolk.edu" }}</a>
+            {% if config.jurisdiction.contact_address %}({{ config.jurisdiction.contact_address }}){% endif %}
+            .
+        </p>
+    </section>
+{% endblock public_content %}

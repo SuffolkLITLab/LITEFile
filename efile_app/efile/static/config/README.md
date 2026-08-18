@@ -48,6 +48,29 @@ that state, and that list grows: case types, document checklists, court
 overrides, and jurisdiction display settings such as the navigation title and
 logo all live in the one file.
 
+### Public identity and court branding
+
+The `jurisdiction` section also controls the public About and Terms of Service
+pages and the application header. Set these values for each jurisdiction:
+
+```yaml
+jurisdiction:
+  brand_name: "LITEFile"
+  logo: "img/litefile-logo.svg"
+  logo_alt: "LITEFile logo"
+  official_court_name: "the Illinois Courts"
+  official_tool_statement: "LITEFile is an official, approved electronic filing tool of the Illinois Courts."
+  court_logos:
+    - name: "Illinois Courts"
+      src: "img/court-logo-illinois-placeholder.svg"
+      alt: "Placeholder logo for the Illinois Courts"
+```
+
+`logo` and each court logo `src` are paths under `efile/static`. The placeholder
+court artwork can be replaced with approved jurisdiction artwork without
+changing the templates. `contact_email` and `contact_address` supply the
+privacy-request contact shown on the Terms of Service page.
+
 ### Configuration file hierarchy
 
 1. **Base Configuration** (`base-case-types.yaml`)
@@ -859,4 +882,4 @@ keywords: ["name change", "name petition", "change of name"]
 - **Court customizations**: Working system demonstrated with Cook County name change variations
 
 ### To-Do's
-- **Changing sections to array data structure**: Consider making changes to how we injest sections and instead of using keys can possibly use arrays for more flexible dyanmic sections. 
+- **Changing sections to array data structure**: Consider making changes to how we injest sections and instead of using keys can possibly use arrays for more flexible dyanmic sections.

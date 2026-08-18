@@ -3,9 +3,28 @@ jurisdiction:
   name: "Vermont eFile"
   code: "vermont"
   display_name: "Vermont"
+  brand_name: "LITEFile"
+  logo: "img/litefile-logo.svg"
+  logo_alt: "LITEFile logo"
   icon: "fas fa-balance-scale"
   svg: "img/VT.svg"
   api_endpoint: "/api/vermont"
+  official_court_name: "the Vermont Judiciary"
+  official_tool_statement: "LITEFile is an official, approved electronic filing tool of the Vermont Judiciary."
+  court_logos:
+    - name: "Vermont Judiciary"
+      src: "img/court-logo-vermont.svg"
+      alt: "Seal of the State of Vermont"
+  partner_logos:
+    - name: "Legal Services Vermont (LSV)"
+      src: "img/logo-lsv.png"
+      alt: "Legal Services Vermont logo"
+      url: "https://legalservicesvt.org/"
+      role: "Project & Funding Partner"
+  help_url: "https://www.vtcourts.gov/self-help"
+  help_number: ""
+  contact_email: "litlab@suffolk.edu"
+  contact_address: "Suffolk University Law School LIT Lab, 120 Tremont Street, Boston, MA"
 
 # State metadata, for the address
 state:

@@ -25,6 +25,7 @@ from .views.organize_documents import organize_documents
 from .views.parties import parties
 from .views.party_details import party_details
 from .views.payment import efile_payment
+from .views.public_pages import about_page, terms_of_service_page
 from .views.register import efile_register
 from .views.review import case_review
 from .views.session_api import (
@@ -56,7 +57,15 @@ urlpatterns = [
     path("jsi18n/", JavaScriptCatalog.as_view(), name="javascript-catalog"),
     path("", homepage, name="home"),
     path("choose-jurisdiction", choose_jurisdiction, name="efile_choose_jurisdiction"),
+    path("about/", about_page, name="about"),
+    path("terms-of-service/", terms_of_service_page, name="terms_of_service"),
     path("jurisdiction/<jurisdiction>", jurisdiction_homepage, name="jurisdiction_homepage"),
+    path("jurisdiction/<jurisdiction>/about/", about_page, name="jurisdiction_about"),
+    path(
+        "jurisdiction/<jurisdiction>/terms-of-service/",
+        terms_of_service_page,
+        name="jurisdiction_terms_of_service",
+    ),
     path("jurisdiction/<jurisdiction>/login/", efile_login, name="efile_login"),
     path("jurisdiction/<jurisdiction>/logout/", efile_logout, name="efile_logout"),
     path(

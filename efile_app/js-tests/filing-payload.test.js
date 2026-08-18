@@ -222,6 +222,32 @@ test("amount_in_controversy is sent when the draft has one", () => {
     assert.strictEqual(result.amount_in_controversy, "12500.00");
 });
 
+test("defendant aliases are included as the respondent in the filing payload", () => {
+    const handler = makeHandler();
+    const caseData = {
+        case_category: "category",
+        case_type: "divorce",
+        filing_parties: [{
+            role: "filer",
+            party_type: "PET"
+        }],
+        defendant_party_type: "DEF",
+        defendant_first_name: "Grace",
+        defendant_last_name: "Hopper"
+    };
+
+    const userData = handler.userDataFromCaseData(caseData);
+    const result = handler.buildEFilingData(userData, caseData, {}, "pay-1");
+
+    assert.strictEqual(result.users[1].party_type, "DEF");
+    assert.deepStrictEqual(result.users[1].name, {
+        first: "Grace",
+        middle: "",
+        last: "Hopper",
+        suffix: ""
+    });
+});
+
 test("amount_in_controversy is omitted (not sent as empty/zero) when the draft has none", () => {
     const handler = makeHandler();
     const caseData = {

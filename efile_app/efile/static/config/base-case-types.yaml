@@ -2,6 +2,32 @@
 # This file defines the common structure that can be inherited by state-specific configs
 
 # Global defaults that apply to all states unless overridden
+jurisdiction:
+  name: "LITEFile"
+  code: ""
+  display_name: "LITEFile"
+  brand_name: "LITEFile"
+  logo: "img/litefile-logo.svg"
+  logo_alt: "LITEFile logo"
+  icon: "fas fa-scale-balanced"
+  official_court_name: "the jurisdiction's court"
+  official_tool_statement: "LITEFile is an official, approved electronic filing tool of the jurisdiction's court."
+  court_logos: []
+  partner_logos: []
+  funder_logos:
+    - name: "Legal Services Corporation"
+      src: "img/logo-lsc.svg"
+      alt: "Legal Services Corporation logo"
+      url: "https://www.lsc.gov/"
+    - name: "State Justice Institute"
+      src: "img/logo-sji.png"
+      alt: "State Justice Institute logo"
+      url: "https://www.sji.gov/"
+  help_url: ""
+  help_number: ""
+  contact_email: "litlab@suffolk.edu"
+  contact_address: "Suffolk University Law School LIT Lab, 120 Tremont Street, Boston, MA"
+
 defaults:
   sections:
     parties:
@@ -15,7 +41,7 @@ defaults:
       fields:
         - section_title: "The other side"
           required: true
-          conditional_requirements:
+          conditional_requirements: {}
             # Default: show for all courts except those explicitly hidden
           fields:
             - name: "other_party_type"
@@ -36,7 +62,7 @@ defaults:
               column_width: "col-6"
         - section_title: "Their physical address"
           required: true
-          conditional_requirements:
+          conditional_requirements: {}
             # Default: show for all courts except those explicitly hidden
           fields:
             - name: "other_address_line_1"
@@ -66,7 +92,7 @@ defaults:
               column_width: "col-6"
         - section_title: "Their contact information"
           required: true
-          conditional_requirements:
+          conditional_requirements: {}
             # Default: show for all courts except those explicitly hidden
           fields:
             - name: "other_email"
@@ -154,18 +180,18 @@ base_case_types:
           - section_title: "Defendant"
             required: true
             fields:
-              - name: "new_name_party_type"
+              - name: "defendant_party_type"
                 label: "Party Type"
                 type: "party_type_dropdown"
                 required: true
                 column_width: "col-12"
                 api_endpoint: "/api/dropdowns/party-types/"
-              - name: "new_first_name"
+              - name: "defendant_first_name"
                 label: "First Name"
                 type: "text"
                 required: true
                 column_width: "col-6"
-              - name: "new_last_name"
+              - name: "defendant_last_name"
                 label: "Last Name"
                 type: "text"
                 required: true

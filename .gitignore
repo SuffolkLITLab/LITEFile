@@ -69,10 +69,9 @@ local_settings.py
 **/db.sqlite3
 **/db.sqlite3-journal
 
-# Static and media directories (uncomment if you collect to these paths)
-# static/
-# staticfiles/
-# media/
+# Static and media directories
+staticfiles/
+media/
 
 # Scrapy
 .scrapy
