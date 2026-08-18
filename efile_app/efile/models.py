@@ -119,6 +119,44 @@ class FilingPlan(models.Model):
         return bool(self.case_tracking_id and self.docket_number)
 
 
+class ArchivedCase(models.Model):
+    """A court case the filer has told us to keep out of the way.
+
+    "My cases" is built from the court's own filing history, which we do not
+    own and cannot write to: an attorney with three hundred filings sees all
+    three hundred, forever. Archiving is therefore ours to remember -- one row
+    per case a filer has tidied away, and the case itself is untouched. Nothing
+    is deleted or hidden from the court; the list simply stops leading with it,
+    and the filer can still ask to see everything.
+    """
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="archived_cases",
+    )
+    jurisdiction = models.CharField(max_length=40, db_index=True)
+    # Tyler's permanent identifier for the case. Docket numbers are the human
+    # name for it and can be reissued or corrected, so they are display only.
+    case_tracking_id = models.CharField(max_length=255)
+    docket_number = models.CharField(max_length=255, blank=True)
+    case_title = models.CharField(max_length=500, blank=True)
+
+    archived_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-archived_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "jurisdiction", "case_tracking_id"],
+                name="unique_archived_case_per_user",
+            )
+        ]
+
+    def __str__(self):
+        return self.docket_number or self.case_title or f"Archived case #{self.pk}"
+
+
 class FilingDraft(models.Model):
     """Durable aggregate for a single in-progress or submitted court filing."""
 

@@ -1,0 +1,165 @@
+/* Shared styling for the "my things" screens: draft e-filings, cases, and one
+   filing's details. They are all the same shape -- a card per item, a status on
+   the right, and actions along the bottom. */
+
+.list-card__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.list-card__head h2 {
+    font-size: 1.25rem;
+    margin-bottom: 0.25rem;
+}
+
+.list-card__detail {
+    color: #4b5563;
+    font-size: 0.95rem;
+    margin: 0 0 0.25rem;
+}
+
+.list-card__badge {
+    background-color: #eef2ff;
+    border-radius: 999px;
+    color: var(--suffolk-blue);
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.25rem 0.75rem;
+    white-space: nowrap;
+}
+
+.list-card__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.list-card__status--accepted {
+    color: var(--success);
+}
+
+.list-card__status--rejected {
+    color: var(--failure);
+}
+
+.list-card__status--pending,
+.list-card__status--muted {
+    color: #4b5563;
+}
+
+.list-card__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.list-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 1rem;
+}
+
+.case-filings {
+    list-style: none;
+    margin: 1rem 0 0;
+    padding: 0;
+}
+
+.case-filing {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    border-top: 1px solid #e5e7eb;
+    padding: 0.75rem 0;
+}
+
+.case-filing__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-width: 12rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.case-filing__status--accepted {
+    color: var(--success);
+}
+
+.case-filing__status--rejected {
+    color: var(--failure);
+}
+
+.case-filing__status--pending,
+.case-filing__status--muted {
+    color: #4b5563;
+}
+
+.case-filing__what {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.case-filing__what small {
+    color: #6b7280;
+}
+
+.clerk-comment h2 {
+    font-size: 1.1rem;
+}
+
+.clerk-comment--rejection {
+    border-left: 4px solid var(--failure);
+}
+
+.clerk-comment--acceptance,
+.clerk-comment--other {
+    border-left: 4px solid var(--better-blue);
+}
+
+.filing-document+.filing-document {
+    border-top: 1px solid #e5e7eb;
+    margin-top: 1rem;
+    padding-top: 1rem;
+}
+
+.filing-document h3 {
+    font-size: 1.05rem;
+}
+
+.filing-document__copies {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.filing-document__copies li {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    padding: 0.25rem 0;
+}
+
+.filing-document__copies small {
+    color: #6b7280;
+    overflow-wrap: anywhere;
+}
+
+.filing-fees,
+.court-contact {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.filing-fees li,
+.court-contact li {
+    padding: 0.2rem 0;
+}

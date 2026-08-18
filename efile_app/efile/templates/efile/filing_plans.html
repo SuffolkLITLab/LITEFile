@@ -141,6 +141,19 @@
                                     <button class="btn btn-outline-secondary btn-sm" type="submit">{% translate "Save name" %}</button>
                                 </form>
                             </details>
+                            <details class="plan-card__delete">
+                                <summary>{% translate "Delete this plan" %}</summary>
+                                <form method="post"
+                                      onsubmit="return confirm('{% translate "Delete this plan and its document list? Filings you already made stay in My cases." %}')">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="plan_id" value="{{ entry.plan.pk }}" />
+                                    <input type="hidden" name="action" value="delete" />
+                                    <p class="text-muted">
+                                        {% translate "This throws away the document list you have been keeping for this matter. It does not touch anything you have already filed." %}
+                                    </p>
+                                    <button class="btn btn-outline-danger btn-sm" type="submit">{% translate "Delete this plan" %}</button>
+                                </form>
+                            </details>
                         </section>
                     {% empty %}
                         <div class="option-card">

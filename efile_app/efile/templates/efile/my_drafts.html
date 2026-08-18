@@ -1,0 +1,110 @@
+{% load static %}
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>{% translate "My draft e-filings" %}</title>
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
+              rel="stylesheet" />
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+              rel="stylesheet" />
+        <link rel="stylesheet" href="{% static 'css/common.css' %}" />
+        <link rel="stylesheet" href="{% static 'css/options.css' %}" />
+        <link rel="stylesheet" href="{% static 'css/my_lists.css' %}" />
+    </head>
+    <body>
+        {% include "efile/components/profile_header.html" %}
+        <div style="display: flex; flex-direction: column; align-items:center;">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show"
+                         role="alert"
+                         style="max-width: 50%">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+        <div class="container">
+            <h1>{% translate "My draft e-filings" %}</h1>
+            <div class="row justify-content-center">
+                <div class="col-xl-7">
+                    <p>
+                        {% translate "These are filings you have started but not sent to the court. Pick one up where you left off, or throw away one you no longer want." %}
+                    </p>
+                    {% for entry in drafts %}
+                        <section class="option-card list-card"
+                                 aria-labelledby="draft-{{ entry.draft.pk }}-title">
+                            <div class="list-card__head">
+                                <div>
+                                    <h2 id="draft-{{ entry.draft.pk }}-title">
+                                        {% if entry.title %}
+                                            {{ entry.title }}
+                                        {% else %}
+                                            {% translate "Untitled filing" %}
+                                        {% endif %}
+                                    </h2>
+                                    <p class="list-card__detail">
+                                        {% if entry.draft.docket_number %}
+                                            {% blocktranslate with docket=entry.draft.docket_number %}Case {{ docket }}{% endblocktranslate %}
+                                            ·
+                                        {% endif %}
+                                        {% if entry.draft.court_name %}{{ entry.draft.court_name }} ·{% endif %}
+                                        {% if entry.path_label %}{{ entry.path_label }}{% endif %}
+                                    </p>
+                                    <p class="list-card__detail">
+                                        {% if entry.step_label %}
+                                            {% blocktranslate with step=entry.step_label %}Next up: {{ step }}{% endblocktranslate %}
+                                            ·
+                                        {% endif %}
+                                        {% blocktranslate count counter=entry.document_count %}1 document{% plural %}{{ counter }} documents{% endblocktranslate %}
+                                        ·
+                                        {% blocktranslate with when=entry.draft.updated_at|date:"j F Y, g:i a" %}Last worked on {{ when }}{% endblocktranslate %}
+                                    </p>
+                                </div>
+                                {% if entry.is_current %}
+                                    <span class="list-card__badge">{% translate "The one you are in" %}</span>
+                                {% endif %}
+                            </div>
+                            <div class="list-card__actions">
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="draft_id" value="{{ entry.draft.pk }}" />
+                                    <button class="btn btn-primary btn-sm"
+                                            type="submit"
+                                            name="action"
+                                            value="resume">{% translate "Continue this filing" %}</button>
+                                </form>
+                                <form method="post"
+                                      onsubmit="return confirm('{% translate "Throw this draft away? The documents you uploaded to it go too." %}')">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="draft_id" value="{{ entry.draft.pk }}" />
+                                    <button class="btn btn-outline-danger btn-sm"
+                                            type="submit"
+                                            name="action"
+                                            value="delete">{% translate "Throw this draft away" %}</button>
+                                </form>
+                            </div>
+                        </section>
+                    {% empty %}
+                        <div class="option-card">
+                            <p>{% translate "You have no filings in progress. Everything you started has been sent or thrown away." %}</p>
+                            <form method="post" action="{% url 'start_filing' jurisdiction %}">
+                                {% csrf_token %}
+                                <button class="btn btn-primary" type="submit">{% translate "Start a filing" %}</button>
+                            </form>
+                        </div>
+                    {% endfor %}
+                    <a href="{% url 'efile_options' jurisdiction %}"
+                       class="btn btn-outline-secondary mb-3">{% translate "Go back" %}</a>
+                </div>
+            </div>
+        </div>
+        {% include "efile/components/footer.html" %}
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+        <script src="{% url 'javascript-catalog' %}"></script>
+    </body>
+</html>

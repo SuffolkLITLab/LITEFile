@@ -1,0 +1,152 @@
+{% load static %}
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>{% translate "Filing details" %}</title>
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
+              rel="stylesheet" />
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+              rel="stylesheet" />
+        <link rel="stylesheet" href="{% static 'css/common.css' %}" />
+        <link rel="stylesheet" href="{% static 'css/view_statuses.css' %}" />
+        <link rel="stylesheet" href="{% static 'css/my_lists.css' %}" />
+    </head>
+    <body>
+        {% include "efile/components/profile_header.html" %}
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-xl-7">
+                    {% if not filing %}
+                        <h1>{% translate "Filing details" %}</h1>
+                        <div class="alert alert-danger" role="alert">
+                            {% translate "We could not get this filing from the court. It may be too old to look up, or the court may be busy. Try again in a few minutes." %}
+                        </div>
+                    {% else %}
+                        <h1>
+                            {% if filing.case_title %}
+                                {{ filing.case_title }}
+                            {% elif filing.docket_number %}
+                                {% blocktranslate with docket=filing.docket_number %}Case {{ docket }}{% endblocktranslate %}
+                            {% else %}
+                                {% translate "Filing details" %}
+                            {% endif %}
+                        </h1>
+                        <section class="option-card list-card">
+                            <div class="list-card__head">
+                                <div>
+                                    <p class="list-card__detail">
+                                        {% if filing.docket_number %}
+                                            {% blocktranslate with docket=filing.docket_number %}Case {{ docket }}{% endblocktranslate %}
+                                            ·
+                                        {% endif %}
+                                        {{ filing.court_name }}
+                                    </p>
+                                    <p class="list-card__detail">
+                                        {% if filing.submitted_at %}
+                                            {% blocktranslate with when=filing.submitted_at|date:"j F Y" %}Sent {{ when }}{% endblocktranslate %}
+                                        {% endif %}
+                                        {% if filing.accepted_at %}
+                                            · {% blocktranslate with when=filing.accepted_at|date:"j F Y" %}Accepted {{ when }}{% endblocktranslate %}
+                                        {% endif %}
+                                        {% if filing.envelope_id %}
+                                            · {% blocktranslate with envelope=filing.envelope_id %}Envelope {{ envelope }}{% endblocktranslate %}
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                <span class="list-card__status list-card__status--{{ filing.status_presentation.tone }}">
+                                    <i class="fas {{ filing.status_presentation.icon }}" aria-hidden="true"></i>
+                                    {{ filing.status_presentation.label }}
+                                </span>
+                            </div>
+                            {% if filing.submitter_name %}
+                                <p class="list-card__detail">
+                                    {% blocktranslate with who=filing.submitter_name %}Filed by {{ who }}{% endblocktranslate %}
+                                    {% if filing.submitter_firm %}({{ filing.submitter_firm }}){% endif %}
+                                </p>
+                            {% endif %}
+                        </section>
+                        {% for comment in filing.comments %}
+                            <section class="option-card clerk-comment clerk-comment--{{ comment.kind }}">
+                                <h2>{{ comment.heading }}</h2>
+                                <p>{{ comment.text }}</p>
+                            </section>
+                        {% endfor %}
+                        <section class="option-card">
+                            <h2>{% translate "Documents in this filing" %}</h2>
+                            {% for document in filing.documents %}
+                                <div class="filing-document">
+                                    <h3>{% firstof document.description _("Document") %}</h3>
+                                    <ul class="filing-document__copies">
+                                        {% for attachment in document.attachments %}
+                                            <li>
+                                                <a href="{{ attachment.url }}" rel="noopener" target="_blank">
+                                                    <i class="fas fa-file-pdf" aria-hidden="true"></i>
+                                                    {{ attachment.label }}
+                                                </a>
+                                                {% if attachment.filename %}<small>{{ attachment.filename }}</small>{% endif %}
+                                            </li>
+                                        {% empty %}
+                                            <li class="text-muted">{% translate "The court is not offering a copy of this document." %}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            {% empty %}
+                                <p class="text-muted">{% translate "The court has not listed any documents for this filing." %}</p>
+                            {% endfor %}
+                            <p class="text-muted">
+                                {% blocktranslate with days=document_link_days %}These copies live at the court's e-filing system, which keeps them for {{ days }} days after filing. Save anything you want to keep.{% endblocktranslate %}
+                            </p>
+                        </section>
+                        {% if filing.fees %}
+                            <section class="option-card">
+                                <h2>{% translate "What this filing cost" %}</h2>
+                                <ul class="filing-fees">
+                                    {% for fee in filing.fees %}<li>{{ fee.reason }}: ${{ fee.amount }}</li>{% endfor %}
+                                </ul>
+                            </section>
+                        {% elif filing.fee_waiver %}
+                            <section class="option-card">
+                                <h2>{% translate "What this filing cost" %}</h2>
+                                <p>{% translate "You filed this with a fee waiver, and the court charged you nothing." %}</p>
+                            </section>
+                        {% endif %}
+                        {% if court_contact %}
+                            <section class="option-card">
+                                <h2>{% translate "Questions about this filing" %}</h2>
+                                <p>
+                                    {% translate "Only the court can explain what it did with your filing, or change it. Contact the clerk's office:" %}
+                                </p>
+                                <ul class="court-contact">
+                                    {% if court_contact.name %}<li>{{ court_contact.name }}</li>{% endif %}
+                                    {% if court_contact.phone %}
+                                        <li>
+                                            <i class="fas fa-phone" aria-hidden="true"></i> <a href="tel:{{ court_contact.phone }}">{{ court_contact.phone }}</a>
+                                        </li>
+                                    {% endif %}
+                                    {% if court_contact.email %}
+                                        <li>
+                                            <i class="fas fa-envelope" aria-hidden="true"></i> <a href="mailto:{{ court_contact.email }}">{{ court_contact.email }}</a>
+                                        </li>
+                                    {% endif %}
+                                    {% if court_contact.url %}
+                                        <li>
+                                            <i class="fas fa-globe" aria-hidden="true"></i> <a href="{{ court_contact.url }}" rel="noopener" target="_blank">{% translate "Court website" %}</a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </section>
+                        {% endif %}
+                    {% endif %}
+                    <a href="{% url 'filing_statuses' jurisdiction %}"
+                       class="btn btn-outline-secondary mb-3">{% translate "Back to my cases" %}</a>
+                </div>
+            </div>
+        </div>
+        {% include "efile/components/footer.html" %}
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+        <script src="{% url 'javascript-catalog' %}"></script>
+    </body>
+</html>

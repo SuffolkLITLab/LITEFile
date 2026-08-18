@@ -10,69 +10,123 @@
                 <i class="{{ config.jurisdiction.icon }} scales-icon" aria-hidden="true"></i>
                 <span class="brand-title">{{ config.jurisdiction.name }}</span>
             </div>
-            <div class="dropdown">
-                <button class="profile-menu-toggle"
-                        id="profileMenuButton"
-                        type="button"
-                        data-bs-toggle="dropdown"
-                        aria-expanded="false"
-                        aria-label="{% translate "Open profile menu" %}">
-                    <i class="fas fa-user" aria-hidden="true"></i>
-                </button>
-                <div class="dropdown-menu dropdown-menu-end profile-menu"
-                     aria-labelledby="profileMenuButton">
-                    {% if is_logged_in %}
-                        <div class="profile-menu-summary">
-                            <p class="profile-menu-label">{% translate "Signed in as" %}</p>
-                            <p class="profile-menu-name">{% firstof user.get_full_name user.account_email %}</p>
-                            {% if user.get_full_name %}<p class="profile-menu-detail">{{ user.account_email }}</p>{% endif %}
-                            <p class="profile-menu-detail">
-                                {% blocktranslate with name=config.jurisdiction.display_name %}Filing in {{ name }}{% endblocktranslate %}
-                            </p>
-                        </div>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="{% url 'filing_plans' jurisdiction %}">
-                            <i class="fas fa-list-check" aria-hidden="true"></i>
-                            <span>{% translate "My filing plans" %}</span>
-                        </a>
-                        <a class="dropdown-item" href="{% url 'filing_statuses' jurisdiction %}">
-                            <i class="fas fa-file-circle-check" aria-hidden="true"></i>
-                            <span>{% translate "My past filings" %}</span>
-                        </a>
-                        <div class="dropdown-divider"></div>
-                    {% else %}
-                        <div class="profile-menu-summary">
-                            <p class="profile-menu-name">{% translate "You are not signed in" %}</p>
-                            <p class="profile-menu-detail">
-                                {% blocktranslate with name=config.jurisdiction.display_name %}Sign in to file in {{ name }}.{% endblocktranslate %}
-                            </p>
-                        </div>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="{% url 'efile_login' jurisdiction %}">
-                            <i class="fas fa-right-to-bracket" aria-hidden="true"></i>
-                            <span>{% translate "Sign in" %}</span>
-                        </a>
-                    {% endif %}
-                    <form method="post"
-                          action="{% url 'change_jurisdiction' jurisdiction %}"
-                          onsubmit="clearFilingBrowserData()">
-                        {% csrf_token %}
-                        <button type="submit" class="dropdown-item">
-                            <i class="fas fa-map-location-dot" aria-hidden="true"></i>
-                            <span>{% translate "File in a different state" %}</span>
+            <div class="header-menus">
+                {% if is_logged_in %}
+                    <div class="dropdown">
+                        <button class="nav-menu-toggle"
+                                id="filingMenuButton"
+                                type="button"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                            <i class="fas fa-bars" aria-hidden="true"></i>
+                            <span>{% translate "Menu" %}</span>
                         </button>
-                    </form>
-                    {% if is_logged_in %}
+                        <div class="dropdown-menu dropdown-menu-end profile-menu"
+                             aria-labelledby="filingMenuButton">
+                            <p class="profile-menu-label px-3 pt-2">{% translate "Start a filing" %}</p>
+                            {% comment %}
+                            Starting a filing always starts a new one, from any screen. The
+                            browser's saved filing data is cleared first, so a filer who is part
+                            way through something does not carry it into the filing they just
+                            asked for.
+                            {% endcomment %}
+                            <form method="post"
+                                  action="{% url 'start_filing' jurisdiction %}"
+                                  onsubmit="clearFilingBrowserData()">
+                                {% csrf_token %}
+                                <input type="hidden" name="existing_case" value="new" />
+                                <button type="submit" class="dropdown-item">
+                                    <i class="fas fa-file-circle-plus" aria-hidden="true"></i>
+                                    <span>{% translate "Start a new case" %}</span>
+                                </button>
+                            </form>
+                            <form method="post"
+                                  action="{% url 'start_filing' jurisdiction %}"
+                                  onsubmit="clearFilingBrowserData()">
+                                {% csrf_token %}
+                                <input type="hidden" name="existing_case" value="existing" />
+                                <button type="submit" class="dropdown-item">
+                                    <i class="fas fa-folder-open" aria-hidden="true"></i>
+                                    <span>{% translate "File into an existing case" %}</span>
+                                </button>
+                            </form>
+                            <div class="dropdown-divider"></div>
+                            <p class="profile-menu-label px-3">{% translate "My filings" %}</p>
+                            <a class="dropdown-item" href="{% url 'my_drafts' jurisdiction %}">
+                                <i class="fas fa-pen-to-square" aria-hidden="true"></i>
+                                <span>{% translate "My draft e-filings" %}</span>
+                            </a>
+                            <a class="dropdown-item" href="{% url 'filing_statuses' jurisdiction %}">
+                                <i class="fas fa-file-circle-check" aria-hidden="true"></i>
+                                <span>{% translate "My cases" %}</span>
+                            </a>
+                            <a class="dropdown-item" href="{% url 'filing_plans' jurisdiction %}">
+                                <i class="fas fa-list-check" aria-hidden="true"></i>
+                                <span>{% translate "My filing plans" %}</span>
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="{% url 'efile_options' jurisdiction %}">
+                                <i class="fas fa-house" aria-hidden="true"></i>
+                                <span>{% translate "Filing home" %}</span>
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
+                <div class="dropdown">
+                    <button class="profile-menu-toggle"
+                            id="profileMenuButton"
+                            type="button"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false"
+                            aria-label="{% translate "Open profile menu" %}">
+                        <i class="fas fa-user" aria-hidden="true"></i>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end profile-menu"
+                         aria-labelledby="profileMenuButton">
+                        {% if is_logged_in %}
+                            <div class="profile-menu-summary">
+                                <p class="profile-menu-label">{% translate "Signed in as" %}</p>
+                                <p class="profile-menu-name">{% firstof user.get_full_name user.account_email %}</p>
+                                {% if user.get_full_name %}<p class="profile-menu-detail">{{ user.account_email }}</p>{% endif %}
+                                <p class="profile-menu-detail">
+                                    {% blocktranslate with name=config.jurisdiction.display_name %}Filing in {{ name }}{% endblocktranslate %}
+                                </p>
+                            </div>
+                            <div class="dropdown-divider"></div>
+                        {% else %}
+                            <div class="profile-menu-summary">
+                                <p class="profile-menu-name">{% translate "You are not signed in" %}</p>
+                                <p class="profile-menu-detail">
+                                    {% blocktranslate with name=config.jurisdiction.display_name %}Sign in to file in {{ name }}.{% endblocktranslate %}
+                                </p>
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="{% url 'efile_login' jurisdiction %}">
+                                <i class="fas fa-right-to-bracket" aria-hidden="true"></i>
+                                <span>{% translate "Sign in" %}</span>
+                            </a>
+                        {% endif %}
                         <form method="post"
-                              action="{% url 'efile_logout' jurisdiction %}"
+                              action="{% url 'change_jurisdiction' jurisdiction %}"
                               onsubmit="clearFilingBrowserData()">
                             {% csrf_token %}
-                            <button type="submit" class="dropdown-item text-danger">
-                                <i class="fas fa-right-from-bracket" aria-hidden="true"></i>
-                                <span>{% translate "Sign out" %}</span>
+                            <button type="submit" class="dropdown-item">
+                                <i class="fas fa-map-location-dot" aria-hidden="true"></i>
+                                <span>{% translate "File in a different state" %}</span>
                             </button>
                         </form>
-                    {% endif %}
+                        {% if is_logged_in %}
+                            <form method="post"
+                                  action="{% url 'efile_logout' jurisdiction %}"
+                                  onsubmit="clearFilingBrowserData()">
+                                {% csrf_token %}
+                                <button type="submit" class="dropdown-item text-danger">
+                                    <i class="fas fa-right-from-bracket" aria-hidden="true"></i>
+                                    <span>{% translate "Sign out" %}</span>
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>

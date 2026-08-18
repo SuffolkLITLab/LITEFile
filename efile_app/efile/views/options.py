@@ -1,9 +1,10 @@
 from django.middleware.csrf import get_token
 from django.shortcuts import render
+from django.urls import reverse
 
 from efile.api.suffolk_api_views import get_tyler_token
 from efile.services.current_drafts import get_current_draft
-from efile.services.drafts import draft_snapshot
+from efile.services.drafts import active_drafts_for, draft_snapshot
 from efile.services.filing_plans import plans_for
 
 from ..utils.case_data_utils import get_case_data
@@ -19,10 +20,12 @@ def efile_options(request, jurisdiction):
         case_data = get_case_data(request, jurisdiction)
         active_draft = get_current_draft(request, jurisdiction=jurisdiction)
         plans = plans_for(request.user, jurisdiction)
+        draft_count = active_drafts_for(request.user, jurisdiction=jurisdiction).count()
     else:
         case_data = {}
         active_draft = None
         plans = []
+        draft_count = 0
 
     is_logged_in = request.user.is_authenticated
     if not get_tyler_token(request, jurisdiction):
@@ -39,6 +42,10 @@ def efile_options(request, jurisdiction):
             draft_id=active_draft.pk if active_draft else None,
         ),
         "has_case_data": bool(case_data or active_draft),
+        # With more than one filing in progress, "continue where you left off"
+        # cannot mean anything on its own: the filer picks which one.
+        "draft_count": draft_count,
+        "drafts_url": reverse("my_drafts", kwargs={"jurisdiction": jurisdiction}),
         # The three most recently worked on matters. The rest are one click
         # further on, rather than turning this page into a list of everything.
         "plans": plans[:3],

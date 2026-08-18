@@ -120,6 +120,16 @@ class FilingAPIViews(APIResponseMixin):
     def convert_filing_data(filing):
         data = {}
         data["filing_status"] = filing.get("filingStatus").get("filingStatusCode")
+        # Tyler identifies the same filing two ways: the envelope number a clerk
+        # quotes over the phone, and the FILINGID the detail endpoint wants. The
+        # detail endpoint answers 422 to an envelope number, so keep both.
+        for identifier in filing.get("documentIdentification") or []:
+            category = ((identifier.get("identificationCategory") or {}).get("value") or {}).get("value", "")
+            value = (identifier.get("identificationID") or {}).get("value", "")
+            if str(category).upper() == "FILINGID":
+                data["filing_id"] = value
+            elif str(category).upper() == "ENVELOPEID":
+                data["envelope_id"] = value
         data["filing_status_text"] = next(iter(filing.get("filingStatus").get("statusDescriptionText"))).get("value")
         data["case_tracking_id"] = filing.get("caseTrackingID").get("value")
         data["filed_timestamp"] = filing.get("documentFiledDate").get("dateRepresentation").get("value").get("value")

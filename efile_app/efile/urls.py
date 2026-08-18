@@ -12,13 +12,19 @@ from .views.case_questions import case_questions
 from .views.choose_jurisdiction import change_jurisdiction, choose_jurisdiction
 from .views.confirmation import filing_confirmation
 from .views.document_checklist import document_checklist
-from .views.draft_views import create_draft_view, get_current_draft_view, start_filing_from_plan
+from .views.draft_views import (
+    create_draft_view,
+    get_current_draft_view,
+    start_filing,
+    start_filing_from_plan,
+)
 from .views.extraction_review import extraction_review
 from .views.filing_path import filing_path
 from .views.filing_plans import filing_plans
-from .views.filing_statuses import filing_statuses
 from .views.legacy_workflow import legacy_workflow_redirect
 from .views.login import efile_login, efile_logout, efile_password_reset
+from .views.my_cases import filing_detail, filing_statuses
+from .views.my_drafts import my_drafts
 from .views.options import efile_options
 from .views.organize_documents import organize_documents
 from .views.parties import parties
@@ -87,6 +93,13 @@ urlpatterns = [
         name="start_filing_from_plan",
     ),
     path("jurisdiction/<jurisdiction>/filing_statuses/", filing_statuses, name="filing_statuses"),
+    path(
+        "jurisdiction/<jurisdiction>/filings/<court_code>/<filing_id>/",
+        filing_detail,
+        name="filing_detail",
+    ),
+    path("jurisdiction/<jurisdiction>/my-drafts/", my_drafts, name="my_drafts"),
+    path("jurisdiction/<jurisdiction>/start-filing/", start_filing, name="start_filing"),
     path(
         "jurisdiction/<jurisdiction>/expert_form/",
         legacy_workflow_redirect,
