@@ -26,8 +26,18 @@
             <div class="register-card">
                 <!-- Brand Header -->
                 <div class="brand-header">
-                    <i class="fas fa-balance-scale scales-icon"></i>
-                    <span class="brand-title">{{ config.jurisdiction.name }} eFile</span>
+                    <a class="brand-link" href="{% url 'efile_options' jurisdiction %}">
+                        <img class="brand-logo"
+                             src="{% static config.jurisdiction.logo|default:'img/litefile-logo.svg' %}"
+                             alt="{{ config.jurisdiction.logo_alt|default:'LITEFile logo' }}" />
+                        <span class="brand-title">
+                            {% if config.jurisdiction.display_name and config.jurisdiction.display_name != "LITEFile" %}
+                                {{ config.jurisdiction.display_name }} e-Filing
+                            {% else %}
+                                e-Filing
+                            {% endif %}
+                        </span>
+                    </a>
                 </div>
                 <!-- Registration Content -->
                 <div class="register-content">
@@ -205,12 +215,10 @@
             }
 
             function goBack() {
-                window.location.href = `/jurisdiction/${apiUtils.getCurrentJurisdiction()}/login/`;
+                window.location.href = "{% url 'efile_login' jurisdiction %}";
             }
             // Event listeners
-            document
-                .getElementById("password")
-                .addEventListener("input", updatePasswordStrength);
+
             document
                 .getElementById("confirmPassword")
                 .addEventListener("input", validatePasswordMatch);

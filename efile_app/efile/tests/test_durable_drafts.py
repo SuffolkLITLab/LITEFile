@@ -133,6 +133,32 @@ def test_case_data_round_trips_through_the_model(django_user_model):
 
 
 @pytest.mark.django_db
+def test_defendant_fields_round_trip_as_respondent_aliases(django_user_model):
+    user = django_user_model.objects.create_user(username="divorce-owner", tyler_jurisdiction="illinois")
+    draft = FilingDraft.objects.create(user=user, jurisdiction="illinois")
+
+    write_case_data(
+        draft,
+        {
+            "defendant_party_type": "DEF",
+            "defendant_first_name": "Grace",
+            "defendant_last_name": "Hopper",
+        },
+    )
+
+    respondent = FilingParty.objects.get(draft=draft, role="respondent")
+    assert respondent.party_type == "DEF"
+    assert respondent.first_name == "Grace"
+    assert respondent.last_name == "Hopper"
+
+    blob = read_case_data(draft)
+    assert blob["respondent_name_party_type"] == "DEF"
+    assert blob["defendant_party_type"] == "DEF"
+    assert blob["respondent_first_name"] == "Grace"
+    assert blob["defendant_first_name"] == "Grace"
+
+
+@pytest.mark.django_db
 def test_amount_in_controversy_is_read_back_from_the_draft(django_user_model):
     """case_questions saves this directly on the model (it's not config-driven,
     so it doesn't go through write_case_data), but the frontend still reads it

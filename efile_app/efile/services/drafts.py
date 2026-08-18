@@ -115,41 +115,42 @@ _DRAFT_FIELD_SOURCES: dict[str, tuple[str, ...]] = {
     "name_change_reason": ("reason_for_name_change", "reason_for_change"),
 }
 
-# FilingParty role -> {model field: wire key}. Petitioner party_type is special
-# (three legacy aliases for one value) and handled separately.
-_PARTY_SPECS: dict[str, dict[str, str]] = {
+# FilingParty role -> {model field: wire keys}. Petitioner party_type is special
+# (three legacy aliases for one value) and handled separately. Respondent and
+# defendant are aliases because filing types use those terms interchangeably.
+_PARTY_SPECS: dict[str, dict[str, tuple[str, ...]]] = {
     "petitioner": {
-        "first_name": "petitioner_first_name",
-        "last_name": "petitioner_last_name",
-        "address_line_1": "petitioner_address",
-        "email": "petitioner_email",
-        "phone": "petitioner_phone",
+        "first_name": ("petitioner_first_name",),
+        "last_name": ("petitioner_last_name",),
+        "address_line_1": ("petitioner_address",),
+        "email": ("petitioner_email",),
+        "phone": ("petitioner_phone",),
     },
     "new_name": {
-        "first_name": "new_first_name",
-        "middle_name": "new_middle_name",
-        "last_name": "new_last_name",
-        "suffix": "new_suffix",
-        "party_type": "new_name_party_type",
+        "first_name": ("new_first_name",),
+        "middle_name": ("new_middle_name",),
+        "last_name": ("new_last_name",),
+        "suffix": ("new_suffix",),
+        "party_type": ("new_name_party_type",),
     },
     "respondent": {
-        "first_name": "respondent_first_name",
-        "middle_name": "respondent_middle_name",
-        "last_name": "respondent_last_name",
-        "suffix": "respondent_suffix",
-        "party_type": "respondent_name_party_type",
+        "first_name": ("respondent_first_name", "defendant_first_name"),
+        "middle_name": ("respondent_middle_name", "defendant_middle_name"),
+        "last_name": ("respondent_last_name", "defendant_last_name"),
+        "suffix": ("respondent_suffix", "defendant_suffix"),
+        "party_type": ("respondent_name_party_type", "respondent_party_type", "defendant_party_type"),
     },
     "other": {
-        "first_name": "other_first_name",
-        "last_name": "other_last_name",
-        "party_type": "other_party_type",
-        "address_line_1": "other_address_line_1",
-        "address_line_2": "other_address_line_2",
-        "city": "other_address_city",
-        "state": "other_address_state",
-        "zip_code": "other_address_zip",
-        "email": "other_email",
-        "phone": "other_phone_number",
+        "first_name": ("other_first_name",),
+        "last_name": ("other_last_name",),
+        "party_type": ("other_party_type",),
+        "address_line_1": ("other_address_line_1",),
+        "address_line_2": ("other_address_line_2",),
+        "city": ("other_address_city",),
+        "state": ("other_address_state",),
+        "zip_code": ("other_address_zip",),
+        "email": ("other_email",),
+        "phone": ("other_phone_number",),
     },
 }
 
@@ -233,7 +234,11 @@ def write_case_data(
 
 def _write_parties(draft: FilingDraft, data: dict[str, Any]) -> None:
     for role, spec in _PARTY_SPECS.items():
-        values = {model_field: _as_str(data[wire_key]) for model_field, wire_key in spec.items() if wire_key in data}
+        values = {}
+        for model_field, wire_keys in spec.items():
+            value = _first_present(data, wire_keys)
+            if value is not _MISSING:
+                values[model_field] = _as_str(value)
         if role == "petitioner":
             party_type = _first_present(data, _PETITIONER_PARTY_TYPE_KEYS)
             if party_type is not _MISSING:
@@ -291,8 +296,9 @@ def read_case_data(draft: FilingDraft | None) -> dict[str, Any]:
         spec = _PARTY_SPECS.get(party.role)
         if spec is None:
             continue
-        for model_field, wire_key in spec.items():
-            _put(data, wire_key, getattr(party, model_field))
+        for model_field, wire_keys in spec.items():
+            for wire_key in wire_keys:
+                _put(data, wire_key, getattr(party, model_field))
         if party.role == "petitioner" and party.party_type:
             for key in _PETITIONER_PARTY_TYPE_KEYS:
                 _put(data, key, party.party_type)

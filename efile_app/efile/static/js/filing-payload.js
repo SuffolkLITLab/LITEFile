@@ -132,14 +132,16 @@ const FilingPayload = {
         }
 
         // Add second user if needed for name changes
-        if (caseData.respondent_name_party_type) {
+        const respondentPartyType = caseData.respondent_name_party_type ||
+            caseData.respondent_party_type || caseData.defendant_party_type;
+        if (respondentPartyType) {
             users.push({
-                party_type: caseData.respondent_name_party_type,
+                party_type: respondentPartyType,
                 name: {
-                    first: caseData.respondent_first_name || "",
-                    middle: caseData.respondent_middle_name || "",
-                    last: caseData.respondent_last_name || "",
-                    suffix: caseData.respondent_suffix || ""
+                    first: caseData.respondent_first_name || caseData.defendant_first_name || "",
+                    middle: caseData.respondent_middle_name || caseData.defendant_middle_name || "",
+                    last: caseData.respondent_last_name || caseData.defendant_last_name || "",
+                    suffix: caseData.respondent_suffix || caseData.defendant_suffix || ""
                 },
                 is_new: true,
             });

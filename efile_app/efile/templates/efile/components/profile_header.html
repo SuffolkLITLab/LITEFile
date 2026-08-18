@@ -7,11 +7,24 @@
     <div class="container">
         <div class="d-flex justify-content-between align-items-center">
             <div class="d-flex align-items-center">
-                <i class="{{ config.jurisdiction.icon }} scales-icon" aria-hidden="true"></i>
-                <span class="brand-title">{{ config.jurisdiction.name }}</span>
+                <a class="brand-link"
+                   href="{% if jurisdiction %}{% url 'efile_options' jurisdiction %}{% else %}{% url 'home' %}{% endif %}">
+                    <img class="brand-logo"
+                         src="{% static config.jurisdiction.logo|default:'img/litefile-logo.svg' %}"
+                         alt="{{ config.jurisdiction.logo_alt|default:'LITEFile logo' }}"
+                         width="136"
+                         height="42" />
+                    <span class="brand-title">
+                        {% if config.jurisdiction.display_name and config.jurisdiction.display_name != "LITEFile" %}
+                            {{ config.jurisdiction.display_name }} e-Filing
+                        {% else %}
+                            e-Filing
+                        {% endif %}
+                    </span>
+                </a>
             </div>
             <div class="header-menus">
-                {% if is_logged_in %}
+                {% if is_logged_in and jurisdiction %}
                     <div class="dropdown">
                         <button class="nav-menu-toggle"
                                 id="filingMenuButton"
@@ -83,7 +96,7 @@
                     </button>
                     <div class="dropdown-menu dropdown-menu-end profile-menu"
                          aria-labelledby="profileMenuButton">
-                        {% if is_logged_in %}
+                        {% if is_logged_in and jurisdiction %}
                             <div class="profile-menu-summary">
                                 <p class="profile-menu-label">{% translate "Signed in as" %}</p>
                                 <p class="profile-menu-name">{% firstof user.get_full_name user.account_email %}</p>
@@ -97,25 +110,43 @@
                             <div class="profile-menu-summary">
                                 <p class="profile-menu-name">{% translate "You are not signed in" %}</p>
                                 <p class="profile-menu-detail">
-                                    {% blocktranslate with name=config.jurisdiction.display_name %}Sign in to file in {{ name }}.{% endblocktranslate %}
+                                    {% if jurisdiction %}
+                                        {% blocktranslate with name=config.jurisdiction.display_name %}Sign in to file in {{ name }}.{% endblocktranslate %}
+                                    {% else %}
+                                        {% translate "Choose a jurisdiction to sign in and file." %}
+                                    {% endif %}
                                 </p>
                             </div>
                             <div class="dropdown-divider"></div>
-                            <a class="dropdown-item" href="{% url 'efile_login' jurisdiction %}">
-                                <i class="fas fa-right-to-bracket" aria-hidden="true"></i>
-                                <span>{% translate "Sign in" %}</span>
+                            {% if jurisdiction %}
+                                <a class="dropdown-item" href="{% url 'efile_login' jurisdiction %}">
+                                    <i class="fas fa-right-to-bracket" aria-hidden="true"></i>
+                                    <span>{% translate "Sign in" %}</span>
+                                </a>
+                            {% else %}
+                                <a class="dropdown-item" href="{% url 'efile_choose_jurisdiction' %}">
+                                    <i class="fas fa-location-dot" aria-hidden="true"></i>
+                                    <span>{% translate "Choose a jurisdiction" %}</span>
+                                </a>
+                            {% endif %}
+                        {% endif %}
+                        {% if jurisdiction %}
+                            <form method="post"
+                                  action="{% url 'change_jurisdiction' jurisdiction %}"
+                                  onsubmit="clearFilingBrowserData()">
+                                {% csrf_token %}
+                                <button type="submit" class="dropdown-item">
+                                    <i class="fas fa-map-location-dot" aria-hidden="true"></i>
+                                    <span>{% translate "File in a different state" %}</span>
+                                </button>
+                            </form>
+                        {% else %}
+                            <a class="dropdown-item" href="{% url 'efile_choose_jurisdiction' %}">
+                                <i class="fas fa-map-location-dot" aria-hidden="true"></i>
+                                <span>{% translate "Choose a jurisdiction" %}</span>
                             </a>
                         {% endif %}
-                        <form method="post"
-                              action="{% url 'change_jurisdiction' jurisdiction %}"
-                              onsubmit="clearFilingBrowserData()">
-                            {% csrf_token %}
-                            <button type="submit" class="dropdown-item">
-                                <i class="fas fa-map-location-dot" aria-hidden="true"></i>
-                                <span>{% translate "File in a different state" %}</span>
-                            </button>
-                        </form>
-                        {% if is_logged_in %}
+                        {% if is_logged_in and jurisdiction %}
                             <form method="post"
                                   action="{% url 'efile_logout' jurisdiction %}"
                                   onsubmit="clearFilingBrowserData()">

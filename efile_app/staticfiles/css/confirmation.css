@@ -1,0 +1,85 @@
+.confirmation-workflow-card {
+    text-align: center;
+}
+
+.confirmation-workflow-card .workflow-lede {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.confirmation-reference {
+    background: var(--surface-accent);
+    border: 1px solid var(--border-accent);
+    border-radius: 12px;
+    margin: 0 auto 1.25rem;
+    padding: 1rem;
+}
+
+.confirmation-reference span,
+.confirmation-reference strong {
+    display: block;
+}
+
+.confirmation-reference span {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.confirmation-reference strong {
+    color: var(--better-blue);
+    font-size: 1.35rem;
+    margin-top: 0.25rem;
+}
+
+.confirmation-summary {
+    border: 1px solid var(--border-default);
+    border-radius: 12px;
+    margin: 0;
+    text-align: left;
+}
+
+.confirmation-summary>div {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+}
+
+.confirmation-summary>div+div {
+    border-top: 1px solid var(--border-subtle);
+}
+
+.confirmation-summary dt {
+    color: var(--text-muted);
+}
+
+.confirmation-summary dd {
+    color: var(--text-heading);
+    font-weight: 700;
+    margin: 0;
+}
+
+.confirmation-next {
+    text-align: left;
+}
+
+.confirmation-actions {
+    display: flex;
+    gap: 0.8rem;
+    justify-content: center;
+    margin-top: 1.5rem;
+}
+
+.success-icon {
+    color: var(--success);
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+@media (max-width: 700px) {
+    .success-icon {
+        font-size: 3rem;
+    }
+}
