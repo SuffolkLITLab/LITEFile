@@ -30,6 +30,13 @@ htmlcov/
 .ruff_cache/
 .uv/
 
+# Documentation and node artifacts
+docs/
+docs-site/
+.docusaurus/
+node_modules/
+package-lock.json
+
 # Local DBs
 *.sqlite3
 

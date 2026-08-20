@@ -162,8 +162,11 @@ cython_debug/
 efile_app/db.sqlite3
 efile_app/db.sqlite3-journal
 
-# Node.js dependencies
+# Node.js dependencies and Docusaurus
 node_modules/
+.docusaurus/
+docs/build/
+docs/.docusaurus/
 
 # Playwright
 test-results/

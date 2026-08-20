@@ -1,3 +1,10 @@
+---
+id: vision-eval-20250902
+title: Vision Evaluation (2025-09-02)
+sidebar_label: Evaluation 2025-09-02
+sidebar_position: 4
+---
+
 # Vision evaluation - September 2, 2025
 
 ## Executive summary

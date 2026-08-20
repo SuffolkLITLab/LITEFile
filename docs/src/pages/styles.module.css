@@ -1,0 +1,214 @@
+.hero {
+  background-color: var(--suffolk-blue-wash);
+  margin: 0;
+  border-bottom: 1px solid var(--suffolk-card-border);
+}
+
+.heroInner {
+  align-items: center;
+  display: grid;
+  gap: calc(2 * var(--ifm-global-spacing));
+  grid-template-areas: 'h1 img';
+  grid-template-columns: 1.8fr 1.2fr;
+  margin: 0 auto;
+  max-width: 1150px;
+  padding: calc(3.5 * var(--ifm-spacing-vertical)) var(--ifm-spacing-horizontal);
+}
+
+@media (max-width: 768px) {
+  .heroInner {
+    gap: var(--ifm-global-spacing);
+    grid-template-areas:
+      'img'
+      'h1';
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+}
+
+.heroText {
+  grid-area: h1;
+}
+
+.heroText h1 {
+  font-size: 3.25rem;
+  font-weight: 800;
+  line-height: 1.15;
+  margin-bottom: 1rem;
+  color: var(--suffolk-dark-blue);
+}
+
+html[data-theme="dark"] .heroText h1 {
+  color: #ffffff;
+}
+
+.heroText h1 strong {
+  color: var(--ifm-color-primary);
+}
+
+.heroSubtitle {
+  font-size: 1.35rem;
+  line-height: 1.5;
+  color: var(--ifm-color-emphasis-800);
+  margin-bottom: 1.75rem;
+}
+
+.heroCTAButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ifm-spacing-horizontal);
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .heroCTAButtons {
+    justify-content: center;
+  }
+}
+
+.heroImageContainer {
+  grid-area: img;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.heroImage {
+  max-width: 100%;
+  height: auto;
+  max-height: 280px;
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.08));
+}
+
+.indexSection {
+  margin: calc(4 * var(--ifm-spacing-vertical)) auto;
+  max-width: 1150px !important;
+  padding: 0 var(--ifm-spacing-horizontal);
+}
+
+.pullQuote {
+  border-left: 5px solid var(--suffolk-light-gold);
+  background-color: var(--suffolk-blue-wash);
+  padding: 1.5rem 2rem;
+  border-radius: 0 8px 8px 0;
+  margin: 2.5rem 0;
+}
+
+.pullQuote p {
+  font-size: 1.35rem;
+  font-weight: 600;
+  line-height: 1.5;
+  margin-bottom: 0.5rem;
+  color: var(--suffolk-dark-blue);
+}
+
+html[data-theme="dark"] .pullQuote p {
+  color: #f0f0f0;
+}
+
+.pullQuote cite {
+  font-style: normal;
+  font-size: 1rem;
+  color: var(--ifm-color-emphasis-700);
+}
+
+.sectionHeader {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.sectionHeader h2 {
+  font-size: 2.25rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.sectionHeader p {
+  font-size: 1.15rem;
+  color: var(--ifm-color-emphasis-700);
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.75rem;
+  margin-bottom: 2rem;
+}
+
+.featureCard {
+  border: 1px solid var(--suffolk-card-border);
+  border-radius: 10px;
+  padding: 1.75rem;
+  background-color: var(--ifm-card-background-color);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.featureCard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  border-color: var(--suffolk-light-blue);
+}
+
+.featureIcon {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.featureCard h3 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+.featureCard p {
+  color: var(--ifm-color-emphasis-700);
+  line-height: 1.5;
+  flex-grow: 1;
+}
+
+.partnerSection {
+  background-color: var(--suffolk-blue-wash);
+  padding: 3.5rem 0;
+  border-top: 1px solid var(--suffolk-card-border);
+  border-bottom: 1px solid var(--suffolk-card-border);
+}
+
+.partnerLogos {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 3rem;
+  margin-top: 2rem;
+}
+
+.partnerLogoItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 220px;
+}
+
+.partnerLogoItem img {
+  max-height: 70px;
+  max-width: 180px;
+  object-fit: contain;
+  margin-bottom: 0.75rem;
+  filter: grayscale(20%);
+  transition: filter 0.2s ease;
+}
+
+.partnerLogoItem img:hover {
+  filter: grayscale(0%);
+}
+
+.partnerLogoLabel {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ifm-color-emphasis-700);
+}

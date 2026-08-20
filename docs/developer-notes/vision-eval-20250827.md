@@ -1,3 +1,10 @@
+---
+id: vision-eval-20250827
+title: Vision Evaluation (2025-08-27)
+sidebar_label: Evaluation 2025-08-27
+sidebar_position: 3
+---
+
 # Status check vs vision
 Based on the current codebase, here’s where things stand relative to your MVP vision.
 
