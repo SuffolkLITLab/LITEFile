@@ -1,0 +1,202 @@
+/* 
+Global CSS for LITEFile Documentation
+Inherits and matches Suffolk University Law School LIT Lab brand styling from AssemblyLine-docs
+*/
+
+:root {
+  --suffolk-light-blue: #41b6e6; /* rgb(65, 182, 230) */
+  --suffolk-medium-blue: #2c5697; /* rgb(44, 86, 151) */
+  --suffolk-dark-blue: #15284b; /* rgb(21, 40, 75) */
+  --suffolk-light-gold: #fdb924; /* rgb(253, 185, 36) */
+  --suffolk-dark-gold: #bc912c; /* rgb(188, 145, 44) */
+  --suffolk-blue-wash: rgba(65, 182, 230, 0.15);
+  --suffolk-gold-wash: rgba(253, 185, 36, 0.2);
+  --suffolk-card-border: rgba(21, 40, 75, 0.12);
+
+  /* Infima color palette mapped to Suffolk Medium/Dark Blue */
+  --ifm-color-primary: var(--suffolk-medium-blue);
+  --ifm-color-primary-dark: #274d88;
+  --ifm-color-primary-darker: #224179;
+  --ifm-color-primary-darkest: var(--suffolk-dark-blue);
+  --ifm-color-primary-light: #3970c5;
+  --ifm-color-primary-lighter: #4b80ce;
+  --ifm-color-primary-lightest: #6691d2;
+
+  --ifm-code-font-size: 92%;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+
+  /* Navbar */
+  --ifm-navbar-background-color: var(--suffolk-dark-blue);
+  --ifm-navbar-link-color: #ffffff;
+  --ifm-navbar-link-hover-color: var(--suffolk-light-gold);
+}
+
+html[data-theme="dark"] {
+  --ifm-color-primary: var(--suffolk-light-gold);
+  --ifm-color-primary-dark: #e1c37d;
+  --ifm-color-primary-darker: #d5ad4d;
+  --ifm-color-primary-darkest: var(--suffolk-dark-gold);
+  --ifm-color-primary-light: var(--suffolk-light-gold);
+  --ifm-color-primary-lighter: #fecc5e;
+  --ifm-color-primary-lightest: #fede99;
+
+  --ifm-navbar-background-color: #0d1a33;
+  --suffolk-blue-wash: rgba(65, 182, 230, 0.08);
+  --suffolk-card-border: rgba(255, 255, 255, 0.1);
+}
+
+/* Navbar Enhancements */
+.navbar__title {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-size: 1.25rem;
+}
+
+.navbar__logo {
+  border-right: 3px solid var(--suffolk-light-gold);
+  margin-right: var(--ifm-spacing-horizontal);
+  padding-right: var(--ifm-spacing-horizontal);
+  height: 2rem;
+}
+
+.navbar__item {
+  font-weight: 500;
+}
+
+.header-github-link {
+  border-radius: 9999px;
+  display: inline-block;
+  width: 2rem;
+  height: 2rem;
+  margin-right: calc(0.25 * var(--ifm-navbar-item-padding-horizontal));
+  margin-left: calc(0.25 * var(--ifm-navbar-item-padding-horizontal));
+  padding: 0;
+}
+
+.header-github-link::before {
+  background-image: url('/img/github.svg');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 75%;
+  content: '';
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+.header-github-link:hover {
+  background-color: var(--suffolk-light-gold);
+}
+
+.navbar-donate-button {
+  background-color: var(--suffolk-light-gold) !important;
+  color: var(--suffolk-dark-blue) !important;
+  border-radius: 6px !important;
+  padding: 0.375rem 0.85rem !important;
+  font-weight: 600 !important;
+  margin-left: 0.5rem !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+.navbar-donate-button:hover {
+  background-color: var(--suffolk-dark-gold) !important;
+  color: #ffffff !important;
+  text-decoration: none !important;
+}
+
+.navbar-donate-button [class*="icon"],
+.navbar-donate-button [class*="Icon"] {
+  display: none !important;
+}
+
+/* Typography & Content Links */
+article a {
+  text-decoration: underline;
+  text-decoration-thickness: 0.04em;
+  text-underline-offset: 0.25em;
+}
+
+article a:hover {
+  color: var(--suffolk-light-blue);
+}
+
+/* Screenshot image styling */
+.doc-screenshot {
+  display: block;
+  margin: 1.5rem auto;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  max-width: 100%;
+  height: auto;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.doc-screenshot:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+}
+
+html[data-theme="dark"] .doc-screenshot {
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.screenshot-caption {
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--ifm-color-emphasis-700);
+  margin-top: -0.8rem;
+  margin-bottom: 1.5rem;
+  font-style: italic;
+}
+
+/* Workflow Step Banner */
+.workflow-step-badge {
+  display: inline-flex;
+  align-items: center;
+  background: var(--suffolk-dark-blue);
+  color: #ffffff;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  border-left: 4px solid var(--suffolk-light-gold);
+}
+
+.wip-badge {
+  display: inline-block;
+  background-color: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeeba;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-left: 0.5rem;
+  vertical-align: middle;
+}
+
+html[data-theme="dark"] .wip-badge {
+  background-color: rgba(253, 185, 36, 0.2);
+  color: var(--suffolk-light-gold);
+  border-color: rgba(253, 185, 36, 0.4);
+}
+
+/* Cards & Feature Grid */
+.feature-card {
+  border: 1px solid var(--suffolk-card-border);
+  border-radius: 10px;
+  padding: 1.5rem;
+  background-color: var(--ifm-card-background-color);
+  transition: all 0.2s ease-in-out;
+  height: 100%;
+}
+
+.feature-card:hover {
+  border-color: var(--suffolk-light-blue);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}

@@ -1,3 +1,10 @@
+---
+id: sample-form-config
+title: Declarative Form Config Specification
+sidebar_label: Sample Form Config
+sidebar_position: 2
+---
+
 
 ### Hypothetical flow config
 
@@ -288,7 +295,8 @@ This is a first draft at what a simple form flow config might look like. The sys
 - **Landing Page Routing**: Support direct flow entry, allowing mapping of landing page URLs to specific flows for streamlined user experience
 - **API Versioning**: Implement versioning strategy for configuration format evolution and backward compatibility
 
-** Conditional Logic Candidates:**
+### Conditional Logic Candidates
+
 - **Simple Conditional Display**: Use `show_if` field with basic equality checks for straightforward visibility rules.
 - **Expression-Based Conditions**: Support script-like expressions (e.g., `"session.court.name == 'Cook County'"`) for flexible logic.
 - **Complex Rule Objects**: Define structured rules with conditions, actions, and validation messages for comprehensive business logic.
