@@ -1,53 +1,12 @@
-import logging
-import os
-from tempfile import NamedTemporaryFile
-
 from efile.models import FilingDocument
+from efile.services.document_extractions import queue_document_extraction
 from efile.services.drafts import read_upload_data, write_upload_data
-from efile.utils.llms import LlmError, extract_fields_from_file
 from efile.utils.s3_upload_handler import S3UploadHandler
-from efile.views.session_api import llm_fields, llm_hints
 from efile.workflow import WorkflowStepKey
-
-logger = logging.getLogger(__name__)
-
-
-def _analyze_lead(uploaded_file, jurisdiction):
-    temp_path = None
-    try:
-        uploaded_file.seek(0)
-        with NamedTemporaryFile(delete=False, suffix=".pdf") as temp_file:
-            for chunk in uploaded_file.chunks():
-                temp_file.write(chunk)
-            temp_path = temp_file.name
-        return extract_fields_from_file(
-            temp_path,
-            llm_fields.get(jurisdiction, llm_fields["default"]),
-            llm_hint=llm_hints.get(jurisdiction, llm_hints["default"]),
-        )
-    except LlmError:
-        logger.exception("Document extraction failed")
-        return {}
-    finally:
-        if temp_path:
-            try:
-                os.unlink(temp_path)
-            except OSError:
-                logger.warning("Could not remove extraction temp file %s", temp_path)
-
-
-def _guess_payload(found_fields):
-    return {
-        "court": found_fields.get("court name"),
-        "filing type": found_fields.get("filing type"),
-        "case category": found_fields.get("case category"),
-        "case type": found_fields.get("case type"),
-        "docket number": found_fields.get("docket number") or found_fields.get("docker number"),
-    }
 
 
 def upload_files(draft, uploaded_files, jurisdiction, *, current_step=WorkflowStepKey.UPLOAD_DOCUMENTS):
-    """Upload PDFs and merge them into the draft without discarding existing files."""
+    """Upload PDFs immediately and queue lead analysis outside the request."""
 
     handler = S3UploadHandler()
     if not handler._ensure_initialized():
@@ -66,9 +25,6 @@ def upload_files(draft, uploaded_files, jurisdiction, *, current_step=WorkflowSt
         is_lead = not files.get("lead") and not found_lead
         role = FilingDocument.Role.LEAD if is_lead else FilingDocument.Role.SUPPORTING
 
-        # Analyze the file while it's still open; boto3 closes the fileobj it's given once uploaded.
-        guesses = _guess_payload(_analyze_lead(uploaded_file, jurisdiction)) if is_lead else None
-
         uploaded_file.seek(0)
         result = handler.upload_file(uploaded_file, file_type=role)
         if not result["success"]:
@@ -84,10 +40,13 @@ def upload_files(draft, uploaded_files, jurisdiction, *, current_step=WorkflowSt
         if is_lead:
             files["lead"] = file_data
             found_lead = True
-            current["guesses"] = guesses
+            current["guesses"] = {}
         else:
             supporting.append(file_data)
 
     files["supporting"] = supporting
     write_upload_data(draft, current, current_step=current_step)
+    if found_lead:
+        lead = FilingDocument.objects.get(draft=draft, role=FilingDocument.Role.LEAD)
+        queue_document_extraction(lead)
     return current

@@ -1,21 +1,58 @@
 {% extends "efile/workflow_base.html" %}
 {% load static %}
 {% load i18n %}
+{% load ui_text %}
 {% block title %}
     {% translate "Review what we found" %}
 {% endblock title %}
 {% block workflow_content %}
     <section class="workflow-card">
         <div class="workflow-eyebrow">{% translate "Confirm case" %}</div>
+        {% ui_text "extraction_review.court_label" as court_label %}
+        {% ui_text "extraction_review.court_help" as court_help %}
+        {% ui_text "extraction_review.case_category_label" as case_category_label %}
+        {% ui_text "extraction_review.case_category_help" as case_category_help %}
         {% if has_guesses %}
-            <h1>{% translate "Here is what we found" %}</h1>
+            <h1>{% translate "Here is everything we pulled from your document" %}</h1>
             <p class="workflow-lede">
-                {% translate "We read your lead document and filled in what we could. Review each item below and fix anything that is wrong." %}
+                {% translate "Take your time and review every item. These are clues from the PDF, not answers you gave us, and the system can make mistakes." %}
             </p>
+            <section class="extracted-details" aria-labelledby="extracted-details-heading">
+                <h2 id="extracted-details-heading">{% translate "Information from your PDF" %}</h2>
+                <dl>
+                    {% for detail in extracted_details %}
+                        <div>
+                            <dt>{{ detail.label }}</dt>
+                            <dd>
+                                {{ detail.value }}
+                            </dd>
+                        </div>
+                    {% endfor %}
+                </dl>
+                {% if extraction_total_pages > extraction_pages_analyzed %}
+                    <p class="extracted-details__note">
+                        {% blocktranslate %}This PDF has {{ extraction_total_pages }} pages. We analyzed only the first {{ extraction_pages_analyzed }} pages.{% endblocktranslate %}
+                    </p>
+                {% endif %}
+                <label class="extraction-acknowledgment">
+                    <input type="checkbox"
+                           class="form-check-input"
+                           name="reviewed_extraction"
+                           value="yes"
+                           form="extraction-review-form"
+                           required />
+                    <span>{% translate "I reviewed all the information above and will correct the filing details below if needed." %}</span>
+                </label>
+            </section>
+            <h2 class="confirm-filing-details-heading">{% translate "Confirm the details used for this filing" %}</h2>
         {% else %}
             <h1>{% translate "Tell us about your case" %}</h1>
             <div class="alert alert-info">
-                {% translate "We could not find any case details in your document. Enter them below, or" %}
+                {% if extraction_failed %}
+                    {% translate "Our system could not pull details from your document. You can enter the details below, or" %}
+                {% else %}
+                    {% translate "Our system did not pull details from your document. You can enter the details below, or" %}
+                {% endif %}
                 <a href="{% url 'upload_documents' jurisdiction %}">{% translate "go back and try a different document" %}</a>.
             </div>
         {% endif %}
@@ -24,7 +61,7 @@
             <input type="hidden" name="return_to" value="{{ return_to }}" />
             <div class="review-grid">
                 <div class="review-field" data-field="court" data-guess-key="court">
-                    <span>{% translate "Court or county" %}</span>
+                    <span>{{ court_label }}</span>
                     <div class="review-field__display" hidden>
                         <div class="review-field__found">
                             <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
@@ -32,7 +69,9 @@
                         </div>
                         <button class="btn btn-link review-field__edit"
                                 type="button"
-                                aria-label="{% translate "Edit court or county" %}">{% translate "Edit" %}</button>
+                                aria-label="{% blocktranslate %}Edit {{ court_label }}{% endblocktranslate %}">
+                            {% translate "Edit" %}
+                        </button>
                     </div>
                     <div class="review-field__input">
                         <select class="form-select"
@@ -43,13 +82,13 @@
                             <option value="">{% translate "Loading courts…" %}</option>
                         </select>
                         <input type="hidden" name="court_name" id="court_name" />
-                        <small class="review-field__hint" id="court_code-hint"></small>
+                        <small class="review-field__hint" id="court_code-hint">{{ court_help }}</small>
                     </div>
                 </div>
                 <div class="review-field"
                      data-field="case_category"
                      data-guess-key="case category">
-                    <span>{% translate "Case category" %}</span>
+                    <span>{{ case_category_label }}</span>
                     <div class="review-field__display" hidden>
                         <div class="review-field__found">
                             <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
@@ -57,7 +96,9 @@
                         </div>
                         <button class="btn btn-link review-field__edit"
                                 type="button"
-                                aria-label="{% translate "Edit case category" %}">{% translate "Edit" %}</button>
+                                aria-label="{% blocktranslate %}Edit {{ case_category_label }}{% endblocktranslate %}">
+                            {% translate "Edit" %}
+                        </button>
                     </div>
                     <div class="review-field__input">
                         <select class="form-select"
@@ -68,7 +109,7 @@
                             <option value="">{% translate "Choose a court first" %}</option>
                         </select>
                         <input type="hidden" name="case_category_name" id="case_category_name" />
-                        <small class="review-field__hint" id="case_category_code-hint"></small>
+                        <small class="review-field__hint" id="case_category_code-hint">{{ case_category_help }}</small>
                     </div>
                 </div>
                 <div class="review-field"

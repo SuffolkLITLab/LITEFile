@@ -328,6 +328,37 @@ class FilingDocument(models.Model):
         return self.name or f"{self.get_role_display()} for draft #{self.draft_id}"
 
 
+class DocumentExtraction(models.Model):
+    """Durable background work for analyzing one uploaded lead PDF."""
+
+    class Status(models.TextChoices):
+        PENDING = "pending", "Waiting"
+        PROCESSING = "processing", "Analyzing"
+        COMPLETE = "complete", "Complete"
+        FAILED = "failed", "Could not analyze"
+
+    document = models.OneToOneField(
+        FilingDocument,
+        on_delete=models.CASCADE,
+        related_name="extraction",
+    )
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING, db_index=True)
+    attempts = models.PositiveSmallIntegerField(default=0)
+    total_pages = models.PositiveIntegerField(blank=True, null=True)
+    pages_analyzed = models.PositiveIntegerField(blank=True, null=True)
+    error = models.TextField(blank=True)
+    started_at = models.DateTimeField(blank=True, null=True)
+    completed_at = models.DateTimeField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["created_at"]
+
+    def __str__(self):
+        return f"{self.get_status_display()} extraction for document #{self.document_id}"
+
+
 class FilingParty(models.Model):
     """Person or organization associated with a filing draft."""
 

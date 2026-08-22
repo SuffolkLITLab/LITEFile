@@ -153,6 +153,22 @@ UI_STRINGS: dict[str, UIString] = {
     "organize_documents.no_filing_components": UIString(
         default="No filing components are available",
     ),
+    # -- Extraction review --------------------------------------------------
+    "extraction_review.court_label": UIString(
+        default="Court or county",
+        description="The jurisdiction's plain-language name for the court or venue shown on its forms.",
+    ),
+    "extraction_review.court_help": UIString(
+        default="Choose the court that should receive this filing.",
+    ),
+    "extraction_review.case_category_label": UIString(
+        default="Case category",
+        description="The jurisdiction's term for the broad category or division of a court case.",
+    ),
+    "extraction_review.case_category_help": UIString(
+        default="Choose the broad category that best describes the case.",
+        description="May include familiar examples that help filers recognize the court's formal categories.",
+    ),
     # -- Your information ----------------------------------------------------
     "your_information.lede": UIString(
         default="Confirm how the court can contact you. We filled in what we could from your {brand_name} account.",

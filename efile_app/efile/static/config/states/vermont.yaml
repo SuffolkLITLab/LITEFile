@@ -39,6 +39,13 @@ text:
   terms:
     # Vermont courts call the document that opens a case a complaint.
     starting_document_example: "complaint"
+  extraction_review:
+    court_label: "Court unit or county"
+    court_help: "Choose the Vermont court unit or county that should receive this filing."
+    case_category_label: "Court division"
+    case_category_help: >-
+      Choose the court division. For example, Civil includes Small Claims,
+      and Family includes Relief from Abuse.
   about:
     project_partner_description: >-
       LITEFile's Vermont e-filing integration was developed in close partnership

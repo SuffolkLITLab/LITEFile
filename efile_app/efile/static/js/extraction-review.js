@@ -40,6 +40,7 @@
         field.input = root.querySelector(".review-field__input");
         field.valueEl = root.querySelector(".review-field__value");
         field.hint = root.querySelector(".review-field__hint");
+        field.defaultHint = field.hint.textContent.trim();
         root.querySelector(".review-field__edit").addEventListener("click", () => {
             setMode(key, "edit");
             // The Edit button lives inside the display panel that setMode just
@@ -100,7 +101,7 @@
         field.select.innerHTML = `<option value="">${placeholder}</option>`;
         field.select.disabled = true;
         field.nameInput.value = "";
-        field.hint.textContent = "";
+        field.hint.textContent = field.defaultHint;
         setMode(key, "edit");
     }
 
@@ -136,9 +137,10 @@
             setMode(key, "found");
             await ADVANCE[key]();
         } else {
-            field.hint.textContent = guesses[field.guessKey] ?
-                "We found a hint in your document, but we could not match it to a choice below." :
-                "We could not find this in your document.";
+            const extractionHint = guesses[field.guessKey] ?
+                "We found a hint in your document, but could not match it to a choice here." :
+                "Our system did not pull a match for this field. Choose an option to continue.";
+            field.hint.textContent = [extractionHint, field.defaultHint].filter(Boolean).join(" ");
             setMode(key, "edit");
         }
     }

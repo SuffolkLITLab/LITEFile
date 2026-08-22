@@ -133,6 +133,11 @@ AWS_S3_ENDPOINT_URL = os.getenv("AWS_S3_ENDPOINT_URL", None)
 # File Upload Settings
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
 ALLOWED_FILE_TYPES = [".pdf", ".doc", ".docx"]
+# Analyze only the front of a filing. Exhibits and discovery can make a PDF
+# hundreds of pages long, while the caption and filing details normally appear
+# near the beginning.
+DOCUMENT_EXTRACTION_MAX_PAGES = int(os.getenv("DOCUMENT_EXTRACTION_MAX_PAGES", "20"))
+DOCUMENT_EXTRACTION_MAX_ATTEMPTS = int(os.getenv("DOCUMENT_EXTRACTION_MAX_ATTEMPTS", "3"))
 
 # Logging configuration
 # Uses standard Python logging. Control the app logger level via DJANGO_LOG_LEVEL env var.

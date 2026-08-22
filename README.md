@@ -39,6 +39,13 @@ A minimal Django app for form submission and review. The Django project lives un
   ```
   Then open http://127.0.0.1:8000/login in your browser.
 
+- __4) Run the document extraction worker__
+  In a second terminal, from `efile_app/`:
+  ```bash
+  uv run python manage.py process_document_extractions
+  ```
+  The upload page stores PDFs immediately; this worker analyzes queued lead documents in the background.
+
 #### Activate the venv instead of using `uv run` (optional)
 
 `uv sync` creates `.venv/`. You can activate it and run Django commands normally:

@@ -21,6 +21,25 @@ CONFIG_STRINGS = [
         "about.project_partner_description",
         "LITEFile's Vermont e-filing integration was developed in close partnership with Legal Services Vermont (LSV), who collaborated on funding, building, and deploying LITEFile to expand accessible electronic court filing for self-represented litigants in Vermont.",
     ),
+    # Translators: May include familiar examples that help filers recognize the court's formal categories.
+    pgettext_lazy(
+        "extraction_review.case_category_help",
+        "Choose the court division. For example, Civil includes Small Claims, and Family includes Relief from Abuse.",
+    ),
+    # Translators: The jurisdiction's term for the broad category or division of a court case.
+    pgettext_lazy(
+        "extraction_review.case_category_label",
+        "Court division",
+    ),
+    pgettext_lazy(
+        "extraction_review.court_help",
+        "Choose the Vermont court unit or county that should receive this filing.",
+    ),
+    # Translators: The jurisdiction's plain-language name for the court or venue shown on its forms.
+    pgettext_lazy(
+        "extraction_review.court_label",
+        "Court unit or county",
+    ),
     # Translators: What courts here usually call the document that opens a case, used as an example when asking the filer which PDF is the main one. Vermont says complaint.
     pgettext_lazy(
         "terms.starting_document_example",

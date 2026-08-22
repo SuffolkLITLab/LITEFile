@@ -8,66 +8,18 @@ from django.views.decorators.http import require_http_methods
 
 from ..services.efsp_errors import describe_efsp_error
 from ..services.efsp_payload import PayloadValidationError, prepare_efile_payload
+from ..services.extraction_fields import EXTRACTION_FIELDS, EXTRACTION_HINTS
 from ..services.submission_errors import SubmissionErrorCode
 from ..utils.case_data_utils import get_case_data, get_upload_data, update_case_data
 from ..utils.proxy_connection import get_party_type_code_from_api
 
 logger = logging.getLogger(__name__)
 
-llm_hints = {
-    "illinois": """
-            However you should always attempt to deduce "case_category" and "case_type", using the following information:
-
-* Chancery (CH): Specific Performance (order someone to do something), Injunction (order someone to stop doing something), Mechanics Lien Foreclosure (put a lien on someone’s property if they didn’t pay for your services to improve it)
-* Criminal Felony (CF) or Criminal: Petition to Expunge or Seal
-* Dissolution with Children (DC) or without Children (DN) (NOTE: Dissolution means Divorce)
-* Misdemeanor (CM)
-* Eviction (EV) NOTE: Eviction may also be called Forcible Entry and Detainer: Residential, Commercial, Ejectment
-* Family (FA): Petition for Parentage, Visitation, or Custody
-* Guardianship (GR): Guardianship of Minor or Person with Disability
-* Law Magistrate (LM): Contract, Tort, and other claims for money over $10,000 up to $50,000
-* Miscellaneous Criminal (MX): Petition to Expunge or Seal (arrests only), Civil Asset/Property Forfeiture
-* Miscellaneous Remedy (MR): Administrative Review (for example, review of unemployment decisions), Certiorari (for example, administrative review of housing authority decisions)
-* Miscellaneous Remedy (MR): Change of Name
-* Order of Protection (OP): Order of Protection, Stalking No Contact, Civil No Contact, Firearms Restraining
-* Probate (PR): Administration of Decedent’s Estate
-* Small Claims (SC): Contract and Tort claims for money $10,000 or less
-""",
-    "massachusetts": """You should always attempt to deduce "case_category" and "case_type".""",
-    "vermont": """You should always attempt to deduce "case_category" and "case_type".""",
-    "default": """You should always attempt to deduce "case_category" and "case_type".""",
-}
-
-llm_fields: dict[str, dict[str, str]] = {
-    "illinois": {
-        "court name": "The name of the court that this form is filed in, often is the county of the court.",
-        "filing type": "The formal title of the filing being made",
-        "case category": "The high level category of this case",
-        "case type": "The type of legal case this form is a part of",
-        "docker number": "The unique identifier for this case in court. Also referred to as the case number",
-    },
-    "massachusetts": {
-        "court name": "The name of the court that this form is filed in",
-        "filing type": "The formal title of the filing being made",
-        "case category": "The high level category of this case",
-        "case type": "The type of legal case this form is a part of",
-        "docker number": "The unique identifier for this case in court.",
-    },
-    "vermont": {
-        "court name": "The name of the court that this form is filed in, often is the county of the court.",
-        "filing type": "The formal title of the filing being made",
-        "case category": "The high level category of this case",
-        "case type": "The type of legal case this form is a part of",
-        "docker number": "The unique identifier for this case in court. Also referred to as the case number",
-    },
-    "default": {
-        "court name": "The name of the court that this form is filed in.",
-        "filing type": "The formal title of the filing being made",
-        "case category": "The high level category of this case",
-        "case type": "The type of legal case this form is a part of",
-        "docker number": "The unique identifier for this case in court. Also referred to as the case number",
-    },
-}
+# Backward-compatible names for callers that still import these from this
+# legacy session API module. The extraction definitions themselves live with
+# the background extraction service now.
+llm_hints = EXTRACTION_HINTS
+llm_fields = EXTRACTION_FIELDS
 
 
 def determine_party_type_for_existing_case(case_data):

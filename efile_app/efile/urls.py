@@ -37,7 +37,7 @@ from .views.session_api import (
     save_party_type_to_session,
 )
 from .views.submission import submit_final_filing
-from .views.upload_documents import upload_documents
+from .views.upload_documents import document_extraction_status, upload_documents
 from .views.your_information import your_information
 
 
@@ -78,6 +78,11 @@ urlpatterns = [
     path("jurisdiction/<jurisdiction>/options/", efile_options, name="efile_options"),
     path("jurisdiction/<jurisdiction>/filing-path/", filing_path, name="filing_path"),
     path("jurisdiction/<jurisdiction>/upload-documents/", upload_documents, name="upload_documents"),
+    path(
+        "jurisdiction/<jurisdiction>/document-extraction-status/",
+        document_extraction_status,
+        name="document_extraction_status",
+    ),
     path("jurisdiction/<jurisdiction>/extraction-review/", extraction_review, name="extraction_review"),
     path("jurisdiction/<jurisdiction>/case-lookup/", case_lookup, name="case_lookup"),
     path("jurisdiction/<jurisdiction>/case-confirmation/", case_confirmation, name="case_confirmation"),

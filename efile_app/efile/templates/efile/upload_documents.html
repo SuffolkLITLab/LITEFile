@@ -9,14 +9,16 @@
         <div class="workflow-eyebrow">{% translate "Upload" %}</div>
         <h1>{% translate "Upload your court documents" %}</h1>
         <p class="workflow-lede">
-            {% translate "Add the forms and other documents you want to file. We will analyze the first PDF, and you can choose the main document later." %}
+            {% blocktranslate with page_count=max_extraction_pages %}Add the forms and other documents you want to file. We will analyze up to the first {{ page_count }} pages of the first PDF, and you can choose the main document later.{% endblocktranslate %}
         </p>
         <div class="requirements-strip">
             <span><i class="fa-solid fa-file-pdf" aria-hidden="true"></i> {% translate "PDF only" %}</span>
             <span><i class="fa-solid fa-weight-hanging" aria-hidden="true"></i> {% translate "10 MB per file" %}</span>
             <span><i class="fa-solid fa-eye" aria-hidden="true"></i> {% translate "Text must be readable" %}</span>
         </div>
-        <form id="document-upload-form" enctype="multipart/form-data">
+        <form id="document-upload-form"
+              enctype="multipart/form-data"
+              data-extraction-status-url="{% url 'document_extraction_status' jurisdiction %}">
             {% csrf_token %}
             <label class="drop-zone" id="document-drop-zone" for="documents-input">
                 <input id="documents-input"
@@ -28,10 +30,35 @@
                 <strong>{% translate "Choose PDFs or drag them here" %}</strong>
                 <span>{% translate "You can select more than one file." %}</span>
             </label>
-            <div class="upload-state" id="upload-state" hidden aria-live="polite">
+            <section class="pending-files"
+                     id="pending-files"
+                     aria-labelledby="pending-files-heading"
+                     hidden>
+                <div class="document-list__heading">
+                    <h2 id="pending-files-heading">{% translate "Selected files" %}</h2>
+                    <span class="badge text-bg-light" id="pending-file-count">0</span>
+                </div>
+                <div id="pending-file-list"></div>
+            </section>
+            <div class="upload-state"
+                 id="upload-state"
+                 {% if not extraction_pending %}hidden{% endif %}
+                 aria-live="polite">
                 <div class="spinner-border spinner-border-sm" aria-hidden="true"></div>
-                <strong id="upload-state-title">{% translate "Uploading your documents…" %}</strong>
-                <span id="upload-state-detail">{% translate "Keep this page open." %}</span>
+                <strong id="upload-state-title">
+                    {% if extraction_pending %}
+                        {% translate "Analyzing your first PDF…" %}
+                    {% else %}
+                        {% translate "Uploading your documents…" %}
+                    {% endif %}
+                </strong>
+                <span id="upload-state-detail">
+                    {% if extraction_pending %}
+                        {% translate "You can leave this page and come back while we work." %}
+                    {% else %}
+                        {% translate "Keep this page open while the files upload." %}
+                    {% endif %}
+                </span>
             </div>
             <div class="alert alert-danger" id="upload-error" role="alert" hidden></div>
             <button class="btn btn-primary mt-3"
@@ -58,12 +85,17 @@
                                 {% endif %}
                             </small>
                         </span>
-                        <span class="status-pill status-pill--ready"><i class="fa-solid fa-check" aria-hidden="true"></i> {% translate "Ready" %}</span>
+                        {% if document.role == "lead" and extraction_pending %}
+                            <span class="status-pill status-pill--analyzing"><i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> {% translate "Analyzing" %}</span>
+                        {% else %}
+                            <span class="status-pill status-pill--ready"><i class="fa-solid fa-check" aria-hidden="true"></i> {% translate "Ready" %}</span>
+                        {% endif %}
                         <button class="btn btn-link text-danger remove-document"
                                 type="button"
                                 data-document-id="{{ document.id }}"
                                 aria-label='{% translate "Remove document" %}'>
                             <i class="fa-solid fa-trash" aria-hidden="true"></i>
+                            <span>{% translate "Remove" %}</span>
                         </button>
                     </article>
                 {% endfor %}
@@ -77,10 +109,10 @@
         <div class="workflow-actions">
             <a class="btn btn-outline-secondary"
                href="{% url 'filing_path' jurisdiction %}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {% translate "Back" %}</a>
-            <a class="btn btn-primary {% if not has_lead_document %}disabled{% endif %}"
+            <a class="btn btn-primary {% if not has_lead_document or extraction_pending %}disabled{% endif %}"
                id="continue-to-analysis"
                href="{% url 'extraction_review' jurisdiction %}"
-               {% if not has_lead_document %}aria-disabled="true" tabindex="-1"{% endif %}>{% translate "Review what we found" %} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+               {% if not has_lead_document or extraction_pending %}aria-disabled="true" tabindex="-1"{% endif %}>{% translate "Review what we found" %} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
         </div>
     </section>
 {% endblock workflow_content %}
