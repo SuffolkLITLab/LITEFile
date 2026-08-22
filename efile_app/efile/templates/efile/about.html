@@ -1,6 +1,7 @@
 {% extends "efile/site_base.html" %}
 {% load static %}
 {% load i18n %}
+{% load ui_text %}
 {% block title %}
     {% translate "About LITEFile" %}
 {% endblock title %}
@@ -113,7 +114,12 @@
             </div>
         {% endif %}
     </section>
-    {% if not jurisdiction or jurisdiction == "illinois" or jurisdiction == "vermont" %}
+    {% comment %}
+    Partner copy and logos come from the jurisdiction's own config: partners
+    approve their own wording, and a new state should not need a template edit.
+    The unscoped page keeps its own summary of every partner.
+    {% endcomment %}
+    {% if not jurisdiction or config.jurisdiction.partner_logos %}
         <section aria-labelledby="project-partners">
             <h2 id="project-partners">
                 {% if jurisdiction %}
@@ -122,33 +128,18 @@
                     {% translate "Project partners" %}
                 {% endif %}
             </h2>
-            {% if jurisdiction == "illinois" %}
-                <p>
-                    {% translate "LITEFile's Illinois e-filing integration was developed in close partnership with Illinois Legal Aid Online (ILAO), who provided project leadership, co-development, and funding to expand accessible electronic court filing for self-represented litigants in Illinois." %}
-                </p>
+            {% if jurisdiction %}
+                <p>{% ui_text "about.project_partner_description" %}</p>
                 <div class="logo-grid">
-                    <a href="https://www.illinoislegalaid.org/"
-                       target="_blank"
-                       rel="noopener noreferrer"
-                       class="partner-logo-card text-decoration-none">
-                        <img src="{% static 'img/logo-ilao.png' %}"
-                             alt="{% translate "Illinois Legal Aid Online logo" %}" />
-                        <figcaption class="fw-semibold mt-2">{% translate "Illinois Legal Aid Online (ILAO)" %}</figcaption>
-                    </a>
-                </div>
-            {% elif jurisdiction == "vermont" %}
-                <p>
-                    {% translate "LITEFile's Vermont e-filing integration was developed in partnership with Legal Services Vermont (LSV) and Vermont Legal Aid, who collaborated on funding, building, and deploying the tools through VTLawHelp to make court filing accessible throughout Vermont." %}
-                </p>
-                <div class="logo-grid">
-                    <a href="https://legalservicesvt.org/"
-                       target="_blank"
-                       rel="noopener noreferrer"
-                       class="partner-logo-card text-decoration-none">
-                        <img src="{% static 'img/logo-lsv.png' %}"
-                             alt="{% translate "Legal Services Vermont logo" %}" />
-                        <figcaption class="fw-semibold mt-2">{% translate "Legal Services Vermont (LSV)" %}</figcaption>
-                    </a>
+                    {% for partner in config.jurisdiction.partner_logos %}
+                        <a href="{{ partner.url }}"
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           class="partner-logo-card text-decoration-none">
+                            <img src="{% static partner.src %}" alt="{{ partner.alt }}" />
+                            <figcaption class="fw-semibold mt-2">{{ partner.name }}</figcaption>
+                        </a>
+                    {% endfor %}
                 </div>
             {% else %}
                 <p>

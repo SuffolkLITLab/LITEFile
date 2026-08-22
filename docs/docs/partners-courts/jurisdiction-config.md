@@ -78,3 +78,43 @@ court_specific_requirements:
 :::tip Clerk contact information
 When a filing is rejected by a court clerk, LITEFile automatically surfaces the clerk's phone number and email address directly on the filer's status screen so they know who to call for assistance.
 :::
+
+---
+
+## 3. Wording that differs by state
+
+Courts do not use the same words for the same thing. The document that opens a case is a *petition* in Illinois and a *complaint* in Vermont, and telling a Vermont filer to look for a petition is wrong information, not a stylistic difference.
+
+The `text` section holds the strings this state says differently. Every key has an English default in `efile_app/efile/utils/ui_text.py`; anything you do not list keeps that default.
+
+```yaml
+# efile_app/efile/static/config/states/vermont.yaml
+
+text:
+  terms:
+    starting_document_example: "complaint"
+  about:
+    project_partner_description: >-
+      LITEFile's Vermont e-filing integration was developed in close partnership
+      with Legal Services Vermont (LSV), who collaborated on funding, building,
+      and deploying LITEFile to expand accessible electronic court filing for
+      self-represented litigants in Vermont.
+```
+
+### How keys work
+
+- Keys are nested in YAML and referred to elsewhere with dots: `terms.starting_document_example`.
+- Keys under `terms` are short nouns. Each one is also available to every longer string as a placeholder named for its last segment, so changing `starting_document_example` changes every sentence that names it.
+- Longer strings can also use `{brand_name}`, `{state_name}`, `{state_code}`, and `{court_name}`, which come from the `jurisdiction` and `state` sections of the same file.
+
+### What is *not* here
+
+Ordinary copy that no state wants to change stays in the templates. Only strings a state might genuinely reword belong in `text`, so the file stays readable and reviewable by the people who own the wording.
+
+:::tip Check your keys
+A misspelled key is ignored, which means the page quietly keeps the default wording — the exact wording you were trying to change. `manage.py check` reports any `text` key that does not exist (`efile.W002`), so run it after editing.
+:::
+
+### Translation
+
+Strings configured here are translatable along with the rest of the application. `xgettext` cannot read YAML, so `manage.py extract_config_text` restates them in a generated Python file that `makemessages` reads. Each string carries its key as the gettext message context, so one key's Illinois wording and Vermont wording stay separate messages for a translator. See `efile_app/efile/locale/README.md` for the full workflow.

@@ -500,3 +500,117 @@ def test_new_parties_are_available_to_legacy_payload_bridge(people_draft):
     assert data["party_type"] == "plaintiff"
     assert data["petitioner_first_name"] == "Jamie"
     assert data["filing_parties"][0]["party_type_name"] == "Plaintiff"
+
+
+ACCOUNT_PROFILE = {
+    "first_name": "Robin",
+    "last_name": "Ellis",
+    "address": "500 Main Street",
+    "address_line2": "",
+    "city": "Burlington",
+    "state": "VT",
+    "zip": "05401",
+    "phone": "802-555-0100",
+}
+
+
+@pytest.mark.django_db
+def test_your_information_fills_the_account_details_before_the_page_renders(client, people_draft):
+    """The filer should not watch their own name arrive a second after the form
+    does, and wonder why the system they just signed in to does not know them."""
+
+    with patch("efile.views.your_information.cached_account_profile", return_value=ACCOUNT_PROFILE):
+        response = client.get(reverse("your_information", kwargs={"jurisdiction": "illinois"}))
+
+    content = response.content.decode()
+    assert response.status_code == 200
+    assert 'value="Robin"' in content
+    assert 'value="500 Main Street"' in content
+    # Having rendered them, the page has no reason to fetch them again.
+    assert 'data-profile-prefilled="1"' in content
+
+
+@pytest.mark.django_db
+def test_your_information_keeps_draft_values_over_account_values(client, people_draft):
+    FilingParty.objects.create(
+        draft=people_draft,
+        role="filer",
+        sort_order=0,
+        first_name="Sam",
+        city="Chicago",
+    )
+
+    with patch("efile.views.your_information.cached_account_profile", return_value=ACCOUNT_PROFILE):
+        response = client.get(reverse("your_information", kwargs={"jurisdiction": "illinois"}))
+
+    content = response.content.decode()
+    assert 'value="Sam"' in content
+    assert 'value="Chicago"' in content
+    assert 'value="Robin"' not in content
+    # Fields the filer has not answered yet still come from the account.
+    assert 'value="500 Main Street"' in content
+
+
+@pytest.mark.django_db
+def test_your_information_leaves_the_form_usable_when_the_account_cannot_be_read(client, people_draft):
+    """A court that does not answer must not block the page; the filer types it
+    in, and the script is left to try the fetch itself."""
+
+    with patch("efile.views.your_information.cached_account_profile", return_value=None):
+        response = client.get(reverse("your_information", kwargs={"jurisdiction": "illinois"}))
+
+    assert response.status_code == 200
+    assert 'data-profile-prefilled="0"' in response.content.decode()
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(("jurisdiction", "state_code"), [("illinois", "IL"), ("vermont", "VT")])
+def test_your_information_defaults_the_state_to_this_jurisdiction(client, django_user_model, jurisdiction, state_code):
+    user = django_user_model.objects.create_user(username=f"{jurisdiction}-filer", tyler_jurisdiction=jurisdiction)
+    draft = FilingDraft.objects.create(
+        user=user,
+        jurisdiction=jurisdiction,
+        workflow_version=2,
+        existing_case=ExistingCase.NEW,
+        court_code="court",
+        current_step=WorkflowStepKey.YOUR_INFORMATION,
+    )
+    client.force_login(user)
+    session = client.session
+    session[CURRENT_DRAFT_SESSION_KEY] = draft.pk
+    session["auth_tokens"] = {f"TYLER-TOKEN-{jurisdiction.upper()}": "token"}
+    session["jurisdiction"] = jurisdiction
+    session.save()
+
+    with patch("efile.views.your_information.cached_account_profile", return_value=None):
+        response = client.get(reverse("your_information", kwargs={"jurisdiction": jurisdiction}))
+
+    state_input = re.search(r'<input[^>]*name="state"[^>]*>', response.content.decode())
+    assert state_input is not None
+    assert f'value="{state_code}"' in state_input.group()
+
+
+@pytest.mark.django_db
+def test_your_information_names_the_product_not_a_generic_efile_account(client, people_draft):
+    with patch("efile.views.your_information.cached_account_profile", return_value=None):
+        response = client.get(reverse("your_information", kwargs={"jurisdiction": "illinois"}))
+
+    content = response.content.decode()
+    assert "LITEFile account" in content
+    assert "eFile account" not in content
+
+
+@pytest.mark.django_db
+def test_the_role_question_is_asked_the_way_other_primary_questions_are(client, people_draft):
+    """It was small indented text above a large blue answer area, and testers
+    read past it."""
+
+    FilingParty.objects.create(draft=people_draft, role="filer", sort_order=0)
+
+    with patch("efile.views.parties.get_party_types", return_value=PARTY_TYPES):
+        response = client.get(reverse("parties", kwargs={"jurisdiction": "illinois"}))
+
+    content = response.content.decode()
+    assert 'class="form-field primary-question"' in content
+    assert "What is your role in this case?" in content
+    assert "The court uses it to list you as a party" in content

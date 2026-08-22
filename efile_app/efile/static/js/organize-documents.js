@@ -7,6 +7,10 @@
     const list = document.getElementById("organize-list");
     const errorBox = document.getElementById("organize-error");
     const cards = () => Array.from(list.querySelectorAll(".organize-card"));
+    // Copy this script renders itself. It comes from the page rather than from
+    // string literals here so a state can reword it and a translator can reach
+    // it -- see efile/utils/ui_text.py.
+    const text = context.text || {};
     let filingTypes = null;
 
     function optionValue(item) {
@@ -39,12 +43,14 @@
         select.disabled = false;
     }
 
-    function setRadioOptions(container, options, savedValue, fieldName, placeholder) {
+    function isRequiredOption(item) {
+        return item.required === true || String(item.required).toLowerCase() === "true";
+    }
+
+    function setRadioOptions(container, options, savedValue, fieldName, placeholder, requiredNote) {
         container.innerHTML = "";
         if (!options.length) {
-            const message = document.createElement("small");
-            message.textContent = placeholder;
-            container.appendChild(message);
+            setPlaceholder(container, placeholder);
             return;
         }
         options.forEach((item, index) => {
@@ -56,11 +62,61 @@
             input.value = optionValue(item);
             input.required = true;
             input.checked = input.value === savedValue || (!savedValue && options.length === 1 && index === 0);
-            const text = document.createElement("span");
-            text.textContent = optionText(item);
-            label.append(input, text);
+            // Carried on the input so the payload can name the choice without
+            // scraping whatever else the label happens to show.
+            input.dataset.optionText = optionText(item);
+            const caption = document.createElement("span");
+            caption.textContent = optionText(item);
+            // The court will reject a filing that lacks its required component,
+            // so say which choice that is instead of offering all of them as
+            // though any would do.
+            if (requiredNote && isRequiredOption(item)) {
+                const note = document.createElement("small");
+                note.textContent = requiredNote;
+                caption.appendChild(note);
+            }
+            label.append(input, caption);
             container.appendChild(label);
         });
+    }
+
+    // A filing component the court gives no choice about. Presenting the one
+    // allowed value as a radio invites the filer to try to clear it -- and the
+    // filing is rejected later if they succeed -- so it is shown as what it is:
+    // metadata the court fixed, with the value still submitted.
+    function setFixedOption(container, item, fieldName) {
+        container.innerHTML = "";
+        const label = document.createElement("label");
+        label.className = "compact-choice-list__fixed";
+        const input = document.createElement("input");
+        input.type = "radio";
+        input.name = fieldName;
+        input.value = optionValue(item);
+        input.checked = true;
+        input.hidden = true;
+        input.dataset.optionText = optionText(item);
+        const caption = document.createElement("span");
+        const name = document.createElement("strong");
+        name.textContent = optionText(item);
+        caption.appendChild(name);
+        if (text.filing_component_fixed_note) {
+            const note = document.createElement("small");
+            note.textContent = text.filing_component_fixed_note;
+            caption.appendChild(note);
+        }
+        label.append(input, caption);
+        container.appendChild(label);
+    }
+
+    function setPlaceholder(container, message) {
+        container.innerHTML = "";
+        const element = document.createElement("small");
+        element.textContent = message || "";
+        container.appendChild(element);
+    }
+
+    function setLoading(container) {
+        setPlaceholder(container, text.loading_choices);
     }
 
     async function getJson(url) {
@@ -96,13 +152,13 @@
         const component = card.querySelector(".filing-component-options");
         const documentId = card.dataset.documentId;
         if (!filingType) {
-            setRadioOptions(documentType, [], "", `document-type-${documentId}`, "Select a filing type first");
-            setRadioOptions(component, [], "", `filing-component-${documentId}`, "Select a filing type first");
+            setRadioOptions(documentType, [], "", `document-type-${documentId}`, text.choose_filing_type_first);
+            setRadioOptions(component, [], "", `filing-component-${documentId}`, text.choose_filing_type_first);
             return;
         }
 
-        documentType.innerHTML = "<small>Loading choices…</small>";
-        component.innerHTML = "<small>Loading choices…</small>";
+        setLoading(documentType);
+        setLoading(component);
         const documentParams = new URLSearchParams({
             jurisdiction: context.jurisdiction,
             court: context.court,
@@ -122,7 +178,7 @@
             documentTypes,
             card.dataset.documentType,
             `document-type-${documentId}`,
-            "No confidentiality choices are available",
+            text.no_document_types,
         );
 
         let savedComponent = card.dataset.filingComponent;
@@ -133,16 +189,21 @@
             // to "Attachments" leaves its filing with no lead document at all,
             // which the court rejects ("Required filing component '332' not
             // found") long after the filer has left this screen.
-            const preferred = components.find((item) => item.required === true || item.required === "true") ||
+            const preferred = components.find(isRequiredOption) ||
                 components.find((item) => String(item.efspcode || "").toUpperCase() === "LEAD");
             savedComponent = optionValue(preferred || components[0]);
+        }
+        if (components.length === 1) {
+            setFixedOption(component, components[0], `filing-component-${documentId}`);
+            return;
         }
         setRadioOptions(
             component,
             components,
             savedComponent,
             `filing-component-${documentId}`,
-            "No document roles are available",
+            text.no_filing_components,
+            text.filing_component_required_note,
         );
     }
 
@@ -207,10 +268,10 @@
     async function loadOptionalServices(card, filingType) {
         const container = card.querySelector(".optional-services-list");
         if (!filingType) {
-            container.innerHTML = "<small>Select a filing type first</small>";
+            setPlaceholder(container, text.choose_filing_type_first);
             return;
         }
-        container.innerHTML = "<small>Loading choices…</small>";
+        setLoading(container);
         const params = new URLSearchParams({
             jurisdiction: context.jurisdiction,
             court: context.court,
@@ -345,9 +406,9 @@
                 filing_type: filingType.value,
                 filing_type_name: filingType.selectedOptions[0]?.text || "",
                 document_type: documentType?.value || "",
-                document_type_name: documentType?.closest("label")?.innerText.trim() || "",
+                document_type_name: documentType?.dataset.optionText || "",
                 filing_component: component?.value || "",
-                filing_component_name: component?.closest("label")?.innerText.trim() || "",
+                filing_component_name: component?.dataset.optionText || "",
                 courtesy_copy_email: courtesyEmail,
                 requested_optional_services: requestedOptionalServices,
                 requires_amount_in_controversy: filingType.selectedOptions[0]?.dataset.amountInControversyRequired === "true",

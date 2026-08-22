@@ -4,9 +4,39 @@ from django.views.decorators.http import require_http_methods
 
 from efile.api.suffolk_api_views import get_tyler_token
 from efile.models import FilingParty
+from efile.services.account_profile import cached_account_profile, default_state_code
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.drafts import draft_snapshot
 from efile.workflow import RETURN_TO_REVIEW, WorkflowStepKey, get_return_url, get_workflow_context
+
+# Account profile field -> the filer field it fills in when that field is blank.
+_ACCOUNT_FIELDS = {
+    "first_name": "first_name",
+    "last_name": "last_name",
+    "address_line_1": "address",
+    "address_line_2": "address_line2",
+    "city": "city",
+    "state": "state",
+    "zip_code": "zip",
+    "phone": "phone",
+}
+
+
+def _prefill_from_account(filer, profile, user):
+    """Fill blank filer fields from the account profile, in memory only.
+
+    Nothing is saved: these are defaults the filer is being asked to confirm,
+    and they become real data when they submit the form. Returns whether the
+    profile was usable, which the page uses to skip its own fetch.
+    """
+    for field, profile_key in _ACCOUNT_FIELDS.items():
+        if not getattr(filer, field, ""):
+            setattr(filer, field, profile.get(profile_key) or "")
+    # The account's own email never comes back from the court's firm record --
+    # it is the address the filer signed in with.
+    if not filer.email:
+        filer.email = getattr(user, "email", "") or ""
+    return True
 
 
 @require_http_methods(["GET", "POST"])
@@ -51,12 +81,22 @@ def your_information(request, jurisdiction):
             draft.save(update_fields=["current_step", "updated_at"])
             return redirect(get_return_url(request, jurisdiction, WorkflowStepKey.PARTIES))
 
+    # Fill the blanks from the filer's e-filing account before rendering, not
+    # afterwards from JavaScript: the filer should not watch their own name
+    # appear a second or two after the form does. Anything already saved on the
+    # draft wins, so a filer who corrected an address keeps the correction.
+    profile = cached_account_profile(request, jurisdiction)
+    prefilled = _prefill_from_account(filer, profile, request.user) if profile else False
+
     context = {
         "is_logged_in": True,
         "filing_draft": draft_snapshot(draft),
         "filer": filer,
         "return_to": request.GET.get("return_to", ""),
         "court_code": draft.court_code,
+        "default_state_code": default_state_code(jurisdiction),
+        # Tells the page it does not need to fetch the profile again.
+        "profile_prefilled": prefilled,
     }
     context.update(get_workflow_context(WorkflowStepKey.YOUR_INFORMATION, jurisdiction, draft))
     return render(request, "efile/your_information.html", context)

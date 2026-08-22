@@ -37,6 +37,11 @@
         }
     }
 
+    // The server fills these in before the page renders when it can reach the
+    // filer's account. Fetching again would cost a request to show values that
+    // are already on screen.
+    if (form.dataset.profilePrefilled === "1") return;
+
     const fieldMap = {
         first_name: "first_name",
         last_name: "last_name",

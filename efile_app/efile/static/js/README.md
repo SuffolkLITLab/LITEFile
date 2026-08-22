@@ -45,6 +45,16 @@ the same name.
 What the forms ask for is configured in YAML, not in JavaScript. See
 `../config/README.md`.
 
+## Copy these scripts render
+
+Text a script writes into the page cannot be reached by `makemessages` reading
+templates, and cannot be reworded by a state's YAML file. So a screen whose
+script renders its own copy -- the choice lists on `organize-documents.js`, for
+one -- is handed those strings by its template, already resolved for the
+jurisdiction and the filer's language, and reads them from its page context
+rather than from string literals. `gettext()` from the JavaScript catalog
+(loaded in `workflow_base.html`) is fine for anything no state would reword.
+
 ## Tests
 
 `js-tests/` holds `node --test` unit tests for the modules worth testing on

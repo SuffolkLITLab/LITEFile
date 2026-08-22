@@ -97,6 +97,49 @@ def test_vermont_about_shows_lsv_partner_logo(client):
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize("jurisdiction", [None, "illinois", "vermont"])
+def test_about_page_leaks_no_template_source(client, jurisdiction):
+    """Django comment tags are single-line. A multi-line `{# ... #}` renders
+    every line after the first onto the page."""
+
+    url = (
+        reverse("about")
+        if jurisdiction is None
+        else reverse("jurisdiction_about", kwargs={"jurisdiction": jurisdiction})
+    )
+
+    content = client.get(url).content.decode()
+
+    assert "{#" not in content
+    assert "#}" not in content
+    assert "{%" not in content
+
+
+@pytest.mark.django_db
+def test_vermont_about_uses_the_partner_approved_description(client):
+    """LSV approved this wording; it comes from vermont.yaml, not the template."""
+
+    response = client.get(reverse("jurisdiction_about", kwargs={"jurisdiction": "vermont"}))
+
+    content = response.content.decode()
+    assert "in close partnership with Legal Services Vermont (LSV)" in content
+    assert "deploying LITEFile to expand accessible electronic court filing" in content
+    # The earlier copy named a second organization and a different website.
+    assert "Vermont Legal Aid, who collaborated" not in content
+    assert "VTLawHelp to make court filing accessible" not in content
+
+
+@pytest.mark.django_db
+def test_illinois_about_partner_copy_is_unchanged(client):
+    response = client.get(reverse("jurisdiction_about", kwargs={"jurisdiction": "illinois"}))
+
+    content = response.content.decode()
+    assert "Illinois Legal Aid Online (ILAO), who provided project leadership" in content
+    assert "logo-ilao.png" in content
+    assert "logo-lsv.png" not in content
+
+
+@pytest.mark.django_db
 def test_about_page_carries_filing_menu_when_signed_in(client, django_user_model):
     user = django_user_model.objects.create_user(username="about-nav-user", tyler_jurisdiction="illinois")
     client.force_login(user)

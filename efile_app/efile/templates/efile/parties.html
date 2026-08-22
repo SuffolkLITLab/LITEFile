@@ -1,6 +1,7 @@
 {% extends "efile/workflow_base.html" %}
 {% load static %}
 {% load i18n %}
+{% load ui_text %}
 {% block title %}
     {% translate "People in this filing" %}
 {% endblock title %}
@@ -22,8 +23,9 @@
                     <small>{% translate "You — the person filing" %}</small>
                 </div>
             </div>
-            <fieldset class="form-field compact-choice-field">
-                <legend>{% translate "What is your role in this case?" %}</legend>
+            <fieldset class="form-field primary-question">
+                <legend>{% ui_text "parties.role_question" %}</legend>
+                <p>{% ui_text "parties.role_help" %}</p>
                 {% if guessed_party_type %}
                     <div class="alert alert-info party-type-hint" id="party-type-hint">
                         <i class="fa-regular fa-lightbulb" aria-hidden="true"></i>

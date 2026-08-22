@@ -50,3 +50,37 @@ def efsp_stand_in_document_is_development_only(app_configs, **kwargs):
             id="efile.W001",
         )
     ]
+
+
+@register()
+def configured_ui_text_keys_are_known(app_configs, **kwargs):
+    """Every ``text:`` key in a state's YAML must name a real UI string.
+
+    A state file is the one place where user-facing copy is written by someone
+    who is not looking at the templates, so a typo -- or a key that a later
+    refactor renamed -- would otherwise fail silently: the override is ignored
+    and the filer keeps reading the default wording, which is exactly the
+    wording the state asked to change.
+
+    A Warning rather than an Error: the app is still safe to serve, and a deploy
+    should not be blocked by a paragraph that reverts to its default.
+    """
+    from efile.utils.config_loader import config_loader
+    from efile.utils.ui_text import UI_STRINGS, config_overrides
+
+    problems = []
+    for jurisdiction in config_loader.get_available_jurisdictions():
+        config = config_loader.load_jurisdiction_config(jurisdiction) or {}
+        for key in sorted(config_overrides(config)):
+            if key not in UI_STRINGS:
+                problems.append(
+                    Warning(
+                        f"{jurisdiction}.yaml sets text.{key}, which is not a known UI text key.",
+                        hint=(
+                            "Check the spelling against the keys in efile/utils/ui_text.py, or add "
+                            "the key there with an English default if this is new copy."
+                        ),
+                        id="efile.W002",
+                    )
+                )
+    return problems
