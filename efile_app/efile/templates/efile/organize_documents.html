@@ -1,6 +1,7 @@
 {% extends "efile/workflow_base.html" %}
 {% load static %}
 {% load i18n %}
+{% load ui_text %}
 {% block title %}
     {% translate "Organize your documents" %}
 {% endblock title %}
@@ -15,12 +16,12 @@
         <form id="organize-documents-form">
             {% csrf_token %}
             <fieldset class="main-document-choice">
-                <legend>{% translate "Which PDF is the main document?" %}</legend>
+                <legend>{% ui_text "organize_documents.main_document_question" %}</legend>
                 {% if documents|length == 1 %}
-                    <p>{% translate "This is the only document in this filing, so it is the main document." %}</p>
+                    <p>{% ui_text "organize_documents.single_document_note" %}</p>
                     {% for document in documents %}<input type="hidden" name="main_document" value="{{ document.id }}" />{% endfor %}
                 {% else %}
-                    <p>{% translate "Choose the document that starts this filing, like a petition. Upload order does not matter." %}</p>
+                    <p>{% ui_text "organize_documents.main_document_help" %}</p>
                     <div class="compact-choice-list">
                         {% for document in documents %}
                             <label>
@@ -56,7 +57,7 @@
                             <div>
                                 <span class="organize-card__position">
                                     {% if document.role == "lead" %}
-                                        {% translate "Lead document" %}
+                                        {% translate "Main document" %}
                                     {% else %}
                                         {% blocktranslate with number=forloop.counter0 %}Additional document {{ number }}{% endblocktranslate %}
                                     {% endif %}
@@ -98,22 +99,23 @@
                             <fieldset class="form-field compact-choice-field">
                                 <legend>{% translate "Should this document be confidential?" %}</legend>
                                 <div class="compact-choice-list document-type-options">
-                                    <small>{% translate "Select a filing type first" %}</small>
+                                    <small>{% ui_text "organize_documents.choose_filing_type_first" %}</small>
                                 </div>
                             </fieldset>
                             <fieldset class="form-field compact-choice-field">
-                                <legend>{% translate "Document role" %}</legend>
+                                <legend>{% ui_text "organize_documents.filing_component_label" %}</legend>
                                 <div class="compact-choice-list filing-component-options">
-                                    <small>{% translate "Select a filing type first" %}</small>
+                                    <small>{% ui_text "organize_documents.choose_filing_type_first" %}</small>
                                 </div>
-                                <small>{% translate "The court uses this to place the PDF in the filing." %}</small>
+                                <small>{% ui_text "organize_documents.filing_component_help" %}</small>
                             </fieldset>
                         </div>
                         <details class="certified-copy-details"
                                  {% if document.courtesy_copy_email or document.requested_optional_services %}open{% endif %}>
-                            <summary>{% translate "Certified copy and courtesy email" %}</summary>
+                            <summary>{% ui_text "organize_documents.optional_services_summary" %}</summary>
+                            <p class="form-help">{% ui_text "organize_documents.optional_services_help" %}</p>
                             <div class="optional-services-list">
-                                <small>{% translate "Select a filing type first" %}</small>
+                                <small>{% ui_text "organize_documents.choose_filing_type_first" %}</small>
                             </div>
                             <label class="form-check mt-3">
                                 <input class="form-check-input courtesy-copy-toggle"

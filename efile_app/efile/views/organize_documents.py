@@ -12,7 +12,19 @@ from efile.api.suffolk_api_views import get_tyler_token
 from efile.models import FilingDocument
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.drafts import draft_snapshot
+from efile.utils.ui_text import get_texts
 from efile.workflow import RETURN_TO_REVIEW, ExistingCase, WorkflowStepKey, get_step_url, get_workflow_context
+
+# Strings the organize-documents script renders itself, handed to it through the
+# page. Keyed in the JSON by their last path segment: `loading_choices`, and so on.
+JS_TEXT_KEYS = [
+    "organize_documents.choose_filing_type_first",
+    "organize_documents.loading_choices",
+    "organize_documents.no_document_types",
+    "organize_documents.no_filing_components",
+    "organize_documents.filing_component_fixed_note",
+    "organize_documents.filing_component_required_note",
+]
 
 
 @transaction.atomic
@@ -133,6 +145,11 @@ def organize_documents(request, jurisdiction):
             "existing_case": "yes" if draft.existing_case == ExistingCase.EXISTING else "no",
             "guessed_filing_type": (draft.extracted_guesses or {}).get("filing type", ""),
             "return_to": request.GET.get("return_to", ""),
+            # The script rewrites these choice lists once the court answers, so
+            # the strings it renders have to travel with the page -- otherwise
+            # they are the only copy on this screen that no state can reword and
+            # no translator can reach.
+            "text": get_texts(JS_TEXT_KEYS, jurisdiction=jurisdiction),
         },
     }
     context.update(get_workflow_context(WorkflowStepKey.ORGANIZE_DOCUMENTS, jurisdiction, draft))

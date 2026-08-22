@@ -32,6 +32,20 @@ state:
   name: "Vermont"
   jurisdiction: "vermont"
 
+# Words and sentences this jurisdiction says differently. Keys, defaults, and
+# what each one is for are in efile/utils/ui_text.py; anything not listed here
+# uses the default English wording.
+text:
+  terms:
+    # Vermont courts call the document that opens a case a complaint.
+    starting_document_example: "complaint"
+  about:
+    project_partner_description: >-
+      LITEFile's Vermont e-filing integration was developed in close partnership
+      with Legal Services Vermont (LSV), who collaborated on funding, building,
+      and deploying LITEFile to expand accessible electronic court filing for
+      self-represented litigants in Vermont.
+
 # Inherit from base case types and customize
 inherits_from: "base-case-types.yaml"
 

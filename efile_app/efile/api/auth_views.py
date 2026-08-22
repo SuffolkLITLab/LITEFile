@@ -13,6 +13,7 @@ from django.views.decorators.http import require_http_methods
 from requests.exceptions import RequestException, Timeout
 
 from efile.api.suffolk_api_views import get_tyler_token
+from efile.services.account_profile import fetch_account_profile
 from efile.utils.jurisdiction_stuff import get_jurisdiction_from_request
 
 from .base import APIResponseMixin
@@ -83,88 +84,34 @@ class AuthAPIViews(APIResponseMixin):
         """Get current user profile from external Suffolk eFile API"""
         try:
             # TODO(brycew): get some of this from the existing logged in user
-            # Get jurisdiction and Tyler token dynamically
             jurisdiction = get_jurisdiction_from_request(request)
-            tyler_token = get_tyler_token(request, jurisdiction)
-            api_key = getattr(settings, "SUFFOLK_EFILE_API_KEY", None)
+            profile = fetch_account_profile(request, jurisdiction)
+            if profile is None:
+                return AuthAPIViews.error_response("Unable to retrieve profile", 500)
 
-            headers = {
-                "Content-Type": "application/json",
-                "User-Agent": f"{jurisdiction.title()}-eFile-Client/1.0",
-                "X-API-Key": api_key if api_key else "",
+            # Local user data (if authenticated) combined with the account data.
+            user_data = {
+                "external_firm_data": profile["firm"],
+                "id": request.user.id if request.user.is_authenticated else None,
+                "username": request.user.account_email if request.user.is_authenticated else "guest",
+                "email": request.user.email if request.user.is_authenticated else request.session.get("user_email"),
+                "first_name": profile["first_name"],
+                "last_name": profile["last_name"],
+                "date_joined": request.user.date_joined.isoformat() if request.user.is_authenticated else None,
+                "last_login": request.user.last_login.isoformat()
+                if (request.user.is_authenticated and request.user.last_login)
+                else None,
+                # Address information from external API
+                "address": profile["address"],
+                "address_line2": profile["address_line2"],
+                "city": profile["city"],
+                "state": profile["state"],
+                "zip": profile["zip"],
+                "phone": profile["phone"],
+                "zip_code": profile["zip"],
             }
 
-            # Add Tyler token if available
-            if tyler_token:
-                headers[f"tyler-token-{jurisdiction}"] = tyler_token
-            else:
-                # Log that no token was found for debugging
-                logger.info("No Tyler token found for state '%s' in Suffolk eFile API request", jurisdiction)
-
-            if request.user.tyler_user_id:
-                headers[f"TYLER-ID-{jurisdiction.upper()}"] = request.user.tyler_user_id
-
-            url = f"{settings.EFSP_URL}/jurisdictions/{jurisdiction}/firmattorneyservice/firm"
-            logger.debug("GET %s header keys=%s", url, list(headers.keys()))
-            api_response = requests.get(url, headers=headers, timeout=10)
-            logger.debug(
-                "User profile response: status=%s content_type=%s",
-                api_response.status_code,
-                api_response.headers.get("Content-Type"),
-            )
-
-            self_url = f"{settings.EFSP_URL}/jurisdictions/{jurisdiction}/adminusers/user"
-            self_response = requests.get(self_url, headers=headers, timeout=10)
-
-            logger.debug(
-                "self profile response: status=%s text=%s content_type=%s",
-                self_response.status_code,
-                self_response.text,
-                self_response.headers.get("Content-Type"),
-            )
-
-            if api_response.status_code == 200 and self_response.status_code == 200:
-                external_data = api_response.json()
-                self_json = self_response.json()
-                logger.debug("self_json: %s", self_json)
-
-                # Extract address information from external API response
-                address_info = external_data.get("address", {})
-                address_line1 = address_info.get("addressLine1", "")
-                address_line2 = address_info.get("addressLine2", "")
-                city = address_info.get("city", "")
-                state = address_info.get("state", "IL")
-                zip_code = address_info.get("zipCode", "60601")
-                phone_number = external_data.get("phoneNumber", "")
-
-                # Build user profile data combining local and external data
-                user_data = {
-                    "external_firm_data": external_data,
-                    # Local user data (if authenticated)
-                    "id": request.user.id if request.user.is_authenticated else None,
-                    "username": request.user.account_email if request.user.is_authenticated else "guest",
-                    "email": request.user.email if request.user.is_authenticated else request.session.get("user_email"),
-                    "first_name": self_json["firstName"],
-                    "last_name": self_json["lastName"],
-                    "date_joined": request.user.date_joined.isoformat() if request.user.is_authenticated else None,
-                    "last_login": request.user.last_login.isoformat()
-                    if (request.user.is_authenticated and request.user.last_login)
-                    else None,
-                    # Address information from external API
-                    "address": address_line1,
-                    "address_line2": address_line2,
-                    "city": city,
-                    "state": state,
-                    "zip": zip_code,
-                    "phone": phone_number,
-                    # Default location information
-                    "preferred_county": "cook",
-                    "zip_code": zip_code,  # Use actual zip from API
-                }
-
-                return AuthAPIViews.success_response(user_data)
-            else:
-                return AuthAPIViews.error_response("Unable to retrieve profile", 500)
+            return AuthAPIViews.success_response(user_data)
         except Timeout:
             return AuthAPIViews.error_response("External API request timed out", 408)
         except Exception:

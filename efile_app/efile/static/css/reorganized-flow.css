@@ -777,7 +777,8 @@
     margin-top: 1.5rem;
 }
 
-.main-document-choice {
+.main-document-choice,
+.primary-question {
     background: var(--surface-subtle);
     border: 1px solid var(--border-default);
     border-radius: 12px;
@@ -785,7 +786,8 @@
     padding: 1rem;
 }
 
-.main-document-choice legend {
+.main-document-choice legend,
+.primary-question legend {
     color: var(--text-heading);
     float: none;
     font-size: 1.05rem;
@@ -794,12 +796,14 @@
     width: auto;
 }
 
-.main-document-choice>p {
+.main-document-choice>p,
+.primary-question>p {
     color: var(--text-muted);
     margin: 0.25rem 0 0.8rem;
 }
 
-.main-document-choice small {
+.main-document-choice small,
+.primary-question small {
     color: var(--text-muted);
     display: block;
 }
@@ -892,6 +896,12 @@
     width: auto;
 }
 
+.form-help {
+    color: var(--text-muted);
+    display: block;
+    margin: 0.35rem 0 0;
+}
+
 .compact-choice-list {
     display: grid;
     gap: 0.45rem;
@@ -909,6 +919,18 @@
 
 .compact-choice-list--horizontal {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* The court allows exactly one value, so this reads as a stated fact rather
+   than a choice the filer could clear. */
+.compact-choice-list__fixed {
+    display: block;
+}
+
+.compact-choice-list__fixed small {
+    color: var(--text-muted);
+    display: block;
+    margin-top: 0.15rem;
 }
 
 .people-section {
@@ -946,15 +968,26 @@
 }
 
 .your-role-card {
-    align-items: end;
+    align-items: start;
     background: var(--surface-subtle);
     border: 1px solid var(--border-default);
     border-radius: 12px;
     display: grid;
     gap: 1rem;
-    grid-template-columns: 0.8fr 1.5fr auto;
+    grid-template-columns: 1fr;
     margin-top: 1.5rem;
     padding: 1.1rem;
+}
+
+.your-role-card>button {
+    justify-self: start;
+}
+
+/* Nested inside the card, so it carries the question without repeating the
+   card's own background. */
+.your-role-card .primary-question {
+    background: #fff;
+    margin-top: 0;
 }
 
 .your-role-card>div,

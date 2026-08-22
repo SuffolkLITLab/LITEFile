@@ -12,7 +12,8 @@ This document explains how the Illinois eFile system uses YAML-based configurati
 6. [Adding new case types](#adding-new-case-types)
 7. [Court-specific customizations](#court-specific-customizations)
 8. [Document checklists](#document-checklists)
-9. [Examples](#examples)
+9. [Wording that differs by state](#wording-that-differs-by-state)
+10. [Examples](#examples)
 
 ## System overview
 
@@ -603,6 +604,52 @@ it now*, *I already filed this*, or *I will file it later* with an optional date
 Only the first two count as sorted out. A document they have but have not
 attached is what the review step warns about; one they have already filed, or
 have deliberately left for later, is not a gap and is not raised again.
+
+## Wording that differs by state
+
+Courts do not use the same words for the same thing. The document that opens a
+case is a *petition* in Illinois and a *complaint* in Vermont, and telling a
+Vermont filer to look for a petition is wrong information rather than a
+stylistic difference.
+
+The `text:` section holds the strings this state says differently:
+
+```yaml
+text:
+  terms:
+    starting_document_example: "complaint"
+  about:
+    project_partner_description: >-
+      LITEFile's Vermont e-filing integration was developed in close partnership
+      with Legal Services Vermont (LSV), who collaborated on funding, building,
+      and deploying LITEFile to expand accessible electronic court filing for
+      self-represented litigants in Vermont.
+```
+
+Every key has an English default in `efile/utils/ui_text.py`, which is also
+where the list of keys lives and what each one is for. Anything a state does not
+list keeps the default, so this section stays short.
+
+- Keys nest in YAML and are written with dots elsewhere:
+  `terms.starting_document_example`.
+- Keys under `terms` are short nouns, and each is offered to every longer string
+  as a placeholder named for its last segment. Rewording one term rewords every
+  sentence that names it.
+- Longer strings can also use `{brand_name}`, `{state_name}`, `{state_code}`,
+  and `{court_name}`, which come from the `jurisdiction:` and `state:` sections
+  of the same file.
+
+Ordinary copy that no state wants to change stays in the templates under
+`{% translate %}`. Only genuinely state-varying strings belong here.
+
+A misspelled key is ignored, which would leave the page showing exactly the
+default wording the state was trying to replace, so `manage.py check` reports
+unknown keys as `efile.W002`.
+
+Strings configured here are translatable along with everything else. `xgettext`
+cannot read YAML, so `manage.py extract_config_text` restates them as Python
+that `makemessages` can read; see `efile/locale/README.md`.
+
 
 ## Examples
 

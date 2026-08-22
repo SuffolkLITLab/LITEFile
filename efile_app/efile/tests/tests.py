@@ -226,7 +226,7 @@ class TestAuthAPIs:
         assert data["data"]["email"] == username
 
     def test_profile_api_includes_location_data(self, client, user):
-        """Test profile API includes location and county mapping."""
+        """Test profile API includes the address the account has on file."""
         username = get_test_username()
         password = get_test_password()
         client.post(
@@ -243,13 +243,11 @@ class TestAuthAPIs:
         data = json.loads(response.content)
         assert data["success"] is True
 
-        # Should include location data (either from API or default demo data)
+        # The address comes from the account, not from a hard-coded Illinois
+        # default: a Vermont filer must not be handed a Cook County one.
         assert "zip_code" in data["data"]
-        assert "preferred_county" in data["data"]
-
-        # Should have Cook County as demo data
         assert data["data"]["zip_code"] == "02108"
-        assert data["data"]["preferred_county"].lower() == "cook"
+        assert "preferred_county" not in data["data"]
 
     def test_profile_api_unauthenticated_user(self, client):
         """Test profile API handles unauthenticated users with demo data."""

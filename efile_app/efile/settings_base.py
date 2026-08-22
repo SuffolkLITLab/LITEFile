@@ -39,6 +39,10 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    # Activates the filer's language for the request. Inert while LANGUAGES
+    # lists only English; it is here so turning on a second language is a
+    # settings change rather than a plumbing change.
+    "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -96,6 +100,15 @@ LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
+
+# Translations live in efile/locale/. Add ("es", _("Spanish")) here once
+# efile/locale/es/LC_MESSAGES/django.po is translated and compiled -- listing a
+# language before it has a catalog gives a Spanish-speaking filer Django's own
+# Spanish form errors around our untranslated English copy.
+LANGUAGES = [
+    ("en", "English"),
+]
+LOCALE_PATHS = [BASE_DIR / "efile" / "locale"]
 
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "efile/static"]

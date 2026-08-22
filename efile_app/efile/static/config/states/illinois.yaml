@@ -35,6 +35,18 @@ state:
   name: "Illinois"
   jurisdiction: "illinois"
 
+# Words and sentences this jurisdiction says differently. Keys, defaults, and
+# what each one is for are in efile/utils/ui_text.py; anything not listed here
+# uses the default English wording. Illinois keeps the default "petition" as the
+# example of a document that starts a case.
+text:
+  about:
+    project_partner_description: >-
+      LITEFile's Illinois e-filing integration was developed in close
+      partnership with Illinois Legal Aid Online (ILAO), who provided project
+      leadership, co-development, and funding to expand accessible electronic
+      court filing for self-represented litigants in Illinois.
+
 # Inherit from base case types and customize
 inherits_from: "base-case-types.yaml"
 

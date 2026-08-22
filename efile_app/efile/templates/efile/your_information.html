@@ -1,6 +1,7 @@
 {% extends "efile/workflow_base.html" %}
 {% load static %}
 {% load i18n %}
+{% load ui_text %}
 {% block title %}
     {% translate "Your information" %}
 {% endblock title %}
@@ -8,12 +9,11 @@
     <section class="workflow-card">
         <div class="workflow-eyebrow">{% translate "People" %}</div>
         <h1>{% translate "Your information" %}</h1>
-        <p class="workflow-lede">
-            {% translate "Confirm how the court can contact you. We filled in what we could from your eFile account." %}
-        </p>
+        <p class="workflow-lede">{% ui_text "your_information.lede" %}</p>
         <form method="post"
               id="your-information-form"
-              data-court="{{ court_code }}">
+              data-court="{{ court_code }}"
+              data-profile-prefilled="{% if profile_prefilled %}1{% else %}0{% endif %}">
             {% csrf_token %}
             <input type="hidden" name="return_to" value="{{ return_to }}" />
             <div class="people-section">
@@ -83,7 +83,7 @@
                         <span>{% translate "State" %}</span>
                         <input class="form-control"
                                name="state"
-                               value="{{ filer.state|default:'IL' }}"
+                               value="{{ filer.state|default:default_state_code }}"
                                maxlength="2"
                                autocomplete="address-level1"
                                required />
