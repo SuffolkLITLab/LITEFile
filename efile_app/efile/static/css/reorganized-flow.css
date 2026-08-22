@@ -268,6 +268,23 @@
     grid-column: 2;
 }
 
+.pending-files {
+    margin-top: 1rem;
+}
+
+.pending-file-row {
+    align-items: center;
+    border-bottom: 1px solid var(--border-default);
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+    padding: 0.55rem 0;
+}
+
+.pending-file-row>span {
+    overflow-wrap: anywhere;
+}
+
 .document-list {
     margin-top: 2rem;
 }
@@ -323,6 +340,11 @@
     color: var(--success-text);
 }
 
+.status-pill--analyzing {
+    background: var(--surface-accent);
+    color: var(--better-blue);
+}
+
 .status-pill--lead {
     background: var(--surface-accent);
     color: var(--better-blue);
@@ -348,6 +370,66 @@
     display: grid;
     gap: 1.1rem;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.extracted-details {
+    background: var(--surface-subtle);
+    border: 1px solid var(--border-default);
+    border-radius: 12px;
+    margin: 1.5rem 0 2rem;
+    padding: 1.25rem;
+}
+
+.extracted-details h2,
+.confirm-filing-details-heading {
+    color: var(--text-heading);
+    font-size: 1.15rem;
+    font-weight: 750;
+}
+
+.extracted-details dl {
+    display: grid;
+    gap: 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 1rem 0;
+}
+
+.extracted-details dl>div {
+    border-top: 1px solid var(--border-default);
+    padding: 0.75rem 1rem 0.75rem 0;
+}
+
+.extracted-details dt {
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.extracted-details dd {
+    color: var(--text-heading);
+    margin: 0.2rem 0 0;
+    overflow-wrap: anywhere;
+}
+
+.extracted-details__note {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.extraction-acknowledgment {
+    align-items: flex-start;
+    background: #fff;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    display: flex;
+    gap: 0.7rem;
+    margin-top: 1rem;
+    padding: 0.9rem;
+}
+
+.extraction-acknowledgment input {
+    flex-shrink: 0;
+    margin-top: 0.2rem;
 }
 
 .form-field>span {
@@ -1123,6 +1205,10 @@
 }
 
 @media (max-width: 700px) {
+    .extracted-details dl {
+        grid-template-columns: 1fr;
+    }
+
     .review-grid {
         grid-template-columns: 1fr;
     }

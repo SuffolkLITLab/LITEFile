@@ -3,10 +3,13 @@ from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
 
 from efile.api.suffolk_api_views import get_tyler_token
-from efile.models import FilingDocument
+from efile.models import DocumentExtraction, FilingDocument
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.document_checklists import resolve_filer_roles
+from efile.services.document_extractions import extraction_for_document
 from efile.services.drafts import draft_snapshot, write_case_data
+from efile.services.extraction_fields import extracted_details
+from efile.utils.ui_text import get_text
 from efile.workflow import (
     RETURN_TO_REVIEW,
     ExistingCase,
@@ -60,6 +63,15 @@ def extraction_review(request, jurisdiction):
         messages.error(request, "Upload at least one document before reviewing the filing.")
         return redirect("upload_documents", jurisdiction=jurisdiction)
 
+    lead = FilingDocument.objects.filter(draft=draft, role=FilingDocument.Role.LEAD).first()
+    extraction = extraction_for_document(lead) if lead else None
+    if extraction is not None and extraction.status in {
+        DocumentExtraction.Status.PENDING,
+        DocumentExtraction.Status.PROCESSING,
+    }:
+        messages.info(request, "We are still analyzing your first PDF. You can leave this page and come back.")
+        return redirect("upload_documents", jurisdiction=jurisdiction)
+
     if request.method == "POST":
         existing_case = request.POST.get("existing_case", draft.existing_case)
         court_code = request.POST.get("court_code", "")
@@ -69,7 +81,9 @@ def extraction_review(request, jurisdiction):
         offered_roles = {role["id"] for role in _offered_filer_roles(request, jurisdiction)}
         filer_role = request.POST.get("filer_role", "")
 
-        if existing_case not in {ExistingCase.NEW, ExistingCase.EXISTING}:
+        if draft.extracted_guesses and request.POST.get("reviewed_extraction") != "yes":
+            messages.error(request, "Review all the information pulled from your document before continuing.")
+        elif existing_case not in {ExistingCase.NEW, ExistingCase.EXISTING}:
             messages.error(request, "Choose whether this is a new or existing court case to continue.")
         elif existing_case == ExistingCase.NEW and not (court_code and case_category_code and case_type_code):
             # Tyler's e-filing API only accepts exact court/category/type codes, so
@@ -113,7 +127,13 @@ def extraction_review(request, jurisdiction):
                 return redirect(get_step_url(next_step.key, jurisdiction))
 
     guesses = draft.extracted_guesses or {}
-    lead = FilingDocument.objects.filter(draft=draft, role=FilingDocument.Role.LEAD).first()
+    details = extracted_details(guesses)
+    jurisdiction_labels = {
+        "court": get_text("extraction_review.court_label", jurisdiction=jurisdiction),
+        "case category": get_text("extraction_review.case_category_label", jurisdiction=jurisdiction),
+    }
+    for detail in details:
+        detail["label"] = jurisdiction_labels.get(detail["key"], detail["label"])
     extraction_context = {
         "jurisdiction": jurisdiction,
         "guesses": guesses,
@@ -134,6 +154,10 @@ def extraction_review(request, jurisdiction):
         "is_logged_in": True,
         "filing_draft": draft_snapshot(draft),
         "has_guesses": bool(guesses),
+        "extracted_details": details,
+        "extraction_failed": extraction is not None and extraction.status == DocumentExtraction.Status.FAILED,
+        "extraction_pages_analyzed": extraction.pages_analyzed if extraction else None,
+        "extraction_total_pages": extraction.total_pages if extraction else None,
         "docket_number": draft.docket_number or guesses.get("docket number"),
         "extraction_context": extraction_context,
         "return_to": request.GET.get("return_to", ""),

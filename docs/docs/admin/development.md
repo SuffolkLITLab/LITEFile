@@ -35,6 +35,13 @@ This guide covers running LITEFile locally, running test suites (Pytest and Play
    ```
    Open `http://127.0.0.1:8000` in your browser.
 
+5. **Start the document extraction worker in a second terminal**:
+   ```bash
+   cd efile_app
+   uv run python manage.py process_document_extractions
+   ```
+   Uploads complete in the web process. This worker analyzes queued lead PDFs in the background.
+
 ---
 
 ## 2. Running automated tests

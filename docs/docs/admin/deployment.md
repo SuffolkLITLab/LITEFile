@@ -66,6 +66,10 @@ primary_region = 'lax'
   # Run database migrations before each release
   release_command = "uv run python manage.py migrate --noinput --fake-initial"
 
+[processes]
+  app = "uv run gunicorn efile.asgi:application -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --workers 2 --timeout 60"
+  extraction_worker = "uv run python manage.py process_document_extractions"
+
 [http_service]
   internal_port = 8000
   force_https = true
@@ -79,6 +83,12 @@ primary_region = 'lax'
   cpu_kind = 'shared'
   cpus = 1
 ```
+
+### Document extraction worker
+
+PDF analysis runs outside the web request in the `extraction_worker` process group. The web process stores the upload and queues a durable database job; the worker downloads the lead PDF from S3 and records the extracted details on the filing draft. Keep at least one worker Machine running so queued documents are analyzed.
+
+By default, LITEFile sends only the first 20 PDF pages for analysis. Set `DOCUMENT_EXTRACTION_MAX_PAGES` to a positive integer to change that cap. `DOCUMENT_EXTRACTION_MAX_ATTEMPTS` controls how many times a failed job is tried before the filer is sent to manual review.
 
 ### Setting Fly.io production secrets:
 ```bash

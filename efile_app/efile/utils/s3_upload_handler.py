@@ -222,6 +222,19 @@ class S3UploadHandler:
             logger.error(error_msg)
             return {"success": False, "error": error_msg}
 
+    def download_file(self, s3_key, destination):
+        """Download a private object to a local path for background processing."""
+        if not self._ensure_initialized():
+            return {"success": False, "error": "S3 client not initialized - check AWS credentials"}
+
+        try:
+            self.s3_client.download_file(self.bucket_name, s3_key, destination)
+            return {"success": True}
+        except ClientError as error:
+            error_msg = f"Failed to download file from S3: {error}"
+            logger.error(error_msg)
+            return {"success": False, "error": error_msg}
+
     def _get_file_extension(self, filename):
         """Extract file extension from filename"""
         if "." in filename:

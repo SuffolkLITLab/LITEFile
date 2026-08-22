@@ -5,7 +5,7 @@ import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 
-from efile.models import FilingDocument, FilingDraft
+from efile.models import DocumentExtraction, FilingDocument, FilingDraft
 from efile.services.current_drafts import CURRENT_DRAFT_SESSION_KEY
 from efile.workflow import ExistingCase, WorkflowStepKey
 
@@ -42,7 +42,7 @@ def test_filing_path_saves_normalized_branch(client, reorganized_draft):
 
 
 @pytest.mark.django_db
-def test_upload_documents_persists_lead_supporting_and_guesses(client, reorganized_draft):
+def test_upload_documents_persists_files_and_queues_analysis(client, reorganized_draft):
     handler = MagicMock()
     handler._ensure_initialized.return_value = True
     handler.validate_file.return_value = {"valid": True}
@@ -54,13 +54,7 @@ def test_upload_documents_persists_lead_supporting_and_guesses(client, reorganiz
     lead = SimpleUploadedFile("petition.pdf", b"%PDF lead", content_type="application/pdf")
     supporting = SimpleUploadedFile("exhibit.pdf", b"%PDF exhibit", content_type="application/pdf")
 
-    with (
-        patch("efile.services.document_uploads.S3UploadHandler", return_value=handler),
-        patch(
-            "efile.services.document_uploads._analyze_lead",
-            return_value={"court name": "Cook County", "case type": "Name Change"},
-        ),
-    ):
+    with patch("efile.services.document_uploads.S3UploadHandler", return_value=handler):
         response = client.post(
             reverse("upload_documents", kwargs={"jurisdiction": "illinois"}),
             {"documents": [lead, supporting]},
@@ -69,8 +63,11 @@ def test_upload_documents_persists_lead_supporting_and_guesses(client, reorganiz
     assert response.status_code == 200
     assert response.json()["success"] is True
     reorganized_draft.refresh_from_db()
-    assert reorganized_draft.extracted_guesses["court"] == "Cook County"
-    assert reorganized_draft.documents.get(role=FilingDocument.Role.LEAD).name == "petition.pdf"
+    assert reorganized_draft.extracted_guesses == {}
+    lead_document = reorganized_draft.documents.get(role=FilingDocument.Role.LEAD)
+    assert lead_document.name == "petition.pdf"
+    assert lead_document.extraction.status == DocumentExtraction.Status.PENDING
+    assert response.json()["extraction_pending"] is True
     assert reorganized_draft.documents.get(role=FilingDocument.Role.SUPPORTING).name == "exhibit.pdf"
 
 
@@ -108,6 +105,7 @@ def test_removing_analyzed_document_cleans_storage_and_stale_guesses(client, reo
     handler.delete_file.assert_called_once_with("lead/petition.pdf")
     assert reorganized_draft.extracted_guesses == {}
     assert supporting.role == FilingDocument.Role.LEAD
+    assert supporting.extraction.status == DocumentExtraction.Status.PENDING
 
 
 @pytest.mark.django_db
