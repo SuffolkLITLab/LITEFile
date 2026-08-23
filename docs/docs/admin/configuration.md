@@ -23,6 +23,12 @@ LITEFile follows [Twelve-Factor App](https://12factor.net/) principles, configur
 | `SUFFOLK_EFILE_API_KEY` | No | `""` | API authentication key for the EFSP proxy service. |
 | `OPENAI_API_KEY` | Optional | `None` | API key for OpenAI or compatible LLM provider used for document extraction. |
 | `OPENAI_BASE_URL` | Optional | `https://api.openai.com/v1/` | Base URL for OpenAI-compatible endpoint (or local LLM gateway). |
+| `LITEFILE_PROMPTS_DIR` | Optional | Bundled `efile/prompts/` directory | Override path for the versioned LLM prompt catalog. |
+| `DOCUMENT_EVIDENCE_MODEL` | Optional | First available small model | Exact deployed model used for direct document evidence extraction. |
+| `DOCUMENT_CLASSIFICATION_MODEL` | Optional | First available medium model | Exact deployed model used for live taxonomy selection. |
+| `DOCUMENT_EXTRACTION_MAX_PAGES` | No | `20` | Maximum lead-document pages supplied to the evidence pass. |
+| `DOCUMENT_CLASSIFICATION_SOURCE_PAGES` | No | `3` | Maximum pages converted with MarkItDown and retained as source evidence during taxonomy selection. |
+| `FORM_CODE_CROSSWALK_PATH` | Optional | Bundled `efile/data/form_code_crosswalk.json` | Override path for exact official-form retrieval hints. |
 | `AWS_ACCESS_KEY_ID` | Yes (Storage) | `""` | AWS IAM access key for document upload to S3. |
 | `AWS_SECRET_ACCESS_KEY` | Yes (Storage) | `""` | AWS IAM secret access key. |
 | `AWS_S3_BUCKET_NAME` | Yes (Storage) | `""` | S3 bucket name for court document storage. |

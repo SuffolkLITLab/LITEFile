@@ -1,0 +1,90 @@
+schema_version: 1
+run_id: 2026-08-22-production-context
+title: Production-like PDF context comparison
+date: 2026-08-22
+previous_run: ../2026-08-22-sentinel-baseline/
+repository:
+  branch: main
+  base_commit: b0bce05b906c688ae650b18f859ecd052fd9618b
+  worktree_dirty: true
+  note: Input snapshots and digests are authoritative because the benchmark worktree was uncommitted.
+
+environment:
+  promptfoo: 0.122.0
+  node: 24.19.0
+  python: 3.12.3
+  markitdown: 0.1.4
+  pdfminer_six: "20260107"
+  pypdf: 6.16.1
+  azure_region: eastus2
+
+prompt_catalog:
+  snapshot: inputs/document_extraction.yaml
+  sha256: 9c1cb4a431f6d636c2f7744bc7363afe6bf4d20962f939fc3d966ec987d0598a
+  renderer_snapshot: inputs/document_extraction.py
+  prompts:
+    - {version: v1, label: Production baseline, status: production}
+    - {version: v2, label: Evidence-bound candidate, status: experimental}
+
+scoring:
+  name: field-set-jaccard
+  snapshot: inputs/set_jaccard.js
+  sha256: 39c1da283a859c4a67bb6e6be57d7a766c5062e542c62e7861048084b44395bb
+  semantics:
+    field_order: ignored
+    scalar_value_word_order: preserved
+    unordered_multi_value_fields:
+      - plaintiff or petitioner names
+      - defendant or respondent names
+      - other party names
+  note: This scorer differs from the previous run, so compare prompt/input cells within this run.
+
+preprocessing:
+  script: inputs/build_document_inputs.py
+  output: inputs/document_inputs.json
+  modes:
+    - markitdown
+    - markitdown+fields
+    - vision+markitdown+fields
+
+suite:
+  name: production-context
+  eval_id: eval-PLg-2026-08-22T19:57:32
+  config: inputs/promptfooconfig.production-context.yaml
+  dataset: inputs/production_context_cases.jsonl
+  raw_result: artifacts/production-context.json.gz
+  documents: 3
+  prompts: 6
+  providers: 6
+  calls: 108
+
+deployments:
+  - {deployment: gpt-5.4-nano, publisher: OpenAI, model: gpt-5.4-nano, version: "2026-03-17"}
+  - {deployment: gpt-5.4, publisher: OpenAI, model: gpt-5.4, version: "2026-03-05"}
+  - {deployment: gpt-4o-mini, publisher: OpenAI, model: gpt-4o-mini, version: "2024-07-18"}
+  - {deployment: gpt-4o, publisher: OpenAI, model: gpt-4o, version: "2024-11-20"}
+  - {deployment: benchmark-llama-4-scout, publisher: Meta, model: Llama-4-Scout-17B-16E-Instruct, version: "1", capacity: 10}
+  - {deployment: llama-4-maverick, publisher: Meta, model: Llama-4-Maverick-17B-128E-Instruct-FP8, version: "1"}
+
+commands:
+  - UV_CACHE_DIR=/tmp/litefile-uv-cache npm run prepare-sentinel
+  - PROMPTFOO_CONFIG_DIR=.promptfoo PROMPTFOO_DISABLE_WAL_MODE=true promptfoo eval -c promptfooconfig.production-context.yaml --env-file ../../efile_app/.env --no-share --no-table --no-cache --max-concurrency 2
+  - python scripts/summarize_run.py --output lab-notebook/runs/2026-08-22-production-context/tables production-context=results/production-context.json
+
+input_digests:
+  build_document_inputs.py: 9376eeec9ff41bc549ad3a0244bade1d1b8808de667dfc897cf68f3859ae76f9
+  document_extraction.py: 86543ee9ce6381152fc9101468d596ac844be920f28ed3999d66d5b249223ca9
+  document_inputs.json: 7bf89c537835f106a8030fc10cf7eee545489e04c0bc88745336fd274b097007
+  efile_app_pyproject.toml: 67c87415d33f4f58ab2822b0f4128c8914cbc886b1e5e4bf530d10f48fdcfea1
+  efile_app_uv_lock: 72f7e7d46eca0aaed88474c4039eaab19bf8175be110c6ad429fad85a1e08baa
+  production_context_cases.jsonl: 089251db54c21cef8d73220379735326cc6db7cda0a49996f06f24948bb6b6e8
+  promptfooconfig.production-context.yaml: 2304eda7e5066406bf5d1d070901bbe48c2ee6c4c423437b4e331a83597d9ceb
+  ma-01-interactive-source.pdf: 6f6a380bcc7896dc3f197d1bae5e679dbf1a211478101c3819c1edf6b3c718fa
+  ma-01-flattened-source.pdf: 9f0b42e3968431a296f1d6a15b597cd08da677b4b568d8b5cd602645a6f46622
+  ma-01-interactive.png: 6b8b36a17ec0ec0267fad15f03582ebd0441b0d826524d1e39d8a6f4cbb8bcbf
+  ma-01-flattened.png: 6b8b36a17ec0ec0267fad15f03582ebd0441b0d826524d1e39d8a6f4cbb8bcbf
+  ma-01-scanned.png: edfedc93c79c6000dd4a77b645ee6ba96b3ff0e481f6af9e6c6eb822f614ec33
+  ma-01-scanned.pdf: de5f9c629126d914099c2fcc8090f9de3c0e6fb0a8b1e9366ff907d8357c9bf9
+
+artifact_digests:
+  production-context.json.gz: 3693a8f81529d54b76c22865a4c28cd556e97a622711c4d50ceea57bb6c34111

@@ -15,8 +15,9 @@ dependencies = [
     "dj-database-url>=2.2",
     "tiktoken>=0.12.0",
     "openai>=2.14.0",
-    "markitdown>=0.1.4",
+    "markitdown[pdf]>=0.1.4",
     "pypdf>=6.0,<7",
+    "pyyaml>=6.0,<7",
     "djlint>=1.36.4",
     "markdown>=3.10.2",
     "markdownify>=1.2.2",
@@ -30,6 +31,9 @@ build-backend = "setuptools.build_meta"
 exclude = [
     "staticfiles*",
 ]
+
+[tool.setuptools.package-data]
+efile = ["prompts/*.yaml", "data/*.json"]
 
 [tool.uv]
 

@@ -1,0 +1,3 @@
+suite,provider_label,prompt_label,runs,mean_score,passes,errors,mean_latency_ms,total_tokens,total_cost
+classification,mistral-large:mistral-large-3,taxonomy-classification:v2:role-rubric,18,1.0,18,0,1875,39220,0
+classification,openai-small:gpt-5.4-nano,taxonomy-classification:v2:role-rubric,18,1.0,18,0,2266,34356,0.00711156

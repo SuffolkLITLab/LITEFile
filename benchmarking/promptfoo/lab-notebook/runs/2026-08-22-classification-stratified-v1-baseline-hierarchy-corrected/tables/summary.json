@@ -1,0 +1,40 @@
+{
+  "suites": {
+    "classification": {
+      "eval_id": "eval-fIQ-2026-08-23T02:39:32",
+      "runs": 36,
+      "passes": 31,
+      "failures": 5,
+      "errors": 0,
+      "mean_score": 0.886111,
+      "token_usage": {
+        "prompt": 61330,
+        "completion": 6547,
+        "cached": 0,
+        "total": 67877,
+        "numRequests": 36,
+        "completionDetails": {
+          "reasoning": 433,
+          "acceptedPrediction": 0,
+          "rejectedPrediction": 0,
+          "cacheReadInputTokens": 14848,
+          "cacheCreationInputTokens": 0
+        },
+        "assertions": {
+          "total": 0,
+          "prompt": 0,
+          "completion": 0,
+          "cached": 0,
+          "numRequests": 0,
+          "completionDetails": {
+            "reasoning": 0,
+            "acceptedPrediction": 0,
+            "rejectedPrediction": 0,
+            "cacheReadInputTokens": 0,
+            "cacheCreationInputTokens": 0
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,14 @@
+schema_version: 1
+review_id: 2026-08-22-benchmark-crosswalk-reconciliation
+endpoint: https://efile-test.suffolklitlab.org
+durable_taxonomy_identity: exact_normalized_name
+transient_numeric_keys_are_identity: false
+documents: 30
+field_comparisons: 90
+commands:
+  - uv run python promptfoo/scripts/reconcile_benchmark_labels.py --apply --output-dir promptfoo/lab-notebook/reviews/2026-08-22-benchmark-crosswalk-reconciliation
+  - uv run python promptfoo/scripts/build_cases.py
+  - uv run python promptfoo/scripts/audit_tyler_labels.py
+artifacts:
+  - artifacts/summary.json
+  - tables/label-reconciliation.csv

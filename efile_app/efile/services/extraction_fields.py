@@ -1,47 +1,25 @@
 """The complete, reviewable set of details requested from a lead document."""
 
-COMMON_EXTRACTION_FIELDS: dict[str, str] = {
-    "document title": "The title printed on the document, such as Complaint, Motion, or Affidavit",
-    "court name": "The court, court unit, county, or venue shown on the document",
-    "filing type": "The formal title of the filing being made",
-    "case category": "The high-level court category or division for this case",
-    "case type": "The more specific type of legal case this document is part of",
-    "docket number": "The court's docket or case number, if one is shown",
-    "case title": "The full case caption or title, if one is shown",
-    "plaintiff or petitioner names": "All plaintiff or petitioner names, in document order, separated by semicolons",
-    "defendant or respondent names": "All defendant or respondent names, in document order, separated by semicolons",
-    "other party names": "Any other named parties and their stated roles, separated by semicolons",
-    "document date": "The date the document was signed, issued, or filed, including the label that identifies the date",
-}
+from efile.utils.prompt_config import load_prompt
+
+DOCUMENT_EXTRACTION_PROMPT = load_prompt("document_evidence_extraction")
+COMMON_EXTRACTION_FIELDS: dict[str, str] = dict(DOCUMENT_EXTRACTION_PROMPT["fields"])
 
 EXTRACTION_FIELDS: dict[str, dict[str, str]] = {
     jurisdiction: dict(COMMON_EXTRACTION_FIELDS) for jurisdiction in ("illinois", "massachusetts", "vermont", "default")
 }
 
-EXTRACTION_HINTS = {
-    "illinois": """
-Use these Illinois categories as clues when they apply:
-
-* Chancery (CH): specific performance, injunctions, and mechanics lien foreclosure
-* Criminal Felony (CF) or Criminal: petitions to expunge or seal
-* Dissolution with Children (DC) or without Children (DN): divorce
-* Eviction (EV): may also be called forcible entry and detainer, residential, commercial, or ejectment
-* Family (FA): parentage, visitation, or custody
-* Guardianship (GR): guardianship of a minor or person with a disability
-* Law Magistrate (LM): contract, tort, and other money claims over $10,000 through $50,000
-* Miscellaneous Criminal (MX): expungement or sealing of arrests and civil asset forfeiture
-* Miscellaneous Remedy (MR): administrative review, certiorari, or change of name
-* Order of Protection (OP): order of protection, stalking no contact, civil no contact, or firearms restraining
-* Probate (PR): administration of a decedent's estate
-* Small Claims (SC): contract and tort claims of $10,000 or less
-""",
-    "massachusetts": "Always attempt to deduce the case category and case type.",
-    "vermont": "Treat the court division as the case category. Always attempt to deduce the case category and type.",
-    "default": "Always attempt to deduce the case category and case type.",
+EXTRACTION_HINTS: dict[str, str] = {
+    jurisdiction: "Extract source evidence without guessing an e-filing taxonomy value."
+    for jurisdiction in ("illinois", "massachusetts", "vermont", "default")
 }
 
 EXTRACTION_LABELS = {
     "document title": "Document title",
+    "form name": "Form name",
+    "form identifier": "Form number or ID",
+    "form revision": "Form revision",
+    "form purpose": "What the form asks the court to do",
     "court": "Court or county",
     "filing type": "Filing type",
     "case category": "Case category",
@@ -52,6 +30,12 @@ EXTRACTION_LABELS = {
     "defendant or respondent names": "Defendant or respondent names",
     "other party names": "Other party names",
     "document date": "Document date",
+    "filing phase": "Filing phase",
+    "requested relief": "Requested relief",
+    "monetary amounts": "Monetary amounts",
+    "selected options": "Selected options",
+    "docket code evidence": "Docket code evidence",
+    "classification evidence": "Classification evidence",
 }
 
 
@@ -77,6 +61,51 @@ def normalize_extracted_fields(found_fields):
             value = str(value)
         normalized[key] = value.strip()
     return normalized
+
+
+def normalize_document_evidence(found_fields):
+    """Normalize evidence keys without destroying arrays and evidence objects."""
+    if not isinstance(found_fields, dict):
+        return {}
+    normalized = {}
+    for raw_key, value in found_fields.items():
+        if value in (None, "", [], {}):
+            continue
+        key = str(raw_key).strip().lower()
+        if key in {"court unit", "court or county"}:
+            key = "court name"
+        elif key in {"monetary amount", "amount in controversy"}:
+            key = "monetary amounts"
+        normalized[key] = value
+    return normalized
+
+
+def display_extracted_fields(found_fields):
+    """Flatten structured evidence only at the user-interface boundary."""
+    if not isinstance(found_fields, dict):
+        return {}
+    display = {}
+    for raw_key, value in found_fields.items():
+        if value in (None, "", [], {}):
+            continue
+        key = str(raw_key).strip().lower()
+        if key in {"court name", "court unit", "court or county"}:
+            key = "court"
+        if isinstance(value, list):
+            rendered = []
+            for item in value:
+                if isinstance(item, dict):
+                    label = item.get("label")
+                    raw = item.get("raw") or item.get("amount")
+                    rendered.append(": ".join(str(part) for part in (label, raw) if part))
+                else:
+                    rendered.append(str(item))
+            display[key] = "; ".join(part for part in rendered if part)
+        elif isinstance(value, dict):
+            display[key] = "; ".join(f"{item_key}: {item_value}" for item_key, item_value in value.items())
+        else:
+            display[key] = str(value).strip()
+    return {key: value for key, value in display.items() if value}
 
 
 def extracted_details(guesses):

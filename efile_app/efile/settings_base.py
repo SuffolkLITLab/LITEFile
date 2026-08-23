@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "efile",
     "efile.templatetags.md_to_html",
+    "crosswalk_review",
 ]
 
 MIDDLEWARE = [
@@ -138,6 +139,12 @@ ALLOWED_FILE_TYPES = [".pdf", ".doc", ".docx"]
 # near the beginning.
 DOCUMENT_EXTRACTION_MAX_PAGES = int(os.getenv("DOCUMENT_EXTRACTION_MAX_PAGES", "20"))
 DOCUMENT_EXTRACTION_MAX_ATTEMPTS = int(os.getenv("DOCUMENT_EXTRACTION_MAX_ATTEMPTS", "3"))
+DOCUMENT_CLASSIFICATION_SOURCE_PAGES = int(os.getenv("DOCUMENT_CLASSIFICATION_SOURCE_PAGES", "3"))
+DOCUMENT_EVIDENCE_MODEL = os.getenv("DOCUMENT_EVIDENCE_MODEL", "")
+DOCUMENT_CLASSIFICATION_MODEL = os.getenv("DOCUMENT_CLASSIFICATION_MODEL", "")
+FORM_CODE_CROSSWALK_PATH = Path(
+    os.getenv("FORM_CODE_CROSSWALK_PATH", BASE_DIR / "efile" / "data" / "form_code_crosswalk.json")
+)
 
 # Logging configuration
 # Uses standard Python logging. Control the app logger level via DJANGO_LOG_LEVEL env var.

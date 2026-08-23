@@ -45,6 +45,11 @@
                 </label>
             </section>
             <h2 class="confirm-filing-details-heading">{% translate "Confirm the details used for this filing" %}</h2>
+            {% if classification %}
+                <p class="workflow-help">
+                    {% translate "The choices below were matched against the court's current filing lists. Please confirm each one; you can edit any match." %}
+                </p>
+            {% endif %}
         {% else %}
             <h1>{% translate "Tell us about your case" %}</h1>
             <div class="alert alert-info">
@@ -177,6 +182,18 @@
                            hidden />
                     <small id="docket-number-hint">{% translate "Leave blank if the court has not assigned one." %}</small>
                 </div>
+                <div class="form-field" id="case-title-field">
+                    <label for="case_title">
+                        {% translate "Case title" %} <em>{% translate "if shown" %}</em>
+                    </label>
+                    <input class="form-control"
+                           type="text"
+                           name="case_title"
+                           id="case_title"
+                           value="{{ case_title|default:'' }}"
+                           aria-describedby="case-title-hint" />
+                    <small id="case-title-hint">{% translate "This is usually the names shown at the top of the document." %}</small>
+                </div>
             </div>
             {% comment %}
             Only case types that mean different jobs for different parties --
@@ -197,14 +214,14 @@
                     <input type="radio"
                            name="existing_case"
                            value="new"
-                           {% if filing_draft.existing_case == "new" %}checked{% endif %} />
+                           {% if filing_draft.existing_case == "new" or suggested_existing_case == "new" %}checked{% endif %} />
                     <span><strong>{% translate "New case" %}</strong><small>{% translate "There is no case number yet." %}</small></span>
                 </label>
                 <label>
                     <input type="radio"
                            name="existing_case"
                            value="existing"
-                           {% if filing_draft.existing_case == "existing" %}checked{% endif %} />
+                           {% if filing_draft.existing_case == "existing" or suggested_existing_case == "existing" %}checked{% endif %} />
                     <span><strong>{% translate "Existing case" %}</strong><small>{% translate "The case is already open with the court." %}</small></span>
                 </label>
                 <button class="help-toggle"

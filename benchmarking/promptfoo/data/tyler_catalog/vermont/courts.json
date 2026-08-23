@@ -1,0 +1,98 @@
+[
+  {
+    "name": "Addison Unit",
+    "code": "sc:addison"
+  },
+  {
+    "name": "Attorney Administration",
+    "code": "6000"
+  },
+  {
+    "name": "Attorney Licensing",
+    "code": "6100"
+  },
+  {
+    "name": "Bennington Unit",
+    "code": "sc:bennington"
+  },
+  {
+    "name": "Caledonia Unit",
+    "code": "sc:caledonia"
+  },
+  {
+    "name": "Chittenden Unit",
+    "code": "sc:chittendon"
+  },
+  {
+    "name": "Environmental Division",
+    "code": "vermont:ed"
+  },
+  {
+    "name": "Essex Unit",
+    "code": "sc:essex"
+  },
+  {
+    "name": "File & Serve",
+    "code": "1"
+  },
+  {
+    "name": "Franklin Unit",
+    "code": "sc:franklin"
+  },
+  {
+    "name": "Grand Isle Unit",
+    "code": "sc:grandisle"
+  },
+  {
+    "name": "Judicial Bureau",
+    "code": "vermont:jb"
+  },
+  {
+    "name": "Lamoille Unit",
+    "code": "sc:lamoille"
+  },
+  {
+    "name": "Orange Unit",
+    "code": "sc:orange"
+  },
+  {
+    "name": "Orleans Unit",
+    "code": "sc:orleans"
+  },
+  {
+    "name": "Professional Responsibility",
+    "code": "vermont:pr"
+  },
+  {
+    "name": "Rutland Unit",
+    "code": "sc:rutland"
+  },
+  {
+    "name": "Superior Courts",
+    "code": "vermont:sc"
+  },
+  {
+    "name": "Supreme Court",
+    "code": "vermont:supreme"
+  },
+  {
+    "name": "System",
+    "code": "0"
+  },
+  {
+    "name": "Vermont Judiciary",
+    "code": "vermont"
+  },
+  {
+    "name": "Washington Unit",
+    "code": "sc:washington"
+  },
+  {
+    "name": "Windham Unit",
+    "code": "sc:windham"
+  },
+  {
+    "name": "Windsor Unit",
+    "code": "sc:windsor"
+  }
+]

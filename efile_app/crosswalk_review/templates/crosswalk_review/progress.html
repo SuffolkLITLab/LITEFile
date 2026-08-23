@@ -1,0 +1,162 @@
+{% extends "crosswalk_review/base.html" %}
+{% block title %}
+    Review progress – crosswalk review
+{% endblock title %}
+{% block extra_style %}
+    .progress-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    .progress-table th {
+    background: #f3f4f6;
+    border-bottom: 2px solid #e5e7eb;
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+    font-weight: 600;
+    color: #374151;
+    }
+    .progress-table td {
+    border-bottom: 1px solid #e5e7eb;
+    padding: 0.45rem 0.75rem;
+    vertical-align: top;
+    }
+    .progress-table tr:hover td { background: #f9fafb; }
+    .status-dot {
+    display: inline-block;
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    margin-right: 0.4rem;
+    vertical-align: middle;
+    }
+    .dot-reviewed { background: #10b981; }
+    .dot-partial  { background: #f59e0b; }
+    .dot-none     { background: #d1d5db; }
+    .reviewer-list { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.5rem; }
+    .reviewer-chip {
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 0.6rem 1rem;
+    text-align: center;
+    min-width: 130px;
+    }
+    .reviewer-chip .rname { font-weight: 700; font-size: 0.9rem; color: #1a1a2e; }
+    .reviewer-chip .rcount { font-size: 0.8rem; color: #6b7280; }
+    .filter-bar { margin-bottom: 1rem; display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
+    .filter-bar input[type="text"] {
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    padding: 0.4rem 0.7rem;
+    font-size: 0.88rem;
+    width: 260px;
+    }
+{% endblock extra_style %}
+{% block content %}
+    <h1 style="font-size:1.4rem; font-weight:700; margin:0 0 1.25rem;">Review progress</h1>
+    <!-- Reviewer breakdown -->
+    {% if reviewer_totals %}
+        <div class="card">
+            <h2 class="card-title">Reviewers</h2>
+            <div class="reviewer-list">
+                {% for rt in reviewer_totals %}
+                    <div class="reviewer-chip">
+                        <div class="rname">{{ rt.reviewer_name }}</div>
+                        <div class="rcount">{{ rt.total }} verdict{{ rt.total|pluralize }}</div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+    <!-- Per-form table -->
+    <div class="card" style="overflow-x:auto;">
+        <div style="display:flex;
+                    justify-content:space-between;
+                    align-items:baseline;
+                    flex-wrap:wrap;
+                    gap:0.5rem;
+                    margin-bottom:0.75rem">
+            <h2 class="card-title" style="margin:0;">
+                All forms
+                <span style="font-weight:400; font-size:0.85rem; color:#6b7280;">
+                    ({{ total_forms }} total · {{ total_verdicts }} verdicts)
+                </span>
+            </h2>
+            <a class="btn btn-secondary btn-sm"
+               href="{% url 'crosswalk_review:export_csv' %}">Download CSV ↓</a>
+        </div>
+        <div class="filter-bar">
+            <input type="text"
+                   id="form-search"
+                   placeholder="Filter by form name or ID…"
+                   oninput="filterTable(this.value)" />
+            <label style="font-size:0.85rem;
+                          color:#374151;
+                          display:flex;
+                          align-items:center;
+                          gap:0.4rem">
+                <input type="checkbox"
+                       id="unreviewed-only"
+                       onchange="filterTable(document.getElementById('form-search').value)" />
+                Unreviewed only
+            </label>
+        </div>
+        <table class="progress-table" id="progress-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Form</th>
+                    <th>Jurisdiction</th>
+                    <th>Mappings</th>
+                    <th>Verdicts</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for form in forms %}
+                    {% with reviewed=form.verdict_count total_m=form.mapping_count %}
+                        <tr class="form-row"
+                            data-name="{{ form.canonical_name|lower }} {{ form.canonical_id|lower }}"
+                            data-reviewed="{{ reviewed }}">
+                            <td style="color:#9ca3af; font-size:0.8rem;">{{ form.registry_index|add:1 }}</td>
+                            <td>
+                                <div style="font-weight:600; font-size:0.88rem;">{{ form.canonical_name }}</div>
+                                <div style="font-size:0.76rem; color:#6b7280;">{{ form.canonical_id }}</div>
+                            </td>
+                            <td style="font-size:0.85rem;">{{ form.jurisdiction|capfirst }}</td>
+                            <td style="text-align:center;">{{ total_m }}</td>
+                            <td style="text-align:center;">{{ reviewed }}</td>
+                            <td>
+                                {% if reviewed >= total_m and total_m > 0 %}
+                                    <span class="status-dot dot-reviewed"></span>Reviewed
+                                {% elif reviewed > 0 %}
+                                    <span class="status-dot dot-partial"></span>Partial
+                                {% else %}
+                                    <span class="status-dot dot-none"></span>Not started
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a class="btn btn-secondary btn-sm"
+                                   href="{% url 'crosswalk_review:review_form' form.canonical_id %}{% if reviewer %}?reviewer={{ reviewer|urlencode }}{% endif %}">
+                                    Review
+                                </a>
+                            </td>
+                        </tr>
+                    {% endwith %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock content %}
+{% block extra_js %}
+    <script>
+        function filterTable(query) {
+            var q = query.toLowerCase().trim();
+            var unreviewedOnly = document.getElementById('unreviewed-only').checked;
+            document.querySelectorAll('#progress-table tbody .form-row').forEach(function(row) {
+                var name = row.dataset.name || '';
+                var reviewed = parseInt(row.dataset.reviewed || '0', 10);
+                var matchesQuery = !q || name.includes(q);
+                var matchesFilter = !unreviewedOnly || reviewed === 0;
+                row.style.display = matchesQuery && matchesFilter ? '' : 'none';
+            });
+        }
+    </script>
+{% endblock extra_js %}

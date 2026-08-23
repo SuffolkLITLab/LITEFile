@@ -1,0 +1,91 @@
+case_id,jurisdiction,form_id,form_name,crosswalk_matches,field,accepted_names,current_crosswalk_names,result,label_confidence,review_status
+MA-01,massachusetts,CJD 101B,"Complaint for Divorce under G.L. c. 208, § 1B",1,case category,Domestic Relations,Domestic Relations,agrees,0.98,verified_live_crosswalk_supported
+MA-01,massachusetts,CJD 101B,"Complaint for Divorce under G.L. c. 208, § 1B",1,case type,Divorce 1B,Divorce 1B,agrees,0.98,verified_live_crosswalk_supported
+MA-01,massachusetts,CJD 101B,"Complaint for Divorce under G.L. c. 208, § 1B",1,filing type,Complaint for Divorce - Irretrievable Breakdown 1B,Complaint for Divorce - Irretrievable Breakdown 1B,agrees,0.98,verified_live_crosswalk_supported
+MA-02,massachusetts,CJD 101A,"Joint Petition for Divorce under G.L. c. 208, § 1A",1,case category,Joint Petition (1A),Joint Petition (1A),agrees,0.98,verified_live_crosswalk_supported
+MA-02,massachusetts,CJD 101A,"Joint Petition for Divorce under G.L. c. 208, § 1A",1,case type,Joint Petition (1A),Joint Petition (1A),agrees,0.98,verified_live_crosswalk_supported
+MA-02,massachusetts,CJD 101A,"Joint Petition for Divorce under G.L. c. 208, § 1A",1,filing type,Joint Petition for Divorce,Joint Petition for Divorce,agrees,0.98,verified_live_crosswalk_supported
+MA-03,massachusetts,CJD 109,"Complaint for Support, Custody, Parenting Time",1,case category,"Custody, Support, Parenting Time","Custody, Support, Parenting Time",agrees,0.98,verified_live_crosswalk_supported
+MA-03,massachusetts,CJD 109,"Complaint for Support, Custody, Parenting Time",1,case type,"Complaint For Custody, Support, Parenting Time","Complaint For Custody, Support, Parenting Time",agrees,0.98,verified_live_crosswalk_supported
+MA-03,massachusetts,CJD 109,"Complaint for Support, Custody, Parenting Time",1,filing type,"Complaint for Custody, Support, Parenting Time","Complaint for Custody, Support, Parenting Time",agrees,0.98,verified_live_crosswalk_supported
+MA-04,massachusetts,CJD 102,Complaint for Separate Support,1,case category,,"Custody, Support, Parenting Time",benchmark_unresolved,0.95,crosswalk_conflict_unresolved
+MA-04,massachusetts,CJD 102,Complaint for Separate Support,1,case type,,"Complaint For Custody, Support, Parenting Time",benchmark_unresolved,0.95,crosswalk_conflict_unresolved
+MA-04,massachusetts,CJD 102,Complaint for Separate Support,1,filing type,,"Complaint for Custody, Support, Parenting Time",benchmark_unresolved,0.95,crosswalk_conflict_unresolved
+MA-05,massachusetts,CJP 27,Petition to Change Name of Adult,1,case category,Change of Name,,crosswalk_unresolved,0.98,verified_live_form_supported
+MA-05,massachusetts,CJP 27,Petition to Change Name of Adult,1,case type,Petition for Adult,,crosswalk_unresolved,0.98,verified_live_form_supported
+MA-05,massachusetts,CJP 27,Petition to Change Name of Adult,1,filing type,Petition to Change Name of Adult,Certified document of prior name change | Joint Petition for Divorce | Petition for Appointment of Guardian of Incapacitated Person | Petition to Change Name of Adult,agrees,0.98,verified_live_form_supported
+MA-06,massachusetts,Small Claims eFile,Statement of Small Claim and Notice for eFiling,1,case category,Small Claims,Small Claims,agrees,0.98,verified_live_document_supported
+MA-06,massachusetts,Small Claims eFile,Statement of Small Claim and Notice for eFiling,1,case type,Small Claim $501 - $2000,Small Claim $2001 - $5000,conflict,0.98,verified_live_document_supported
+MA-06,massachusetts,Small Claims eFile,Statement of Small Claim and Notice for eFiling,1,filing type,Statement of Small Claims entered through e-file process,Cross-claim statement of small claim filed.,conflict,0.98,verified_live_document_supported
+MA-07,massachusetts,Summary Process,Summary Process Summons and Complaint,1,case category,Summary Process,Summary Process,agrees,0.98,verified_live
+MA-07,massachusetts,Summary Process,Summary Process Summons and Complaint,1,case type,Efiled SP Summons and Complaint - Non-payment of Rent,Efiled SP Summons and Complaint - No Cause,conflict,0.9,verified_live
+MA-07,massachusetts,Summary Process,Summary Process Summons and Complaint,1,filing type,Entry Package - SP Summons and Complaint - Non-payment of Rent,Entry Package - SP Summons and Complaint - Cause | Entry Package - SP Summons and Complaint - Foreclosure | Entry Package - SP Summons and Complaint - No Cause | Entry Package - SP Summons and Complaint - Non-payment of Rent,agrees,0.88,verified_live
+MA-08,massachusetts,TC0049,Motion to the Court and Affidavit,1,case category,,,benchmark_unresolved,,
+MA-08,massachusetts,TC0049,Motion to the Court and Affidavit,1,case type,,,benchmark_unresolved,,
+MA-08,massachusetts,TC0049,Motion to the Court and Affidavit,1,filing type,,Affiant's affidavit in support of motion on Small Claims action filed. | Discovery Motion | Dispositive Motion | Equitable Motion | Exparte motion filed. | Motion assented to by other party(ies). | Motion filed with noice of assent of all other parties. | Motion filed. | Motion subject to opposition procedure (Joint Standing Order 1-04 or Dist | Motion to Amend | Motion to File Certificate of Marriage Late | Motion to Permit Completion of Parent Education via DVD | Motion to Waive Parent Education Program | Motion to appear pro hac vice (G.L. c.221 §46A). | Motion to withdraw as counsel | Trial Submissions/Motion in limine,benchmark_unresolved,,
+MA-09,massachusetts,CJD 400,Motion,1,case category,,,benchmark_unresolved,,
+MA-09,massachusetts,CJD 400,Motion,1,case type,,,benchmark_unresolved,,
+MA-09,massachusetts,CJD 400,Motion,1,filing type,,Motion | Motion to Amend | Motion to File Certificate of Marriage Late,benchmark_unresolved,,
+MA-10,massachusetts,Mass. R. Civ. P. 55(b)(3),Request for Default Judgment,1,case category,,,benchmark_unresolved,,
+MA-10,massachusetts,Mass. R. Civ. P. 55(b)(3),Request for Default Judgment,1,case type,,,benchmark_unresolved,,
+MA-10,massachusetts,Mass. R. Civ. P. 55(b)(3),Request for Default Judgment,1,filing type,,,benchmark_unresolved,,
+VT-01,vermont,400-00836NoChildren,Complaint for Divorce/Legal Separation/Dissolution without Children,1,case category,Family,Family,agrees,0.99,verified_live
+VT-01,vermont,400-00836NoChildren,Complaint for Divorce/Legal Separation/Dissolution without Children,1,case type,Dissolution Contested with No Minor Children,Dissolution Contested with Minor Children,conflict,0.92,verified_live
+VT-01,vermont,400-00836NoChildren,Complaint for Divorce/Legal Separation/Dissolution without Children,1,filing type,Initial Filing,Proposed Final Order and Decree of Divorce,conflict,0.78,verified_live_generic_filing_label
+VT-02,vermont,400-00836Children,Complaint for Divorce/Legal Separation/Dissolution with Children,1,case category,Family,Family,agrees,0.99,verified_live
+VT-02,vermont,400-00836Children,Complaint for Divorce/Legal Separation/Dissolution with Children,1,case type,Dissolution Contested with Minor Children,Dissolution Contested with Minor Children,agrees,0.92,verified_live
+VT-02,vermont,400-00836Children,Complaint for Divorce/Legal Separation/Dissolution with Children,1,filing type,Initial Filing,Proposed Final Order and Decree of Divorce,conflict,0.78,verified_live_generic_filing_label
+VT-03,vermont,100-00257,Small Claims Complaint,1,case category,Civil,,crosswalk_unresolved,0.99,verified_live
+VT-03,vermont,100-00257,Small Claims Complaint,1,case type,"Small Claims $1,001 - $10,000",,crosswalk_unresolved,0.99,verified_live
+VT-03,vermont,100-00257,Small Claims Complaint,1,filing type,Small Claims Complaint $1000 - $5000,,crosswalk_unresolved,0.94,verified_live_document_supported
+VT-04,vermont,100-00051,Civil Division Answer,1,case category,Civil,Civil,agrees,0.99,verified_live
+VT-04,vermont,100-00051,Civil Division Answer,1,case type,Contract - Other,Administrative Document - Answer No Complaint Filed,conflict,0.65,verified_live_ambiguous
+VT-04,vermont,100-00051,Civil Division Answer,1,filing type,,Amended Answer | Answer,benchmark_unresolved,,
+VT-05,vermont,400-00150C,Complaint for Relief from Abuse,1,case category,Family,,crosswalk_unresolved,0.99,verified_live
+VT-05,vermont,400-00150C,Complaint for Relief from Abuse,1,case type,Relief from Abuse,,crosswalk_unresolved,0.99,verified_live
+VT-05,vermont,400-00150C,Complaint for Relief from Abuse,1,filing type,Initial Filing,,crosswalk_unresolved,0.72,verified_live_generic_filing_label
+VT-06,vermont,700-00122,Petition of Adult to Change Name,1,case category,Probate or Mental Health,Probate or Mental Health,agrees,0.99,verified_live
+VT-06,vermont,700-00122,Petition of Adult to Change Name,1,case type,Change of Name Adult,Change of Name Adult,agrees,0.99,verified_live
+VT-06,vermont,700-00122,Petition of Adult to Change Name,1,filing type,Initial Filing,Motion for Change of Venue | Petition for Delayed Marriage Certificate,conflict,0.72,verified_live_generic_filing_label
+VT-07,vermont,700-00070C,Petition to Appoint Custodial Guardian for a Minor,1,case category,Probate or Mental Health,Probate or Mental Health,agrees,0.99,verified_live
+VT-07,vermont,700-00070C,Petition to Appoint Custodial Guardian for a Minor,1,case type,Guardianship - Custodial Minor,Petition for Minor Settlement,conflict,0.99,verified_live
+VT-07,vermont,700-00070C,Petition to Appoint Custodial Guardian for a Minor,1,filing type,Initial Filing,Petition to Appoint a Standby Guardian for a Minor,conflict,0.72,verified_live_generic_filing_label
+VT-08,vermont,400-00830,Miscellaneous Motion - Family Division,1,case category,Family,Family,agrees,0.99,verified_live
+VT-08,vermont,400-00830,Miscellaneous Motion - Family Division,1,case type,,,benchmark_unresolved,,
+VT-08,vermont,400-00830,Miscellaneous Motion - Family Division,1,filing type,,Motion Miscellaneous | Motion for Alternative Service | Motion for Attorney's Fees | Motion for Change of Venue,benchmark_unresolved,,
+VT-09,vermont,100-00053,Civil Division Motion,1,case category,Civil,Civil,agrees,0.99,verified_live
+VT-09,vermont,100-00053,Civil Division Motion,1,case type,,,benchmark_unresolved,,
+VT-09,vermont,100-00053,Civil Division Motion,1,filing type,,Motion for Contempt - Civil | Motion for Trustee Process - Civil | Motion to Reopen Civil Suspension,benchmark_unresolved,,
+VT-10,vermont,400-00803,Motion to Modify Child Support and/or Maintenance Supplement,1,case category,Family,Family,agrees,0.99,verified_live
+VT-10,vermont,400-00803,Motion to Modify Child Support and/or Maintenance Supplement,1,case type,,,benchmark_unresolved,0.95,document_does_not_establish
+VT-10,vermont,400-00803,Motion to Modify Child Support and/or Maintenance Supplement,1,filing type,Motion to Modify Child Support - Postjudgment/Fee Required | Motion to Modify Child Support – Pre Judgment or No Fee | Motion to Modify Child Support Stipulated,Motion for Child Support Deviation | Motion to Establish Child Support | Motion to Modify | Motion to Modify Parent-Child Contact,conflict,0.72,verified_live_ambiguous
+IL-01,illinois,ATJ Complaint/Petition,Complaint or Petition,0,case category,,,no_crosswalk_match,0.9,rejected_by_live_catalog
+IL-01,illinois,ATJ Complaint/Petition,Complaint or Petition,0,case type,,,no_crosswalk_match,,
+IL-01,illinois,ATJ Complaint/Petition,Complaint or Petition,0,filing type,,,no_crosswalk_match,,
+IL-02,illinois,Divorce suite,Petition for Divorce with Children,0,case category,Dissolution (Divorce) with Children,,no_crosswalk_match,0.99,verified_live
+IL-02,illinois,Divorce suite,Petition for Divorce with Children,0,case type,Dissolution (with children),,no_crosswalk_match,0.99,verified_live
+IL-02,illinois,Divorce suite,Petition for Divorce with Children,0,filing type,Petition Dissolution of Marriage/Civil Union,,no_crosswalk_match,0.96,verified_live
+IL-03,illinois,Eviction suite,Eviction Complaint,2,case category,Eviction,,crosswalk_unresolved,0.99,verified_live
+IL-03,illinois,Eviction suite,Eviction Complaint,2,case type,Residential - Eviction,,crosswalk_unresolved,0.98,verified_live
+IL-03,illinois,Eviction suite,Eviction Complaint,2,filing type,Complaint,,crosswalk_unresolved,0.95,verified_live
+IL-04,illinois,CS-C 702.1,Small Claims Complaint,2,case category,Small Claims,,crosswalk_unresolved,0.99,verified_live
+IL-04,illinois,CS-C 702.1,Small Claims Complaint,2,case type,"Contract - Other (Excluding Business/Employment Dispute and Debt Collection) ($2,500.01 to $10K) | Contract - Business Dispute (Buyer/Plaintiff) ($2,500.01 to $10K)",,crosswalk_unresolved,0.7,verified_live_ambiguous
+IL-04,illinois,CS-C 702.1,Small Claims Complaint,2,filing type,Complaint,,crosswalk_unresolved,0.96,verified_live
+IL-05,illinois,Name Change (Adult),Request for Name Change,2,case category,Miscellaneous Remedy,,crosswalk_unresolved,0.99,verified_live
+IL-05,illinois,Name Change (Adult),Request for Name Change,2,case type,Change of Name,,crosswalk_unresolved,0.99,verified_live
+IL-05,illinois,Name Change (Adult),Request for Name Change,2,filing type,Request for Name Change (Adult),"Case Record (Change of Venue) | Case Record (Change of Venue) - ($15,000.01 to $50K) | Case Record (Change of Venue) - ($2,500.01 to $10K) | Case Record (Change of Venue) - (Up to $15K) | Complaint / Petition - Name Change (Govn't) - Fee | Complaint / Petition - Name Change - Fee | Complaint / Petition Name Change – Joint Parental Permission – Fee | Notice Of Change Of Office Filed",conflict,0.99,verified_live
+IL-06,illinois,Minor Guardianship,Petition for Guardianship of a Minor,0,case category,Guardianship,,no_crosswalk_match,0.99,verified_live
+IL-06,illinois,Minor Guardianship,Petition for Guardianship of a Minor,0,case type,Guardianship of Minor,,no_crosswalk_match,0.99,verified_live
+IL-06,illinois,Minor Guardianship,Petition for Guardianship of a Minor,0,filing type,Petition,,no_crosswalk_match,0.94,verified_live
+IL-07,illinois,Order of Protection,Petition for Order of Protection,1,case category,Order of Protection,,crosswalk_unresolved,0.99,verified_live
+IL-07,illinois,Order of Protection,Petition for Order of Protection,1,case type,Order of Protection,,crosswalk_unresolved,0.98,verified_live
+IL-07,illinois,Order of Protection,Petition for Order of Protection,1,filing type,Petition Order of Protection (Emergency),Complaint / Petition - Breach Of Warranty (Govn't) - Fee | Complaint / Petition - Breach Of Warranty (Jury - 12) (Govn't) - Fee | Complaint / Petition - Breach Of Warranty - Fee | Transfer Order Filed,conflict,0.94,verified_live
+IL-08,illinois,Fee Waiver Civil,Application for Waiver of Court Fees,1,case category,Eviction,Civil,conflict,0.94,verified_live_document_supported
+IL-08,illinois,Fee Waiver Civil,Application for Waiver of Court Fees,1,case type,,,benchmark_unresolved,0.95,document_does_not_establish
+IL-08,illinois,Fee Waiver Civil,Application for Waiver of Court Fees,1,filing type,,Appearance (No Fee) | Case Record (Change of Venue) - No Fee | Complaint / Petition - Breach Of Warranty (Govn't) - Fee | Complaint / Petition - Breach Of Warranty (Jury - 12) (Govn't) - Fee | Complaint / Petition - Breach Of Warranty (Jury - 6) - Fee | Complaint / Petition - Breach Of Warranty - Fee | Counter Petition/Complaint - No Fee | Jury Demand/Request (No Fee),benchmark_unresolved,,
+IL-09,illinois,ATJ 801.7,Motion,4,case category,,Civil,benchmark_unresolved,,
+IL-09,illinois,ATJ 801.7,Motion,4,case type,,,benchmark_unresolved,,
+IL-09,illinois,ATJ 801.7,Motion,4,filing type,,"Affidavit In Support Of Motion Filed | Amended Answer To Motion Filed | Amendment To Answer To Motion Filed | Answer To Motion Filed | Certificate And Motion For Default Filed | Certificate And Motion For Default Filed In District 2 | Emergency Motion Filed | Motion | Motion - Leave - Amicus Brief | Motion - Leave - Answer to PLA | Motion To Vacate, Modify/Reinstate Final Order/Judgment > 30 Days | Motion To Vacate, Modify/Reinstate Final Order/Judgment > 30 Days (Govn't) | Motion to Amend | Motion to File Certificate of Marriage Late | Motion to Modify | Notice Of Motion Filed | Notice of Motion | Routine Motion Filed",benchmark_unresolved,,
+IL-10,illinois,ATJ-style synthetic estate motion,Motion,4,case category,Probate,Civil,conflict,0.96,verified_live
+IL-10,illinois,ATJ-style synthetic estate motion,Motion,4,case type,Administration of Decedent's Estate,,crosswalk_unresolved,0.95,verified_live
+IL-10,illinois,ATJ-style synthetic estate motion,Motion,4,filing type,Motion,"Affidavit In Support Of Motion Filed | Amended Answer To Motion Filed | Amendment To Answer To Motion Filed | Answer To Motion Filed | Certificate And Motion For Default Filed | Certificate And Motion For Default Filed In District 2 | Emergency Motion Filed | Motion | Motion - Leave - Amicus Brief | Motion - Leave - Answer to PLA | Motion To Vacate, Modify/Reinstate Final Order/Judgment > 30 Days | Motion To Vacate, Modify/Reinstate Final Order/Judgment > 30 Days (Govn't) | Motion to Amend | Motion to File Certificate of Marriage Late | Motion to Modify | Notice Of Motion Filed | Notice of Motion | Routine Motion Filed",agrees,0.9,verified_live

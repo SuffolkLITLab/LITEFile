@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>
+            {% block title %}
+                Crosswalk review – LITEFile
+            {% endblock title %}
+        </title>
+        <style>
+            /* ── Reset & base ── */
+            *,
+            *::before,
+            *::after {
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+                font-size: 15px;
+                line-height: 1.55;
+                margin: 0;
+                background: #f5f6f8;
+                color: #1a1a2e;
+            }
+
+            a {
+                color: #1a6b3c;
+            }
+
+            a:hover {
+                color: #0e4828;
+            }
+
+            /* ── Top nav ── */
+            .top-nav {
+                background: #1a6b3c;
+                color: #fff;
+                padding: 0 1.5rem;
+                display: flex;
+                align-items: center;
+                gap: 1.5rem;
+                min-height: 52px;
+                flex-wrap: wrap;
+            }
+
+            .top-nav .brand {
+                font-weight: 700;
+                font-size: 1.05rem;
+                color: #fff;
+                text-decoration: none;
+                letter-spacing: 0.02em;
+            }
+
+            .top-nav nav {
+                display: flex;
+                gap: 1rem;
+                align-items: center;
+                flex: 1;
+            }
+
+            .top-nav nav a {
+                color: rgba(255, 255, 255, 0.88);
+                text-decoration: none;
+                font-size: 0.9rem;
+                padding: 0.25rem 0;
+                border-bottom: 2px solid transparent;
+                transition: border-color 0.15s, color 0.15s;
+            }
+
+            .top-nav nav a:hover,
+            .top-nav nav a.active {
+                color: #fff;
+                border-bottom-color: #7dd3a8;
+            }
+
+            .top-nav .reviewer-badge {
+                margin-left: auto;
+                font-size: 0.82rem;
+                background: rgba(255, 255, 255, 0.15);
+                padding: 0.2rem 0.75rem;
+                border-radius: 1rem;
+                color: #e8f5ee;
+            }
+
+            /* ── Page wrapper ── */
+            .page {
+                max-width: 1100px;
+                margin: 0 auto;
+                padding: 1.5rem;
+            }
+
+            /* ── Cards ── */
+            .card {
+                background: #fff;
+                border: 1px solid #dde1e8;
+                border-radius: 6px;
+                padding: 1.25rem 1.5rem;
+                margin-bottom: 1.25rem;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            }
+
+            .card-title {
+                font-size: 1.1rem;
+                font-weight: 600;
+                margin: 0 0 0.5rem;
+                color: #1a1a2e;
+            }
+
+            /* ── Buttons ── */
+            .btn {
+                display: inline-block;
+                padding: 0.45rem 1rem;
+                border-radius: 4px;
+                border: none;
+                cursor: pointer;
+                font-size: 0.9rem;
+                font-weight: 500;
+                text-decoration: none;
+                line-height: 1.4;
+                transition: background 0.15s;
+            }
+
+            .btn-primary {
+                background: #1a6b3c;
+                color: #fff;
+            }
+
+            .btn-primary:hover {
+                background: #145530;
+                color: #fff;
+            }
+
+            .btn-secondary {
+                background: #e4e8ef;
+                color: #1a1a2e;
+            }
+
+            .btn-secondary:hover {
+                background: #d0d5de;
+                color: #1a1a2e;
+            }
+
+            .btn-sm {
+                padding: 0.3rem 0.7rem;
+                font-size: 0.82rem;
+            }
+
+            /* ── Confidence badges ── */
+            .badge {
+                display: inline-block;
+                padding: 0.18rem 0.55rem;
+                border-radius: 999px;
+                font-size: 0.78rem;
+                font-weight: 600;
+                line-height: 1.4;
+                white-space: nowrap;
+            }
+
+            .badge-high {
+                background: #d1fae5;
+                color: #065f46;
+            }
+
+            .badge-medium {
+                background: #fef9c3;
+                color: #78350f;
+            }
+
+            .badge-low {
+                background: #fee2e2;
+                color: #991b1b;
+            }
+
+            .badge-unknown {
+                background: #e5e7eb;
+                color: #374151;
+            }
+
+            .badge-current {
+                background: #dbeafe;
+                color: #1e40af;
+            }
+
+            .badge-stale {
+                background: #fde8d8;
+                color: #9a3412;
+            }
+
+            .badge-default {
+                background: #e5e7eb;
+                color: #374151;
+            }
+
+            /* ── Messages ── */
+            .message {
+                padding: 0.75rem 1rem;
+                border-radius: 4px;
+                margin-bottom: 1rem;
+            }
+
+            .message-success {
+                background: #d1fae5;
+                color: #065f46;
+                border-left: 4px solid #10b981;
+            }
+
+            .message-error {
+                background: #fee2e2;
+                color: #991b1b;
+                border-left: 4px solid #ef4444;
+            }
+
+            .message-info {
+                background: #dbeafe;
+                color: #1e40af;
+                border-left: 4px solid #3b82f6;
+            }
+
+            /* ── Progress bar ── */
+            .progress-bar-wrap {
+                background: #e5e7eb;
+                border-radius: 999px;
+                height: 10px;
+                overflow: hidden;
+            }
+
+            .progress-bar-fill {
+                background: #1a6b3c;
+                height: 100%;
+                border-radius: 999px;
+                transition: width 0.3s;
+            }
+
+                {
+                % block extra_style %
+            }
+
+                {
+                % endblock extra_style %
+            }
+        </style>
+    </head>
+    <body>
+        <header class="top-nav">
+            <a class="brand" href="{% url 'crosswalk_review:index' %}">LITEFile · Crosswalk review</a>
+            <nav>
+                <a href="{% url 'crosswalk_review:index' %}"
+                   {% if request.resolver_match.url_name == 'index' %}class="active"{% endif %}>Home</a>
+                <a href="{% url 'crosswalk_review:progress' %}"
+                   {% if request.resolver_match.url_name == 'progress' %}class="active"{% endif %}>Progress</a>
+                <a href="{% url 'crosswalk_review:export_csv' %}">Export CSV</a>
+            </nav>
+            {% if request.session.reviewer_name %}
+                <span class="reviewer-badge">Reviewer: {{ request.session.reviewer_name }}</span>
+            {% endif %}
+        </header>
+        <main class="page">
+            {% block content %}
+            {% endblock content %}
+        </main>
+        {% block extra_js %}
+        {% endblock extra_js %}
+    </body>
+</html>

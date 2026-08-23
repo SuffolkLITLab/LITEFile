@@ -1,0 +1,980 @@
+[
+  {
+    "canonical_id": "MA-CJD-101B",
+    "jurisdiction": "massachusetts",
+    "form_id": "CJD 101B",
+    "canonical_name": "Complaint for Divorce under G.L. c. 208, § 1B",
+    "department": "Probate and Family Court",
+    "description": "Complaint filed by one spouse seeking divorce on the ground of irretrievable breakdown of the marriage (1B no-fault or fault).",
+    "aliases": [
+      "1B Divorce Complaint",
+      "Divorce Complaint",
+      "Complaint for Divorce under G.L. c. 208, § 1B"
+    ],
+    "official": true,
+    "is_efileable": true,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms",
+      "https://www.mass.gov/info-details/probate-and-family-court-complaint-for-divorce-under-gl-c-208-ss-1b-cjd-101b"
+    ]
+  },
+  {
+    "canonical_id": "MA-CJD-101A",
+    "jurisdiction": "massachusetts",
+    "form_id": "CJD 101A",
+    "canonical_name": "Joint Petition for Divorce under G.L. c. 208, § 1A",
+    "department": "Probate and Family Court",
+    "description": "Joint petition filed together by both spouses requesting divorce on irretrievable breakdown accompanied by an executed separation agreement.",
+    "aliases": [
+      "1A Joint Petition",
+      "1A Divorce",
+      "Joint Petition for Divorce under G.L. c. 208, § 1A"
+    ],
+    "official": true,
+    "is_efileable": true,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms",
+      "https://www.mass.gov/lists/probate-and-family-court-forms-for-divorce"
+    ]
+  },
+  {
+    "canonical_id": "MA-CJD-102",
+    "jurisdiction": "massachusetts",
+    "form_id": "CJD 102",
+    "canonical_name": "Complaint for Separate Support",
+    "department": "Probate and Family Court",
+    "description": "Complaint seeking court orders for financial support, health insurance, and living arrangements without requesting a divorce.",
+    "aliases": [
+      "Separate Support Complaint",
+      "Complaint for Separate Support"
+    ],
+    "official": true,
+    "is_efileable": true,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms",
+      "https://www.mass.gov/info-details/probate-and-family-court-complaint-for-separate-support-cjd-102"
+    ]
+  },
+  {
+    "canonical_id": "MA-CJD-104",
+    "jurisdiction": "massachusetts",
+    "form_id": "CJD 104",
+    "canonical_name": "Complaint for Modification",
+    "department": "Probate and Family Court",
+    "description": "Complaint requesting modification of an existing child support, custody, parenting time, or alimony judgment due to a material change in circumstances.",
+    "aliases": [
+      "Modification Complaint",
+      "Complaint for Modification"
+    ],
+    "official": true,
+    "is_efileable": true,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms"
+    ]
+  },
+  {
+    "canonical_id": "MA-CJD-105",
+    "jurisdiction": "massachusetts",
+    "form_id": "CJD 105",
+    "canonical_name": "Petition for Grandparent(s) Visitation",
+    "department": "Probate and Family Court",
+    "description": "Petition by maternal or paternal grandparents requesting court-ordered visitation rights with grandchild.",
+    "aliases": [
+      "Grandparent Visitation Petition",
+      "Petition for Grandparent(s) Visitation"
+    ],
+    "official": true,
+    "is_efileable": true,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms"
+    ]
+  },
+  {
+    "canonical_id": "MA-CJD-106",
+    "jurisdiction": "massachusetts",
+    "form_id": "CJD 106",
+    "canonical_name": "Complaint to Establish Paternity / Custody (c. 209C)",
+    "department": "Probate and Family Court",
+    "description": "Complaint for unmarried parents to legally establish parentage, custody, and child support under Chapter 209C.",
+    "aliases": [
+      "209C Complaint",
+      "Paternity Complaint",
+      "Complaint to Establish Paternity / Custody (c. 209C)"
+    ],
+    "official": true,
+    "is_efileable": true,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms"
+    ]
+  },
+  {
+    "canonical_id": "MA-CJD-107",
+    "jurisdiction": "massachusetts",
+    "form_id": "CJD 107",
+    "canonical_name": "Complaint for Support under G.L. c. 209, § 32F",
+    "department": "Probate and Family Court",
+    "description": "Complaint for order of support when spouses are living apart.",
+    "aliases": [
+      "32F Support Complaint",
+      "Complaint for Support under G.L. c. 209, § 32F"
+    ],
+    "official": true,
+    "is_efileable": true,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms"
+    ]
+  },
+  {
+    "canonical_id": "MA-CJD-108",
+    "jurisdiction": "massachusetts",
+    "form_id": "CJD 108",
+    "canonical_name": "Complaint for Modification of Alimony",
+    "department": "Probate and Family Court",
+    "description": "Complaint filed specifically to adjust, terminate, or modify an existing alimony award under the Alimony Reform Act.",
+    "aliases": [
+      "Alimony Modification Complaint",
+      "Complaint for Modification of Alimony"
+    ],
+    "official": true,
+    "is_efileable": true,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms"
+    ]
+  },
+  {
+    "canonical_id": "MA-CJD-109",
+    "jurisdiction": "massachusetts",
+    "form_id": "CJD 109",
+    "canonical_name": "Complaint for Support, Custody, Parenting Time",
+    "department": "Probate and Family Court",
+    "description": "Complaint for unmarried parents seeking custody, child support, and parenting schedule determinations.",
+    "aliases": [
+      "Support Custody Parenting Time",
+      "Complaint for Support, Custody, Parenting Time"
+    ],
+    "official": true,
+    "is_efileable": true,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms",
+      "https://www.mass.gov/info-details/probate-and-family-court-complaint-for-support-custody-parenting-time-pursuant-to-gl-c-209c-cjd-109"
+    ]
+  },
+  {
+    "canonical_id": "MA-CJD-200",
+    "jurisdiction": "massachusetts",
+    "form_id": "CJD 200",
+    "canonical_name": "Summons and Order of Notice",
+    "department": "Probate and Family Court",
+    "description": "Official court summons issued by the register for service on defendant with order of notice.",
+    "aliases": [
+      "PFC Summons",
+      "Summons and Order of Notice"
+    ],
+    "official": true,
+    "is_efileable": false,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms"
+    ]
+  },
+  {
+    "canonical_id": "MA-CJD-301S",
+    "jurisdiction": "massachusetts",
+    "form_id": "CJD 301S",
+    "canonical_name": "Financial Statement (Short Form)",
+    "department": "Probate and Family Court",
+    "description": "Mandatory financial disclosure form for parties whose individual gross yearly income is less than $75,000.",
+    "aliases": [
+      "Short Form Financial Statement",
+      "Financial Statement (Short Form)"
+    ],
+    "official": true,
+    "is_efileable": true,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms"
+    ]
+  },
+  {
+    "canonical_id": "MA-CJD-301L",
+    "jurisdiction": "massachusetts",
+    "form_id": "CJD 301L",
+    "canonical_name": "Financial Statement (Long Form)",
+    "department": "Probate and Family Court",
+    "description": "Mandatory financial disclosure form for parties whose individual gross yearly income is $75,000 or more.",
+    "aliases": [
+      "Long Form Financial Statement",
+      "Financial Statement (Long Form)"
+    ],
+    "official": true,
+    "is_efileable": true,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms"
+    ]
+  },
+  {
+    "canonical_id": "MA-CJD-400",
+    "jurisdiction": "massachusetts",
+    "form_id": "CJD 400",
+    "canonical_name": "Motion",
+    "department": "Probate and Family Court",
+    "description": "Written motion requesting specific temporary or interlocutory court orders during pending litigation.",
+    "aliases": [
+      "PFC Motion",
+      "CJD-400 Motion",
+      "Motion"
+    ],
+    "official": true,
+    "is_efileable": true,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms",
+      "https://www.mass.gov/info-details/probate-and-family-court-motion-cjd-400"
+    ]
+  },
+  {
+    "canonical_id": "MA-CJD-451",
+    "jurisdiction": "massachusetts",
+    "form_id": "CJD 451",
+    "canonical_name": "Joint Agreement to Participate in Dispute Resolution",
+    "department": "Probate and Family Court",
+    "description": "Agreement by parties to participate in court-connected alternative dispute resolution or mediation.",
+    "aliases": [
+      "ADR Agreement",
+      "Joint Agreement to Participate in Dispute Resolution"
+    ],
+    "official": true,
+    "is_efileable": true,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms"
+    ]
+  },
+  {
+    "canonical_id": "MA-CJP-27",
+    "jurisdiction": "massachusetts",
+    "form_id": "CJP 27",
+    "canonical_name": "Petition to Change Name of Adult",
+    "department": "Probate and Family Court",
+    "description": "Petition filed by an adult (18+) requesting legal change of name under G.L. c. 210, § 12.",
+    "aliases": [
+      "Adult Name Change Petition",
+      "Change of Name",
+      "Petition to Change Name of Adult"
+    ],
+    "official": true,
+    "is_efileable": true,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms",
+      "https://www.mass.gov/info-details/probate-and-family-court-petition-to-change-name-of-adult-cjp-27"
+    ]
+  },
+  {
+    "canonical_id": "MA-CJP-28",
+    "jurisdiction": "massachusetts",
+    "form_id": "CJP 28",
+    "canonical_name": "Petition to Change Name of Minor",
+    "department": "Probate and Family Court",
+    "description": "Petition filed by parent or legal guardian to legally change the name of a minor child.",
+    "aliases": [
+      "Minor Name Change Petition",
+      "Petition to Change Name of Minor"
+    ],
+    "official": true,
+    "is_efileable": true,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms"
+    ]
+  },
+  {
+    "canonical_id": "MA-CJP-30",
+    "jurisdiction": "massachusetts",
+    "form_id": "CJP 30",
+    "canonical_name": "Assent to Petition to Change Name of Minor",
+    "department": "Probate and Family Court",
+    "description": "Formal written assent of a non-petitioning parent or minor over 12 consenting to name change.",
+    "aliases": [
+      "Name Change Assent",
+      "Assent to Petition to Change Name of Minor"
+    ],
+    "official": true,
+    "is_efileable": true,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms"
+    ]
+  },
+  {
+    "canonical_id": "MA-CJP-31",
+    "jurisdiction": "massachusetts",
+    "form_id": "CJP 31",
+    "canonical_name": "Motion for Service by Alternate Means",
+    "department": "Probate and Family Court",
+    "description": "Motion and affidavit requesting permission to serve a party via publication or mail after diligent search.",
+    "aliases": [
+      "Alternate Service Motion",
+      "Motion for Service by Alternate Means"
+    ],
+    "official": true,
+    "is_efileable": true,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms"
+    ]
+  },
+  {
+    "canonical_id": "MA-MPC-100",
+    "jurisdiction": "massachusetts",
+    "form_id": "MPC 100",
+    "canonical_name": "Petition for Formal Probate of Will / Adjudication of Intestacy",
+    "department": "Probate and Family Court",
+    "description": "Formal probate petition to appoint personal representative and determine testacy.",
+    "aliases": [
+      "Formal Probate Petition",
+      "Petition for Formal Probate of Will / Adjudication of Intestacy"
+    ],
+    "official": true,
+    "is_efileable": true,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms"
+    ]
+  },
+  {
+    "canonical_id": "MA-MPC-101",
+    "jurisdiction": "massachusetts",
+    "form_id": "MPC 101",
+    "canonical_name": "Petition for Informal Probate of Will",
+    "department": "Probate and Family Court",
+    "description": "Informal expedited proceeding for probate of will or intestacy before a magistrate.",
+    "aliases": [
+      "Informal Probate Petition",
+      "Petition for Informal Probate of Will"
+    ],
+    "official": true,
+    "is_efileable": true,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms"
+    ]
+  },
+  {
+    "canonical_id": "MA-MPC-110",
+    "jurisdiction": "massachusetts",
+    "form_id": "MPC 110",
+    "canonical_name": "Petition for Voluntary Administration",
+    "department": "Probate and Family Court",
+    "description": "Simplified administration petition for small estates under $25,000 excluding automobile.",
+    "aliases": [
+      "Voluntary Administration Petition",
+      "Petition for Voluntary Administration"
+    ],
+    "official": true,
+    "is_efileable": true,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms"
+    ]
+  },
+  {
+    "canonical_id": "MA-MPC-162",
+    "jurisdiction": "massachusetts",
+    "form_id": "MPC 162",
+    "canonical_name": "Surviving Spouse, Children, Heirs at Law",
+    "department": "Probate and Family Court",
+    "description": "Mandatory listing of all heirs at law and statutory beneficiaries in estate proceeding.",
+    "aliases": [
+      "Heirs at Law Form",
+      "Surviving Spouse, Children, Heirs at Law"
+    ],
+    "official": true,
+    "is_efileable": true,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms"
+    ]
+  },
+  {
+    "canonical_id": "MA-MPC-400",
+    "jurisdiction": "massachusetts",
+    "form_id": "MPC 400",
+    "canonical_name": "Petition for Appointment of Guardian for Incapacitated Person",
+    "department": "Probate and Family Court",
+    "description": "Petition requesting appointment of a legal guardian for an incapacitated adult.",
+    "aliases": [
+      "Adult Guardianship Petition",
+      "Petition for Appointment of Guardian for Incapacitated Person"
+    ],
+    "official": true,
+    "is_efileable": true,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms"
+    ]
+  },
+  {
+    "canonical_id": "MA-MPC-800",
+    "jurisdiction": "massachusetts",
+    "form_id": "MPC 800",
+    "canonical_name": "Inventory",
+    "department": "Probate and Family Court",
+    "description": "Detailed inventory of decedent or protected person's real and personal estate assets.",
+    "aliases": [
+      "Estate Inventory",
+      "Inventory"
+    ],
+    "official": true,
+    "is_efileable": true,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms"
+    ]
+  },
+  {
+    "canonical_id": "MA-MPC-850",
+    "jurisdiction": "massachusetts",
+    "form_id": "MPC 850",
+    "canonical_name": "Account",
+    "department": "Probate and Family Court",
+    "description": "Fiduciary accounting detailing all estate receipts, disbursements, and distributions.",
+    "aliases": [
+      "Probate Account",
+      "Account"
+    ],
+    "official": true,
+    "is_efileable": true,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms"
+    ]
+  },
+  {
+    "canonical_id": "MA-Summary-Process",
+    "jurisdiction": "massachusetts",
+    "form_id": "Summary Process",
+    "canonical_name": "Summary Process Summons and Complaint",
+    "department": "Housing Court",
+    "description": "Pleading served on tenant and filed to initiate residential or commercial eviction proceedings under G.L. c. 239.",
+    "aliases": [
+      "Eviction Complaint",
+      "Summary Process Complaint",
+      "Summary Process Summons and Complaint"
+    ],
+    "official": true,
+    "is_efileable": true,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms",
+      "https://www.mass.gov/doc/summary-process-eviction-summons-and-complaint/download"
+    ]
+  },
+  {
+    "canonical_id": "MA-SP-Answer",
+    "jurisdiction": "massachusetts",
+    "form_id": "SP Answer",
+    "canonical_name": "Summary Process Answer",
+    "department": "Housing Court",
+    "description": "Tenant's answer asserting defenses, counterclaims, jury demand, and discovery requests in eviction case.",
+    "aliases": [
+      "Eviction Answer",
+      "Summary Process Answer"
+    ],
+    "official": true,
+    "is_efileable": true,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms"
+    ]
+  },
+  {
+    "canonical_id": "MA-SP-Transfer",
+    "jurisdiction": "massachusetts",
+    "form_id": "SP Transfer",
+    "canonical_name": "Notice of Transfer to Housing Court",
+    "department": "Housing Court",
+    "description": "Notice filed by defendant to transfer eviction case from District Court to Housing Court under G.L. c. 185C, § 20.",
+    "aliases": [
+      "Transfer Notice",
+      "Notice of Transfer to Housing Court"
+    ],
+    "official": true,
+    "is_efileable": true,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms"
+    ]
+  },
+  {
+    "canonical_id": "MA-HCD-1",
+    "jurisdiction": "massachusetts",
+    "form_id": "HCD-1",
+    "canonical_name": "Small Claims Statement of Claim (Housing)",
+    "department": "Housing Court",
+    "description": "Statement of small claim for residential property damages or security deposit recovery up to $7,000.",
+    "aliases": [
+      "Housing Small Claim",
+      "Small Claims Statement of Claim (Housing)"
+    ],
+    "official": true,
+    "is_efileable": true,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms"
+    ]
+  },
+  {
+    "canonical_id": "MA-HCD-TRO",
+    "jurisdiction": "massachusetts",
+    "form_id": "HCD-TRO",
+    "canonical_name": "Emergency Motion for Temporary Restraining Order",
+    "department": "Housing Court",
+    "description": "Emergency motion requesting court intervention to stop illegal lockout, utility shutoff, or condemned housing.",
+    "aliases": [
+      "Emergency Housing Motion",
+      "Emergency Motion for Temporary Restraining Order"
+    ],
+    "official": true,
+    "is_efileable": true,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms"
+    ]
+  },
+  {
+    "canonical_id": "MA-DC-SC-1",
+    "jurisdiction": "massachusetts",
+    "form_id": "DC-SC-1",
+    "canonical_name": "Statement of Small Claim and Notice for eFiling",
+    "department": "District Court / BMC",
+    "description": "Initiating statement for small claim actions up to $7,000 with clerk magistrate notice.",
+    "aliases": [
+      "Small Claims Complaint",
+      "Statement of Small Claim",
+      "Statement of Small Claim and Notice for eFiling"
+    ],
+    "official": true,
+    "is_efileable": true,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms"
+    ]
+  },
+  {
+    "canonical_id": "MA-DC-CV-1",
+    "jurisdiction": "massachusetts",
+    "form_id": "DC-CV-1",
+    "canonical_name": "Civil Action Complaint and Cover Sheet",
+    "department": "District Court / BMC",
+    "description": "General civil complaint for contract, tort, or statutory actions within District Court jurisdiction.",
+    "aliases": [
+      "District Court Civil Complaint",
+      "Civil Action Complaint and Cover Sheet"
+    ],
+    "official": true,
+    "is_efileable": true,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms"
+    ]
+  },
+  {
+    "canonical_id": "MA-DC-CR-1",
+    "jurisdiction": "massachusetts",
+    "form_id": "DC-CR-1",
+    "canonical_name": "Application for Criminal Complaint",
+    "department": "District Court / BMC",
+    "description": "Private citizen or police application seeking issuance of a misdemeanor or felony complaint.",
+    "aliases": [
+      "Criminal Complaint Application",
+      "Application for Criminal Complaint"
+    ],
+    "official": true,
+    "is_efileable": false,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms"
+    ]
+  },
+  {
+    "canonical_id": "MA-DC-SUPP",
+    "jurisdiction": "massachusetts",
+    "form_id": "DC-SUPP",
+    "canonical_name": "Supplementary Process Application",
+    "department": "District Court / BMC",
+    "description": "Application for supplementary process to enforce unsatisfied civil money judgment against debtor.",
+    "aliases": [
+      "Supplementary Process Application",
+      "Supplementary Process Application"
+    ],
+    "official": true,
+    "is_efileable": true,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms"
+    ]
+  },
+  {
+    "canonical_id": "MA-DC-MOT",
+    "jurisdiction": "massachusetts",
+    "form_id": "DC-MOT",
+    "canonical_name": "Motion to Vacate Default Judgment",
+    "department": "District Court / BMC",
+    "description": "Motion requesting relief from default judgment under Mass. R. Civ. P. 55(c) or 60(b).",
+    "aliases": [
+      "Vacate Default Motion",
+      "Motion to Vacate Default Judgment"
+    ],
+    "official": true,
+    "is_efileable": true,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms"
+    ]
+  },
+  {
+    "canonical_id": "MA-SC-CV-1",
+    "jurisdiction": "massachusetts",
+    "form_id": "SC-CV-1",
+    "canonical_name": "Superior Court Civil Action Cover Sheet",
+    "department": "Superior Court",
+    "description": "Mandatory civil cover sheet filed with initial complaints in Superior Court exceeding $50,000 threshold.",
+    "aliases": [
+      "Superior Court Cover Sheet",
+      "Superior Court Civil Action Cover Sheet"
+    ],
+    "official": true,
+    "is_efileable": true,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms"
+    ]
+  },
+  {
+    "canonical_id": "MA-SC-MOT",
+    "jurisdiction": "massachusetts",
+    "form_id": "SC-MOT",
+    "canonical_name": "Superior Court Rule 9A Motion Package",
+    "department": "Superior Court",
+    "description": "Complete motion package including motion, memorandum, affidavit, and 9A certificate of compliance.",
+    "aliases": [
+      "Rule 9A Motion",
+      "Superior Court Rule 9A Motion Package"
+    ],
+    "official": true,
+    "is_efileable": true,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms"
+    ]
+  },
+  {
+    "canonical_id": "MA-TC0001",
+    "jurisdiction": "massachusetts",
+    "form_id": "TC0001",
+    "canonical_name": "Affidavit of Indigency",
+    "department": "Trial Court - All Departments",
+    "description": "Application requesting waiver of court filing fees and court costs under G.L. c. 261, § 27B.",
+    "aliases": [
+      "Indigency Affidavit",
+      "Fee Waiver",
+      "Affidavit of Indigency"
+    ],
+    "official": true,
+    "is_efileable": true,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms"
+    ]
+  },
+  {
+    "canonical_id": "MA-TC0002",
+    "jurisdiction": "massachusetts",
+    "form_id": "TC0002",
+    "canonical_name": "Supplement to Affidavit of Indigency",
+    "department": "Trial Court - All Departments",
+    "description": "Detailed financial supplement required when claiming indigency under inability-to-pay standard.",
+    "aliases": [
+      "Indigency Supplement",
+      "Supplement to Affidavit of Indigency"
+    ],
+    "official": true,
+    "is_efileable": true,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms"
+    ]
+  },
+  {
+    "canonical_id": "MA-TC0049",
+    "jurisdiction": "massachusetts",
+    "form_id": "TC0049",
+    "canonical_name": "Motion to the Court and Affidavit",
+    "department": "Trial Court - All Departments",
+    "description": "Generic multi-department motion and supporting affidavit for general procedural relief.",
+    "aliases": [
+      "Generic Motion",
+      "Motion and Affidavit",
+      "Motion to the Court and Affidavit"
+    ],
+    "official": true,
+    "is_efileable": true,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms",
+      "https://www.mass.gov/doc/general-purpose-motion/download"
+    ]
+  },
+  {
+    "canonical_id": "MA-Mass_-R_-Civ_-P_-55(b)(3)",
+    "jurisdiction": "massachusetts",
+    "form_id": "Mass. R. Civ. P. 55(b)(3)",
+    "canonical_name": "Request for Default Judgment",
+    "department": "Trial Court - Civil Departments",
+    "description": "Written request for entry of default judgment following failure of defendant to answer or appear.",
+    "aliases": [
+      "Default Judgment Request",
+      "Request for Default Judgment"
+    ],
+    "official": true,
+    "is_efileable": true,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms",
+      "https://www.mass.gov/doc/request-for-default-judgment-mass-r-civ-p-55b3/download"
+    ]
+  },
+  {
+    "canonical_id": "MA-TC-APP",
+    "jurisdiction": "massachusetts",
+    "form_id": "TC-APP",
+    "canonical_name": "Notice of Appearance",
+    "department": "Trial Court - All Departments",
+    "description": "Notice filed by attorney or self-represented litigant providing address and contact information.",
+    "aliases": [
+      "Appearance",
+      "Notice of Appearance"
+    ],
+    "official": true,
+    "is_efileable": true,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms"
+    ]
+  },
+  {
+    "canonical_id": "MA-TC-WITHDRAW",
+    "jurisdiction": "massachusetts",
+    "form_id": "TC-WITHDRAW",
+    "canonical_name": "Notice of Withdrawal of Appearance",
+    "department": "Trial Court - All Departments",
+    "description": "Notice filed to formally withdraw legal representation from an active case.",
+    "aliases": [
+      "Withdrawal of Appearance",
+      "Notice of Withdrawal of Appearance"
+    ],
+    "official": true,
+    "is_efileable": true,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms"
+    ]
+  },
+  {
+    "canonical_id": "MA-JV-19",
+    "jurisdiction": "massachusetts",
+    "form_id": "JV-19",
+    "canonical_name": "Petition for Care and Protection",
+    "department": "Juvenile Court",
+    "description": "Confidential petition alleging child is suffering from serious abuse or neglect under G.L. c. 119, § 24.",
+    "aliases": [
+      "Care and Protection Petition",
+      "Petition for Care and Protection"
+    ],
+    "official": true,
+    "is_efileable": false,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms"
+    ]
+  },
+  {
+    "canonical_id": "MA-JV-02",
+    "jurisdiction": "massachusetts",
+    "form_id": "JV-02",
+    "canonical_name": "Child Requiring Assistance (CRA) Petition",
+    "department": "Juvenile Court",
+    "description": "Petition seeking judicial assistance for runaway, truant, or sexually exploited youth.",
+    "aliases": [
+      "CRA Petition",
+      "Child Requiring Assistance (CRA) Petition"
+    ],
+    "official": true,
+    "is_efileable": false,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms"
+    ]
+  },
+  {
+    "canonical_id": "MA-AC-ENTRY",
+    "jurisdiction": "massachusetts",
+    "form_id": "AC-ENTRY",
+    "canonical_name": "Civil Appeal Entry Form",
+    "department": "Appeals Court",
+    "description": "Mandatory entry form filed to docket a civil appeal in the Massachusetts Appeals Court.",
+    "aliases": [
+      "Civil Appeal Entry Form",
+      "Civil Appeal Entry Form"
+    ],
+    "official": true,
+    "is_efileable": true,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms"
+    ]
+  },
+  {
+    "canonical_id": "MA-AC-DOCKET",
+    "jurisdiction": "massachusetts",
+    "form_id": "AC-DOCKET",
+    "canonical_name": "Docketing Statement",
+    "department": "Appeals Court",
+    "description": "Required statement detailing appellate issues, lower court jurisdiction, and transcript status.",
+    "aliases": [
+      "Docketing Statement",
+      "Docketing Statement"
+    ],
+    "official": true,
+    "is_efileable": true,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms"
+    ]
+  },
+  {
+    "canonical_id": "MA-AC-MOT-EXT",
+    "jurisdiction": "massachusetts",
+    "form_id": "AC-MOT-EXT",
+    "canonical_name": "Motion of Appellant to Extend Date for Filing Brief and Appendix",
+    "department": "Appeals Court",
+    "description": "Motion requesting extension of time to file appellant's brief and appendix.",
+    "aliases": [
+      "Motion to Extend Time",
+      "Motion of Appellant to Extend Date for Filing Brief and Appendix"
+    ],
+    "official": true,
+    "is_efileable": true,
+    "is_form": true,
+    "revision": null,
+    "document_role": "court_form",
+    "source_urls": [
+      "https://www.mass.gov/court-forms"
+    ]
+  }
+]

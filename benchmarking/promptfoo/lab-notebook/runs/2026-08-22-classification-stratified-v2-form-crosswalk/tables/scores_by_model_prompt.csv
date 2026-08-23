@@ -1,0 +1,3 @@
+suite,provider_label,prompt_label,runs,mean_score,passes,errors,mean_latency_ms,total_tokens,total_cost
+classification,mistral-large:mistral-large-3,taxonomy-classification:v2:form-crosswalk,18,0.955556,17,0,3043,41448,0
+classification,openai-small:gpt-5.4-nano,taxonomy-classification:v2:form-crosswalk,18,1.0,18,0,2205,36269,0.0068614

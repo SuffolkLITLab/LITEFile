@@ -1,0 +1,23 @@
+{
+  "repo": "SuffolkLITLab/LITEFile",
+  "path": "efile_app/efile/services/extraction_fields.py",
+  "fields": {
+    "document title": "The title printed on the document, such as Complaint, Motion, or Affidavit",
+    "court name": "The court, court unit, county, or venue shown on the document",
+    "filing type": "The formal title of the filing being made",
+    "case category": "The high-level court category or division for this case",
+    "case type": "The more specific type of legal case this document is part of",
+    "docket number": "The court's docket or case number, if one is shown",
+    "case title": "The full case caption or title, if one is shown",
+    "plaintiff or petitioner names": "All plaintiff or petitioner names, in document order, separated by semicolons",
+    "defendant or respondent names": "All defendant or respondent names, in document order, separated by semicolons",
+    "other party names": "Any other named parties and their stated roles, separated by semicolons",
+    "document date": "The date the document was signed, issued, or filed, including the label that identifies the date"
+  },
+  "normalization_notes": {
+    "court name": "normalized to court",
+    "case number": "normalized to docket number",
+    "unknown extra fields": "preserved by normalize_extracted_fields"
+  },
+  "testing_note": "extractability.jsonl maps these fields to direct, semantic, optional inference, and do-not-require buckets for each PDF."
+}

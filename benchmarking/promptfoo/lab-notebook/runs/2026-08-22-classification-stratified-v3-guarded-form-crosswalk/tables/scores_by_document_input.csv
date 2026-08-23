@@ -1,0 +1,3 @@
+suite,variant,input_mode,prompt_version,runs,mean_score,passes,errors,mean_latency_ms,total_tokens,total_cost
+classification,flattened,guarded-form-crosswalk,v3,34,0.926471,31,0,2430,72629,0.00644102
+classification,motion-facsimile,guarded-form-crosswalk,v3,2,1.0,2,0,1556,8753,0.00036316

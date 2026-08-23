@@ -1,0 +1,46 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+description: LITEFile court-document extraction prompt and model matrix
+
+prompts:
+  - id: file://./prompts/document_extraction.py:create_v1
+    label: document-extraction:v1-production
+  - id: file://./prompts/document_extraction.py:create_v2
+    label: document-extraction:v2-evidence-bound
+
+providers:
+  - id: openai:chat:gpt-5.4-nano
+    label: openai-small:gpt-5.4-nano
+    config:
+      reasoning_effort: low
+      response_format:
+        type: json_object
+  - id: openai:chat:gpt-5.4
+    label: openai-large:gpt-5.4
+    config:
+      reasoning_effort: low
+      response_format:
+        type: json_object
+  - id: openai:chat:mistral-small-2503
+    label: mistral-small:mistral-small-2503
+  - id: openai:chat:mistral-large-3
+    label: mistral-large:mistral-large-3
+  - id: openai:chat:DeepSeek-V4-Flash-Jack
+    label: deepseek-small:deepseek-v4-flash
+  - id: openai:chat:deepseek-v4
+    label: deepseek-large:deepseek-v4-pro
+
+defaultTest:
+  threshold: 0.6
+  options:
+    disableVarExpansion: true
+  assert:
+    - type: javascript
+      value: file://./assertions/set_jaccard.js
+      metric: field-set-jaccard
+
+tests: file://./data/cases.jsonl
+
+evaluateOptions:
+  maxConcurrency: 2
+
+sharing: false

@@ -1,0 +1,99 @@
+{
+  "reviewed_at": "2026-08-22",
+  "endpoint": "https://efile-test.suffolklitlab.org",
+  "notes": "Selected live Tyler code-list matches. Entries not listed here retain a lower synthetic-label confidence in generated cases.",
+  "cases": {
+    "IL-01": {
+      "case category": {
+        "required": false,
+        "abstain": true,
+        "confidence": 0.9,
+        "review_status": "rejected_by_live_catalog",
+        "notes": "DuPage has no generic Civil category in the initial-filing list; the complaint facts do not choose another category."
+      }
+    },
+    "IL-02": {
+      "case category": {"accepted": ["Dissolution (Divorce) with Children"], "confidence": 0.99, "review_status": "verified_live", "tyler": {"code": "190919", "name": "Dissolution (Divorce) with Children"}},
+      "case type": {"accepted": ["Dissolution (with children)"], "confidence": 0.99, "review_status": "verified_live", "tyler": {"code": "242453", "name": "Dissolution (with children)"}},
+      "filing type": {"accepted": ["Petition Dissolution of Marriage/Civil Union"], "confidence": 0.96, "review_status": "verified_live", "tyler": {"code": "243164", "name": "Petition Dissolution of Marriage/Civil Union"}}
+    },
+    "IL-03": {
+      "case category": {"accepted": ["Eviction"], "confidence": 0.99, "review_status": "verified_live", "tyler": {"code": "190921", "name": "Eviction"}},
+      "case type": {"accepted": ["Residential - Eviction"], "confidence": 0.98, "review_status": "verified_live", "tyler": {"code": "318583", "name": "Residential - Eviction"}},
+      "filing type": {"accepted": ["Complaint"], "confidence": 0.95, "review_status": "verified_live", "tyler": {"code": "40501", "name": "Complaint"}}
+    },
+    "IL-04": {
+      "case category": {"accepted": ["Small Claims"], "confidence": 0.99, "review_status": "verified_live", "tyler": {"code": "7421", "name": "Small Claims"}},
+      "case type": {"accepted": ["Contract - Other (Excluding Business/Employment Dispute and Debt Collection) ($2,500.01 to $10K)", "Contract - Business Dispute (Buyer/Plaintiff) ($2,500.01 to $10K)"], "confidence": 0.7, "review_status": "verified_live_ambiguous", "tyler": {"code": "164987", "name": "Contract - Other (Excluding Business/Employment Dispute and Debt Collection) ($2,500.01 to $10K)"}, "accepted_tylers": [{"code": "164987", "name": "Contract - Other (Excluding Business/Employment Dispute and Debt Collection) ($2,500.01 to $10K)"}, {"code": "297718", "name": "Contract - Business Dispute (Buyer/Plaintiff) ($2,500.01 to $10K)"}], "notes": "The lost-property repair claim plausibly fits either Tyler's general contract-other path or its buyer/plaintiff business-dispute path. Treat both live values as acceptable until a court-facing reviewer resolves the local usage."},
+      "filing type": {"accepted": ["Complaint"], "confidence": 0.96, "review_status": "verified_live", "tyler": {"code": "214014", "name": "Complaint"}}
+    },
+    "IL-05": {
+      "case category": {"accepted": ["Miscellaneous Remedy"], "confidence": 0.99, "review_status": "verified_live", "tyler": {"code": "6195", "name": "Miscellaneous Remedy"}},
+      "case type": {"accepted": ["Change of Name"], "confidence": 0.99, "review_status": "verified_live", "tyler": {"code": "324997", "name": "Change of Name"}},
+      "filing type": {"accepted": ["Request for Name Change (Adult)"], "confidence": 0.99, "review_status": "verified_live", "tyler": {"code": "321551", "name": "Request for Name Change (Adult)"}}
+    },
+    "IL-06": {
+      "case category": {"accepted": ["Guardianship"], "confidence": 0.99, "review_status": "verified_live", "tyler": {"code": "190924", "name": "Guardianship"}},
+      "case type": {"accepted": ["Guardianship of Minor"], "confidence": 0.99, "review_status": "verified_live", "tyler": {"code": "192350", "name": "Guardianship of Minor"}},
+      "filing type": {"accepted": ["Petition"], "confidence": 0.94, "review_status": "verified_live", "tyler": {"code": "77832", "name": "Petition"}}
+    },
+    "IL-07": {
+      "case category": {"accepted": ["Order of Protection"], "confidence": 0.99, "review_status": "verified_live", "tyler": {"code": "7418", "name": "Order of Protection"}},
+      "case type": {"accepted": ["Order of Protection"], "confidence": 0.98, "review_status": "verified_live", "tyler": {"code": "5895", "name": "Order of Protection"}},
+      "filing type": {"accepted": ["Petition Order of Protection (Emergency)"], "confidence": 0.94, "review_status": "verified_live", "tyler": {"code": "177738", "name": "Petition Order of Protection (Emergency)"}}
+    },
+    "IL-08": {
+      "case category": {"accepted": ["Eviction"], "confidence": 0.94, "review_status": "verified_live_document_supported", "tyler": {"code": "190921", "name": "Eviction"}, "notes": "Although a fee-waiver filing is generic, this synthetic document's 2026-EV docket prefix and landlord-tenant caption support the live Eviction category."},
+      "case type": {"required": false, "abstain": true, "confidence": 0.95, "review_status": "document_does_not_establish"}
+    },
+    "IL-10": {
+      "case category": {"accepted": ["Probate"], "confidence": 0.96, "review_status": "verified_live", "tyler": {"code": "7420", "name": "Probate"}},
+      "case type": {"accepted": ["Administration of Decedent's Estate"], "confidence": 0.95, "review_status": "verified_live", "tyler": {"code": "215566", "name": "Administration of Decedent's Estate"}},
+      "filing type": {"accepted": ["Motion"], "confidence": 0.9, "review_status": "verified_live", "tyler": {"code": "246243", "name": "Motion"}, "notes": "Tyler does not expose a motion-to-extend-inventory label for this path; natural document title remains useful separately."}
+    },
+    "MA-07": {
+      "case category": {"accepted": ["Summary Process"], "confidence": 0.98, "review_status": "verified_live", "tyler": {"code": "8730", "name": "Summary Process"}},
+      "case type": {"accepted": ["Efiled SP Summons and Complaint - Non-payment of Rent"], "confidence": 0.9, "review_status": "verified_live", "tyler": {"code": "8734", "name": "Efiled SP Summons and Complaint - Non-payment of Rent"}},
+      "filing type": {"accepted": ["Entry Package - SP Summons and Complaint - Non-payment of Rent"], "confidence": 0.88, "review_status": "verified_live", "tyler": {"code": "8757", "name": "Entry Package - SP Summons and Complaint - Non-payment of Rent"}}
+    },
+    "VT-01": {
+      "case category": {"accepted": ["Family"], "confidence": 0.99, "review_status": "verified_live", "tyler": {"code": "210", "name": "Family"}},
+      "case type": {"accepted": ["Dissolution Contested with No Minor Children"], "confidence": 0.92, "review_status": "verified_live", "tyler": {"code": "6107", "name": "Dissolution Contested with No Minor Children"}}
+    },
+    "VT-02": {
+      "case category": {"accepted": ["Family"], "confidence": 0.99, "review_status": "verified_live", "tyler": {"code": "210", "name": "Family"}},
+      "case type": {"accepted": ["Dissolution Contested with Minor Children"], "confidence": 0.92, "review_status": "verified_live", "tyler": {"code": "6106", "name": "Dissolution Contested with Minor Children"}}
+    },
+    "VT-03": {
+      "case category": {"accepted": ["Civil"], "confidence": 0.99, "review_status": "verified_live", "tyler": {"code": "7", "name": "Civil"}},
+      "case type": {"accepted": ["Small Claims $1,001 - $10,000"], "confidence": 0.99, "review_status": "verified_live", "tyler": {"code": "13917", "name": "Small Claims $1,001 - $10,000"}}
+    },
+    "VT-04": {
+      "case category": {"accepted": ["Civil"], "confidence": 0.99, "review_status": "verified_live", "tyler": {"code": "7", "name": "Civil"}},
+      "case type": {"accepted": ["Contract - Other"], "confidence": 0.65, "review_status": "verified_live_ambiguous", "tyler": {"code": "6098", "name": "Contract - Other"}, "notes": "The answer describes a maintenance contract dispute, but a response document is weaker evidence than an initiating complaint."}
+    },
+    "VT-05": {
+      "case category": {"accepted": ["Family"], "confidence": 0.99, "review_status": "verified_live", "tyler": {"code": "210", "name": "Family"}},
+      "case type": {"accepted": ["Relief from Abuse"], "confidence": 0.99, "review_status": "verified_live", "tyler": {"code": "6177", "name": "Relief from Abuse"}}
+    },
+    "VT-06": {
+      "case category": {"accepted": ["Probate or Mental Health"], "confidence": 0.99, "review_status": "verified_live", "tyler": {"code": "169", "name": "Probate or Mental Health"}},
+      "case type": {"accepted": ["Change of Name Adult"], "confidence": 0.99, "review_status": "verified_live", "tyler": {"code": "6076", "name": "Change of Name Adult"}}
+    },
+    "VT-07": {
+      "case category": {"accepted": ["Probate or Mental Health"], "confidence": 0.99, "review_status": "verified_live", "tyler": {"code": "169", "name": "Probate or Mental Health"}},
+      "case type": {"accepted": ["Guardianship - Custodial Minor"], "confidence": 0.99, "review_status": "verified_live", "tyler": {"code": "6126", "name": "Guardianship - Custodial Minor"}}
+    },
+    "VT-08": {
+      "case category": {"accepted": ["Family"], "confidence": 0.99, "review_status": "verified_live", "tyler": {"code": "210", "name": "Family"}}
+    },
+    "VT-09": {
+      "case category": {"accepted": ["Civil"], "confidence": 0.99, "review_status": "verified_live", "tyler": {"code": "7", "name": "Civil"}}
+    },
+    "VT-10": {
+      "case category": {"accepted": ["Family"], "confidence": 0.99, "review_status": "verified_live", "tyler": {"code": "210", "name": "Family"}},
+      "case type": {"required": false, "abstain": true, "confidence": 0.95, "review_status": "document_does_not_establish", "notes": "Child support identifies the motion, but the underlying Tyler case may be dissolution, parentage, or another family case."},
+      "filing type": {"accepted": ["Motion to Modify Child Support - Postjudgment/Fee Required", "Motion to Modify Child Support – Pre Judgment or No Fee", "Motion to Modify Child Support Stipulated"], "confidence": 0.72, "review_status": "verified_live_ambiguous", "notes": "The PDF supports modification of child support but not the fee/stipulation branch needed to select one Tyler code."}
+    }
+  }
+}

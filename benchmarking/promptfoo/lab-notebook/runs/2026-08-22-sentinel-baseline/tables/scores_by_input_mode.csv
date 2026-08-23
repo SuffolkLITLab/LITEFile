@@ -1,0 +1,9 @@
+suite,input_mode,prompt_version,runs,mean_score,passes,errors,mean_latency_ms,total_tokens,total_cost
+modality-text,text,v1-production,12,0.255807,4,0,2696,8202,0.0141083
+modality-text,text,v2-evidence-bound,12,0.435784,6,0,1778,8545,0.01559055
+modality-vision,vision,v1-production,12,0.724242,9,0,2447,71371,0.0280935
+modality-vision,vision,v2-evidence-bound,12,0.856369,12,0,4054,73346,0.03373815
+phi-vision-exploratory,vision,v1-production,14,0.680566,11,1,3161,75359,0.02951405
+phi-vision-exploratory,vision,v2-evidence-bound,14,0.841785,13,0,4121,80697,0.03028885
+sentinel-text,,v1-production,42,0.525558,21,0,3157,27371,0.03787895
+sentinel-text,,v2-evidence-bound,42,0.583918,24,0,3528,38391,0.04159315

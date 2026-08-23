@@ -1,0 +1,11 @@
+run_id,validity,passes,total,accuracy,prompt_tokens,errors
+2026-08-22-classification-stratified-v1-baseline,diagnostic_only,32,36,0.888889,61694,0
+2026-08-22-classification-stratified-v2-role-rubric,diagnostic_only,36,36,1.0,66194,0
+2026-08-22-classification-stratified-v2-form-crosswalk,diagnostic_only,35,36,0.972222,70272,0
+2026-08-22-classification-stratified-v3-retrieval-shortlist,diagnostic_only,35,36,0.972222,45942,0
+2026-08-22-classification-stratified-v1-baseline-hierarchy-corrected,valid,31,36,0.861111,61330,0
+2026-08-22-classification-stratified-v2-role-rubric-hierarchy-corrected,valid,33,36,0.916667,65830,0
+2026-08-22-classification-stratified-v2-form-crosswalk-hierarchy-corrected,valid,34,36,0.944444,69908,0
+2026-08-22-classification-stratified-v3-retrieval-shortlist-hierarchy-corrected,valid,31,36,0.861111,45578,0
+2026-08-22-classification-stratified-v3-guarded-form-crosswalk,valid,33,36,0.916667,73994,0
+2026-08-22-classification-stratified-v4-reference-form-crosswalk,valid,36,36,1.0,72895,0

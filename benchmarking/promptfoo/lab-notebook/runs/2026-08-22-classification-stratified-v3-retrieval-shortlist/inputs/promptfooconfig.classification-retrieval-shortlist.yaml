@@ -1,0 +1,23 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+description: Stratified taxonomy classification — three-stage Python retrieval shortlist
+prompts:
+  - id: file://./prompts/taxonomy_classification_study.py:retrieval_shortlist
+    label: taxonomy-classification:v3:retrieval-shortlist
+providers:
+  - id: openai:chat:gpt-5.4-nano
+    label: openai-small:gpt-5.4-nano
+    config:
+      reasoning_effort: low
+      response_format: {type: json_object}
+  - id: openai:chat:mistral-large-3
+    label: mistral-large:mistral-large-3
+defaultTest:
+  threshold: 1
+  options: {disableVarExpansion: true}
+  assert:
+    - type: javascript
+      value: file://./assertions/taxonomy_classification.js
+      metric: durable-name-selection
+tests: file://./data/classification_sentinel_cases.jsonl
+evaluateOptions: {maxConcurrency: 2}
+sharing: false

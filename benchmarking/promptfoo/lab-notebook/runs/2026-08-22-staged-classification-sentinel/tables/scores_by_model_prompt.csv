@@ -1,0 +1,13 @@
+suite,provider_label,prompt_label,runs,mean_score,passes,errors,mean_latency_ms,total_tokens,total_cost
+staged-taxonomy,meta-large:llama-4-maverick,taxonomy-classification:v1:evidence+source-first-3-pages,7,0.285714,2,0,2832,13204,0
+staged-taxonomy,meta-large:llama-4-maverick,taxonomy-classification:v1:evidence-only,7,0.0,0,0,2531,11713,0
+staged-taxonomy,meta-large:llama-4-maverick,taxonomy-classification:v1:source-first-3-pages,7,0.285714,2,0,2637,12063,0
+staged-taxonomy,mistral-large:mistral-large-3,taxonomy-classification:v1:evidence+source-first-3-pages,7,0.857143,6,0,3711,12967,0
+staged-taxonomy,mistral-large:mistral-large-3,taxonomy-classification:v1:evidence-only,7,0.857143,6,0,2069,10513,0
+staged-taxonomy,mistral-large:mistral-large-3,taxonomy-classification:v1:source-first-3-pages,7,0.771429,5,0,2464,12395,0
+staged-taxonomy,openai-large:gpt-5.4,taxonomy-classification:v1:evidence+source-first-3-pages,7,0.771429,5,0,2795,11232,0.0399455
+staged-taxonomy,openai-large:gpt-5.4,taxonomy-classification:v1:evidence-only,7,0.571429,4,0,3982,9247,0.040505
+staged-taxonomy,openai-large:gpt-5.4,taxonomy-classification:v1:source-first-3-pages,7,0.771429,5,0,2435,10649,0.042485
+staged-taxonomy,openai-small:gpt-5.4-nano,taxonomy-classification:v1:evidence+source-first-3-pages,7,0.857143,6,0,1938,11075,0.0035065
+staged-taxonomy,openai-small:gpt-5.4-nano,taxonomy-classification:v1:evidence-only,7,0.857143,6,0,1928,9120,0.00273648
+staged-taxonomy,openai-small:gpt-5.4-nano,taxonomy-classification:v1:source-first-3-pages,7,1.0,7,0,1995,10570,0.0033635

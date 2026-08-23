@@ -1,0 +1,32 @@
+# Fly.io configuration for the crosswalk review app.
+# Uses the same Docker image as the main LITEFile app but runs only the
+# Django web process (no extraction worker) and seeds the crosswalk data
+# on every release.
+
+app = "litefile-crosswalk-review"
+primary_region = "lax"
+
+[build]
+
+[env]
+  DJANGO_SETTINGS_MODULE = "efile.settings_staging"
+
+[deploy]
+  # Run migrations then load the crosswalk data (idempotent via update_or_create)
+  release_command = "sh -c 'uv run python manage.py migrate --noinput --fake-initial && uv run python manage.py load_crosswalk'"
+
+[processes]
+  app = "uv run gunicorn efile.asgi:application -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --workers 2 --timeout 60 --access-logfile - --error-logfile -"
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+
+[[vm]]
+  memory = "512mb"
+  cpu_kind = "shared"
+  cpus = 1

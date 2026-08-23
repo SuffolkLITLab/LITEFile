@@ -1,0 +1,13 @@
+suite,provider_label,prompt_label,runs,mean_score,passes,errors,mean_latency_ms,total_tokens,total_cost
+form-identity-vision,meta-large:llama-4-maverick,document-extraction:v1-production:vision,2,0.735991,2,0,1670,6171,0
+form-identity-vision,meta-large:llama-4-maverick,document-extraction:v2-evidence-bound:vision,2,1.0,2,0,1595,6468,0
+form-identity-vision,meta-small:llama-4-scout,document-extraction:v1-production:vision,2,0.0,0,0,2015,6200,0
+form-identity-vision,meta-small:llama-4-scout,document-extraction:v2-evidence-bound:vision,2,1.0,2,0,2006,6464,0
+form-identity-vision,openai-large:gpt-4o,document-extraction:v1-production:vision,2,0.829167,2,0,3136,2516,0.00899
+form-identity-vision,openai-large:gpt-4o,document-extraction:v2-evidence-bound:vision,2,0.866515,2,0,3483,2775,0.009675
+form-identity-vision,openai-large:gpt-5.4,document-extraction:v1-production:vision,2,0.866515,2,0,4576,3477,0.01823
+form-identity-vision,openai-large:gpt-5.4,document-extraction:v2-evidence-bound:vision,2,0.866515,2,0,5462,3618,0.01717
+form-identity-vision,openai-small:gpt-4o-mini,document-extraction:v1-production:vision,2,0.74585,2,0,2082,52209,0.0079686
+form-identity-vision,openai-small:gpt-4o-mini,document-extraction:v2-evidence-bound:vision,2,0.682389,2,0,3872,52518,0.0080397
+form-identity-vision,openai-small:gpt-5.4-nano,document-extraction:v1-production:vision,2,0.39596,1,1,2489,1733,0.0007414
+form-identity-vision,openai-small:gpt-5.4-nano,document-extraction:v2-evidence-bound:vision,2,0.570447,1,0,4617,3773,0.00159985

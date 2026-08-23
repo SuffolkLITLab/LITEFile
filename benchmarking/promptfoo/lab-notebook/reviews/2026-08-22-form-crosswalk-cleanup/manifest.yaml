@@ -1,0 +1,29 @@
+review_id: 2026-08-22-form-crosswalk-cleanup
+repository_revision: b0bce05b906c688ae650b18f859ecd052fd9618b
+crosswalk_schema_version: 1.1.0
+endpoint: https://efile-test.suffolklitlab.org
+identity_policy: canonical names across environments; numeric keys are transient observations only
+commands:
+  - python promptfoo/scripts/normalize_form_code_crosswalk.py
+  - python promptfoo/scripts/audit_form_code_crosswalk.py
+  - python promptfoo/scripts/audit_form_code_crosswalk.py --live --include-suggestions --output promptfoo/lab-notebook/reviews/2026-08-22-form-crosswalk-cleanup/artifacts/live-audit.json
+  - python promptfoo/scripts/audit_form_code_crosswalk.py --sources --update-crosswalk --output promptfoo/lab-notebook/reviews/2026-08-22-form-crosswalk-cleanup/artifacts/source-audit.json
+artifacts:
+  crosswalk:
+    path: promptfoo/data/form_code_crosswalk.json
+    sha256: 7826ed96e3d6d94f173d4e1166181df7f4f9fec27afcde8ba454d8eae8a59394
+  live_audit:
+    path: artifacts/live-audit.json
+    sha256: f7719a78a2f5862b7a8407a254c09632cbd73a369c961de1e43fb797b18664da
+  source_audit:
+    path: artifacts/source-audit.json
+    sha256: 387bc94ff5ce4ef7ec66757c7ae1d1f749d5ec0e82216f73e9acdb006051f3df
+  audit_script:
+    path: promptfoo/scripts/audit_form_code_crosswalk.py
+    sha256: c20c2e72296814fdf46301e1da9629ecb98eb4f612f18c5a888b06620aafc1b4
+  normalization_script:
+    path: promptfoo/scripts/normalize_form_code_crosswalk.py
+    sha256: 4e8a225f09c456af2cb1f512c7a1f6075cba55ad4caceb5dc52512c44db5f1b5
+notes:
+  - Audit timestamps use UTC and fall on 2026-08-23; the review directory uses the local America/New_York work date.
+  - The crosswalk and scripts were uncommitted working-tree data during this review; repository_revision identifies the parent revision only.

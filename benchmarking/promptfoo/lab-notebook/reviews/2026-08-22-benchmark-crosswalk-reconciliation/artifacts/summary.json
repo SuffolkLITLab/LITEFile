@@ -1,0 +1,12 @@
+{
+  "rows": 90,
+  "cases": 30,
+  "result_counts": {
+    "agrees": 24,
+    "benchmark_unresolved": 23,
+    "conflict": 15,
+    "crosswalk_unresolved": 19,
+    "no_crosswalk_match": 9
+  },
+  "crosswalk_matched_cases": 27
+}

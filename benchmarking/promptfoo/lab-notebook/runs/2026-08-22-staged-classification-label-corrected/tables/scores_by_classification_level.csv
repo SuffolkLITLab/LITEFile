@@ -1,0 +1,10 @@
+suite,classification_level,input_mode,runs,mean_score,passes,errors,mean_latency_ms,total_tokens,total_cost
+staged-taxonomy,case category,evidence+source-first-3-pages,8,0.875,7,0,3209,10803,0.01139165
+staged-taxonomy,case category,evidence-only,8,0.75,6,0,3015,8846,0.01092025
+staged-taxonomy,case category,source-first-3-pages,8,1.0,8,0,2048,9851,0.012127
+staged-taxonomy,case type,evidence+source-first-3-pages,12,0.75,9,0,3364,16425,0.01932735
+staged-taxonomy,case type,evidence-only,12,0.641667,7,0,3713,12901,0.01299593
+staged-taxonomy,case type,source-first-3-pages,12,0.783333,8,0,2426,14964,0.01446658
+staged-taxonomy,filing type,evidence+source-first-3-pages,8,0.75,6,0,2155,21683,0.01521168
+staged-taxonomy,filing type,evidence-only,8,0.75,6,0,2182,18975,0.01202485
+staged-taxonomy,filing type,source-first-3-pages,8,0.675,5,0,1860,21050,0.00802587

@@ -1,17 +1,21 @@
 """Small OpenAI-compatible helpers used for document field extraction."""
 
+import base64
 import json
 import logging
 import mimetypes
 import os
 import re
+from pathlib import Path
 from typing import Any, Literal
 
 import tiktoken
 from django.conf import settings
 from markitdown import MarkItDown
-from openai import NotFoundError, OpenAI
+from openai import BadRequestError, NotFoundError, OpenAI
 from openai import OpenAIError as LlmError
+
+from efile.utils.prompt_config import render_prompt_messages, shared_prompt_text
 
 logger = logging.getLogger(__name__)
 
@@ -281,6 +285,7 @@ def chat_completion(
     max_output_tokens: int | None = None,
     max_input_tokens: int | None = None,
     reasoning_effort: Literal["minimal", "low", "medium", "high"] | None = None,
+    model_type: str = "small",
 ) -> list[Any] | dict[str, Any] | str:
     """Call an OpenAI-compatible chat endpoint and optionally parse JSON."""
     config = get_config("open ai", {}) or {}
@@ -294,7 +299,12 @@ def chat_completion(
             "Warning: json_mode is enabled but no message mentions JSON; adding an instruction.",
             "warning",
         )
-        messages = list(messages) + [{"role": "system", "content": "Respond only with a JSON object"}]
+        messages = list(messages) + [
+            {
+                "role": "system",
+                "content": shared_prompt_text("document_extraction", "json_mode_reminder"),
+            }
+        ]
 
     if not messages:
         if not isinstance(system_message, str) or not isinstance(user_message, str):
@@ -318,7 +328,7 @@ def chat_completion(
     if not openai_client:
         raise RuntimeError("An OpenAI client or API key must be provided to use this function.")
 
-    model = model or get_default_model(openai_client=openai_client)
+    model = model or get_default_model(model_type=model_type, openai_client=openai_client)
     try:
         encoding = tiktoken.encoding_for_model(model)
     except Exception:
@@ -374,27 +384,30 @@ def extract_fields_from_text(
     model: str | None = None,
     reasoning_effort: Literal["minimal", "low", "medium", "high"] | None = "low",
     openai_base_url: str | None = None,
+    llm_hint: str | None = "",
+    prompt_version_name: str | None = None,
+    prompt_name: str = "document_extraction",
 ) -> dict[str, Any]:
     """Extract the requested fields from text and return them as a dictionary."""
-    system_message = f"""
-    Extract the list of fields from the text supplied by the user.
-
-    ```
-    {repr(field_list)}
-    ```
-
-    If a field cannot be defined from the text, omit it from the JSON response.
-    """
+    messages, version_config = render_prompt_messages(
+        prompt_name,
+        mode="text",
+        field_definitions=field_list,
+        jurisdiction_hint=llm_hint or "",
+        document_text=text,
+        version=prompt_version_name,
+    )
+    inference = version_config.get("inference", {})
     result = chat_completion(
-        system_message=system_message,
-        user_message=text,
+        messages=messages,
         model=model,
         openai_client=openai_client,
         openai_api=openai_api,
-        temperature=temperature,
+        temperature=inference.get("temperature", temperature),
         json_mode=True,
-        reasoning_effort=reasoning_effort,
+        reasoning_effort=inference.get("reasoning_effort", reasoning_effort),
         openai_base_url=openai_base_url,
+        model_type=version_config.get("preferred_model_tier", "small"),
     )
     if not isinstance(result, dict):
         raise TypeError("Field extraction did not return a JSON object")
@@ -427,6 +440,9 @@ def extract_fields_from_file(
     ocr_images_and_pdfs: bool = False,
     ocr_use_google: bool = False,
     openai_base_url: str | None = None,
+    prompt_version_name: str | None = None,
+    prompt_name: str = "document_extraction",
+    diagnostics: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Extract requested fields from a local file and return a dictionary.
 
@@ -434,18 +450,14 @@ def extract_fields_from_file(
     object exposing a ``path`` attribute or method. The function never assigns
     extracted values to application variables.
     """
-    system_message = (
-        "You are a data extraction assistant. You return answers in JSON format, "
-        'like: {"field_name": "value", "field_name2": "value2"}'
+    messages, version_config = render_prompt_messages(
+        prompt_name,
+        mode="file",
+        field_definitions=field_list,
+        jurisdiction_hint=llm_hint or "",
+        version=prompt_version_name,
     )
-    user_message = f"""
-    Extract only the list of fields below from the attached document. If the field is not present in the document, do not include it in the response.
-    {llm_hint or ""}
-
-    ```
-    {repr(field_list)}
-    ```
-    """
+    inference = version_config.get("inference", {})
 
     if isinstance(the_file, list | tuple):
         if not the_file:
@@ -470,6 +482,8 @@ def extract_fields_from_file(
         except Exception as error:
             log(f"Error converting file {file_path}: {error}", "error")
             return {}
+        if diagnostics is not None:
+            diagnostics["input_mode"] = "markitdown_text"
         return extract_fields_from_text(
             conversion_result.text_content,
             field_list,
@@ -478,6 +492,9 @@ def extract_fields_from_file(
             model=model,
             reasoning_effort=reasoning_effort,
             openai_base_url=openai_base_url,
+            llm_hint=llm_hint,
+            prompt_version_name=prompt_version_name,
+            prompt_name=prompt_name,
         )
 
     if not openai_client:
@@ -496,7 +513,45 @@ def extract_fields_from_file(
 
     if not openai_client:
         raise RuntimeError("An OpenAI client or API key must be provided.")
-    model = model or get_default_model(openai_client=openai_client)
+    model = model or get_default_model(
+        model_type=version_config.get("preferred_model_tier", "small"),
+        openai_client=openai_client,
+    )
+
+    # Responses accepts an inline PDF and lets providers that support native
+    # document input inspect page images as well as embedded text. Inline data
+    # avoids relying on a provider's Files API namespace: several compatible
+    # gateways accept an upload but cannot resolve its file ID during inference.
+    try:
+        encoded_file = base64.b64encode(Path(file_path).read_bytes()).decode("ascii")
+        response = openai_client.responses.create(
+            model=model,
+            input=[
+                {
+                    "role": "system",
+                    "content": [{"type": "input_text", "text": messages[0]["content"]}],
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "input_file",
+                            "filename": Path(file_path).name,
+                            "file_data": f"data:application/pdf;base64,{encoded_file}",
+                        },
+                        {"type": "input_text", "text": messages[1]["content"]},
+                    ],
+                },
+            ],
+            text={"format": {"type": "json_object"}},
+        )
+        response_text = getattr(response, "output_text", None)
+        if isinstance(response_text, str):
+            if diagnostics is not None:
+                diagnostics["input_mode"] = "native_inline_pdf"
+            return json.loads(response_text)
+    except (AttributeError, BadRequestError, NotFoundError):
+        log("The LLM gateway does not support inline PDF responses; trying its Files API.", "warning")
 
     with open(file_path, "rb") as file_handle:
         file_upload = openai_client.files.create(file=file_handle, purpose="user_data")
@@ -506,17 +561,17 @@ def extract_fields_from_file(
             result = openai_client.chat.completions.create(
                 model=model,
                 messages=[
-                    {"role": "system", "content": system_message},
+                    messages[0],
                     {
                         "role": "user",
                         "content": [
                             {"type": "file", "file": {"file_id": file_upload.id}},
-                            {"type": "text", "text": user_message},
+                            {"type": "text", "text": messages[1]["content"]},
                         ],
                     },
                 ],
                 response_format={"type": "json_object"},
-                reasoning_effort=reasoning_effort,
+                reasoning_effort=inference.get("reasoning_effort", reasoning_effort),
             )
         except NotFoundError:
             # Some OpenAI-compatible gateways accept Files API uploads but do
@@ -528,12 +583,17 @@ def extract_fields_from_file(
             except Exception as error:
                 log(f"Error converting PDF {file_path}: {error}", "error")
                 return {}
+            if diagnostics is not None:
+                diagnostics["input_mode"] = "markitdown_text"
             return extract_fields_from_text(
                 text,
                 field_list,
                 openai_client=openai_client,
                 model=model,
                 reasoning_effort=reasoning_effort,
+                llm_hint=llm_hint,
+                prompt_version_name=prompt_version_name,
+                prompt_name=prompt_name,
             )
     finally:
         try:
@@ -547,6 +607,8 @@ def extract_fields_from_file(
     content = result.choices[0].message.content
     if not isinstance(content, str):
         raise TypeError("The JSON response did not contain text content")
+    if diagnostics is not None:
+        diagnostics["input_mode"] = "files_api_pdf"
     return json.loads(content)
 
 

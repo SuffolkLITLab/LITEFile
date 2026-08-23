@@ -1,0 +1,5 @@
+suite,variant,input_mode,prompt_version,runs,mean_score,passes,errors,mean_latency_ms,total_tokens,total_cost
+form-identity-vision,flattened,vision,v1-production,6,0.654189,5,0,2972,36986,0.0180717
+form-identity-vision,flattened,vision,v2-evidence-bound,6,0.844277,6,0,3061,37726,0.017276
+form-identity-vision,scanned,vision,v1-production,6,0.536972,4,1,2351,35320,0.0178583
+form-identity-vision,scanned,vision,v2-evidence-bound,6,0.817678,5,0,3951,37890,0.01920855

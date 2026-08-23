@@ -1,0 +1,5 @@
+suite,variant,input_mode,prompt_version,runs,mean_score,passes,errors,mean_latency_ms,total_tokens,total_cost
+form-revision-guard,flattened,vision,v1-production,2,0.76811,2,0,2745,27446,0.00847175
+form-revision-guard,flattened,vision,v2-evidence-bound,2,0.732463,2,0,2914,27738,0.00888895
+form-revision-guard,scanned,vision,v1-production,2,0.814794,2,0,3114,27453,0.00847595
+form-revision-guard,scanned,vision,v2-evidence-bound,2,0.732463,2,0,2857,27734,0.00888655

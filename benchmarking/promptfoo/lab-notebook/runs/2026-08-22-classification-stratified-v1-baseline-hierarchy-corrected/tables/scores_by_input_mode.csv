@@ -1,0 +1,2 @@
+suite,input_mode,prompt_version,runs,mean_score,passes,errors,mean_latency_ms,total_tokens,total_cost
+classification,baseline,v1,36,0.886111,31,0,2031,67877,0.00700826

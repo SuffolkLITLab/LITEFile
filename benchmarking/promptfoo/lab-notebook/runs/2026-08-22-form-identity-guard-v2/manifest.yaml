@@ -1,0 +1,21 @@
+schema_version: 1
+run_id: 2026-08-22-form-identity-guard-v2
+status: current_form_identity_sentinel
+purpose: Verify positive revision gating and descriptive form-name extraction.
+providers: [gpt-4o-mini, gpt-4o]
+result:
+  eval_id: eval-B1U-2026-08-23T00:49:26
+  cells: 8
+  passes: 8
+  failures: 0
+  errors: 0
+  mean_score: 0.882838
+  total_tokens: 110874
+digests:
+  document_evidence_extraction.yaml: 79157be92962e1e32b59c036deca2cc7505506da6a439a35c3242bd31b59dcaa
+  document_extraction.yaml: 788ab21b5bed72561230c9adfce00f14e91f0f344c38801e964fe4971df34457
+  document_extraction.py: 86543ee9ce6381152fc9101468d596ac844be920f28ed3999d66d5b249223ca9
+  modality_cases.jsonl: 415970bc22a37cb2132b551b3fc965920416d2c4ef06ebae765656dec68d41f7
+  promptfooconfig.modality-vision.yaml: 0dbbc4c97d552750d0ca3c860c0a0063494f610f8f4f122a6b413f8346f512ba
+  set_jaccard.js: 39c1da283a859c4a67bb6e6be57d7a766c5062e542c62e7861048084b44395bb
+  result.json: f20aa9215d264995925a9a410e18de290d1b13b39b36f8dd116852f6b3377cf0

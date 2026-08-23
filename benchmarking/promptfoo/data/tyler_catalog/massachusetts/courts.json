@@ -1,0 +1,682 @@
+[
+  {
+    "name": "Appeals Court",
+    "code": "appeals"
+  },
+  {
+    "name": "Appeals Court - Panel (P docket)",
+    "code": "appeals:acp"
+  },
+  {
+    "name": "Appeals Court - Single Justice (J Docket)",
+    "code": "appeals:acsj"
+  },
+  {
+    "name": "BMC -  Charlestown",
+    "code": "419"
+  },
+  {
+    "name": "BMC - Brighton",
+    "code": "418"
+  },
+  {
+    "name": "BMC - Central",
+    "code": "1245"
+  },
+  {
+    "name": "BMC - Dorchester",
+    "code": "420"
+  },
+  {
+    "name": "BMC - East Boston",
+    "code": "408"
+  },
+  {
+    "name": "BMC - Roxbury",
+    "code": "417"
+  },
+  {
+    "name": "BMC - South Boston",
+    "code": "409"
+  },
+  {
+    "name": "BMC - West Roxbury",
+    "code": "665"
+  },
+  {
+    "name": "Barnstable Probate and Family Court",
+    "code": "335"
+  },
+  {
+    "name": "Berkshire Probate and Family Court",
+    "code": "341"
+  },
+  {
+    "name": "Bristol Probate and Family Court",
+    "code": "350"
+  },
+  {
+    "name": "Courtview Test - BMC - Brighton",
+    "code": "9418"
+  },
+  {
+    "name": "Courtview Test - District Court - Worcester",
+    "code": "9672"
+  },
+  {
+    "name": "Courtview Test - Essex Probate and Family Court",
+    "code": "9352"
+  },
+  {
+    "name": "Courtview Test - Trial Courts",
+    "code": "300"
+  },
+  {
+    "name": "District Court - Attleboro",
+    "code": "438"
+  },
+  {
+    "name": "District Court - Ayer",
+    "code": "336"
+  },
+  {
+    "name": "District Court - Barnstable",
+    "code": "815"
+  },
+  {
+    "name": "District Court - Brockton",
+    "code": "805"
+  },
+  {
+    "name": "District Court - Brookline",
+    "code": "506"
+  },
+  {
+    "name": "District Court - Cambridge",
+    "code": "490"
+  },
+  {
+    "name": "District Court - Chelsea",
+    "code": "398"
+  },
+  {
+    "name": "District Court - Chicopee",
+    "code": "455"
+  },
+  {
+    "name": "District Court - Clinton",
+    "code": "411"
+  },
+  {
+    "name": "District Court - Concord",
+    "code": "383"
+  },
+  {
+    "name": "District Court - Dedham",
+    "code": "507"
+  },
+  {
+    "name": "District Court - Dudley",
+    "code": "447"
+  },
+  {
+    "name": "District Court - East Brookfield",
+    "code": "449"
+  },
+  {
+    "name": "District Court - Eastern Hampshire",
+    "code": "453"
+  },
+  {
+    "name": "District Court - Edgartown",
+    "code": "484"
+  },
+  {
+    "name": "District Court - Fall River",
+    "code": "470"
+  },
+  {
+    "name": "District Court - Falmouth",
+    "code": "486"
+  },
+  {
+    "name": "District Court - Fitchburg",
+    "code": "413"
+  },
+  {
+    "name": "District Court - Framingham",
+    "code": "429"
+  },
+  {
+    "name": "District Court - Gardner",
+    "code": "422"
+  },
+  {
+    "name": "District Court - Gloucester",
+    "code": "389"
+  },
+  {
+    "name": "District Court - Greenfield",
+    "code": "465"
+  },
+  {
+    "name": "District Court - Haverhill",
+    "code": "395"
+  },
+  {
+    "name": "District Court - Hingham",
+    "code": "478"
+  },
+  {
+    "name": "District Court - Holyoke",
+    "code": "458"
+  },
+  {
+    "name": "District Court - Ipswich",
+    "code": "384"
+  },
+  {
+    "name": "District Court - Lawrence",
+    "code": "397"
+  },
+  {
+    "name": "District Court - Leominster",
+    "code": "424"
+  },
+  {
+    "name": "District Court - Lowell",
+    "code": "435"
+  },
+  {
+    "name": "District Court - Lynn",
+    "code": "400"
+  },
+  {
+    "name": "District Court - Malden",
+    "code": "491"
+  },
+  {
+    "name": "District Court - Marlboro",
+    "code": "430"
+  },
+  {
+    "name": "District Court - Milford",
+    "code": "431"
+  },
+  {
+    "name": "District Court - Nantucket",
+    "code": "487"
+  },
+  {
+    "name": "District Court - Natick",
+    "code": "443"
+  },
+  {
+    "name": "District Court - New Bedford",
+    "code": "473"
+  },
+  {
+    "name": "District Court - Newburyport",
+    "code": "387"
+  },
+  {
+    "name": "District Court - Newton",
+    "code": "493"
+  },
+  {
+    "name": "District Court - Northampton",
+    "code": "462"
+  },
+  {
+    "name": "District Court - Northern Berkshire",
+    "code": "467"
+  },
+  {
+    "name": "District Court - Orange",
+    "code": "474"
+  },
+  {
+    "name": "District Court - Orleans",
+    "code": "494"
+  },
+  {
+    "name": "District Court - Palmer",
+    "code": "451"
+  },
+  {
+    "name": "District Court - Peabody",
+    "code": "402"
+  },
+  {
+    "name": "District Court - Pittsfield",
+    "code": "476"
+  },
+  {
+    "name": "District Court - Plymouth",
+    "code": "496"
+  },
+  {
+    "name": "District Court - Quincy",
+    "code": "509"
+  },
+  {
+    "name": "District Court - Salem",
+    "code": "391"
+  },
+  {
+    "name": "District Court - Somerville",
+    "code": "504"
+  },
+  {
+    "name": "District Court - Southern Berkshire",
+    "code": "477"
+  },
+  {
+    "name": "District Court - Springfield",
+    "code": "670"
+  },
+  {
+    "name": "District Court - Stoughton",
+    "code": "514"
+  },
+  {
+    "name": "District Court - Taunton",
+    "code": "480"
+  },
+  {
+    "name": "District Court - Uxbridge",
+    "code": "433"
+  },
+  {
+    "name": "District Court - Waltham",
+    "code": "502"
+  },
+  {
+    "name": "District Court - Wareham",
+    "code": "497"
+  },
+  {
+    "name": "District Court - Westborough",
+    "code": "426"
+  },
+  {
+    "name": "District Court - Westfield",
+    "code": "460"
+  },
+  {
+    "name": "District Court - Winchendon",
+    "code": "437"
+  },
+  {
+    "name": "District Court - Woburn",
+    "code": "588"
+  },
+  {
+    "name": "District Court - Worcester",
+    "code": "672"
+  },
+  {
+    "name": "District Court - Wrentham",
+    "code": "445"
+  },
+  {
+    "name": "Do not use - Supreme Judicial Court - Commonwealth (Hidden)",
+    "code": "sjc:commonwealth2"
+  },
+  {
+    "name": "Do not use - Supreme Judicial Court - FARs / DARs",
+    "code": "700sjc:fars"
+  },
+  {
+    "name": "Do not use - Supreme Judicial Court - Full Court",
+    "code": "sjc:fullcourt2"
+  },
+  {
+    "name": "Dukes Probate and Family Court",
+    "code": "337"
+  },
+  {
+    "name": "Essex Probate and Family Court",
+    "code": "352"
+  },
+  {
+    "name": "File & Serve",
+    "code": "1"
+  },
+  {
+    "name": "Franklin Probate and Family Court",
+    "code": "303"
+  },
+  {
+    "name": "Hampden Probate and Family Court",
+    "code": "342"
+  },
+  {
+    "name": "Hampshire Probate and Family Court",
+    "code": "343"
+  },
+  {
+    "name": "Housing - Central (Worcester)",
+    "code": "535"
+  },
+  {
+    "name": "Housing - Eastern (Boston)",
+    "code": "537"
+  },
+  {
+    "name": "Housing - Northeast",
+    "code": "516"
+  },
+  {
+    "name": "Housing - Western",
+    "code": "527"
+  },
+  {
+    "name": "Housing Courts",
+    "code": "hc"
+  },
+  {
+    "name": "Juvenile Court",
+    "code": "jc"
+  },
+  {
+    "name": "Juvenile Court -- Barnstable County -- Barnstable",
+    "code": "1036:BA"
+  },
+  {
+    "name": "Juvenile Court -- Barnstable County -- Falmouth ",
+    "code": "1036:FA"
+  },
+  {
+    "name": "Juvenile Court -- Barnstable County -- Martha\u2019s Vineyard",
+    "code": "1036:MV"
+  },
+  {
+    "name": "Juvenile Court -- Barnstable County -- Nantucket",
+    "code": "1036:NK"
+  },
+  {
+    "name": "Juvenile Court -- Barnstable County -- Orleans",
+    "code": "1036:OL"
+  },
+  {
+    "name": "Juvenile Court -- Barnstable County -- Plymouth",
+    "code": "1036:PY"
+  },
+  {
+    "name": "Juvenile Court -- Berkshire County -- Great Barrington",
+    "code": "0985:GB"
+  },
+  {
+    "name": "Juvenile Court -- Berkshire County -- North Adams",
+    "code": "0985:NA"
+  },
+  {
+    "name": "Juvenile Court -- Berkshire County -- Pittsfield",
+    "code": "0985:PT"
+  },
+  {
+    "name": "Juvenile Court -- Bristol County -- Attleboro",
+    "code": "1015:AT"
+  },
+  {
+    "name": "Juvenile Court -- Bristol County -- Fall River",
+    "code": "1015:FV"
+  },
+  {
+    "name": "Juvenile Court -- Bristol County -- New Bedford",
+    "code": "1015:NE"
+  },
+  {
+    "name": "Juvenile Court -- Bristol County -- Taunton",
+    "code": "1015:TN"
+  },
+  {
+    "name": "Juvenile Court -- Essex County -- Lawrence",
+    "code": "0705:LA"
+  },
+  {
+    "name": "Juvenile Court -- Essex County -- Lynn",
+    "code": "0705:LY"
+  },
+  {
+    "name": "Juvenile Court -- Essex County -- Newburyport",
+    "code": "0705:NP"
+  },
+  {
+    "name": "Juvenile Court -- Essex County -- Salem",
+    "code": "0705:SA"
+  },
+  {
+    "name": "Juvenile Court -- Franklin-Hampshire County -- Belchertown",
+    "code": "0965:BE"
+  },
+  {
+    "name": "Juvenile Court -- Franklin-Hampshire County -- Greenfield",
+    "code": "0965:GF"
+  },
+  {
+    "name": "Juvenile Court -- Franklin-Hampshire County -- Hadley",
+    "code": "0965:HA"
+  },
+  {
+    "name": "Juvenile Court -- Franklin-Hampshire County -- Orange",
+    "code": "0965:OG"
+  },
+  {
+    "name": "Juvenile Court -- Hampden County -- Holyoke",
+    "code": "0986:HO"
+  },
+  {
+    "name": "Juvenile Court -- Hampden County -- Springfield ",
+    "code": "0986:SP"
+  },
+  {
+    "name": "Juvenile Court -- Middlesex County -- Cambridge",
+    "code": "1095:CA"
+  },
+  {
+    "name": "Juvenile Court -- Middlesex County -- Framingham",
+    "code": "1095:FH"
+  },
+  {
+    "name": "Juvenile Court -- Middlesex County -- Lowell",
+    "code": "1095:LO"
+  },
+  {
+    "name": "Juvenile Court -- Norfolk County -- Dedham",
+    "code": "0885:DE"
+  },
+  {
+    "name": "Juvenile Court -- Plymouth County -- Brockton ",
+    "code": "1037:BK"
+  },
+  {
+    "name": "Juvenile Court -- Plymouth County -- Hingham",
+    "code": "1037:HI"
+  },
+  {
+    "name": "Juvenile Court -- Plymouth County -- Wareham ",
+    "code": "1037:WH"
+  },
+  {
+    "name": "Juvenile Court -- Suffolk County -- Boston",
+    "code": "1086:BO"
+  },
+  {
+    "name": "Juvenile Court -- Worcester County -- Dudley",
+    "code": "915:DU"
+  },
+  {
+    "name": "Juvenile Court -- Worcester County -- Fitchburg",
+    "code": "0915:FI"
+  },
+  {
+    "name": "Juvenile Court -- Worcester County -- Leominster",
+    "code": "0915:LE"
+  },
+  {
+    "name": "Juvenile Court -- Worcester County -- Milford ",
+    "code": "0915:MI"
+  },
+  {
+    "name": "Juvenile Court -- Worcester County -- Worcester",
+    "code": "0915:WC"
+  },
+  {
+    "name": "Land Court",
+    "code": "210"
+  },
+  {
+    "name": "Middlesex Probate and Family Court",
+    "code": "344"
+  },
+  {
+    "name": "Middlesex Superior Court",
+    "code": "1176"
+  },
+  {
+    "name": "Nantucket Probate and Family Court",
+    "code": "345"
+  },
+  {
+    "name": "Norfolk Probate and Family Court",
+    "code": "346"
+  },
+  {
+    "name": "Not Used - Supreme Court",
+    "code": "sjc:pab"
+  },
+  {
+    "name": "Plymouth Probate and Family Court",
+    "code": "347"
+  },
+  {
+    "name": "Probate Courts",
+    "code": "pc"
+  },
+  {
+    "name": "RSI Test - Appeals Court",
+    "code": "rsiappeals"
+  },
+  {
+    "name": "RSI Test - Appeals Court - Panel (P docket)",
+    "code": "rsiappeals:acp"
+  },
+  {
+    "name": "RSI Test - Appeals Court - Single Justice (J Docket)",
+    "code": "rsiappeals:acsj"
+  },
+  {
+    "name": "RSI Test - Supreme Judicial Court - Commonwealth",
+    "code": "rsisjc"
+  },
+  {
+    "name": "RSI Test - Supreme Judicial Court - DO NOT USE",
+    "code": "rsisjc:donotuse"
+  },
+  {
+    "name": "RSI Test - Supreme Judicial Court - FARs / DARs",
+    "code": "rsisjc:commar"
+  },
+  {
+    "name": "RSI Test - Supreme Judicial Court - Full Court",
+    "code": "rsisjc:fullcourt"
+  },
+  {
+    "name": "RSI Test - Supreme Judicial Court - Full Court",
+    "code": "rsisjc:fullcourt2"
+  },
+  {
+    "name": "RSI Test - Supreme Judicial Court - Single Justice",
+    "code": "rsisjc:singlej"
+  },
+  {
+    "name": "RSI Test - Supreme Judicial Court - Suffolk",
+    "code": "rsisjc:suffolk"
+  },
+  {
+    "name": "RSI Test - Supreme Judicial Court \u2013 Commonwealth (Hidden)",
+    "code": "rsisjc:commonwealth2"
+  },
+  {
+    "name": "RSI Test - Supreme Judicial Court \u2013 FARs / DARs",
+    "code": "sjc:commar2"
+  },
+  {
+    "name": "Southeast Housing Court - Brockton",
+    "code": "555:BR"
+  },
+  {
+    "name": "Southeast Housing Court - Fall River",
+    "code": "555:FR"
+  },
+  {
+    "name": "Southeast Housing Court - New Bedford",
+    "code": "555:NB"
+  },
+  {
+    "name": "Southeast Housing Court - Plymouth",
+    "code": "555:PL"
+  },
+  {
+    "name": "Southeast Housing Court - Taunton",
+    "code": "555:TA"
+  },
+  {
+    "name": "Suffolk Probate and Family Court",
+    "code": "339"
+  },
+  {
+    "name": "Superior Court - Bristol",
+    "code": "1126"
+  },
+  {
+    "name": "Superior Courts",
+    "code": "sc"
+  },
+  {
+    "name": "Supreme Judicial Court - Commonwealth",
+    "code": "sjc"
+  },
+  {
+    "name": "Supreme Judicial Court - DO NOT USE",
+    "code": "sjc:donotuse"
+  },
+  {
+    "name": "Supreme Judicial Court - FARs / DARs",
+    "code": "sjc:commar"
+  },
+  {
+    "name": "Supreme Judicial Court - Full Court",
+    "code": "sjc:commfc"
+  },
+  {
+    "name": "Supreme Judicial Court - Suffolk - Single Justice",
+    "code": "sjc:singlej"
+  },
+  {
+    "name": "Supreme Judicial Court \u2013 Suffolk \u2013 Admission to Bar",
+    "code": "sjcab"
+  },
+  {
+    "name": "Supreme Judicial Court \u2013 Suffolk \u2013 Bar Docket",
+    "code": "sjc:suffolk"
+  },
+  {
+    "name": "System",
+    "code": "0"
+  },
+  {
+    "name": "Trial Courts",
+    "code": "tc"
+  },
+  {
+    "name": "Worcester Probate and Family Court",
+    "code": "348"
+  },
+  {
+    "name": "ZZZ - Essex Probate and Family Court",
+    "code": "353"
+  }
+]

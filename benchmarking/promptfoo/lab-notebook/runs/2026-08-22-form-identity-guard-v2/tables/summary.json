@@ -1,0 +1,40 @@
+{
+  "suites": {
+    "form-identity-guard-v2": {
+      "eval_id": "eval-B1U-2026-08-23T00:49:26",
+      "runs": 8,
+      "passes": 8,
+      "failures": 0,
+      "errors": 0,
+      "mean_score": 0.882838,
+      "token_usage": {
+        "prompt": 109532,
+        "completion": 1342,
+        "cached": 0,
+        "total": 110874,
+        "numRequests": 8,
+        "completionDetails": {
+          "reasoning": 0,
+          "acceptedPrediction": 0,
+          "rejectedPrediction": 0,
+          "cacheReadInputTokens": 0,
+          "cacheCreationInputTokens": 0
+        },
+        "assertions": {
+          "total": 0,
+          "prompt": 0,
+          "completion": 0,
+          "cached": 0,
+          "numRequests": 0,
+          "completionDetails": {
+            "reasoning": 0,
+            "acceptedPrediction": 0,
+            "rejectedPrediction": 0,
+            "cacheReadInputTokens": 0,
+            "cacheCreationInputTokens": 0
+          }
+        }
+      }
+    }
+  }
+}

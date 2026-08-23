@@ -1,0 +1,151 @@
+[project]
+name = "litefile"
+version = "0.1.0"
+description = "Minimal Django app for form submission and review"
+requires-python = ">=3.12"
+dependencies = [
+    "boto3>=1.40.12",
+    "Django==5.2.5",
+    "whitenoise>=6.7",
+    "gunicorn>=22.0",
+    "uvicorn>=0.30",
+    "requests>=2.31,<3",
+    "python-dotenv>=1.0",
+    "psycopg[binary]>=3.1",
+    "dj-database-url>=2.2",
+    "tiktoken>=0.12.0",
+    "openai>=2.14.0",
+    "markitdown[pdf]>=0.1.4",
+    "pypdf>=6.0,<7",
+    "pyyaml>=6.0,<7",
+    "djlint>=1.36.4",
+    "markdown>=3.10.2",
+    "markdownify>=1.2.2",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+exclude = [
+    "staticfiles*",
+]
+
+[tool.uv]
+
+[dependency-groups]
+dev = [
+  "ruff>=0.5.0,<1",
+  "ty",
+  "pytest>=8.0",
+  "pytest-django>=4.8",
+  "pytest-cov>=5.0",
+  "pytest-xdist>=3.6",
+  "pre-commit>=3.7",
+  "boto3-stubs>=1.40.12",
+  "types-requests",
+  "django-stubs[compatible-mypy]"
+]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+src = ["efile"]
+extend-exclude = [
+    "**/migrations/*",
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+
+[tool.ruff.lint]
+select = [
+    "E", "F",
+    "I",
+    "UP",
+    "B",
+]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["efile"]
+
+# Ty (Rust-based Python type checker)
+[tool.ty.src]
+include = ["efile"]
+exclude = ["**/migrations/**"]
+
+# pytest configuration (pytest and pytest-django)
+[tool.pytest.ini_options]
+minversion = "6.0"
+DJANGO_SETTINGS_MODULE = "efile.settings_dev"
+pythonpath = [
+  ".",
+]
+testpaths = [
+  ".",
+]
+# original:
+#addopts = "-ra --strict-markers --strict-config"
+# new:
+#addopts = "--reuse-db --nomigrations"
+# merged:
+addopts = "-ra --strict-markers --strict-config --reuse-db --nomigrations"
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+    "api: marks tests as API tests",
+    "auth: marks tests as authentication tests",
+    "dropdown: marks tests as dropdown functionality tests",
+]
+python_files = [
+    "test_*.py",
+    "*_test.py",
+    "tests.py",
+]
+python_classes = [
+    "Test*",
+]
+python_functions = [
+    "test_*",
+]
+filterwarnings = [
+    "ignore::django.utils.deprecation.RemovedInDjango40Warning",
+    "ignore::django.utils.deprecation.RemovedInDjango41Warning",
+    "ignore::DeprecationWarning",
+]
+
+[tool.coverage.run]
+source = ["efile"]
+omit = [
+    "*/migrations/*",
+    "*/tests/*",
+    "*/venv/*",
+    "manage.py",
+    "*/settings/*",
+    "*/static/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+
+[tool.djlint]
+profile="django"
+ignore="H030,H031,H006,H021" # H021 is avoid inline styles, which we might focus on later.
+format_css = true
+format_js = true

@@ -1,0 +1,40 @@
+{
+  "suites": {
+    "staged-taxonomy": {
+      "eval_id": "eval-rq3-2026-08-22T23:25:41",
+      "runs": 84,
+      "passes": 62,
+      "failures": 22,
+      "errors": 0,
+      "mean_score": 0.742857,
+      "token_usage": {
+        "prompt": 113771,
+        "completion": 21786,
+        "cached": 0,
+        "total": 135557,
+        "numRequests": 84,
+        "completionDetails": {
+          "reasoning": 1560,
+          "acceptedPrediction": 0,
+          "rejectedPrediction": 0,
+          "cacheReadInputTokens": 16384,
+          "cacheCreationInputTokens": 0
+        },
+        "assertions": {
+          "total": 0,
+          "prompt": 0,
+          "completion": 0,
+          "cached": 0,
+          "numRequests": 0,
+          "completionDetails": {
+            "reasoning": 0,
+            "acceptedPrediction": 0,
+            "rejectedPrediction": 0,
+            "cacheReadInputTokens": 0,
+            "cacheCreationInputTokens": 0
+          }
+        }
+      }
+    }
+  }
+}

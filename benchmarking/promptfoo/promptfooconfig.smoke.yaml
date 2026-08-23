@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+description: Offline smoke test for PDF loading, prompt rendering, and scoring
+
+prompts:
+  - id: file://./prompts/document_extraction.py:create_v1
+    label: document-extraction:v1-production
+
+providers:
+  - id: file://./providers/gold_smoke.js
+    label: offline-gold-smoke
+
+defaultTest:
+  options:
+    disableVarExpansion: true
+  assert:
+    - type: javascript
+      value: file://./assertions/set_jaccard.js
+      metric: field-set-jaccard
+
+tests: file://./data/cases.jsonl
+sharing: false

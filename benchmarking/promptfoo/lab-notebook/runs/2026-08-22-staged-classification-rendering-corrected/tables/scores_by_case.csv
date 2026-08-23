@@ -1,0 +1,5 @@
+suite,case_id,variant,runs,mean_score,passes,errors,mean_latency_ms,total_tokens,total_cost
+staged-taxonomy,IL-02,flattened,36,0.833333,30,0,2225,45534,0.0479297
+staged-taxonomy,IL-04,flattened,12,0.666667,8,0,3774,20976,0.025955
+staged-taxonomy,IL-08,flattened,12,0.833333,10,0,2094,14985,0.01789875
+staged-taxonomy,IL-10,motion-facsimile,24,0.6,14,0,2103,54062,0.02803755

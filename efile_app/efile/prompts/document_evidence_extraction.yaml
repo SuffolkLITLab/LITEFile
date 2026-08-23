@@ -1,0 +1,90 @@
+schema_version: 1
+id: document-evidence-extraction
+description: Extract direct document facts and evidence used by later taxonomy classification.
+production_version: v1
+
+fields:
+  document title: The title as printed on the document
+  form name: The complete descriptive name printed on the court form; a label containing only Form plus an identifier is not the form name
+  form identifier: The exact printed form number or ID, such as CJD 101B, CJP 27, or 400-00830; do not use a docket number
+  form revision: An explicit revision that contains a date or version number or is labeled Rev, Revision, or Version; do not use a watermark, copy status, filing warning, or page date
+  form purpose: One short sentence, grounded in the form title, instructions, and selected choices, explaining what the form asks the court to do
+  court name: The complete court name, including department, division, unit, county, or venue when shown
+  docket number: The docket or case number and any visible prefix
+  case title: The complete caption or case title
+  plaintiff or petitioner names: All plaintiff or petitioner names
+  defendant or respondent names: All defendant or respondent names
+  other party names: Other named parties with their stated roles
+  document date: The date and its printed label, such as signed, issued, or filed
+  filing phase: Initial, subsequent, or unknown, only when document evidence supports the value
+  requested relief: A concise list of expressly requested orders or remedies
+  monetary amounts: Every expressly stated claim amount, amount in controversy, damages demand, rent due, estate value, or other classification-relevant amount, preserving its printed label
+  selected options: Checked boxes or selected choices that distinguish the proceeding or filing
+  docket code evidence: A visible docket prefix or code, copied exactly
+  classification evidence: Short, verbatim excerpts that help distinguish category, case type, or filing type; omit personal contact and account information
+
+versions:
+  v1:
+    label: Direct evidence with classification clues
+    status: experimental
+    preferred_model_tier: small
+    preferred_models:
+      - gpt-5-nano
+      - gpt-4o-mini
+    inference:
+      temperature: 0
+      reasoning_effort: low
+      response_format: json_object
+    templates:
+      file_system: |-
+        You extract direct evidence from a court document into one JSON object. Return only requested keys and no commentary.
+      file_user: |-
+        Extract the requested facts and classification evidence from the attached lead document.
+
+        Rules:
+        * Copy facts from the document; do not select or invent an e-filing category, case type, filing type, or Tyler code.
+        * Inspect headers, footers, and page margins on every visible page for a form name, form number or ID, and revision. These may appear in small text.
+        * Do not confuse a form ID with a docket number, e-filing envelope number, barcode, or page number. Omit it when the document does not identify a form.
+        * The form name is the descriptive title, not a label containing only "Form" and its ID.
+        * Output form revision only when it contains a date or version number or is explicitly labeled Rev, Revision, or Version; otherwise omit it. "Test copy," "not for filing," watermarks, and filing warnings are not revisions.
+        * Preserve exact document language for form titles, checked choices, docket codes, and classification evidence.
+        * Keep form purpose to one short, evidence-grounded sentence; do not add legal conclusions or a taxonomy label.
+        * Return monetary amounts as a JSON array. Each item must have `label`, `raw`, `amount`, `currency`, and `evidence`. Copy `raw` exactly; use plain decimal digits without currency symbols or separators for `amount`; use `USD` when a dollar sign or dollars label establishes it. Omit a property that the source does not establish.
+        * Keep classification evidence, requested relief, and selected options as JSON arrays. Other fields are strings; join multiple names with semicolons.
+        * Include only evidence relevant to identifying the document or its underlying proceeding.
+        * Omit unsupported fields. Use "unknown" only for filing phase when the document does not establish it.
+        * Do not include addresses, phone numbers, email addresses, financial account numbers, or unrelated allegations in classification evidence.
+
+        Requested fields:
+        ```
+        ${field_definitions}
+        ```
+      text_system: |-
+        You extract direct evidence from court-document text into one JSON object. Return only requested keys and no commentary.
+      text_user: |-
+        Extract the requested facts and classification evidence from the document text.
+
+        Rules:
+        * Copy facts from the text; do not select or invent an e-filing category, case type, filing type, or Tyler code.
+        * Header or footer text may contain a form name, form number or ID, and revision. Copy them exactly when present.
+        * Do not confuse a form ID with a docket number, e-filing envelope number, barcode, or page number. Omit it when the text does not identify a form.
+        * The form name is the descriptive title, not a label containing only "Form" and its ID.
+        * Output form revision only when it contains a date or version number or is explicitly labeled Rev, Revision, or Version; otherwise omit it. Copy status, watermarks, and filing warnings are not revisions.
+        * Preserve exact document language for form titles, checked choices, docket codes, and classification evidence.
+        * Keep form purpose to one short, evidence-grounded sentence; do not add legal conclusions or a taxonomy label.
+        * Return monetary amounts as a JSON array. Each item must have `label`, `raw`, `amount`, `currency`, and `evidence`. Copy `raw` exactly; use plain decimal digits without currency symbols or separators for `amount`; use `USD` when a dollar sign or dollars label establishes it. Omit a property that the source does not establish.
+        * Keep classification evidence, requested relief, and selected options as JSON arrays. Other fields are strings; join multiple names with semicolons.
+        * Include only evidence relevant to identifying the document or its underlying proceeding.
+        * Omit unsupported fields. Use "unknown" only for filing phase when the document does not establish it.
+        * Do not include addresses, phone numbers, email addresses, financial account numbers, or unrelated allegations in classification evidence.
+
+        Requested fields:
+        ```
+        ${field_definitions}
+        ```
+
+        Document text:
+        ${document_text}
+
+shared:
+  json_mode_reminder: Respond only with a JSON object

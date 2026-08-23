@@ -1,0 +1,11 @@
+suite,case_id,variant,runs,mean_score,passes,errors,mean_latency_ms,total_tokens,total_cost
+classification,IL-02,flattened,6,0.883333,5,0,1685,8536,0.00117633
+classification,IL-04,flattened,2,0.65,1,0,2284,3250,0.0006546
+classification,IL-08,flattened,2,0.5,1,0,4738,2820,0.00043925
+classification,IL-10,motion-facsimile,2,1.0,2,0,1668,3545,0.00034815
+classification,MA-01,flattened,6,1.0,6,0,1968,8886,0.00106916
+classification,MA-05,flattened,2,1.0,2,0,2028,2806,0.00026103
+classification,MA-06,flattened,4,1.0,4,0,2340,5881,0.00079973
+classification,VT-01,flattened,6,0.883333,5,0,1798,8740,0.00127008
+classification,VT-03,flattened,4,0.825,3,0,2700,5796,0.00077083
+classification,VT-06,flattened,2,1.0,2,0,1488,2719,0.00043155

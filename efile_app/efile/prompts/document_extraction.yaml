@@ -1,0 +1,144 @@
+schema_version: 1
+id: document-extraction
+description: Extract filing and case metadata from a lead court document.
+production_version: v1
+
+fields:
+  document title: The title printed on the document, such as Complaint, Motion, or Affidavit
+  form name: The complete descriptive name printed on the court form, such as Complaint for Divorce under G.L. c. 208, § 1B; a label containing only Form plus an identifier is not the form name
+  form identifier: The exact printed form number or ID, such as CJD 101B, CJP 27, or 400-00830; do not use a docket number
+  form revision: An explicit revision that contains a date or version number or is labeled Rev, Revision, or Version; do not use a watermark, copy status, filing warning, or page date
+  court name: The court, court unit, county, or venue shown on the document
+  filing type: The formal title of the filing being made
+  case category: The high-level court category or division for this case
+  case type: The more specific type of legal case this document is part of
+  docket number: The court's docket or case number, if one is shown
+  case title: The full case caption or title, if one is shown
+  plaintiff or petitioner names: All plaintiff or petitioner names, in document order, separated by semicolons
+  defendant or respondent names: All defendant or respondent names, in document order, separated by semicolons
+  other party names: Any other named parties and their stated roles, separated by semicolons
+  document date: The date the document was signed, issued, or filed, including the label that identifies the date
+
+jurisdiction_hints:
+  illinois: |-
+    Use these Illinois categories as clues when they apply:
+
+    * Chancery (CH): specific performance, injunctions, and mechanics lien foreclosure
+    * Criminal Felony (CF) or Criminal: petitions to expunge or seal
+    * Dissolution with Children (DC) or without Children (DN): divorce
+    * Eviction (EV): may also be called forcible entry and detainer, residential, commercial, or ejectment
+    * Family (FA): parentage, visitation, or custody
+    * Guardianship (GR): guardianship of a minor or person with a disability
+    * Law Magistrate (LM): contract, tort, and other money claims over $10,000 through $50,000
+    * Miscellaneous Criminal (MX): expungement or sealing of arrests and civil asset forfeiture
+    * Miscellaneous Remedy (MR): administrative review, certiorari, or change of name
+    * Order of Protection (OP): order of protection, stalking no contact, civil no contact, or firearms restraining
+    * Probate (PR): administration of a decedent's estate
+    * Small Claims (SC): contract and tort claims of $10,000 or less
+  massachusetts: Always attempt to deduce the case category and case type.
+  vermont: Treat the court division as the case category. Always attempt to deduce the case category and type.
+  default: Always attempt to deduce the case category and case type.
+
+versions:
+  v1:
+    label: Production baseline
+    status: production
+    preferred_model_tier: small
+    preferred_models:
+      - gpt-5-nano
+      - gpt-4.1-nano
+      - gpt-4o-mini
+    inference:
+      temperature: 0
+      reasoning_effort: low
+      response_format: json_object
+    templates:
+      file_system: |-
+        You are a data extraction assistant. You return answers in JSON format, like: {"field_name": "value", "field_name2": "value2"}
+      file_user: |-
+        Extract only the list of fields below from the attached document. If the field is not present in the document, do not include it in the response.
+        Inspect headers, footers, and page margins for a printed form name, form number or ID, and revision. These may be in small text. A form name is the descriptive title, not a label containing only "Form" and its ID. Do not confuse a form ID with the case docket number, an e-filing envelope number, a barcode, or a page number. Output form revision only when it contains a date or version number or is explicitly labeled Rev, Revision, or Version; otherwise omit it. "Test copy," "not for filing," watermarks, and filing warnings are not revisions.
+        ${jurisdiction_hint}
+
+        ```
+        ${field_definitions}
+        ```
+      text_system: |-
+        Extract the list of fields from the text supplied by the user.
+
+        Header or footer text may contain a form name, form number or ID, and revision. A form name is the descriptive title, not a label containing only "Form" and its ID. Do not confuse a form ID with a case docket number, an e-filing envelope number, a barcode, or a page number. Output form revision only when it contains a date or version number or is explicitly labeled Rev, Revision, or Version; otherwise omit it. Copy status, watermarks, and filing warnings are not revisions.
+
+        ```
+        ${field_definitions}
+        ```
+
+        If a field cannot be defined from the text, omit it from the JSON response.
+      text_user: ${document_text}
+
+  v2:
+    label: Evidence-bound candidate
+    status: experimental
+    preferred_model_tier: medium
+    preferred_models:
+      - gpt-5-mini
+      - gpt-4.1-mini
+      - gpt-4o
+    inference:
+      temperature: 0
+      reasoning_effort: low
+      response_format: json_object
+    templates:
+      file_system: |-
+        You extract court-filing data into one JSON object. Use only the requested keys. Return string values and no commentary.
+      file_user: |-
+        Extract the requested fields from the attached lead document.
+
+        Evidence rules:
+        * Copy expressly printed facts when available.
+        * Inspect headers, footers, and page margins on every visible page for a printed form name, form number or ID, and revision. These may be in small text.
+        * Copy form identifiers exactly. Do not confuse a form ID with the case docket number, an e-filing envelope number, a barcode, or a page number.
+        * The form name is the descriptive title, not a label containing only "Form" and its ID.
+        * Output form revision only when it contains a date or version number or is explicitly labeled Rev, Revision, or Version; otherwise omit it. "Test copy," "not for filing," watermarks, and filing warnings are not revisions.
+        * A filing type describes this document; a case type describes the underlying lawsuit or proceeding. Do not substitute one for the other.
+        * Infer a case category or case type only when the document title, caption, selected form choices, allegations, court division, or a well-established docket code supports it.
+        * A generic motion, answer, fee-waiver application, or other later filing usually does not establish the underlying case type. Omit an unsupported field instead of guessing.
+        * Do not invent Tyler codes or force a natural-language label into an unknown court code list.
+        * Join multiple names with semicolons and keep document order.
+
+        Jurisdiction guidance:
+        ${jurisdiction_hint}
+
+        Requested fields:
+        ```
+        ${field_definitions}
+        ```
+      text_system: |-
+        You extract court-filing data into one JSON object. Use only the requested keys. Return string values and no commentary.
+      text_user: |-
+        Extract the requested fields from the document text below.
+
+        Evidence rules:
+        * Copy expressly printed facts when available.
+        * Header or footer text may contain a printed form name, form number or ID, and revision. Copy them exactly when present.
+        * Do not confuse a form ID with the case docket number, an e-filing envelope number, a barcode, or a page number.
+        * The form name is the descriptive title, not a label containing only "Form" and its ID.
+        * Output form revision only when it contains a date or version number or is explicitly labeled Rev, Revision, or Version; otherwise omit it. Copy status, watermarks, and filing warnings are not revisions.
+        * A filing type describes this document; a case type describes the underlying lawsuit or proceeding. Do not substitute one for the other.
+        * Infer a case category or case type only when the document title, caption, selected form choices, allegations, court division, or a well-established docket code supports it.
+        * A generic motion, answer, fee-waiver application, or other later filing usually does not establish the underlying case type. Omit an unsupported field instead of guessing.
+        * Do not invent Tyler codes or force a natural-language label into an unknown court code list.
+        * Join multiple names with semicolons and keep document order.
+
+        Jurisdiction guidance:
+        ${jurisdiction_hint}
+
+        Requested fields:
+        ```
+        ${field_definitions}
+        ```
+
+        Document text:
+        ${document_text}
+
+shared:
+  json_mode_reminder: Respond only with a JSON object

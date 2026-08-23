@@ -1,0 +1,3 @@
+suite,case_id,variant,runs,mean_score,passes,errors,mean_latency_ms,total_tokens,total_cost
+form-revision-guard,MA-01,flattened,4,0.750287,4,0,2829,55184,0.0173607
+form-revision-guard,MA-01,scanned,4,0.773629,4,0,2986,55187,0.0173625

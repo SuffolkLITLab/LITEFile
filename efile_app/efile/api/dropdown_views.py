@@ -238,7 +238,10 @@ class DropdownAPIViews(APIResponseMixin):
 
             # Make API call to external jurisdiction endpoint
             api_url = f"{settings.EFSP_URL}/jurisdictions/{jurisdiction}/codes/courts/"
-            params = {"fileable_only": True, "with_names": True}
+            # `fileable_only=true` is incomplete on the EFSP test service and
+            # hides courts that do expose valid filing categories. Later
+            # dropdown calls still validate the chosen court's hierarchy.
+            params = {"fileable_only": False, "with_names": True}
 
             try:
                 # Make the API request with auth tokens if available
@@ -265,7 +268,18 @@ class DropdownAPIViews(APIResponseMixin):
                                 court_name_standardized = court["name"].lower()
                                 if any(
                                     pattern in court_name_standardized
-                                    for pattern in ["(zodyssey)", "z -", "zz", "zdev"]
+                                    for pattern in [
+                                        "(zodyssey)",
+                                        "z -",
+                                        "zz",
+                                        "zdev",
+                                        "courtview test",
+                                        "rsi test",
+                                        "do not use",
+                                        "not used",
+                                        "file & serve",
+                                        "system",
+                                    ]
                                 ):
                                     continue  # Skip this court
 

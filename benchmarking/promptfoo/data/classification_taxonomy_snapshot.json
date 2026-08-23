@@ -1,0 +1,4017 @@
+{
+  "schema_version": 2,
+  "retrieved_at": "2026-08-23T02:31:43.999084+00:00",
+  "endpoint": "https://efile-test.suffolklitlab.org",
+  "reviewed_labels_at": "2026-08-22",
+  "notes": "Durable gold identity is the exact normalized Tyler name. Codes in this snapshot are transient route keys used only to reproduce the catalog response.",
+  "strata": {
+    "jurisdiction": {
+      "massachusetts": 6,
+      "vermont": 6,
+      "illinois": 6
+    },
+    "classification_level": {
+      "case category": 4,
+      "case type": 6,
+      "filing type": 8
+    }
+  },
+  "cases": [
+    {
+      "case_id": "MA-01",
+      "variant": "flattened",
+      "jurisdiction": "massachusetts",
+      "court_code": "344",
+      "filing_phase": "initial",
+      "classification_level": "case category",
+      "selected_case_category": {
+        "code": "6420",
+        "name": "Domestic Relations"
+      },
+      "selected_case_type": {
+        "code": "6421",
+        "name": "Divorce 1B"
+      },
+      "expected_status": "selected",
+      "expected_names": [
+        "Domestic Relations"
+      ],
+      "label_confidence": 0.98,
+      "review_status": "verified_live_crosswalk_supported",
+      "candidate_url": "https://efile-test.suffolklitlab.org/jurisdictions/massachusetts/codes/courts/344/categories?fileable_only=true&timing=Initial",
+      "available_candidates": [
+        {
+          "code": "100112",
+          "name": "Custody, Support, Parenting Time"
+        },
+        {
+          "code": "100832",
+          "name": "Parentage"
+        },
+        {
+          "code": "100834",
+          "name": "Guardianship of Minor"
+        },
+        {
+          "code": "100967",
+          "name": "Child Welfare"
+        },
+        {
+          "code": "100968",
+          "name": "Adoption"
+        },
+        {
+          "code": "101148",
+          "name": "Estates- Formal Probate"
+        },
+        {
+          "code": "101149",
+          "name": "Estates- Informal Probate"
+        },
+        {
+          "code": "101150",
+          "name": "Estates- Voluntary Administration"
+        },
+        {
+          "code": "101404",
+          "name": "Special Immigrant Juvenile Status"
+        },
+        {
+          "code": "6396",
+          "name": "Guardianship Managed"
+        },
+        {
+          "code": "6420",
+          "name": "Domestic Relations"
+        },
+        {
+          "code": "99338",
+          "name": "Joint Petition (1A)"
+        },
+        {
+          "code": "99662",
+          "name": "Change of Name"
+        },
+        {
+          "code": "99970",
+          "name": "Conservator"
+        }
+      ]
+    },
+    {
+      "case_id": "MA-01",
+      "variant": "flattened",
+      "jurisdiction": "massachusetts",
+      "court_code": "344",
+      "filing_phase": "initial",
+      "classification_level": "case type",
+      "selected_case_category": {
+        "code": "6420",
+        "name": "Domestic Relations"
+      },
+      "selected_case_type": {
+        "code": "6421",
+        "name": "Divorce 1B"
+      },
+      "expected_status": "selected",
+      "expected_names": [
+        "Divorce 1B"
+      ],
+      "label_confidence": 0.98,
+      "review_status": "verified_live_crosswalk_supported",
+      "candidate_url": "https://efile-test.suffolklitlab.org/jurisdictions/massachusetts/codes/courts/344/case_types/?category_id=6420&timing=Initial",
+      "available_candidates": [
+        {
+          "code": "6421",
+          "name": "Divorce 1B"
+        }
+      ]
+    },
+    {
+      "case_id": "MA-01",
+      "variant": "flattened",
+      "jurisdiction": "massachusetts",
+      "court_code": "344",
+      "filing_phase": "initial",
+      "classification_level": "filing type",
+      "selected_case_category": {
+        "code": "6420",
+        "name": "Domestic Relations"
+      },
+      "selected_case_type": {
+        "code": "6421",
+        "name": "Divorce 1B"
+      },
+      "expected_status": "selected",
+      "expected_names": [
+        "Complaint for Divorce - Irretrievable Breakdown 1B"
+      ],
+      "label_confidence": 0.98,
+      "review_status": "verified_live_crosswalk_supported",
+      "candidate_url": "https://efile-test.suffolklitlab.org/jurisdictions/massachusetts/codes/courts/344/filing_types/?initial=true&category_id=6420&type_id=6421",
+      "available_candidates": [
+        {
+          "code": "1662",
+          "name": "Affidavit as to Military Service"
+        },
+        {
+          "code": "6406",
+          "name": "Motion"
+        },
+        {
+          "code": "6422",
+          "name": "Complaint for Divorce - Irretrievable Breakdown 1B"
+        },
+        {
+          "code": "6424",
+          "name": "MA Statisical R408 Form"
+        },
+        {
+          "code": "6426",
+          "name": "Affidavit"
+        },
+        {
+          "code": "6430",
+          "name": "Financial Statement"
+        },
+        {
+          "code": "6431",
+          "name": "Motion to File Certificate of Marriage Late"
+        },
+        {
+          "code": "6432",
+          "name": "Motion to Waive Parent Education Program"
+        },
+        {
+          "code": "6433",
+          "name": "Motion to Permit Completion of Parent Education via DVD"
+        },
+        {
+          "code": "6434",
+          "name": "Uniform Counsel Certification Form Filed by"
+        },
+        {
+          "code": "6435",
+          "name": "Apearance by Attorney (ATTY) for (PARTY)"
+        },
+        {
+          "code": "6457",
+          "name": "Certificate of Completion of Parent Education Program"
+        },
+        {
+          "code": "6460",
+          "name": "Certificate of Marriage"
+        },
+        {
+          "code": "8838",
+          "name": "Request"
+        },
+        {
+          "code": "99329",
+          "name": "Affidavit of Indigency Filed"
+        },
+        {
+          "code": "99330",
+          "name": "Supplemental Affidavit of Indigency"
+        },
+        {
+          "code": "99503",
+          "name": "Child Support Guidelines"
+        },
+        {
+          "code": "99570",
+          "name": "Limited Appearance by Attorney"
+        },
+        {
+          "code": "100018",
+          "name": "Proposed Findings and Determinations"
+        },
+        {
+          "code": "100964",
+          "name": "Opt-In for Electronic Notification"
+        },
+        {
+          "code": "100965",
+          "name": "Opt-out for Electronic Notification"
+        },
+        {
+          "code": "101759",
+          "name": "Child Care or Custody Affidavit"
+        },
+        {
+          "code": "101766",
+          "name": "Supplemental Child Care or Custody Affidavit"
+        }
+      ]
+    },
+    {
+      "case_id": "MA-05",
+      "variant": "flattened",
+      "jurisdiction": "massachusetts",
+      "court_code": "348",
+      "filing_phase": "initial",
+      "classification_level": "filing type",
+      "selected_case_category": {
+        "code": "99662",
+        "name": "Change of Name"
+      },
+      "selected_case_type": {
+        "code": "99663",
+        "name": "Petition for Adult"
+      },
+      "expected_status": "selected",
+      "expected_names": [
+        "Petition to Change Name of Adult"
+      ],
+      "label_confidence": 0.98,
+      "review_status": "verified_live_form_supported",
+      "candidate_url": "https://efile-test.suffolklitlab.org/jurisdictions/massachusetts/codes/courts/348/filing_types/?initial=true&category_id=99662&type_id=99663",
+      "available_candidates": [
+        {
+          "code": "2139",
+          "name": "Affidavit"
+        },
+        {
+          "code": "2173",
+          "name": "Opposition"
+        },
+        {
+          "code": "2273",
+          "name": "Uniform Counsel Certification"
+        },
+        {
+          "code": "6430",
+          "name": "Financial Statement"
+        },
+        {
+          "code": "8308",
+          "name": "Agreement"
+        },
+        {
+          "code": "99581",
+          "name": "Notice"
+        },
+        {
+          "code": "99595",
+          "name": "Affidavit of Indigency"
+        },
+        {
+          "code": "99665",
+          "name": "Petition to Change Name of Adult"
+        },
+        {
+          "code": "99667",
+          "name": "Supplemental Affidavit of Indigency"
+        },
+        {
+          "code": "99668",
+          "name": "Military Affidavit"
+        },
+        {
+          "code": "99670",
+          "name": "Limited Appearance by Attorney"
+        },
+        {
+          "code": "99677",
+          "name": "Petition to Change Name of Child"
+        },
+        {
+          "code": "99678",
+          "name": "Certified document of prior name change"
+        },
+        {
+          "code": "99679",
+          "name": "Certificate of Birth"
+        },
+        {
+          "code": "99680",
+          "name": "Certificate of Marriage"
+        },
+        {
+          "code": "99681",
+          "name": "Certificate"
+        },
+        {
+          "code": "99682",
+          "name": "Memorandum"
+        },
+        {
+          "code": "99683",
+          "name": "Motion"
+        },
+        {
+          "code": "99684",
+          "name": "Request"
+        },
+        {
+          "code": "99685",
+          "name": "Notarized physician statement for sex change"
+        },
+        {
+          "code": "99902",
+          "name": "Proposed CARI Release Request"
+        },
+        {
+          "code": "100964",
+          "name": "Opt-In for Electronic Notification"
+        },
+        {
+          "code": "100965",
+          "name": "Opt-out for Electronic Notification"
+        },
+        {
+          "code": "101757",
+          "name": "Child Care or Custody Affidavit"
+        },
+        {
+          "code": "101764",
+          "name": "Supplemental Child Care or Custody Affidavit"
+        }
+      ]
+    },
+    {
+      "case_id": "MA-06",
+      "variant": "flattened",
+      "jurisdiction": "massachusetts",
+      "court_code": "490",
+      "filing_phase": "initial",
+      "classification_level": "case type",
+      "selected_case_category": {
+        "code": "5990",
+        "name": "Small Claims"
+      },
+      "selected_case_type": {
+        "code": "5993",
+        "name": "Small Claim $501 - $2000"
+      },
+      "expected_status": "selected",
+      "expected_names": [
+        "Small Claim $501 - $2000"
+      ],
+      "label_confidence": 0.98,
+      "review_status": "verified_live_document_supported",
+      "candidate_url": "https://efile-test.suffolklitlab.org/jurisdictions/massachusetts/codes/courts/490/case_types/?category_id=5990&timing=Initial",
+      "available_candidates": [
+        {
+          "code": "5991",
+          "name": "Small Claim $2001 - $5000"
+        },
+        {
+          "code": "5992",
+          "name": "Small Claim over $5000"
+        },
+        {
+          "code": "5993",
+          "name": "Small Claim $501 - $2000"
+        },
+        {
+          "code": "5994",
+          "name": "Small Claims $500 or less"
+        }
+      ]
+    },
+    {
+      "case_id": "MA-06",
+      "variant": "flattened",
+      "jurisdiction": "massachusetts",
+      "court_code": "490",
+      "filing_phase": "initial",
+      "classification_level": "filing type",
+      "selected_case_category": {
+        "code": "5990",
+        "name": "Small Claims"
+      },
+      "selected_case_type": {
+        "code": "5993",
+        "name": "Small Claim $501 - $2000"
+      },
+      "expected_status": "selected",
+      "expected_names": [
+        "Statement of Small Claims entered through e-file process"
+      ],
+      "label_confidence": 0.98,
+      "review_status": "verified_live_document_supported",
+      "candidate_url": "https://efile-test.suffolklitlab.org/jurisdictions/massachusetts/codes/courts/490/filing_types/?initial=true&category_id=5990&type_id=5993",
+      "available_candidates": [
+        {
+          "code": "1402",
+          "name": "Indigency affidavit and request for waiver"
+        },
+        {
+          "code": "6005",
+          "name": "Notice of Appeal-MGL 218 section 23, Small Claims appeal $25 fee"
+        },
+        {
+          "code": "6142",
+          "name": "Copy of demand notice under G.L. c.93A filed."
+        },
+        {
+          "code": "6143",
+          "name": "Statement of Small Claims entered through e-file process"
+        },
+        {
+          "code": "6145",
+          "name": "Motion to appear pro hac vice filed by Attorney.  (G.L. c.221 §46A)."
+        },
+        {
+          "code": "6146",
+          "name": "Motion filed."
+        },
+        {
+          "code": "6147",
+          "name": "Millitary affidavit filed as to party's millitary service. (Servicemembers Civil Relief Act, P.L. 10"
+        },
+        {
+          "code": "6148",
+          "name": "Military affidavit filed as part of the Plaintiff's statement of Small Claims alleging party is not"
+        },
+        {
+          "code": "6149",
+          "name": "Militay affidavit filed as part of the Plaintiff's statement of Small Claims alleging party is in mi"
+        },
+        {
+          "code": "6150",
+          "name": "Notice of appeal to Appellate Division from denial of request to waive fees as indigent."
+        },
+        {
+          "code": "6151",
+          "name": "Notice of appeal for trial of cross-claim by jury filed by (G.L. c.218 §23)."
+        },
+        {
+          "code": "6152",
+          "name": "Notice of request for interpreter for party/witness filed."
+        },
+        {
+          "code": "6153",
+          "name": "Notice of debt assignment filed on small claims action."
+        },
+        {
+          "code": "6154",
+          "name": "Notice by plaintiff to waive the assessment of pre-judgment interest filed."
+        },
+        {
+          "code": "6155",
+          "name": "Verification of Defendant's Address form filed (Uniform Small Claims Rule (b))"
+        },
+        {
+          "code": "6167",
+          "name": "Hospital record of patient deposited with clerk-magistrate (G.L. c.233 §79)."
+        },
+        {
+          "code": "6183",
+          "name": "ADR Uniform Counsel Certification filed by plaintiff's attorney on Small Claims action."
+        },
+        {
+          "code": "6184",
+          "name": "Affiant's affidavit on Small Claims action filed."
+        },
+        {
+          "code": "6185",
+          "name": "Attorney fees and prejudment interest waived by plaintiff(s)."
+        },
+        {
+          "code": "6186",
+          "name": "Attorney fees waived by plaintiff(s)."
+        },
+        {
+          "code": "6187",
+          "name": "Attorney's appearance limited to this date only filed for Plaintiff."
+        },
+        {
+          "code": "6188",
+          "name": "Appearance filed"
+        },
+        {
+          "code": "6189",
+          "name": "Copy of Bill of Sale filed on Small Claims Action."
+        },
+        {
+          "code": "6190",
+          "name": "Copy of contract/credit agreement filed on small claims action."
+        },
+        {
+          "code": "6191",
+          "name": "Corporate disclosure statement filed by Corporate Party on Small Claims Action (S.J.C. Rule 1:21)."
+        },
+        {
+          "code": "99792",
+          "name": "Request for motion to be heard at exparte hearing filed."
+        },
+        {
+          "code": "99836",
+          "name": "Request for witness subpoena filed ($5.00)."
+        },
+        {
+          "code": "100024",
+          "name": "Amend Motion"
+        },
+        {
+          "code": "100036",
+          "name": "Summons Request Motion"
+        },
+        {
+          "code": "101433",
+          "name": "Civil Filing Fee (per Plaintiff)"
+        },
+        {
+          "code": "103017",
+          "name": "Virtual Hearing Request filed."
+        }
+      ]
+    },
+    {
+      "case_id": "VT-01",
+      "variant": "flattened",
+      "jurisdiction": "vermont",
+      "court_code": "sc:chittendon",
+      "filing_phase": "initial",
+      "classification_level": "case category",
+      "selected_case_category": {
+        "code": "210",
+        "name": "Family"
+      },
+      "selected_case_type": {
+        "code": "6107",
+        "name": "Dissolution Contested with No Minor Children"
+      },
+      "expected_status": "selected",
+      "expected_names": [
+        "Family"
+      ],
+      "label_confidence": 0.99,
+      "review_status": "verified_live",
+      "candidate_url": "https://efile-test.suffolklitlab.org/jurisdictions/vermont/codes/courts/sc%3Achittendon/categories?fileable_only=true&timing=Initial",
+      "available_candidates": [
+        {
+          "code": "169",
+          "name": "Probate or Mental Health"
+        },
+        {
+          "code": "210",
+          "name": "Family"
+        },
+        {
+          "code": "7",
+          "name": "Civil"
+        }
+      ]
+    },
+    {
+      "case_id": "VT-01",
+      "variant": "flattened",
+      "jurisdiction": "vermont",
+      "court_code": "sc:chittendon",
+      "filing_phase": "initial",
+      "classification_level": "case type",
+      "selected_case_category": {
+        "code": "210",
+        "name": "Family"
+      },
+      "selected_case_type": {
+        "code": "6107",
+        "name": "Dissolution Contested with No Minor Children"
+      },
+      "expected_status": "selected",
+      "expected_names": [
+        "Dissolution Contested with No Minor Children"
+      ],
+      "label_confidence": 0.92,
+      "review_status": "verified_live",
+      "candidate_url": "https://efile-test.suffolklitlab.org/jurisdictions/vermont/codes/courts/sc%3Achittendon/case_types/?category_id=210&timing=Initial",
+      "available_candidates": [
+        {
+          "code": "6079",
+          "name": "CHINS A - Abused or Neglected (Agency Filers Only)"
+        },
+        {
+          "code": "6080",
+          "name": "CHINS B - Without Proper Care (Agency Filers Only)"
+        },
+        {
+          "code": "6081",
+          "name": "CHINS C - Is Without or Beyond the Control of Parent, Guardian or Custodian (Agency Filers Only)"
+        },
+        {
+          "code": "6082",
+          "name": "CHINS D - Truant (Agency Filers Only)"
+        },
+        {
+          "code": "6106",
+          "name": "Dissolution Contested with Minor Children"
+        },
+        {
+          "code": "6107",
+          "name": "Dissolution Contested with No Minor Children"
+        },
+        {
+          "code": "6108",
+          "name": "Dissolution Stipulated with Minor Children"
+        },
+        {
+          "code": "6109",
+          "name": "Dissolution Stipulated with No Minor Children"
+        },
+        {
+          "code": "6154",
+          "name": "Parentage Contested"
+        },
+        {
+          "code": "6155",
+          "name": "Parentage Stipulated"
+        },
+        {
+          "code": "6176",
+          "name": "Registration of a Foreign Order"
+        },
+        {
+          "code": "6177",
+          "name": "Relief from Abuse"
+        },
+        {
+          "code": "6177",
+          "name": "Relief from Abuse"
+        },
+        {
+          "code": "6178",
+          "name": "Relief from Abuse on Behalf of a Minor"
+        },
+        {
+          "code": "6178",
+          "name": "Relief from Abuse on Behalf of a Minor"
+        },
+        {
+          "code": "6179",
+          "name": "Relief from Abuse/Neglect/Exploitation"
+        },
+        {
+          "code": "6179",
+          "name": "Relief from Abuse/Neglect/Exploitation"
+        },
+        {
+          "code": "6205",
+          "name": "UIFSA"
+        },
+        {
+          "code": "7234",
+          "name": "Extreme Risk Protection Order (Agency Filers Only)"
+        },
+        {
+          "code": "8346",
+          "name": "Dissolution Civil Union Nonresident"
+        },
+        {
+          "code": "9555",
+          "name": "Registration of a Foreign Abuse Prevention Order"
+        },
+        {
+          "code": "13818",
+          "name": "Vulnerable Noncitizen Child"
+        },
+        {
+          "code": "13999",
+          "name": "Permission to File Pursuant to 15 VSA Sec 1185"
+        },
+        {
+          "code": "14055",
+          "name": "Appeal of Decision on Access to Court Records"
+        }
+      ]
+    },
+    {
+      "case_id": "VT-01",
+      "variant": "flattened",
+      "jurisdiction": "vermont",
+      "court_code": "sc:chittendon",
+      "filing_phase": "initial",
+      "classification_level": "filing type",
+      "selected_case_category": {
+        "code": "210",
+        "name": "Family"
+      },
+      "selected_case_type": {
+        "code": "6107",
+        "name": "Dissolution Contested with No Minor Children"
+      },
+      "expected_status": "selected",
+      "expected_names": [
+        "Initial Filing"
+      ],
+      "label_confidence": 0.78,
+      "review_status": "verified_live_generic_filing_label",
+      "candidate_url": "https://efile-test.suffolklitlab.org/jurisdictions/vermont/codes/courts/sc%3Achittendon/filing_types/?initial=true&category_id=210&type_id=6107",
+      "available_candidates": [
+        {
+          "code": "5895",
+          "name": "Motion for Expedited Hearing"
+        },
+        {
+          "code": "5897",
+          "name": "Motion for Extension of Time, Unable to Pay Minimum for Extension - Post Judgment Fee Required"
+        },
+        {
+          "code": "5901",
+          "name": "Motion for Extension of Time for Service"
+        },
+        {
+          "code": "5907",
+          "name": "Motion Juvenile for Emergency Care Order (Agency Filers Only)"
+        },
+        {
+          "code": "5908",
+          "name": "Motion Juvenile for Emergency Conditional Custody Order (Agency Filers Only)"
+        },
+        {
+          "code": "5917",
+          "name": "Motion for Service by Publication"
+        },
+        {
+          "code": "5919",
+          "name": "Motion for Special Assignment"
+        },
+        {
+          "code": "5922",
+          "name": "Motion for Telephone Testimony"
+        },
+        {
+          "code": "5938",
+          "name": "Motion to Appear Pro Hac Vice"
+        },
+        {
+          "code": "5944",
+          "name": "Motion to Consolidate"
+        },
+        {
+          "code": "5951",
+          "name": "Motion to Enforce"
+        },
+        {
+          "code": "5960",
+          "name": "Motion to Participate by Phone"
+        },
+        {
+          "code": "5967",
+          "name": "Motion to Recuse Judge"
+        },
+        {
+          "code": "5978",
+          "name": "Motion to Transfer Case"
+        },
+        {
+          "code": "6608",
+          "name": "Motion for Alternative Service"
+        },
+        {
+          "code": "6610",
+          "name": "Motion for Attorney's Fees"
+        },
+        {
+          "code": "6613",
+          "name": "Motion for Change of Venue"
+        },
+        {
+          "code": "6614",
+          "name": "Motion for Child Support Deviation"
+        },
+        {
+          "code": "6616",
+          "name": "Motion for Communication Specialist"
+        },
+        {
+          "code": "6619",
+          "name": "Motion for Contempt"
+        },
+        {
+          "code": "6624",
+          "name": "Motion for Determination of Controlling Order"
+        },
+        {
+          "code": "6627",
+          "name": "Motion for Discovery"
+        },
+        {
+          "code": "6632",
+          "name": "Motion for Emergency Protective Order"
+        },
+        {
+          "code": "6636",
+          "name": "Motion for Emergency Relief"
+        },
+        {
+          "code": "6650",
+          "name": "Motion for Final Protective Order"
+        },
+        {
+          "code": "6656",
+          "name": "Motion for Genetic Testing"
+        },
+        {
+          "code": "6661",
+          "name": "Motion for Guardian Ad Litem"
+        },
+        {
+          "code": "6667",
+          "name": "Motion for Issuance of Subpoena"
+        },
+        {
+          "code": "6711",
+          "name": "Motion for Transport Order"
+        },
+        {
+          "code": "6755",
+          "name": "Motion to Establish Child Support"
+        },
+        {
+          "code": "6756",
+          "name": "Motion to Establish Parentage"
+        },
+        {
+          "code": "6758",
+          "name": "Motion to Establish Parental Rights and Responsibilities"
+        },
+        {
+          "code": "6760",
+          "name": "Motion to Establish Parent-Child Contact"
+        },
+        {
+          "code": "6762",
+          "name": "Motion to Establish Spousal Maintenence"
+        },
+        {
+          "code": "6773",
+          "name": "Motion to Modify Parental Rights and Responsibilities"
+        },
+        {
+          "code": "6774",
+          "name": "Motion to Modify Parent-Child Contact"
+        },
+        {
+          "code": "6777",
+          "name": "Motion to Modify Spousal Maintenance"
+        },
+        {
+          "code": "6811",
+          "name": "Motion to Seal"
+        },
+        {
+          "code": "6815",
+          "name": "Motion to Seal Address"
+        },
+        {
+          "code": "7358",
+          "name": "Motion for Status Conference"
+        },
+        {
+          "code": "7374",
+          "name": "Notice of Attorney's Appearance"
+        },
+        {
+          "code": "7380",
+          "name": "Notice of Pro Se Appearance"
+        },
+        {
+          "code": "7429",
+          "name": "Parentage Affidavit"
+        },
+        {
+          "code": "7438",
+          "name": "Public Defender Application"
+        },
+        {
+          "code": "7446",
+          "name": "Return of Service by Law Enforcement Officer"
+        },
+        {
+          "code": "7456",
+          "name": "Stipulated Motion Filed"
+        },
+        {
+          "code": "7457",
+          "name": "Stipulation Filed"
+        },
+        {
+          "code": "7480",
+          "name": "Waiver of Rights to Counsel"
+        },
+        {
+          "code": "7481",
+          "name": "Waiver of Service"
+        },
+        {
+          "code": "7595",
+          "name": "Protection Order Service Information DPS #132"
+        },
+        {
+          "code": "7596",
+          "name": "Publication Tear Sheet"
+        },
+        {
+          "code": "7611",
+          "name": "Statement of Confidential Information"
+        },
+        {
+          "code": "7611",
+          "name": "Statement of Confidential Information"
+        },
+        {
+          "code": "7612",
+          "name": "Statement of Questions"
+        },
+        {
+          "code": "7620",
+          "name": "813A Financial Affidavit"
+        },
+        {
+          "code": "7621",
+          "name": "813B Financial Affidavit"
+        },
+        {
+          "code": "7622",
+          "name": "813S Financial Affidavit"
+        },
+        {
+          "code": "7627",
+          "name": "Affidavit Regarding Military Service"
+        },
+        {
+          "code": "7632",
+          "name": "Appellant Memo"
+        },
+        {
+          "code": "7634",
+          "name": "Certificate of Disclosure"
+        },
+        {
+          "code": "7636",
+          "name": "Certification of Cert. or Registered Mail"
+        },
+        {
+          "code": "7637",
+          "name": "Child Support Stipulation"
+        },
+        {
+          "code": "7644",
+          "name": "COPE - Application to Proceed In Forma Pauperis"
+        },
+        {
+          "code": "7647",
+          "name": "Discovery Certificate"
+        },
+        {
+          "code": "7650",
+          "name": "Information Sheet"
+        },
+        {
+          "code": "7665",
+          "name": "Document"
+        },
+        {
+          "code": "7666",
+          "name": "Motion for Court Costs"
+        },
+        {
+          "code": "7675",
+          "name": "Motion for QDRO"
+        },
+        {
+          "code": "7677",
+          "name": "Motion for UIFSA Registration of Foreign Support Order"
+        },
+        {
+          "code": "7681",
+          "name": "Motion to Enforce Child Support Order"
+        },
+        {
+          "code": "7686",
+          "name": "Motion to Establish De Facto Parentage"
+        },
+        {
+          "code": "7687",
+          "name": "Motion to Establish Grandparent Visitation"
+        },
+        {
+          "code": "7688",
+          "name": "Motion to Establish Medical Support"
+        },
+        {
+          "code": "7696",
+          "name": "Motion to Modify Child Support - Postjudgment/Fee Required"
+        },
+        {
+          "code": "7699",
+          "name": "Motion to Register a Foreign Order - Registration Only"
+        },
+        {
+          "code": "7700",
+          "name": "Motion to Enforce Foreign Order Concurrent with Registration"
+        },
+        {
+          "code": "7702",
+          "name": "Motion to Waive Final Hearing"
+        },
+        {
+          "code": "7718",
+          "name": "Juvenile CHINS Petition and Affidavit (Agency Filers Only)"
+        },
+        {
+          "code": "7719",
+          "name": "Motion for Wage Withholding"
+        },
+        {
+          "code": "7720",
+          "name": "Property and Debt Final Stipulation"
+        },
+        {
+          "code": "7723",
+          "name": "Proposed Final Order and Decree of Divorce"
+        },
+        {
+          "code": "7738",
+          "name": "Stipulation for Child Support Discovery"
+        },
+        {
+          "code": "7739",
+          "name": "Stipulation on Parental Rights and Parent-Child Contact"
+        },
+        {
+          "code": "7740",
+          "name": "Stipulation to Genetic Testing"
+        },
+        {
+          "code": "7741",
+          "name": "Stipulation to Parentage"
+        },
+        {
+          "code": "7744",
+          "name": "Voluntary Acknowledgement of Paternity"
+        },
+        {
+          "code": "7745",
+          "name": "VT Department of Health Record"
+        },
+        {
+          "code": "7748",
+          "name": "Motion for Work4Kids Referral"
+        },
+        {
+          "code": "7749",
+          "name": "Acceptance of Service"
+        },
+        {
+          "code": "7752",
+          "name": "Affidavit"
+        },
+        {
+          "code": "7752",
+          "name": "Affidavit"
+        },
+        {
+          "code": "7752",
+          "name": "Affidavit"
+        },
+        {
+          "code": "7753",
+          "name": "Affidavit of Service"
+        },
+        {
+          "code": "7756",
+          "name": "Answer"
+        },
+        {
+          "code": "7764",
+          "name": "Application to Waive Filing and Service Fees"
+        },
+        {
+          "code": "7766",
+          "name": "Certificate of Service"
+        },
+        {
+          "code": "7786",
+          "name": "Genetic Testing Results"
+        },
+        {
+          "code": "7801",
+          "name": "Memorandum of Law"
+        },
+        {
+          "code": "8020",
+          "name": "Motion to Bifurcate"
+        },
+        {
+          "code": "8021",
+          "name": "Motion to Join"
+        },
+        {
+          "code": "8283",
+          "name": "Motion for Contempt - Child Support"
+        },
+        {
+          "code": "8284",
+          "name": "Motion for License Suspension"
+        },
+        {
+          "code": "8285",
+          "name": "Motion for Non Compliance"
+        },
+        {
+          "code": "8287",
+          "name": "Motion for Writ of Attachment"
+        },
+        {
+          "code": "8288",
+          "name": "Motion to Appoint Attorney for Child/ren"
+        },
+        {
+          "code": "8289",
+          "name": "Motion for Hearing"
+        },
+        {
+          "code": "8369",
+          "name": "Notice of Name Change"
+        },
+        {
+          "code": "8401",
+          "name": "813A and B Financial Affidavit"
+        },
+        {
+          "code": "8402",
+          "name": "Affidavit of Child Custody"
+        },
+        {
+          "code": "8702",
+          "name": "Motion to Modify Foreign Order Concurrent with Registration"
+        },
+        {
+          "code": "9496",
+          "name": "Birth Certificate Filed"
+        },
+        {
+          "code": "9497",
+          "name": "Interpreter Requested"
+        },
+        {
+          "code": "9498",
+          "name": "Juvenile Law Enforcement Data Sheet - Arrest Custody Form"
+        },
+        {
+          "code": "9499",
+          "name": "Limited Party Appearance"
+        },
+        {
+          "code": "9502",
+          "name": "Motion Juvenile for Conditional Custody Order (Agency Filers Only)"
+        },
+        {
+          "code": "9503",
+          "name": "Motion for Relief From Judgment"
+        },
+        {
+          "code": "9504",
+          "name": "Motion for Temporary Relief"
+        },
+        {
+          "code": "9507",
+          "name": "Motion to Show Cause"
+        },
+        {
+          "code": "9508",
+          "name": "Motion to Terminate Child Support"
+        },
+        {
+          "code": "9509",
+          "name": "Motion to Unseal Juvenile Record"
+        },
+        {
+          "code": "9510",
+          "name": "New Address filed"
+        },
+        {
+          "code": "9511",
+          "name": "OCS Case Accounting Affidavit"
+        },
+        {
+          "code": "9512",
+          "name": "OCS Cover Sheet"
+        },
+        {
+          "code": "9513",
+          "name": "Proposed Order"
+        },
+        {
+          "code": "9564",
+          "name": "Initial Filing"
+        },
+        {
+          "code": "12760",
+          "name": "Affidavit of Paternity"
+        },
+        {
+          "code": "12761",
+          "name": "eServices Request Form Filed"
+        },
+        {
+          "code": "12764",
+          "name": "Motion Juvenile for Emergency Protective Order"
+        },
+        {
+          "code": "12765",
+          "name": "Motion Juvenile for Final Protective Order"
+        },
+        {
+          "code": "12768",
+          "name": "Motion to Disqualify Judge- Judicial Officer"
+        },
+        {
+          "code": "12773",
+          "name": "Registration of a Foreign Abuse Prevention Order Filed"
+        },
+        {
+          "code": "12852",
+          "name": "Initial Filing - Confidential"
+        },
+        {
+          "code": "12933",
+          "name": "Motion Juvenile for Transfer of Custody"
+        },
+        {
+          "code": "12937",
+          "name": "Motion Juvenile for Temporary Care Order"
+        },
+        {
+          "code": "12992",
+          "name": "Motion Juvenile for Emergency Hearing"
+        },
+        {
+          "code": "12996",
+          "name": "Juvenile Administrative Case Plan"
+        },
+        {
+          "code": "12997",
+          "name": "Juvenile Family Plan"
+        },
+        {
+          "code": "12998",
+          "name": "Motion Juvenile for Pick Up Order"
+        },
+        {
+          "code": "13006",
+          "name": "Exhibit"
+        },
+        {
+          "code": "13009",
+          "name": "Juvenile Stipulated Document"
+        },
+        {
+          "code": "13010",
+          "name": "Motion Juvenile for Hearing"
+        },
+        {
+          "code": "13044",
+          "name": "Motion for Escrow Payment of Child Support"
+        },
+        {
+          "code": "13046",
+          "name": "Motion to Enforce Medical Support"
+        },
+        {
+          "code": "13120",
+          "name": "Motion to Modify Medical Support Pre Judgment or No Fee"
+        },
+        {
+          "code": "13124",
+          "name": "Notice of Non-Disclosure"
+        },
+        {
+          "code": "13141",
+          "name": "Motion Miscellaneous"
+        },
+        {
+          "code": "13170",
+          "name": "Copy Request"
+        },
+        {
+          "code": "13598",
+          "name": "Motion to Modify Child Support – Pre Judgment or No Fee"
+        },
+        {
+          "code": "13600",
+          "name": "Motion Juvenile to Establish Parentage"
+        },
+        {
+          "code": "13680",
+          "name": "Motion to Modify Medical Support – Post-judgment with fee"
+        },
+        {
+          "code": "13681",
+          "name": "Motion to Modify Medical Support Stipulated"
+        },
+        {
+          "code": "13688",
+          "name": "Juvenile Petition for Interstate Compact on Child Placement"
+        },
+        {
+          "code": "13689",
+          "name": "Juvenile Petition for Interstate Compact on Juveniles"
+        },
+        {
+          "code": "13690",
+          "name": "Juvenile Expedited Home Study Request"
+        },
+        {
+          "code": "13691",
+          "name": "Juvenile Interstate Compact Requisition Packet"
+        },
+        {
+          "code": "13692",
+          "name": "Juvenile ICPC Home Study Req Form 100A & Article V"
+        },
+        {
+          "code": "13715",
+          "name": "Motion for Summary Judgment"
+        },
+        {
+          "code": "13821",
+          "name": "Exhibit List"
+        },
+        {
+          "code": "13822",
+          "name": "Witness List"
+        },
+        {
+          "code": "13858",
+          "name": "RFA Affidavit of 3rd Party Requesting to Hold Firearms"
+        },
+        {
+          "code": "13859",
+          "name": "Motion to Modify RFA Order to Permit 3rd Party Hold Firearms"
+        },
+        {
+          "code": "13949",
+          "name": "OCS Notice of Withdrawal"
+        },
+        {
+          "code": "14248",
+          "name": "Motion to Renew Judgment"
+        },
+        {
+          "code": "14250",
+          "name": "Relief from Abuse Litigant Address Form"
+        },
+        {
+          "code": "14251",
+          "name": "OCS IV-D Checklist"
+        },
+        {
+          "code": "14252",
+          "name": "Motion for Domestic Mittimus"
+        },
+        {
+          "code": "14253",
+          "name": "Motion to Vacate Domestic Mittimus"
+        }
+      ]
+    },
+    {
+      "case_id": "VT-03",
+      "variant": "flattened",
+      "jurisdiction": "vermont",
+      "court_code": "sc:washington",
+      "filing_phase": "initial",
+      "classification_level": "case type",
+      "selected_case_category": {
+        "code": "7",
+        "name": "Civil"
+      },
+      "selected_case_type": {
+        "code": "13917",
+        "name": "Small Claims $1,001 - $10,000"
+      },
+      "expected_status": "selected",
+      "expected_names": [
+        "Small Claims $1,001 - $10,000"
+      ],
+      "label_confidence": 0.99,
+      "review_status": "verified_live",
+      "candidate_url": "https://efile-test.suffolklitlab.org/jurisdictions/vermont/codes/courts/sc%3Awashington/case_types/?category_id=7&timing=Initial",
+      "available_candidates": [
+        {
+          "code": "6055",
+          "name": "Add Name to Voter Checklist"
+        },
+        {
+          "code": "6063",
+          "name": "Appeal - Administrative Agency"
+        },
+        {
+          "code": "6064",
+          "name": "Appeal - Professional Licensing Board"
+        },
+        {
+          "code": "6086",
+          "name": "Claim Against Gov. - Access to Records"
+        },
+        {
+          "code": "6087",
+          "name": "Claim Against Gov. - Other"
+        },
+        {
+          "code": "6088",
+          "name": "Claim Against Gov. - Rule 75 (Non-Prisoner)"
+        },
+        {
+          "code": "6091",
+          "name": "Collection - Credit Card"
+        },
+        {
+          "code": "6092",
+          "name": "Collection - Non-Credit Card"
+        },
+        {
+          "code": "6094",
+          "name": "Collection - Restitution Unit"
+        },
+        {
+          "code": "6095",
+          "name": "Collection - Tax"
+        },
+        {
+          "code": "6096",
+          "name": "Contract - Buyer Plaintiff"
+        },
+        {
+          "code": "6098",
+          "name": "Contract - Other"
+        },
+        {
+          "code": "6101",
+          "name": "Declaratory Judgment"
+        },
+        {
+          "code": "6111",
+          "name": "Eminent Domain"
+        },
+        {
+          "code": "6112",
+          "name": "Employment - Discrimination"
+        },
+        {
+          "code": "6113",
+          "name": "Employment - Wrongful Termination"
+        },
+        {
+          "code": "6115",
+          "name": "Enforcement Action by Government"
+        },
+        {
+          "code": "6121",
+          "name": "Foreclosure - Non-Residential"
+        },
+        {
+          "code": "6122",
+          "name": "Foreclosure - Residential"
+        },
+        {
+          "code": "6123",
+          "name": "Foreign Subpoena"
+        },
+        {
+          "code": "6135",
+          "name": "Landlord/Tenant - Abandoned Property"
+        },
+        {
+          "code": "6136",
+          "name": "Landlord/Tenant - Eviction"
+        },
+        {
+          "code": "6137",
+          "name": "Landlord/Tenant - Other"
+        },
+        {
+          "code": "6139",
+          "name": "Miscellaneous - Discovery"
+        },
+        {
+          "code": "6140",
+          "name": "Miscellaneous - Grand Jury"
+        },
+        {
+          "code": "6141",
+          "name": "Miscellaneous - Lottery"
+        },
+        {
+          "code": "6142",
+          "name": "Miscellaneous - Minor Settlement"
+        },
+        {
+          "code": "6143",
+          "name": "Miscellaneous - Other"
+        },
+        {
+          "code": "6144",
+          "name": "Miscellaneous - Structured Settlement"
+        },
+        {
+          "code": "6145",
+          "name": "Miscellaneous - Wrongful Death Settlement"
+        },
+        {
+          "code": "6168",
+          "name": "Prisoner Case - Other"
+        },
+        {
+          "code": "6169",
+          "name": "Prisoner Case - Post Conviction Relief"
+        },
+        {
+          "code": "6170",
+          "name": "Prisoner Case - Review of Governmental Action"
+        },
+        {
+          "code": "6174",
+          "name": "Real Property"
+        },
+        {
+          "code": "6189",
+          "name": "Stalking"
+        },
+        {
+          "code": "6193",
+          "name": "Tort - Automobile"
+        },
+        {
+          "code": "6194",
+          "name": "Tort - Fraud"
+        },
+        {
+          "code": "6195",
+          "name": "Tort - Intentional tort"
+        },
+        {
+          "code": "6196",
+          "name": "Tort - Malpractice Medical"
+        },
+        {
+          "code": "6197",
+          "name": "Tort - Malpractice Other"
+        },
+        {
+          "code": "6198",
+          "name": "Tort - Negligence"
+        },
+        {
+          "code": "6199",
+          "name": "Tort - Other"
+        },
+        {
+          "code": "6200",
+          "name": "Tort - Personal Injury"
+        },
+        {
+          "code": "6201",
+          "name": "Tort - Product Liability"
+        },
+        {
+          "code": "6202",
+          "name": "Tort - Slander/Libel/Defamation"
+        },
+        {
+          "code": "7222",
+          "name": "Appeal - Municipal"
+        },
+        {
+          "code": "7223",
+          "name": "Appeal - Other"
+        },
+        {
+          "code": "7225",
+          "name": "Appeal - Property Tax"
+        },
+        {
+          "code": "7227",
+          "name": "Appeal - Worker's Compensation"
+        },
+        {
+          "code": "7228",
+          "name": "Claim Against Gov. - Election"
+        },
+        {
+          "code": "7229",
+          "name": "Claim Against Gov. - Open Meeting"
+        },
+        {
+          "code": "7230",
+          "name": "Employment - Other"
+        },
+        {
+          "code": "7231",
+          "name": "Prisoner Case - Habeas Corpus"
+        },
+        {
+          "code": "7232",
+          "name": "Small Claims over $1,001"
+        },
+        {
+          "code": "7233",
+          "name": "Small Claims up to $1,000.00"
+        },
+        {
+          "code": "8347",
+          "name": "Sexual Assault"
+        },
+        {
+          "code": "9570",
+          "name": "Stalking On Behalf of a Minor"
+        },
+        {
+          "code": "9571",
+          "name": "Sexual Assault On Behalf of a Minor"
+        },
+        {
+          "code": "12744",
+          "name": "Appeal - Probate"
+        },
+        {
+          "code": "12745",
+          "name": "Appeal - Small Claims"
+        },
+        {
+          "code": "12747",
+          "name": "Administrative Document - Answer No Complaint Filed"
+        },
+        {
+          "code": "13875",
+          "name": "Small Claims $1,000 or less"
+        },
+        {
+          "code": "13889",
+          "name": "Small Claims Medical Debt $1,000 or less"
+        },
+        {
+          "code": "13903",
+          "name": "Small Claims Consumer Credit Debt $1,000 or less"
+        },
+        {
+          "code": "13917",
+          "name": "Small Claims $1,001 - $10,000"
+        },
+        {
+          "code": "13931",
+          "name": "Small Claims Medical Debt $1,001 - $5,000"
+        },
+        {
+          "code": "13945",
+          "name": "Small Claims Consumer Credit Debt $1,001 - $5,000"
+        },
+        {
+          "code": "14000",
+          "name": "Permission to File Pursuant to 15 VSA Sec 1185"
+        },
+        {
+          "code": "14052",
+          "name": "Appeal of Decision on Access to Court Records"
+        },
+        {
+          "code": "14205",
+          "name": "Tort - 12 V.S.A. 5797 Deprivation of Constitutional Rights"
+        },
+        {
+          "code": "14241",
+          "name": "Judgment Renewal – Small Claims $1,000 or less"
+        },
+        {
+          "code": "14242",
+          "name": "Judgment Renewal – Small Claims $1,001-$10,000"
+        },
+        {
+          "code": "14243",
+          "name": "Judgment Renewal – Small Claims Medical Debt $1,000 or less"
+        },
+        {
+          "code": "14244",
+          "name": "Judgment Renewal – Small Claims Medical Debt $1,001 - $5,000"
+        },
+        {
+          "code": "14245",
+          "name": "Judgment Renewal – Small Claims Consumer Credit Debt $1,000 or less"
+        },
+        {
+          "code": "14246",
+          "name": "Judgment Renewal – Small Claims Consumer Credit Debt $1,001 - $5,000"
+        },
+        {
+          "code": "14249",
+          "name": "Judgment Renewal – Civil Filing"
+        }
+      ]
+    },
+    {
+      "case_id": "VT-03",
+      "variant": "flattened",
+      "jurisdiction": "vermont",
+      "court_code": "sc:washington",
+      "filing_phase": "initial",
+      "classification_level": "filing type",
+      "selected_case_category": {
+        "code": "7",
+        "name": "Civil"
+      },
+      "selected_case_type": {
+        "code": "13917",
+        "name": "Small Claims $1,001 - $10,000"
+      },
+      "expected_status": "selected",
+      "expected_names": [
+        "Small Claims Complaint $1000 - $5000"
+      ],
+      "label_confidence": 0.94,
+      "review_status": "verified_live_document_supported",
+      "candidate_url": "https://efile-test.suffolklitlab.org/jurisdictions/vermont/codes/courts/sc%3Awashington/filing_types/?initial=true&category_id=7&type_id=13917",
+      "available_candidates": [
+        {
+          "code": "5921",
+          "name": "Motion for Summary Judgment"
+        },
+        {
+          "code": "5924",
+          "name": "Motion for Writ of Possession"
+        },
+        {
+          "code": "5962",
+          "name": "Motion to Pay Rent Into Court"
+        },
+        {
+          "code": "6612",
+          "name": "Motion for Change of Venue"
+        },
+        {
+          "code": "6615",
+          "name": "Motion for Communication Specialist"
+        },
+        {
+          "code": "6626",
+          "name": "Motion for Discovery"
+        },
+        {
+          "code": "6653",
+          "name": "Motion for Final Protective Order"
+        },
+        {
+          "code": "6664",
+          "name": "Motion for Guardian Ad Litem"
+        },
+        {
+          "code": "6670",
+          "name": "Motion for Issuance of Subpoena"
+        },
+        {
+          "code": "6705",
+          "name": "Motion for Service by Publication"
+        },
+        {
+          "code": "6707",
+          "name": "Motion for Special Assignment"
+        },
+        {
+          "code": "6709",
+          "name": "Motion for Telephone Testimony"
+        },
+        {
+          "code": "6714",
+          "name": "Motion for Transport Order"
+        },
+        {
+          "code": "6741",
+          "name": "Motion to Consolidate"
+        },
+        {
+          "code": "6788",
+          "name": "Motion to Participate by Phone"
+        },
+        {
+          "code": "6818",
+          "name": "Motion to Seal Address"
+        },
+        {
+          "code": "6827",
+          "name": "Motion to Transfer Case"
+        },
+        {
+          "code": "6838",
+          "name": "New Address filed"
+        },
+        {
+          "code": "7104",
+          "name": "Return of Service - Complaint"
+        },
+        {
+          "code": "7487",
+          "name": "Affidavit Regarding Military Service"
+        },
+        {
+          "code": "7492",
+          "name": "Appellant Memo"
+        },
+        {
+          "code": "7494",
+          "name": "Certificate of Compliance"
+        },
+        {
+          "code": "7505",
+          "name": "Discovery Certificate"
+        },
+        {
+          "code": "7513",
+          "name": "Jury Trial Request - Civil"
+        },
+        {
+          "code": "7522",
+          "name": "Motion for Alternative Service"
+        },
+        {
+          "code": "7524",
+          "name": "Motion for Attorney's Fees"
+        },
+        {
+          "code": "7527",
+          "name": "Motion for Contempt - Civil"
+        },
+        {
+          "code": "7528",
+          "name": "Motion for Contempt - Small Claims (postjudgment fee required)"
+        },
+        {
+          "code": "7530",
+          "name": "Motion for Designation as a Complex Action"
+        },
+        {
+          "code": "7531",
+          "name": "Motion for Expedited Hearing"
+        },
+        {
+          "code": "7532",
+          "name": "Motion for Extension of Time"
+        },
+        {
+          "code": "7534",
+          "name": "Motion for Extension of Time for Service"
+        },
+        {
+          "code": "7549",
+          "name": "Motion Miscellaneous"
+        },
+        {
+          "code": "7554",
+          "name": "Motion to Appear Pro Hac Vice"
+        },
+        {
+          "code": "7561",
+          "name": "Motion to Enforce"
+        },
+        {
+          "code": "7577",
+          "name": "Motion to Seal"
+        },
+        {
+          "code": "7599",
+          "name": "Request to Vacate Dismissal and Reopen the Case (Bankruptcy)"
+        },
+        {
+          "code": "7602",
+          "name": "Small Claims Answer Admitted"
+        },
+        {
+          "code": "7603",
+          "name": "Small Claims Answer Admitted - Installments"
+        },
+        {
+          "code": "7604",
+          "name": "Small Claims Answer Denied"
+        },
+        {
+          "code": "7605",
+          "name": "Small Claims Counter Claim $501-$5000"
+        },
+        {
+          "code": "7610",
+          "name": "Stalking/Sexual Assault Affidavit 248"
+        },
+        {
+          "code": "7615",
+          "name": "Summons"
+        },
+        {
+          "code": "7616",
+          "name": "Supplemental Affidavit"
+        },
+        {
+          "code": "7624",
+          "name": "Affidavit"
+        },
+        {
+          "code": "7626",
+          "name": "Affidavit of Service"
+        },
+        {
+          "code": "7631",
+          "name": "Answer"
+        },
+        {
+          "code": "7633",
+          "name": "Application to Waive Filing and Service Fees"
+        },
+        {
+          "code": "7635",
+          "name": "Certificate of Service"
+        },
+        {
+          "code": "7664",
+          "name": "Memorandum of Law"
+        },
+        {
+          "code": "7669",
+          "name": "Motion for Emergency Relief"
+        },
+        {
+          "code": "7724",
+          "name": "Protection Order Service Information DPS #132"
+        },
+        {
+          "code": "7767",
+          "name": "Certification of Cert. or Registered Mail Filed"
+        },
+        {
+          "code": "7776",
+          "name": "Discovery Scheduling Order"
+        },
+        {
+          "code": "7797",
+          "name": "Limited Party Appearance"
+        },
+        {
+          "code": "7804",
+          "name": "Document"
+        },
+        {
+          "code": "7814",
+          "name": "Motion for Status Conference"
+        },
+        {
+          "code": "7827",
+          "name": "Notice of Attorney's Appearance"
+        },
+        {
+          "code": "7834",
+          "name": "Notice of Pro Se Appearance"
+        },
+        {
+          "code": "7896",
+          "name": "Stipulation"
+        },
+        {
+          "code": "7900",
+          "name": "Waiver of Service"
+        },
+        {
+          "code": "8050",
+          "name": "Motion for Preliminary Injunction"
+        },
+        {
+          "code": "8260",
+          "name": "Small Claims - Jury Trial Request by Defendant"
+        },
+        {
+          "code": "8263",
+          "name": "Motion for Injunctive Relief"
+        },
+        {
+          "code": "8264",
+          "name": "Motion for Non Compliance"
+        },
+        {
+          "code": "8266",
+          "name": "Motion for Redemption"
+        },
+        {
+          "code": "8268",
+          "name": "Motion for Writ of Attachment"
+        },
+        {
+          "code": "8275",
+          "name": "Motion to Shorten Redemption Period"
+        },
+        {
+          "code": "8277",
+          "name": "Motion for Hearing"
+        },
+        {
+          "code": "8279",
+          "name": "Return of Service - Small Claims - Complaint"
+        },
+        {
+          "code": "8280",
+          "name": "Small Claims Complaint $1000 - $5000"
+        },
+        {
+          "code": "8281",
+          "name": "Small Claims Complaint up to $1000"
+        },
+        {
+          "code": "8282",
+          "name": "Small Claims Counter Claim up to $500"
+        },
+        {
+          "code": "8291",
+          "name": "Motion to Join"
+        },
+        {
+          "code": "8315",
+          "name": "Motion to Bifurcate"
+        },
+        {
+          "code": "8395",
+          "name": "Motion - Prejudgment - No Fee"
+        },
+        {
+          "code": "8829",
+          "name": "Summons to Trustee"
+        },
+        {
+          "code": "8867",
+          "name": "Motion to Vacate Judgment"
+        },
+        {
+          "code": "9515",
+          "name": "Certificate of Exemption from Foreclosure Mediation"
+        },
+        {
+          "code": "9516",
+          "name": "Interpreter Requested"
+        },
+        {
+          "code": "9518",
+          "name": "Motion for Foreclosure Mediation"
+        },
+        {
+          "code": "9519",
+          "name": "Motion for Out of State Subpoena"
+        },
+        {
+          "code": "9520",
+          "name": "Motion for Relief From Judgment"
+        },
+        {
+          "code": "9521",
+          "name": "Motion to Show Cause"
+        },
+        {
+          "code": "9523",
+          "name": "Proposed Order"
+        },
+        {
+          "code": "9563",
+          "name": "Initial Filing"
+        },
+        {
+          "code": "9572",
+          "name": "Certification of Counsel"
+        },
+        {
+          "code": "12749",
+          "name": "Answer - No Complaint Filed"
+        },
+        {
+          "code": "12750",
+          "name": "eServices Request Form Filed"
+        },
+        {
+          "code": "12751",
+          "name": "Exhibit"
+        },
+        {
+          "code": "12753",
+          "name": "Motion for Foreclosure"
+        },
+        {
+          "code": "12754",
+          "name": "Motion for Strict Foreclosure"
+        },
+        {
+          "code": "12758",
+          "name": "Notice of Mediation Foreclosure"
+        },
+        {
+          "code": "12759",
+          "name": "Notice to Homeowner"
+        },
+        {
+          "code": "12869",
+          "name": "Stalking - Sexual Assault Confidential Form 249"
+        },
+        {
+          "code": "13031",
+          "name": "Certificate of Merits"
+        },
+        {
+          "code": "13169",
+          "name": "Copy Request"
+        },
+        {
+          "code": "13612",
+          "name": "Return of Service - Other"
+        },
+        {
+          "code": "13718",
+          "name": "VHAP Stay Request"
+        },
+        {
+          "code": "13719",
+          "name": "Notice of VHAP Application"
+        },
+        {
+          "code": "13720",
+          "name": "Denial of VHAP Application"
+        },
+        {
+          "code": "13741",
+          "name": "Notice to Homeowner re: VHAP"
+        },
+        {
+          "code": "13803",
+          "name": "Declaration of  Compliance with VHAP Notice"
+        },
+        {
+          "code": "13804",
+          "name": "Declaration of Compliance With The CARES Act"
+        },
+        {
+          "code": "13810",
+          "name": "Notice of Waiver of Jury Trial"
+        },
+        {
+          "code": "13821",
+          "name": "Exhibit List"
+        },
+        {
+          "code": "13822",
+          "name": "Witness List"
+        },
+        {
+          "code": "14020",
+          "name": "Small Claims Appeal - Response"
+        },
+        {
+          "code": "14021",
+          "name": "Small Claims Appeal - Statement of Issues"
+        },
+        {
+          "code": "14201",
+          "name": "Return of Service - Small Claims - Other"
+        }
+      ]
+    },
+    {
+      "case_id": "VT-06",
+      "variant": "flattened",
+      "jurisdiction": "vermont",
+      "court_code": "sc:addison",
+      "filing_phase": "initial",
+      "classification_level": "filing type",
+      "selected_case_category": {
+        "code": "169",
+        "name": "Probate or Mental Health"
+      },
+      "selected_case_type": {
+        "code": "6076",
+        "name": "Change of Name Adult"
+      },
+      "expected_status": "selected",
+      "expected_names": [
+        "Initial Filing"
+      ],
+      "label_confidence": 0.72,
+      "review_status": "verified_live_generic_filing_label",
+      "candidate_url": "https://efile-test.suffolklitlab.org/jurisdictions/vermont/codes/courts/sc%3Aaddison/filing_types/?initial=true&category_id=169&type_id=6076",
+      "available_candidates": [
+        {
+          "code": "5879",
+          "name": "Motion for Alternative Service"
+        },
+        {
+          "code": "5880",
+          "name": "Motion for Attorney's Fees"
+        },
+        {
+          "code": "5881",
+          "name": "Motion for Change of Venue"
+        },
+        {
+          "code": "5883",
+          "name": "Motion for Communication Suppport Program Services"
+        },
+        {
+          "code": "5887",
+          "name": "Motion for Contempt"
+        },
+        {
+          "code": "5896",
+          "name": "Motion for Expedited Hearing"
+        },
+        {
+          "code": "5898",
+          "name": "Motion for Extension of Time"
+        },
+        {
+          "code": "5902",
+          "name": "Motion for Extension of Time for Service"
+        },
+        {
+          "code": "5912",
+          "name": "Motion for New Trial"
+        },
+        {
+          "code": "5918",
+          "name": "Motion for Service by Publication"
+        },
+        {
+          "code": "5920",
+          "name": "Motion for Special Assignment"
+        },
+        {
+          "code": "5923",
+          "name": "Motion for Telephone Testimony"
+        },
+        {
+          "code": "5928",
+          "name": "Motion Miscellaneous"
+        },
+        {
+          "code": "5939",
+          "name": "Motion to Appear Pro Hac Vice"
+        },
+        {
+          "code": "5945",
+          "name": "Motion to Consolidate"
+        },
+        {
+          "code": "5961",
+          "name": "Motion to Participate by Phone"
+        },
+        {
+          "code": "5968",
+          "name": "Motion to Recuse Judge"
+        },
+        {
+          "code": "5979",
+          "name": "Motion to Transfer Case"
+        },
+        {
+          "code": "5988",
+          "name": "New Address filed"
+        },
+        {
+          "code": "6039",
+          "name": "Motion for Discovery"
+        },
+        {
+          "code": "6621",
+          "name": "Motion for Decree of Partial Distribution"
+        },
+        {
+          "code": "6633",
+          "name": "Motion for Emergency Protective Order"
+        },
+        {
+          "code": "6638",
+          "name": "Motion for Ex Parte Hearing"
+        },
+        {
+          "code": "6641",
+          "name": "Motion for Expert Witness"
+        },
+        {
+          "code": "6649",
+          "name": "Motion for Final Decree of Distribution"
+        },
+        {
+          "code": "6651",
+          "name": "Motion for Final Protective Order"
+        },
+        {
+          "code": "6657",
+          "name": "Motion for Genetic Testing"
+        },
+        {
+          "code": "6662",
+          "name": "Motion for Guardian Ad Litem"
+        },
+        {
+          "code": "6668",
+          "name": "Motion for Issuance of Subpoena"
+        },
+        {
+          "code": "6676",
+          "name": "Motion for License to Sell or Convey Real Estate"
+        },
+        {
+          "code": "6680",
+          "name": "Motion for Mental Health Evaluation"
+        },
+        {
+          "code": "6700",
+          "name": "Motion for Release of Records"
+        },
+        {
+          "code": "6702",
+          "name": "Motion for Revocation"
+        },
+        {
+          "code": "6712",
+          "name": "Motion for Transport Order"
+        },
+        {
+          "code": "6735",
+          "name": "Motion to Appoint Successor Custodial Guardian"
+        },
+        {
+          "code": "6778",
+          "name": "Motion to Modify Trust"
+        },
+        {
+          "code": "6786",
+          "name": "Motion to Open a Will"
+        },
+        {
+          "code": "6804",
+          "name": "Motion to Remove Trustee"
+        },
+        {
+          "code": "6812",
+          "name": "Motion to Seal"
+        },
+        {
+          "code": "6816",
+          "name": "Motion to Seal Address"
+        },
+        {
+          "code": "7276",
+          "name": "Affidavit of Service"
+        },
+        {
+          "code": "7280",
+          "name": "Application to Waive Filing and Service Fees"
+        },
+        {
+          "code": "7286",
+          "name": "Certificate of Service"
+        },
+        {
+          "code": "7312",
+          "name": "Genetic Testing Results"
+        },
+        {
+          "code": "7348",
+          "name": "Document"
+        },
+        {
+          "code": "7353",
+          "name": "Motion for Competency Evaluation"
+        },
+        {
+          "code": "7519",
+          "name": "Memorandum of Law"
+        },
+        {
+          "code": "7543",
+          "name": "Motion for Status Conference"
+        },
+        {
+          "code": "7585",
+          "name": "Notice of Attorney's Appearance"
+        },
+        {
+          "code": "7589",
+          "name": "Notice of Pro Se Appearance"
+        },
+        {
+          "code": "7619",
+          "name": "Waiver of Service"
+        },
+        {
+          "code": "7757",
+          "name": "Application for Continued Treatment"
+        },
+        {
+          "code": "7758",
+          "name": "Application for Discharge - Mental Health"
+        },
+        {
+          "code": "7759",
+          "name": "Application for Involuntary Medication"
+        },
+        {
+          "code": "7760",
+          "name": "Application for Involuntary Treatment"
+        },
+        {
+          "code": "7761",
+          "name": "Application for Judicial Review of Commitment"
+        },
+        {
+          "code": "7762",
+          "name": "Application for Warrant for Emergency Exam"
+        },
+        {
+          "code": "7765",
+          "name": "Bond filed by Fiduciary"
+        },
+        {
+          "code": "7773",
+          "name": "Certified Marriage Certificate"
+        },
+        {
+          "code": "7775",
+          "name": "Consent"
+        },
+        {
+          "code": "7781",
+          "name": "Executor's Refusal of Appointment"
+        },
+        {
+          "code": "7782",
+          "name": "Fiduciary's Bond"
+        },
+        {
+          "code": "7784",
+          "name": "Final Decree of Distribution"
+        },
+        {
+          "code": "7785",
+          "name": "Funeral Bill"
+        },
+        {
+          "code": "7788",
+          "name": "Guardian's Bond"
+        },
+        {
+          "code": "7789",
+          "name": "Guardianship for Developmentally Disabled Adult App."
+        },
+        {
+          "code": "7792",
+          "name": "Inventory"
+        },
+        {
+          "code": "7798",
+          "name": "List of Interested Persons"
+        },
+        {
+          "code": "7803",
+          "name": "Minor's Choice of Guardian(s)"
+        },
+        {
+          "code": "7809",
+          "name": "Motion for License to Mortgage or Lease Real Estate"
+        },
+        {
+          "code": "7810",
+          "name": "Motion for License to Sell or Convey Personal Property"
+        },
+        {
+          "code": "7822",
+          "name": "Motion to Register and Modify or Enforce a Foreign Order"
+        },
+        {
+          "code": "7837",
+          "name": "Obituary Filed"
+        },
+        {
+          "code": "7885",
+          "name": "Proposed Decree"
+        },
+        {
+          "code": "7889",
+          "name": "Appointment of Resident Agent"
+        },
+        {
+          "code": "7893",
+          "name": "Small Estate Bond"
+        },
+        {
+          "code": "7894",
+          "name": "Statement of Assets and Income"
+        },
+        {
+          "code": "7898",
+          "name": "Trust Agreement"
+        },
+        {
+          "code": "7899",
+          "name": "Vital Records Appeal"
+        },
+        {
+          "code": "8055",
+          "name": "Motion to Bifurcate"
+        },
+        {
+          "code": "8254",
+          "name": "Motion for Hearing"
+        },
+        {
+          "code": "8300",
+          "name": "Motion to Appoint a Limited Guardian"
+        },
+        {
+          "code": "8301",
+          "name": "Motion to Appoint a Special Administrator"
+        },
+        {
+          "code": "8307",
+          "name": "Motion to Appoint a Successor Co-Trustee"
+        },
+        {
+          "code": "8310",
+          "name": "Motion to Appoint a Successor Trustee"
+        },
+        {
+          "code": "8311",
+          "name": "Motion to Appoint an Emergency Temporary Guardian for an Adult"
+        },
+        {
+          "code": "8312",
+          "name": "Motion to Appoint an Emergency Temporary Guardian for an Adult - Ex Parte"
+        },
+        {
+          "code": "8313",
+          "name": "Motion to Appoint Attorney for Child/ren"
+        },
+        {
+          "code": "8319",
+          "name": "Motion to Waive Notice to Creditors"
+        },
+        {
+          "code": "8320",
+          "name": "Motion to Waive Evaluation"
+        },
+        {
+          "code": "9491",
+          "name": "Interpreter Requested"
+        },
+        {
+          "code": "9492",
+          "name": "Motion to Show Cause"
+        },
+        {
+          "code": "9493",
+          "name": "Motion to Terminate Parental Rights"
+        },
+        {
+          "code": "9494",
+          "name": "Proposed Order"
+        },
+        {
+          "code": "9568",
+          "name": "Initial Filing"
+        },
+        {
+          "code": "12774",
+          "name": "Adoption Disposition Report"
+        },
+        {
+          "code": "12775",
+          "name": "Certified Mail Return Receipt"
+        },
+        {
+          "code": "12776",
+          "name": "Codicil"
+        },
+        {
+          "code": "12777",
+          "name": "Consent for Release of Information"
+        },
+        {
+          "code": "12778",
+          "name": "Copy of Birth Certificate"
+        },
+        {
+          "code": "12779",
+          "name": "Copy of Death Certificate"
+        },
+        {
+          "code": "12780",
+          "name": "Copy of Marriage Certificate"
+        },
+        {
+          "code": "12783",
+          "name": "Custodial Guardianship Agreement and Family Plan"
+        },
+        {
+          "code": "12785",
+          "name": "eServices Request Form Filed"
+        },
+        {
+          "code": "12786",
+          "name": "Exhibit"
+        },
+        {
+          "code": "12790",
+          "name": "Information about Birth Family"
+        },
+        {
+          "code": "12792",
+          "name": "Motion for Non-Compliance"
+        },
+        {
+          "code": "12793",
+          "name": "Motion for Waiver of Administration of Estate"
+        },
+        {
+          "code": "12799",
+          "name": "Satisfaction of Claim"
+        },
+        {
+          "code": "12800",
+          "name": "Statement of Disclosure of Identifying Information"
+        },
+        {
+          "code": "12801",
+          "name": "Will"
+        },
+        {
+          "code": "12853",
+          "name": "Initial Filing - Confidential"
+        },
+        {
+          "code": "12950",
+          "name": "Affidavit of NO Assets"
+        },
+        {
+          "code": "13000",
+          "name": "Notice of Disallowance"
+        },
+        {
+          "code": "13001",
+          "name": "Motion for Waiver of Final Account"
+        },
+        {
+          "code": "13018",
+          "name": "Motion to Terminate Trust"
+        },
+        {
+          "code": "13019",
+          "name": "Request for Background Check Filed"
+        },
+        {
+          "code": "13073",
+          "name": "Fingerprint Authorization"
+        },
+        {
+          "code": "13143",
+          "name": "Affidavit of Paid and Outstanding Funeral Exp and Debts, Sm Estate"
+        },
+        {
+          "code": "13171",
+          "name": "Copy Request"
+        },
+        {
+          "code": "13597",
+          "name": "Motion to Waive Accounting"
+        },
+        {
+          "code": "13613",
+          "name": "Return of Service"
+        },
+        {
+          "code": "13821",
+          "name": "Exhibit List"
+        },
+        {
+          "code": "13822",
+          "name": "Witness List"
+        },
+        {
+          "code": "13851",
+          "name": "Petition for Delayed Marriage Certificate"
+        },
+        {
+          "code": "14005",
+          "name": "Evaluation"
+        },
+        {
+          "code": "14065",
+          "name": "Copy of Will Filed"
+        },
+        {
+          "code": "14169",
+          "name": "Petition to Appoint a Standby Guardian for a Minor"
+        },
+        {
+          "code": "14203",
+          "name": "Petition for Copy of Autopsy Report"
+        },
+        {
+          "code": "14204",
+          "name": "Response to Petition for Copy of Autopsy Report"
+        },
+        {
+          "code": "14254",
+          "name": "Inventory Filed - Estates"
+        },
+        {
+          "code": "14255",
+          "name": "Notice of Rights of Minor Children Sent"
+        },
+        {
+          "code": "14256",
+          "name": "Request to Remove Previously Filed Will"
+        }
+      ]
+    },
+    {
+      "case_id": "IL-02",
+      "variant": "flattened",
+      "jurisdiction": "illinois",
+      "court_code": "lake",
+      "filing_phase": "initial",
+      "classification_level": "case category",
+      "selected_case_category": {
+        "code": "190919",
+        "name": "Dissolution (Divorce) with Children"
+      },
+      "selected_case_type": {
+        "code": "242453",
+        "name": "Dissolution (with children)"
+      },
+      "expected_status": "selected",
+      "expected_names": [
+        "Dissolution (Divorce) with Children"
+      ],
+      "label_confidence": 0.99,
+      "review_status": "verified_live",
+      "candidate_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/lake/categories?fileable_only=true&timing=Initial",
+      "available_candidates": [
+        {
+          "code": "105721",
+          "name": "Family"
+        },
+        {
+          "code": "105722",
+          "name": "Law: Damages over $50,000"
+        },
+        {
+          "code": "190919",
+          "name": "Dissolution (Divorce) with Children"
+        },
+        {
+          "code": "190920",
+          "name": "Dissolution (Divorce) without Children"
+        },
+        {
+          "code": "190921",
+          "name": "Eviction"
+        },
+        {
+          "code": "190922",
+          "name": "Foreclosure"
+        },
+        {
+          "code": "190923",
+          "name": "Governmental Corporation"
+        },
+        {
+          "code": "190924",
+          "name": "Guardianship"
+        },
+        {
+          "code": "190925",
+          "name": "Miscellaneous Criminal"
+        },
+        {
+          "code": "6188",
+          "name": "Arbitration"
+        },
+        {
+          "code": "6189",
+          "name": "Chancery"
+        },
+        {
+          "code": "6191",
+          "name": "Eminent Domain"
+        },
+        {
+          "code": "6193",
+          "name": "Law Magistrate: Damages over $10,000 up to $50,000"
+        },
+        {
+          "code": "6194",
+          "name": "Mental Health"
+        },
+        {
+          "code": "6195",
+          "name": "Miscellaneous Remedy"
+        },
+        {
+          "code": "6198",
+          "name": "Small Claims"
+        },
+        {
+          "code": "6199",
+          "name": "Tax"
+        },
+        {
+          "code": "7062",
+          "name": "Order of Protection"
+        },
+        {
+          "code": "7306",
+          "name": "Adoption"
+        },
+        {
+          "code": "7420",
+          "name": "Probate"
+        },
+        {
+          "code": "76962",
+          "name": "Contempt of Court"
+        }
+      ]
+    },
+    {
+      "case_id": "IL-02",
+      "variant": "flattened",
+      "jurisdiction": "illinois",
+      "court_code": "lake",
+      "filing_phase": "initial",
+      "classification_level": "case type",
+      "selected_case_category": {
+        "code": "190919",
+        "name": "Dissolution (Divorce) with Children"
+      },
+      "selected_case_type": {
+        "code": "242453",
+        "name": "Dissolution (with children)"
+      },
+      "expected_status": "selected",
+      "expected_names": [
+        "Dissolution (with children)"
+      ],
+      "label_confidence": 0.99,
+      "review_status": "verified_live",
+      "candidate_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/lake/case_types/?category_id=190919&timing=Initial",
+      "available_candidates": [
+        {
+          "code": "242453",
+          "name": "Dissolution (with children)"
+        },
+        {
+          "code": "242454",
+          "name": "Dissolution of Civil Union (with children)"
+        },
+        {
+          "code": "242455",
+          "name": "Invalidity (with children)"
+        },
+        {
+          "code": "242456",
+          "name": "Legal Separation (with children)"
+        }
+      ]
+    },
+    {
+      "case_id": "IL-02",
+      "variant": "flattened",
+      "jurisdiction": "illinois",
+      "court_code": "lake",
+      "filing_phase": "initial",
+      "classification_level": "filing type",
+      "selected_case_category": {
+        "code": "190919",
+        "name": "Dissolution (Divorce) with Children"
+      },
+      "selected_case_type": {
+        "code": "242453",
+        "name": "Dissolution (with children)"
+      },
+      "expected_status": "selected",
+      "expected_names": [
+        "Petition Dissolution of Marriage/Civil Union"
+      ],
+      "label_confidence": 0.96,
+      "review_status": "verified_live",
+      "candidate_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/lake/filing_types/?initial=true&category_id=190919&type_id=242453",
+      "available_candidates": [
+        {
+          "code": "5761",
+          "name": "Waiver"
+        },
+        {
+          "code": "50850",
+          "name": "Application"
+        },
+        {
+          "code": "50930",
+          "name": "Certificate"
+        },
+        {
+          "code": "51805",
+          "name": "Notice"
+        },
+        {
+          "code": "52487",
+          "name": "Verification"
+        },
+        {
+          "code": "53159",
+          "name": "Motion"
+        },
+        {
+          "code": "53831",
+          "name": "Petition"
+        },
+        {
+          "code": "54123",
+          "name": "Request"
+        },
+        {
+          "code": "54278",
+          "name": "Stipulation"
+        },
+        {
+          "code": "55472",
+          "name": "Affidavit"
+        },
+        {
+          "code": "83497",
+          "name": "Praecipe"
+        },
+        {
+          "code": "133329",
+          "name": "Record Sheet"
+        },
+        {
+          "code": "176169",
+          "name": "Jury Demand/Request - 6 Person"
+        },
+        {
+          "code": "242787",
+          "name": "Other Document Not Listed (Non-confidential)"
+        },
+        {
+          "code": "242846",
+          "name": "Application Waiver of Court Fees (Civil)"
+        },
+        {
+          "code": "243051",
+          "name": "Request for Name Change (Additional Children)"
+        },
+        {
+          "code": "243053",
+          "name": "Request for Name Change (Adult)"
+        },
+        {
+          "code": "243064",
+          "name": "Summons (Issued)"
+        },
+        {
+          "code": "243105",
+          "name": "Case Record (Change of Venue)"
+        },
+        {
+          "code": "243159",
+          "name": "Other Document Not Listed"
+        },
+        {
+          "code": "243164",
+          "name": "Petition Dissolution of Marriage/Civil Union"
+        },
+        {
+          "code": "243190",
+          "name": "Request for Name Change (Child Information)"
+        },
+        {
+          "code": "243202",
+          "name": "Summons Petition for Dissolution (Issued)"
+        },
+        {
+          "code": "243323",
+          "name": "Request for Name Change (Additional Parent)"
+        },
+        {
+          "code": "243328",
+          "name": "Return"
+        },
+        {
+          "code": "243407",
+          "name": "Motion for New Trial"
+        },
+        {
+          "code": "243516",
+          "name": "Jury Demand/Request - 6 Person (12 Person Jury - where 6 person paid by other party)"
+        },
+        {
+          "code": "243553",
+          "name": "Request & Order for Interpreter"
+        },
+        {
+          "code": "243783",
+          "name": "Subpoena (to Issue)"
+        },
+        {
+          "code": "243869",
+          "name": "Other Document Not Listed (Confidential)"
+        },
+        {
+          "code": "244568",
+          "name": "Foreign Judgment"
+        },
+        {
+          "code": "244947",
+          "name": "Request for Name Change (Minor Children)"
+        },
+        {
+          "code": "245686",
+          "name": "Inventory"
+        },
+        {
+          "code": "245783",
+          "name": "Amended Complaint"
+        },
+        {
+          "code": "245838",
+          "name": "Jury Demand/Request - 12 Person"
+        },
+        {
+          "code": "253780",
+          "name": "Answer/Response to Complaint/Petition"
+        },
+        {
+          "code": "296599",
+          "name": "Notice of Motion"
+        },
+        {
+          "code": "309928",
+          "name": "Certificate of Exemption from eFiling"
+        },
+        {
+          "code": "309929",
+          "name": "Certificate of Legal Services Provider"
+        },
+        {
+          "code": "327084",
+          "name": "Appearance Filed (Guardian Ad Litem)"
+        }
+      ]
+    },
+    {
+      "case_id": "IL-04",
+      "variant": "flattened",
+      "jurisdiction": "illinois",
+      "court_code": "kane",
+      "filing_phase": "initial",
+      "classification_level": "case type",
+      "selected_case_category": {
+        "code": "7421",
+        "name": "Small Claims"
+      },
+      "selected_case_type": {
+        "code": "164987",
+        "name": "Contract - Other (Excluding Business/Employment Dispute and Debt Collection) ($2,500.01 to $10K)"
+      },
+      "expected_status": "selected",
+      "expected_names": [
+        "Contract - Other (Excluding Business/Employment Dispute and Debt Collection) ($2,500.01 to $10K)",
+        "Contract - Business Dispute (Buyer/Plaintiff) ($2,500.01 to $10K)"
+      ],
+      "label_confidence": 0.7,
+      "review_status": "verified_live_ambiguous",
+      "candidate_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/kane/case_types/?category_id=7421&timing=Initial",
+      "available_candidates": [
+        {
+          "code": "164986",
+          "name": "Contract - Other (Excluding Business/Employment Dispute and Debt Collection) (Up to $2,500)"
+        },
+        {
+          "code": "164987",
+          "name": "Contract - Other (Excluding Business/Employment Dispute and Debt Collection) ($2,500.01 to $10K)"
+        },
+        {
+          "code": "164990",
+          "name": "Tort - Wrongful Act  (Up to $2,500)"
+        },
+        {
+          "code": "164991",
+          "name": "Tort - Wrongful Act ($2,500.01 to $10K)"
+        },
+        {
+          "code": "297713",
+          "name": "Contract - Employment Dispute - Discrimination (Up to $2,500)"
+        },
+        {
+          "code": "297714",
+          "name": "Contract - Employment Dispute - Discrimination ($2,500.01 to $10K)"
+        },
+        {
+          "code": "297715",
+          "name": "Contract - Employment Dispute (Excluding Discrimination) (Up to $2,500)"
+        },
+        {
+          "code": "297716",
+          "name": "Contract - Employment Dispute (Excluding Discrimination) ($2,500.01 to $10K)"
+        },
+        {
+          "code": "297717",
+          "name": "Contract - Business Dispute (Buyer/Plaintiff) (Up to $2,500)"
+        },
+        {
+          "code": "297718",
+          "name": "Contract - Business Dispute (Buyer/Plaintiff) ($2,500.01 to $10K)"
+        },
+        {
+          "code": "297719",
+          "name": "Contract - Debt Collection (Seller/Plaintiff) (Up to $2,500)"
+        },
+        {
+          "code": "297720",
+          "name": "Contract - Debt Collection (Seller/Plaintiff) ($2,500.01 to $10K)"
+        },
+        {
+          "code": "297721",
+          "name": "Tort - Automobile (Up to $2,500)"
+        },
+        {
+          "code": "297722",
+          "name": "Tort - Automobile ($2,500.01 to $10K)"
+        },
+        {
+          "code": "297723",
+          "name": "Tort - Intentional  (Up to $2,500)"
+        },
+        {
+          "code": "297724",
+          "name": "Tort - Intentional  ($2,500.01 to $10K)"
+        },
+        {
+          "code": "297725",
+          "name": "Tort - Medical Malpractice (Up to $2,500)"
+        },
+        {
+          "code": "297726",
+          "name": "Tort - Medical Malpractice  ($2,500.01 to $10K)"
+        },
+        {
+          "code": "297727",
+          "name": "Tort - Other Malpractice (Excluding Medical) (Up to $2,500)"
+        },
+        {
+          "code": "297728",
+          "name": "Tort - Other Malpractice (Excluding Medical)  ($2,500.01 to $10K)"
+        },
+        {
+          "code": "297729",
+          "name": "Tort - Premises Liability  (Up to $2,500)"
+        },
+        {
+          "code": "297730",
+          "name": "Tort - Premises Liability  ($2,500.01 to $10K)"
+        },
+        {
+          "code": "297731",
+          "name": "Tort - Product Liability (Excluding Asbestos)  (Up to $2,500)"
+        },
+        {
+          "code": "297732",
+          "name": "Tort - Product Liability (Excluding Asbestos)  ($2,500.01 to $10K)"
+        },
+        {
+          "code": "297733",
+          "name": "Tort - Slander/Libel/Defamation (Up to $2,500)"
+        },
+        {
+          "code": "297734",
+          "name": "Tort - Slander/Libel/Defamation  ($2,500.01 to $10K)"
+        }
+      ]
+    },
+    {
+      "case_id": "IL-08",
+      "variant": "flattened",
+      "jurisdiction": "illinois",
+      "court_code": "madison",
+      "filing_phase": "subsequent",
+      "classification_level": "case category",
+      "selected_case_category": {
+        "code": "190921",
+        "name": "Eviction"
+      },
+      "selected_case_type": null,
+      "expected_status": "selected",
+      "expected_names": [
+        "Eviction"
+      ],
+      "label_confidence": 0.94,
+      "review_status": "verified_live_document_supported",
+      "candidate_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/madison/categories?fileable_only=true&timing=Initial",
+      "available_candidates": [
+        {
+          "code": "105721",
+          "name": "Family"
+        },
+        {
+          "code": "105722",
+          "name": "Law: Damages over $50,000"
+        },
+        {
+          "code": "190919",
+          "name": "Dissolution (Divorce) with Children"
+        },
+        {
+          "code": "190920",
+          "name": "Dissolution (Divorce) without Children"
+        },
+        {
+          "code": "190921",
+          "name": "Eviction"
+        },
+        {
+          "code": "190922",
+          "name": "Foreclosure"
+        },
+        {
+          "code": "190923",
+          "name": "Governmental Corporation"
+        },
+        {
+          "code": "190924",
+          "name": "Guardianship"
+        },
+        {
+          "code": "190925",
+          "name": "Miscellaneous Criminal"
+        },
+        {
+          "code": "190926",
+          "name": "Juvenile"
+        },
+        {
+          "code": "210",
+          "name": "Family"
+        },
+        {
+          "code": "6188",
+          "name": "Arbitration"
+        },
+        {
+          "code": "6189",
+          "name": "Chancery"
+        },
+        {
+          "code": "6191",
+          "name": "Eminent Domain"
+        },
+        {
+          "code": "6193",
+          "name": "Law Magistrate: Damages over $10,000 up to $50,000"
+        },
+        {
+          "code": "6194",
+          "name": "Mental Health"
+        },
+        {
+          "code": "6195",
+          "name": "Miscellaneous Remedy"
+        },
+        {
+          "code": "6198",
+          "name": "Small Claims"
+        },
+        {
+          "code": "6199",
+          "name": "Tax"
+        },
+        {
+          "code": "7062",
+          "name": "Order of Protection"
+        },
+        {
+          "code": "7306",
+          "name": "Adoption"
+        },
+        {
+          "code": "7420",
+          "name": "Probate"
+        },
+        {
+          "code": "76962",
+          "name": "Contempt of Court"
+        },
+        {
+          "code": "76966",
+          "name": "Juvenile"
+        }
+      ]
+    },
+    {
+      "case_id": "IL-10",
+      "variant": "motion-facsimile",
+      "jurisdiction": "illinois",
+      "court_code": "sangamon",
+      "filing_phase": "subsequent",
+      "classification_level": "filing type",
+      "selected_case_category": {
+        "code": "7420",
+        "name": "Probate"
+      },
+      "selected_case_type": {
+        "code": "215566",
+        "name": "Administration of Decedent's Estate"
+      },
+      "expected_status": "selected",
+      "expected_names": [
+        "Motion"
+      ],
+      "label_confidence": 0.9,
+      "review_status": "verified_live",
+      "candidate_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/sangamon/filing_types/?initial=false&category_id=7420&type_id=215566",
+      "available_candidates": [
+        {
+          "code": "48997",
+          "name": "Admission"
+        },
+        {
+          "code": "58138",
+          "name": "Appearance"
+        },
+        {
+          "code": "58410",
+          "name": "Third Party Complaint/Defendant"
+        },
+        {
+          "code": "61061",
+          "name": "Answer"
+        },
+        {
+          "code": "80015",
+          "name": "Claim"
+        },
+        {
+          "code": "89519",
+          "name": "DISCHARGE"
+        },
+        {
+          "code": "106673",
+          "name": "Motion to Vacate"
+        },
+        {
+          "code": "145442",
+          "name": "Motion for Redaction & Confidential Filing"
+        },
+        {
+          "code": "170851",
+          "name": "Satisfaction/Release of Judgment"
+        },
+        {
+          "code": "176330",
+          "name": "Appearance (No Fee: fee exempted by rule/statute)"
+        },
+        {
+          "code": "181439",
+          "name": "Proof"
+        },
+        {
+          "code": "187068",
+          "name": "Witness"
+        },
+        {
+          "code": "189239",
+          "name": "Order"
+        },
+        {
+          "code": "196741",
+          "name": "Accounting"
+        },
+        {
+          "code": "197375",
+          "name": "Lien"
+        },
+        {
+          "code": "197522",
+          "name": "Offer"
+        },
+        {
+          "code": "198608",
+          "name": "Change"
+        },
+        {
+          "code": "198667",
+          "name": "Sale"
+        },
+        {
+          "code": "204577",
+          "name": "Demand"
+        },
+        {
+          "code": "204724",
+          "name": "Jury Instructions"
+        },
+        {
+          "code": "204749",
+          "name": "Notice"
+        },
+        {
+          "code": "204900",
+          "name": "Petition to Seal"
+        },
+        {
+          "code": "204984",
+          "name": "Receipt"
+        },
+        {
+          "code": "205002",
+          "name": "Release"
+        },
+        {
+          "code": "205121",
+          "name": "Stipulation"
+        },
+        {
+          "code": "205162",
+          "name": "Summary Judgment"
+        },
+        {
+          "code": "208147",
+          "name": "Appointment"
+        },
+        {
+          "code": "208220",
+          "name": "Correspondence"
+        },
+        {
+          "code": "208287",
+          "name": "Exhibit"
+        },
+        {
+          "code": "208321",
+          "name": "Inventory"
+        },
+        {
+          "code": "208370",
+          "name": "Leave"
+        },
+        {
+          "code": "208380",
+          "name": "Letters"
+        },
+        {
+          "code": "208384",
+          "name": "Mandate"
+        },
+        {
+          "code": "208392",
+          "name": "Memorandum"
+        },
+        {
+          "code": "208634",
+          "name": "Property Settlement"
+        },
+        {
+          "code": "208643",
+          "name": "Quash"
+        },
+        {
+          "code": "208658",
+          "name": "Reply"
+        },
+        {
+          "code": "208663",
+          "name": "Report"
+        },
+        {
+          "code": "208679",
+          "name": "Request"
+        },
+        {
+          "code": "208684",
+          "name": "Return"
+        },
+        {
+          "code": "208696",
+          "name": "Statement"
+        },
+        {
+          "code": "208787",
+          "name": "Transfer"
+        },
+        {
+          "code": "208792",
+          "name": "Verdict"
+        },
+        {
+          "code": "208802",
+          "name": "Waiver"
+        },
+        {
+          "code": "215695",
+          "name": "Petition Vacate/Modify Final Judgment/Order (> 30 days)"
+        },
+        {
+          "code": "215703",
+          "name": "Petition Vacate/Modify Final Judgment/Order (w/in 30 days)"
+        },
+        {
+          "code": "215709",
+          "name": "Petition Vacate/Modify Final Order-Enforce Support (no fee)"
+        },
+        {
+          "code": "215733",
+          "name": "Proof of Delivery"
+        },
+        {
+          "code": "215737",
+          "name": "Proof of Service/Certificate of Service"
+        },
+        {
+          "code": "215748",
+          "name": "Proposed Order"
+        },
+        {
+          "code": "215759",
+          "name": "Report of Proceedings"
+        },
+        {
+          "code": "215764",
+          "name": "Request & Order for Interpreter"
+        },
+        {
+          "code": "215769",
+          "name": "Request for Preparation of Record on Appeal"
+        },
+        {
+          "code": "215780",
+          "name": "Response"
+        },
+        {
+          "code": "215784",
+          "name": "Response (No Fee)"
+        },
+        {
+          "code": "215795",
+          "name": "Supplemental"
+        },
+        {
+          "code": "215799",
+          "name": "Terminate"
+        },
+        {
+          "code": "215809",
+          "name": "Third Party Complaint/Defendant"
+        },
+        {
+          "code": "215821",
+          "name": "Transcript"
+        },
+        {
+          "code": "215832",
+          "name": "Verification"
+        },
+        {
+          "code": "215843",
+          "name": "Victim Counselor's Report"
+        },
+        {
+          "code": "215846",
+          "name": "Hearing"
+        },
+        {
+          "code": "215848",
+          "name": "Heirship Affidavit"
+        },
+        {
+          "code": "215851",
+          "name": "List"
+        },
+        {
+          "code": "215869",
+          "name": "Agreement"
+        },
+        {
+          "code": "215880",
+          "name": "Alias Summons (Issued)"
+        },
+        {
+          "code": "215891",
+          "name": "Alias Summons (Returned)"
+        },
+        {
+          "code": "215901",
+          "name": "Amended Complaint"
+        },
+        {
+          "code": "215912",
+          "name": "Amended Filing"
+        },
+        {
+          "code": "215922",
+          "name": "Amended Information"
+        },
+        {
+          "code": "215933",
+          "name": "Amended Notice of Appeal"
+        },
+        {
+          "code": "215941",
+          "name": "Bond"
+        },
+        {
+          "code": "215956",
+          "name": "Counter Petition/Complaint"
+        },
+        {
+          "code": "215959",
+          "name": "Final Report"
+        },
+        {
+          "code": "215974",
+          "name": "Motion for New Trial"
+        },
+        {
+          "code": "215980",
+          "name": "Notice of Appeal"
+        },
+        {
+          "code": "215991",
+          "name": "Notice of Hearing"
+        },
+        {
+          "code": "216002",
+          "name": "Notice of Limited Scope Appearance"
+        },
+        {
+          "code": "216007",
+          "name": "Notice of Motion"
+        },
+        {
+          "code": "216019",
+          "name": "Notice to Heirs"
+        },
+        {
+          "code": "216021",
+          "name": "Oath"
+        },
+        {
+          "code": "216023",
+          "name": "Objection"
+        },
+        {
+          "code": "216029",
+          "name": "Order Granting Petition No Contact Order"
+        },
+        {
+          "code": "216035",
+          "name": "Order Granting Petition No Stalking Order (Emergency)"
+        },
+        {
+          "code": "216041",
+          "name": "Order Granting Petition Order of Protection (Emergency)"
+        },
+        {
+          "code": "216045",
+          "name": "Petition"
+        },
+        {
+          "code": "216049",
+          "name": "Petition for Rule to Show Cause"
+        },
+        {
+          "code": "216065",
+          "name": "Petition to Intervene"
+        },
+        {
+          "code": "216070",
+          "name": "Petition Vacate/Modify Final Order-Withholding Order (no fee)"
+        },
+        {
+          "code": "216074",
+          "name": "Physicians Report"
+        },
+        {
+          "code": "216078",
+          "name": "Subpoena (Return)"
+        },
+        {
+          "code": "216089",
+          "name": "Subpoena (to Issue)"
+        },
+        {
+          "code": "216100",
+          "name": "Substitution"
+        },
+        {
+          "code": "216111",
+          "name": "Summons (Issued)"
+        },
+        {
+          "code": "216120",
+          "name": "Withdrawal"
+        },
+        {
+          "code": "216125",
+          "name": "Estate Claim ($0.00 to $150.00)"
+        },
+        {
+          "code": "216127",
+          "name": "Estate Claim ($10,000.01 or More)"
+        },
+        {
+          "code": "216129",
+          "name": "Estate Claim ($150.01 to $500.00)"
+        },
+        {
+          "code": "216131",
+          "name": "Estate Claim ($500.01 to $10,000.00)"
+        },
+        {
+          "code": "216197",
+          "name": "Citation/Garnishment/Wage Deduction ($1,000.01 to $5,000.00) (Issued)"
+        },
+        {
+          "code": "216207",
+          "name": "Citation/Garnishment/Wage Deduction ($5,000.01 or more) (Issued)"
+        },
+        {
+          "code": "216217",
+          "name": "Citation/Garnishment/Wage Deduction (up to $1,000.00) (Issued)"
+        },
+        {
+          "code": "216265",
+          "name": "Designation"
+        },
+        {
+          "code": "216303",
+          "name": "Interpleader"
+        },
+        {
+          "code": "216314",
+          "name": "Interrogatories"
+        },
+        {
+          "code": "216325",
+          "name": "Judgment"
+        },
+        {
+          "code": "216328",
+          "name": "Motion to Modify"
+        },
+        {
+          "code": "246204",
+          "name": "Affidavit"
+        },
+        {
+          "code": "246208",
+          "name": "Appearance (Limited Scope)"
+        },
+        {
+          "code": "246210",
+          "name": "Appearance (No Fee: fee previously paid on behalf of party)"
+        },
+        {
+          "code": "246212",
+          "name": "Application"
+        },
+        {
+          "code": "246216",
+          "name": "Brief"
+        },
+        {
+          "code": "246218",
+          "name": "Case Record (Change of Venue)"
+        },
+        {
+          "code": "246219",
+          "name": "Certificate"
+        },
+        {
+          "code": "246221",
+          "name": "Consent"
+        },
+        {
+          "code": "246223",
+          "name": "Contempt of Court (Direct Civil)"
+        },
+        {
+          "code": "246225",
+          "name": "Contempt of Court (Direct Criminal)"
+        },
+        {
+          "code": "246227",
+          "name": "Contempt of Court (Indirect Civil)"
+        },
+        {
+          "code": "246229",
+          "name": "Contempt of Court (Indirect Criminal)"
+        },
+        {
+          "code": "246231",
+          "name": "Continue"
+        },
+        {
+          "code": "246232",
+          "name": "Denial"
+        },
+        {
+          "code": "246233",
+          "name": "Deposition"
+        },
+        {
+          "code": "246235",
+          "name": "Detainer"
+        },
+        {
+          "code": "246237",
+          "name": "Discovery"
+        },
+        {
+          "code": "246239",
+          "name": "Dismissal"
+        },
+        {
+          "code": "246241",
+          "name": "Entry of Appearance"
+        },
+        {
+          "code": "246243",
+          "name": "Motion"
+        },
+        {
+          "code": "246245",
+          "name": "Motion to Vacate/Amend Final Order"
+        },
+        {
+          "code": "253895",
+          "name": "Other Document Not Listed (Confidential)"
+        },
+        {
+          "code": "253930",
+          "name": "Other Document Not Listed (Non-confidential)"
+        },
+        {
+          "code": "253952",
+          "name": "Parenting Plan"
+        },
+        {
+          "code": "290037",
+          "name": "Declaration"
+        },
+        {
+          "code": "290624",
+          "name": "Certified Inventory List"
+        },
+        {
+          "code": "290663",
+          "name": "Change of Address"
+        },
+        {
+          "code": "290723",
+          "name": "Petition for Citation to Recover Assets"
+        },
+        {
+          "code": "290743",
+          "name": "Renunciation"
+        },
+        {
+          "code": "290766",
+          "name": "Reviewing Court Order"
+        },
+        {
+          "code": "290805",
+          "name": "Security for Costs"
+        },
+        {
+          "code": "290823",
+          "name": "Vouchers"
+        },
+        {
+          "code": "303984",
+          "name": "Disclaimer"
+        },
+        {
+          "code": "305798",
+          "name": "Certificate of Legal Services Provider"
+        },
+        {
+          "code": "305926",
+          "name": "Notice of Filing"
+        },
+        {
+          "code": "306033",
+          "name": "Summons Returned Service"
+        },
+        {
+          "code": "307421",
+          "name": "Affidavit (Military)"
+        },
+        {
+          "code": "307422",
+          "name": "Appearance (Limited Scope - fee previously paid)"
+        },
+        {
+          "code": "307423",
+          "name": "Certificate of Exemption from eFiling"
+        },
+        {
+          "code": "307424",
+          "name": "Counterclaims (Answer or Response)"
+        },
+        {
+          "code": "307425",
+          "name": "Declination of Office"
+        },
+        {
+          "code": "307426",
+          "name": "Income Withholding for Support"
+        },
+        {
+          "code": "307427",
+          "name": "Invoice"
+        },
+        {
+          "code": "307428",
+          "name": "Notice of Completion of Limited Scope Appearance"
+        },
+        {
+          "code": "307429",
+          "name": "Order for Waiver of Fees/Assessments"
+        },
+        {
+          "code": "307430",
+          "name": "Request for Transcripts"
+        },
+        {
+          "code": "307431",
+          "name": "Summons Returned No Service"
+        },
+        {
+          "code": "307432",
+          "name": "Third Party Complaint/Defendant (No Fee)"
+        },
+        {
+          "code": "326289",
+          "name": "Alias Citation/Garnishment/Wage Deduction (Returned)"
+        },
+        {
+          "code": "326290",
+          "name": "Appearance Filed (Guardian Ad Litem)"
+        },
+        {
+          "code": "326291",
+          "name": "Citation to Recover Assets (Issued)"
+        },
+        {
+          "code": "326292",
+          "name": "Publication"
+        },
+        {
+          "code": "326293",
+          "name": "Will (Non-original)"
+        }
+      ]
+    }
+  ]
+}

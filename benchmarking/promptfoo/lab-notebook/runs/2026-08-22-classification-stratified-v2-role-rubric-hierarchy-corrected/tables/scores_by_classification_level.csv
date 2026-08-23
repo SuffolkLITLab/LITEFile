@@ -1,0 +1,4 @@
+suite,classification_level,input_mode,runs,mean_score,passes,errors,mean_latency_ms,total_tokens,total_cost
+classification,case category,role-rubric,8,0.9125,7,0,2106,11039,0.0018515
+classification,case type,role-rubric,12,0.941667,11,0,2162,19354,0.00249957
+classification,filing type,role-rubric,16,0.95,15,0,2784,42628,0.00254233

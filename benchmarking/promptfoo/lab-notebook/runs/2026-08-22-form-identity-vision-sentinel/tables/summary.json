@@ -1,0 +1,40 @@
+{
+  "suites": {
+    "form-identity-vision": {
+      "eval_id": "eval-lg4-2026-08-23T00:45:44",
+      "runs": 24,
+      "passes": 20,
+      "failures": 3,
+      "errors": 1,
+      "mean_score": 0.713279,
+      "token_usage": {
+        "prompt": 142519,
+        "completion": 5403,
+        "cached": 0,
+        "total": 147922,
+        "numRequests": 24,
+        "completionDetails": {
+          "reasoning": 1320,
+          "acceptedPrediction": 0,
+          "rejectedPrediction": 0,
+          "cacheReadInputTokens": 0,
+          "cacheCreationInputTokens": 0
+        },
+        "assertions": {
+          "total": 0,
+          "prompt": 0,
+          "completion": 0,
+          "cached": 0,
+          "numRequests": 0,
+          "completionDetails": {
+            "reasoning": 0,
+            "acceptedPrediction": 0,
+            "rejectedPrediction": 0,
+            "cacheReadInputTokens": 0,
+            "cacheCreationInputTokens": 0
+          }
+        }
+      }
+    }
+  }
+}

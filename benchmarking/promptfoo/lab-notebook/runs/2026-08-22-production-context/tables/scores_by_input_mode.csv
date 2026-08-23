@@ -1,0 +1,7 @@
+suite,input_mode,prompt_version,runs,mean_score,passes,errors,mean_latency_ms,total_tokens,total_cost
+production-context,markitdown,v1-production,18,0.244966,4,0,2897,12260,0.02072025
+production-context,markitdown,v2-evidence-bound,18,0.403851,6,0,1769,12817,0.02177505
+production-context,markitdown+fields,v1-production,18,0.332561,7,0,2347,17036,0.02577875
+production-context,markitdown+fields,v2-evidence-bound,18,0.591716,12,0,1876,18430,0.02616895
+production-context,vision+markitdown+fields,v1-production,18,0.724669,15,0,2650,115081,0.0503303
+production-context,vision+markitdown+fields,v2-evidence-bound,18,0.909938,18,0,2992,117339,0.0537982

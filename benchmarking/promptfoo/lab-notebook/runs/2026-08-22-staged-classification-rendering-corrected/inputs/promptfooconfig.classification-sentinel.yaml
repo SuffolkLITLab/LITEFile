@@ -1,0 +1,44 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+description: LITEFile hierarchical taxonomy classification input ablation
+
+prompts:
+  - id: file://./prompts/taxonomy_classification.py:create_source_only
+    label: taxonomy-classification:v1:source-first-3-pages
+  - id: file://./prompts/taxonomy_classification.py:create_evidence_only
+    label: taxonomy-classification:v1:evidence-only
+  - id: file://./prompts/taxonomy_classification.py:create_evidence_and_source
+    label: taxonomy-classification:v1:evidence+source-first-3-pages
+
+providers:
+  - id: openai:chat:gpt-5.4-nano
+    label: openai-small:gpt-5.4-nano
+    config:
+      reasoning_effort: low
+      response_format:
+        type: json_object
+  - id: openai:chat:gpt-5.4
+    label: openai-large:gpt-5.4
+    config:
+      reasoning_effort: low
+      response_format:
+        type: json_object
+  - id: openai:chat:mistral-large-3
+    label: mistral-large:mistral-large-3
+  - id: openai:chat:llama-4-maverick
+    label: meta-large:llama-4-maverick
+
+defaultTest:
+  threshold: 1
+  options:
+    disableVarExpansion: true
+  assert:
+    - type: javascript
+      value: file://./assertions/taxonomy_classification.js
+      metric: exact-taxonomy-selection
+
+tests: file://./data/classification_sentinel_cases.jsonl
+
+evaluateOptions:
+  maxConcurrency: 2
+
+sharing: false

@@ -1,0 +1,422 @@
+[
+  {
+    "id": "IL-01",
+    "variant": "interactive",
+    "pages": 1,
+    "acroform_fields": 12,
+    "text_chars": 367
+  },
+  {
+    "id": "IL-02",
+    "variant": "interactive",
+    "pages": 2,
+    "acroform_fields": 16,
+    "text_chars": 540
+  },
+  {
+    "id": "IL-03",
+    "variant": "interactive",
+    "pages": 1,
+    "acroform_fields": 14,
+    "text_chars": 412
+  },
+  {
+    "id": "IL-04",
+    "variant": "interactive",
+    "pages": 1,
+    "acroform_fields": 10,
+    "text_chars": 336
+  },
+  {
+    "id": "IL-05",
+    "variant": "interactive",
+    "pages": 1,
+    "acroform_fields": 14,
+    "text_chars": 444
+  },
+  {
+    "id": "IL-06",
+    "variant": "interactive",
+    "pages": 1,
+    "acroform_fields": 13,
+    "text_chars": 393
+  },
+  {
+    "id": "IL-07",
+    "variant": "interactive",
+    "pages": 1,
+    "acroform_fields": 13,
+    "text_chars": 431
+  },
+  {
+    "id": "IL-08",
+    "variant": "interactive",
+    "pages": 1,
+    "acroform_fields": 16,
+    "text_chars": 432
+  },
+  {
+    "id": "IL-09",
+    "variant": "interactive",
+    "pages": 1,
+    "acroform_fields": 9,
+    "text_chars": 327
+  },
+  {
+    "id": "IL-10",
+    "variant": "interactive",
+    "pages": 1,
+    "acroform_fields": 9,
+    "text_chars": 347
+  },
+  {
+    "id": "MA-01",
+    "variant": "interactive",
+    "pages": 1,
+    "acroform_fields": 17,
+    "text_chars": 489
+  },
+  {
+    "id": "MA-02",
+    "variant": "interactive",
+    "pages": 1,
+    "acroform_fields": 14,
+    "text_chars": 444
+  },
+  {
+    "id": "MA-03",
+    "variant": "interactive",
+    "pages": 1,
+    "acroform_fields": 12,
+    "text_chars": 421
+  },
+  {
+    "id": "MA-04",
+    "variant": "interactive",
+    "pages": 1,
+    "acroform_fields": 14,
+    "text_chars": 431
+  },
+  {
+    "id": "MA-05",
+    "variant": "interactive",
+    "pages": 1,
+    "acroform_fields": 14,
+    "text_chars": 419
+  },
+  {
+    "id": "MA-06",
+    "variant": "interactive",
+    "pages": 1,
+    "acroform_fields": 14,
+    "text_chars": 474
+  },
+  {
+    "id": "MA-07",
+    "variant": "interactive",
+    "pages": 1,
+    "acroform_fields": 14,
+    "text_chars": 442
+  },
+  {
+    "id": "MA-08",
+    "variant": "interactive",
+    "pages": 1,
+    "acroform_fields": 9,
+    "text_chars": 378
+  },
+  {
+    "id": "MA-09",
+    "variant": "interactive",
+    "pages": 1,
+    "acroform_fields": 10,
+    "text_chars": 363
+  },
+  {
+    "id": "MA-10",
+    "variant": "interactive",
+    "pages": 1,
+    "acroform_fields": 15,
+    "text_chars": 475
+  },
+  {
+    "id": "VT-01",
+    "variant": "interactive",
+    "pages": 2,
+    "acroform_fields": 18,
+    "text_chars": 674
+  },
+  {
+    "id": "VT-02",
+    "variant": "interactive",
+    "pages": 1,
+    "acroform_fields": 14,
+    "text_chars": 441
+  },
+  {
+    "id": "VT-03",
+    "variant": "interactive",
+    "pages": 1,
+    "acroform_fields": 14,
+    "text_chars": 369
+  },
+  {
+    "id": "VT-04",
+    "variant": "interactive",
+    "pages": 1,
+    "acroform_fields": 11,
+    "text_chars": 354
+  },
+  {
+    "id": "VT-05",
+    "variant": "interactive",
+    "pages": 1,
+    "acroform_fields": 14,
+    "text_chars": 427
+  },
+  {
+    "id": "VT-06",
+    "variant": "interactive",
+    "pages": 1,
+    "acroform_fields": 13,
+    "text_chars": 380
+  },
+  {
+    "id": "VT-07",
+    "variant": "interactive",
+    "pages": 1,
+    "acroform_fields": 15,
+    "text_chars": 437
+  },
+  {
+    "id": "VT-08",
+    "variant": "interactive",
+    "pages": 1,
+    "acroform_fields": 9,
+    "text_chars": 354
+  },
+  {
+    "id": "VT-09",
+    "variant": "interactive",
+    "pages": 1,
+    "acroform_fields": 9,
+    "text_chars": 336
+  },
+  {
+    "id": "VT-10",
+    "variant": "interactive",
+    "pages": 1,
+    "acroform_fields": 9,
+    "text_chars": 376
+  },
+  {
+    "id": "IL-01",
+    "variant": "flattened",
+    "pages": 1,
+    "acroform_fields": 0,
+    "text_chars": 675
+  },
+  {
+    "id": "IL-02",
+    "variant": "flattened",
+    "pages": 2,
+    "acroform_fields": 0,
+    "text_chars": 1081
+  },
+  {
+    "id": "IL-03",
+    "variant": "flattened",
+    "pages": 1,
+    "acroform_fields": 0,
+    "text_chars": 743
+  },
+  {
+    "id": "IL-04",
+    "variant": "flattened",
+    "pages": 1,
+    "acroform_fields": 0,
+    "text_chars": 675
+  },
+  {
+    "id": "IL-05",
+    "variant": "flattened",
+    "pages": 1,
+    "acroform_fields": 0,
+    "text_chars": 652
+  },
+  {
+    "id": "IL-06",
+    "variant": "flattened",
+    "pages": 1,
+    "acroform_fields": 0,
+    "text_chars": 937
+  },
+  {
+    "id": "IL-07",
+    "variant": "flattened",
+    "pages": 1,
+    "acroform_fields": 0,
+    "text_chars": 938
+  },
+  {
+    "id": "IL-08",
+    "variant": "flattened",
+    "pages": 1,
+    "acroform_fields": 0,
+    "text_chars": 825
+  },
+  {
+    "id": "IL-09",
+    "variant": "flattened",
+    "pages": 1,
+    "acroform_fields": 0,
+    "text_chars": 666
+  },
+  {
+    "id": "IL-10",
+    "variant": "flattened",
+    "pages": 1,
+    "acroform_fields": 0,
+    "text_chars": 691
+  },
+  {
+    "id": "MA-01",
+    "variant": "flattened",
+    "pages": 1,
+    "acroform_fields": 0,
+    "text_chars": 913
+  },
+  {
+    "id": "MA-02",
+    "variant": "flattened",
+    "pages": 1,
+    "acroform_fields": 0,
+    "text_chars": 813
+  },
+  {
+    "id": "MA-03",
+    "variant": "flattened",
+    "pages": 1,
+    "acroform_fields": 0,
+    "text_chars": 838
+  },
+  {
+    "id": "MA-04",
+    "variant": "flattened",
+    "pages": 1,
+    "acroform_fields": 0,
+    "text_chars": 742
+  },
+  {
+    "id": "MA-05",
+    "variant": "flattened",
+    "pages": 1,
+    "acroform_fields": 0,
+    "text_chars": 709
+  },
+  {
+    "id": "MA-06",
+    "variant": "flattened",
+    "pages": 1,
+    "acroform_fields": 0,
+    "text_chars": 896
+  },
+  {
+    "id": "MA-07",
+    "variant": "flattened",
+    "pages": 1,
+    "acroform_fields": 0,
+    "text_chars": 732
+  },
+  {
+    "id": "MA-08",
+    "variant": "flattened",
+    "pages": 1,
+    "acroform_fields": 0,
+    "text_chars": 642
+  },
+  {
+    "id": "MA-09",
+    "variant": "flattened",
+    "pages": 1,
+    "acroform_fields": 0,
+    "text_chars": 675
+  },
+  {
+    "id": "MA-10",
+    "variant": "flattened",
+    "pages": 1,
+    "acroform_fields": 0,
+    "text_chars": 806
+  },
+  {
+    "id": "VT-01",
+    "variant": "flattened",
+    "pages": 2,
+    "acroform_fields": 0,
+    "text_chars": 1141
+  },
+  {
+    "id": "VT-02",
+    "variant": "flattened",
+    "pages": 1,
+    "acroform_fields": 0,
+    "text_chars": 914
+  },
+  {
+    "id": "VT-03",
+    "variant": "flattened",
+    "pages": 1,
+    "acroform_fields": 0,
+    "text_chars": 771
+  },
+  {
+    "id": "VT-04",
+    "variant": "flattened",
+    "pages": 1,
+    "acroform_fields": 0,
+    "text_chars": 726
+  },
+  {
+    "id": "VT-05",
+    "variant": "flattened",
+    "pages": 1,
+    "acroform_fields": 0,
+    "text_chars": 855
+  },
+  {
+    "id": "VT-06",
+    "variant": "flattened",
+    "pages": 1,
+    "acroform_fields": 0,
+    "text_chars": 649
+  },
+  {
+    "id": "VT-07",
+    "variant": "flattened",
+    "pages": 1,
+    "acroform_fields": 0,
+    "text_chars": 1002
+  },
+  {
+    "id": "VT-08",
+    "variant": "flattened",
+    "pages": 1,
+    "acroform_fields": 0,
+    "text_chars": 620
+  },
+  {
+    "id": "VT-09",
+    "variant": "flattened",
+    "pages": 1,
+    "acroform_fields": 0,
+    "text_chars": 685
+  },
+  {
+    "id": "VT-10",
+    "variant": "flattened",
+    "pages": 1,
+    "acroform_fields": 0,
+    "text_chars": 530
+  }
+]
