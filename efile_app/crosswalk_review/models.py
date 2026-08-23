@@ -1,3 +1,6 @@
+import re
+from urllib.parse import urlsplit
+
 from django.db import models
 
 
@@ -28,9 +31,24 @@ class CrosswalkForm(models.Model):
 
     @property
     def primary_source_url(self) -> str | None:
-        """Return the first source URL, or None."""
-        urls = self.source_urls or []
+        """Return the first safe HTTP(S) source URL, or None."""
+        urls = self.safe_source_urls
         return urls[0] if urls else None
+
+    @property
+    def safe_source_urls(self) -> list[str]:
+        """Return source URLs that are safe to place in links and iframes."""
+        safe_urls = []
+        for url in self.source_urls or []:
+            if not isinstance(url, str):
+                continue
+            try:
+                parsed = urlsplit(url)
+            except ValueError:
+                continue
+            if parsed.scheme in {"http", "https"} and parsed.netloc:
+                safe_urls.append(url)
+        return safe_urls
 
 
 class CrosswalkMapping(models.Model):
@@ -61,8 +79,6 @@ class CrosswalkMapping(models.Model):
     @property
     def notes_clean(self) -> str:
         """Return notes with the bracketed [Staging observation: …] suffix stripped."""
-        import re
-
         return re.sub(r"\s*\[Staging observation:[^\]]*\]", "", self.notes).strip()
 
     @property
@@ -74,6 +90,11 @@ class CrosswalkMapping(models.Model):
         if self.confidence >= 0.60:
             return "medium"
         return "low"
+
+    @property
+    def confidence_percent(self) -> float | None:
+        """Return the zero-to-one confidence score as a percentage."""
+        return self.confidence * 100 if self.confidence is not None else None
 
 
 class MappingVerdict(models.Model):

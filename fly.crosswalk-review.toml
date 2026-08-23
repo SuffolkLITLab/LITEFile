@@ -1,22 +1,31 @@
 # Fly.io configuration for the crosswalk review app.
-# Uses the same Docker image as the main LITEFile app but runs only the
-# Django web process (no extraction worker) and seeds the crosswalk data
-# on every release.
+# Uses the same Docker image as the main LITEFile app, but exposes only the
+# crosswalk reviewer and stores its SQLite database on a persistent volume.
 
 app = "litefile-crosswalk-review"
-primary_region = "lax"
+primary_region = "iad"
 
 [build]
 
 [env]
-  DJANGO_SETTINGS_MODULE = "efile.settings_staging"
+  CROSSWALK_REVIEW_DATABASE_PATH = "/data/crosswalk-review.sqlite3"
+  CROSSWALK_REVIEW_HOSTNAME = "litefile-crosswalk-review.fly.dev"
+  DJANGO_SETTINGS_MODULE = "efile.settings_crosswalk_review"
+  LITEFILE_BASE_URL = "https://litefile-staging.fly.dev"
 
 [deploy]
-  # Run migrations then load the crosswalk data (idempotent via update_or_create)
-  release_command = "sh -c 'uv run python manage.py migrate --noinput --fake-initial && uv run python manage.py load_crosswalk'"
+  # A volume can only attach to one Machine, so replace the old Machine before
+  # starting the new release instead of attempting a second rolling Machine.
+  strategy = "immediate"
 
 [processes]
-  app = "uv run gunicorn efile.asgi:application -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --workers 2 --timeout 60 --access-logfile - --error-logfile -"
+  # Release-command Machines cannot mount this app's volume. The startup script
+  # migrates the database and reloads source data only when its checksum changes.
+  app = "sh scripts/start-crosswalk-review.sh"
+
+[[mounts]]
+  source = "crosswalk_review_data"
+  destination = "/data"
 
 [http_service]
   internal_port = 8000
@@ -25,6 +34,11 @@ primary_region = "lax"
   auto_start_machines = true
   min_machines_running = 0
   processes = ["app"]
+
+  [http_service.concurrency]
+    type = "requests"
+    soft_limit = 20
+    hard_limit = 25
 
 [[vm]]
   memory = "512mb"

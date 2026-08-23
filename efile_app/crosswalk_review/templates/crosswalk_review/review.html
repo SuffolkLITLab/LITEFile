@@ -3,194 +3,309 @@
     Review {{ form_obj.canonical_id }} – crosswalk review
 {% endblock title %}
 {% block extra_style %}
-    /* ── Layout ── */
-    .review-layout {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.25rem;
-    align-items: start;
-    }
-    @media (max-width: 900px) {
-    .review-layout { grid-template-columns: 1fr; }
-    }
-    /* ── Form metadata panel ── */
-    .form-meta { font-size: 0.88rem; color: #4b5563; }
-    .form-meta dt { font-weight: 600; color: #1a1a2e; margin-top: 0.6rem; }
-    .form-meta dd { margin: 0 0 0.25rem 0; }
-    /* ── PDF / source iframe panel ── */
-    .source-panel h2 { font-size: 0.95rem; font-weight: 600; color: #374151; margin: 0 0 0.5rem; }
-    .source-frame {
-    width: 100%;
-    height: 520px;
-    border: 1px solid #dde1e8;
-    border-radius: 4px;
-    background: #f9fafb;
-    }
-    .source-links { margin-top: 0.5rem; }
-    .source-links a {
-    display: inline-block;
-    font-size: 0.82rem;
-    margin-right: 0.75rem;
-    word-break: break-all;
-    }
-    /* ── Navigation bar ── */
-    .review-nav {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 1.25rem;
-    flex-wrap: wrap;
-    }
-    .review-nav .position {
-    font-size: 0.85rem;
-    color: #6b7280;
-    margin-left: auto;
-    }
-    /* ── Mapping table ── */
-    .mappings-section { margin-top: 1.25rem; }
-    .mappings-section h2 { font-size: 1rem; font-weight: 600; margin: 0 0 0.75rem; }
-    .mapping-card {
-    border: 1px solid #dde1e8;
-    border-radius: 6px;
-    margin-bottom: 1rem;
-    background: #fff;
-    overflow: hidden;
-    transition: box-shadow 0.15s;
-    }
-    .mapping-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.09); }
-    .mapping-header {
-    background: #f8f9fb;
-    border-bottom: 1px solid #e5e7eb;
-    padding: 0.65rem 1rem;
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    flex-wrap: wrap;
-    }
-    .mapping-header .mapping-num {
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: #6b7280;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    }
-    .mapping-header .taxonomy {
-    font-weight: 600;
-    font-size: 0.92rem;
-    flex: 1;
-    }
-    .mapping-header .taxonomy .sep { color: #9ca3af; margin: 0 0.3rem; }
-    .mapping-body { padding: 0.9rem 1rem; }
-    .mapping-meta {
-    display: grid;
-    grid-template-columns: max-content 1fr;
-    gap: 0.25rem 0.75rem;
-    font-size: 0.85rem;
-    margin-bottom: 0.75rem;
-    }
-    .mapping-meta dt { color: #6b7280; font-weight: 500; }
-    .mapping-meta dd { margin: 0; color: #1a1a2e; }
-    .mapping-notes {
-    font-size: 0.83rem;
-    color: #374151;
-    background: #f8f9fb;
-    border-left: 3px solid #cbd5e1;
-    padding: 0.5rem 0.75rem;
-    border-radius: 0 4px 4px 0;
-    margin-bottom: 0.9rem;
-    white-space: pre-wrap;
-    word-break: break-word;
-    }
-    /* ── Verdict selector ── */
-    .verdict-row {
-    display: flex;
-    align-items: flex-start;
-    gap: 1.25rem;
-    flex-wrap: wrap;
-    }
-    .verdict-options { display: flex; gap: 0.6rem; flex-wrap: wrap; }
-    .verdict-label {
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-    cursor: pointer;
-    font-size: 0.88rem;
-    }
-    .verdict-label input[type="radio"] { accent-color: #1a6b3c; }
-    .verdict-label.correct  .verdict-chip { background: #d1fae5; color: #065f46; }
-    .verdict-label.incorrect .verdict-chip { background: #fee2e2; color: #991b1b; }
-    .verdict-label.unsure   .verdict-chip { background: #fef9c3; color: #78350f; }
-    .verdict-chip {
-    padding: 0.3rem 0.7rem;
-    border-radius: 4px;
-    font-weight: 600;
-    font-size: 0.82rem;
-    transition: opacity 0.12s;
-    }
-    input[type="radio"]:not(:checked) + .verdict-chip { opacity: 0.55; }
-    input[type="radio"]:checked + .verdict-chip { opacity: 1; box-shadow: 0 0 0 2px #1a6b3c; }
-    .reviewer-notes-wrap { flex: 1; min-width: 220px; }
-    .reviewer-notes-wrap label { font-size: 0.8rem; color: #6b7280; display: block; margin-bottom: 0.2rem; }
-    .reviewer-notes-wrap textarea {
-    width: 100%;
-    border: 1px solid #cbd5e1;
-    border-radius: 4px;
-    padding: 0.4rem 0.6rem;
-    font-size: 0.83rem;
-    resize: vertical;
-    min-height: 54px;
-    color: #1a1a2e;
-    line-height: 1.45;
-    transition: border-color 0.15s;
-    }
-    .reviewer-notes-wrap textarea:focus {
-    outline: none;
-    border-color: #1a6b3c;
-    box-shadow: 0 0 0 3px rgba(26,107,60,0.12);
-    }
-    /* ── Already reviewed banner ── */
-    .already-reviewed {
-    background: #d1fae5;
-    border: 1px solid #6ee7b7;
-    border-radius: 4px;
-    padding: 0.5rem 0.9rem;
-    font-size: 0.85rem;
-    color: #065f46;
-    margin-bottom: 0.75rem;
-    }
-    .already-reviewed strong { font-weight: 700; }
-    /* ── Submit bar ── */
-    .submit-bar {
-    position: sticky;
-    bottom: 0;
-    background: rgba(255,255,255,0.97);
-    border-top: 1px solid #dde1e8;
-    padding: 0.9rem 1.5rem;
-    display: flex;
-    gap: 0.75rem;
-    align-items: center;
-    flex-wrap: wrap;
-    z-index: 10;
-    backdrop-filter: blur(4px);
-    margin-top: 1.25rem;
-    }
-    .submit-bar .reviewer-tag {
-    font-size: 0.82rem;
-    color: #6b7280;
-    margin-left: auto;
-    }
-    /* ── Phase badge ── */
-    .phase-badge {
-    font-size: 0.72rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    padding: 0.15rem 0.5rem;
-    border-radius: 3px;
-    background: #ede9fe;
-    color: #4c1d95;
-    }
-    .phase-badge.subsequent { background: #fce7f3; color: #831843; }
+    <style>
+        /* ── Layout ── */
+        .review-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+            align-items: start;
+        }
+
+        @media (max-width: 900px) {
+            .review-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ── Form metadata panel ── */
+        .form-meta {
+            font-size: 0.88rem;
+            color: #4b5563;
+        }
+
+        .form-meta dt {
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-top: 0.6rem;
+        }
+
+        .form-meta dd {
+            margin: 0 0 0.25rem 0;
+        }
+
+        /* ── PDF / source iframe panel ── */
+        .source-panel h2 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #374151;
+            margin: 0 0 0.5rem;
+        }
+
+        .source-frame {
+            width: 100%;
+            height: 520px;
+            border: 1px solid #dde1e8;
+            border-radius: 4px;
+            background: #f9fafb;
+        }
+
+        .source-links {
+            margin-top: 0.5rem;
+        }
+
+        .source-links a {
+            display: inline-block;
+            font-size: 0.82rem;
+            margin-right: 0.75rem;
+            word-break: break-all;
+        }
+
+        /* ── Navigation bar ── */
+        .review-nav {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+            flex-wrap: wrap;
+        }
+
+        .review-nav .position {
+            font-size: 0.85rem;
+            color: #6b7280;
+            margin-left: auto;
+        }
+
+        /* ── Mapping table ── */
+        .mappings-section {
+            margin-top: 1.25rem;
+        }
+
+        .mappings-section h2 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 0 0 0.75rem;
+        }
+
+        .mapping-card {
+            border: 1px solid #dde1e8;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            background: #fff;
+            overflow: hidden;
+            transition: box-shadow 0.15s;
+        }
+
+        .mapping-card:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.09);
+        }
+
+        .mapping-header {
+            background: #f8f9fb;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 0.65rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        .mapping-header .mapping-num {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .mapping-header .taxonomy {
+            font-weight: 600;
+            font-size: 0.92rem;
+            flex: 1;
+        }
+
+        .mapping-header .taxonomy .sep {
+            color: #9ca3af;
+            margin: 0 0.3rem;
+        }
+
+        .mapping-body {
+            padding: 0.9rem 1rem;
+        }
+
+        .mapping-meta {
+            display: grid;
+            grid-template-columns: max-content 1fr;
+            gap: 0.25rem 0.75rem;
+            font-size: 0.85rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .mapping-meta dt {
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        .mapping-meta dd {
+            margin: 0;
+            color: #1a1a2e;
+        }
+
+        .mapping-notes {
+            font-size: 0.83rem;
+            color: #374151;
+            background: #f8f9fb;
+            border-left: 3px solid #cbd5e1;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0 4px 4px 0;
+            margin-bottom: 0.9rem;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        /* ── Verdict selector ── */
+        .verdict-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 1.25rem;
+            flex-wrap: wrap;
+        }
+
+        .verdict-options {
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        .verdict-label {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            cursor: pointer;
+            font-size: 0.88rem;
+        }
+
+        .verdict-label input[type="radio"] {
+            accent-color: #1a6b3c;
+        }
+
+        .verdict-label.correct .verdict-chip {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .verdict-label.incorrect .verdict-chip {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .verdict-label.unsure .verdict-chip {
+            background: #fef9c3;
+            color: #78350f;
+        }
+
+        .verdict-chip {
+            padding: 0.3rem 0.7rem;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.82rem;
+            transition: opacity 0.12s;
+        }
+
+        input[type="radio"]:not(:checked)+.verdict-chip {
+            opacity: 0.55;
+        }
+
+        input[type="radio"]:checked+.verdict-chip {
+            opacity: 1;
+            box-shadow: 0 0 0 2px #1a6b3c;
+        }
+
+        .reviewer-notes-wrap {
+            flex: 1;
+            min-width: 220px;
+        }
+
+        .reviewer-notes-wrap label {
+            font-size: 0.8rem;
+            color: #6b7280;
+            display: block;
+            margin-bottom: 0.2rem;
+        }
+
+        .reviewer-notes-wrap textarea {
+            width: 100%;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            padding: 0.4rem 0.6rem;
+            font-size: 0.83rem;
+            resize: vertical;
+            min-height: 54px;
+            color: #1a1a2e;
+            line-height: 1.45;
+            transition: border-color 0.15s;
+        }
+
+        .reviewer-notes-wrap textarea:focus {
+            outline: none;
+            border-color: #1a6b3c;
+            box-shadow: 0 0 0 3px rgba(26, 107, 60, 0.12);
+        }
+
+        /* ── Already reviewed banner ── */
+        .already-reviewed {
+            background: #d1fae5;
+            border: 1px solid #6ee7b7;
+            border-radius: 4px;
+            padding: 0.5rem 0.9rem;
+            font-size: 0.85rem;
+            color: #065f46;
+            margin-bottom: 0.75rem;
+        }
+
+        .already-reviewed strong {
+            font-weight: 700;
+        }
+
+        /* ── Submit bar ── */
+        .submit-bar {
+            position: sticky;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.97);
+            border-top: 1px solid #dde1e8;
+            padding: 0.9rem 1.5rem;
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            flex-wrap: wrap;
+            z-index: 10;
+            backdrop-filter: blur(4px);
+            margin-top: 1.25rem;
+        }
+
+        .submit-bar .reviewer-tag {
+            font-size: 0.82rem;
+            color: #6b7280;
+            margin-left: auto;
+        }
+
+        /* ── Phase badge ── */
+        .phase-badge {
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 0.15rem 0.5rem;
+            border-radius: 3px;
+            background: #ede9fe;
+            color: #4c1d95;
+        }
+
+        .phase-badge.subsequent {
+            background: #fce7f3;
+            color: #831843;
+        }
+    </style>
 {% endblock extra_style %}
 {% block content %}
     <!-- Navigation -->
@@ -218,6 +333,7 @@
             Submitting again will overwrite your previous answers.
         </div>
     {% endif %}
+    {% if submission_error %}<div class="message message-error" role="alert">{{ submission_error }}</div>{% endif %}
     <form method="post"
           action="{% url 'crosswalk_review:review_form' form_obj.canonical_id %}?reviewer={{ reviewer|urlencode }}">
         {% csrf_token %}
@@ -258,11 +374,11 @@
                         </dd>
                     {% endif %}
                 </dl>
-                {% if form_obj.source_urls %}
+                {% if form_obj.safe_source_urls %}
                     <div style="margin-top:0.75rem;">
                         <span style="font-size:0.8rem; font-weight:600; color:#374151;">Source links</span>
                         <ul style="margin:0.25rem 0 0; padding-left:1.1rem;">
-                            {% for url in form_obj.source_urls %}
+                            {% for url in form_obj.safe_source_urls %}
                                 <li>
                                     <a href="{{ url }}"
                                        target="_blank"
@@ -329,7 +445,7 @@
                 </span>
             </h2>
             {% for row in mapping_rows %}
-                {% with m=row.obj ev=row.existing_verdict %}
+                {% with m=row.obj %}
                     <div class="mapping-card" id="mapping-{{ m.pk }}">
                         <div class="mapping-header">
                             <span class="mapping-num">#{{ forloop.counter }}</span>
@@ -351,7 +467,7 @@
                             {% if m.confidence is not None %}
                                 <span class="badge badge-{{ m.confidence_label }}"
                                       title="Confidence: {{ m.confidence|floatformat:2 }}">
-                                    {{ m.confidence|floatformat:0 }}%
+                                    {{ m.confidence_percent|floatformat:0 }}%
                                 </span>
                             {% else %}
                                 <span class="badge badge-unknown">No confidence score</span>
@@ -403,7 +519,7 @@
                                             <input type="radio"
                                                    name="verdict_{{ m.pk }}"
                                                    value="correct"
-                                                   {% if ev and ev.verdict == "correct" %}checked{% endif %}
+                                                   {% if row.selected_verdict == "correct" %}checked{% endif %}
                                                    required />
                                             <span class="verdict-chip">✓ Correct</span>
                                         </label>
@@ -411,14 +527,14 @@
                                             <input type="radio"
                                                    name="verdict_{{ m.pk }}"
                                                    value="incorrect"
-                                                   {% if ev and ev.verdict == "incorrect" %}checked{% endif %} />
+                                                   {% if row.selected_verdict == "incorrect" %}checked{% endif %} />
                                             <span class="verdict-chip">✗ Incorrect</span>
                                         </label>
                                         <label class="verdict-label unsure">
                                             <input type="radio"
                                                    name="verdict_{{ m.pk }}"
                                                    value="unsure"
-                                                   {% if ev and ev.verdict == "unsure" %}checked{% endif %} />
+                                                   {% if row.selected_verdict == "unsure" %}checked{% endif %} />
                                             <span class="verdict-chip">? Unsure</span>
                                         </label>
                                     </div>
@@ -427,7 +543,7 @@
                                     <label for="notes-{{ m.pk }}">Optional notes (reasons, corrections, etc.)</label>
                                     <textarea id="notes-{{ m.pk }}"
                                               name="notes_{{ m.pk }}"
-                                              placeholder="e.g. 'Filing type name changed', 'Wrong court', …">{% if ev %}{{ ev.reviewer_notes }}{% endif %}</textarea>
+                                              placeholder="e.g. 'Filing type name changed', 'Wrong court', …">{{ row.reviewer_notes }}</textarea>
                                 </div>
                             </div>
                         </div>
