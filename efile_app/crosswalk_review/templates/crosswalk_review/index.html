@@ -3,49 +3,84 @@
     Crosswalk review – home
 {% endblock title %}
 {% block extra_style %}
-    .hero {
-    background: linear-gradient(135deg, #1a6b3c 0%, #0e4828 100%);
-    color: #fff;
-    border-radius: 8px;
-    padding: 2rem 2.5rem;
-    margin-bottom: 1.5rem;
-    }
-    .hero h1 { margin: 0 0 0.5rem; font-size: 1.6rem; }
-    .hero p  { margin: 0; color: rgba(255,255,255,0.85); max-width: 680px; }
-    .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-    }
-    .stat-card {
-    background: #fff;
-    border: 1px solid #dde1e8;
-    border-radius: 6px;
-    padding: 1rem 1.25rem;
-    text-align: center;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-    .stat-number {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #1a6b3c;
-    line-height: 1;
-    margin-bottom: 0.25rem;
-    }
-    .stat-label { font-size: 0.8rem; color: #6b7280; }
-    .name-form { display: flex; gap: 0.75rem; align-items: flex-end; flex-wrap: wrap; margin-top: 1rem; }
-    .name-form label { font-weight: 600; display: block; margin-bottom: 0.25rem; }
-    .name-form input[type="text"] {
-    border: 1px solid #cbd5e1;
-    border-radius: 4px;
-    padding: 0.5rem 0.75rem;
-    font-size: 0.95rem;
-    width: 260px;
-    outline: none;
-    transition: border-color 0.15s;
-    }
-    .name-form input[type="text"]:focus { border-color: #1a6b3c; box-shadow: 0 0 0 3px rgba(26,107,60,0.15); }
+    <style>
+        .hero {
+            background: linear-gradient(135deg, #1a6b3c 0%, #0e4828 100%);
+            color: #fff;
+            border-radius: 8px;
+            padding: 2rem 2.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero h1 {
+            margin: 0 0 0.5rem;
+            font-size: 1.6rem;
+        }
+
+        .hero p {
+            margin: 0;
+            color: rgba(255, 255, 255, 0.85);
+            max-width: 680px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: #fff;
+            border: 1px solid #dde1e8;
+            border-radius: 6px;
+            padding: 1rem 1.25rem;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1a6b3c;
+            line-height: 1;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+
+        .name-form {
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .name-form label {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        .name-form input[type="text"] {
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.95rem;
+            width: 260px;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+
+        .name-form input[type="text"]:focus {
+            border-color: #1a6b3c;
+            box-shadow: 0 0 0 3px rgba(26, 107, 60, 0.15);
+        }
+    </style>
 {% endblock extra_style %}
 {% block content %}
     <div class="hero">
@@ -72,15 +107,14 @@
         </div>
         <div class="stat-card">
             <div class="stat-number">{{ forms_fully_reviewed }}</div>
-            <div class="stat-label">Forms with ≥1 verdict</div>
+            <div class="stat-label">Fully reviewed forms</div>
         </div>
         {% if total_forms > 0 %}
             <div class="stat-card" style="grid-column: span 2;">
                 <div style="font-size:0.8rem; color:#6b7280; margin-bottom:0.5rem;">Overall progress</div>
                 <div class="progress-bar-wrap">
                     <div class="progress-bar-fill"
-                         style="width: {{ forms_fully_reviewed|floatformat:0 }}%;
-                                width: calc({{ forms_fully_reviewed }} / {{ total_forms }} * 100%)"></div>
+                         style="width: {{ overall_progress_percent }}%"></div>
                 </div>
                 <div style="font-size:0.78rem;
                             color:#6b7280;
@@ -122,6 +156,7 @@
         {% endif %}
         <form method="post" action="{% url 'crosswalk_review:index' %}">
             {% csrf_token %}
+            {% if reviewer_error %}<p class="message message-error">{{ reviewer_error }}</p>{% endif %}
             <div class="name-form">
                 <div>
                     <label for="reviewer_name">Your name</label>
@@ -130,6 +165,7 @@
                            name="reviewer_name"
                            value="{{ reviewer|default:'' }}"
                            placeholder="e.g. Jane Smith"
+                           maxlength="100"
                            required />
                 </div>
                 <button type="submit" class="btn btn-primary">Start →</button>

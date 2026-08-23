@@ -232,15 +232,9 @@
                 border-radius: 999px;
                 transition: width 0.3s;
             }
-
-                {
-                % block extra_style %
-            }
-
-                {
-                % endblock extra_style %
-            }
         </style>
+        {% block extra_style %}
+        {% endblock extra_style %}
     </head>
     <body>
         <header class="top-nav">
