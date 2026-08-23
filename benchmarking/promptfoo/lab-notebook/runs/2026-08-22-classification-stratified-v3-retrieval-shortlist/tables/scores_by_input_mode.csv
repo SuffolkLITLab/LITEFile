@@ -1,0 +1,2 @@
+suite,input_mode,prompt_version,runs,mean_score,passes,errors,mean_latency_ms,total_tokens,total_cost
+classification,retrieval-shortlist,v3,36,0.980556,35,0,2288,53331,0.00849803

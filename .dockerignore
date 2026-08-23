@@ -35,6 +35,8 @@ docs/
 docs-site/
 .docusaurus/
 node_modules/
+**/node_modules/
+benchmarking/
 package-lock.json
 
 # Local DBs

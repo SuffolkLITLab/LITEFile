@@ -1,3 +1,5 @@
+import shutil
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -13,6 +15,7 @@ from efile.services.document_extractions import (
     queue_document_extraction,
 )
 from efile.services.extraction_fields import normalize_extracted_fields
+from efile.services.taxonomy_classification import ClassificationRun, HierarchicalDocumentClassifier
 from efile.workflow import ExistingCase
 
 
@@ -97,6 +100,71 @@ def test_worker_caps_pages_and_persists_the_complete_payload(extraction_draft):
     assert job.pages_analyzed == 2
     assert extraction_draft.extracted_guesses["document title"] == "Complaint"
     assert extraction_draft.extracted_guesses["plaintiff or petitioner names"] == "Alex Rivera"
+
+
+@pytest.mark.django_db
+def test_worker_reads_a_real_uploaded_pdf_before_classification(extraction_draft):
+    """Do not let the standard worker test regress to a fully mocked document."""
+    source_pdf = Path(__file__).resolve().parents[3] / "benchmarking/synthetic/filled_pdfs/flattened/MA-01.pdf"
+    assert source_pdf.is_file()
+    document = FilingDocument.objects.create(
+        draft=extraction_draft,
+        role=FilingDocument.Role.LEAD,
+        name="MA-01.pdf",
+        s3_key="lead/MA-01.pdf",
+    )
+    extraction_draft.jurisdiction = "massachusetts"
+    extraction_draft.save(update_fields=["jurisdiction", "updated_at"])
+    job = queue_document_extraction(document)
+    handler = MagicMock()
+
+    def download_real_pdf(_key, destination):
+        shutil.copyfile(source_pdf, destination)
+        return {"success": True}
+
+    handler.download_file.side_effect = download_real_pdf
+
+    def classify_source(_classifier, jurisdiction, evidence, source_text):
+        assert jurisdiction == "massachusetts"
+        assert evidence["form identifier"] == "CJD 101B"
+        assert "COMPLAINT FOR DIVORCE" in source_text
+        assert "Middlesex Division" in source_text
+        return ClassificationRun(
+            selections={
+                "court": {
+                    "status": "selected",
+                    "name": "Middlesex Probate and Family Court",
+                    "route_key": "current-court-key",
+                }
+            },
+            metadata={"prompt_version": "v2", "model": "test-model"},
+        )
+
+    with (
+        patch("efile.services.document_extractions.S3UploadHandler", return_value=handler),
+        patch(
+            "efile.services.document_extractions.extract_fields_from_file",
+            return_value={
+                "form identifier": "CJD 101B",
+                "form name": "Complaint for Divorce under G.L. c. 208, § 1B",
+                "court name": "Middlesex Division",
+                "filing phase": "initial",
+                "monetary amounts": [{"label": "Amount in controversy", "raw": "$1,275", "amount": "1275"}],
+            },
+        ),
+        patch("efile.services.document_extractions.get_default_model", return_value="test-evidence-model"),
+        patch.object(HierarchicalDocumentClassifier, "classify", classify_source),
+        patch.object(HierarchicalDocumentClassifier, "__init__", return_value=None),
+    ):
+        process_document_extraction(job.pk)
+
+    job.refresh_from_db()
+    extraction_draft.refresh_from_db()
+    assert job.evidence["form identifier"] == "CJD 101B"
+    assert job.classification["court"]["route_key"] == "current-court-key"
+    assert job.analysis_metadata["evidence_prompt_version"] == "v1"
+    assert extraction_draft.extracted_guesses["court"] == "Middlesex Probate and Family Court"
+    assert extraction_draft.amount_in_controversy == "1275"
 
 
 @pytest.mark.django_db

@@ -60,6 +60,31 @@ def test_llms_exports():
     assert issubclass(LlmError, Exception)
 
 
+def test_pdf_extraction_prefers_inline_responses_file_input(tmp_path: Path):
+    pdf_path = tmp_path / "filing.pdf"
+    pdf_path.write_bytes(b"%PDF-1.4 native document input")
+    openai_client = MagicMock()
+    openai_client.responses.create.return_value.output_text = '{"form identifier": "CJD 101B"}'
+    diagnostics = {}
+
+    result = extract_fields_from_file(
+        pdf_path,
+        {"form identifier": "Printed form identifier"},
+        openai_client=openai_client,
+        model="gpt-test",
+        diagnostics=diagnostics,
+    )
+
+    assert result == {"form identifier": "CJD 101B"}
+    request = openai_client.responses.create.call_args.kwargs
+    file_input = request["input"][1]["content"][0]
+    assert file_input["type"] == "input_file"
+    assert file_input["filename"] == "filing.pdf"
+    assert file_input["file_data"].startswith("data:application/pdf;base64,")
+    assert diagnostics == {"input_mode": "native_inline_pdf"}
+    openai_client.files.create.assert_not_called()
+
+
 @patch("efile.utils.llms.extract_fields_from_text")
 @patch("efile.utils.llms.MarkItDown")
 def test_pdf_extraction_falls_back_when_gateway_cannot_read_uploaded_file(
@@ -91,5 +116,8 @@ def test_pdf_extraction_falls_back_when_gateway_cannot_read_uploaded_file(
         openai_client=openai_client,
         model="gpt-test",
         reasoning_effort="low",
+        llm_hint="",
+        prompt_version_name=None,
+        prompt_name="document_extraction",
     )
     openai_client.files.delete.assert_called_once_with("file-test")

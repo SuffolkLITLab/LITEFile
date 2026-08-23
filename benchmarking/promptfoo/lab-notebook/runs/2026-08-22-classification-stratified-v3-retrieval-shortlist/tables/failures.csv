@@ -1,0 +1,2 @@
+provider,case_id,level,score,output_excerpt
+openai-small:gpt-5.4-nano,IL-02,filing type,0.3,"{   ""status"": ""selected"",   ""selection"": {     ""code"": ""53831"",     ""name"": ""Petition""   },   ""confidence"": 0.86,   ""evidence"": [     ""“PETITION FOR DIVORCE WITH CHILDREN”"",     ""Form title: “Petition for Divorce with Children”"",     ""Filing phase: “initial”""   ],   ""search_query"": null,   ""reason"": ""The uploaded document is explicitly the “Petition for Divorce with Children,” which corresponds to"

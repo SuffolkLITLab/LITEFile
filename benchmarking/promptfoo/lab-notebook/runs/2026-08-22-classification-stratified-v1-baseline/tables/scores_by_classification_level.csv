@@ -1,0 +1,4 @@
+suite,classification_level,input_mode,runs,mean_score,passes,errors,mean_latency_ms,total_tokens,total_cost
+classification,case category,baseline,8,0.775,6,0,2493,10265,0.00163385
+classification,case type,baseline,12,1.0,12,0,1882,17795,0.002795
+classification,filing type,baseline,16,0.9125,14,0,1712,40325,0.0051743

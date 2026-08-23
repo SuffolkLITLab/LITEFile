@@ -55,6 +55,7 @@ def jurisdiction_homepage(request, jurisdiction):
 
 urlpatterns = [
     path("jsi18n/", JavaScriptCatalog.as_view(), name="javascript-catalog"),
+    path("review/", include("crosswalk_review.urls")),
     path("", homepage, name="home"),
     path("choose-jurisdiction", choose_jurisdiction, name="efile_choose_jurisdiction"),
     path("about/", about_page, name="about"),

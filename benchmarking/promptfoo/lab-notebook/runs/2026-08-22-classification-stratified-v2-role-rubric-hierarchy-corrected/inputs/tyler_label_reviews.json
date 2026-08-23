@@ -1,0 +1,1004 @@
+{
+  "reviewed_at": "2026-08-22",
+  "endpoint": "https://efile-test.suffolklitlab.org",
+  "notes": "Durable Tyler identities are exact normalized names. Numeric keys are dated, environment-specific observations only. Unlisted cases retain lower-confidence synthetic labels.",
+  "cases": {
+    "IL-01": {
+      "case category": {
+        "required": false,
+        "abstain": true,
+        "confidence": 0.9,
+        "review_status": "rejected_by_live_catalog",
+        "notes": "DuPage has no generic Civil category in the initial-filing list; the complaint facts do not choose another category."
+      }
+    },
+    "IL-02": {
+      "case category": {
+        "accepted": [
+          "Dissolution (Divorce) with Children"
+        ],
+        "confidence": 0.99,
+        "review_status": "verified_live",
+        "preferred_name": "Dissolution (Divorce) with Children",
+        "catalog_observations": [
+          {
+            "environment": "test",
+            "observed_at": "2026-08-22",
+            "name": "Dissolution (Divorce) with Children",
+            "transient_key": "190919"
+          }
+        ]
+      },
+      "case type": {
+        "accepted": [
+          "Dissolution (with children)"
+        ],
+        "confidence": 0.99,
+        "review_status": "verified_live",
+        "preferred_name": "Dissolution (with children)",
+        "catalog_observations": [
+          {
+            "environment": "test",
+            "observed_at": "2026-08-22",
+            "name": "Dissolution (with children)",
+            "transient_key": "242453"
+          }
+        ]
+      },
+      "filing type": {
+        "accepted": [
+          "Petition Dissolution of Marriage/Civil Union"
+        ],
+        "confidence": 0.96,
+        "review_status": "verified_live",
+        "preferred_name": "Petition Dissolution of Marriage/Civil Union",
+        "catalog_observations": [
+          {
+            "environment": "test",
+            "observed_at": "2026-08-22",
+            "name": "Petition Dissolution of Marriage/Civil Union",
+            "transient_key": "243164"
+          }
+        ]
+      }
+    },
+    "IL-03": {
+      "case category": {
+        "accepted": [
+          "Eviction"
+        ],
+        "confidence": 0.99,
+        "review_status": "verified_live",
+        "preferred_name": "Eviction",
+        "catalog_observations": [
+          {
+            "environment": "test",
+            "observed_at": "2026-08-22",
+            "name": "Eviction",
+            "transient_key": "190921"
+          }
+        ]
+      },
+      "case type": {
+        "accepted": [
+          "Residential - Eviction"
+        ],
+        "confidence": 0.98,
+        "review_status": "verified_live",
+        "preferred_name": "Residential - Eviction",
+        "catalog_observations": [
+          {
+            "environment": "test",
+            "observed_at": "2026-08-22",
+            "name": "Residential - Eviction",
+            "transient_key": "318583"
+          }
+        ]
+      },
+      "filing type": {
+        "accepted": [
+          "Complaint"
+        ],
+        "confidence": 0.95,
+        "review_status": "verified_live",
+        "preferred_name": "Complaint",
+        "catalog_observations": [
+          {
+            "environment": "test",
+            "observed_at": "2026-08-22",
+            "name": "Complaint",
+            "transient_key": "40501"
+          }
+        ]
+      }
+    },
+    "IL-04": {
+      "case category": {
+        "accepted": [
+          "Small Claims"
+        ],
+        "confidence": 0.99,
+        "review_status": "verified_live",
+        "preferred_name": "Small Claims",
+        "catalog_observations": [
+          {
+            "environment": "test",
+            "observed_at": "2026-08-22",
+            "name": "Small Claims",
+            "transient_key": "7421"
+          }
+        ]
+      },
+      "case type": {
+        "accepted": [
+          "Contract - Other (Excluding Business/Employment Dispute and Debt Collection) ($2,500.01 to $10K)",
+          "Contract - Business Dispute (Buyer/Plaintiff) ($2,500.01 to $10K)"
+        ],
+        "confidence": 0.7,
+        "review_status": "verified_live_ambiguous",
+        "notes": "The lost-property repair claim plausibly fits either Tyler's general contract-other path or its buyer/plaintiff business-dispute path. Treat both live values as acceptable until a court-facing reviewer resolves the local usage.",
+        "preferred_name": "Contract - Other (Excluding Business/Employment Dispute and Debt Collection) ($2,500.01 to $10K)",
+        "catalog_observations": [
+          {
+            "environment": "test",
+            "observed_at": "2026-08-22",
+            "name": "Contract - Other (Excluding Business/Employment Dispute and Debt Collection) ($2,500.01 to $10K)",
+            "transient_key": "164987"
+          },
+          {
+            "environment": "test",
+            "observed_at": "2026-08-22",
+            "name": "Contract - Business Dispute (Buyer/Plaintiff) ($2,500.01 to $10K)",
+            "transient_key": "297718"
+          }
+        ]
+      },
+      "filing type": {
+        "accepted": [
+          "Complaint"
+        ],
+        "confidence": 0.96,
+        "review_status": "verified_live",
+        "preferred_name": "Complaint",
+        "catalog_observations": [
+          {
+            "environment": "test",
+            "observed_at": "2026-08-22",
+            "name": "Complaint",
+            "transient_key": "214014"
+          }
+        ]
+      }
+    },
+    "IL-05": {
+      "case category": {
+        "accepted": [
+          "Miscellaneous Remedy"
+        ],
+        "confidence": 0.99,
+        "review_status": "verified_live",
+        "preferred_name": "Miscellaneous Remedy",
+        "catalog_observations": [
+          {
+            "environment": "test",
+            "observed_at": "2026-08-22",
+            "name": "Miscellaneous Remedy",
+            "transient_key": "6195"
+          }
+        ]
+      },
+      "case type": {
+        "accepted": [
+          "Change of Name"
+        ],
+        "confidence": 0.99,
+        "review_status": "verified_live",
+        "preferred_name": "Change of Name",
+        "catalog_observations": [
+          {
+            "environment": "test",
+            "observed_at": "2026-08-22",
+            "name": "Change of Name",
+            "transient_key": "324997"
+          }
+        ]
+      },
+      "filing type": {
+        "accepted": [
+          "Request for Name Change (Adult)"
+        ],
+        "confidence": 0.99,
+        "review_status": "verified_live",
+        "preferred_name": "Request for Name Change (Adult)",
+        "catalog_observations": [
+          {
+            "environment": "test",
+            "observed_at": "2026-08-22",
+            "name": "Request for Name Change (Adult)",
+            "transient_key": "321551"
+          }
+        ]
+      }
+    },
+    "IL-06": {
+      "case category": {
+        "accepted": [
+          "Guardianship"
+        ],
+        "confidence": 0.99,
+        "review_status": "verified_live",
+        "preferred_name": "Guardianship",
+        "catalog_observations": [
+          {
+            "environment": "test",
+            "observed_at": "2026-08-22",
+            "name": "Guardianship",
+            "transient_key": "190924"
+          }
+        ]
+      },
+      "case type": {
+        "accepted": [
+          "Guardianship of Minor"
+        ],
+        "confidence": 0.99,
+        "review_status": "verified_live",
+        "preferred_name": "Guardianship of Minor",
+        "catalog_observations": [
+          {
+            "environment": "test",
+            "observed_at": "2026-08-22",
+            "name": "Guardianship of Minor",
+            "transient_key": "192350"
+          }
+        ]
+      },
+      "filing type": {
+        "accepted": [
+          "Petition"
+        ],
+        "confidence": 0.94,
+        "review_status": "verified_live",
+        "preferred_name": "Petition",
+        "catalog_observations": [
+          {
+            "environment": "test",
+            "observed_at": "2026-08-22",
+            "name": "Petition",
+            "transient_key": "77832"
+          }
+        ]
+      }
+    },
+    "IL-07": {
+      "case category": {
+        "accepted": [
+          "Order of Protection"
+        ],
+        "confidence": 0.99,
+        "review_status": "verified_live",
+        "preferred_name": "Order of Protection",
+        "catalog_observations": [
+          {
+            "environment": "test",
+            "observed_at": "2026-08-22",
+            "name": "Order of Protection",
+            "transient_key": "7418"
+          }
+        ]
+      },
+      "case type": {
+        "accepted": [
+          "Order of Protection"
+        ],
+        "confidence": 0.98,
+        "review_status": "verified_live",
+        "preferred_name": "Order of Protection",
+        "catalog_observations": [
+          {
+            "environment": "test",
+            "observed_at": "2026-08-22",
+            "name": "Order of Protection",
+            "transient_key": "5895"
+          }
+        ]
+      },
+      "filing type": {
+        "accepted": [
+          "Petition Order of Protection (Emergency)"
+        ],
+        "confidence": 0.94,
+        "review_status": "verified_live",
+        "preferred_name": "Petition Order of Protection (Emergency)",
+        "catalog_observations": [
+          {
+            "environment": "test",
+            "observed_at": "2026-08-22",
+            "name": "Petition Order of Protection (Emergency)",
+            "transient_key": "177738"
+          }
+        ]
+      }
+    },
+    "IL-08": {
+      "case category": {
+        "accepted": [
+          "Eviction"
+        ],
+        "confidence": 0.94,
+        "review_status": "verified_live_document_supported",
+        "notes": "Although a fee-waiver filing is generic, this synthetic document's 2026-EV docket prefix and landlord-tenant caption support the live Eviction category.",
+        "preferred_name": "Eviction",
+        "catalog_observations": [
+          {
+            "environment": "test",
+            "observed_at": "2026-08-22",
+            "name": "Eviction",
+            "transient_key": "190921"
+          }
+        ]
+      },
+      "case type": {
+        "required": false,
+        "abstain": true,
+        "confidence": 0.95,
+        "review_status": "document_does_not_establish"
+      }
+    },
+    "IL-10": {
+      "case category": {
+        "accepted": [
+          "Probate"
+        ],
+        "confidence": 0.96,
+        "review_status": "verified_live",
+        "preferred_name": "Probate",
+        "catalog_observations": [
+          {
+            "environment": "test",
+            "observed_at": "2026-08-22",
+            "name": "Probate",
+            "transient_key": "7420"
+          }
+        ]
+      },
+      "case type": {
+        "accepted": [
+          "Administration of Decedent's Estate"
+        ],
+        "confidence": 0.95,
+        "review_status": "verified_live",
+        "preferred_name": "Administration of Decedent's Estate",
+        "catalog_observations": [
+          {
+            "environment": "test",
+            "observed_at": "2026-08-22",
+            "name": "Administration of Decedent's Estate",
+            "transient_key": "215566"
+          }
+        ]
+      },
+      "filing type": {
+        "accepted": [
+          "Motion"
+        ],
+        "confidence": 0.9,
+        "review_status": "verified_live",
+        "notes": "Tyler does not expose a motion-to-extend-inventory label for this path; natural document title remains useful separately.",
+        "preferred_name": "Motion",
+        "catalog_observations": [
+          {
+            "environment": "test",
+            "observed_at": "2026-08-22",
+            "name": "Motion",
+            "transient_key": "246243"
+          }
+        ]
+      }
+    },
+    "MA-07": {
+      "case category": {
+        "accepted": [
+          "Summary Process"
+        ],
+        "confidence": 0.98,
+        "review_status": "verified_live",
+        "preferred_name": "Summary Process",
+        "catalog_observations": [
+          {
+            "environment": "test",
+            "observed_at": "2026-08-22",
+            "name": "Summary Process",
+            "transient_key": "8730"
+          }
+        ]
+      },
+      "case type": {
+        "accepted": [
+          "Efiled SP Summons and Complaint - Non-payment of Rent"
+        ],
+        "confidence": 0.9,
+        "review_status": "verified_live",
+        "preferred_name": "Efiled SP Summons and Complaint - Non-payment of Rent",
+        "catalog_observations": [
+          {
+            "environment": "test",
+            "observed_at": "2026-08-22",
+            "name": "Efiled SP Summons and Complaint - Non-payment of Rent",
+            "transient_key": "8734"
+          }
+        ]
+      },
+      "filing type": {
+        "accepted": [
+          "Entry Package - SP Summons and Complaint - Non-payment of Rent"
+        ],
+        "confidence": 0.88,
+        "review_status": "verified_live",
+        "preferred_name": "Entry Package - SP Summons and Complaint - Non-payment of Rent",
+        "catalog_observations": [
+          {
+            "environment": "test",
+            "observed_at": "2026-08-22",
+            "name": "Entry Package - SP Summons and Complaint - Non-payment of Rent",
+            "transient_key": "8757"
+          }
+        ]
+      }
+    },
+    "VT-01": {
+      "case category": {
+        "accepted": [
+          "Family"
+        ],
+        "confidence": 0.99,
+        "review_status": "verified_live",
+        "preferred_name": "Family",
+        "catalog_observations": [
+          {
+            "environment": "test",
+            "observed_at": "2026-08-22",
+            "name": "Family",
+            "transient_key": "210"
+          }
+        ]
+      },
+      "case type": {
+        "accepted": [
+          "Dissolution Contested with No Minor Children"
+        ],
+        "confidence": 0.92,
+        "review_status": "verified_live",
+        "preferred_name": "Dissolution Contested with No Minor Children",
+        "catalog_observations": [
+          {
+            "environment": "test",
+            "observed_at": "2026-08-22",
+            "name": "Dissolution Contested with No Minor Children",
+            "transient_key": "6107"
+          }
+        ]
+      },
+      "filing type": {
+        "accepted": [
+          "Initial Filing"
+        ],
+        "preferred_name": "Initial Filing",
+        "confidence": 0.78,
+        "review_status": "verified_live_generic_filing_label",
+        "catalog_observations": [],
+        "notes": "The exact form title is retained separately; Tyler exposes the generic Initial Filing value."
+      }
+    },
+    "VT-02": {
+      "case category": {
+        "accepted": [
+          "Family"
+        ],
+        "confidence": 0.99,
+        "review_status": "verified_live",
+        "preferred_name": "Family",
+        "catalog_observations": [
+          {
+            "environment": "test",
+            "observed_at": "2026-08-22",
+            "name": "Family",
+            "transient_key": "210"
+          }
+        ]
+      },
+      "case type": {
+        "accepted": [
+          "Dissolution Contested with Minor Children"
+        ],
+        "confidence": 0.92,
+        "review_status": "verified_live",
+        "preferred_name": "Dissolution Contested with Minor Children",
+        "catalog_observations": [
+          {
+            "environment": "test",
+            "observed_at": "2026-08-22",
+            "name": "Dissolution Contested with Minor Children",
+            "transient_key": "6106"
+          }
+        ]
+      },
+      "filing type": {
+        "accepted": [
+          "Initial Filing"
+        ],
+        "preferred_name": "Initial Filing",
+        "confidence": 0.78,
+        "review_status": "verified_live_generic_filing_label",
+        "catalog_observations": [],
+        "notes": "The exact form title is retained separately; Tyler exposes the generic Initial Filing value."
+      }
+    },
+    "VT-03": {
+      "case category": {
+        "accepted": [
+          "Civil"
+        ],
+        "confidence": 0.99,
+        "review_status": "verified_live",
+        "preferred_name": "Civil",
+        "catalog_observations": [
+          {
+            "environment": "test",
+            "observed_at": "2026-08-22",
+            "name": "Civil",
+            "transient_key": "7"
+          }
+        ]
+      },
+      "case type": {
+        "accepted": [
+          "Small Claims $1,001 - $10,000"
+        ],
+        "confidence": 0.99,
+        "review_status": "verified_live",
+        "preferred_name": "Small Claims $1,001 - $10,000",
+        "catalog_observations": [
+          {
+            "environment": "test",
+            "observed_at": "2026-08-22",
+            "name": "Small Claims $1,001 - $10,000",
+            "transient_key": "13917"
+          }
+        ]
+      },
+      "filing type": {
+        "accepted": [
+          "Small Claims Complaint $1000 - $5000"
+        ],
+        "preferred_name": "Small Claims Complaint $1000 - $5000",
+        "confidence": 0.94,
+        "review_status": "verified_live_document_supported",
+        "catalog_observations": [],
+        "notes": "The document's $2,250 claim selects the live filing-name amount band."
+      }
+    },
+    "VT-04": {
+      "case category": {
+        "accepted": [
+          "Civil"
+        ],
+        "confidence": 0.99,
+        "review_status": "verified_live",
+        "preferred_name": "Civil",
+        "catalog_observations": [
+          {
+            "environment": "test",
+            "observed_at": "2026-08-22",
+            "name": "Civil",
+            "transient_key": "7"
+          }
+        ]
+      },
+      "case type": {
+        "accepted": [
+          "Contract - Other"
+        ],
+        "confidence": 0.65,
+        "review_status": "verified_live_ambiguous",
+        "notes": "The answer describes a maintenance contract dispute, but a response document is weaker evidence than an initiating complaint.",
+        "preferred_name": "Contract - Other",
+        "catalog_observations": [
+          {
+            "environment": "test",
+            "observed_at": "2026-08-22",
+            "name": "Contract - Other",
+            "transient_key": "6098"
+          }
+        ]
+      }
+    },
+    "VT-05": {
+      "case category": {
+        "accepted": [
+          "Family"
+        ],
+        "confidence": 0.99,
+        "review_status": "verified_live",
+        "preferred_name": "Family",
+        "catalog_observations": [
+          {
+            "environment": "test",
+            "observed_at": "2026-08-22",
+            "name": "Family",
+            "transient_key": "210"
+          }
+        ]
+      },
+      "case type": {
+        "accepted": [
+          "Relief from Abuse"
+        ],
+        "confidence": 0.99,
+        "review_status": "verified_live",
+        "preferred_name": "Relief from Abuse",
+        "catalog_observations": [
+          {
+            "environment": "test",
+            "observed_at": "2026-08-22",
+            "name": "Relief from Abuse",
+            "transient_key": "6177"
+          }
+        ]
+      },
+      "filing type": {
+        "accepted": [
+          "Initial Filing"
+        ],
+        "preferred_name": "Initial Filing",
+        "confidence": 0.72,
+        "review_status": "verified_live_generic_filing_label",
+        "catalog_observations": [],
+        "notes": "The exact form title is retained separately; Tyler exposes the generic Initial Filing value."
+      }
+    },
+    "VT-06": {
+      "case category": {
+        "accepted": [
+          "Probate or Mental Health"
+        ],
+        "confidence": 0.99,
+        "review_status": "verified_live",
+        "preferred_name": "Probate or Mental Health",
+        "catalog_observations": [
+          {
+            "environment": "test",
+            "observed_at": "2026-08-22",
+            "name": "Probate or Mental Health",
+            "transient_key": "169"
+          }
+        ]
+      },
+      "case type": {
+        "accepted": [
+          "Change of Name Adult"
+        ],
+        "confidence": 0.99,
+        "review_status": "verified_live",
+        "preferred_name": "Change of Name Adult",
+        "catalog_observations": [
+          {
+            "environment": "test",
+            "observed_at": "2026-08-22",
+            "name": "Change of Name Adult",
+            "transient_key": "6076"
+          }
+        ]
+      },
+      "filing type": {
+        "accepted": [
+          "Initial Filing"
+        ],
+        "preferred_name": "Initial Filing",
+        "confidence": 0.72,
+        "review_status": "verified_live_generic_filing_label",
+        "catalog_observations": [],
+        "notes": "The exact form title is retained separately; Tyler exposes the generic Initial Filing value."
+      }
+    },
+    "VT-07": {
+      "case category": {
+        "accepted": [
+          "Probate or Mental Health"
+        ],
+        "confidence": 0.99,
+        "review_status": "verified_live",
+        "preferred_name": "Probate or Mental Health",
+        "catalog_observations": [
+          {
+            "environment": "test",
+            "observed_at": "2026-08-22",
+            "name": "Probate or Mental Health",
+            "transient_key": "169"
+          }
+        ]
+      },
+      "case type": {
+        "accepted": [
+          "Guardianship - Custodial Minor"
+        ],
+        "confidence": 0.99,
+        "review_status": "verified_live",
+        "preferred_name": "Guardianship - Custodial Minor",
+        "catalog_observations": [
+          {
+            "environment": "test",
+            "observed_at": "2026-08-22",
+            "name": "Guardianship - Custodial Minor",
+            "transient_key": "6126"
+          }
+        ]
+      },
+      "filing type": {
+        "accepted": [
+          "Initial Filing"
+        ],
+        "preferred_name": "Initial Filing",
+        "confidence": 0.72,
+        "review_status": "verified_live_generic_filing_label",
+        "catalog_observations": [],
+        "notes": "The exact form title is retained separately; Tyler exposes the generic Initial Filing value."
+      }
+    },
+    "VT-08": {
+      "case category": {
+        "accepted": [
+          "Family"
+        ],
+        "confidence": 0.99,
+        "review_status": "verified_live",
+        "preferred_name": "Family",
+        "catalog_observations": [
+          {
+            "environment": "test",
+            "observed_at": "2026-08-22",
+            "name": "Family",
+            "transient_key": "210"
+          }
+        ]
+      }
+    },
+    "VT-09": {
+      "case category": {
+        "accepted": [
+          "Civil"
+        ],
+        "confidence": 0.99,
+        "review_status": "verified_live",
+        "preferred_name": "Civil",
+        "catalog_observations": [
+          {
+            "environment": "test",
+            "observed_at": "2026-08-22",
+            "name": "Civil",
+            "transient_key": "7"
+          }
+        ]
+      }
+    },
+    "VT-10": {
+      "case category": {
+        "accepted": [
+          "Family"
+        ],
+        "confidence": 0.99,
+        "review_status": "verified_live",
+        "preferred_name": "Family",
+        "catalog_observations": [
+          {
+            "environment": "test",
+            "observed_at": "2026-08-22",
+            "name": "Family",
+            "transient_key": "210"
+          }
+        ]
+      },
+      "case type": {
+        "required": false,
+        "abstain": true,
+        "confidence": 0.95,
+        "review_status": "document_does_not_establish",
+        "notes": "Child support identifies the motion, but the underlying Tyler case may be dissolution, parentage, or another family case."
+      },
+      "filing type": {
+        "accepted": [
+          "Motion to Modify Child Support - Postjudgment/Fee Required",
+          "Motion to Modify Child Support – Pre Judgment or No Fee",
+          "Motion to Modify Child Support Stipulated"
+        ],
+        "confidence": 0.72,
+        "review_status": "verified_live_ambiguous",
+        "notes": "The PDF supports modification of child support but not the fee/stipulation branch needed to select one Tyler code."
+      }
+    },
+    "MA-01": {
+      "case category": {
+        "accepted": [
+          "Domestic Relations"
+        ],
+        "preferred_name": "Domestic Relations",
+        "confidence": 0.98,
+        "review_status": "verified_live_crosswalk_supported",
+        "catalog_observations": [],
+        "notes": "Exact official-form match and exact current live hierarchy."
+      },
+      "case type": {
+        "accepted": [
+          "Divorce 1B"
+        ],
+        "preferred_name": "Divorce 1B",
+        "confidence": 0.98,
+        "review_status": "verified_live_crosswalk_supported",
+        "catalog_observations": [],
+        "notes": "Exact official-form match and exact current live hierarchy."
+      },
+      "filing type": {
+        "accepted": [
+          "Complaint for Divorce - Irretrievable Breakdown 1B"
+        ],
+        "preferred_name": "Complaint for Divorce - Irretrievable Breakdown 1B",
+        "confidence": 0.98,
+        "review_status": "verified_live_crosswalk_supported",
+        "catalog_observations": [],
+        "notes": "Exact official-form match and exact current live hierarchy."
+      }
+    },
+    "MA-02": {
+      "case category": {
+        "accepted": [
+          "Joint Petition (1A)"
+        ],
+        "preferred_name": "Joint Petition (1A)",
+        "confidence": 0.98,
+        "review_status": "verified_live_crosswalk_supported",
+        "catalog_observations": [],
+        "notes": "Exact official-form match and exact current live hierarchy."
+      },
+      "case type": {
+        "accepted": [
+          "Joint Petition (1A)"
+        ],
+        "preferred_name": "Joint Petition (1A)",
+        "confidence": 0.98,
+        "review_status": "verified_live_crosswalk_supported",
+        "catalog_observations": [],
+        "notes": "Exact official-form match and exact current live hierarchy."
+      },
+      "filing type": {
+        "accepted": [
+          "Joint Petition for Divorce"
+        ],
+        "preferred_name": "Joint Petition for Divorce",
+        "confidence": 0.98,
+        "review_status": "verified_live_crosswalk_supported",
+        "catalog_observations": [],
+        "notes": "Exact official-form match and exact current live hierarchy."
+      }
+    },
+    "MA-03": {
+      "case category": {
+        "accepted": [
+          "Custody, Support, Parenting Time"
+        ],
+        "preferred_name": "Custody, Support, Parenting Time",
+        "confidence": 0.98,
+        "review_status": "verified_live_crosswalk_supported",
+        "catalog_observations": [],
+        "notes": "Exact official-form match and exact current live hierarchy."
+      },
+      "case type": {
+        "accepted": [
+          "Complaint For Custody, Support, Parenting Time"
+        ],
+        "preferred_name": "Complaint For Custody, Support, Parenting Time",
+        "confidence": 0.98,
+        "review_status": "verified_live_crosswalk_supported",
+        "catalog_observations": [],
+        "notes": "Exact official-form match and exact current live hierarchy."
+      },
+      "filing type": {
+        "accepted": [
+          "Complaint for Custody, Support, Parenting Time"
+        ],
+        "preferred_name": "Complaint for Custody, Support, Parenting Time",
+        "confidence": 0.98,
+        "review_status": "verified_live_crosswalk_supported",
+        "catalog_observations": [],
+        "notes": "Exact official-form match and exact current live hierarchy."
+      }
+    },
+    "MA-05": {
+      "case category": {
+        "accepted": [
+          "Change of Name"
+        ],
+        "preferred_name": "Change of Name",
+        "confidence": 0.98,
+        "review_status": "verified_live_form_supported",
+        "catalog_observations": [],
+        "notes": "Exact form identity plus current live hierarchy; Tyler whitespace is normalized."
+      },
+      "case type": {
+        "accepted": [
+          "Petition for Adult"
+        ],
+        "preferred_name": "Petition for Adult",
+        "confidence": 0.98,
+        "review_status": "verified_live_form_supported",
+        "catalog_observations": [],
+        "notes": "Exact form identity plus current live hierarchy; Tyler whitespace is normalized."
+      },
+      "filing type": {
+        "accepted": [
+          "Petition to Change Name of Adult"
+        ],
+        "preferred_name": "Petition to Change Name of Adult",
+        "confidence": 0.98,
+        "review_status": "verified_live_form_supported",
+        "catalog_observations": [],
+        "notes": "Exact form identity plus current live hierarchy; Tyler whitespace is normalized."
+      }
+    },
+    "MA-06": {
+      "case category": {
+        "accepted": [
+          "Small Claims"
+        ],
+        "preferred_name": "Small Claims",
+        "confidence": 0.98,
+        "review_status": "verified_live_document_supported",
+        "catalog_observations": [],
+        "notes": "The document's $1,275 claim selects the live amount band."
+      },
+      "case type": {
+        "accepted": [
+          "Small Claim $501 - $2000"
+        ],
+        "preferred_name": "Small Claim $501 - $2000",
+        "confidence": 0.98,
+        "review_status": "verified_live_document_supported",
+        "catalog_observations": [],
+        "notes": "The document's $1,275 claim selects the live amount band."
+      },
+      "filing type": {
+        "accepted": [
+          "Statement of Small Claims entered through e-file process"
+        ],
+        "preferred_name": "Statement of Small Claims entered through e-file process",
+        "confidence": 0.98,
+        "review_status": "verified_live_document_supported",
+        "catalog_observations": [],
+        "notes": "The document's $1,275 claim selects the live amount band."
+      }
+    },
+    "MA-04": {
+      "case category": {
+        "required": false,
+        "abstain": true,
+        "confidence": 0.95,
+        "review_status": "crosswalk_conflict_unresolved",
+        "notes": "The live catalog has no distinct separate-support category."
+      },
+      "case type": {
+        "required": false,
+        "abstain": true,
+        "confidence": 0.95,
+        "review_status": "crosswalk_conflict_unresolved",
+        "notes": "The crosswalk points to custody/support/parenting time, but that is not a safe semantic match."
+      },
+      "filing type": {
+        "required": false,
+        "abstain": true,
+        "confidence": 0.95,
+        "review_status": "crosswalk_conflict_unresolved",
+        "notes": "No current live filing name specifically identifies a separate-support complaint."
+      }
+    }
+  },
+  "schema_version": 2
+}

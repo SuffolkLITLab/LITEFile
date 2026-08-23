@@ -1,0 +1,1442 @@
+[
+  {
+    "name": "  Supreme Court of Illinois",
+    "code": "TSUPCRT"
+  },
+  {
+    "name": " Appellate Court \u2013 1st District",
+    "code": "TAC1"
+  },
+  {
+    "name": " Appellate Court \u2013 2nd District",
+    "code": "TAC2"
+  },
+  {
+    "name": " Appellate Court \u2013 3rd District",
+    "code": "TAC3"
+  },
+  {
+    "name": " Appellate Court \u2013 4th District",
+    "code": "TAC4"
+  },
+  {
+    "name": " Appellate Court \u2013 5th District",
+    "code": "TAC5"
+  },
+  {
+    "name": "(zOdyssey) - Cook County",
+    "code": "zodycook"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Chancery",
+    "code": "zodycook:chd"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Chancery - District 1 - Chicago",
+    "code": "zodycook:chd1"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Chancery - District 5 - Bridgeview",
+    "code": "zodycook:chd5"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - County Division",
+    "code": "zodycook:cd"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - County Division - District 1 - Chicago",
+    "code": "zodycook:cd1"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Criminal - District 1 - Central Bond Court",
+    "code": "zodycook:crcbc"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Criminal - District 1 - Chicago",
+    "code": "zodycook:crd1"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Branch 2",
+    "code": "zodycook:crb2"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Branch 23",
+    "code": "zodycook:crb23"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Branch 29",
+    "code": "zodycook:crb29"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Branch 34",
+    "code": "zodycook:crb34"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Branch 35",
+    "code": "zodycook:crb35"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Branch 38",
+    "code": "zodycook:crb38"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Branch 42",
+    "code": "zodycook:crb42"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Branch 43",
+    "code": "zodycook:crb43"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Branch 44",
+    "code": "zodycook:crb44"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Branch 46",
+    "code": "zodycook:crb46"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Branch 48",
+    "code": "zodycook:crb48"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Branch 50",
+    "code": "zodycook:crb50"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Branch 60",
+    "code": "zodycook:crb60"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Branch 61",
+    "code": "zodycook:crb61"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Branch 62",
+    "code": "zodycook:crb62"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Branch 63",
+    "code": "zodycook:crb63"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Branch 64",
+    "code": "zodycook:crb64"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Branch 66",
+    "code": "zodycook:crb66"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Branch 7",
+    "code": "zodycook:crb7"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Branch 9",
+    "code": "zodycook:crb9"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Branch 95",
+    "code": "zodycook:crb95"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Branch 98",
+    "code": "zodycook:crb98"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Department",
+    "code": "zodycook:crd1cdpt"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Division",
+    "code": "zodycook:crd1cd"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Criminal - District 2 - Skokie",
+    "code": "zodycook:crd2"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Criminal - District 3 - Rolling Meadows",
+    "code": "zodycook:crd3"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Criminal - District 4 - Maywood",
+    "code": "zodycook:crd4"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Criminal - District 5 - Bridgeview",
+    "code": "zodycook:crd5"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Criminal - District 6 - Markham",
+    "code": "zodycook:crd6"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Criminal Bureau",
+    "code": "zodycook:crb"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Domestic Relations",
+    "code": "zodycook:dr"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Domestic Relations - District 1 - Chicago",
+    "code": "zodycook:dr1"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Domestic Relations - District 2 - Skokie",
+    "code": "zodycook:dr2"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Domestic Relations - District 3 - Rolling Meadows",
+    "code": "zodycook:dr3"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Domestic Relations - District 4 - Maywood",
+    "code": "zodycook:dr4"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Domestic Relations - District 5 - Bridgeview",
+    "code": "zodycook:dr5"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Domestic Relations - District 6 - Markham",
+    "code": "zodycook:dr6"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Juvenile Division",
+    "code": "zodycook:jd"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Juvenile Justice/Child Protection",
+    "code": "zodycook:jjcp"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Juvenile Justice/Child Protection - District 6 - Markham",
+    "code": "zodycook:jjcpd6"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Law",
+    "code": "zodycook:law"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Law - District 1 - Chicago",
+    "code": "zodycook:law1"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Law - District 2 - Skokie",
+    "code": "zodycook:law2"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Law - District 3 - Rolling Meadows",
+    "code": "zodycook:law3"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Law - District 4 - Maywood",
+    "code": "zodycook:law4"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Law - District 5 - Bridgeview",
+    "code": "zodycook:law5"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Law - District 6 - Markham",
+    "code": "zodycook:law6"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Municipal Civil",
+    "code": "zodycook:cvd"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Municipal Civil - District 1 - Chicago",
+    "code": "zodycook:cvd1"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Municipal Civil - District 2 - Skokie",
+    "code": "zodycook:cvd2"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Municipal Civil - District 3 - Rolling Meadows",
+    "code": "zodycook:cvd3"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Municipal Civil - District 4 - Maywood",
+    "code": "zodycook:cvd4"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Municipal Civil - District 5 - Bridgeview",
+    "code": "zodycook:cvd5"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Municipal Civil - District 6 - Markham",
+    "code": "zodycook:cvd6"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Probate",
+    "code": "zodycook:pr"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Probate  - District 1 - Chicago",
+    "code": "zodycook:pr1"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Probate  - District 5 - Bridgeview",
+    "code": "zodycook:pr2"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Traffic - District 1 - Chicago",
+    "code": "zodycook:tr1"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Traffic - District 2 - Skokie",
+    "code": "zodycook:tr2"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Traffic - District 3 - Rolling Meadows",
+    "code": "zodycook:tr3"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Traffic - District 4 - Maywood",
+    "code": "zodycook:tr4"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Traffic - District 5 - Bridgeview",
+    "code": "zodycook:tr5"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Traffic - District 6 - Markham",
+    "code": "zodycook:tr6"
+  },
+  {
+    "name": "(zOdyssey) - Cook County - Traffic Bureau",
+    "code": "zodycook:tr"
+  },
+  {
+    "name": "ARDC Clerk's Office",
+    "code": "ardc"
+  },
+  {
+    "name": "Adams County",
+    "code": "adams"
+  },
+  {
+    "name": "Alexander County",
+    "code": "alexander"
+  },
+  {
+    "name": "Bond County",
+    "code": "bond"
+  },
+  {
+    "name": "Boone County",
+    "code": "boone"
+  },
+  {
+    "name": "Brown County",
+    "code": "brown"
+  },
+  {
+    "name": "Bureau County",
+    "code": "bureau"
+  },
+  {
+    "name": "Calhoun County",
+    "code": "calhoun"
+  },
+  {
+    "name": "Carroll County",
+    "code": "carroll"
+  },
+  {
+    "name": "Cass County",
+    "code": "cass"
+  },
+  {
+    "name": "Champaign County",
+    "code": "champaign"
+  },
+  {
+    "name": "Christian County",
+    "code": "christian"
+  },
+  {
+    "name": "Clark County",
+    "code": "clark"
+  },
+  {
+    "name": "Clay County",
+    "code": "clay"
+  },
+  {
+    "name": "Clinton County",
+    "code": "clinton"
+  },
+  {
+    "name": "Coles County",
+    "code": "coles"
+  },
+  {
+    "name": "Cook County",
+    "code": "cook"
+  },
+  {
+    "name": "Cook County - Chancery",
+    "code": "cook:chd"
+  },
+  {
+    "name": "Cook County - Chancery - District 1 - Chicago",
+    "code": "cook:chd1"
+  },
+  {
+    "name": "Cook County - County Division",
+    "code": "cook:cd"
+  },
+  {
+    "name": "Cook County - County Division - District 1 - Chicago",
+    "code": "cook:cd1"
+  },
+  {
+    "name": "Cook County - Criminal - District 1 - Central Bond Court",
+    "code": "cook:crcbc"
+  },
+  {
+    "name": "Cook County - Criminal - District 1 - Chicago",
+    "code": "cook:crd1"
+  },
+  {
+    "name": "Cook County - Criminal - District 1 - Criminal Branch 2",
+    "code": "cook:crb2"
+  },
+  {
+    "name": "Cook County - Criminal - District 1 - Criminal Branch 23",
+    "code": "cook:crb23"
+  },
+  {
+    "name": "Cook County - Criminal - District 1 - Criminal Branch 29",
+    "code": "cook:crb29"
+  },
+  {
+    "name": "Cook County - Criminal - District 1 - Criminal Branch 34",
+    "code": "cook:crb34"
+  },
+  {
+    "name": "Cook County - Criminal - District 1 - Criminal Branch 35",
+    "code": "cook:crb35"
+  },
+  {
+    "name": "Cook County - Criminal - District 1 - Criminal Branch 38",
+    "code": "cook:crb38"
+  },
+  {
+    "name": "Cook County - Criminal - District 1 - Criminal Branch 42",
+    "code": "cook:crb42"
+  },
+  {
+    "name": "Cook County - Criminal - District 1 - Criminal Branch 43",
+    "code": "cook:crb43"
+  },
+  {
+    "name": "Cook County - Criminal - District 1 - Criminal Branch 44",
+    "code": "cook:crb44"
+  },
+  {
+    "name": "Cook County - Criminal - District 1 - Criminal Branch 46",
+    "code": "cook:crb46"
+  },
+  {
+    "name": "Cook County - Criminal - District 1 - Criminal Branch 48",
+    "code": "cook:crb48"
+  },
+  {
+    "name": "Cook County - Criminal - District 1 - Criminal Branch 50",
+    "code": "cook:crb50"
+  },
+  {
+    "name": "Cook County - Criminal - District 1 - Criminal Branch 60",
+    "code": "cook:crb60"
+  },
+  {
+    "name": "Cook County - Criminal - District 1 - Criminal Branch 61",
+    "code": "cook:crb61"
+  },
+  {
+    "name": "Cook County - Criminal - District 1 - Criminal Branch 62",
+    "code": "cook:crb62"
+  },
+  {
+    "name": "Cook County - Criminal - District 1 - Criminal Branch 63",
+    "code": "cook:crb63"
+  },
+  {
+    "name": "Cook County - Criminal - District 1 - Criminal Branch 64",
+    "code": "cook:crb64"
+  },
+  {
+    "name": "Cook County - Criminal - District 1 - Criminal Branch 66",
+    "code": "cook:crb66"
+  },
+  {
+    "name": "Cook County - Criminal - District 1 - Criminal Branch 7",
+    "code": "cook:crb7"
+  },
+  {
+    "name": "Cook County - Criminal - District 1 - Criminal Branch 9",
+    "code": "cook:crb9"
+  },
+  {
+    "name": "Cook County - Criminal - District 1 - Criminal Branch 95",
+    "code": "cook:crb95"
+  },
+  {
+    "name": "Cook County - Criminal - District 1 - Criminal Branch 98",
+    "code": "cook:crb98"
+  },
+  {
+    "name": "Cook County - Criminal - District 1 - Criminal Department",
+    "code": "cook:crd1cdpt"
+  },
+  {
+    "name": "Cook County - Criminal - District 1 - Criminal Division",
+    "code": "cook:crd1cd"
+  },
+  {
+    "name": "Cook County - Criminal - District 2 - Skokie",
+    "code": "cook:crd2"
+  },
+  {
+    "name": "Cook County - Criminal - District 3 - Rolling Meadows",
+    "code": "cook:crd3"
+  },
+  {
+    "name": "Cook County - Criminal - District 4 - Maywood",
+    "code": "cook:crd4"
+  },
+  {
+    "name": "Cook County - Criminal - District 5 - Bridgeview",
+    "code": "cook:crd5"
+  },
+  {
+    "name": "Cook County - Criminal - District 6 - Markham",
+    "code": "cook:crd6"
+  },
+  {
+    "name": "Cook County - Criminal Bureau",
+    "code": "cook:crb"
+  },
+  {
+    "name": "Cook County - Domestic Relations",
+    "code": "cook:dr"
+  },
+  {
+    "name": "Cook County - Domestic Relations - District 1 - Chicago",
+    "code": "cook:dr1"
+  },
+  {
+    "name": "Cook County - Domestic Relations - District 2 - Skokie",
+    "code": "cook:dr2"
+  },
+  {
+    "name": "Cook County - Domestic Relations - District 3 - Rolling Meadows",
+    "code": "cook:dr3"
+  },
+  {
+    "name": "Cook County - Domestic Relations - District 4 - Maywood",
+    "code": "cook:dr4"
+  },
+  {
+    "name": "Cook County - Domestic Relations - District 5 - Bridgeview",
+    "code": "cook:dr5"
+  },
+  {
+    "name": "Cook County - Domestic Relations - District 6 - Markham",
+    "code": "cook:dr6"
+  },
+  {
+    "name": "Cook County - Domestic Violence",
+    "code": "cook:dv"
+  },
+  {
+    "name": "Cook County - Domestic Violence - District 1 - Chicago",
+    "code": "cook:dv1"
+  },
+  {
+    "name": "Cook County - Domestic Violence - District 2 - Skokie",
+    "code": "cook:dv2"
+  },
+  {
+    "name": "Cook County - Domestic Violence - District 3 - Rolling Meadows",
+    "code": "cook:dv3"
+  },
+  {
+    "name": "Cook County - Domestic Violence - District 4 - Maywood",
+    "code": "cook:dv4"
+  },
+  {
+    "name": "Cook County - Domestic Violence - District 5 - Bridgeview",
+    "code": "cook:dv5"
+  },
+  {
+    "name": "Cook County - Domestic Violence - District 6 - Markham",
+    "code": "cook:dv6"
+  },
+  {
+    "name": "Cook County - Elder Law",
+    "code": "cook:eld"
+  },
+  {
+    "name": "Cook County - Elder Law - District 1 - Chicago",
+    "code": "cook:eld1"
+  },
+  {
+    "name": "Cook County - Elder Law - District 2 - Skokie",
+    "code": "cook:eld2"
+  },
+  {
+    "name": "Cook County - Elder Law - District 3 - Rolling Meadows",
+    "code": "cook:eld3"
+  },
+  {
+    "name": "Cook County - Elder Law - District 4 - Maywood",
+    "code": "cook:eld4"
+  },
+  {
+    "name": "Cook County - Elder Law - District 5 - Bridgeview",
+    "code": "cook:eld5"
+  },
+  {
+    "name": "Cook County - Elder Law - District 6 - Markham",
+    "code": "cook:eld6"
+  },
+  {
+    "name": "Cook County - Juvenile Division",
+    "code": "cook:jd"
+  },
+  {
+    "name": "Cook County - Juvenile Justice/Child Protection",
+    "code": "cook:jjcp"
+  },
+  {
+    "name": "Cook County - Juvenile Justice/Child Protection - District 6 - Markham",
+    "code": "cook:jjcpd6"
+  },
+  {
+    "name": "Cook County - Law",
+    "code": "cook:law"
+  },
+  {
+    "name": "Cook County - Law - District 1 - Chicago",
+    "code": "cook:law1"
+  },
+  {
+    "name": "Cook County - Law - District 2 - Skokie",
+    "code": "cook:law2"
+  },
+  {
+    "name": "Cook County - Law - District 3 - Rolling Meadows",
+    "code": "cook:law3"
+  },
+  {
+    "name": "Cook County - Law - District 4 - Maywood",
+    "code": "cook:law4"
+  },
+  {
+    "name": "Cook County - Law - District 5 - Bridgeview",
+    "code": "cook:law5"
+  },
+  {
+    "name": "Cook County - Law - District 6 - Markham",
+    "code": "cook:law6"
+  },
+  {
+    "name": "Cook County - Municipal Civil",
+    "code": "cook:cvd"
+  },
+  {
+    "name": "Cook County - Municipal Civil - District 1 - Chicago",
+    "code": "cook:cvd1"
+  },
+  {
+    "name": "Cook County - Municipal Civil - District 2 - Skokie",
+    "code": "cook:cvd2"
+  },
+  {
+    "name": "Cook County - Municipal Civil - District 3 - Rolling Meadows",
+    "code": "cook:cvd3"
+  },
+  {
+    "name": "Cook County - Municipal Civil - District 4 - Maywood",
+    "code": "cook:cvd4"
+  },
+  {
+    "name": "Cook County - Municipal Civil - District 5 - Bridgeview",
+    "code": "cook:cvd5"
+  },
+  {
+    "name": "Cook County - Municipal Civil - District 6 - Markham",
+    "code": "cook:cvd6"
+  },
+  {
+    "name": "Cook County - Probate",
+    "code": "cook:pr"
+  },
+  {
+    "name": "Cook County - Probate  - District 1 - Chicago",
+    "code": "cook:pr1"
+  },
+  {
+    "name": "Cook County - Traffic",
+    "code": "cook:tr"
+  },
+  {
+    "name": "Cook County - Traffic - District 1 - Chicago",
+    "code": "cook:tr1"
+  },
+  {
+    "name": "Cook County - Traffic - District 2 - Skokie",
+    "code": "cook:tr2"
+  },
+  {
+    "name": "Cook County - Traffic - District 3 - Rolling Meadows",
+    "code": "cook:tr3"
+  },
+  {
+    "name": "Cook County - Traffic - District 4 - Maywood",
+    "code": "cook:tr4"
+  },
+  {
+    "name": "Cook County - Traffic - District 5 - Bridgeview",
+    "code": "cook:tr5"
+  },
+  {
+    "name": "Cook County - Traffic - District 6 - Markham",
+    "code": "cook:tr6"
+  },
+  {
+    "name": "Crawford County",
+    "code": "crawford"
+  },
+  {
+    "name": "Cumberland County",
+    "code": "cumberland"
+  },
+  {
+    "name": "De Witt County",
+    "code": "dewitt"
+  },
+  {
+    "name": "DeKalb County",
+    "code": "dekalb"
+  },
+  {
+    "name": "Douglas County",
+    "code": "douglas"
+  },
+  {
+    "name": "DuPage - ECF4",
+    "code": "dupage:ecf4"
+  },
+  {
+    "name": "DuPage - ECF5",
+    "code": "dupage:ecf5"
+  },
+  {
+    "name": "DuPage County",
+    "code": "dupage"
+  },
+  {
+    "name": "Edgar County",
+    "code": "edgar"
+  },
+  {
+    "name": "Edwards County",
+    "code": "edwards"
+  },
+  {
+    "name": "Effingham County",
+    "code": "effingham"
+  },
+  {
+    "name": "Fayette County",
+    "code": "fayette"
+  },
+  {
+    "name": "File & Serve",
+    "code": "1"
+  },
+  {
+    "name": "Ford County",
+    "code": "ford"
+  },
+  {
+    "name": "Franklin County",
+    "code": "franklin"
+  },
+  {
+    "name": "Fulton County",
+    "code": "fulton"
+  },
+  {
+    "name": "Gallatin County",
+    "code": "gallatin"
+  },
+  {
+    "name": "Goodin County",
+    "code": "goodin"
+  },
+  {
+    "name": "Goodin ECF5",
+    "code": "GoodinECF5"
+  },
+  {
+    "name": "Greene County",
+    "code": "greene"
+  },
+  {
+    "name": "Grundy County",
+    "code": "grundy"
+  },
+  {
+    "name": "Hamilton County",
+    "code": "hamilton"
+  },
+  {
+    "name": "Hancock County",
+    "code": "hancock"
+  },
+  {
+    "name": "Hardin County",
+    "code": "hardin"
+  },
+  {
+    "name": "Henderson County",
+    "code": "henderson"
+  },
+  {
+    "name": "Henry County",
+    "code": "henry"
+  },
+  {
+    "name": "Henry County Kewanee Division",
+    "code": "henrykew"
+  },
+  {
+    "name": "Iroquois County",
+    "code": "iroquois"
+  },
+  {
+    "name": "Jackson County",
+    "code": "jackson"
+  },
+  {
+    "name": "Jasper County",
+    "code": "jasper"
+  },
+  {
+    "name": "Jefferson County",
+    "code": "jefferson"
+  },
+  {
+    "name": "Jersey County",
+    "code": "jersey"
+  },
+  {
+    "name": "Jo Daviess County",
+    "code": "jodaviess"
+  },
+  {
+    "name": "Johnson County",
+    "code": "johnson"
+  },
+  {
+    "name": "Kane County",
+    "code": "kane"
+  },
+  {
+    "name": "Kankakee - Civil",
+    "code": "KankakeeCV"
+  },
+  {
+    "name": "Kankakee - Criminal",
+    "code": "KankakeeCR"
+  },
+  {
+    "name": "Kankakee - Family and Juvenile",
+    "code": "KankakeeFAM"
+  },
+  {
+    "name": "Kankakee - Traffic",
+    "code": "KankakeeTR"
+  },
+  {
+    "name": "Kankakee County",
+    "code": "kankakee"
+  },
+  {
+    "name": "Kendall County",
+    "code": "kendall"
+  },
+  {
+    "name": "Knox County",
+    "code": "knox"
+  },
+  {
+    "name": "LaSalle County",
+    "code": "lasalle"
+  },
+  {
+    "name": "Lake County",
+    "code": "lake"
+  },
+  {
+    "name": "Lawrence County",
+    "code": "lawrence"
+  },
+  {
+    "name": "Lee County",
+    "code": "lee"
+  },
+  {
+    "name": "Livingston County",
+    "code": "livingston"
+  },
+  {
+    "name": "Logan County",
+    "code": "logan"
+  },
+  {
+    "name": "Macon County",
+    "code": "macon"
+  },
+  {
+    "name": "Macoupin County",
+    "code": "macoupin"
+  },
+  {
+    "name": "Madison County",
+    "code": "madison"
+  },
+  {
+    "name": "Marion County",
+    "code": "marion"
+  },
+  {
+    "name": "Marshall County",
+    "code": "marshall"
+  },
+  {
+    "name": "Mason County",
+    "code": "mason"
+  },
+  {
+    "name": "Massac County",
+    "code": "massac"
+  },
+  {
+    "name": "McDonough County",
+    "code": "mcdonough"
+  },
+  {
+    "name": "McHenry County",
+    "code": "mchenry"
+  },
+  {
+    "name": "McLean",
+    "code": "mclean"
+  },
+  {
+    "name": "Menard County",
+    "code": "menard"
+  },
+  {
+    "name": "Mercer County",
+    "code": "mercer"
+  },
+  {
+    "name": "Monroe County",
+    "code": "monroe"
+  },
+  {
+    "name": "Montgomery County",
+    "code": "montgomery"
+  },
+  {
+    "name": "Morgan County",
+    "code": "morgan"
+  },
+  {
+    "name": "Moultrie County",
+    "code": "moultrie"
+  },
+  {
+    "name": "Ogle County",
+    "code": "ogle"
+  },
+  {
+    "name": "Peoria CR",
+    "code": "peoriacr"
+  },
+  {
+    "name": "Peoria CS",
+    "code": "peoriacs"
+  },
+  {
+    "name": "Peoria County",
+    "code": "peoria"
+  },
+  {
+    "name": "Peoria TR",
+    "code": "peoriatr"
+  },
+  {
+    "name": "Perry County",
+    "code": "perry"
+  },
+  {
+    "name": "Piatt County",
+    "code": "piatt"
+  },
+  {
+    "name": "Pike County",
+    "code": "pike"
+  },
+  {
+    "name": "Pope County",
+    "code": "pope"
+  },
+  {
+    "name": "Pulaski County",
+    "code": "pulaski"
+  },
+  {
+    "name": "Putnam County",
+    "code": "putnam"
+  },
+  {
+    "name": "Randolph County",
+    "code": "randolph"
+  },
+  {
+    "name": "Richland County",
+    "code": "richland"
+  },
+  {
+    "name": "Rock Island County",
+    "code": "rockisland"
+  },
+  {
+    "name": "Saline County",
+    "code": "saline"
+  },
+  {
+    "name": "Sangamon County",
+    "code": "sangamon"
+  },
+  {
+    "name": "Schuyler County",
+    "code": "schuyler"
+  },
+  {
+    "name": "Scott County",
+    "code": "scott"
+  },
+  {
+    "name": "Shelby County",
+    "code": "shelby"
+  },
+  {
+    "name": "St. Clair County",
+    "code": "stclair"
+  },
+  {
+    "name": "St. Clair County-Backlog",
+    "code": "stclairlog"
+  },
+  {
+    "name": "St. Clair County-STP",
+    "code": "stclairstp"
+  },
+  {
+    "name": "Stark County",
+    "code": "stark"
+  },
+  {
+    "name": "Stephenson County",
+    "code": "stephenson"
+  },
+  {
+    "name": "System",
+    "code": "0"
+  },
+  {
+    "name": "Tazewell County",
+    "code": "tazewell"
+  },
+  {
+    "name": "Tazewell County - Traffic",
+    "code": "tazewell:tr"
+  },
+  {
+    "name": "Union County",
+    "code": "union"
+  },
+  {
+    "name": "Vermilion County",
+    "code": "vermilion"
+  },
+  {
+    "name": "Wabash County",
+    "code": "wabash"
+  },
+  {
+    "name": "Warren County",
+    "code": "warren"
+  },
+  {
+    "name": "Washington County",
+    "code": "washington"
+  },
+  {
+    "name": "Wayne County",
+    "code": "wayne"
+  },
+  {
+    "name": "White County",
+    "code": "white"
+  },
+  {
+    "name": "Whiteside County",
+    "code": "whiteside"
+  },
+  {
+    "name": "Will County",
+    "code": "will"
+  },
+  {
+    "name": "Williamson County",
+    "code": "williamson"
+  },
+  {
+    "name": "Winnebago County",
+    "code": "winnebago"
+  },
+  {
+    "name": "Woodford County",
+    "code": "woodford"
+  },
+  {
+    "name": "Z - Clarity Dev - Cook - Chancery",
+    "code": "zdevcook:chd"
+  },
+  {
+    "name": "Z - Clarity Dev - Cook - Chancery  - District 1 - Chicago",
+    "code": "zdevcook:chd1"
+  },
+  {
+    "name": "Z - Clarity Dev - Cook - Civil Division",
+    "code": "zdevcook:cvd"
+  },
+  {
+    "name": "Z - Clarity Dev - Cook - Civil Division - District 1",
+    "code": "zdevcook:cvd1"
+  },
+  {
+    "name": "Z - Clarity Dev - Cook - Civil Division - District 2",
+    "code": "zdevcook:cvd2"
+  },
+  {
+    "name": "Z - Clarity Dev - Cook - Civil Division - District 3",
+    "code": "zdevcook:cvd3"
+  },
+  {
+    "name": "Z - Clarity Dev - Cook - Civil Division - District 4",
+    "code": "zdevcook:cvd4"
+  },
+  {
+    "name": "Z - Clarity Dev - Cook - Civil Division - District 5",
+    "code": "zdevcook:cvd5"
+  },
+  {
+    "name": "Z - Clarity Dev - Cook - Civil Division - District 6",
+    "code": "zdevcook:cvd6"
+  },
+  {
+    "name": "Z - Clarity Dev - Cook - Criminal",
+    "code": "zdevcook:crdm"
+  },
+  {
+    "name": "Z - Clarity Dev - Cook - Criminal  - District 1 - Chicago",
+    "code": "zdevcook:crdm1"
+  },
+  {
+    "name": "Z - Clarity Dev - Cook - Criminal  - District 2 - Skokie",
+    "code": "zdevcook:crdm2"
+  },
+  {
+    "name": "Z - Clarity Dev - Cook - Criminal  - District 3 - Rolling Meadows",
+    "code": "zdevcook:crdm3"
+  },
+  {
+    "name": "Z - Clarity Dev - Cook - Criminal  - District 4 - Maywood",
+    "code": "zdevcook:crdm4"
+  },
+  {
+    "name": "Z - Clarity Dev - Cook - Criminal  - District 5 - Bridgeview",
+    "code": "zdevcook:crdm5"
+  },
+  {
+    "name": "Z - Clarity Dev - Cook - Criminal  - District 6 - Markham",
+    "code": "zdevcook:crdm6"
+  },
+  {
+    "name": "Z - Clarity Dev - Cook - Domestic Relations",
+    "code": "zdevcook:dr"
+  },
+  {
+    "name": "Z - Clarity Dev - Cook - Domestic Relations - District 1 - Chicago",
+    "code": "zdevcook:dr1"
+  },
+  {
+    "name": "Z - Clarity Dev - Cook - Domestic Relations - District 2 - Skokie",
+    "code": "zdevcook:dr2"
+  },
+  {
+    "name": "Z - Clarity Dev - Cook - Domestic Relations - District 3 - Rolling Meadows",
+    "code": "zdevcook:dr3"
+  },
+  {
+    "name": "Z - Clarity Dev - Cook - Domestic Relations - District 4 - Maywood",
+    "code": "zdevcook:dr4"
+  },
+  {
+    "name": "Z - Clarity Dev - Cook - Domestic Relations - District 5 - Bridgeview",
+    "code": "zdevcook:dr5"
+  },
+  {
+    "name": "Z - Clarity Dev - Cook - Domestic Relations - District 6 - Markham",
+    "code": "zdevcook:dr6"
+  },
+  {
+    "name": "Z - Clarity Dev - Cook - Domestic Violence",
+    "code": "zdevcook:dv"
+  },
+  {
+    "name": "Z - Clarity Dev - Cook - Domestic Violence  - District 1 - Chicago",
+    "code": "zdevcook:dv1"
+  },
+  {
+    "name": "Z - Clarity Dev - Cook - Domestic Violence  - District 2 - Skokie",
+    "code": "zdevcook:dv2"
+  },
+  {
+    "name": "Z - Clarity Dev - Cook - Domestic Violence  - District 3 - Rolling Meadows",
+    "code": "zdevcook:dv3"
+  },
+  {
+    "name": "Z - Clarity Dev - Cook - Domestic Violence  - District 4 - Maywood",
+    "code": "zdevcook:dv4"
+  },
+  {
+    "name": "Z - Clarity Dev - Cook - Domestic Violence  - District 5 - Bridgeview",
+    "code": "zdevcook:dv5"
+  },
+  {
+    "name": "Z - Clarity Dev - Cook - Domestic Violence  - District 6 - Markham",
+    "code": "zdevcook:dv6"
+  },
+  {
+    "name": "Z - Clarity Dev - Cook - Juvenile",
+    "code": "zdevcook:jd"
+  },
+  {
+    "name": "Z - Clarity Dev - Cook - Juvenile  - Dept of CFS",
+    "code": "zdevcook:jddcfs"
+  },
+  {
+    "name": "Z - Clarity Dev - Cook - Juvenile  - Justice ",
+    "code": "zdevcook:jdjd"
+  },
+  {
+    "name": "Z - Clarity Dev - Cook - Law ",
+    "code": "zdevcook:law"
+  },
+  {
+    "name": "Z - Clarity Dev - Cook - Law  - District 1 - Chicago",
+    "code": "zdevcook:law1"
+  },
+  {
+    "name": "Z - Clarity Dev - Cook - Law  - District 2 - Skokie",
+    "code": "zdevcook:law2"
+  },
+  {
+    "name": "Z - Clarity Dev - Cook - Law  - District 3 - Rolling Meadows",
+    "code": "zdevcook:law3"
+  },
+  {
+    "name": "Z - Clarity Dev - Cook - Law  - District 4 - Maywood",
+    "code": "zdevcook:law4"
+  },
+  {
+    "name": "Z - Clarity Dev - Cook - Law  - District 5 - Bridgeview",
+    "code": "zdevcook:law5"
+  },
+  {
+    "name": "Z - Clarity Dev - Cook - Law  - District 6 - Markham",
+    "code": "zdevcook:law6"
+  },
+  {
+    "name": "Z - Clarity Dev - Cook - Probate Division",
+    "code": "zdevcook:pr"
+  },
+  {
+    "name": "Z - Clarity Dev - Cook - Probate Division - District 1",
+    "code": "zdevcook:pr1"
+  },
+  {
+    "name": "Z - Clarity Dev Node",
+    "code": "ClarityDev"
+  },
+  {
+    "name": "Z - Clarity Local Node",
+    "code": "ClarityLocal"
+  },
+  {
+    "name": "Z - Clarity Stage Node",
+    "code": "ClarityStage"
+  },
+  {
+    "name": "ZZZ-Journal-ECF5",
+    "code": "journal:ecf5"
+  },
+  {
+    "name": "z - MP",
+    "code": "mp"
+  },
+  {
+    "name": "z - Standards 3 Test 1",
+    "code": "configtest1"
+  },
+  {
+    "name": "z - Standards 3 Test 2",
+    "code": "configtest2"
+  },
+  {
+    "name": "z - Test",
+    "code": "temptest"
+  },
+  {
+    "name": "zDEV - 1st District Appellate Court",
+    "code": "DAC1"
+  },
+  {
+    "name": "zDEV - 2nd District Appellate Court",
+    "code": "DAC2"
+  },
+  {
+    "name": "zDEV - 3rd District Appellate Court",
+    "code": "DAC3"
+  },
+  {
+    "name": "zDEV - 4th District Appellate Court",
+    "code": "DAC4"
+  },
+  {
+    "name": "zDEV - 5th District Appellate Court",
+    "code": "DAC5"
+  },
+  {
+    "name": "zDEV - Supreme Court of Illinois",
+    "code": "DSUPCRT"
+  },
+  {
+    "name": "zz - AOIC Testing",
+    "code": "aoictest"
+  },
+  {
+    "name": "zzz - Caliber",
+    "code": "caliber"
+  },
+  {
+    "name": "zzz - EFM Non-Integrated Test",
+    "code": "EFMNonIntegrated"
+  },
+  {
+    "name": "zzz - Equivant",
+    "code": "equivant"
+  },
+  {
+    "name": "zzz - Henderson County",
+    "code": "henderson2"
+  },
+  {
+    "name": "zzz - JANO",
+    "code": "jano"
+  },
+  {
+    "name": "zzz - JANO2",
+    "code": "jano2"
+  },
+  {
+    "name": "zzz - Justice Systems",
+    "code": "JSYS"
+  },
+  {
+    "name": "zzz - Justice Systems 1",
+    "code": "ijustice1"
+  },
+  {
+    "name": "zzz - REA",
+    "code": "REA"
+  },
+  {
+    "name": "zzz - REA Henderson",
+    "code": "zzzhenderson"
+  },
+  {
+    "name": "zzz - REA ResearchIL",
+    "code": "ResearchIL"
+  },
+  {
+    "name": "zzz - REA-KNOX",
+    "code": "reaknox"
+  },
+  {
+    "name": "zzz - REA-KNOX  2",
+    "code": "reaknox 2"
+  },
+  {
+    "name": "zzz - TR-DAC1",
+    "code": "TR-DAC1"
+  },
+  {
+    "name": "zzz - TR-DAC2",
+    "code": "TR-DAC2"
+  },
+  {
+    "name": "zzz - TR-DAC3",
+    "code": "TR-DAC3"
+  },
+  {
+    "name": "zzz - TR-DAC4",
+    "code": "TR-DAC4"
+  },
+  {
+    "name": "zzz - TR-DAC5",
+    "code": "TR-DAC5"
+  },
+  {
+    "name": "zzz - TR-SC",
+    "code": "TR-SC"
+  },
+  {
+    "name": "zzz - Thomson Reuters",
+    "code": "thomsonreuters"
+  },
+  {
+    "name": "zzz - iJustice",
+    "code": "ijustice"
+  },
+  {
+    "name": "zzz-Journal",
+    "code": "journal:lake"
+  }
+]

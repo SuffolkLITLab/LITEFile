@@ -1,0 +1,40 @@
+{
+  "name": "litefile-extraction-benchmark",
+  "private": true,
+  "scripts": {
+    "build-cases": "python scripts/build_cases.py",
+    "check-cases": "python scripts/build_cases.py --check",
+    "render-sentinel": "uv run --project ../../efile_app python scripts/render_sentinel_documents.py",
+    "build-inputs": "uv run --project ../../efile_app python scripts/build_document_inputs.py",
+    "check-inputs": "uv run --project ../../efile_app python scripts/build_document_inputs.py --check",
+    "prepare-sentinel": "npm run build-cases && npm run render-sentinel && npm run build-inputs",
+    "test-scorer": "node assertions/set_jaccard.test.js && node assertions/taxonomy_classification.test.js",
+    "smoke": "promptfoo eval -c promptfooconfig.smoke.yaml --no-share --no-table --no-cache",
+    "audit-labels": "python scripts/audit_tyler_labels.py",
+    "reconcile-labels": "python scripts/reconcile_benchmark_labels.py",
+    "record-classification-study": "python scripts/record_classification_study.py",
+    "normalize-crosswalk": "python scripts/normalize_form_code_crosswalk.py",
+    "check-crosswalk": "python scripts/normalize_form_code_crosswalk.py --check && python scripts/audit_form_code_crosswalk.py",
+    "audit-crosswalk-live": "python scripts/audit_form_code_crosswalk.py --live --include-suggestions --output results/form-code-crosswalk-live-audit.json",
+    "audit-crosswalk-sources": "python scripts/audit_form_code_crosswalk.py --sources --output results/form-code-crosswalk-source-audit.json",
+    "refresh-classification-sentinel": "uv run --project ../../efile_app python scripts/build_classification_sentinel.py --refresh",
+    "check-classification-sentinel": "uv run --project ../../efile_app python scripts/build_classification_sentinel.py --check",
+    "eval": "promptfoo eval -c promptfooconfig.yaml --no-share",
+    "eval-sentinel": "promptfoo eval -c promptfooconfig.sentinel.yaml --no-share",
+    "eval-modality-text": "promptfoo eval -c promptfooconfig.modality-text.yaml --no-share",
+    "eval-modality-vision": "promptfoo eval -c promptfooconfig.modality-vision.yaml --no-share",
+    "eval-production-context": "promptfoo eval -c promptfooconfig.production-context.yaml --no-share",
+    "eval-classification-sentinel": "promptfoo eval -c promptfooconfig.classification-sentinel.yaml --no-share",
+    "eval-classification-baseline": "promptfoo eval -c promptfooconfig.classification-baseline.yaml --no-share",
+    "eval-classification-role-rubric": "promptfoo eval -c promptfooconfig.classification-role-rubric.yaml --no-share",
+    "eval-classification-form-crosswalk": "promptfoo eval -c promptfooconfig.classification-form-crosswalk.yaml --no-share",
+    "eval-classification-retrieval-shortlist": "promptfoo eval -c promptfooconfig.classification-retrieval-shortlist.yaml --no-share",
+    "eval-classification-guarded-form-crosswalk": "promptfoo eval -c promptfooconfig.classification-guarded-form-crosswalk.yaml --no-share",
+    "eval-classification-reference-form-crosswalk": "promptfoo eval -c promptfooconfig.classification-reference-form-crosswalk.yaml --no-share",
+    "view": "promptfoo view"
+  },
+  "devDependencies": {
+    "pdf-parse": "^2.4.3",
+    "promptfoo": "^0.122.0"
+  }
+}

@@ -1,0 +1,24 @@
+schema_version: 1
+run_id: 2026-08-22-classification-stratified-v1-baseline-hierarchy-corrected
+validity: valid
+eval_id: eval-fIQ-2026-08-23T02:39:32
+git_revision: b0bce05b906c688ae650b18f859ecd052fd9618b
+promptfoo_version: 0.122.0
+config: promptfooconfig.classification-baseline.yaml
+models:
+  - gpt-5.4-nano
+  - mistral-large-3
+results:
+  runs: 36
+  passes: 31
+  failures: 5
+  errors: 0
+input_sha256:
+  build_classification_sentinel.py: f7a1724173c1aef3283f8dc8e0e859c4dea3ea478c8f5f53f698f432fa446603
+  classification_taxonomy_snapshot.json: d1164a708914325f77379a1569be4f2deb411cec9fdecf83abf56eeadfc40b68
+  efile_taxonomy_classification.yaml: 15d276e9bd4bf8e2fbbd380cd3dff0544bbf4efaf7c5fdb9df1e16b42a54f2a8
+  evaluated_cases.jsonl: 76551e1c8033f0470d969c9b6de3b6721a451dce2ff7b2c4e0c8bb6116b4fffb
+  promptfooconfig.classification-baseline.yaml: 1422ea995d8c1aff354e4dcf1d73a9948f9afcc4d6da44b2f66f0dac2066c133
+  taxonomy_classification.js: 5615c75b2cba244fe62e4f7900451abee484a97bef6873106e88c83e8d21203f
+  taxonomy_classification_study.py: f5f5da08712e739146d57ddbc23388e04f0745e926144ad9ffa758ebee893983
+  tyler_label_reviews.json: 7b46e8b67ee3ace34326b902945362111a01da76409dfe1db18ce523f17249b3

@@ -1,3 +1,19 @@
+x-litefile-environment: &litefile-environment
+  PYTHONDONTWRITEBYTECODE: "1"
+  PYTHONUNBUFFERED: "1"
+  DATABASE_URL: sqlite:////data/litefile.sqlite3
+  AWS_ACCESS_KEY_ID: test
+  AWS_SECRET_ACCESS_KEY: test
+  AWS_S3_BUCKET_NAME: litefile-staging
+  AWS_S3_REGION_NAME: us-east-1
+  AWS_S3_ENDPOINT_URL: http://localstack:4566
+  AWS_ACCOUNT_ID_ENDPOINT_MODE: disabled
+
+x-litefile-volumes: &litefile-volumes
+  - .:/app:delegated
+  - venv:/app/efile_app/.venv
+  - litefile_test_data:/data
+
 services:
   localstack:
     # Keep the pre-auth Community Edition for local development. Newer
@@ -35,13 +51,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      PYTHONDONTWRITEBYTECODE: "1"
-      PYTHONUNBUFFERED: "1"
-      AWS_ACCESS_KEY_ID: test
-      AWS_SECRET_ACCESS_KEY: test
-      AWS_S3_BUCKET_NAME: litefile-staging
-      AWS_S3_REGION_NAME: us-east-1
-      AWS_S3_ENDPOINT_URL: http://localstack:4566
+      <<: *litefile-environment
       # botocore >= 1.35 routes S3 through account-ID-specific endpoints, which
       # LocalStack does not serve. Disable that routing.
       AWS_ACCOUNT_ID_ENDPOINT_MODE: disabled
@@ -57,19 +67,30 @@ services:
       EFSP_TEST_DOCUMENT_URL: "${EFSP_TEST_DOCUMENT_URL-https://raw.githubusercontent.com/SuffolkLITLab/LITEFile/main/testing/sample_test.pdf}"
       # DJANGO_SETTINGS_MODULE: efile.settings  # manage.py sets this; uncomment to override
     volumes:
-      - .:/app:delegated
-      # The image builds its venv at /app/efile_app/.venv (Dockerfile WORKDIR).
-      # This must shadow that exact path, or the bind mount above exposes the
-      # host's venv to the container and root-owned files land in the checkout.
-      - venv:/app/efile_app/.venv
-    # healthcheck:
-    #   test: ["CMD-SHELL", "wget -qO- http://localhost:8000/ || exit 1"]
-    #   interval: 10s
-    #   timeout: 5s
-    #   retries: 5
+      *litefile-volumes
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  extraction_worker:
+    image: litefile:web
+    command: uv run python manage.py process_document_extractions
+    depends_on:
+      localstack:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+    environment:
+      <<: *litefile-environment
+    volumes:
+      *litefile-volumes
 
 volumes:
   localstack:
     driver: local
   venv:
+    driver: local
+  litefile_test_data:
     driver: local

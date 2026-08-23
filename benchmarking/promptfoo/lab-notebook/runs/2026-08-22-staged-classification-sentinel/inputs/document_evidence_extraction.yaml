@@ -1,0 +1,75 @@
+schema_version: 1
+id: document-evidence-extraction
+description: Extract direct document facts and evidence used by later taxonomy classification.
+production_version: v1
+
+fields:
+  document title: The title as printed on the document
+  court name: The complete court name, including department, division, unit, county, or venue when shown
+  docket number: The docket or case number and any visible prefix
+  case title: The complete caption or case title
+  plaintiff or petitioner names: All plaintiff or petitioner names
+  defendant or respondent names: All defendant or respondent names
+  other party names: Other named parties with their stated roles
+  document date: The date and its printed label, such as signed, issued, or filed
+  form identifier: A printed form number, revision, or official form title
+  filing phase: Initial, subsequent, or unknown, only when document evidence supports the value
+  requested relief: A concise list of expressly requested orders or remedies
+  monetary amount: Claim amount, amount in controversy, rent due, estate value, or another classification-relevant amount with its label
+  selected options: Checked boxes or selected choices that distinguish the proceeding or filing
+  docket code evidence: A visible docket prefix or code, copied exactly
+  classification evidence: Short, verbatim excerpts that help distinguish category, case type, or filing type; omit personal contact and account information
+
+versions:
+  v1:
+    label: Direct evidence with classification clues
+    status: experimental
+    preferred_model_tier: small
+    preferred_models:
+      - gpt-5-nano
+      - gpt-4o-mini
+    inference:
+      temperature: 0
+      reasoning_effort: low
+      response_format: json_object
+    templates:
+      file_system: |-
+        You extract direct evidence from a court document into one JSON object. Return only requested keys and no commentary.
+      file_user: |-
+        Extract the requested facts and classification evidence from the attached lead document.
+
+        Rules:
+        * Copy facts from the document; do not select or invent an e-filing category, case type, filing type, or Tyler code.
+        * Preserve exact document language for form titles, checked choices, docket codes, and classification evidence.
+        * Keep classification evidence as a JSON array of short excerpts. Other fields are strings; join multiple names or values with semicolons.
+        * Include only evidence relevant to identifying the document or its underlying proceeding.
+        * Omit unsupported fields. Use "unknown" only for filing phase when the document does not establish it.
+        * Do not include addresses, phone numbers, email addresses, financial account numbers, or unrelated allegations in classification evidence.
+
+        Requested fields:
+        ```
+        ${field_definitions}
+        ```
+      text_system: |-
+        You extract direct evidence from court-document text into one JSON object. Return only requested keys and no commentary.
+      text_user: |-
+        Extract the requested facts and classification evidence from the document text.
+
+        Rules:
+        * Copy facts from the text; do not select or invent an e-filing category, case type, filing type, or Tyler code.
+        * Preserve exact document language for form titles, checked choices, docket codes, and classification evidence.
+        * Keep classification evidence as a JSON array of short excerpts. Other fields are strings; join multiple names or values with semicolons.
+        * Include only evidence relevant to identifying the document or its underlying proceeding.
+        * Omit unsupported fields. Use "unknown" only for filing phase when the document does not establish it.
+        * Do not include addresses, phone numbers, email addresses, financial account numbers, or unrelated allegations in classification evidence.
+
+        Requested fields:
+        ```
+        ${field_definitions}
+        ```
+
+        Document text:
+        ${document_text}
+
+shared:
+  json_mode_reminder: Respond only with a JSON object

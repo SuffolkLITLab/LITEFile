@@ -1,0 +1,95 @@
+schema_version: 1
+run_id: 2026-08-22-sentinel-baseline
+title: Initial extraction and modality sentinel
+date: 2026-08-22
+repository:
+  branch: main
+  base_commit: b0bce05b906c688ae650b18f859ecd052fd9618b
+  worktree_dirty: true
+  note: Prompt and benchmark changes were uncommitted, so the input snapshots and digests are authoritative.
+
+environment:
+  promptfoo: 0.122.0
+  node: 24.19.0
+  python: 3.12.3
+  poppler_pdftoppm: 24.02.0
+  ghostscript: 10.02.1
+  azure_region: eastus2
+
+prompt_catalog:
+  snapshot: inputs/document_extraction.yaml
+  sha256: 9c1cb4a431f6d636c2f7744bc7363afe6bf4d20962f939fc3d966ec987d0598a
+  prompts:
+    - version: v1
+      label: Production baseline
+      status: production
+      evaluated_modes: [text, vision]
+    - version: v2
+      label: Evidence-bound candidate
+      status: experimental
+      evaluated_modes: [text, vision]
+
+suites:
+  - name: sentinel-text
+    eval_id: eval-dsx-2026-08-22T19:25:45
+    config: inputs/promptfooconfig.sentinel.yaml
+    dataset: inputs/sentinel_cases.jsonl
+    raw_result: artifacts/sentinel-text.json.gz
+    calls: 84
+  - name: modality-text
+    eval_id: eval-8HV-2026-08-22T19:38:05
+    config: inputs/promptfooconfig.modality-text.yaml
+    dataset: inputs/modality_cases.jsonl
+    raw_result: artifacts/modality-text.json.gz
+    calls: 24
+  - name: modality-vision
+    eval_id: eval-TX3-2026-08-22T19:38:53
+    config: inputs/promptfooconfig.modality-vision.yaml
+    dataset: inputs/modality_cases.jsonl
+    raw_result: artifacts/modality-vision-core.json.gz
+    provider_filter: gpt|llama
+    calls: 24
+  - name: phi-vision-exploratory
+    eval_id: eval-q4V-2026-08-22T19:29:46
+    config: inputs/promptfooconfig.modality-vision.yaml
+    dataset: inputs/modality_cases.jsonl
+    raw_result: artifacts/modality-vision-with-phi-exploratory.json.gz
+    note: Includes the six-model core plus Phi-4; rendered at 180 DPI before the final 140-DPI setting.
+    calls: 28
+
+deployments:
+  - {deployment: gpt-5.4-nano, publisher: OpenAI, model: gpt-5.4-nano, version: "2026-03-17"}
+  - {deployment: gpt-5.4, publisher: OpenAI, model: gpt-5.4, version: "2026-03-05"}
+  - {deployment: gpt-4o-mini, publisher: OpenAI, model: gpt-4o-mini, version: "2024-07-18"}
+  - {deployment: gpt-4o, publisher: OpenAI, model: gpt-4o, version: "2024-11-20"}
+  - {deployment: mistral-small-2503, publisher: Mistral AI, model: mistral-small-2503, version: "1"}
+  - {deployment: mistral-large-3, publisher: Mistral AI, model: Mistral-Large-3, version: "1"}
+  - {deployment: DeepSeek-V4-Flash-Jack, publisher: DeepSeek, model: DeepSeek-V4-Flash, version: "2026-04-23"}
+  - {deployment: deepseek-v4, publisher: DeepSeek, model: DeepSeek-V4-Pro, version: "2026-04-23"}
+  - {deployment: benchmark-llama-4-scout, publisher: Meta, model: Llama-4-Scout-17B-16E-Instruct, version: "1", created_for_run: true, capacity: 10}
+  - {deployment: llama-4-maverick, publisher: Meta, model: Llama-4-Maverick-17B-128E-Instruct-FP8, version: "1"}
+  - {deployment: benchmark-phi-4-multimodal, publisher: Microsoft, model: Phi-4-multimodal-instruct, version: "1", created_for_run: true, capacity: 10}
+
+commands:
+  - python scripts/build_cases.py
+  - python scripts/render_sentinel_documents.py
+  - PROMPTFOO_CONFIG_DIR=.promptfoo PROMPTFOO_DISABLE_WAL_MODE=true promptfoo eval -c promptfooconfig.sentinel.yaml --env-file ../../efile_app/.env --no-share --no-table --no-cache --max-concurrency 2
+  - PROMPTFOO_CONFIG_DIR=.promptfoo PROMPTFOO_DISABLE_WAL_MODE=true promptfoo eval -c promptfooconfig.modality-text.yaml --env-file ../../efile_app/.env --no-share --no-table --no-cache --max-concurrency 2
+  - PROMPTFOO_CONFIG_DIR=.promptfoo PROMPTFOO_DISABLE_WAL_MODE=true promptfoo eval -c promptfooconfig.modality-vision.yaml --env-file ../../efile_app/.env --filter-providers gpt|llama --no-share --no-table --no-cache --max-concurrency 2
+
+input_digests:
+  promptfooconfig.sentinel.yaml: 40d3a05d01cf7b54c6f3f00b7e6948d8ef251c154ca7de0b51b30ccedcab755e
+  promptfooconfig.modality-text.yaml: 1b537a606ffebfc5b26810b7730a0b88ff67cbcada5e9c68ca678b2f8df35206
+  promptfooconfig.modality-vision.yaml: 0dbbc4c97d552750d0ca3c860c0a0063494f610f8f4f122a6b413f8346f512ba
+  sentinel_cases.jsonl: aebaf5f4a3d5223148d8856e280ef9e6b132c5478d82fa53b84251db178cede8
+  modality_cases.jsonl: 4bd45058d2907bc2ca36e72729fab349441762b007f461b066bba480adcb4f9c
+  ma-01-source-flattened.pdf: 9f0b42e3968431a296f1d6a15b597cd08da677b4b568d8b5cd602645a6f46622
+  ma-01-flattened.png: 6b8b36a17ec0ec0267fad15f03582ebd0441b0d826524d1e39d8a6f4cbb8bcbf
+  ma-01-scanned.png: edfedc93c79c6000dd4a77b645ee6ba96b3ff0e481f6af9e6c6eb822f614ec33
+  ma-01-scanned.pdf: 2ecbf5d60457672d470bd9aca02939f1927d650404fdbaf53a704a6badb83b00
+
+artifact_digests:
+  modality-text.json.gz: e952f9c21ea9cadcf59b8522b4555d24b6e75d977ab741128137b004affa741f
+  modality-vision-core.json.gz: 94dbbe278983cd1062ad396fea883c1f672310740fdadd28b2b5845877532dcc
+  modality-vision-with-phi-exploratory.json.gz: 3373fc56cf8a3fce12fc01b3145bec72bc239a7a9c92e7b160625a541635947d
+  sentinel-text.json.gz: 2b8b652c831e51aebb405f38a84e0f00ec85c2332751e313c4e26c373787e1fc

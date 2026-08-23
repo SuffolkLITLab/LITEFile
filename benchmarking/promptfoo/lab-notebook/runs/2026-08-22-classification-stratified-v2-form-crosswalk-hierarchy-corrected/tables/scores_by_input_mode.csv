@@ -1,0 +1,2 @@
+suite,input_mode,prompt_version,runs,mean_score,passes,errors,mean_latency_ms,total_tokens,total_cost
+classification,form-crosswalk,v2,36,0.958333,34,0,2303,77335,0.00731654

@@ -1,0 +1,5 @@
+suite,provider_label,prompt_label,runs,mean_score,passes,errors,mean_latency_ms,total_tokens,total_cost
+form-revision-guard,openai-large:gpt-4o,document-extraction:v1-production:vision,2,0.883739,2,0,3278,2590,0.008965
+form-revision-guard,openai-large:gpt-4o,document-extraction:v2-evidence-bound:vision,2,0.763074,2,0,2892,2858,0.009725
+form-revision-guard,openai-small:gpt-4o-mini,document-extraction:v1-production:vision,2,0.699166,2,0,2582,52309,0.0079827
+form-revision-guard,openai-small:gpt-4o-mini,document-extraction:v2-evidence-bound:vision,2,0.701853,2,0,2878,52614,0.0080505

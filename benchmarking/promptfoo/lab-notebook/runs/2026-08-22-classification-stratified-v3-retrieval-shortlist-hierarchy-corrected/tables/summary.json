@@ -1,0 +1,40 @@
+{
+  "suites": {
+    "classification": {
+      "eval_id": "eval-eLL-2026-08-23T02:42:02",
+      "runs": 36,
+      "passes": 31,
+      "failures": 5,
+      "errors": 0,
+      "mean_score": 0.894444,
+      "token_usage": {
+        "prompt": 45578,
+        "completion": 7401,
+        "cached": 0,
+        "total": 52979,
+        "numRequests": 36,
+        "completionDetails": {
+          "reasoning": 487,
+          "acceptedPrediction": 0,
+          "rejectedPrediction": 0,
+          "cacheReadInputTokens": 8448,
+          "cacheCreationInputTokens": 0
+        },
+        "assertions": {
+          "total": 0,
+          "prompt": 0,
+          "completion": 0,
+          "cached": 0,
+          "numRequests": 0,
+          "completionDetails": {
+            "reasoning": 0,
+            "acceptedPrediction": 0,
+            "rejectedPrediction": 0,
+            "cacheReadInputTokens": 0,
+            "cacheCreationInputTokens": 0
+          }
+        }
+      }
+    }
+  }
+}

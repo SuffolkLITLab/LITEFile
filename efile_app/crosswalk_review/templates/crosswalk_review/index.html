@@ -1,0 +1,154 @@
+{% extends "crosswalk_review/base.html" %}
+{% block title %}
+    Crosswalk review – home
+{% endblock title %}
+{% block extra_style %}
+    .hero {
+    background: linear-gradient(135deg, #1a6b3c 0%, #0e4828 100%);
+    color: #fff;
+    border-radius: 8px;
+    padding: 2rem 2.5rem;
+    margin-bottom: 1.5rem;
+    }
+    .hero h1 { margin: 0 0 0.5rem; font-size: 1.6rem; }
+    .hero p  { margin: 0; color: rgba(255,255,255,0.85); max-width: 680px; }
+    .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    }
+    .stat-card {
+    background: #fff;
+    border: 1px solid #dde1e8;
+    border-radius: 6px;
+    padding: 1rem 1.25rem;
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1a6b3c;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+    }
+    .stat-label { font-size: 0.8rem; color: #6b7280; }
+    .name-form { display: flex; gap: 0.75rem; align-items: flex-end; flex-wrap: wrap; margin-top: 1rem; }
+    .name-form label { font-weight: 600; display: block; margin-bottom: 0.25rem; }
+    .name-form input[type="text"] {
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.95rem;
+    width: 260px;
+    outline: none;
+    transition: border-color 0.15s;
+    }
+    .name-form input[type="text"]:focus { border-color: #1a6b3c; box-shadow: 0 0 0 3px rgba(26,107,60,0.15); }
+{% endblock extra_style %}
+{% block content %}
+    <div class="hero">
+        <h1>Crosswalk review tool</h1>
+        <p>
+            Help verify the machine-generated form-to-filing-code crosswalk.
+            Each card shows one court form and all its suggested filing codes.
+            Mark each mapping as correct, incorrect, or unsure.
+        </p>
+    </div>
+    <!-- Overall stats -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number">{{ total_forms }}</div>
+            <div class="stat-label">Total forms</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ total_mappings }}</div>
+            <div class="stat-label">Total mappings</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ total_verdicts }}</div>
+            <div class="stat-label">Total verdicts submitted</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ forms_fully_reviewed }}</div>
+            <div class="stat-label">Forms with ≥1 verdict</div>
+        </div>
+        {% if total_forms > 0 %}
+            <div class="stat-card" style="grid-column: span 2;">
+                <div style="font-size:0.8rem; color:#6b7280; margin-bottom:0.5rem;">Overall progress</div>
+                <div class="progress-bar-wrap">
+                    <div class="progress-bar-fill"
+                         style="width: {{ forms_fully_reviewed|floatformat:0 }}%;
+                                width: calc({{ forms_fully_reviewed }} / {{ total_forms }} * 100%)"></div>
+                </div>
+                <div style="font-size:0.78rem;
+                            color:#6b7280;
+                            margin-top:0.25rem;
+                            text-align:right">{{ forms_fully_reviewed }} / {{ total_forms }}</div>
+            </div>
+        {% endif %}
+    </div>
+    <!-- Reviewer login / personal stats -->
+    <div class="card">
+        {% if reviewer_stats %}
+            <h2 class="card-title" style="margin-bottom:1rem;">Welcome back, {{ reviewer_stats.name }}!</h2>
+            <div class="stats-grid" style="margin-bottom:1rem;">
+                <div class="stat-card">
+                    <div class="stat-number" style="color:#1a6b3c;">{{ reviewer_stats.verdicts }}</div>
+                    <div class="stat-label">Your verdicts</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" style="color:#1a6b3c;">{{ reviewer_stats.forms_touched }}</div>
+                    <div class="stat-label">Forms you've touched</div>
+                </div>
+            </div>
+            <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+                <a class="btn btn-primary"
+                   href="{% url 'crosswalk_review:next_unreviewed' %}?reviewer={{ reviewer_stats.name|urlencode }}">
+                    Continue reviewing →
+                </a>
+                <a class="btn btn-secondary"
+                   href="{% url 'crosswalk_review:progress' %}">View progress</a>
+            </div>
+            <hr style="margin:1.5rem 0; border:none; border-top:1px solid #e5e7eb;" />
+            <p style="color:#6b7280; font-size:0.88rem; margin:0 0 0.5rem;">Switch reviewer or start as a different person:</p>
+        {% else %}
+            <h2 class="card-title">Start reviewing</h2>
+            <p style="color:#4b5563; margin-bottom:0;">
+                Enter your name to begin. No account is needed — your name is just used to track which
+                forms you've reviewed.
+            </p>
+        {% endif %}
+        <form method="post" action="{% url 'crosswalk_review:index' %}">
+            {% csrf_token %}
+            <div class="name-form">
+                <div>
+                    <label for="reviewer_name">Your name</label>
+                    <input type="text"
+                           id="reviewer_name"
+                           name="reviewer_name"
+                           value="{{ reviewer|default:'' }}"
+                           placeholder="e.g. Jane Smith"
+                           required />
+                </div>
+                <button type="submit" class="btn btn-primary">Start →</button>
+            </div>
+        </form>
+    </div>
+    <!-- Quick links to LITEFile instance -->
+    <div class="card">
+        <h2 class="card-title">Useful links</h2>
+        <ul style="margin:0; padding-left:1.25rem; color:#374151;">
+            <li>
+                <a href="{{ litefile_base_url }}" target="_blank" rel="noopener">LITEFile staging instance ↗</a>
+            </li>
+            <li>
+                <a href="{% url 'crosswalk_review:progress' %}">Full progress report</a>
+            </li>
+            <li>
+                <a href="{% url 'crosswalk_review:export_csv' %}">Download all verdicts as CSV</a>
+            </li>
+        </ul>
+    </div>
+{% endblock content %}

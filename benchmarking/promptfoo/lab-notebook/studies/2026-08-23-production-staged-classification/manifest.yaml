@@ -1,0 +1,26 @@
+schema_version: 1
+recorded_at: 2026-08-23
+branch: feat/staged-document-classification
+base_revision: b0bce05
+working_tree_included: true
+prompts:
+  evidence: document_evidence_extraction/v1
+  classification: efile_taxonomy_classification/v2
+models:
+  evidence: gpt-5-nano
+  classification: gpt-5-mini
+taxonomy_endpoint: https://efile-test.suffolklitlab.org
+sentinels:
+  - case_id: MA-06
+    representation: flattened PDF
+    execution: direct application service
+    passed: true
+  - case_id: IL-02
+    representation: flattened PDF
+    execution: Docker Compose browser upload
+    passed: true
+commands:
+  python_suite: PYTHONDONTWRITEBYTECODE=1 .venv/bin/pytest -q -p no:cacheprovider
+  javascript_suite: npm run test:unit
+  browser_sentinel: npx playwright test tests/document-classification-sentinel.spec.js --project=chromium --workers=1
+  docker_build: docker compose build web

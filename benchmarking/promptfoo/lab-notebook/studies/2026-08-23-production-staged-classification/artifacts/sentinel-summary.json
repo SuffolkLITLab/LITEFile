@@ -1,0 +1,27 @@
+{
+  "recorded_at": "2026-08-23",
+  "branch": "feat/staged-document-classification",
+  "prompt_versions": {
+    "evidence": "document_evidence_extraction/v1",
+    "classification": "efile_taxonomy_classification/v2"
+  },
+  "ma_06": {
+    "input_mode": "native_inline_pdf",
+    "court": "District Court - Cambridge",
+    "case_category": "Small Claims",
+    "case_type": "Small Claim $501 - $2000",
+    "filing_type": "Statement of Small Claims entered through e-file process",
+    "claim_amount": "1275.00",
+    "passed": true
+  },
+  "il_02_docker_browser": {
+    "input_mode": "native_inline_pdf",
+    "court": "Lake County",
+    "case_category": "Dissolution (Divorce) with Children",
+    "case_type": "Dissolution (with children)",
+    "filing_type": "Petition Dissolution of Marriage/Civil Union",
+    "web_healthy": true,
+    "worker_running": true,
+    "passed": true
+  }
+}

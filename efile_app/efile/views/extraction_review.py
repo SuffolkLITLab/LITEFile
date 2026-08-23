@@ -110,6 +110,7 @@ def extraction_review(request, jurisdiction):
                     "case_type": case_type_code,
                     "case_type_name": request.POST.get("case_type_name", ""),
                     "docket_number": request.POST.get("docket_number", ""),
+                    "case_title": request.POST.get("case_title", ""),
                 },
                 current_step=WorkflowStepKey.EXTRACTION_REVIEW,
             )
@@ -127,6 +128,12 @@ def extraction_review(request, jurisdiction):
                 return redirect(get_step_url(next_step.key, jurisdiction))
 
     guesses = draft.extracted_guesses or {}
+    classification = extraction.classification if extraction is not None else {}
+
+    def classified(level, key):
+        selection = classification.get(level, {}) if isinstance(classification, dict) else {}
+        return selection.get(key, "") if selection.get("status") == "selected" else ""
+
     details = extracted_details(guesses)
     jurisdiction_labels = {
         "court": get_text("extraction_review.court_label", jurisdiction=jurisdiction),
@@ -138,14 +145,14 @@ def extraction_review(request, jurisdiction):
         "jurisdiction": jurisdiction,
         "guesses": guesses,
         "existing_case": draft.existing_case,
-        "court_code": draft.court_code,
-        "court_name": draft.court_name,
-        "case_category_code": draft.case_category_code,
-        "case_category_name": draft.case_category_name,
-        "case_type_code": draft.case_type_code,
-        "case_type_name": draft.case_type_name,
-        "filing_type_code": lead.filing_type_code if lead else "",
-        "filing_type_name": lead.filing_type_name if lead else "",
+        "court_code": draft.court_code or classified("court", "route_key"),
+        "court_name": draft.court_name or classified("court", "name"),
+        "case_category_code": draft.case_category_code or classified("case category", "route_key"),
+        "case_category_name": draft.case_category_name or classified("case category", "name"),
+        "case_type_code": draft.case_type_code or classified("case type", "route_key"),
+        "case_type_name": draft.case_type_name or classified("case type", "name"),
+        "filing_type_code": (lead.filing_type_code if lead else "") or classified("filing type", "route_key"),
+        "filing_type_name": (lead.filing_type_name if lead else "") or classified("filing type", "name"),
         # Only some case types have sides. The screen asks for one as soon as
         # the chosen case type turns out to be one of them.
         "filer_role": draft.filer_role,
@@ -158,7 +165,17 @@ def extraction_review(request, jurisdiction):
         "extraction_failed": extraction is not None and extraction.status == DocumentExtraction.Status.FAILED,
         "extraction_pages_analyzed": extraction.pages_analyzed if extraction else None,
         "extraction_total_pages": extraction.total_pages if extraction else None,
+        "classification": classification,
+        "suggested_existing_case": (
+            "new"
+            if not draft.existing_case and (extraction.evidence if extraction else {}).get("filing phase") == "initial"
+            else "existing"
+            if not draft.existing_case
+            and (extraction.evidence if extraction else {}).get("filing phase") == "subsequent"
+            else ""
+        ),
         "docket_number": draft.docket_number or guesses.get("docket number"),
+        "case_title": draft.case_title or guesses.get("case title"),
         "extraction_context": extraction_context,
         "return_to": request.GET.get("return_to", ""),
     }

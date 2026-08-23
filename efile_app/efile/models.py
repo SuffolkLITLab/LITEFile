@@ -346,6 +346,13 @@ class DocumentExtraction(models.Model):
     attempts = models.PositiveSmallIntegerField(default=0)
     total_pages = models.PositiveIntegerField(blank=True, null=True)
     pages_analyzed = models.PositiveIntegerField(blank=True, null=True)
+    # Structured direct evidence is separate from the flattened review copy so
+    # amounts, excerpts, and selected form options keep their original shape.
+    evidence = models.JSONField(default=dict, blank=True)
+    # Exact current taxonomy selections. `route_key` values are transient and
+    # always paired with the durable Tyler name and source endpoint metadata.
+    classification = models.JSONField(default=dict, blank=True)
+    analysis_metadata = models.JSONField(default=dict, blank=True)
     error = models.TextField(blank=True)
     started_at = models.DateTimeField(blank=True, null=True)
     completed_at = models.DateTimeField(blank=True, null=True)

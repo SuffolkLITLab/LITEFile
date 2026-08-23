@@ -1,0 +1,52 @@
+schema_version: 1
+run_id: 2026-08-22-staged-classification-label-corrected
+status: superseded_by_rendering_corrected_run
+purpose: Repeat the hierarchical source/evidence ablation after auditing ambiguous and inconsistent gold labels.
+repository:
+  branch: main
+  commit_at_run: b0bce05b906c688ae650b18f859ecd052fd9618b
+  dirty_worktree: true
+prompt:
+  id: efile-taxonomy-classification
+  version: v1
+  modes:
+    - source-first-3-pages
+    - evidence-only
+    - evidence+source-first-3-pages
+models:
+  - openai:chat:gpt-5.4-nano
+  - openai:chat:gpt-5.4
+  - openai:chat:mistral-large-3
+  - openai:chat:llama-4-maverick
+dataset:
+  decisions: 7
+  taxonomy_endpoint: https://efile-test.suffolklitlab.org
+  candidate_snapshot: inputs/classification_taxonomy_snapshot.json
+  corrected_labels:
+    - IL-04 case type accepts two live values at confidence 0.70
+    - IL-08 case category accepts Eviction at confidence 0.94
+result:
+  eval_id: eval-Eqx-2026-08-22T23:21:31
+  cells: 84
+  passes: 62
+  failures: 22
+  errors: 0
+  mean_score: 0.767857
+  total_tokens: 135498
+  reported_cost: 0.11649116
+command: >-
+  PROMPTFOO_CONFIG_DIR=.promptfoo PROMPTFOO_DISABLE_WAL_MODE=true promptfoo eval
+  -c promptfooconfig.classification-sentinel.yaml --env-file ../../efile_app/.env
+  --no-share --no-table --no-cache --max-concurrency 2
+digests:
+  build_classification_sentinel.py: 0162620cccb053258f5dc16cd2ba1f843f93be7bde9ed4dd17461c8e7a4c86df
+  classification_sentinel_cases.jsonl: 1404347ca0ab057db8b1504deea86e424e4a261fc739b3d19d30bd4a99a06480
+  classification_taxonomy_snapshot.json: 8c4c155077ed2877b17f67211a16a3a4a8d785ba49e236a5c7c98fcb4551f533
+  document_evidence_extraction.yaml: f75232ebe0dda2311f6ba5545ff6984d3fcca8401fb69b9116f81f7a32251fff
+  efile_taxonomy_classification.yaml: 15d276e9bd4bf8e2fbbd380cd3dff0544bbf4efaf7c5fdb9df1e16b42a54f2a8
+  promptfooconfig.classification-sentinel.yaml: 1c2963de34154bc9bfc8c45585b64472b5617e1aef31cad5ccf14a9e20ef8b46
+  prompt_config.py: a04763b413dbc93fb6cb0dd33af17a630a39d29d9f4723022a738a8b3bee7061
+  taxonomy_classification.js: 63ec7d0c1d6495f4b09ff1d61ab0483a7f10071c0b49bf3c3303aa6ba70d1cb6
+  taxonomy_classification.py: 3bd309c97d30e906cc2c98353240ab98009ad2188a845d98226f4b24e9b2c974
+  tyler_label_reviews.json: 425609e70ee7fc2ede11a48e5dfc500c0e3120e39f13188c798344d21e88364f
+  result.json: a108ecb7e31b75861385f742392a9b22945ce8ee7b9955008e5b384741714dff

@@ -1,0 +1,40 @@
+{
+  "suites": {
+    "classification": {
+      "eval_id": "eval-XQs-2026-08-23T02:36:07",
+      "runs": 36,
+      "passes": 36,
+      "failures": 0,
+      "errors": 0,
+      "mean_score": 1.0,
+      "token_usage": {
+        "prompt": 66194,
+        "completion": 7382,
+        "cached": 0,
+        "total": 73576,
+        "numRequests": 36,
+        "completionDetails": {
+          "reasoning": 627,
+          "acceptedPrediction": 0,
+          "rejectedPrediction": 0,
+          "cacheReadInputTokens": 19968,
+          "cacheCreationInputTokens": 0
+        },
+        "assertions": {
+          "total": 0,
+          "prompt": 0,
+          "completion": 0,
+          "cached": 0,
+          "numRequests": 0,
+          "completionDetails": {
+            "reasoning": 0,
+            "acceptedPrediction": 0,
+            "rejectedPrediction": 0,
+            "cacheReadInputTokens": 0,
+            "cacheCreationInputTokens": 0
+          }
+        }
+      }
+    }
+  }
+}

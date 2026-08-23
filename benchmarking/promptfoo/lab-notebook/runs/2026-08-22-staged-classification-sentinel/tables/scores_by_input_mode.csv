@@ -1,0 +1,4 @@
+suite,input_mode,prompt_version,runs,mean_score,passes,errors,mean_latency_ms,total_tokens,total_cost
+staged-taxonomy,evidence+source-first-3-pages,v1,28,0.692857,19,0,2819,48478,0.043452
+staged-taxonomy,evidence-only,v1,28,0.571429,16,0,2628,40593,0.04324148
+staged-taxonomy,source-first-3-pages,v1,28,0.707143,19,0,2383,45677,0.0458485

@@ -1,0 +1,7 @@
+suite,variant,input_mode,prompt_version,runs,mean_score,passes,errors,mean_latency_ms,total_tokens,total_cost
+staged-taxonomy,flattened,evidence+source-first-3-pages,v1,20,0.8,16,0,2773,29814,0.02923155
+staged-taxonomy,flattened,evidence-only,v1,20,0.685,13,0,2945,24106,0.02503618
+staged-taxonomy,flattened,source-first-3-pages,v1,20,0.87,16,0,2257,27420,0.02526458
+staged-taxonomy,motion-facsimile,evidence+source-first-3-pages,v1,8,0.75,6,0,3478,19097,0.01669913
+staged-taxonomy,motion-facsimile,evidence-only,v1,8,0.75,6,0,3402,16616,0.01090485
+staged-taxonomy,motion-facsimile,source-first-3-pages,v1,8,0.675,5,0,1905,18445,0.00935487

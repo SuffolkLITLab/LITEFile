@@ -1,0 +1,98 @@
+schema_version: 1
+id: efile-taxonomy-classification
+description: Select one court-specific e-filing taxonomy value at a time from valid candidates.
+production_version: v1
+
+workflow:
+  order:
+    - case_category
+    - case_type
+    - filing_type
+  candidate_dependencies:
+    case_category: [court, filing_phase]
+    case_type: [court, filing_phase, selected_case_category]
+    filing_type: [court, filing_phase, selected_case_category, selected_case_type]
+  retry_status: request_more_candidates
+  maximum_candidate_rounds: 3
+
+versions:
+  v1:
+    label: Hierarchical candidate selection
+    status: experimental
+    preferred_model_tier: medium
+    preferred_models:
+      - gpt-5-mini
+      - gpt-4o
+    inference:
+      temperature: 0
+      reasoning_effort: low
+      response_format: json_object
+    templates:
+      text_system: |-
+        You classify a court filing against an authoritative, court-specific e-filing taxonomy. Select only an offered code/name pair and return one JSON object.
+      text_user: |-
+        Select the best ${classification_level} for this filing.
+
+        Court and hierarchy:
+        * Jurisdiction: ${jurisdiction}
+        * Court: ${court_name}
+        * Filing phase: ${filing_phase}
+        * Selected case category: ${selected_case_category}
+        * Selected case type: ${selected_case_type}
+
+        Valid candidates for this exact hierarchy node:
+        ${available_candidates}
+
+        Evidence extracted in pass one:
+        ${extracted_evidence}
+
+        Source document text (${source_scope}):
+        ${document_text}
+
+        Rules:
+        * The candidate list, court, filing phase, and already-selected parent values are authoritative constraints.
+        * Treat the pass-one evidence as an index into the source, not as a replacement for it. Resolve conflicts in favor of the source document.
+        * Select only when one candidate is supported by the document and is a good semantic fit.
+        * Do not return a code or name absent from the candidate list.
+        * If no offered candidate is a good fit but a narrower or differently worded option may exist, return status "request_more_candidates" and a short search_query grounded in document language.
+        * If the document cannot establish this level, return status "abstain". This is often correct for the case type of a generic motion, answer, or fee-waiver filing.
+        * Give short verbatim evidence excerpts and avoid unnecessary personal information.
+
+        Return exactly this shape:
+        {
+          "status": "selected | request_more_candidates | abstain",
+          "selection": {"code": "offered code", "name": "offered name"} or null,
+          "confidence": 0.0,
+          "evidence": ["short source excerpt"],
+          "search_query": "terms for another candidate lookup" or null,
+          "reason": "brief explanation"
+        }
+      file_system: |-
+        You classify an attached court filing against an authoritative, court-specific e-filing taxonomy. Select only an offered code/name pair and return one JSON object.
+      file_user: |-
+        Select the best ${classification_level} for the attached filing.
+
+        Court and hierarchy:
+        * Jurisdiction: ${jurisdiction}
+        * Court: ${court_name}
+        * Filing phase: ${filing_phase}
+        * Selected case category: ${selected_case_category}
+        * Selected case type: ${selected_case_type}
+
+        Valid candidates for this exact hierarchy node:
+        ${available_candidates}
+
+        Evidence extracted in pass one:
+        ${extracted_evidence}
+
+        Rules:
+        * The candidate list, court, filing phase, and already-selected parent values are authoritative constraints.
+        * Use the attached source to confirm pass-one evidence; do not rely on the summary alone.
+        * Select only an offered code/name pair that is a good semantic fit.
+        * Otherwise request more candidates with grounded search terms, or abstain when the document cannot establish this level.
+        * Give short verbatim evidence excerpts and avoid unnecessary personal information.
+
+        Return the same status, selection, confidence, evidence, search_query, and reason fields required by the text prompt.
+
+shared:
+  json_mode_reminder: Respond only with a JSON object

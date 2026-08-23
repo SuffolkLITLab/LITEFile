@@ -7,111 +7,82 @@ sidebar_position: 4
 
 # Customizing AI document extraction & prompts <span className="wip-badge">WIP</span>
 
-LITEFile includes an automated AI extraction engine designed to inspect uploaded court PDF documents and recommend the appropriate **Court**, **Case Category**, **Case Type**, and **Docket Number**.
+LITEFile includes a staged document-analysis engine that extracts facts from an uploaded court PDF and recommends an exact current court, case category, case type, and filing type for the filer to confirm.
 
 This guide explains how court partners and developers can customize extraction hints, field definitions, model tiers, and private LLM gateways.
 
 ---
 
-## 1. How the extraction pipeline works
+## How the extraction pipeline works
 
 ```mermaid
 graph TD
-    A[Filer Uploads PDF] --> B[S3 Temporary Buffer]
-    B --> C{PDF Contains Text?}
-    C -->|Yes: Native PDF| D[Files API / MarkItDown Text Parser]
-    C -->|No: Scanned Image| E[OCR Processing]
-    D --> F[OpenAI-Compatible LLM Gateway]
+    A[Filer uploads lead PDF] --> B[Evidence pass over limited PDF]
+    B --> C[Direct facts, form identity, amounts, and excerpts]
+    A --> D[MarkItDown text from first pages]
+    C --> E[Exact official-form retrieval hints]
+    D --> F[Live court candidates]
     E --> F
-    F --> G[Extract JSON Payload with Structured Outputs]
-    G --> H[Map to Jurisdiction Dropdowns]
-    H --> I[Filer Verifies in Extraction Review]
+    F --> G[Category candidates]
+    G --> H[Case-type candidates]
+    H --> I[Filing-type candidates]
+    I --> J[Application resolves selected references]
+    J --> K[Filer confirms exact current choices]
 ```
 
 The extraction logic lives in:
-- `efile_app/efile/utils/llms.py`: Core OpenAI API wrapper, model selection, and token management.
-- `efile_app/efile/views/session_api.py`: Jurisdiction-specific deduction hints (`llm_hints`) and field schemas (`llm_fields`).
-- `efile_app/efile/services/document_uploads.py`: Integration with file uploads and payload guessing.
+
+- `efile_app/efile/prompts/document_evidence_extraction.yaml`: Direct evidence, form identity, selected options, classification excerpts, and structured monetary amounts.
+- `efile_app/efile/prompts/efile_taxonomy_classification.yaml`: One-level-at-a-time selection from the current court hierarchy.
+- `efile_app/efile/utils/prompt_config.py`: Prompt loading and rendering.
+- `efile_app/efile/utils/llms.py`: Native inline PDF, Files API, and MarkItDown fallback calls plus model selection.
+- `efile_app/efile/services/document_extractions.py`: Durable queued jobs and staged-result persistence.
+- `efile_app/efile/services/taxonomy_classification.py`: Live hierarchy retrieval, exact-form hints, amount-band annotation, and application-resolved candidate references.
+- `benchmarking/promptfoo/`: Prompt and model evaluation over the synthetic PDF corpus.
 
 ---
 
-## 2. Customizing jurisdiction deduction hints (`llm_hints`)
+The evidence pass prefers native inline PDF input, which can preserve small
+header and footer evidence for providers that support it. It records the actual
+input mode and falls back to provider file IDs and then MarkItDown text. The
+classification pass always receives the same first-page source text as well as
+the extracted summary.
 
-In `efile_app/efile/views/session_api.py`, the `llm_hints` dictionary supplies court case classification rules to guide the LLM's reasoning:
+## Customizing evidence fields
 
-```python
-# efile_app/efile/views/session_api.py
+The `fields` mapping in `document_evidence_extraction.yaml` defines the direct facts retained by the worker. Add fields only when a filer or a later deterministic step can use them. Do not ask this pass to invent Tyler taxonomy names.
 
-llm_hints = {
-    "illinois": """
-        However you should always attempt to deduce "case_category" and "case_type", using the following information:
-
-        * Chancery (CH): Specific Performance, Injunction, Mechanics Lien Foreclosure
-        * Criminal Felony (CF) or Criminal: Petition to Expunge or Seal
-        * Dissolution with Children (DC) or without Children (DN) (NOTE: Dissolution means Divorce)
-        * Misdemeanor (CM)
-        * Eviction (EV) NOTE: Eviction may also be called Forcible Entry and Detainer
-        * Family (FA): Petition for Parentage, Visitation, or Custody
-        * Guardianship (GR): Guardianship of Minor or Person with Disability
-        * Law Magistrate (LM): Claims for money over $10,000 up to $50,000
-        * Miscellaneous Remedy (MR): Change of Name, Administrative Review
-        * Order of Protection (OP): Order of Protection, Stalking No Contact, Civil No Contact
-        * Probate (PR): Administration of Decedent’s Estate
-        * Small Claims (SC): Claims for money $10,000 or less
-    """,
-    "massachusetts": """You should always attempt to deduce "case_category" and "case_type".""",
-    "vermont": """You should always attempt to deduce "case_category" and "case_type".""",
-    "default": """You should always attempt to deduce "case_category" and "case_type".""",
-}
-```
-
-### Adding hints for a new state:
-To add or refine hints for your state, add an entry keyed by your jurisdiction identifier (e.g., `"massachusetts"` or `"california"`). Include statutory abbreviations, case code prefixes, and common legal synonyms.
+Hints may explain court divisions, docket prefixes, and legal synonyms. They should also tell the model when to abstain. A generic motion or later filing often does not establish the underlying case type even when a docket prefix is suggestive.
 
 ---
 
-## 3. Customizing target fields (`llm_fields`)
+## Customizing prompt versions
 
-The `llm_fields` dictionary defines the target JSON schema and field descriptions passed to the model:
+Each entry under `versions` keeps its prompt templates beside its preferred model tier, preferred models, and inference settings. Add an experimental version, run the Promptfoo matrix, and review field-level failures before changing `production_version`.
 
-```python
-# efile_app/efile/views/session_api.py
-
-llm_fields: dict[str, dict[str, str]] = {
-    "illinois": {
-        "court name": "The name of the court that this form is filed in, often is the county of the court.",
-        "filing type": "The formal title of the filing being made",
-        "case category": "The high level category of this case",
-        "case type": "The type of legal case this form is a part of",
-        "docker number": "The unique identifier for this case in court. Also referred to as the case number",
-    },
-    "default": {
-        "court name": "The name of the court that this form is filed in.",
-        "filing type": "The formal title of the filing being made",
-        "case category": "The high level category of this case",
-        "case type": "The type of legal case this form is a part of",
-        "docker number": "The unique identifier for this case in court. Also referred to as the case number",
-    },
-}
-```
+Tyler route keys vary by environment and can change. The classifier therefore sees temporary `C###` references and names, while application code resolves the selected reference to the current route key. Durable records pair that observation with the exact Tyler name and endpoint. Exact form-crosswalk mappings remain hints until a human has verified the association.
 
 ---
 
-## 4. LLM provider configuration & privacy
+## LLM provider configuration and privacy
 
-LITEFile uses standard OpenAI-compatible endpoints, allowing you to use:
-- **Commercial cloud models**: OpenAI (`gpt-4o-mini`, `gpt-4.1-mini`, `gpt-5-mini`), Anthropic Claude, Google Gemini.
-- **Self-hosted / local LLM gateways**: vLLM, Ollama, LiteLLM proxy, or Azure OpenAI for strict court data privacy compliance.
+LITEFile uses an OpenAI-compatible endpoint. Provider capabilities differ, so test native PDF input and JSON output against the exact deployed model before enabling it for court documents.
 
-### Environment variables:
+### Environment variables
+
 ```bash
 # OpenAI or Private Gateway
 OPENAI_API_KEY="sk-..."
 OPENAI_BASE_URL="https://api.openai.com/v1/"  # Or http://localhost:8000/v1/
+LITEFILE_PROMPTS_DIR="/app/efile_app/efile/prompts"  # Optional deployment override
+DOCUMENT_EVIDENCE_MODEL="gpt-5-nano"                 # Optional exact deployment
+DOCUMENT_CLASSIFICATION_MODEL="gpt-5-mini"           # Optional exact deployment
 ```
 
-### Model selection & tiers:
+### Model selection and tiers
+
 In `llms.py`, models are arranged in three performance tiers:
+
 - **Small (default)**: `gpt-4o-mini`, `gpt-4.1-nano`, `gemini-2.5-flash-lite`, `claude-3-5-haiku`
 - **Medium**: `gpt-4o`, `gpt-4.1-mini`, `claude-3-7-sonnet`
 - **Large**: `gpt-4o`, `o3`, `claude-3-7-sonnet`
