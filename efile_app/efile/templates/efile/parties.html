@@ -88,7 +88,7 @@
                                 {{ item.party.first_name }} {{ item.party.last_name }}
                             {% endif %}
                         </strong>
-                        <small>{{ item.party.party_type_name|default:"Role not chosen" }}
+                        <small>{% firstof item.party.party_type_name item.party.get_party_side_display "Role not chosen" %}
                             {% if item.party.role == "filer" %}
                                 · {% translate "You" %}
                             {% endif %}

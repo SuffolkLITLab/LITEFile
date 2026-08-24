@@ -108,6 +108,35 @@ def display_extracted_fields(found_fields):
     return {key: value for key, value in display.items() if value}
 
 
+# What the extraction-review screen asks the filer to confirm in its own
+# fields, further down the same page. Repeating them as read-only text above
+# those fields says the same thing twice and buries the parts that are only
+# said once.
+CONFIRMED_IN_FORM_KEYS: frozenset[str] = frozenset(
+    {
+        "court",
+        "case category",
+        "case type",
+        "filing type",
+        "docket number",
+        "case title",
+        "plaintiff or petitioner names",
+        "defendant or respondent names",
+        "other party names",
+    }
+)
+
+# The few items that answer the only question this part of the screen is for:
+# did we read the document you meant to send? Everything else is evidence
+# behind a disclosure, for the filer who wants to check our work.
+DOCUMENT_SUMMARY_KEYS: tuple[str, ...] = (
+    "document title",
+    "form name",
+    "form identifier",
+    "form purpose",
+)
+
+
 def extracted_details(guesses):
     """Return every extracted item in a stable, user-facing order."""
     guesses = guesses or {}
@@ -121,3 +150,22 @@ def extracted_details(guesses):
         for key in ordered_keys
         if guesses.get(key) not in (None, "", [], {})
     ]
+
+
+def document_summary_details(guesses):
+    """The handful of items that identify which document was read."""
+
+    by_key = {detail["key"]: detail for detail in extracted_details(guesses)}
+    return [by_key[key] for key in DOCUMENT_SUMMARY_KEYS if key in by_key]
+
+
+def supporting_details(guesses):
+    """Everything else that was found: shown only if the filer asks for it.
+
+    Excludes both the document summary shown above it and every field the
+    screen's own form collects, so opening the disclosure adds information
+    instead of repeating it.
+    """
+
+    hidden = CONFIRMED_IN_FORM_KEYS | set(DOCUMENT_SUMMARY_KEYS)
+    return [detail for detail in extracted_details(guesses) if detail["key"] not in hidden]

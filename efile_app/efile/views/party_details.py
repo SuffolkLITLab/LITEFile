@@ -5,6 +5,7 @@ from django.views.decorators.http import require_http_methods
 
 from efile.api.suffolk_api_views import get_tyler_token
 from efile.models import FilingParty
+from efile.party_sides import PartySide, side_for_party_type_name
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.drafts import draft_snapshot
 from efile.services.people import get_case_questions, get_party_types, incomplete_parties, needs_amount_in_controversy
@@ -46,6 +47,10 @@ def party_details(request, jurisdiction):
         else:
             party.party_type = party_type
             party.party_type_name = party_type_names.get(party_type, party.party_type_name)
+            # A type chosen by hand is the better answer, so the side follows
+            # it rather than the other way round. A type with no side in its
+            # name ("Guardian Ad Litem") is exactly what "someone else" means.
+            party.party_side = side_for_party_type_name(party.party_type_name) or PartySide.OTHER
             party.organization_name = organization_name if party_kind == "organization" else ""
             party.first_name = first_name if party_kind == "person" else ""
             party.middle_name = request.POST.get("middle_name", "").strip() if party_kind == "person" else ""

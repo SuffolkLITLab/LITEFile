@@ -8,6 +8,8 @@ from efile.models import FilingParty
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.drafts import draft_snapshot
 from efile.services.people import (
+    absorb_filer_duplicates,
+    apply_party_sides,
     ensure_required_parties,
     get_case_questions,
     get_party_types,
@@ -44,6 +46,11 @@ def parties(request, jurisdiction):
         return redirect("your_information", jurisdiction=jurisdiction)
     party_types = get_party_types(draft)
     party_type_names = {item["code"]: item["name"] for item in party_types}
+    # The document said which side each person is on; the case type -- settled
+    # by now -- says what this court calls that side. Folding the filer's own
+    # duplicate in first keeps them from reaching the court twice.
+    absorb_filer_duplicates(draft)
+    apply_party_sides(draft, party_types)
 
     if request.method == "POST":
         action = request.POST.get("action", "continue")

@@ -329,6 +329,35 @@
         });
     });
 
+    // The people the document named. Rows are added and removed here rather
+    // than on a round trip so the filer can fix the whole caption at once;
+    // the view reads the surviving rows back off the form.
+    const partyList = document.getElementById("review-parties-list");
+    const partyTemplate = document.getElementById("review-party-template");
+    const partyEmpty = document.getElementById("review-parties-empty");
+    const addPartyButton = document.getElementById("add-review-party");
+
+    function syncPartyEmptyState() {
+        partyEmpty.hidden = partyList.children.length > 0;
+    }
+
+    partyList.addEventListener("click", (event) => {
+        const removeButton = event.target.closest(".review-party__remove");
+        if (!removeButton) return;
+        const row = removeButton.closest(".review-party");
+        // The button being clicked is inside the row about to disappear, so
+        // send focus somewhere that will still exist afterwards.
+        addPartyButton.focus();
+        row.remove();
+        syncPartyEmptyState();
+    });
+
+    addPartyButton.addEventListener("click", () => {
+        partyList.appendChild(partyTemplate.content.cloneNode(true));
+        syncPartyEmptyState();
+        partyList.lastElementChild.querySelector('input[name="party_name"]').focus();
+    });
+
     // Tyler rejects a docket/case number on a new case ("doesn't allow
     // subsequent filing into non-indexed cases"), so keep the field out of
     // the way unless the filer is sure they have one.
