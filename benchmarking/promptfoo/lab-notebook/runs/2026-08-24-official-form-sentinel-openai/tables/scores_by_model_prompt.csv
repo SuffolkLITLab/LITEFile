@@ -1,0 +1,5 @@
+suite,provider_label,prompt_label,runs,mean_score,passes,errors,mean_latency_ms,total_tokens,total_cost
+sentinel-text,openai-large:gpt-5.4,document-extraction:v1-production,7,0.312509,1,0,5736,12077,0.0598925
+sentinel-text,openai-large:gpt-5.4,document-extraction:v2-evidence-bound,7,0.373978,1,0,5412,14267,0.0690175
+sentinel-text,openai-small:gpt-5.4-nano,document-extraction:v1-production,7,0.219309,0,0,2283,10951,0.0035027
+sentinel-text,openai-small:gpt-5.4-nano,document-extraction:v2-evidence-bound,7,0.30125,1,0,5368,14160,0.00552105

@@ -49,6 +49,7 @@ in the
 | --- | --- |
 | [2026-08-22 sentinel baseline](runs/2026-08-22-sentinel-baseline/) | Initial prompt/model and text/vision sentinel |
 | [2026-08-22 production context](runs/2026-08-22-production-context/) | MarkItDown, AcroForm, and hybrid vision comparison |
+| [2026-08-24 official-form sentinel](runs/2026-08-24-official-form-sentinel-openai/) | Bounded extraction check on the refreshed official-form corpus |
 | [2026-08-22 staged classification sentinel](runs/2026-08-22-staged-classification-sentinel/) | Pilot source/evidence ablation that exposed two gold-label issues |
 | [2026-08-22 staged classification with corrected labels](runs/2026-08-22-staged-classification-label-corrected/) | Corrected gold labels; exposed YAML wrapping of long authoritative names |
 | [2026-08-22 staged classification rendering-corrected](runs/2026-08-22-staged-classification-rendering-corrected/) | Current staged baseline; audited labels and exact candidate serialization |

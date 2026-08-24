@@ -7,7 +7,8 @@ import json
 from importlib.metadata import version
 from pathlib import Path
 
-from markitdown import MarkItDown
+from pdfminer.high_level import extract_text
+from pdfminer.layout import LAParams
 from pypdf import PdfReader
 from pypdf.generic import ArrayObject, BooleanObject, DictionaryObject, IndirectObject
 
@@ -77,7 +78,6 @@ def extract_pdf_fields(path):
 def build_document_inputs():
     cases = [case for path in CASE_PATHS for case in read_jsonl(path)]
     documents = {}
-    converter = MarkItDown()
     for case in cases:
         input_id = case["vars"]["document_input_id"]
         if input_id in documents:
@@ -87,7 +87,10 @@ def build_document_inputs():
         documents[input_id] = {
             "source_pdf": source_uri,
             "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
-            "markitdown_text": converter.convert(path).text_content,
+            # MarkItDown's PDF converter delegates to pdfminer.six. Disabling
+            # boxes_flow keeps extraction deterministic when an official form
+            # has several labels at identical vertical coordinates.
+            "markitdown_text": extract_text(path, laparams=LAParams(boxes_flow=None)),
             "pdf_fields": extract_pdf_fields(path),
         }
     return {
@@ -95,6 +98,7 @@ def build_document_inputs():
         "tools": {
             "markitdown": version("markitdown"),
             "pdfminer-six": version("pdfminer-six"),
+            "pdfminer-layout": "boxes_flow=None",
             "pypdf": version("pypdf"),
         },
         "documents": documents,

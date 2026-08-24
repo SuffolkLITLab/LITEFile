@@ -7,7 +7,7 @@ The checked-in dataset has 66 PDF cases:
 
 - 30 interactive PDFs
 - the same 30 forms flattened to simulate print-to-PDF or scanned workflows
-- 6 standalone motion facsimiles that emphasize abstention
+- 6 standalone official-template motion filings that emphasize abstention
 
 The two prompts come from the application-owned
 [`document_extraction.yaml`](../../efile_app/efile/prompts/document_extraction.yaml), not
@@ -79,8 +79,10 @@ npm run eval-production-context -- --env-file ../../efile_app/.env --no-cache
 ```
 
 `data/document_inputs.json` is a deterministic preprocessing corpus. It records
-the source PDF hash, pre-run MarkItDown text, non-empty AcroForm values from
-pypdf, and exact parser versions. Rebuild it with `npm run prepare-sentinel`.
+the source PDF hash, pre-run PDFMiner text compatible with MarkItDown's PDF
+converter, non-empty AcroForm values from pypdf, and exact parser versions. The
+PDFMiner layout uses coordinate order so complex multi-column forms reproduce
+byte-for-byte. Rebuild it with `npm run prepare-sentinel`.
 The production-context config compares MarkItDown alone, MarkItDown plus form
 fields, and rendered-page vision plus both machine-readable sources.
 

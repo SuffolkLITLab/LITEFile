@@ -128,7 +128,8 @@ def test_worker_reads_a_real_uploaded_pdf_before_classification(extraction_draft
         assert jurisdiction == "massachusetts"
         assert evidence["form identifier"] == "CJD 101B"
         assert "COMPLAINT FOR DIVORCE" in source_text
-        assert "Middlesex Division" in source_text
+        assert "Middlesex" in source_text
+        assert "Division" in source_text
         return ClassificationRun(
             selections={
                 "court": {

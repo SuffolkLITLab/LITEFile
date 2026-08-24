@@ -3,17 +3,18 @@
 This directory contains the **synthetic benchmark dataset** for LITEFile, designed to test and evaluate automated document extraction, form classification, field normalization, and abstention behavior across multiple state court jurisdictions.
 
 > [!IMPORTANT]
-> **Synthetic test notice**: All documents, individuals, corporate entities, addresses, docket numbers, case captions, dates, and narrative facts in this dataset are entirely synthetic and fictional. Every PDF is watermarked and visibly marked `SYNTHETIC TEST DOCUMENT - NOT FOR FILING` or `TEST COPY - NOT FOR FILING`. These files are facsimiles created solely for extraction and benchmarking purposes.
+> **Fictional data notice**: All people, organizations, addresses, docket numbers, dates, and narrative facts in the filled documents are fictional benchmark data. The 30 paired filings use court-published PDF templates, and their PDF metadata identifies them as LITEFile benchmark fixtures. Do not file them with a court.
 
 ---
 
 ## Dataset overview
 
-The synthetic benchmark dataset covers **30 distinct court filing targets** across three jurisdictions (**Massachusetts**, **Vermont**, and **Illinois**; 10 forms per state), rendered in both **interactive** and **flattened** PDF formats (60 paired documents total), plus **6 synthetic motion facsimiles**.
+The synthetic benchmark dataset covers **30 distinct court filing targets** across three jurisdictions (**Massachusetts**, **Vermont**, and **Illinois**; 10 forms per state), rendered in both **interactive** and **flattened** PDF formats (60 paired documents total), plus **6 standalone official-template motion copies** used by the motion-specific evaluations.
 
-- **Interactive PDFs** (`filled_pdfs/interactive/`): Forms populated with synthetic scenario data in fillable AcroForm widget fields.
-- **Flattened PDFs** (`filled_pdfs/flattened/`): The same 30 synthetic filings rendered with field appearances burned permanently into page content and AcroForm fields removed, simulating scanned or print-to-PDF court filings.
-- **Synthetic motion facsimiles** (`motions/`): Standalone synthetic motion filings patterned after jurisdictional caption and motion conventions to evaluate how extractors handle open-ended motion formats and whether they properly abstain from hallucinating underlying case types.
+- **Official blank templates** (`official_templates/`): Court-published forms downloaded from the URLs in `official_sources.json`.
+- **Interactive PDFs** (`filled_pdfs/interactive/`): Official forms populated with fictional scenario data in their native AcroForm fields. The Massachusetts summary process summons is an image-only official exemplar, so its entries use a PDF overlay.
+- **Flattened PDFs** (`filled_pdfs/flattened/`): The same 30 filings printed to PDF with field appearances burned into page content and AcroForm fields removed.
+- **Standalone motion filings** (`motions/`): Copies of the six relevant official-template filings from the paired corpus, kept at stable motion-specific paths for evaluations of open-ended formats and abstention behavior.
 
 ---
 
@@ -56,7 +57,7 @@ The synthetic benchmark dataset covers **30 distinct court filing targets** acro
 - **IL-07**: Petition for Order of Protection (Order of Protection)
 - **IL-08**: Application for Waiver of Court Fees (Fee Waiver Civil)
 - **IL-09**: Motion (ATJ 801.7)
-- **IL-10**: Motion (ATJ-style estate motion)
+- **IL-10**: Motion (ATJ 801.7), populated for an estate-administration scenario
 
 ---
 
@@ -64,20 +65,24 @@ The synthetic benchmark dataset covers **30 distinct court filing targets** acro
 
 | Path | Description |
 |---|---|
-| `manifest.jsonl` / `paired_manifest.jsonl` | Primary JSONL dataset manifest linking each target ID to jurisdiction, form metadata, official source URL, interactive & flattened PDF paths, scenario facts, and extractability targets. |
+| `manifest.jsonl` / `paired_manifest.jsonl` | Primary JSONL dataset manifest linking each target ID to jurisdiction, form metadata, official source URLs, blank template, interactive and flattened PDF paths, scenario facts, and extractability targets. |
 | `seed_manifest.jsonl` | Baseline seed manifest containing initial target records, scenarios, and expected extraction fields. |
 | `motion_cases.jsonl` | Subset of 6 motion cases with explicit abstention targets and allowed inference rules. |
 | `extractability.jsonl` | Diagnostic field extractability definitions separating visible fields, semantic fields, optional inferences, and do-not-require fields. |
 | `extractability.csv` | Tabular CSV summary of field extractability across all 30 target forms. |
 | `extractability.md` | Human-readable markdown guide for field extractability expectations by state. |
 | `sources.md` | Reference list of official source URLs for all 30 court form templates. |
+| `official_sources.json` | Machine-readable direct download or court media URLs used to retrieve the blank forms. |
+| `download_official_forms.py` | Reproducible downloader for the 30 official templates. |
+| `build_official_corpus.py` | Fills the fictional scenarios, creates interactive and flattened pairs, cleans visible fixture artifacts in manifests, and refreshes the structure report. |
+| `official_templates/` | Court-published blank PDF forms. |
 | `litefile_schema_snapshot.json` | Reference snapshot of LITEFile extraction field definitions and normalization rules. |
 | `pdf_structure_check.json` | Pre-computed structure validation metrics (page count, AcroForm field count, text character count) for both PDF variants. |
 | `run_litefile_extraction.py` | Benchmark execution script that runs LITEFile's `analyze_document()` across all synthetic documents. |
 | `evaluate_litefile_results.py` | Diagnostic scoring script that evaluates extraction output against `extractability.jsonl`. |
 | `filled_pdfs/interactive/` | 30 interactive fillable PDFs (IL-01..10, MA-01..10, VT-01..10). |
 | `filled_pdfs/flattened/` | 30 flattened non-fillable PDFs (IL-01..10, MA-01..10, VT-01..10). |
-| `motions/` | 6 standalone synthetic motion facsimiles (2 each for IL, MA, VT). |
+| `motions/` | 6 standalone official-template motion filings (2 each for IL, MA, VT). |
 
 ---
 
@@ -101,6 +106,13 @@ Fields are intentionally marked as *abstention targets* (`do_not_require`) when 
 ---
 
 ## Running extraction and evaluation
+
+To refresh the official forms and rebuild the paired corpus:
+
+```bash
+python benchmarking/synthetic/download_official_forms.py --force
+python benchmarking/synthetic/build_official_corpus.py --sync-metadata
+```
 
 From the repository root:
 

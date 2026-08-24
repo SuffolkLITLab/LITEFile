@@ -1,0 +1,9 @@
+suite,variant,input_mode,prompt_version,runs,mean_score,passes,errors,mean_latency_ms,total_tokens,total_cost
+sentinel-text,flattened,,v1-production,8,0.359718,1,0,5194,14788,0.04500255
+sentinel-text,flattened,,v2-evidence-bound,8,0.468224,2,0,6645,18350,0.0532192
+sentinel-text,interactive,,v1-production,2,0.109038,0,0,3686,2494,0.007519
+sentinel-text,interactive,,v2-evidence-bound,2,0.145531,0,0,6112,3047,0.00890505
+sentinel-text,motion-facsimile,,v1-production,2,0.313454,0,0,2012,4671,0.0089058
+sentinel-text,motion-facsimile,,v2-evidence-bound,2,0.344874,0,0,2996,5531,0.00977165
+sentinel-text,scanned,,v1-production,2,0.0,0,0,1592,1075,0.00196785
+sentinel-text,scanned,,v2-evidence-bound,2,0.0,0,0,2044,1499,0.00264265
