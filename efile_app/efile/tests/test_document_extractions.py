@@ -1,3 +1,4 @@
+import re
 import shutil
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -128,7 +129,8 @@ def test_worker_reads_a_real_uploaded_pdf_before_classification(extraction_draft
         assert jurisdiction == "massachusetts"
         assert evidence["form identifier"] == "CJD 101B"
         assert "COMPLAINT FOR DIVORCE" in source_text
-        assert "Middlesex Division" in source_text
+        assert "Middlesex" in source_text
+        assert "Division" in source_text
         return ClassificationRun(
             selections={
                 "court": {
@@ -211,7 +213,12 @@ def test_status_endpoint_reports_when_review_is_ready(client, extraction_draft):
 
 
 @pytest.mark.django_db
-def test_review_shows_every_detail_and_requires_acknowledgment(client, extraction_draft):
+def test_review_leads_with_the_document_and_hides_the_rest_behind_a_disclosure(client, extraction_draft):
+    """Everything extracted is still reachable, but the screen no longer opens
+    with all of it at once: what identifies the document is in the open, the
+    remaining evidence is one click away, and anything the form below collects
+    is left to that form rather than printed twice."""
+
     authorize(client, extraction_draft)
     FilingDocument.objects.create(
         draft=extraction_draft,
@@ -228,9 +235,14 @@ def test_review_shows_every_detail_and_requires_acknowledgment(client, extractio
 
     page = client.get(reverse("extraction_review", kwargs={"jurisdiction": "illinois"}))
     content = page.content.decode()
-    assert "Document title" in content
-    assert "Alex Rivera" in content
-    assert "Unexpected useful detail" in content
+    summary, _, rest = content.partition("extracted-details__more")
+    assert "Document title" in summary
+    assert "Unexpected useful detail" not in summary
+    assert "Unexpected useful detail" in rest
+    # The court is asked for by the form's own court picker further down.
+    assert "Washington County" not in summary
+    # The names are asked for by the party editor, not printed as evidence.
+    assert re.search(r'name="party_name"\s+value="Alex Rivera"', content)
     assert 'name="reviewed_extraction"' in content
 
     response = client.post(

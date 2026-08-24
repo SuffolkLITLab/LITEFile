@@ -4,6 +4,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
 
+from efile.party_sides import PARTY_SIDE_CHOICES
 from efile.workflow import ExistingCase, WorkflowStepKey, get_workflow_step_choices
 
 
@@ -376,6 +377,18 @@ class FilingParty(models.Model):
     party_type = models.CharField(max_length=100, blank=True)
     party_type_name = models.CharField(max_length=255, blank=True)
     external_party_id = models.CharField(max_length=255, blank=True)
+
+    # Which side of the caption this person is on, in the only vocabulary a
+    # document itself establishes: whoever started the case, whoever is
+    # answering it, or someone else it names. Unlike ``party_type`` -- a code
+    # out of one court's list for one case type -- a side is known as soon as
+    # the document has been read, which is what lets the names be confirmed
+    # before the court and case type are. See efile.services.extracted_parties.
+    party_side = models.CharField(max_length=20, choices=PARTY_SIDE_CHOICES, blank=True)
+    # The role the document gave this person in its own words ("Guardian ad
+    # Litem"). Kept because it is often the only thing that can pick the right
+    # party type out of a court list once one is available.
+    party_role_hint = models.CharField(max_length=255, blank=True)
 
     first_name = models.CharField(max_length=100, blank=True)
     middle_name = models.CharField(max_length=100, blank=True)

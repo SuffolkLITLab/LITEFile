@@ -416,6 +416,112 @@
     font-size: 0.9rem;
 }
 
+/* Progressive disclosure for the rest of the extraction: closed by default,
+   and visibly a control rather than a heading, so nobody reads past it
+   thinking the summary above is all there was. */
+.extracted-details__more {
+    border-top: 1px solid var(--border-default);
+    margin-top: 0.5rem;
+    padding-top: 0.75rem;
+}
+
+.extracted-details__more>summary {
+    color: var(--link-color, #1a4480);
+    cursor: pointer;
+    font-size: 0.92rem;
+    font-weight: 650;
+    list-style: none;
+}
+
+.extracted-details__more>summary::marker,
+.extracted-details__more>summary::-webkit-details-marker {
+    display: none;
+}
+
+.extracted-details__more>summary::before {
+    content: "\002B";
+    display: inline-block;
+    font-weight: 800;
+    margin-right: 0.45rem;
+}
+
+.extracted-details__more[open]>summary::before {
+    content: "\2212";
+}
+
+/* The people the document named, edited in place on the review screen. */
+.review-parties {
+    border: 1px solid var(--border-default);
+    border-radius: 12px;
+    margin: 1.5rem 0;
+    padding: 1.1rem 1.25rem 1.25rem;
+}
+
+.review-parties>legend {
+    color: var(--text-heading);
+    font-size: 1.05rem;
+    font-weight: 750;
+    padding: 0 0.35rem;
+    width: auto;
+}
+
+.review-parties__lede,
+.review-parties__empty {
+    color: var(--text-muted);
+    font-size: 0.92rem;
+    margin-bottom: 0.9rem;
+}
+
+.review-parties__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    list-style: none;
+    margin: 0 0 0.9rem;
+    padding: 0;
+}
+
+.review-party {
+    align-items: end;
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1.4fr) auto;
+}
+
+.review-party label {
+    display: block;
+    margin: 0;
+}
+
+.review-party label>span {
+    color: var(--text-muted);
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 700;
+    margin-bottom: 0.2rem;
+}
+
+.review-party__hint {
+    color: var(--text-muted);
+    display: block;
+    font-size: 0.82rem;
+    margin-top: 0.25rem;
+}
+
+.review-party__remove {
+    padding: 0.4rem 0.5rem;
+}
+
+@media (max-width: 640px) {
+    .review-party {
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .review-party__name {
+        grid-column: 1 / -1;
+    }
+}
+
 .extraction-acknowledgment {
     align-items: flex-start;
     background: #fff;

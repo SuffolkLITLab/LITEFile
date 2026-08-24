@@ -13,26 +13,52 @@
         {% ui_text "extraction_review.case_category_label" as case_category_label %}
         {% ui_text "extraction_review.case_category_help" as case_category_help %}
         {% if has_guesses %}
-            <h1>{% translate "Here is everything we pulled from your document" %}</h1>
+            <h1>{% translate "Check what we read from your document" %}</h1>
             <p class="workflow-lede">
-                {% translate "Take your time and review every item. These are clues from the PDF, not answers you gave us, and the system can make mistakes." %}
+                {% translate "These are clues from the PDF, not answers you gave us, and the system can make mistakes. Correct anything that is wrong." %}
             </p>
             <section class="extracted-details" aria-labelledby="extracted-details-heading">
-                <h2 id="extracted-details-heading">{% translate "Information from your PDF" %}</h2>
-                <dl>
-                    {% for detail in extracted_details %}
-                        <div>
-                            <dt>{{ detail.label }}</dt>
-                            <dd>
-                                {{ detail.value }}
-                            </dd>
-                        </div>
-                    {% endfor %}
-                </dl>
+                <h2 id="extracted-details-heading">{% translate "The document we read" %}</h2>
+                {% if document_summary_details %}
+                    <dl>
+                        {% for detail in document_summary_details %}
+                            <div>
+                                <dt>{{ detail.label }}</dt>
+                                <dd>
+                                    {{ detail.value }}
+                                </dd>
+                            </div>
+                        {% endfor %}
+                    </dl>
+                {% else %}
+                    <p class="extracted-details__note">
+                        {% translate "We could not tell what kind of document this is. The details below are still worth checking." %}
+                    </p>
+                {% endif %}
                 {% if extraction_total_pages > extraction_pages_analyzed %}
                     <p class="extracted-details__note">
                         {% blocktranslate %}This PDF has {{ extraction_total_pages }} pages. We analyzed only the first {{ extraction_pages_analyzed }} pages.{% endblocktranslate %}
                     </p>
+                {% endif %}
+                {% comment %}
+                Everything else the extraction found. None of it is asked for
+                below, so it is here for the filer who wants to check our
+                reading -- closed by default, because most filers do not.
+                {% endcomment %}
+                {% if supporting_details %}
+                    <details class="extracted-details__more">
+                        <summary>{% translate "See everything else we found in this PDF" %}</summary>
+                        <dl>
+                            {% for detail in supporting_details %}
+                                <div>
+                                    <dt>{{ detail.label }}</dt>
+                                    <dd>
+                                        {{ detail.value }}
+                                    </dd>
+                                </div>
+                            {% endfor %}
+                        </dl>
+                    </details>
                 {% endif %}
                 <label class="extraction-acknowledgment">
                     <input type="checkbox"
@@ -41,7 +67,7 @@
                            value="yes"
                            form="extraction-review-form"
                            required />
-                    <span>{% translate "I reviewed all the information above and will correct the filing details below if needed." %}</span>
+                    <span>{% translate "I checked this against my document and will correct anything wrong below." %}</span>
                 </label>
             </section>
             <h2 class="confirm-filing-details-heading">{% translate "Confirm the details used for this filing" %}</h2>
@@ -195,6 +221,105 @@
                     <small id="case-title-hint">{% translate "This is usually the names shown at the top of the document." %}</small>
                 </div>
             </div>
+            {% comment %}
+            The people the document named. They are collected here, where the
+            filer can see them against the document they just uploaded, and
+            each one's side becomes this court's own party type on the People
+            screen once the case type above has settled what that side is
+            called. Every row posts all four inputs so the parallel lists the
+            view reads back stay index-aligned.
+            {% endcomment %}
+            <fieldset class="review-parties" id="review-parties">
+                <legend>{% translate "People named in your document" %}</legend>
+                <p class="review-parties__lede">
+                    {% translate "Fix any name we misread, and say which side each person is on. You will add addresses later." %}
+                </p>
+                <ol class="review-parties__list" id="review-parties-list">
+                    {% for row in party_rows %}
+                        <li class="review-party">
+                            <input type="hidden" name="party_id" value="{{ row.id }}" />
+                            <input type="hidden" name="party_role_hint" value="{{ row.role_hint }}" />
+                            <div class="review-party__name">
+                                <label>
+                                    <span>{% translate "Name" %}</span>
+                                    <input class="form-control"
+                                           type="text"
+                                           name="party_name"
+                                           value="{{ row.name }}"
+                                           autocomplete="off" />
+                                </label>
+                                {% if row.role_hint %}
+                                    <small class="review-party__hint">
+                                        {% blocktranslate with role=row.role_hint %}Your document calls this person the {{ role }}.{% endblocktranslate %}
+                                    </small>
+                                {% elif row.party_type_name %}
+                                    <small class="review-party__hint">{{ row.party_type_name }}</small>
+                                {% endif %}
+                            </div>
+                            <label class="review-party__side">
+                                <span>{% translate "Side of the case" %}</span>
+                                <select class="form-select" name="party_side">
+                                    <option value="">{% translate "Not sure" %}</option>
+                                    {% for option in party_side_options %}
+                                        <option value="{{ option.value }}"
+                                                {% if option.value == row.side %}selected{% endif %}>
+                                            {{ option.label }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </label>
+                            <button class="btn btn-link text-danger review-party__remove"
+                                    type="button"
+                                    aria-label="{% translate "Remove this person" %}">
+                                <i class="fa-solid fa-trash" aria-hidden="true"></i>
+                            </button>
+                        </li>
+                    {% endfor %}
+                </ol>
+                {% comment %}
+                The blank row the "Add another person" button clones, kept in
+                the template so an added row is worded and translated exactly
+                like the rows the document produced.
+                {% endcomment %}
+                <template id="review-party-template">
+                    <li class="review-party">
+                        <input type="hidden" name="party_id" value="" />
+                        <input type="hidden" name="party_role_hint" value="" />
+                        <div class="review-party__name">
+                            <label>
+                                <span>{% translate "Name" %}</span>
+                                <input class="form-control"
+                                       type="text"
+                                       name="party_name"
+                                       value=""
+                                       autocomplete="off" />
+                            </label>
+                        </div>
+                        <label class="review-party__side">
+                            <span>{% translate "Side of the case" %}</span>
+                            <select class="form-select" name="party_side">
+                                <option value="">{% translate "Not sure" %}</option>
+                                {% for option in party_side_options %}<option value="{{ option.value }}">{{ option.label }}</option>{% endfor %}
+                            </select>
+                        </label>
+                        <button class="btn btn-link text-danger review-party__remove"
+                                type="button"
+                                aria-label="{% translate "Remove this person" %}">
+                            <i class="fa-solid fa-trash" aria-hidden="true"></i>
+                        </button>
+                    </li>
+                </template>
+                <p class="review-parties__empty"
+                   id="review-parties-empty"
+                   {% if party_rows %}hidden{% endif %}>
+                    {% translate "We did not find any names in your document. Add the people involved, or add them later." %}
+                </p>
+                <button class="btn btn-outline-primary btn-sm"
+                        type="button"
+                        id="add-review-party">
+                    <i class="fa-solid fa-plus" aria-hidden="true"></i> {% translate "Add another person" %}
+                </button>
+            </fieldset>
             {% comment %}
             Only case types that mean different jobs for different parties --
             an eviction, say -- offer sides. The list depends on the case type

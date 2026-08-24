@@ -4,11 +4,13 @@ from django.views.decorators.http import require_http_methods
 
 from efile.api.suffolk_api_views import get_tyler_token
 from efile.models import DocumentExtraction, FilingDocument
+from efile.party_sides import PARTY_SIDE_HELP, PARTY_SIDE_LABELS, PartySide
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.document_checklists import resolve_filer_roles
 from efile.services.document_extractions import extraction_for_document
 from efile.services.drafts import draft_snapshot, write_case_data
-from efile.services.extraction_fields import extracted_details
+from efile.services.extracted_parties import review_rows, save_reviewed_parties
+from efile.services.extraction_fields import document_summary_details, supporting_details
 from efile.utils.ui_text import get_text
 from efile.workflow import (
     RETURN_TO_REVIEW,
@@ -35,6 +37,32 @@ def _offered_filer_roles(request, jurisdiction):
         case_type_name=request.POST.get("case_type_name", ""),
         lead_filing_type_name=request.POST.get("filing_type_name", ""),
     )
+
+
+def _submitted_party_rows(request):
+    """Read the party editor back off the form, keeping its rows aligned.
+
+    Every row posts all four of its inputs, including the empty id of a row
+    the filer just added, so the four lists stay index-aligned even when rows
+    were added or removed in the browser.
+    """
+
+    ids = request.POST.getlist("party_id")
+    names = request.POST.getlist("party_name")
+    sides = request.POST.getlist("party_side")
+    hints = request.POST.getlist("party_role_hint")
+    rows = []
+    for index, name in enumerate(names):
+        raw_id = ids[index] if index < len(ids) else ""
+        rows.append(
+            {
+                "id": int(raw_id) if str(raw_id).isdigit() else None,
+                "name": name,
+                "side": sides[index] if index < len(sides) else "",
+                "role_hint": hints[index] if index < len(hints) else "",
+            }
+        )
+    return rows
 
 
 def _set_lead_filing_type(draft, filing_type_code, filing_type_name):
@@ -71,6 +99,11 @@ def extraction_review(request, jurisdiction):
     }:
         messages.info(request, "We are still analyzing your first PDF. You can leave this page and come back.")
         return redirect("upload_documents", jurisdiction=jurisdiction)
+
+    # What the party editor should show: what was just submitted, so a filer
+    # sent back to fix a validation error keeps the names they typed, and
+    # otherwise what is saved (falling back to what the document named).
+    party_rows = _submitted_party_rows(request) if request.method == "POST" else review_rows(draft)
 
     if request.method == "POST":
         existing_case = request.POST.get("existing_case", draft.existing_case)
@@ -119,6 +152,11 @@ def extraction_review(request, jurisdiction):
                 request.POST.get("filing_type_code", ""),
                 request.POST.get("filing_type_name", ""),
             )
+            # The people the document named, as the filer has now corrected
+            # them. They are stored as sides here; the party screen turns each
+            # side into this court's own party type once the case type it
+            # depends on has been saved just above.
+            save_reviewed_parties(draft, party_rows)
             if request.POST.get("return_to") == RETURN_TO_REVIEW:
                 write_case_data(draft, {}, current_step=WorkflowStepKey.REVIEW)
                 return redirect(get_step_url(WorkflowStepKey.REVIEW, jurisdiction))
@@ -134,13 +172,21 @@ def extraction_review(request, jurisdiction):
         selection = classification.get(level, {}) if isinstance(classification, dict) else {}
         return selection.get(key, "") if selection.get("status") == "selected" else ""
 
-    details = extracted_details(guesses)
+    # Two tiers, not one long dump: what identifies the document sits in the
+    # open, and the rest of the evidence waits behind a disclosure. Anything
+    # the form below collects appears in neither, since the form is where the
+    # filer confirms it.
+    summary_details = document_summary_details(guesses)
+    other_details = supporting_details(guesses)
     jurisdiction_labels = {
         "court": get_text("extraction_review.court_label", jurisdiction=jurisdiction),
         "case category": get_text("extraction_review.case_category_label", jurisdiction=jurisdiction),
     }
-    for detail in details:
+    for detail in (*summary_details, *other_details):
         detail["label"] = jurisdiction_labels.get(detail["key"], detail["label"])
+    party_side_options = [
+        {"value": str(side), "label": PARTY_SIDE_LABELS[side], "help": PARTY_SIDE_HELP[side]} for side in PartySide
+    ]
     extraction_context = {
         "jurisdiction": jurisdiction,
         "guesses": guesses,
@@ -161,7 +207,10 @@ def extraction_review(request, jurisdiction):
         "is_logged_in": True,
         "filing_draft": draft_snapshot(draft),
         "has_guesses": bool(guesses),
-        "extracted_details": details,
+        "document_summary_details": summary_details,
+        "supporting_details": other_details,
+        "party_rows": party_rows,
+        "party_side_options": party_side_options,
         "extraction_failed": extraction is not None and extraction.status == DocumentExtraction.Status.FAILED,
         "extraction_pages_analyzed": extraction.pages_analyzed if extraction else None,
         "extraction_total_pages": extraction.total_pages if extraction else None,
