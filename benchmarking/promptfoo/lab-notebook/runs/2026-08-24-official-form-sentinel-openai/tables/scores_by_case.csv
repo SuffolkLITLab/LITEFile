@@ -1,0 +1,8 @@
+suite,case_id,variant,runs,mean_score,passes,errors,mean_latency_ms,total_tokens,total_cost
+sentinel-text,IL-04,flattened,4,0.697201,3,0,5106,7775,0.02071225
+sentinel-text,IL-08,flattened,4,0.459886,0,0,5853,13038,0.03051615
+sentinel-text,IL-10,motion-facsimile,4,0.329164,0,0,2504,10202,0.01867745
+sentinel-text,MA-01,flattened,4,0.174169,0,0,8624,6828,0.0323823
+sentinel-text,MA-01,interactive,4,0.127285,0,0,4898,5541,0.01642405
+sentinel-text,MA-01,scanned,4,0.0,0,0,1818,2574,0.0046105
+sentinel-text,VT-06,flattened,4,0.324626,0,0,4096,5497,0.01461105

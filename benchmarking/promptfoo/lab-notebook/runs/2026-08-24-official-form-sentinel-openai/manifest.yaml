@@ -1,0 +1,62 @@
+schema_version: 1
+run_id: 2026-08-24-official-form-sentinel-openai
+title: Official-form extraction sentinel on OpenAI deployments
+date: 2026-08-24
+repository:
+  branch: main
+  base_commit: 374215ba1ff83db27317ac37fdfdba62d4f13d3d
+  worktree_dirty: true
+  note: Official-form corpus and application changes were uncommitted; input snapshots and digests are authoritative.
+
+environment:
+  promptfoo: 0.122.0
+  node: 24.19.0
+  python: 3.14.6
+  poppler_pdftoppm: 24.02.0
+  ghostscript: 10.02.1
+
+prompt_catalog:
+  snapshot: inputs/document_extraction.yaml
+  sha256: 788ab21b5bed72561230c9adfce00f14e91f0f344c38801e964fe4971df34457
+  prompts:
+    - version: v1
+      label: Production baseline
+      status: production
+    - version: v2
+      label: Evidence-bound candidate
+      status: experimental
+
+suites:
+  - name: sentinel-text
+    eval_id: eval-VDB-2026-08-24T14:38:48
+    config: inputs/promptfooconfig.sentinel.yaml
+    dataset: inputs/sentinel_cases.jsonl
+    raw_result: artifacts/sentinel-text-openai.json.gz
+    calls: 28
+    provider_filter: openai-small|openai-large
+
+deployments:
+  - {deployment: gpt-5.4-nano, publisher: OpenAI, model: gpt-5.4-nano}
+  - {deployment: gpt-5.4, publisher: OpenAI, model: gpt-5.4}
+
+commands:
+  - python scripts/build_cases.py
+  - uv run --project ../../efile_app python scripts/render_sentinel_documents.py
+  - uv run --project ../../efile_app python scripts/build_document_inputs.py
+  - PROMPTFOO_CONFIG_DIR=/tmp/litefile-promptfoo-config PROMPTFOO_DISABLE_WAL_MODE=true promptfoo eval -c promptfooconfig.sentinel.yaml --env-file ../../efile_app/.env --filter-providers 'openai-small|openai-large' --no-share --no-table --no-cache --max-concurrency 2
+
+input_digests:
+  promptfooconfig.sentinel.yaml: 40d3a05d01cf7b54c6f3f00b7e6948d8ef251c154ca7de0b51b30ccedcab755e
+  sentinel_cases.jsonl: fd7289b9e8f83ac2404d55ac5c5f27fd03f2b77e7d2567199c6a7a3daca393e7
+  document_inputs.json: 9376c3eb3a7090c6434654677f8909ed314faa793d7acaacd96f6ce7175d11dd
+  document_extraction.yaml: 788ab21b5bed72561230c9adfce00f14e91f0f344c38801e964fe4971df34457
+  MA-01-interactive.pdf: f530df6a1ca295e78079f233170395fbad0ec90ef73cedd8094014c62e4dc252
+  MA-01-flattened.pdf: d20c38de837a3e20941f7e95f430685195ead56d97e799fd9b53bacae1985a1b
+  VT-06-flattened.pdf: 10c7e3d1e87f1bafafe372fe9209520b137b8095f9af2834fa7e33b03858564f
+  IL-04-flattened.pdf: 7ce2d6db998578b24fa345c62046d4291ff3ae68cb149387cd30de61b77503f3
+  IL-08-flattened.pdf: d3ded9fcd2c5b3f4909f334d173fcbcc383e13ec0bab9f78bff41b739bea4477
+  IL-10-motion.pdf: 9cf43f4ef280e0e7149c2da8519e23549f8fec8bf044b1a83d0eb72924fa7c7b
+  MA-01-scanned.pdf: 363c6e3470f3bc570e042bc54d58df953e02bd349a9bd215561074c4b5881af6
+
+artifact_digests:
+  sentinel-text-openai.json.gz: 7f5c3fa7a40aec25a1fc731aaa8050d35f2d48215b08ee2ace34f1fcdc9b37a6

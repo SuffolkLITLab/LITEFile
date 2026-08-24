@@ -1,6 +1,6 @@
 # Official source links for the initial LITEFile test corpus
 
-Retrieved/checked: 2026-08-22. Prefer the official court page when a direct PDF URL is versioned or may change.
+Retrieved/checked: 2026-08-24. Prefer the official court page when a direct PDF URL is versioned or may change. The exact download URLs used by the corpus builder are recorded in `official_sources.json`.
 
 ## Massachusetts
 
@@ -39,4 +39,4 @@ Retrieved/checked: 2026-08-22. Prefer the official court page when a direct PDF 
 - **IL-07 - Petition for Order of Protection** (Order of Protection - 05/2025): https://www.illinoiscourts.gov/documents-and-forms/approved-forms/circuit-court-standardized-forms-suites/order-of-protection/
 - **IL-08 - Application for Waiver of Court Fees** (Fee Waiver Civil - 08/2025): https://www.illinoiscourts.gov/documents-and-forms/approved-forms/circuit-court-standardized-forms-suites/fee-waiver-civil/
 - **IL-09 - Motion** (ATJ 801.7 (08/25)): https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/ac43cca5-73c9-4a71-9b31-6880c69f2f96/MOT%20Motion.pdf
-- **IL-10 - Motion** (ATJ-style synthetic estate motion): https://www.illinoiscourts.gov/documents-and-forms/approved-forms/circuit-forms/circuit-forms-motion/
+- **IL-10 - Motion** (ATJ 801.7 (08/25)): https://www.illinoiscourts.gov/documents-and-forms/approved-forms/circuit-forms/circuit-forms-motion/

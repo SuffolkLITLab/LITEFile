@@ -2,421 +2,421 @@
   {
     "id": "IL-01",
     "variant": "interactive",
-    "pages": 1,
-    "acroform_fields": 12,
-    "text_chars": 367
+    "pages": 4,
+    "acroform_fields": 45,
+    "text_chars": 10630
   },
   {
     "id": "IL-02",
     "variant": "interactive",
-    "pages": 2,
-    "acroform_fields": 16,
-    "text_chars": 540
+    "pages": 7,
+    "acroform_fields": 81,
+    "text_chars": 15739
   },
   {
     "id": "IL-03",
     "variant": "interactive",
-    "pages": 1,
-    "acroform_fields": 14,
-    "text_chars": 412
+    "pages": 2,
+    "acroform_fields": 45,
+    "text_chars": 4520
   },
   {
     "id": "IL-04",
     "variant": "interactive",
-    "pages": 1,
-    "acroform_fields": 10,
-    "text_chars": 336
+    "pages": 2,
+    "acroform_fields": 46,
+    "text_chars": 3534
   },
   {
     "id": "IL-05",
     "variant": "interactive",
-    "pages": 1,
-    "acroform_fields": 14,
-    "text_chars": 444
+    "pages": 5,
+    "acroform_fields": 90,
+    "text_chars": 12339
   },
   {
     "id": "IL-06",
     "variant": "interactive",
-    "pages": 1,
-    "acroform_fields": 13,
-    "text_chars": 393
+    "pages": 7,
+    "acroform_fields": 109,
+    "text_chars": 16606
   },
   {
     "id": "IL-07",
     "variant": "interactive",
-    "pages": 1,
-    "acroform_fields": 13,
-    "text_chars": 431
+    "pages": 15,
+    "acroform_fields": 362,
+    "text_chars": 47760
   },
   {
     "id": "IL-08",
     "variant": "interactive",
-    "pages": 1,
-    "acroform_fields": 16,
-    "text_chars": 432
+    "pages": 4,
+    "acroform_fields": 121,
+    "text_chars": 10041
   },
   {
     "id": "IL-09",
     "variant": "interactive",
-    "pages": 1,
-    "acroform_fields": 9,
-    "text_chars": 327
+    "pages": 4,
+    "acroform_fields": 50,
+    "text_chars": 9772
   },
   {
     "id": "IL-10",
     "variant": "interactive",
-    "pages": 1,
-    "acroform_fields": 9,
-    "text_chars": 347
+    "pages": 4,
+    "acroform_fields": 50,
+    "text_chars": 9772
   },
   {
     "id": "MA-01",
     "variant": "interactive",
     "pages": 1,
-    "acroform_fields": 17,
-    "text_chars": 489
+    "acroform_fields": 50,
+    "text_chars": 1701
   },
   {
     "id": "MA-02",
     "variant": "interactive",
     "pages": 1,
-    "acroform_fields": 14,
-    "text_chars": 444
+    "acroform_fields": 51,
+    "text_chars": 1912
   },
   {
     "id": "MA-03",
     "variant": "interactive",
     "pages": 1,
-    "acroform_fields": 12,
-    "text_chars": 421
+    "acroform_fields": 90,
+    "text_chars": 1954
   },
   {
     "id": "MA-04",
     "variant": "interactive",
     "pages": 1,
-    "acroform_fields": 14,
-    "text_chars": 431
+    "acroform_fields": 52,
+    "text_chars": 1555
   },
   {
     "id": "MA-05",
     "variant": "interactive",
-    "pages": 1,
-    "acroform_fields": 14,
-    "text_chars": 419
+    "pages": 2,
+    "acroform_fields": 78,
+    "text_chars": 3030
   },
   {
     "id": "MA-06",
     "variant": "interactive",
     "pages": 1,
-    "acroform_fields": 14,
-    "text_chars": 474
+    "acroform_fields": 41,
+    "text_chars": 3413
   },
   {
     "id": "MA-07",
     "variant": "interactive",
-    "pages": 1,
-    "acroform_fields": 14,
-    "text_chars": 442
+    "pages": 2,
+    "acroform_fields": 0,
+    "text_chars": 277
   },
   {
     "id": "MA-08",
     "variant": "interactive",
-    "pages": 1,
-    "acroform_fields": 9,
-    "text_chars": 378
+    "pages": 2,
+    "acroform_fields": 60,
+    "text_chars": 3110
   },
   {
     "id": "MA-09",
     "variant": "interactive",
-    "pages": 1,
-    "acroform_fields": 10,
-    "text_chars": 363
+    "pages": 2,
+    "acroform_fields": 43,
+    "text_chars": 1074
   },
   {
     "id": "MA-10",
     "variant": "interactive",
     "pages": 1,
-    "acroform_fields": 15,
-    "text_chars": 475
+    "acroform_fields": 27,
+    "text_chars": 2288
   },
   {
     "id": "VT-01",
     "variant": "interactive",
-    "pages": 2,
-    "acroform_fields": 18,
-    "text_chars": 674
+    "pages": 5,
+    "acroform_fields": 95,
+    "text_chars": 8611
   },
   {
     "id": "VT-02",
     "variant": "interactive",
-    "pages": 1,
-    "acroform_fields": 14,
-    "text_chars": 441
+    "pages": 6,
+    "acroform_fields": 146,
+    "text_chars": 11738
   },
   {
     "id": "VT-03",
     "variant": "interactive",
-    "pages": 1,
-    "acroform_fields": 14,
-    "text_chars": 369
+    "pages": 3,
+    "acroform_fields": 24,
+    "text_chars": 8525
   },
   {
     "id": "VT-04",
     "variant": "interactive",
     "pages": 1,
-    "acroform_fields": 11,
-    "text_chars": 354
+    "acroform_fields": 20,
+    "text_chars": 2329
   },
   {
     "id": "VT-05",
     "variant": "interactive",
-    "pages": 1,
-    "acroform_fields": 14,
-    "text_chars": 427
+    "pages": 2,
+    "acroform_fields": 122,
+    "text_chars": 5708
   },
   {
     "id": "VT-06",
     "variant": "interactive",
     "pages": 1,
-    "acroform_fields": 13,
-    "text_chars": 380
+    "acroform_fields": 24,
+    "text_chars": 2196
   },
   {
     "id": "VT-07",
     "variant": "interactive",
-    "pages": 1,
-    "acroform_fields": 15,
-    "text_chars": 437
+    "pages": 6,
+    "acroform_fields": 190,
+    "text_chars": 11617
   },
   {
     "id": "VT-08",
     "variant": "interactive",
     "pages": 1,
-    "acroform_fields": 9,
-    "text_chars": 354
+    "acroform_fields": 34,
+    "text_chars": 2626
   },
   {
     "id": "VT-09",
     "variant": "interactive",
     "pages": 1,
-    "acroform_fields": 9,
-    "text_chars": 336
+    "acroform_fields": 16,
+    "text_chars": 1911
   },
   {
     "id": "VT-10",
     "variant": "interactive",
-    "pages": 1,
-    "acroform_fields": 9,
-    "text_chars": 376
+    "pages": 3,
+    "acroform_fields": 86,
+    "text_chars": 6991
   },
   {
     "id": "IL-01",
     "variant": "flattened",
-    "pages": 1,
+    "pages": 4,
     "acroform_fields": 0,
-    "text_chars": 675
+    "text_chars": 10910
   },
   {
     "id": "IL-02",
     "variant": "flattened",
-    "pages": 2,
+    "pages": 7,
     "acroform_fields": 0,
-    "text_chars": 1081
+    "text_chars": 15990
   },
   {
     "id": "IL-03",
     "variant": "flattened",
-    "pages": 1,
+    "pages": 2,
     "acroform_fields": 0,
-    "text_chars": 743
+    "text_chars": 3457
   },
   {
     "id": "IL-04",
     "variant": "flattened",
-    "pages": 1,
+    "pages": 2,
     "acroform_fields": 0,
-    "text_chars": 675
+    "text_chars": 3867
   },
   {
     "id": "IL-05",
     "variant": "flattened",
-    "pages": 1,
+    "pages": 5,
     "acroform_fields": 0,
-    "text_chars": 652
+    "text_chars": 12407
   },
   {
     "id": "IL-06",
     "variant": "flattened",
-    "pages": 1,
+    "pages": 7,
     "acroform_fields": 0,
-    "text_chars": 937
+    "text_chars": 16891
   },
   {
     "id": "IL-07",
     "variant": "flattened",
-    "pages": 1,
+    "pages": 15,
     "acroform_fields": 0,
-    "text_chars": 938
+    "text_chars": 48050
   },
   {
     "id": "IL-08",
     "variant": "flattened",
-    "pages": 1,
+    "pages": 4,
     "acroform_fields": 0,
-    "text_chars": 825
+    "text_chars": 10206
   },
   {
     "id": "IL-09",
     "variant": "flattened",
-    "pages": 1,
+    "pages": 4,
     "acroform_fields": 0,
-    "text_chars": 666
+    "text_chars": 7333
   },
   {
     "id": "IL-10",
     "variant": "flattened",
-    "pages": 1,
+    "pages": 4,
     "acroform_fields": 0,
-    "text_chars": 691
+    "text_chars": 7341
   },
   {
     "id": "MA-01",
     "variant": "flattened",
     "pages": 1,
     "acroform_fields": 0,
-    "text_chars": 913
+    "text_chars": 1902
   },
   {
     "id": "MA-02",
     "variant": "flattened",
     "pages": 1,
     "acroform_fields": 0,
-    "text_chars": 813
+    "text_chars": 2121
   },
   {
     "id": "MA-03",
     "variant": "flattened",
     "pages": 1,
     "acroform_fields": 0,
-    "text_chars": 838
+    "text_chars": 2013
   },
   {
     "id": "MA-04",
     "variant": "flattened",
     "pages": 1,
     "acroform_fields": 0,
-    "text_chars": 742
+    "text_chars": 1619
   },
   {
     "id": "MA-05",
     "variant": "flattened",
-    "pages": 1,
+    "pages": 2,
     "acroform_fields": 0,
-    "text_chars": 709
+    "text_chars": 3261
   },
   {
     "id": "MA-06",
     "variant": "flattened",
     "pages": 1,
     "acroform_fields": 0,
-    "text_chars": 896
+    "text_chars": 3743
   },
   {
     "id": "MA-07",
     "variant": "flattened",
-    "pages": 1,
+    "pages": 2,
     "acroform_fields": 0,
-    "text_chars": 732
+    "text_chars": 276
   },
   {
     "id": "MA-08",
     "variant": "flattened",
-    "pages": 1,
+    "pages": 2,
     "acroform_fields": 0,
-    "text_chars": 642
+    "text_chars": 3368
   },
   {
     "id": "MA-09",
     "variant": "flattened",
-    "pages": 1,
+    "pages": 2,
     "acroform_fields": 0,
-    "text_chars": 675
+    "text_chars": 1383
   },
   {
     "id": "MA-10",
     "variant": "flattened",
     "pages": 1,
     "acroform_fields": 0,
-    "text_chars": 806
+    "text_chars": 2286
   },
   {
     "id": "VT-01",
     "variant": "flattened",
-    "pages": 2,
+    "pages": 5,
     "acroform_fields": 0,
-    "text_chars": 1141
+    "text_chars": 8681
   },
   {
     "id": "VT-02",
     "variant": "flattened",
-    "pages": 1,
+    "pages": 6,
     "acroform_fields": 0,
-    "text_chars": 914
+    "text_chars": 11810
   },
   {
     "id": "VT-03",
     "variant": "flattened",
-    "pages": 1,
+    "pages": 3,
     "acroform_fields": 0,
-    "text_chars": 771
+    "text_chars": 8869
   },
   {
     "id": "VT-04",
     "variant": "flattened",
     "pages": 1,
     "acroform_fields": 0,
-    "text_chars": 726
+    "text_chars": 2669
   },
   {
     "id": "VT-05",
     "variant": "flattened",
-    "pages": 1,
+    "pages": 2,
     "acroform_fields": 0,
-    "text_chars": 855
+    "text_chars": 6000
   },
   {
     "id": "VT-06",
     "variant": "flattened",
     "pages": 1,
     "acroform_fields": 0,
-    "text_chars": 649
+    "text_chars": 2339
   },
   {
     "id": "VT-07",
     "variant": "flattened",
-    "pages": 1,
+    "pages": 6,
     "acroform_fields": 0,
-    "text_chars": 1002
+    "text_chars": 12016
   },
   {
     "id": "VT-08",
     "variant": "flattened",
     "pages": 1,
     "acroform_fields": 0,
-    "text_chars": 620
+    "text_chars": 2849
   },
   {
     "id": "VT-09",
     "variant": "flattened",
     "pages": 1,
     "acroform_fields": 0,
-    "text_chars": 685
+    "text_chars": 2272
   },
   {
     "id": "VT-10",
     "variant": "flattened",
-    "pages": 1,
+    "pages": 3,
     "acroform_fields": 0,
-    "text_chars": 530
+    "text_chars": 7306
   }
 ]

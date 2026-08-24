@@ -36,13 +36,13 @@ These are pragmatic test expectations, not gold labels. `Direct` means the PDF v
 
 | ID | Form | Direct | Semantic | Optional | Do not require |
 |---|---|---|---|---|---|
-| IL-01 | Complaint or Petition | document title, court, case title, plaintiff or petitioner names, defendant or respondent names, document date | filing type, case category | - | - |
-| IL-02 | Petition for Divorce with Children | document title, court, case title, plaintiff or petitioner names, defendant or respondent names, other party names, document date | filing type, case category, case type | - | - |
+| IL-01 | Complaint or Petition | document title, court, case title, plaintiff or petitioner names, defendant or respondent names | filing type, case category | - | document date |
+| IL-02 | Petition for Divorce with Children | document title, court, case title, plaintiff or petitioner names, defendant or respondent names, other party names | filing type, case category, case type | - | document date |
 | IL-03 | Eviction Complaint | document title, court, case title, plaintiff or petitioner names, defendant or respondent names, document date | filing type, case category, case type | - | - |
-| IL-04 | Small Claims Complaint | document title, court, case title, plaintiff or petitioner names, defendant or respondent names, document date | filing type, case category, case type | - | - |
+| IL-04 | Small Claims Complaint | document title, court, case title, plaintiff or petitioner names, defendant or respondent names | filing type, case category, case type | - | document date |
 | IL-05 | Request for Name Change | document title, court, case title, plaintiff or petitioner names, document date | filing type, case category, case type | - | - |
 | IL-06 | Petition for Guardianship of a Minor | document title, court, case title, plaintiff or petitioner names, other party names, document date | filing type, case category, case type | - | - |
-| IL-07 | Petition for Order of Protection | document title, court, case title, plaintiff or petitioner names, defendant or respondent names, document date | filing type, case category, case type | - | - |
-| IL-08 | Application for Waiver of Court Fees | document title, court, docket number, case title, defendant or respondent names, other party names, document date | filing type | - | - |
+| IL-07 | Petition for Order of Protection | document title, court, case title, plaintiff or petitioner names, defendant or respondent names | filing type, case category, case type | - | document date |
+| IL-08 | Application for Waiver of Court Fees | document title, court, docket number, case title, defendant or respondent names, other party names | filing type | - | document date |
 | IL-09 | Motion | document title, court, docket number, case title, plaintiff or petitioner names, defendant or respondent names, document date | filing type | - | case category, case type |
 | IL-10 | Motion | document title, court, docket number, case title, other party names, document date | filing type | case category, case type | - |

@@ -1,0 +1,40 @@
+{
+  "suites": {
+    "sentinel-text": {
+      "eval_id": "eval-VDB-2026-08-24T14:38:48",
+      "runs": 28,
+      "passes": 3,
+      "failures": 25,
+      "errors": 0,
+      "mean_score": 0.301762,
+      "token_usage": {
+        "prompt": 42600,
+        "completion": 8855,
+        "cached": 0,
+        "total": 51455,
+        "numRequests": 28,
+        "completionDetails": {
+          "reasoning": 5242,
+          "acceptedPrediction": 0,
+          "rejectedPrediction": 0,
+          "cacheReadInputTokens": 0,
+          "cacheCreationInputTokens": 0
+        },
+        "assertions": {
+          "total": 0,
+          "prompt": 0,
+          "completion": 0,
+          "cached": 0,
+          "numRequests": 0,
+          "completionDetails": {
+            "reasoning": 0,
+            "acceptedPrediction": 0,
+            "rejectedPrediction": 0,
+            "cacheReadInputTokens": 0,
+            "cacheCreationInputTokens": 0
+          }
+        }
+      }
+    }
+  }
+}
