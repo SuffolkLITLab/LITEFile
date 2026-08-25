@@ -71,6 +71,32 @@ repos:
             uv run --directory "$ROOT_DIR/efile_app" js-beautify -r "${files[@]}"
           - --
 
+      - id: prettier
+        name: Prettier (JavaScript tooling config)
+        entry: bash -c
+        language: system
+        files: ^efile_app/eslint\.config\.mjs$
+        args:
+          - |
+            ROOT_DIR=$(git rev-parse --show-toplevel)
+            cd "$ROOT_DIR/efile_app" && npm exec -- prettier --write eslint.config.mjs
+          - --
+
+      - id: eslint
+        name: ESLint (including SonarJS)
+        entry: bash -c
+        language: system
+        files: ^efile_app/.*\.(js|mjs|cjs)$
+        args:
+          - |
+            ROOT_DIR=$(git rev-parse --show-toplevel)
+            files=()
+            for file in "$@"; do
+              files+=("${file#efile_app/}")
+            done
+            cd "$ROOT_DIR/efile_app" && npm exec -- eslint --max-warnings=0 -- "${files[@]}"
+          - --
+
       - id: ty
         name: ty (type check)
         entry: bash -c
@@ -81,6 +107,17 @@ repos:
           - |
             ROOT_DIR=$(git rev-parse --show-toplevel)
             uv run --directory "$ROOT_DIR/efile_app" ty check
+
+      - id: bandit
+        name: Bandit (security scan)
+        entry: bash -c
+        language: system
+        files: ^efile_app/.*\.py$
+        pass_filenames: false
+        args:
+          - |
+            ROOT_DIR=$(git rev-parse --show-toplevel)
+            uv run --directory "$ROOT_DIR/efile_app" bandit -r efile --exclude efile/tests
 
   # Run tests on pre-push to keep commits snappy
   - repo: local

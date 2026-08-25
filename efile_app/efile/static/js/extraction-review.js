@@ -66,7 +66,7 @@
     }
 
     function optionText(item) {
-        return (item.text || item.name || optionValue(item)).replace(/\s*\(Recommended\)$/, "");
+        return (item.text || item.name || optionValue(item)).replace(/ \(Recommended\)$/, "");
     }
 
     async function getJson(url) {

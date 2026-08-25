@@ -431,7 +431,10 @@ def test_save_case_endpoint_requires_authentication(client):
 
 @pytest.mark.django_db
 def test_final_submission_marks_current_draft_submitted(client, django_user_model, monkeypatch):
+    request_options = {}
+
     def fake_post(*_args, **_kwargs):
+        request_options.update(_kwargs)
         return FakeApiResponse(201, {"filing_id": "abc-123"})
 
     monkeypatch.setattr("requests.post", fake_post)
@@ -452,6 +455,7 @@ def test_final_submission_marks_current_draft_submitted(client, django_user_mode
     assert draft.current_step == WorkflowStepKey.CONFIRMATION
     assert draft.submission_response == {"filing_id": "abc-123"}
     assert CURRENT_DRAFT_SESSION_KEY not in client.session
+    assert request_options["timeout"] == (10, 300)
 
 
 @pytest.mark.django_db

@@ -19,6 +19,7 @@ dependencies = [
     "pypdf>=6.0,<7",
     "pyyaml>=6.0,<7",
     "djlint>=1.36.4",
+    "bleach>=6.2,<7",
     "markdown>=3.10.2",
     "markdownify>=1.2.2",
 ]
@@ -46,6 +47,7 @@ dev = [
   "pytest-cov>=5.0",
   "pytest-xdist>=3.6",
   "pre-commit>=3.7",
+  "bandit>=1.8,<2",
   "boto3-stubs>=1.40.12",
   "types-requests",
   "django-stubs[compatible-mypy]"

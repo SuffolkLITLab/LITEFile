@@ -1,0 +1,6 @@
+.venv/
+node_modules/
+staticfiles/
+coverage/
+playwright-report/
+test-results/

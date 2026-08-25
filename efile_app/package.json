@@ -7,7 +7,10 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "test:unit": "node --test js-tests/*.test.js"
+    "test:unit": "node --test js-tests/*.test.js",
+    "lint:js": "eslint --max-warnings=0 .",
+    "format:js": "prettier --write eslint.config.mjs",
+    "format:js:check": "prettier --check eslint.config.mjs"
   },
   "keywords": [],
   "author": "",
@@ -16,5 +19,12 @@
   "dependencies": {
     "@playwright/test": "^1.55.0",
     "dotenv": "^17.2.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.9.1",
+    "eslint-plugin-sonarjs": "^4.2.0",
+    "globals": "^17.11.0",
+    "prettier": "^3.9.6"
   }
 }

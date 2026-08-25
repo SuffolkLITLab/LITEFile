@@ -49,7 +49,7 @@ const FilingHandler = {
                 confirm_submission: true,
                 payment_account_id: reviewJSON("payment-account-id")
             }, {}, {
-                timeout: ApiUtils.FILING_TIMEOUT_MS
+                timeout: ApiUtils.SUBMISSION_TIMEOUT_MS
             });
             this.handleSubmissionResult(result);
         } catch (error) {
