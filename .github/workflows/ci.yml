@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        check: [ruff, type, tests]
+        check: [ruff, type, tests, bandit]
     name: "${{ matrix.check }}"
     steps:
       # Common setup
@@ -51,7 +51,10 @@ jobs:
           uv run ruff format --check .
           uv run djlint --check .
           git ls-files '*.css' | xargs -n 1 --verbose bash -c 'diff -ru "$0" <(uv run css-beautify "$0")'
-          git ls-files '*.js' | xargs -n 1 --verbose bash -c 'diff -ru "$0" <(uv run js-beautify "$0")'
+          git -C .. ls-files 'efile_app/**/*.js' | while IFS= read -r file; do
+            relative="${file#efile_app/}"
+            diff -ru "$relative" <(uv run js-beautify "$relative")
+          done
 
       - name: Ruff lint
         if: matrix.check == 'ruff'
@@ -77,3 +80,38 @@ jobs:
           # the test suite alone would not catch conflicting migration leaves.
           uv run python manage.py makemigrations --check --dry-run
           uv run pytest -q
+
+      - name: Bandit security scan
+        if: matrix.check == 'bandit'
+        working-directory: efile_app
+        run: uv run bandit -r efile --exclude efile/tests
+
+  javascript:
+    name: javascript
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: efile_app/package-lock.json
+
+      - name: Install JavaScript dependencies
+        working-directory: efile_app
+        run: npm ci
+
+      - name: ESLint (including SonarJS)
+        working-directory: efile_app
+        run: npm run lint:js
+
+      - name: Prettier
+        working-directory: efile_app
+        run: npm run format:js:check
+
+      - name: JavaScript unit tests
+        working-directory: efile_app
+        run: npm run test:unit

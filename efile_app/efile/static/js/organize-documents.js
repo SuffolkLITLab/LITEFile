@@ -280,7 +280,7 @@
         let services;
         try {
             services = await getJson(`/api/dropdowns/optional-services/?${params}`);
-        } catch (error) {
+        } catch {
             container.innerHTML = "";
             return;
         }

@@ -123,6 +123,8 @@ OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1/")
 # Base URL for EFSP-compatible APIs (Suffolk LIT Lab by default)
 # Override per environment with EFSP_URL env var
 EFSP_URL = os.getenv("EFSP_URL", "https://efile-test.suffolklitlab.org")
+EFILE_SUBMISSION_CONNECT_TIMEOUT_SECONDS = int(os.getenv("EFILE_SUBMISSION_CONNECT_TIMEOUT_SECONDS", "10"))
+EFILE_SUBMISSION_READ_TIMEOUT_SECONDS = int(os.getenv("EFILE_SUBMISSION_READ_TIMEOUT_SECONDS", "300"))
 
 # AWS S3 Configuration
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID", "")

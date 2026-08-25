@@ -40,10 +40,10 @@ def upload_documents(request, jurisdiction):
             s3_key = document.s3_key
             promote_document = None
             other_documents = FilingDocument.objects.filter(draft=draft).exclude(pk=document.pk)
-            if document.role == FilingDocument.Role.LEAD and other_documents.exists():
+            if document.role == FilingDocument.Role.LEAD:
                 replacement = other_documents.order_by("sort_order", "created_at").first()
-                assert replacement is not None
-                promote_document = replacement.pk
+                if replacement is not None:
+                    promote_document = replacement.pk
             document.delete()
             if promote_document is not None:
                 replacement = FilingDocument.objects.get(pk=promote_document)

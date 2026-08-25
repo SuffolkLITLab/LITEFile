@@ -201,7 +201,7 @@ test("a successful response is returned unchanged", async () => {
 
 // --- long-running filing calls ----------------------------------------------
 
-test("fee quotes and submissions may raise the request timeout", async () => {
+test("long-running EFSP calls use endpoint-specific request timeouts", async () => {
     // The generic 30s default reported a timeout for an Adams County fee quote
     // the server answered successfully after 43s. Callers pass the longer budget
     // explicitly rather than raising it for every request on the page.
@@ -215,9 +215,16 @@ test("fee quotes and submissions may raise the request timeout", async () => {
     };
 
     await client.post("/api/payment-fees/", {}, {}, {
-        timeout: ApiUtils.FILING_TIMEOUT_MS
+        timeout: ApiUtils.FEE_TIMEOUT_MS
     });
 
-    assert.strictEqual(seenTimeout, ApiUtils.FILING_TIMEOUT_MS);
-    assert.ok(ApiUtils.FILING_TIMEOUT_MS > 60000, "must outlast the server's own 60s timeout");
+    assert.strictEqual(seenTimeout, ApiUtils.FEE_TIMEOUT_MS);
+    assert.ok(ApiUtils.FEE_TIMEOUT_MS > 60000, "must accommodate slow fee quotes");
+
+    await client.post("/api/submit-final-filing/", {}, {}, {
+        timeout: ApiUtils.SUBMISSION_TIMEOUT_MS
+    });
+
+    assert.strictEqual(seenTimeout, ApiUtils.SUBMISSION_TIMEOUT_MS);
+    assert.ok(ApiUtils.SUBMISSION_TIMEOUT_MS > 300000, "must outlast the server's default read timeout");
 });

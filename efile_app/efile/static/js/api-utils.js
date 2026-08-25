@@ -3,19 +3,14 @@
  * Features: CSRF handling, request building, error handling
  */
 class ApiUtils {
-    /**
-     * Timeout for calls that reach the EFSP proxy, which in turn calls Tyler:
-     * fee quotes and filing submissions. Round trips over 40s have been observed
-     * on real courts (Adams County order-of-protection fees), against a 30s
-     * default that reported "Request timed out" for a request the server went on
-     * to answer with a valid $0.00 quote.
-     *
-     * Deliberately longer than the server's own 60s timeout on that call, so the
-     * server is what decides a request has failed. The browser giving up first
-     * only hides the outcome: this timeout does not abort the request, so the
-     * filing continues regardless of what the filer is shown.
-     */
-    static FILING_TIMEOUT_MS = 120000;
+    // Fee quotes can exceed the generic 30-second request budget at some courts.
+    static FEE_TIMEOUT_MS = 120000;
+
+    // Filing submission may involve several downstream court operations. Keep
+    // this longer than the server's default 300-second read timeout so the server
+    // reports the outcome before the browser gives up. The browser-side timer
+    // does not abort an in-flight filing request.
+    static SUBMISSION_TIMEOUT_MS = 330000;
 
     constructor() {
         this.baseUrl = window.location.origin;
@@ -375,7 +370,6 @@ class ApiUtils {
     }
 
     clearExpiredCache() {
-        const now = Date.now();
         let cleared = 0;
 
         Object.keys(this.cache).forEach(key => {

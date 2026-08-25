@@ -18,7 +18,7 @@ require('dotenv').config({
 
 
 
-async function globalSetup(config) {
+async function globalSetup(_config) {
     // Validate required environment variables
     const requiredEnvVars = ['TESTS_TYLER_USERNAME', 'TESTS_TYLER_PASSWORD'];
     const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);

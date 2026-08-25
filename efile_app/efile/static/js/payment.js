@@ -62,7 +62,7 @@ const PaymentPage = {
             (types || []).forEach((type) => {
                 if (type.code) this.typeDescriptions[type.code] = type.description || type.code;
             });
-        } catch (error) {
+        } catch {
             // The court's own type names are a nicety, not a requirement --
             // accountLabel() falls back to the account's own name if this
             // list never loads.
@@ -136,7 +136,7 @@ const PaymentPage = {
                 confirm_submission: true,
                 payment_account_id: selected.value
             }, {}, {
-                timeout: ApiUtils.FILING_TIMEOUT_MS
+                timeout: ApiUtils.FEE_TIMEOUT_MS
             });
             this.feeQuoteReady = Boolean(result?.success);
             this.handleFeesResponse(result);

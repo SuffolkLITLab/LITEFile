@@ -241,6 +241,10 @@ def submit_final_filing(request):
                 api_url,
                 json=efile_data,
                 headers=headers,
+                timeout=(
+                    settings.EFILE_SUBMISSION_CONNECT_TIMEOUT_SECONDS,
+                    settings.EFILE_SUBMISSION_READ_TIMEOUT_SECONDS,
+                ),
             )
 
             logger.debug(f"Response status code: {response.status_code}")

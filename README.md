@@ -348,7 +348,7 @@ Ty (a Rust-based type checker) is configured in `pyproject.toml` under `[tool.ty
 
 ## Pre-commit hooks
 
-Pre-commit hooks are configured in `.pre-commit-config.yaml` to run Ruff formatting/linting and type checking on commits, plus tests on push.
+Pre-commit hooks are configured in `.pre-commit-config.yaml` to run Ruff, JavaScript ESLint/SonarJS, Prettier, Bandit, and type checking on commits, plus tests on push.
 
 - __Install pre-commit hooks__ (one-time setup):
   ```bash

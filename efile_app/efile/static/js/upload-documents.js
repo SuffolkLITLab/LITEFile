@@ -59,8 +59,9 @@
             row.append(name, remove);
             pendingList.append(row);
         });
+        const fileCountLabel = selectedFiles.size === 1 ? "file" : "files";
         dropZone.querySelector("strong").textContent = selectedFiles.size ?
-            `${selectedFiles.size} file${selectedFiles.size === 1 ? "" : "s"} selected` :
+            `${selectedFiles.size} ${fileCountLabel} selected` :
             "Choose PDFs or drag them here";
     }
 
