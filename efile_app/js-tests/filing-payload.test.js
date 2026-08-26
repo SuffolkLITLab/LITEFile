@@ -162,11 +162,14 @@ test("each document's selected optional services reach fee and submission payloa
     const feeQuotePayload = bundlesFor(uploadData);
     const submissionPayload = bundlesFor(uploadData);
 
-    assert.deepStrictEqual(feeQuotePayload[0].optional_services, [
-        {code: "certified-copy"},
-        {code: "rush"}
-    ]);
-    assert.deepStrictEqual(feeQuotePayload[1].optional_services, [{code: "courtesy-copy"}]);
+    assert.deepStrictEqual(feeQuotePayload[0].optional_services, [{
+        code: "certified-copy"
+    }, {
+        code: "rush"
+    }]);
+    assert.deepStrictEqual(feeQuotePayload[1].optional_services, [{
+        code: "courtesy-copy"
+    }]);
     assert.deepStrictEqual(submissionPayload, feeQuotePayload);
 });
 

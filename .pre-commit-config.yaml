@@ -119,6 +119,17 @@ repos:
             ROOT_DIR=$(git rev-parse --show-toplevel)
             uv run --directory "$ROOT_DIR/efile_app" bandit -r efile --exclude efile/tests
 
+      - id: makemigrations
+        name: Django makemigrations (check)
+        entry: bash -c
+        language: system
+        types: [python]
+        pass_filenames: false
+        args:
+          - |
+            ROOT_DIR=$(git rev-parse --show-toplevel)
+            DJANGO_SETTINGS_MODULE=efile.settings uv run --directory "$ROOT_DIR/efile_app" python manage.py makemigrations --check --dry-run
+
   # Run tests on pre-push to keep commits snappy
   - repo: local
     hooks:
@@ -132,6 +143,17 @@ repos:
           - |
             ROOT_DIR=$(git rev-parse --show-toplevel)
             uv run --directory "$ROOT_DIR/efile_app" pytest -q
+
+      - id: js-test
+        name: JavaScript unit tests (pre-push)
+        entry: bash -c
+        language: system
+        stages: [pre-push]
+        pass_filenames: false
+        args:
+          - |
+            ROOT_DIR=$(git rev-parse --show-toplevel)
+            cd "$ROOT_DIR/efile_app" && npm run test:unit
 
           # If needed, override Django settings here instead of pyproject:
           # - --ds=efile.settings
