@@ -238,12 +238,14 @@ def test_write_upload_data_creates_lead_and_supporting_documents(django_user_mod
         "lead_filing_type": "efile",
         "lead_document_type": "petition",
         "lead_filing_component": "lead",
+        "lead_requested_optional_services": ["certified-copy"],
         "supporting_documents": [
             {
                 "filing_type": "attachment",
                 "document_type": "exhibit",
                 "filing_component": "supporting",
                 "cc_email": "copy@example.com",
+                "requested_optional_services": ["rush"],
             }
         ],
     }
@@ -259,11 +261,13 @@ def test_write_upload_data_creates_lead_and_supporting_documents(django_user_mod
     assert lead.s3_key == "drafts/petition.pdf"
     assert lead.content_type == "application/pdf"
     assert lead.filing_type_code == "efile"
+    assert lead.requested_optional_services == ["certified-copy"]
 
     supporting = FilingDocument.objects.get(draft=draft, role=FilingDocument.Role.SUPPORTING)
     assert supporting.name == "order.pdf"
     assert supporting.document_type_code == "exhibit"
     assert supporting.courtesy_copy_email == "copy@example.com"
+    assert supporting.requested_optional_services == ["rush"]
 
 
 @pytest.mark.django_db
@@ -275,6 +279,7 @@ def test_upload_data_round_trips_through_the_model(django_user_model):
         {
             "files": {"lead": {"name": "petition.pdf", "url": "https://example.com/petition.pdf"}},
             "lead_filing_type": "efile",
+            "lead_requested_optional_services": ["certified-copy"],
             "guesses": {"court": "Cook County"},
         },
     )
@@ -284,6 +289,7 @@ def test_upload_data_round_trips_through_the_model(django_user_model):
     assert blob["files"]["lead"]["name"] == "petition.pdf"
     assert blob["files"]["lead"]["url"] == "https://example.com/petition.pdf"
     assert blob["lead_filing_type"] == "efile"
+    assert blob["lead_requested_optional_services"] == ["certified-copy"]
     assert blob["guesses"] == {"court": "Cook County"}
 
 

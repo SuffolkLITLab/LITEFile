@@ -31,6 +31,26 @@ function componentCode(value) {
     return value || "";
 }
 
+/**
+ * Convert the service codes stored on a FilingDocument into the object shape
+ * expected by the EFSP proxy.
+ *
+ * @param {Array<string|Object>|null|undefined} services
+ * @returns {Array<{code: string}>}
+ */
+function optionalServicesForPayload(services) {
+    if (!Array.isArray(services)) return [];
+    return services
+        .map((service) => {
+            const code = service && typeof service === "object" ? service.code : service;
+            return String(code || "").trim();
+        })
+        .filter(Boolean)
+        .map((code) => ({
+            code
+        }));
+}
+
 const FilingPayload = {
     userDataFromCaseData(caseData) {
         const filer = (caseData.filing_parties || []).find((party) => party.role === "filer") || {};
@@ -232,7 +252,8 @@ const FilingPayload = {
                 users,
                 uploadData.lead_filing_type_name || caseData.case_type_name,
                 uploadData.lead_document_type_name || "",
-                uploadData.lead_cc_email
+                uploadData.lead_cc_email,
+                uploadData.lead_requested_optional_services || caseData.optional_services
             );
             efilingData.al_court_bundle.push(leadBundle);
         }
@@ -251,19 +272,30 @@ const FilingPayload = {
                     users,
                     config.filing_type_name || `Supporting Document ${index + 1}`,
                     config.document_type_name || "",
-                    config.cc_email
+                    config.cc_email,
+                    config.requested_optional_services
                 );
                 efilingData.al_court_bundle.push(bundle);
             });
         }
     },
 
-    createDocumentBundle(doc, filingType, documentType, filingComponent, users, description, docDescription, cc_email) {
+    createDocumentBundle(
+        doc,
+        filingType,
+        documentType,
+        filingComponent,
+        users,
+        description,
+        docDescription,
+        cc_email,
+        requestedOptionalServices
+    ) {
         const courtesy_copies = cc_email ? [cc_email] : [];
         return {
             proxy_enabled: true,
             filing_type: filingType,
-            optional_services: [],
+            optional_services: optionalServicesForPayload(requestedOptionalServices),
             due_date: null,
             filing_description: description,
             reference_number: "",

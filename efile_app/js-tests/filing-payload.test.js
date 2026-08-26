@@ -139,6 +139,50 @@ test("lead and supporting documents both land in the bundle", () => {
     assert.strictEqual(bundles[1].filing_component, "332");
 });
 
+test("each document's selected optional services reach fee and submission payloads", () => {
+    const uploadData = {
+        files: {
+            lead: {
+                name: "lead.pdf"
+            },
+            supporting: [{
+                name: "exhibit.pdf"
+            }]
+        },
+        lead_filing_component: "331",
+        lead_requested_optional_services: ["certified-copy", "rush"],
+        supporting_documents: [{
+            filing_component: "332",
+            requested_optional_services: ["courtesy-copy"]
+        }]
+    };
+
+    // PaymentPage and FilingHandler both mix in this same builder. Constructing
+    // both payloads here guards the fee quote/final submission parity directly.
+    const feeQuotePayload = bundlesFor(uploadData);
+    const submissionPayload = bundlesFor(uploadData);
+
+    assert.deepStrictEqual(feeQuotePayload[0].optional_services, [
+        {code: "certified-copy"},
+        {code: "rush"}
+    ]);
+    assert.deepStrictEqual(feeQuotePayload[1].optional_services, [{code: "courtesy-copy"}]);
+    assert.deepStrictEqual(submissionPayload, feeQuotePayload);
+});
+
+test("documents without selected optional services send an empty list", () => {
+    const bundles = bundlesFor({
+        files: {
+            lead: {
+                name: "lead.pdf"
+            }
+        },
+        lead_filing_component: "331"
+    });
+
+    assert.deepStrictEqual(bundles[0].optional_services, []);
+});
+
 test("the same module object serves both pages, so payloads cannot drift", () => {
     const paymentHandler = makeHandler();
     const reviewHandler = makeHandler();

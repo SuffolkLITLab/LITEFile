@@ -279,6 +279,7 @@ def test_organize_saves_details_and_supporting_order(client, document_draft):
             "filing_component": "attachment",
             "filing_component_name": "Attachments",
             "courtesy_copy_email": "",
+            "requested_optional_services": ["expedited"],
         },
         {
             "id": first.pk,
@@ -318,4 +319,6 @@ def test_organize_saves_details_and_supporting_order(client, document_draft):
     ) == [lead.pk, first.pk]
     saved = read_upload_data(document_draft)
     assert saved["lead_filing_component"] == "attachment"
+    assert saved["lead_requested_optional_services"] == ["expedited"]
     assert saved["supporting_documents"][0]["filing_type"] == "petition"
+    assert saved["supporting_documents"][0]["requested_optional_services"] == ["certified"]
