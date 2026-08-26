@@ -5,8 +5,10 @@ from django.test import override_settings
 
 from efile.services.taxonomy_classification import (
     HierarchicalDocumentClassifier,
+    deterministic_form_identity,
     exact_form_crosswalk_matches,
     primary_amount_in_controversy,
+    summarize_form_crosswalk_matches,
 )
 
 
@@ -67,6 +69,7 @@ def test_hierarchy_uses_references_then_restores_live_names_and_route_keys(chat_
     assert run.selections["filing type"]["name"] == "Complaint for Divorce - Irretrievable Breakdown 1B"
     assert run.metadata["prompt_version"] == "v2"
     assert run.metadata["taxonomy_endpoint"] == "https://efile-test.example"
+    assert run.metadata["form_crosswalk_summary"]["route_resolution"] == "exact"
 
 
 @patch("efile.services.taxonomy_classification.chat_completion")
@@ -121,6 +124,7 @@ def test_crosswalk_requires_an_exact_form_match(tmp_path):
                                 "category": "Domestic Relations",
                                 "case_type": "Divorce 1B",
                                 "filing_type": "Complaint for Divorce - Irretrievable Breakdown 1B",
+                                "catalog_status": "current",
                                 "association_status": "unverified_suggestion",
                             }
                         ],
@@ -137,3 +141,185 @@ def test_crosswalk_requires_an_exact_form_match(tmp_path):
     assert matches[0]["case_type"] == "Divorce 1B"
     assert matches[0]["match_basis"] == "exact form identifier"
     assert misses == []
+
+
+def test_form_identifier_normalization_handles_ocr_punctuation(tmp_path):
+    crosswalk_path = tmp_path / "crosswalk.json"
+    crosswalk_path.write_text(
+        json.dumps(
+            {
+                "registry": [
+                    {
+                        "form": {
+                            "canonical_id": "MA-CJD-101B",
+                            "jurisdiction": "massachusetts",
+                            "form_id": "CJD 101B",
+                            "canonical_name": "Complaint for Divorce under G.L. c. 208, § 1B",
+                            "is_form": True,
+                            "is_efileable": True,
+                        },
+                        "mappings": [],
+                    }
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    with override_settings(FORM_CODE_CROSSWALK_PATH=crosswalk_path):
+        identity = deterministic_form_identity(
+            "massachusetts",
+            {"form identifier": "CJ-D 101B"},
+        )
+
+    assert identity["status"] == "matched"
+    assert identity["matches"][0]["canonical_form_id"] == "MA-CJD-101B"
+
+
+def test_conflicting_identifier_does_not_fall_back_to_title(tmp_path):
+    crosswalk_path = tmp_path / "crosswalk.json"
+    crosswalk_path.write_text(
+        json.dumps(
+            {
+                "registry": [
+                    {
+                        "form": {
+                            "canonical_id": "MA-CJD-101B",
+                            "jurisdiction": "massachusetts",
+                            "form_id": "CJD 101B",
+                            "canonical_name": "Complaint for Divorce under G.L. c. 208, § 1B",
+                            "is_form": True,
+                            "is_efileable": True,
+                        },
+                        "mappings": [],
+                    }
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    with override_settings(FORM_CODE_CROSSWALK_PATH=crosswalk_path):
+        identity = deterministic_form_identity(
+            "massachusetts",
+            {
+                "form identifier": "CJD 101",
+                "form name": "Complaint for Divorce under G.L. c. 208, § 1B",
+            },
+        )
+
+    assert identity["status"] == "unmatched"
+
+
+def test_reused_form_id_is_ambiguous_without_title(tmp_path):
+    crosswalk_path = tmp_path / "crosswalk.json"
+    crosswalk_path.write_text(
+        json.dumps(
+            {
+                "registry": [
+                    {
+                        "form": {
+                            "canonical_id": "IL-ANS-1",
+                            "jurisdiction": "illinois",
+                            "form_id": "ANS",
+                            "canonical_name": "Answer or Response",
+                            "is_form": True,
+                            "is_efileable": True,
+                        },
+                        "mappings": [],
+                    },
+                    {
+                        "form": {
+                            "canonical_id": "IL-ANS-2",
+                            "jurisdiction": "illinois",
+                            "form_id": "ANS",
+                            "canonical_name": "Counterclaims",
+                            "is_form": True,
+                            "is_efileable": True,
+                        },
+                        "mappings": [],
+                    },
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    with override_settings(FORM_CODE_CROSSWALK_PATH=crosswalk_path):
+        ambiguous = deterministic_form_identity("illinois", {"form identifier": "ANS"})
+        narrowed = deterministic_form_identity(
+            "illinois",
+            {"form identifier": "ANS", "form name": "Counterclaims"},
+        )
+
+    assert ambiguous["status"] == "ambiguous"
+    assert narrowed["status"] == "matched"
+    assert narrowed["matches"][0]["canonical_form_id"] == "IL-ANS-2"
+
+
+def test_known_bad_form_association_is_not_a_runtime_match(tmp_path):
+    crosswalk_path = tmp_path / "crosswalk.json"
+    crosswalk_path.write_text(
+        json.dumps(
+            {
+                "registry": [
+                    {
+                        "form": {
+                            "canonical_id": "MA-CJD-102",
+                            "jurisdiction": "massachusetts",
+                            "form_id": "CJD 102",
+                            "canonical_name": "Complaint for Separate Support",
+                            "is_form": True,
+                            "is_efileable": True,
+                            "runtime_mapping_policy": {"runtime": "blocked"},
+                        },
+                        "mappings": [
+                            {
+                                "category": "Wrong category",
+                                "case_type": "Wrong case type",
+                                "filing_type": "Wrong filing type",
+                                "catalog_status": "current",
+                                "association_status": "unverified_suggestion",
+                            }
+                        ],
+                    }
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    with override_settings(FORM_CODE_CROSSWALK_PATH=crosswalk_path):
+        matches = exact_form_crosswalk_matches("massachusetts", {"form identifier": "CJD 102"})
+
+    assert matches == []
+
+
+def test_crosswalk_summary_preserves_narrowed_case_type_with_multiple_filings():
+    summary = summarize_form_crosswalk_matches(
+        [
+            {
+                "category": "Civil",
+                "case_type": "Small Claims",
+                "filing_type": "Small Claims $1,000 or less",
+                "filing_phase": "initial",
+            },
+            {
+                "category": "Civil",
+                "case_type": "Small Claims",
+                "filing_type": "Small Claims $1,001 through $5,000",
+                "filing_phase": "initial",
+            },
+        ],
+        identity_status="matched",
+    )
+
+    assert summary["route_resolution"] == "narrowed"
+    assert summary["constraint_confidence"] == "advisory"
+    assert summary["level_status"] == {
+        "category": "resolved",
+        "case_type": "resolved",
+        "filing_type": "ambiguous",
+    }
+    assert summary["candidate_counts"] == {
+        "category": 1,
+        "case_type": 1,
+        "filing_type": 2,
+    }
+    assert summary["next_evidence"] == ["amount_in_controversy"]

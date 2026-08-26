@@ -26,6 +26,101 @@ def _normalized(value: Any) -> str:
     return " ".join(re.findall(r"[a-z0-9]+", text))
 
 
+def _normalized_form_id(value: Any) -> str:
+    """Normalize printed IDs without treating them as ordinary prose.
+
+    Court PDFs and OCR commonly insert spaces or punctuation inside an ID
+    (``CJD-101B``/``CJ-D 101B``/``CJD 101B``).  Tyler taxonomy names need
+    whitespace-preserving normalization, but form identifiers are safest as a
+    compact alphanumeric key.  The original extracted value is still returned
+    to callers as evidence.
+    """
+
+    text = unicodedata.normalize("NFKC", str(value or "")).casefold()
+    text = re.sub(r"\b(?:form|no\.?|number)\b", " ", text)
+    return re.sub(r"[^a-z0-9]", "", text)
+
+
+def _form_title_names(form: dict[str, Any]) -> set[str]:
+    return {_normalized(value) for value in [form.get("canonical_name"), *(form.get("aliases") or [])] if value}
+
+
+def _form_identifier_names(form: dict[str, Any]) -> set[str]:
+    return {
+        _normalized_form_id(value) for value in [form.get("form_id"), *(form.get("form_id_aliases") or [])] if value
+    }
+
+
+def deterministic_form_identity(jurisdiction: str, evidence: dict[str, Any]) -> dict[str, Any]:
+    """Resolve the uploaded form identity without selecting a Tyler path.
+
+    A printed identifier is the strongest identity signal.  When it is present
+    but does not match the registry, an exact title is deliberately *not* used
+    as a substitute: that prevents a stale or misread number from silently
+    selecting a different form.  Reused identifiers remain ambiguous until an
+    exact title or another independent signal narrows them.
+    """
+
+    identifier = _normalized_form_id(evidence.get("form identifier"))
+    form_name = _normalized(evidence.get("form name"))
+    registry_path = getattr(
+        settings,
+        "FORM_CODE_CROSSWALK_PATH",
+        settings.BASE_DIR / "efile" / "data" / "form_code_crosswalk.json",
+    )
+    candidates: list[dict[str, Any]] = []
+    for entry in _crosswalk_registry(str(registry_path)):
+        form = entry.get("form", {}) if isinstance(entry, dict) else {}
+        if _normalized(form.get("jurisdiction")) != _normalized(jurisdiction):
+            continue
+        if form.get("is_form") is False or form.get("is_efileable") is False:
+            continue
+        id_match = bool(identifier and identifier in _form_identifier_names(form))
+        title_match = bool(form_name and form_name in _form_title_names(form))
+        if identifier:
+            if not id_match:
+                continue
+        elif not title_match:
+            continue
+        candidates.append(
+            {
+                "entry": entry,
+                "form": form,
+                "match_basis": "exact form identifier" if identifier else "exact form name",
+                "title_match": title_match,
+            }
+        )
+
+    # If an ID is reused across a translated packet or a multi-form suite, an
+    # exact descriptive title is the safe secondary discriminator.
+    if identifier and form_name:
+        titled = [item for item in candidates if item["title_match"]]
+        if titled:
+            candidates = titled
+
+    if not candidates:
+        status = "unmatched"
+    elif len({item["form"].get("canonical_id") for item in candidates}) == 1:
+        status = "matched"
+    else:
+        status = "ambiguous"
+
+    return {
+        "status": status,
+        "match_basis": "exact form identifier" if identifier else "exact form name",
+        "normalized_identifier": identifier or None,
+        "matches": [
+            {
+                "canonical_form_id": item["form"].get("canonical_id"),
+                "form_id": item["form"].get("form_id"),
+                "form_name": item["form"].get("canonical_name"),
+            }
+            for item in candidates
+        ],
+        "_candidates": candidates,
+    }
+
+
 def _option(item: Any) -> dict[str, Any] | None:
     if not isinstance(item, dict) or not item.get("code") or not item.get("name"):
         return None
@@ -159,37 +254,153 @@ def _crosswalk_registry(path_string: str) -> list[dict[str, Any]]:
     return registry if isinstance(registry, list) else []
 
 
+def _route_values(matches: list[dict[str, Any]], key: str) -> list[str]:
+    return sorted(
+        {str(match[key]).strip() for match in matches if match.get(key)},
+        key=str.casefold,
+    )
+
+
+def _has_amount_qualifier(value: str) -> bool:
+    return bool(
+        re.search(
+            r"\$|\b(?:amount|over|under|up to|more than|less than|between)\b",
+            value,
+            re.IGNORECASE,
+        )
+    )
+
+
+def summarize_form_crosswalk_matches(
+    matches: list[dict[str, Any]],
+    *,
+    identity_status: str | None = None,
+) -> dict[str, Any]:
+    """Describe how far a form crosswalk narrows the Tyler hierarchy.
+
+    A form can identify one category and case type while legitimately leaving
+    several filing types unresolved. This summary keeps that partial result
+    explicit instead of treating it as a failed exact match.
+    """
+
+    categories = _route_values(matches, "category")
+    case_types = _route_values(matches, "case_type")
+    filing_types = _route_values(matches, "filing_type")
+    complete_paths = {
+        (
+            match.get("category"),
+            match.get("case_type"),
+            match.get("filing_type"),
+            match.get("filing_phase"),
+        )
+        for match in matches
+        if all(match.get(level) for level in ("category", "case_type", "filing_type"))
+    }
+
+    def level_status(values: list[str]) -> str:
+        if not values:
+            return "unavailable"
+        return "resolved" if len(values) == 1 else "ambiguous"
+
+    level_statuses = {
+        "category": level_status(categories),
+        "case_type": level_status(case_types),
+        "filing_type": level_status(filing_types),
+    }
+    if not matches:
+        route_resolution = "unavailable"
+    elif (
+        identity_status == "matched"
+        and len(categories) == len(case_types) == len(filing_types) == 1
+        and len(complete_paths) == 1
+    ):
+        route_resolution = "exact"
+    elif len(categories) == 1 and len(case_types) == 1:
+        route_resolution = "narrowed"
+    elif len(categories) == 1:
+        route_resolution = "category_narrowed"
+    else:
+        route_resolution = "ambiguous"
+
+    association_statuses = sorted(
+        {str(match["association_status"]) for match in matches if match.get("association_status")},
+        key=str.casefold,
+    )
+    return {
+        "identity_status": identity_status,
+        "route_resolution": route_resolution,
+        "constraint_confidence": (
+            "unavailable"
+            if not matches
+            else (
+                "verified" if route_resolution == "exact" and association_statuses == ["human_verified"] else "advisory"
+            )
+        ),
+        "mapping_count": len(matches),
+        "complete_mapping_count": len(complete_paths),
+        "association_statuses": association_statuses,
+        "level_status": level_statuses,
+        "resolved_levels": [level for level, status in level_statuses.items() if status == "resolved"],
+        "unresolved_levels": [level for level, status in level_statuses.items() if status != "resolved"],
+        "category_candidates": categories,
+        "case_type_candidates": case_types,
+        "filing_type_candidates": filing_types,
+        "candidate_counts": {
+            "category": len(categories),
+            "case_type": len(case_types),
+            "filing_type": len(filing_types),
+        },
+        "amount_discriminator_available": any(_has_amount_qualifier(name) for name in filing_types),
+        "next_evidence": (
+            ["amount_in_controversy"]
+            if len(filing_types) > 1 and any(_has_amount_qualifier(name) for name in filing_types)
+            else []
+        ),
+    }
+
+
 def exact_form_crosswalk_matches(jurisdiction: str, evidence: dict[str, Any]) -> list[dict[str, Any]]:
-    """Return advisory mappings only after an exact form ID or exact-name match."""
-    identifier = _normalized(evidence.get("form identifier"))
-    form_name = _normalized(evidence.get("form name"))
-    if not identifier and not form_name:
+    """Return current advisory paths and partial hierarchy constraints.
+
+    These records are still not deterministic Tyler selections unless their
+    mapping is human-verified. Partial category/case-type observations are
+    retained so a form can narrow the hierarchy without pretending to resolve
+    the final filing type.
+    """
+
+    identity = deterministic_form_identity(jurisdiction, evidence)
+    if identity["status"] == "unmatched":
         return []
 
     matches: list[dict[str, Any]] = []
-    registry_path = getattr(
-        settings,
-        "FORM_CODE_CROSSWALK_PATH",
-        settings.BASE_DIR / "efile" / "data" / "form_code_crosswalk.json",
-    )
-    for entry in _crosswalk_registry(str(registry_path)):
-        form = entry.get("form", {}) if isinstance(entry, dict) else {}
-        if _normalized(form.get("jurisdiction")) != _normalized(jurisdiction):
-            continue
-        ids_match = bool(identifier and identifier == _normalized(form.get("form_id")))
-        names = [form.get("canonical_name"), *(form.get("aliases") or [])]
-        names_match = bool(form_name and form_name in {_normalized(name) for name in names if name})
-        if not ids_match and not names_match:
+    for candidate in identity["_candidates"]:
+        entry = candidate["entry"]
+        form = candidate["form"]
+        policy = form.get("runtime_mapping_policy") or {}
+        if policy.get("runtime") == "blocked":
+            # Keep the form identity visible to callers, but do not surface a
+            # known-bad association as an e-filing recommendation.
             continue
         for mapping in entry.get("mappings", []):
             if not isinstance(mapping, dict):
+                continue
+            if mapping.get("catalog_status") not in {
+                # ``partially_current`` still needs court filtering, but the
+                # path was resolved by name in at least one recorded court.
+                "current",
+                "partially_current",
+                "partial_observation",
+            }:
+                continue
+            if not any(mapping.get(level) for level in ("category", "case_type", "filing_type")):
                 continue
             matches.append(
                 {
                     "canonical_form_id": form.get("canonical_id"),
                     "form_id": form.get("form_id"),
                     "form_name": form.get("canonical_name"),
-                    "match_basis": "exact form identifier" if ids_match else "exact form name",
+                    "match_basis": candidate["match_basis"],
+                    "form_identity_status": identity["status"],
                     "category": mapping.get("category"),
                     "case_type": mapping.get("case_type"),
                     "filing_type": mapping.get("filing_type"),
@@ -200,6 +411,14 @@ def exact_form_crosswalk_matches(jurisdiction: str, evidence: dict[str, Any]) ->
                     "catalog_status": mapping.get("catalog_status"),
                 }
             )
+    summary = summarize_form_crosswalk_matches(matches, identity_status=identity["status"])
+    for match in matches:
+        match["route_resolution"] = summary["route_resolution"]
+        match["deterministic"] = (
+            summary["route_resolution"] == "exact"
+            and match.get("association_status") == "human_verified"
+            and match.get("catalog_status") == "current"
+        )
     return matches[:30]
 
 
@@ -293,11 +512,17 @@ class HierarchicalDocumentClassifier:
         filing_phase: str,
         selections: dict[str, dict[str, Any]],
         crosswalk: list[dict[str, Any]],
+        crosswalk_summary: dict[str, Any],
     ) -> dict[str, Any]:
         if not candidates:
             return {"status": "abstain", "reason": "The live taxonomy returned no candidates."}
 
-        amounts = extracted_amounts(evidence)
+        # Only use an amount to annotate live filing candidates when the
+        # evidence contains one unambiguous claim/controversy amount. A PDF
+        # often contains fees, balances, and other dollar values that must not
+        # choose an amount-banded filing code.
+        primary_amount = _decimal_amount(primary_amount_in_controversy(evidence))
+        amounts = [primary_amount] if primary_amount is not None else []
         crosswalk_names = _crosswalk_names(crosswalk, level)
         offered: list[dict[str, Any]] = []
         references: dict[str, dict[str, Any]] = {}
@@ -328,6 +553,7 @@ class HierarchicalDocumentClassifier:
                 "available_candidates": offered,
                 "extracted_evidence": evidence,
                 "crosswalk_matches": crosswalk,
+                "crosswalk_constraints": crosswalk_summary,
                 "source_scope": f"MarkItDown text from the first {settings.DOCUMENT_CLASSIFICATION_SOURCE_PAGES} pages",
             },
         )
@@ -373,7 +599,12 @@ class HierarchicalDocumentClassifier:
         filing_phase = str(evidence.get("filing phase") or "unknown").casefold()
         if filing_phase not in {"initial", "subsequent"}:
             filing_phase = "unknown"
+        identity = deterministic_form_identity(jurisdiction, evidence)
         crosswalk = exact_form_crosswalk_matches(jurisdiction, evidence)
+        crosswalk_summary = summarize_form_crosswalk_matches(
+            crosswalk,
+            identity_status=identity["status"],
+        )
         selections: dict[str, dict[str, Any]] = {}
 
         selections["court"] = self._select(
@@ -385,9 +616,10 @@ class HierarchicalDocumentClassifier:
             filing_phase=filing_phase,
             selections=selections,
             crosswalk=crosswalk,
+            crosswalk_summary=crosswalk_summary,
         )
         if selections["court"].get("status") != "selected":
-            return self._run(selections, filing_phase, crosswalk)
+            return self._run(selections, filing_phase, crosswalk, crosswalk_summary, identity)
 
         court = selections["court"]["route_key"]
         selections["case category"] = self._select(
@@ -399,9 +631,10 @@ class HierarchicalDocumentClassifier:
             filing_phase=filing_phase,
             selections=selections,
             crosswalk=crosswalk,
+            crosswalk_summary=crosswalk_summary,
         )
         if selections["case category"].get("status") != "selected":
-            return self._run(selections, filing_phase, crosswalk)
+            return self._run(selections, filing_phase, crosswalk, crosswalk_summary, identity)
 
         category = selections["case category"]["route_key"]
         selections["case type"] = self._select(
@@ -413,9 +646,10 @@ class HierarchicalDocumentClassifier:
             filing_phase=filing_phase,
             selections=selections,
             crosswalk=crosswalk,
+            crosswalk_summary=crosswalk_summary,
         )
         if selections["case type"].get("status") != "selected":
-            return self._run(selections, filing_phase, crosswalk)
+            return self._run(selections, filing_phase, crosswalk, crosswalk_summary, identity)
 
         case_type = selections["case type"]["route_key"]
         selections["filing type"] = self._select(
@@ -427,14 +661,17 @@ class HierarchicalDocumentClassifier:
             filing_phase=filing_phase,
             selections=selections,
             crosswalk=crosswalk,
+            crosswalk_summary=crosswalk_summary,
         )
-        return self._run(selections, filing_phase, crosswalk)
+        return self._run(selections, filing_phase, crosswalk, crosswalk_summary, identity)
 
     def _run(
         self,
         selections: dict[str, dict[str, Any]],
         filing_phase: str,
         crosswalk: list[dict[str, Any]],
+        crosswalk_summary: dict[str, Any],
+        identity: dict[str, Any],
     ) -> ClassificationRun:
         return ClassificationRun(
             selections=selections,
@@ -445,5 +682,8 @@ class HierarchicalDocumentClassifier:
                 "taxonomy_endpoint": self.taxonomy.base_url,
                 "filing_phase": filing_phase,
                 "crosswalk_match_count": len(crosswalk),
+                "form_crosswalk_summary": crosswalk_summary,
+                "form_identity_status": identity["status"],
+                "form_identity_match_count": len(identity["matches"]),
             },
         )

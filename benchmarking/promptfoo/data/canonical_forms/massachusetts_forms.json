@@ -59,6 +59,10 @@
     "is_form": true,
     "revision": null,
     "document_role": "court_form",
+    "runtime_mapping_policy": {
+      "runtime": "blocked",
+      "reason": "The current catalog observation points CJD 102 to a custody/support filing type, not Separate Support. The form identity is known, but no semantically safe Tyler association has been verified."
+    },
     "source_urls": [
       "https://www.mass.gov/court-forms",
       "https://www.mass.gov/info-details/probate-and-family-court-complaint-for-separate-support-cjd-102"

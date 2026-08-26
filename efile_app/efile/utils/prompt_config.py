@@ -66,6 +66,7 @@ def render_prompt_messages(
         "jurisdiction_hint": jurisdiction_hint or "",
         "document_text": document_text,
         "crosswalk_matches": "[]",
+        "crosswalk_constraints": "{}",
     }
     if template_values:
         values.update({key: _template_value(value) for key, value in template_values.items()})

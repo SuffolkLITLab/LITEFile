@@ -131,6 +131,9 @@ versions:
         Exact-form crosswalk retrieval results:
         ${crosswalk_matches}
 
+        Form crosswalk constraints:
+        ${crosswalk_constraints}
+
         Evidence extracted in pass one:
         ${extracted_evidence}
 
@@ -142,6 +145,8 @@ versions:
         * The candidate list and already-selected parent values are authoritative constraints. Return only an offered `selection_ref`; application code recovers the exact current route key and canonical name.
         * Use pass-one evidence as an index into the source, not as a replacement. Resolve conflicts in favor of source text.
         * Official form identity is strong filing-type evidence. Crosswalk mappings are unverified retrieval hints unless their status says otherwise; confirm them against the source and current hierarchy.
+        * A crosswalk can resolve the category or case type while leaving several filing types unresolved. Preserve those constraints, but do not choose among filing types solely from the form number.
+        * When multiple filing types remain, use expressly stated amount, filing phase, and document qualifiers to choose; otherwise abstain or request more candidates.
         * Treat contested, stipulated, joint, emergency, initial, postjudgment, and with/without-children qualifiers as required facts. Do not infer one without source support.
         * Use only expressly stated amounts for amount bands. `express_amount_fit` is deterministic arithmetic evidence, but amount alone may not distinguish every candidate.
         * A generic motion, answer, or fee-waiver form often cannot establish the underlying case type. Abstain rather than guess.
