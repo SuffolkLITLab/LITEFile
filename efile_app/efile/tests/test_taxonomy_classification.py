@@ -291,6 +291,93 @@ def test_known_bad_form_association_is_not_a_runtime_match(tmp_path):
     assert matches == []
 
 
+def _two_forms_sharing_an_id(canonical_ids):
+    return {
+        "registry": [
+            {
+                "form": {
+                    "canonical_id": canonical_id,
+                    "jurisdiction": "illinois",
+                    "form_id": "ANS",
+                    "canonical_name": name,
+                    "is_form": True,
+                    "is_efileable": True,
+                },
+                "mappings": [
+                    {
+                        "category": category,
+                        "case_type": case_type,
+                        "filing_type": name,
+                        "catalog_status": "current",
+                        "association_status": "unverified_suggestion",
+                    }
+                ],
+            }
+            for canonical_id, name, category, case_type in zip(
+                canonical_ids,
+                ["Answer or Response", "Counterclaims"],
+                ["Civil", "Domestic Relations"],
+                ["Small Claims", "Dissolution"],
+                strict=True,
+            )
+        ]
+    }
+
+
+def test_an_ambiguous_identity_yields_no_crosswalk_mappings(tmp_path):
+    """Two forms sharing an id are two forms, and neither one's route is known.
+
+    Returning both blends a category from one form with a filing type from the
+    other into a single list of hints, with nothing left in the result to say
+    the identity was never settled -- so a caller narrows the Tyler hierarchy
+    using a form the filer did not upload.
+    """
+
+    crosswalk_path = tmp_path / "crosswalk.json"
+    crosswalk_path.write_text(json.dumps(_two_forms_sharing_an_id(["IL-ANS-1", "IL-ANS-2"])), encoding="utf-8")
+
+    with override_settings(FORM_CODE_CROSSWALK_PATH=crosswalk_path):
+        identity = deterministic_form_identity("illinois", {"form identifier": "ANS"})
+        matches = exact_form_crosswalk_matches("illinois", {"form identifier": "ANS"})
+        narrowed = exact_form_crosswalk_matches(
+            "illinois",
+            {"form identifier": "ANS", "form name": "Counterclaims"},
+        )
+
+    assert identity["status"] == "ambiguous"
+    assert matches == []
+    # An exact title still settles it, so the safe path is not lost.
+    assert [match["case_type"] for match in narrowed] == ["Dissolution"]
+
+
+def test_entries_missing_a_canonical_id_are_not_collapsed_into_one_form(tmp_path):
+    """A shared *absent* id is not agreement -- it is two entries and no claim."""
+    crosswalk_path = tmp_path / "crosswalk.json"
+    crosswalk_path.write_text(json.dumps(_two_forms_sharing_an_id([None, None])), encoding="utf-8")
+
+    with override_settings(FORM_CODE_CROSSWALK_PATH=crosswalk_path):
+        identity = deterministic_form_identity("illinois", {"form identifier": "ANS"})
+        matches = exact_form_crosswalk_matches("illinois", {"form identifier": "ANS"})
+
+    assert identity["status"] == "ambiguous"
+    assert matches == []
+
+
+def test_a_single_entry_without_a_canonical_id_still_matches(tmp_path):
+    """One candidate is unambiguous whether or not the registry named it."""
+    registry = _two_forms_sharing_an_id([None, None])
+    registry["registry"] = registry["registry"][:1]
+    crosswalk_path = tmp_path / "crosswalk.json"
+    crosswalk_path.write_text(json.dumps(registry), encoding="utf-8")
+
+    with override_settings(FORM_CODE_CROSSWALK_PATH=crosswalk_path):
+        identity = deterministic_form_identity("illinois", {"form identifier": "ANS"})
+        matches = exact_form_crosswalk_matches("illinois", {"form identifier": "ANS"})
+
+    assert identity["status"] == "matched"
+    assert [match["case_type"] for match in matches] == ["Small Claims"]
+
+
 def test_crosswalk_summary_preserves_narrowed_case_type_with_multiple_filings():
     summary = summarize_form_crosswalk_matches(
         [

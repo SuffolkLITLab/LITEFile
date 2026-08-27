@@ -335,6 +335,16 @@ def read_case_data(draft: FilingDraft | None) -> dict[str, Any]:
 
 
 def _lead_config(data: dict[str, Any]) -> dict[str, Any]:
+    # An empty list here means the filer cleared every service, which is an
+    # answer and not an absence -- so this is keyed on presence, not truth. The
+    # bare `optional_services` key is only a fallback for older upload blobs:
+    # the case-level list lives under that same name, and reaching for it when
+    # the lead-specific key is present would fill the lead document from the
+    # wrong list entirely.
+    lead_services = data.get("lead_optional_services", _MISSING)
+    if lead_services is _MISSING:
+        lead_services = data.get("optional_services", _MISSING)
+
     config = {
         "filing_type": data.get("lead_filing_type"),
         "filing_type_name": data.get("lead_filing_type_name"),
@@ -343,8 +353,9 @@ def _lead_config(data: dict[str, Any]) -> dict[str, Any]:
         "filing_component": data.get("lead_filing_component"),
         "filing_component_name": data.get("lead_filing_component_name"),
         "cc_email": data.get("lead_cc_email"),
+        "optional_services": lead_services,
     }
-    return {key: value for key, value in config.items() if value not in (None, "")}
+    return {key: value for key, value in config.items() if value is not _MISSING and value not in (None, "")}
 
 
 def _positive_int(value: Any) -> int | None:
@@ -384,6 +395,16 @@ def _apply_document(doc: FilingDocument, file_obj: dict[str, Any], config: dict[
             if isinstance(value, dict):
                 value = value.get("id") or value.get("code") or ""
             setattr(doc, model_field, _as_str(value))
+
+    if "optional_services" in config:
+        services = config.get("optional_services") or []
+        doc.requested_optional_services = [str(c)[:100] for c in services if c]
+    elif "requested_optional_services" in config:
+        services = config.get("requested_optional_services") or []
+        doc.requested_optional_services = [str(c)[:100] for c in services if c]
+    elif "optional_services" in file_obj:
+        services = file_obj.get("optional_services") or []
+        doc.requested_optional_services = [str(c)[:100] for c in services if c]
 
     # Older upload clients stored the selected component on the file object as
     # {id, name}, while the durable draft config was empty. Preserve that code
@@ -488,6 +509,8 @@ def _document_config(doc: FilingDocument) -> dict[str, Any]:
     _put(config, "filing_component", doc.filing_component_code)
     _put(config, "filing_component_name", doc.filing_component_name)
     _put(config, "cc_email", doc.courtesy_copy_email)
+    _put(config, "optional_services", list(doc.requested_optional_services or []))
+    _put(config, "requested_optional_services", list(doc.requested_optional_services or []))
     return config
 
 
@@ -522,6 +545,7 @@ def read_upload_data(draft: FilingDraft | None) -> dict[str, Any]:
         _put(data, "lead_filing_component", lead.filing_component_code)
         _put(data, "lead_filing_component_name", lead.filing_component_name)
         _put(data, "lead_cc_email", lead.courtesy_copy_email)
+        _put(data, "lead_optional_services", list(lead.requested_optional_services or []))
 
     supporting_configs = [_document_config(doc) for doc in supporting]
     if any(supporting_configs):

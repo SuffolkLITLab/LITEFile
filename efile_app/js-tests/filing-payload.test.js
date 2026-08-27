@@ -296,3 +296,25 @@ test("durable non-filer parties are included without collapsing to one legacy pa
     assert.strictEqual(result.other_parties[0].name.first, "Alex");
     assert.strictEqual(result.other_parties[1].name.first, "Example LLC");
 });
+
+test("optional services for lead and supporting documents are included in bundles", () => {
+    const bundles = bundlesFor({
+        files: {
+            lead: {
+                name: "main.pdf"
+            },
+            supporting: [{
+                name: "attachment.pdf"
+            }]
+        },
+        lead_optional_services: ["143487"],
+        supporting_documents: [{
+            filing_component: "332",
+            optional_services: ["143491"]
+        }]
+    });
+
+    assert.strictEqual(bundles.length, 2);
+    assert.deepStrictEqual(bundles[0].optional_services, ["143487"]);
+    assert.deepStrictEqual(bundles[1].optional_services, ["143491"]);
+});

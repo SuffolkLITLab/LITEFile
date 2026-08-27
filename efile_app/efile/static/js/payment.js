@@ -118,6 +118,8 @@ const PaymentPage = {
     async selectAndQuote() {
         const selected = document.querySelector('input[name="paymentMethod"]:checked');
         if (!selected) return;
+        this.quoteRequestId = (this.quoteRequestId || 0) + 1;
+        const currentRequestId = this.quoteRequestId;
         document.getElementById("selected-payment-account").value = selected.value;
         document.getElementById("selected-payment-account-name").value = selected.dataset.name;
         document.getElementById("selected-payment-account-type").value = selected.dataset.type || "";
@@ -129,6 +131,7 @@ const PaymentPage = {
         this.setFeesState(true);
         try {
             const uploadData = await apiUtils.getUploadData();
+            if (currentRequestId !== this.quoteRequestId) return;
             const userData = FilingPayload.userDataFromCaseData(this.caseData);
             const efileData = this.buildEFilingData(userData, this.caseData, uploadData, selected.value);
             const result = await apiUtils.post(PAYMENT_URLS.fees, {
@@ -138,10 +141,12 @@ const PaymentPage = {
             }, {}, {
                 timeout: ApiUtils.FEE_TIMEOUT_MS
             });
+            if (currentRequestId !== this.quoteRequestId) return;
             this.feeQuoteReady = Boolean(result?.success);
             this.handleFeesResponse(result);
             this.storeFeeQuote(result);
         } catch (error) {
+            if (currentRequestId !== this.quoteRequestId) return;
             this.feeQuoteReady = false;
             paymentMessages.showError(error?.serverMessage || gettext("We could not calculate fees. Please try again."));
             this.setFeesState(false);

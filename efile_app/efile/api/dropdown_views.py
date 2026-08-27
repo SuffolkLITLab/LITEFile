@@ -10,6 +10,7 @@ import requests
 from django.conf import settings
 from django.views.decorators.http import require_http_methods
 
+from efile.services.efsp_payload import parse_optional_services
 from efile.utils.jurisdiction_stuff import get_jurisdiction_from_request
 
 from ..utils.str_dist import levenshtein_distance
@@ -103,7 +104,7 @@ class DropdownAPIViews(APIResponseMixin):
             headers = {}
 
             logger.debug("GET %s header keys=%s", api_url, list(headers.keys()))
-            response = requests.get(api_url, params=params, headers=headers, timeout=10)
+            response = requests.get(api_url, params=params, headers=headers, timeout=30)
             logger.debug(
                 "Categories response: status=%s body=%s",
                 response.status_code,
@@ -153,7 +154,7 @@ class DropdownAPIViews(APIResponseMixin):
             headers = {}
 
             logger.debug("GET %s header keys=%s", api_url, list(headers.keys()))
-            response = requests.get(api_url, params=params, headers=headers, timeout=10)
+            response = requests.get(api_url, params=params, headers=headers, timeout=30)
             logger.debug(
                 "Case types response: status=%s body=%s",
                 response.status_code,
@@ -207,7 +208,7 @@ class DropdownAPIViews(APIResponseMixin):
             headers = {}
 
             logger.debug("GET %s header keys=%s", api_url, list(headers.keys()))
-            response = requests.get(api_url, headers=headers, timeout=10)
+            response = requests.get(api_url, headers=headers, timeout=30)
             logger.debug(
                 "Filing types response: status=%s content_type=%s",
                 response.status_code,
@@ -524,7 +525,7 @@ class DropdownAPIViews(APIResponseMixin):
             # Make the API request with auth tokens if available
             headers = {}
 
-            response = requests.get(api_url, headers=headers, timeout=10)
+            response = requests.get(api_url, headers=headers, timeout=30)
 
             if response.status_code == 200:
                 # Parse the API response - expecting list of {name, code} objects
@@ -624,28 +625,13 @@ class DropdownAPIViews(APIResponseMixin):
                 # Make the API request with auth tokens if available
                 headers = {}
 
-                response = requests.get(api_url, headers=headers, timeout=10)
+                response = requests.get(api_url, headers=headers, timeout=30)
 
                 if response.status_code == 200:
-                    # Parse the API response - expecting list of service objects
-                    api_data = response.json()
-
-                    # Transform API data to our format
-                    optional_services = []
-                    if isinstance(api_data, list):
-                        for service in api_data:
-                            if isinstance(service, dict):
-                                optional_services.append(
-                                    {
-                                        "code": service.get("code") or service.get("id"),
-                                        "name": service.get("name") or service.get("label") or service.get("text"),
-                                        "fee": service.get("fee") or service.get("cost") or 0,
-                                        "description": service.get("description") or service.get("desc"),
-                                        "required": service.get("required", False),
-                                    }
-                                )
-
-                    return DropdownAPIViews.success_response(optional_services)
+                    # Read through the payload normalizer's own parser, so the
+                    # picker and the submitted payload cannot disagree about
+                    # which services take a multiplier.
+                    return DropdownAPIViews.success_response(parse_optional_services(response.json()))
 
                 else:
                     # API call failed, return empty list with info message

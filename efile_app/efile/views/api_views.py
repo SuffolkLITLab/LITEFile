@@ -75,7 +75,7 @@ class GetFilingComponentsView(View):
             api_url = f"{settings.EFSP_URL}{path}"
 
             # Make the API request to Suffolk LIT Lab
-            response = requests.get(api_url, timeout=10)
+            response = requests.get(api_url, timeout=30)
 
             if response.status_code == 200:
                 filing_data = response.json()

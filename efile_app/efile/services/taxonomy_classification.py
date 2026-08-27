@@ -98,9 +98,14 @@ def deterministic_form_identity(jurisdiction: str, evidence: dict[str, Any]) -> 
         if titled:
             candidates = titled
 
+    canonical_ids = {item["form"].get("canonical_id") for item in candidates}
     if not candidates:
         status = "unmatched"
-    elif len({item["form"].get("canonical_id") for item in candidates}) == 1:
+    elif len(candidates) == 1 or (len(canonical_ids) == 1 and None not in canonical_ids):
+        # Several registry entries describe one form only when they say so with
+        # a shared canonical id. Entries that are merely all *missing* one have
+        # not agreed on anything -- a set of Nones collapses to a single value
+        # while still standing for two forms nobody has ever tied together.
         status = "matched"
     else:
         status = "ambiguous"
@@ -359,6 +364,27 @@ def summarize_form_crosswalk_matches(
     }
 
 
+def _mapping_runtime_blocked(form: dict[str, Any]) -> bool:
+    """Whether this form's mappings are withheld from e-filing recommendations.
+
+    A hand-authored override on a registry entry, for a mapping someone has
+    confirmed is wrong. It is a stopgap and does not scale: it suppresses only
+    the forms a person happened to notice, while the systematic guard is the
+    per-mapping ``association_status``/``catalog_status`` filter below. Blocks
+    are logged so the manual list stays visible rather than becoming folklore.
+    """
+    policy = form.get("runtime_mapping_policy") or {}
+    if policy.get("runtime") != "blocked":
+        return False
+    logger.info(
+        "Withholding crosswalk mappings for form %s (%s): %s",
+        form.get("canonical_id") or form.get("form_id"),
+        form.get("canonical_name"),
+        policy.get("reason") or "no reason recorded",
+    )
+    return True
+
+
 def exact_form_crosswalk_matches(jurisdiction: str, evidence: dict[str, Any]) -> list[dict[str, Any]]:
     """Return current advisory paths and partial hierarchy constraints.
 
@@ -369,17 +395,19 @@ def exact_form_crosswalk_matches(jurisdiction: str, evidence: dict[str, Any]) ->
     """
 
     identity = deterministic_form_identity(jurisdiction, evidence)
-    if identity["status"] == "unmatched":
+    if identity["status"] != "matched":
+        # An ambiguous identity is several *different* forms, each with its own
+        # mappings. Blending them would hand a caller one form's category and
+        # another's filing type as though a single form had claimed both, with
+        # nothing in the result recording that the identity was never settled.
+        # Callers that want the candidates read `deterministic_form_identity`.
         return []
 
     matches: list[dict[str, Any]] = []
     for candidate in identity["_candidates"]:
         entry = candidate["entry"]
         form = candidate["form"]
-        policy = form.get("runtime_mapping_policy") or {}
-        if policy.get("runtime") == "blocked":
-            # Keep the form identity visible to callers, but do not surface a
-            # known-bad association as an e-filing recommendation.
+        if _mapping_runtime_blocked(form):
             continue
         for mapping in entry.get("mappings", []):
             if not isinstance(mapping, dict):

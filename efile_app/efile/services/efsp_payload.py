@@ -7,6 +7,7 @@ with another is a bug that only shows up as a wrong number on a real filing.
 """
 
 import logging
+import time
 
 import requests
 from django.conf import settings
@@ -18,6 +19,14 @@ logger = logging.getLogger(__name__)
 # code. None of these are meaningful to the EFSP.
 _PLACEHOLDER_COMPONENT_LABELS = {"", "supporting", "attachment", "attachments"}
 
+# Per-request ceiling for one code-list GET, and the ceiling for all of them in a
+# single ``prepare_efile_payload`` call. The budget is what keeps a slow EFSP
+# bounded: this runs on the fee quote and the submission alike, on a request
+# thread, and a bundle with several filing types would otherwise stack one full
+# timeout per lookup across three separate phases.
+_EFSP_LOOKUP_TIMEOUT = 30
+_EFSP_LOOKUP_BUDGET = 45
+
 
 class PayloadValidationError(Exception):
     """The payload cannot succeed at the EFSP, with a reason worth showing a filer.
@@ -27,17 +36,107 @@ class PayloadValidationError(Exception):
     """
 
 
+class _EfspLookups:
+    """Cached, time-budgeted GETs against the EFSP code lists for one payload.
+
+    Every lookup through here fails open: it exists to make a payload or a
+    message better, never to gatekeep, and the EFSP stays the authority. So a
+    failure is reported as ``None`` -- *unknown* -- which callers must not
+    confuse with an empty list, which is the court saying "nothing here".
+    """
+
+    def __init__(self, budget=_EFSP_LOOKUP_BUDGET):
+        self._deadline = time.monotonic() + budget
+        self._cache = {}
+
+    def get(self, url):
+        """Return the parsed JSON body, or None when it could not be fetched."""
+        if url in self._cache:
+            return self._cache[url]
+
+        remaining = self._deadline - time.monotonic()
+        if remaining <= 0:
+            logger.warning("EFSP code-list time budget is spent; skipping %s", url)
+            self._cache[url] = None
+            return None
+
+        payload = None
+        try:
+            response = requests.get(url, timeout=min(_EFSP_LOOKUP_TIMEOUT, remaining))
+            if response.status_code == 200:
+                payload = response.json()
+            else:
+                logger.warning("EFSP code list %s returned status %s", url, response.status_code)
+        except (requests.RequestException, ValueError) as error:
+            logger.warning("Could not fetch EFSP code list %s: %s", url, error)
+
+        self._cache[url] = payload
+        return payload
+
+
+def _efsp_flag(value):
+    """Read one of Tyler's booleans.
+
+    The EFSP renders these as real JSON booleans in some courts and as the
+    strings "true"/"false" in others, so every read goes through here.
+    """
+    return str(value).lower() == "true"
+
+
+def parse_optional_services(services):
+    """Normalize the EFSP's optional-services list into one shape.
+
+    Shared with the dropdown API that feeds the service picker. The picker and
+    this module have to agree about which services take a multiplier: if they
+    drift, a filer selects a service and the payload silently drops -- or
+    invents -- the multiplier the court demands for it.
+
+    Services with no code are dropped; nothing downstream can select one.
+    """
+    if not isinstance(services, list):
+        return []
+
+    parsed = []
+    for service in services:
+        if not isinstance(service, dict):
+            continue
+        code = str(service.get("code") or service.get("id") or "").strip()
+        if not code:
+            continue
+        parsed.append(
+            {
+                "code": code,
+                "name": service.get("name") or service.get("label") or service.get("text"),
+                "fee": service.get("fee") or service.get("cost") or 0,
+                "description": service.get("description") or service.get("desc"),
+                "required": service.get("required", False),
+                "multiplier": _efsp_flag(service.get("multiplier")),
+                "hasfeeprompt": _efsp_flag(service.get("hasfeeprompt")),
+            }
+        )
+    return parsed
+
+
 def prepare_efile_payload(efile_data, jurisdiction_id, court_id):
     """Apply every server-side fixup an EFSP request needs. Mutates ``efile_data``.
 
     Raises ``PayloadValidationError`` when the payload is knowably invalid.
     """
+    lookups = _EfspLookups()
+    _clean_case_identifiers(efile_data)
     _drop_empty_cross_references(efile_data)
     substitute_test_document_urls(efile_data)
     validate_document_selections(efile_data)
-    resolve_placeholder_filing_components(efile_data, jurisdiction_id, court_id)
-    validate_required_party_types(efile_data, jurisdiction_id, court_id)
+    resolve_placeholder_filing_components(efile_data, jurisdiction_id, court_id, lookups=lookups)
+    normalize_optional_services(efile_data, jurisdiction_id, court_id, lookups=lookups)
+    validate_required_party_types(efile_data, jurisdiction_id, court_id, lookups=lookups)
     return efile_data
+
+
+def _clean_case_identifiers(efile_data):
+    """Ensure docket_number is omitted for new cases where there is no previous_case_id."""
+    if not efile_data.get("previous_case_id") or efile_data.get("user_started_case") is True:
+        efile_data.pop("docket_number", None)
 
 
 def _drop_empty_cross_references(efile_data):
@@ -134,7 +233,7 @@ def _document_label(bundle, index):
     return f"document {index + 1}"
 
 
-def resolve_placeholder_filing_components(efile_data, jurisdiction_id, court_id):
+def resolve_placeholder_filing_components(efile_data, jurisdiction_id, court_id, *, lookups=None):
     """Replace leftover UI labels such as ``"supporting"`` with the court's code.
 
     Newer uploads store the real code, so this only fires for drafts saved by an
@@ -149,19 +248,20 @@ def resolve_placeholder_filing_components(efile_data, jurisdiction_id, court_id)
     if not bundles:
         return
 
+    lookups = lookups or _EfspLookups()
     resolved_codes: dict[str, str | None] = {}
     for bundle in bundles:
         filing_type = bundle.get("filing_type")
         if not filing_type:
             continue
         if filing_type not in resolved_codes:
-            resolved_codes[filing_type] = _lookup_lead_component(jurisdiction_id, court_id, filing_type)
+            resolved_codes[filing_type] = _lookup_lead_component(jurisdiction_id, court_id, filing_type, lookups)
         code = resolved_codes[filing_type]
         if code:
             bundle["filing_component"] = code
 
 
-def validate_required_party_types(efile_data, jurisdiction_id, court_id):
+def validate_required_party_types(efile_data, jurisdiction_id, court_id, *, lookups=None):
     """Reject a payload that leaves one of the court's required party types empty.
 
     A case type declares which party types are mandatory -- a Cook County civil
@@ -182,7 +282,7 @@ def validate_required_party_types(efile_data, jurisdiction_id, court_id):
     if not case_type:
         return
 
-    required = _lookup_required_party_types(jurisdiction_id, court_id, case_type)
+    required = _lookup_required_party_types(jurisdiction_id, court_id, case_type, lookups or _EfspLookups())
     if not required:
         return
 
@@ -202,7 +302,7 @@ def validate_required_party_types(efile_data, jurisdiction_id, court_id):
     )
 
 
-def _lookup_required_party_types(jurisdiction_id, court_id, case_type):
+def _lookup_required_party_types(jurisdiction_id, court_id, case_type, lookups):
     """Return ``{code: name}`` for the case type's required party types.
 
     Empty when the list cannot be fetched or the court marks nothing required, so
@@ -213,28 +313,18 @@ def _lookup_required_party_types(jurisdiction_id, court_id, case_type):
         f"{settings.EFSP_URL}/jurisdictions/{jurisdiction_id}/codes/courts/{court_id}/"
         f"case_types/{case_type}/party_types"
     )
-    try:
-        response = requests.get(url, timeout=10)
-        if response.status_code != 200:
-            return {}
-        party_types = response.json()
-    except (requests.RequestException, ValueError) as error:
-        logger.warning("Could not resolve required party types for case type %s: %s", case_type, error)
-        return {}
-
+    party_types = lookups.get(url)
     if not isinstance(party_types, list):
         return {}
 
     return {
         str(party_type.get("code")): party_type.get("name") or str(party_type.get("code"))
         for party_type in party_types
-        # The EFSP renders this as a JSON boolean, but Tyler has been seen sending
-        # the string "true" for the same field elsewhere in the code lists.
-        if isinstance(party_type, dict) and str(party_type.get("isrequired", "")).lower() == "true"
+        if isinstance(party_type, dict) and _efsp_flag(party_type.get("isrequired"))
     }
 
 
-def _lookup_lead_component(jurisdiction_id, court_id, filing_type):
+def _lookup_lead_component(jurisdiction_id, court_id, filing_type, lookups):
     """Return the component a filing of this type must carry, or None.
 
     Every entry in ``al_court_bundle`` is one filing of one filing type, and a
@@ -246,25 +336,95 @@ def _lookup_lead_component(jurisdiction_id, court_id, filing_type):
         f"{settings.EFSP_URL}/jurisdictions/{jurisdiction_id}/codes/courts/{court_id}/"
         f"filing_types/{filing_type}/filing_components"
     )
-    try:
-        response = requests.get(url, timeout=10)
-        if response.status_code != 200:
-            return None
-        components = response.json()
-    except (requests.RequestException, ValueError) as error:
-        logger.warning("Could not resolve filing component for filing type %s: %s", filing_type, error)
-        return None
-
+    components = lookups.get(url)
     if not isinstance(components, list):
         return None
 
     components = [component for component in components if isinstance(component, dict)]
     for component in components:
-        # The EFSP renders this as a JSON boolean; Tyler has been seen sending
-        # the string "true" for the same kind of field elsewhere.
-        if str(component.get("required", "")).lower() == "true":
+        if _efsp_flag(component.get("required")):
             return component.get("code")
     for component in components:
         if str(component.get("efspcode", "")).upper() == "LEAD":
             return component.get("code")
     return None
+
+
+def normalize_optional_services(efile_data, jurisdiction_id, court_id, *, lookups=None):
+    """Ensure optional_services in each court bundle match what the EFSP expects.
+
+    The EFSP expects each entry in ``optional_services`` to be an object
+    ``{"code": str}``. If the service is defined with ``multiplier=True`` by the
+    court, EFSP requires ``"multiplier": 1`` (or the provided positive integer)
+    and rejects payloads without it (400 Malformed Interview: needs a multiplier).
+    If ``multiplier=False``, EFSP rejects payloads that include a multiplier
+    (422 Optional service does not support a fee multiplier).
+
+    This normalizes string codes or dicts into the exact structure expected.
+
+    When the court's metadata cannot be fetched the client's own answer stands:
+    the picker that offered the service read the same list, so its multiplier is
+    the best evidence left. Defaulting to "no multiplier" there would silently
+    strip the field on exactly the services the court demands it for, and the
+    filing would fail at the EFSP with the error this function exists to avoid.
+    """
+    lookups = lookups or _EfspLookups()
+    cache: dict[str, dict[str, dict] | None] = {}
+    for bundle in efile_data.get("al_court_bundle", []):
+        raw_services = bundle.get("optional_services")
+        if not raw_services:
+            bundle["optional_services"] = []
+            continue
+
+        filing_type = str(bundle.get("filing_type") or "")
+        if filing_type and filing_type not in cache:
+            cache[filing_type] = _lookup_optional_services_meta(jurisdiction_id, court_id, filing_type, lookups)
+        # None means "not known", which is not the same as "the court defines
+        # none" -- only the latter justifies dropping a multiplier.
+        meta_by_code = cache.get(filing_type)
+
+        normalized = []
+        for item in raw_services:
+            if isinstance(item, dict):
+                code = str(item.get("code") or item.get("id") or "").strip()
+                multiplier = item.get("multiplier")
+            else:
+                code = str(item).strip()
+                multiplier = None
+
+            if not code:
+                continue
+
+            if meta_by_code is None:
+                needs_multiplier = multiplier is not None
+            else:
+                service_meta = meta_by_code.get(code)
+                needs_multiplier = bool(service_meta and service_meta["multiplier"])
+
+            entry = {"code": code}
+            if needs_multiplier:
+                try:
+                    mult_val = int(multiplier) if multiplier is not None else 1
+                    if mult_val < 1:
+                        mult_val = 1
+                except (ValueError, TypeError):
+                    mult_val = 1
+                entry["multiplier"] = mult_val
+
+            normalized.append(entry)
+
+        bundle["optional_services"] = normalized
+
+
+def _lookup_optional_services_meta(jurisdiction_id, court_id, filing_type, lookups):
+    """Return ``{code: service}`` for a filing type, or None when unknown."""
+    if not (jurisdiction_id and court_id and filing_type):
+        return None
+    url = (
+        f"{settings.EFSP_URL}/jurisdictions/{jurisdiction_id}/codes/courts/{court_id}/"
+        f"filing_types/{filing_type}/optional_services"
+    )
+    services = lookups.get(url)
+    if not isinstance(services, list):
+        return None
+    return {service["code"]: service for service in parse_optional_services(services)}

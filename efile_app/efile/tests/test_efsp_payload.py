@@ -13,6 +13,8 @@ from django.test import override_settings
 
 from efile.services.efsp_payload import (
     PayloadValidationError,
+    _EfspLookups,
+    normalize_optional_services,
     prepare_efile_payload,
     resolve_placeholder_filing_components,
     substitute_test_document_urls,
@@ -443,3 +445,141 @@ def test_preparation_rejects_the_payload_end_to_end(monkeypatch, settings):
     with override_settings(EFSP_TEST_DOCUMENT_URL=""):
         with pytest.raises(PayloadValidationError):
             prepare_efile_payload(_payload(["173174"], ["173174"]), "illinois", "cook:chd1")
+
+
+# --- optional services -------------------------------------------------------
+#
+# A court decides per service whether a fee multiplier belongs in the payload,
+# and rejects the payload either way round: 400 when a required multiplier is
+# missing, 422 when an unsupported one is present.
+
+MULTIPLIED_SERVICE = {"code": "143487", "name": "Certified copy", "multiplier": True}
+FLAT_SERVICE = {"code": "143488", "name": "Courtesy copy", "multiplier": False}
+
+
+class _OptionalServicesResponse:
+    def __init__(self, services, status_code=200):
+        self.status_code = status_code
+        self._services = services
+
+    def json(self):
+        return self._services
+
+
+def _services_payload(services):
+    return {"al_court_bundle": [{"filing_type": "27965", "optional_services": services}]}
+
+
+def test_a_service_the_court_multiplies_is_sent_with_a_multiplier(monkeypatch, settings):
+    settings.EFSP_URL = "https://efile-test.example"
+    monkeypatch.setattr(
+        "efile.services.efsp_payload.requests.get",
+        lambda *args, **kwargs: _OptionalServicesResponse([MULTIPLIED_SERVICE, FLAT_SERVICE]),
+    )
+    efile_data = _services_payload(["143487", "143488"])
+
+    normalize_optional_services(efile_data, "illinois", "adams")
+
+    assert efile_data["al_court_bundle"][0]["optional_services"] == [
+        {"code": "143487", "multiplier": 1},
+        {"code": "143488"},
+    ]
+
+
+def test_an_unfetchable_service_list_keeps_the_multiplier_the_client_sent(monkeypatch, settings):
+    """Unknown is not the same as "the court multiplies nothing".
+
+    Treating a failed lookup as "no multiplier anywhere" strips the field from
+    exactly the services that require it, and the filing dies at the EFSP with
+    the malformed-interview error this normalization exists to prevent. The
+    picker that offered the service read the same court list, so its answer is
+    the best evidence left.
+    """
+
+    settings.EFSP_URL = "https://efile-test.example"
+    monkeypatch.setattr(
+        "efile.services.efsp_payload.requests.get",
+        lambda *args, **kwargs: _OptionalServicesResponse(None, status_code=503),
+    )
+    efile_data = _services_payload([{"code": "143487", "multiplier": 2}, {"code": "143488"}])
+
+    normalize_optional_services(efile_data, "illinois", "adams")
+
+    assert efile_data["al_court_bundle"][0]["optional_services"] == [
+        {"code": "143487", "multiplier": 2},
+        {"code": "143488"},
+    ]
+
+
+def test_a_service_the_court_does_not_multiply_loses_a_supplied_multiplier(monkeypatch, settings):
+    settings.EFSP_URL = "https://efile-test.example"
+    monkeypatch.setattr(
+        "efile.services.efsp_payload.requests.get",
+        lambda *args, **kwargs: _OptionalServicesResponse([FLAT_SERVICE]),
+    )
+    efile_data = _services_payload([{"code": "143488", "multiplier": 3}])
+
+    normalize_optional_services(efile_data, "illinois", "adams")
+
+    assert efile_data["al_court_bundle"][0]["optional_services"] == [{"code": "143488"}]
+
+
+def test_string_valued_multiplier_flag_is_honoured(monkeypatch, settings):
+    """Tyler's code lists are inconsistent about JSON booleans vs "true"."""
+    settings.EFSP_URL = "https://efile-test.example"
+    monkeypatch.setattr(
+        "efile.services.efsp_payload.requests.get",
+        lambda *args, **kwargs: _OptionalServicesResponse([{"code": "143487", "multiplier": "true"}]),
+    )
+    efile_data = _services_payload(["143487"])
+
+    normalize_optional_services(efile_data, "illinois", "adams")
+
+    assert efile_data["al_court_bundle"][0]["optional_services"] == [{"code": "143487", "multiplier": 1}]
+
+
+# --- code-list lookup budget -------------------------------------------------
+
+
+def test_one_code_list_is_fetched_once_across_every_phase(monkeypatch, settings):
+    """Each phase asks its own questions, but no URL is paid for twice."""
+    settings.EFSP_URL = "https://efile-test.example"
+    calls = []
+
+    def record(url, **kwargs):
+        calls.append(url)
+        return _OptionalServicesResponse([])
+
+    monkeypatch.setattr("efile.services.efsp_payload.requests.get", record)
+    efile_data = {
+        "al_court_bundle": [
+            {"filing_type": "27965", "filing_component": "supporting", "optional_services": ["143487"]},
+            {"filing_type": "27965", "filing_component": "supporting", "optional_services": ["143487"]},
+        ],
+        "efile_case_type": "186542",
+        "users": [],
+        "other_parties": [],
+    }
+
+    with override_settings(EFSP_TEST_DOCUMENT_URL=""):
+        prepare_efile_payload(efile_data, "illinois", "adams")
+
+    assert len(calls) == len(set(calls))
+
+
+def test_a_spent_time_budget_stops_further_lookups(monkeypatch, settings):
+    """A slow EFSP must not stack one timeout per filing type onto a request.
+
+    Every lookup fails open, so running out of budget costs a better message,
+    never the filing itself.
+    """
+
+    settings.EFSP_URL = "https://efile-test.example"
+
+    def fail(*args, **kwargs):
+        raise AssertionError("no request should be made once the budget is spent")
+
+    monkeypatch.setattr("efile.services.efsp_payload.requests.get", fail)
+    spent = _EfspLookups(budget=0)
+
+    assert spent.get("https://efile-test.example/anything") is None

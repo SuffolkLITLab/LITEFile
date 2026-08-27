@@ -288,6 +288,47 @@ def test_upload_data_round_trips_through_the_model(django_user_model):
 
 
 @pytest.mark.django_db
+def test_clearing_the_lead_services_does_not_fall_back_to_the_case_level_list(django_user_model):
+    """An empty list is the filer's answer, not the absence of one.
+
+    ``optional_services`` is also the key the *case* keeps its own list under,
+    so falling through on an empty lead list refills the lead document from an
+    unrelated list -- and bills the filer for services they just deselected.
+    """
+
+    user = django_user_model.objects.create_user(username="lead-services-owner", tyler_jurisdiction="illinois")
+    draft = FilingDraft.objects.create(user=user, jurisdiction="illinois")
+    write_upload_data(draft, {"files": {"lead": {"name": "petition.pdf"}}, "lead_optional_services": ["143487"]})
+    assert FilingDocument.objects.get(draft=draft, role=FilingDocument.Role.LEAD).requested_optional_services == [
+        "143487"
+    ]
+
+    write_upload_data(
+        draft,
+        {
+            "files": {"lead": {"name": "petition.pdf"}},
+            "lead_optional_services": [],
+            "optional_services": ["999999"],
+        },
+    )
+
+    lead = FilingDocument.objects.get(draft=draft, role=FilingDocument.Role.LEAD)
+    assert lead.requested_optional_services == []
+
+
+@pytest.mark.django_db
+def test_an_older_blob_still_reads_the_bare_optional_services_key(django_user_model):
+    """The fallback stays for clients that never sent the lead-specific key."""
+    user = django_user_model.objects.create_user(username="legacy-services-owner", tyler_jurisdiction="illinois")
+    draft = FilingDraft.objects.create(user=user, jurisdiction="illinois")
+
+    write_upload_data(draft, {"files": {"lead": {"name": "petition.pdf"}}, "optional_services": ["143487"]})
+
+    lead = FilingDocument.objects.get(draft=draft, role=FilingDocument.Role.LEAD)
+    assert lead.requested_optional_services == ["143487"]
+
+
+@pytest.mark.django_db
 def test_supporting_documents_are_replaced_wholesale(django_user_model):
     user = django_user_model.objects.create_user(username="supporting-owner", tyler_jurisdiction="illinois")
     draft = FilingDraft.objects.create(user=user, jurisdiction="illinois")

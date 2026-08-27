@@ -213,7 +213,7 @@
     // handful people come here for, so only these -- plus anything marked
     // required -- show before the "Show more options" toggle.
     const COMMON_OPTIONAL_SERVICE_KEYWORDS = [
-        "certified",
+        "certif",
         "copy",
         "copies",
         "expedit",
@@ -354,6 +354,12 @@
         email.required = checkbox.checked;
     }
 
+    function selectedMainDocumentId() {
+        const field = form.elements.namedItem("main_document");
+        const documentId = Number(field?.value);
+        return Number.isInteger(documentId) && documentId > 0 ? documentId : null;
+    }
+
     function updatePositions() {
         const supporting = cards().filter((card) => card.dataset.role === "supporting");
         supporting.forEach((card, index) => {
@@ -424,7 +430,11 @@
                 },
                 body: JSON.stringify({
                     documents,
-                    main_document_id: Number(form.elements.namedItem("main_document").value),
+                    // Null when nothing is selected. The server then falls back to
+                    // the draft's own lead document; picking a card here as well
+                    // would be a second, separately-written answer to the same
+                    // question, free to disagree with the first one silently.
+                    main_document_id: selectedMainDocumentId(),
                     return_to: context.return_to || "",
                 }),
             });

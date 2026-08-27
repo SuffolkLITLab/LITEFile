@@ -319,3 +319,63 @@ def test_organize_saves_details_and_supporting_order(client, document_draft):
     saved = read_upload_data(document_draft)
     assert saved["lead_filing_component"] == "attachment"
     assert saved["supporting_documents"][0]["filing_type"] == "petition"
+
+
+def _lead_details(document):
+    return {
+        "id": document.pk,
+        "name": "Petition for name change",
+        "filing_type": "petition",
+        "filing_type_name": "Petition",
+        "document_type": "public",
+        "document_type_name": "No (Public)",
+    }
+
+
+@pytest.mark.django_db
+def test_organize_rejects_a_post_with_no_document_list(client, document_draft):
+    """A missing list is a bad request, not a crash.
+
+    ``documents`` is iterated the moment it reaches the save, so letting a
+    non-list through turns a stale or truncated POST into a 500 with no
+    message the filer can act on.
+    """
+
+    document_draft.document_checklist_acknowledged = True
+    document_draft.save(update_fields=["document_checklist_acknowledged", "updated_at"])
+    lead = document_draft.documents.get(role=FilingDocument.Role.LEAD)
+
+    response = client.post(
+        reverse("organize_documents", kwargs={"jurisdiction": "illinois"}),
+        {"main_document_id": lead.pk},
+        content_type="application/json",
+    )
+
+    assert response.status_code == 400
+    assert response.json() == {"success": False, "error": "Document details are missing."}
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("unset", [None, "", "NaN", "null", "undefined", float("nan"), 0, []])
+def test_organize_falls_back_to_the_lead_document_for_any_unset_main_document(client, document_draft, unset):
+    """Every shape of "the client did not name one" takes the same path.
+
+    The browser has more than one way to render an empty numeric field, so the
+    fallback is keyed on the value being unreadable rather than on a list of
+    the sentinels seen so far -- the next unlisted one would otherwise strand
+    the filer on an error they cannot clear.
+    """
+
+    document_draft.document_checklist_acknowledged = True
+    document_draft.save(update_fields=["document_checklist_acknowledged", "updated_at"])
+    lead = document_draft.documents.get(role=FilingDocument.Role.LEAD)
+
+    response = client.post(
+        reverse("organize_documents", kwargs={"jurisdiction": "illinois"}),
+        {"documents": [_lead_details(lead)], "main_document_id": unset},
+        content_type="application/json",
+    )
+
+    lead.refresh_from_db()
+    assert response.status_code == 200
+    assert lead.role == FilingDocument.Role.LEAD
