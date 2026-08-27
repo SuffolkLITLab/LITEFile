@@ -174,10 +174,8 @@ test('adding and removing optional services dynamically updates calculated fees 
         timeout: 120000
     });
     console.log('Checking optional service 143487 (Certification or Authentication with Seal $6.00)...');
-    await optCheckbox.check({
-        force: true
-    });
-    expect(await optCheckbox.isChecked()).toBe(true);
+    await optCheckbox.check();
+    await expect(optCheckbox).toBeChecked();
 
     await Promise.all([
         page.waitForURL(/\/your-information\//, {
@@ -294,10 +292,8 @@ test('adding and removing optional services dynamically updates calculated fees 
     await expect(optCheckboxEdit).toBeAttached({
         timeout: 120000
     });
-    await optCheckboxEdit.uncheck({
-        force: true
-    });
-    expect(await optCheckboxEdit.isChecked()).toBe(false);
+    await optCheckboxEdit.uncheck();
+    await expect(optCheckboxEdit).not.toBeChecked();
     console.log('Unchecked optional service 143487.');
 
     // Save and continue back to Review (due to return_to=review)
