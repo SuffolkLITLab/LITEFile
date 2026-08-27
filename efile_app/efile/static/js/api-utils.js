@@ -24,14 +24,14 @@ class ApiUtils {
     }
 
     /**
-     * Get current jurisdiction from session or default to Illinois
+     * Get the current jurisdiction from the page context.
      * @returns {string} Current jurisdiction code
      */
     getCurrentJurisdiction() {
         // Try to get from jurisdiction selector first
         const jurisdiction = document.getElementById("currentJurisdiction");
-        if (jurisdiction && jurisdiction.textContent) {
-            return jurisdiction.textContent;
+        if (jurisdiction && jurisdiction.textContent.trim()) {
+            return jurisdiction.textContent.trim().toLowerCase();
         }
 
         // Default to null if nothing found; rather that than weird bugs from a default state
@@ -59,8 +59,20 @@ class ApiUtils {
     }
 
     getCacheKey(endpoint, params = {}) {
-        const sortedParams = Object.keys(params).sort().reduce((result, key) => {
-            result[key] = params[key];
+        // Reference data is still state-specific even when a caller relies on
+        // the server-side session to choose the jurisdiction. Without this
+        // context, an Illinois court list can be reused on a Massachusetts
+        // page because both requests have the same endpoint and no params.
+        const cacheParams = {
+            ...params
+        };
+        if (!Object.prototype.hasOwnProperty.call(cacheParams, "jurisdiction")) {
+            const jurisdiction = this.getCurrentJurisdiction();
+            if (jurisdiction) cacheParams.jurisdiction = jurisdiction;
+        }
+
+        const sortedParams = Object.keys(cacheParams).sort().reduce((result, key) => {
+            result[key] = cacheParams[key];
             return result;
         }, {});
         return `${endpoint}_${JSON.stringify(sortedParams)}`;

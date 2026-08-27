@@ -4,10 +4,10 @@
  * Runs on Node's built-in test runner (`node --test`) with no extra deps.
  * Kept out of ./tests so Playwright's E2E runner does not pick it up.
  *
- * The rule these tests lock in: the localStorage cache is only for static,
- * shareable reference data (dropdowns, form config). Per-user / per-draft
- * state (case data, uploads, profile, payment accounts, tokens, fees) is
- * server-owned and must always be fetched fresh.
+ * The rule these tests lock in: the localStorage cache is only for
+ * jurisdiction-scoped, shareable reference data (dropdowns, form config).
+ * Per-user / per-draft state (case data, uploads, profile, payment accounts,
+ * tokens, fees) is server-owned and must always be fetched fresh.
  */
 
 const test = require("node:test");
@@ -27,6 +27,7 @@ globalThis.window = {
     }
 };
 globalThis.document = {
+    getElementById: () => null,
     querySelector: () => ({
         value: "test-csrf-token"
     }),
@@ -68,6 +69,26 @@ test("reference-data GETs are cached: repeated reads hit the network once", asyn
         jurisdiction: "illinois"
     });
     assert.strictEqual(calls(), 1);
+});
+
+test("reference-data GETs are isolated by the current jurisdiction", async () => {
+    const {
+        client,
+        calls
+    } = makeClient();
+
+    client.getCurrentJurisdiction = () => "illinois";
+    await client.get("/api/dropdowns/courts");
+
+    client.getCurrentJurisdiction = () => "massachusetts";
+    await client.get("/api/dropdowns/courts");
+
+    // Returning to Illinois reuses only the Illinois entry, not the
+    // Massachusetts one.
+    client.getCurrentJurisdiction = () => "illinois";
+    await client.get("/api/dropdowns/courts");
+
+    assert.strictEqual(calls(), 2);
 });
 
 test("draft state (case + upload data) is never cached", async () => {
