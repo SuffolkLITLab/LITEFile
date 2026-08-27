@@ -62,7 +62,9 @@ class _EfspLookups:
 
         payload = None
         try:
-            response = requests.get(url, timeout=min(_EFSP_LOOKUP_TIMEOUT, remaining))
+            # A timeout is set (bandit can't resolve the non-literal min() expression,
+            # hence B113 below being a false positive).
+            response = requests.get(url, timeout=min(_EFSP_LOOKUP_TIMEOUT, remaining))  # nosec B113
             if response.status_code == 200:
                 payload = response.json()
             else:
