@@ -177,3 +177,7 @@ efile_app/tmp
 # Cookie jars left behind by curl-based manual testing
 session_cookies.txt
 *.cookies
+
+# Court forms dataset
+court_forms/
+

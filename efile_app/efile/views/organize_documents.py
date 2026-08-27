@@ -27,6 +27,20 @@ JS_TEXT_KEYS = [
 ]
 
 
+def _document_id(value):
+    """Read a document primary key off the wire, or None if there isn't one.
+
+    ``None`` means "the client did not name one" -- including every shape that
+    stands in for an unset numeric field, such as ``NaN``, ``null`` or ``""``.
+    Callers fall back rather than treating an unreadable value as an error.
+    """
+    try:
+        document_id = int(value)
+    except (TypeError, ValueError):
+        return None
+    return document_id if document_id > 0 else None
+
+
 @transaction.atomic
 def _save_document_details(draft, document_details, main_document_id):
     documents = {document.pk: document for document in FilingDocument.objects.select_for_update().filter(draft=draft)}
@@ -113,10 +127,16 @@ def organize_documents(request, jurisdiction):
             details = data.get("documents")
             if not isinstance(details, list):
                 raise ValueError("Document details are missing.")
-            try:
-                main_document_id = int(data.get("main_document_id"))
-            except (TypeError, ValueError) as error:
-                raise ValueError("Choose the main document for this filing.") from error
+            main_document_id = _document_id(data.get("main_document_id"))
+            if main_document_id is None:
+                # The client could not name a main document: no radio rendered,
+                # a stale script, or one of the sentinels a browser produces for
+                # an empty numeric field. Anything unreadable is treated the
+                # same, because the draft already knows which document leads.
+                lead_doc = documents.filter(role=FilingDocument.Role.LEAD).first() or documents.first()
+                if lead_doc is None:
+                    raise ValueError("Choose the main document for this filing.")
+                main_document_id = lead_doc.id
             _save_document_details(draft, details, main_document_id)
         except (json.JSONDecodeError, ValueError) as error:
             return JsonResponse({"success": False, "error": str(error)}, status=400)

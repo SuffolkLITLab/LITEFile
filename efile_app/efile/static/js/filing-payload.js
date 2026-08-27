@@ -177,7 +177,7 @@ const FilingPayload = {
             efile_case_type: caseData.case_type,
             efile_case_subtype: caseData.case_subtype,
             previous_case_id: caseData?.previous_case_id,
-            docket_number: caseData?.docket_number,
+            docket_number: caseData?.previous_case_id ? caseData?.docket_number : undefined,
             users,
             other_parties,
             user_started_case: !caseData?.previous_case_id,
@@ -232,7 +232,8 @@ const FilingPayload = {
                 users,
                 uploadData.lead_filing_type_name || caseData.case_type_name,
                 uploadData.lead_document_type_name || "",
-                uploadData.lead_cc_email
+                uploadData.lead_cc_email,
+                uploadData.lead_optional_services || uploadData.files.lead.optional_services || []
             );
             efilingData.al_court_bundle.push(leadBundle);
         }
@@ -251,19 +252,20 @@ const FilingPayload = {
                     users,
                     config.filing_type_name || `Supporting Document ${index + 1}`,
                     config.document_type_name || "",
-                    config.cc_email
+                    config.cc_email,
+                    config.optional_services || config.requested_optional_services || doc.optional_services || []
                 );
                 efilingData.al_court_bundle.push(bundle);
             });
         }
     },
 
-    createDocumentBundle(doc, filingType, documentType, filingComponent, users, description, docDescription, cc_email) {
+    createDocumentBundle(doc, filingType, documentType, filingComponent, users, description, docDescription, cc_email, optionalServices = []) {
         const courtesy_copies = cc_email ? [cc_email] : [];
         return {
             proxy_enabled: true,
             filing_type: filingType,
-            optional_services: [],
+            optional_services: optionalServices,
             due_date: null,
             filing_description: description,
             reference_number: "",

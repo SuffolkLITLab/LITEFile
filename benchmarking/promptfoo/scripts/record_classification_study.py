@@ -190,14 +190,14 @@ def write_readme(run_dir, meta, document, failures):
             for row in failures
         )
         failure_table = "\n".join(lines)
-    content = f"""# {meta['purpose'].rstrip('.')}
+    content = f"""# {meta["purpose"].rstrip(".")}
 
 ## Result
 
-{stats['successes']}/{total} selections passed ({rate:.2f}%), with {stats['errors']} API errors.
-The run used {token_usage.get('total', 0):,} total tokens.
+{stats["successes"]}/{total} selections passed ({rate:.2f}%), with {stats["errors"]} API errors.
+The run used {token_usage.get("total", 0):,} total tokens.
 
-{validity} {meta['note']}
+{validity} {meta["note"]}
 
 ## Failures
 
