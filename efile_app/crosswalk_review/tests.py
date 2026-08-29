@@ -3,14 +3,16 @@ import io
 import json
 import tempfile
 from pathlib import Path
+from unittest.mock import patch
 
 from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import CommandError
-from django.test import Client, TestCase
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
-from crosswalk_review.models import CrosswalkForm, CrosswalkMapping, MappingVerdict
+from crosswalk_review.local_forms import LocalFormIdVerification
+from crosswalk_review.models import CrosswalkForm, CrosswalkMapping, FormReview, MappingVerdict
 
 
 class CrosswalkModelTests(TestCase):
@@ -199,6 +201,119 @@ class CrosswalkViewTests(TestCase):
         response = self.client.get(reverse("crosswalk_review:review_form", args=["MA-01"]) + "?reviewer=Alice")
         self.assertContains(response, "90%")
 
+    def test_review_form_preloaded_court_uses_the_route_key_expected_by_javascript(self):
+        self.m1.court_names = ["Middlesex Probate and Family Court"]
+        self.m1.raw_data = {
+            "court_scope": {
+                "court_names": ["Middlesex Probate and Family Court"],
+                "observed_route_keys": ["352"],
+            }
+        }
+        self.m1.save(update_fields=["court_names", "raw_data"])
+
+        response = self.client.get(reverse("crosswalk_review:review_form", args=["MA-01"]) + "?reviewer=Alice")
+
+        self.assertContains(response, 'value="Middlesex Probate and Family Court"')
+        self.assertContains(response, 'data-code="352"')
+
+    def test_review_form_uses_valid_lookup_phase_for_paper_only_mapping(self):
+        self.m1.filing_phase = "paper_only"
+        self.m1.save(update_fields=["filing_phase"])
+
+        response = self.client.get(reverse("crosswalk_review:review_form", args=["MA-01"]) + "?reviewer=Alice")
+
+        self.assertContains(response, 'data-assigned-filing-phase="paper_only"')
+        self.assertContains(response, '<option value="initial" selected>Initial</option>', html=True)
+        self.assertContains(response, "staging lookup starts with Initial")
+        self.assertNotContains(response, 'data-filing-phase="paper_only"')
+
+    def test_review_form_uses_local_pdf_from_working_directory(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            forms_root = Path(temp_dir)
+            pdf_path = forms_root / "MA" / "MA_Form_One.pdf"
+            pdf_path.parent.mkdir()
+            pdf_bytes = b"%PDF-local-form-one"
+            pdf_path.write_bytes(pdf_bytes)
+            (forms_root / "form_registry.json").write_text(
+                json.dumps(
+                    [
+                        {
+                            "form_id": "",
+                            "canonical_title": "Form One",
+                            "jurisdiction": "ma",
+                            "relative_path": "MA/MA_Form_One.pdf",
+                            "source_url": "https://example.com/form-one.pdf",
+                        }
+                    ]
+                ),
+                encoding="utf-8",
+            )
+
+            verified = LocalFormIdVerification(status="verified", form_id="CJD 101B", page=1)
+            with (
+                override_settings(CROSSWALK_REVIEW_FORMS_ROOT=forms_root),
+                patch("crosswalk_review.views.verify_local_form_id", return_value=verified),
+            ):
+                response = self.client.get(reverse("crosswalk_review:review_form", args=["MA-01"]) + "?reviewer=Alice")
+
+                self.assertEqual(response.status_code, 200)
+                self.assertContains(response, "appears on page 1")
+                self.assertContains(response, "MA/MA_Form_One.pdf")
+                self.assertContains(response, reverse("crosswalk_review:local_form_pdf", args=["MA-01"]))
+
+                pdf_response = self.client.get(reverse("crosswalk_review:local_form_pdf", args=["MA-01"]))
+
+        self.assertEqual(pdf_response.status_code, 200)
+        self.assertEqual(pdf_response["Content-Type"], "application/pdf")
+        self.assertIn('inline; filename="MA_Form_One.pdf"', pdf_response["Content-Disposition"])
+        self.assertEqual(pdf_response["X-Frame-Options"], "SAMEORIGIN")
+        self.assertEqual(b"".join(pdf_response.streaming_content), pdf_bytes)
+
+    def test_review_form_blocks_local_pdf_when_assigned_id_is_not_in_candidate(self):
+        self.form1.form_id = "CJD 200"
+        self.form1.save(update_fields=["form_id"])
+        with tempfile.TemporaryDirectory() as temp_dir:
+            forms_root = Path(temp_dir)
+            pdf_path = forms_root / "MA" / "MA_Form_One.pdf"
+            pdf_path.parent.mkdir()
+            pdf_path.write_bytes(b"%PDF-local-form-one")
+            (forms_root / "form_registry.json").write_text(
+                json.dumps(
+                    [
+                        {
+                            "canonical_title": "Form One",
+                            "jurisdiction": "ma",
+                            "relative_path": "MA/MA_Form_One.pdf",
+                        }
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            missing = LocalFormIdVerification(status="missing", form_id="CJD 200")
+            with (
+                override_settings(CROSSWALK_REVIEW_FORMS_ROOT=forms_root),
+                patch("crosswalk_review.views.verify_local_form_id", return_value=missing),
+            ):
+                response = self.client.get(reverse("crosswalk_review:review_form", args=["MA-01"]) + "?reviewer=Alice")
+                pdf_response = self.client.get(reverse("crosswalk_review:local_form_pdf", args=["MA-01"]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "does not appear in the extracted text")
+        self.assertNotContains(response, '<iframe class="source-frame"')
+        self.assertEqual(pdf_response.status_code, 404)
+
+    def test_review_form_does_not_embed_remote_pdf_when_local_copy_is_missing(self):
+        self.form1.source_urls = ["https://example.com/form-one.pdf"]
+        self.form1.save(update_fields=["source_urls"])
+        with tempfile.TemporaryDirectory() as temp_dir:
+            with override_settings(CROSSWALK_REVIEW_FORMS_ROOT=Path(temp_dir)):
+                response = self.client.get(reverse("crosswalk_review:review_form", args=["MA-01"]) + "?reviewer=Alice")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "No local PDF has been deterministically associated")
+        self.assertNotContains(response, '<iframe class="source-frame"')
+        self.assertContains(response, "Open official source in new tab")
+
     def test_review_form_post_saves_verdicts(self):
         response = self.client.post(
             reverse("crosswalk_review:review_form", args=["MA-01"]) + "?reviewer=Alice",
@@ -250,6 +365,155 @@ class CrosswalkViewTests(TestCase):
         self.assertContains(response, "Choose a verdict for every mapping")
         self.assertEqual(MappingVerdict.objects.count(), 0)
         self.assertContains(response, f'name="verdict_{second_mapping.pk}"')
+
+    def test_field_review_save_persists_partial_identity_and_mapping_answers(self):
+        response = self.client.post(
+            reverse("crosswalk_review:review_form", args=["MA-01"]) + "?reviewer=Alice",
+            {
+                "action": "save",
+                "reviewed_title": "Corrected form title",
+                "title_verdict": "incorrect",
+                "reviewed_form_id": "CJD 101B",
+                "form_id_verdict": "correct",
+                "form_notes": "Title corrected from the source PDF.",
+                f"category_{self.m1.pk}": "Family",
+                f"case_type_{self.m1.pk}": "Divorce",
+                f"filing_type_{self.m1.pk}": "Complaint",
+                f"category_verdict_{self.m1.pk}": "correct",
+                f"case_type_verdict_{self.m1.pk}": "",
+                f"filing_type_verdict_{self.m1.pk}": "",
+                f"notes_{self.m1.pk}": "Need to confirm the lower levels.",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("saved=1", response.url)
+        form_review = FormReview.objects.get(form=self.form1, reviewer_name="Alice")
+        self.assertEqual(form_review.reviewed_title, "Corrected form title")
+        self.assertEqual(form_review.title_verdict, "incorrect")
+        mapping_review = MappingVerdict.objects.get(mapping=self.m1, reviewer_name="Alice")
+        self.assertEqual(mapping_review.reviewed_category, "Family")
+        self.assertEqual(mapping_review.field_verdicts, {"category": "correct", "case_type": "", "filing_type": ""})
+        self.assertEqual(mapping_review.verdict, "")
+
+    def test_field_review_save_next_requires_all_fields(self):
+        response = self.client.post(
+            reverse("crosswalk_review:review_form", args=["MA-01"]) + "?reviewer=Alice",
+            {
+                "action": "save_next",
+                "reviewed_title": "Form One",
+                "title_verdict": "correct",
+                "reviewed_form_id": "",
+                "form_id_verdict": "correct",
+                f"category_{self.m1.pk}": "Family",
+                f"case_type_{self.m1.pk}": "Divorce",
+                f"filing_type_{self.m1.pk}": "Complaint",
+                f"category_verdict_{self.m1.pk}": "correct",
+                f"case_type_verdict_{self.m1.pk}": "correct",
+                f"filing_type_verdict_{self.m1.pk}": "",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "field answers are missing")
+        self.assertFalse(FormReview.objects.exists())
+        self.assertFalse(MappingVerdict.objects.exists())
+
+    def test_field_review_complete_answers_are_resumable(self):
+        response = self.client.post(
+            reverse("crosswalk_review:review_form", args=["MA-01"]) + "?reviewer=Alice",
+            {
+                "action": "save_next",
+                "reviewed_title": "Form One",
+                "title_verdict": "correct",
+                "reviewed_form_id": "CJD 101B",
+                "form_id_verdict": "correct",
+                f"category_{self.m1.pk}": "Family",
+                f"case_type_{self.m1.pk}": "Divorce",
+                f"filing_type_{self.m1.pk}": "Complaint",
+                f"category_verdict_{self.m1.pk}": "correct",
+                f"case_type_verdict_{self.m1.pk}": "correct",
+                f"filing_type_verdict_{self.m1.pk}": "correct",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("workflow=fields", response.url)
+        self.assertEqual(FormReview.objects.get(form=self.form1, reviewer_name="Alice").form_id_verdict, "correct")
+        verdict = MappingVerdict.objects.get(mapping=self.m1, reviewer_name="Alice")
+        self.assertEqual(verdict.verdict, "correct")
+        self.assertTrue(all(value == "correct" for value in verdict.field_verdicts.values()))
+
+    def test_export_json_includes_identity_only_form_reviews(self):
+        FormReview.objects.create(
+            form=self.form1,
+            reviewer_name="Alice",
+            reviewed_title="Form One",
+            title_verdict="correct",
+            reviewed_form_id="CJD 101B",
+            form_id_verdict="correct",
+        )
+
+        response = self.client.get(reverse("crosswalk_review:export_json"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/json")
+        form_data = next(item for item in response.json()["forms"] if item["canonical_id"] == "MA-01")
+        self.assertEqual(form_data["reviews"][0]["reviewed_title"], "Form One")
+
+    @patch("crosswalk_review.views.TylerTaxonomyClient")
+    def test_taxonomy_options_uses_live_client_for_jurisdiction(self, client_class):
+        client_class.return_value.base_url = "https://staging.example"
+        client_class.return_value.categories.return_value = [
+            {"route_key": "10", "name": "Family"},
+        ]
+
+        response = self.client.get(
+            reverse("crosswalk_review:taxonomy_options", args=["categories"]),
+            {"jurisdiction": "massachusetts", "court": "123", "filing_phase": "initial"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["options"], [{"route_key": "10", "name": "Family"}])
+        client_class.return_value.categories.assert_called_once_with("massachusetts", "123", "initial")
+
+    @patch("crosswalk_review.views.TylerTaxonomyClient")
+    def test_taxonomy_options_normalizes_filing_phase(self, client_class):
+        client_class.return_value.base_url = "https://staging.example"
+        client_class.return_value.categories.return_value = []
+
+        response = self.client.get(
+            reverse("crosswalk_review:taxonomy_options", args=["categories"]),
+            {"jurisdiction": "massachusetts", "court": "123", "filing_phase": " Initial "},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        client_class.return_value.categories.assert_called_once_with("massachusetts", "123", "initial")
+
+    @patch("crosswalk_review.views.TylerTaxonomyClient")
+    def test_taxonomy_options_rejects_unsafe_route_keys(self, client_class):
+        response = self.client.get(
+            reverse("crosswalk_review:taxonomy_options", args=["categories"]),
+            {"jurisdiction": "massachusetts", "court": "../other", "filing_phase": "initial"},
+        )
+
+        self.assertEqual(response.status_code, 502)
+        client_class.assert_not_called()
+
+    @patch("crosswalk_review.views.TylerTaxonomyClient")
+    def test_taxonomy_options_accepts_current_colon_and_space_court_keys(self, client_class):
+        client_class.return_value.base_url = "https://staging.example"
+        client_class.return_value.categories.return_value = [{"route_key": "7", "name": "Civil"}]
+
+        for court in ("sc:chittendon", "reaknox 2"):
+            with self.subTest(court=court):
+                response = self.client.get(
+                    reverse("crosswalk_review:taxonomy_options", args=["categories"]),
+                    {"jurisdiction": "vermont", "court": court, "filing_phase": "initial"},
+                )
+                self.assertEqual(response.status_code, 200)
+
+        self.assertEqual(client_class.return_value.categories.call_count, 2)
 
     def test_next_unreviewed_redirects_to_first_unreviewed(self):
         # Alice reviews MA-01
@@ -390,7 +654,8 @@ class LoadCrosswalkTests(TestCase):
         call_command("load_crosswalk", stdout=io.StringIO())
 
         self.assertEqual(CrosswalkForm.objects.count(), expected_forms)
-        self.assertGreater(CrosswalkMapping.objects.count(), CrosswalkForm.objects.count())
+        # Title-identified forms intentionally have no inferred filing route.
+        self.assertGreater(CrosswalkMapping.objects.count(), 0)
         first_form = CrosswalkForm.objects.order_by("registry_index").first()
         response = self.client.get(
             reverse("crosswalk_review:review_form", args=[first_form.pk]),

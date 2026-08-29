@@ -4,7 +4,6 @@
 {% endblock title %}
 {% block extra_style %}
     <style>
-        /* ── Layout ── */
         .review-layout {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -18,7 +17,6 @@
             }
         }
 
-        /* ── Form metadata panel ── */
         .form-meta {
             font-size: 0.88rem;
             color: #4b5563;
@@ -34,7 +32,6 @@
             margin: 0 0 0.25rem 0;
         }
 
-        /* ── PDF / source iframe panel ── */
         .source-panel h2 {
             font-size: 0.95rem;
             font-weight: 600;
@@ -50,6 +47,13 @@
             background: #f9fafb;
         }
 
+        .preview-status {
+            color: #4b5563;
+            font-size: 0.78rem;
+            margin: 0 0 0.5rem;
+            overflow-wrap: anywhere;
+        }
+
         .source-links {
             margin-top: 0.5rem;
         }
@@ -61,7 +65,6 @@
             word-break: break-all;
         }
 
-        /* ── Navigation bar ── */
         .review-nav {
             display: flex;
             align-items: center;
@@ -76,7 +79,119 @@
             margin-left: auto;
         }
 
-        /* ── Mapping table ── */
+        .identity-review,
+        .taxonomy-review {
+            border: 1px solid #dde1e8;
+            border-radius: 6px;
+            background: #fff;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .identity-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        @media (max-width: 700px) {
+            .identity-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .review-field {
+            display: grid;
+            gap: 0.3rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .review-field label,
+        .lookup-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .review-field input,
+        .review-field textarea,
+        .review-field select,
+        .lookup-controls select {
+            width: 100%;
+            min-width: 0;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            padding: 0.45rem 0.6rem;
+            background: #fff;
+            color: #1a1a2e;
+            font-size: 0.88rem;
+        }
+
+        .review-field input:focus,
+        .review-field textarea:focus,
+        .review-field select:focus,
+        .lookup-controls select:focus {
+            outline: none;
+            border-color: #1a6b3c;
+            box-shadow: 0 0 0 3px rgba(26, 107, 60, 0.12);
+        }
+
+        .field-answer {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 135px;
+            gap: 0.5rem;
+            align-items: end;
+        }
+
+        .lookup-controls {
+            display: grid;
+            grid-template-columns: minmax(120px, 0.55fr) minmax(180px, 0.9fr) minmax(0, 1fr) auto auto;
+            gap: 0.6rem;
+            align-items: end;
+            margin: 0.8rem 0 1rem;
+            padding: 0.75rem;
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+            border-radius: 5px;
+        }
+
+        @media (max-width: 700px) {
+            .lookup-controls {
+                grid-template-columns: 1fr;
+            }
+
+            .field-answer {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .lookup-status {
+            font-size: 0.78rem;
+            color: #6b7280;
+            min-height: 1.2rem;
+            margin-top: 0.3rem;
+        }
+
+        .lookup-status.error {
+            color: #991b1b;
+        }
+
+        .lookup-status.success {
+            color: #065f46;
+        }
+
+        .assigned-value {
+            color: #6b7280;
+            font-size: 0.78rem;
+            margin: 0.2rem 0 0;
+        }
+
+        .identity-instructions {
+            color: #4b5563;
+            font-size: 0.88rem;
+            margin: 0 0 1rem;
+        }
+
         .mappings-section {
             margin-top: 1.25rem;
         }
@@ -88,10 +203,6 @@
         }
 
         .mapping-card {
-            border: 1px solid #dde1e8;
-            border-radius: 6px;
-            margin-bottom: 1rem;
-            background: #fff;
             overflow: hidden;
             transition: box-shadow 0.15s;
         }
@@ -103,6 +214,7 @@
         .mapping-header {
             background: #f8f9fb;
             border-bottom: 1px solid #e5e7eb;
+            margin: -1rem -1rem 0.9rem;
             padding: 0.65rem 1rem;
             display: flex;
             align-items: center;
@@ -110,7 +222,7 @@
             flex-wrap: wrap;
         }
 
-        .mapping-header .mapping-num {
+        .mapping-num {
             font-size: 0.75rem;
             font-weight: 700;
             color: #6b7280;
@@ -118,19 +230,15 @@
             letter-spacing: 0.05em;
         }
 
-        .mapping-header .taxonomy {
+        .taxonomy {
             font-weight: 600;
             font-size: 0.92rem;
             flex: 1;
         }
 
-        .mapping-header .taxonomy .sep {
+        .taxonomy .sep {
             color: #9ca3af;
             margin: 0 0.3rem;
-        }
-
-        .mapping-body {
-            padding: 0.9rem 1rem;
         }
 
         .mapping-meta {
@@ -163,67 +271,24 @@
             word-break: break-word;
         }
 
-        /* ── Verdict selector ── */
-        .verdict-row {
-            display: flex;
-            align-items: flex-start;
-            gap: 1.25rem;
-            flex-wrap: wrap;
-        }
-
-        .verdict-options {
-            display: flex;
-            gap: 0.6rem;
-            flex-wrap: wrap;
-        }
-
-        .verdict-label {
-            display: flex;
-            align-items: center;
-            gap: 0.35rem;
-            cursor: pointer;
-            font-size: 0.88rem;
-        }
-
-        .verdict-label input[type="radio"] {
-            accent-color: #1a6b3c;
-        }
-
-        .verdict-label.correct .verdict-chip {
-            background: #d1fae5;
-            color: #065f46;
-        }
-
-        .verdict-label.incorrect .verdict-chip {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        .verdict-label.unsure .verdict-chip {
-            background: #fef9c3;
-            color: #78350f;
-        }
-
-        .verdict-chip {
-            padding: 0.3rem 0.7rem;
-            border-radius: 4px;
+        .phase-badge {
+            font-size: 0.72rem;
             font-weight: 600;
-            font-size: 0.82rem;
-            transition: opacity 0.12s;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 0.15rem 0.5rem;
+            border-radius: 3px;
+            background: #ede9fe;
+            color: #4c1d95;
         }
 
-        input[type="radio"]:not(:checked)+.verdict-chip {
-            opacity: 0.55;
-        }
-
-        input[type="radio"]:checked+.verdict-chip {
-            opacity: 1;
-            box-shadow: 0 0 0 2px #1a6b3c;
+        .phase-badge.subsequent {
+            background: #fce7f3;
+            color: #831843;
         }
 
         .reviewer-notes-wrap {
-            flex: 1;
-            min-width: 220px;
+            margin-top: 0.2rem;
         }
 
         .reviewer-notes-wrap label {
@@ -243,16 +308,8 @@
             min-height: 54px;
             color: #1a1a2e;
             line-height: 1.45;
-            transition: border-color 0.15s;
         }
 
-        .reviewer-notes-wrap textarea:focus {
-            outline: none;
-            border-color: #1a6b3c;
-            box-shadow: 0 0 0 3px rgba(26, 107, 60, 0.12);
-        }
-
-        /* ── Already reviewed banner ── */
         .already-reviewed {
             background: #d1fae5;
             border: 1px solid #6ee7b7;
@@ -263,11 +320,15 @@
             margin-bottom: 0.75rem;
         }
 
-        .already-reviewed strong {
-            font-weight: 700;
+        .no-mappings {
+            color: #6b7280;
+            text-align: center;
+            padding: 1.5rem;
+            background: #fff;
+            border: 1px solid #dde1e8;
+            border-radius: 6px;
         }
 
-        /* ── Submit bar ── */
         .submit-bar {
             position: sticky;
             bottom: 0;
@@ -288,27 +349,9 @@
             color: #6b7280;
             margin-left: auto;
         }
-
-        /* ── Phase badge ── */
-        .phase-badge {
-            font-size: 0.72rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            padding: 0.15rem 0.5rem;
-            border-radius: 3px;
-            background: #ede9fe;
-            color: #4c1d95;
-        }
-
-        .phase-badge.subsequent {
-            background: #fce7f3;
-            color: #831843;
-        }
     </style>
 {% endblock extra_style %}
 {% block content %}
-    <!-- Navigation -->
     <div class="review-nav">
         {% if prev_id %}
             <a class="btn btn-secondary btn-sm"
@@ -317,7 +360,7 @@
             <span class="btn btn-secondary btn-sm" style="opacity:0.4; cursor:default;">← Previous</span>
         {% endif %}
         <a class="btn btn-secondary btn-sm"
-           href="{% url 'crosswalk_review:next_unreviewed' %}?reviewer={{ reviewer|urlencode }}">Next unreviewed →</a>
+           href="{% url 'crosswalk_review:next_unreviewed' %}?reviewer={{ reviewer|urlencode }}&amp;workflow=fields">Next unreviewed →</a>
         <a class="btn btn-secondary btn-sm"
            href="{% url 'crosswalk_review:progress' %}">Progress</a>
         {% if next_id %}
@@ -326,11 +369,14 @@
         {% endif %}
         <span class="position">Form {{ current_num }} of {{ total_forms }}</span>
     </div>
-    <!-- Already reviewed notice -->
-    {% if has_verdicts %}
+    {% if saved_message %}
+        <div class="message message-success" role="status">
+            Progress saved. You can leave now and resume from “Continue reviewing” at any time.
+        </div>
+    {% elif has_verdicts %}
         <div class="already-reviewed">
-            <strong>You have already submitted verdicts for this form.</strong>
-            Submitting again will overwrite your previous answers.
+            <strong>You have saved answers for this form.</strong>
+            Saving again updates your answers for this reviewer.
         </div>
     {% endif %}
     {% if submission_error %}<div class="message message-error" role="alert">{{ submission_error }}</div>{% endif %}
@@ -338,13 +384,11 @@
           action="{% url 'crosswalk_review:review_form' form_obj.canonical_id %}?reviewer={{ reviewer|urlencode }}">
         {% csrf_token %}
         <input type="hidden" name="reviewer_name" value="{{ reviewer }}" />
-        <!-- Top two-column layout: form info + PDF embed -->
         <div class="review-layout">
-            <!-- Left: form metadata -->
             <div class="card" style="margin-bottom:0;">
                 <h1 style="font-size:1.2rem; font-weight:700; margin:0 0 0.2rem;">{{ form_obj.canonical_name }}</h1>
                 <div style="font-size:0.8rem; color:#6b7280; margin-bottom:1rem;">
-                    ID: <code>{{ form_obj.canonical_id }}</code>
+                    Registry ID: <code>{{ form_obj.canonical_id }}</code>
                 </div>
                 <dl class="form-meta">
                     <dt>Jurisdiction</dt>
@@ -355,7 +399,7 @@
                     <dd>
                         {{ form_obj.department|default:"—" }}
                     </dd>
-                    <dt>Form ID</dt>
+                    <dt>Assigned form ID</dt>
                     <dd>
                         {{ form_obj.form_id|default:"—" }}
                     </dd>
@@ -390,7 +434,6 @@
                         </ul>
                     </div>
                 {% endif %}
-                <!-- Browse filing codes on LITEFile -->
                 <div style="margin-top:1rem;
                             padding-top:0.75rem;
                             border-top:1px solid #e5e7eb">
@@ -400,26 +443,49 @@
                        rel="noopener">Browse filing codes on LITEFile ↗</a>
                 </div>
             </div>
-            <!-- Right: form embed / iframe -->
             <div class="card source-panel" style="margin-bottom:0;">
-                <h2>Form preview</h2>
-                {% if form_obj.primary_source_url %}
+                <h2>Local form PDF</h2>
+                {% if local_pdf_url %}
+                    <p class="preview-status">
+                        Assigned ID <code>{{ local_pdf_verification.form_id }}</code> appears on page {{ local_pdf_verification.page }} of <code>{{ local_pdf_relative_path }}</code>
+                        {% if local_pdf_verification.source %}(extracted with {{ local_pdf_verification.source }}).{% endif %}
+                    </p>
                     <iframe class="source-frame"
-                            src="{{ form_obj.primary_source_url }}"
+                            src="{{ local_pdf_url }}"
                             title="Form preview for {{ form_obj.canonical_name }}"
                             loading="lazy">
-                        <p>
-                            Your browser does not support iframes.
-                            <a href="{{ form_obj.primary_source_url }}"
-                               target="_blank"
-                               rel="noopener">Open form in new tab ↗</a>
-                        </p>
+                        <p>Your browser does not support iframes.</p>
                     </iframe>
                     <div class="source-links">
-                        <a href="{{ form_obj.primary_source_url }}"
-                           target="_blank"
-                           rel="noopener">Open in new tab ↗</a>
+                        <a href="{{ local_pdf_url }}" target="_blank" rel="noopener">Open in new tab ↗</a>
                     </div>
+                {% elif local_pdf_verification %}
+                    <div style="min-height:200px;
+                                display:flex;
+                                align-items:center;
+                                justify-content:center;
+                                padding:1rem;
+                                background:#fef2f2;
+                                border:1px solid #fecaca;
+                                border-radius:4px;
+                                color:#991b1b;
+                                font-size:0.9rem;
+                                text-align:center">
+                        {% if local_pdf_verification.status == "missing" %}
+                            The assigned form ID <code>{{ local_pdf_verification.form_id }}</code> does not appear in the extracted text of the local candidate <code>{{ local_pdf_relative_path }}</code>. The candidate was matched by {{ local_pdf_match_method }}, so it is not shown as review evidence.
+                        {% elif local_pdf_verification.status == "no_assigned_id" %}
+                            This form has no assigned form ID, so the local candidate <code>{{ local_pdf_relative_path }}</code> cannot be verified and is not shown as review evidence.
+                        {% else %}
+                            The local candidate <code>{{ local_pdf_relative_path }}</code> could not be read to verify the assigned form ID and is not shown as review evidence.
+                        {% endif %}
+                    </div>
+                    {% if form_obj.primary_source_url %}
+                        <div class="source-links">
+                            <a href="{{ form_obj.primary_source_url }}"
+                               target="_blank"
+                               rel="noopener">Open official source in new tab ↗</a>
+                        </div>
+                    {% endif %}
                 {% else %}
                     <div style="height:200px;
                                 display:flex;
@@ -428,137 +494,293 @@
                                 background:#f3f4f6;
                                 border-radius:4px;
                                 color:#9ca3af;
-                                font-size:0.9rem">No source URL available for this form.</div>
+                                font-size:0.9rem">
+                        No local PDF has been deterministically associated with this form's assigned ID.
+                    </div>
+                    {% if form_obj.primary_source_url %}
+                        <div class="source-links">
+                            <a href="{{ form_obj.primary_source_url }}"
+                               target="_blank"
+                               rel="noopener">Open official source in new tab ↗</a>
+                        </div>
+                    {% endif %}
                 {% endif %}
             </div>
         </div>
-        <!-- /review-layout -->
-        <!-- Mappings section -->
+        <section class="identity-review" aria-labelledby="identity-heading">
+            <h2 id="identity-heading" style="font-size:1rem; margin:0 0 0.25rem;">Verify form identity</h2>
+            <p class="identity-instructions">
+                Compare the assigned title and printed form ID with the form preview. If you edit a value, mark the assigned value Incorrect; the edited value is saved as your reviewed answer.
+            </p>
+            <div class="identity-grid">
+                <div class="review-field">
+                    <label for="reviewed-title">Reviewed form title</label>
+                    <input id="reviewed-title"
+                           name="reviewed_title"
+                           value="{{ reviewed_title }}"
+                           required />
+                    <select name="title_verdict" aria-label="Form title verdict">
+                        <option value="">Choose a verdict…</option>
+                        <option value="correct"
+                                {% if title_verdict == "correct" %}selected{% endif %}>
+                            ✓ Assigned title is correct
+                        </option>
+                        <option value="incorrect"
+                                {% if title_verdict == "incorrect" %}selected{% endif %}>
+                            ✗ Assigned title is incorrect
+                        </option>
+                        <option value="unsure" {% if title_verdict == "unsure" %}selected{% endif %}>? Unsure</option>
+                    </select>
+                    <p class="assigned-value">Assigned: {{ form_obj.canonical_name|default:"—" }}</p>
+                </div>
+                <div class="review-field">
+                    <label for="reviewed-form-id">Reviewed printed form ID</label>
+                    <input id="reviewed-form-id"
+                           name="reviewed_form_id"
+                           value="{{ reviewed_form_id }}" />
+                    <select name="form_id_verdict" aria-label="Form ID verdict">
+                        <option value="">Choose a verdict…</option>
+                        <option value="correct"
+                                {% if form_id_verdict == "correct" %}selected{% endif %}>
+                            ✓ Assigned ID is correct
+                        </option>
+                        <option value="incorrect"
+                                {% if form_id_verdict == "incorrect" %}selected{% endif %}>
+                            ✗ Assigned ID is incorrect
+                        </option>
+                        <option value="unsure"
+                                {% if form_id_verdict == "unsure" %}selected{% endif %}>? Unsure</option>
+                    </select>
+                    <p class="assigned-value">Assigned: {{ form_obj.form_id|default:"—" }}</p>
+                </div>
+            </div>
+            <div class="review-field" style="margin-bottom:0;">
+                <label for="form-notes">Form-level notes</label>
+                <textarea id="form-notes"
+                          name="form_notes"
+                          rows="2"
+                          placeholder="Explain identity corrections or source evidence.">{{ form_notes }}</textarea>
+            </div>
+        </section>
         <div class="mappings-section">
             <h2>
-                Filing code mappings
-                <span style="font-size:0.82rem;
-                             font-weight:400;
-                             color:#6b7280;
-                             margin-left:0.5rem">
-                    ({{ mapping_rows|length }} mapping{{ mapping_rows|length|pluralize }})
-                </span>
+                Filing code mappings <span style="font-size:0.82rem;
+              font-weight:400;
+              color:#6b7280;
+              margin-left:0.5rem">({{ mapping_rows|length }} mapping{{ mapping_rows|length|pluralize }})</span>
             </h2>
+            <p class="identity-instructions">
+                For each mapping, use the read-only staged lookup to confirm or replace the category, case type, and filing type. The saved answers are names, not environment-specific numeric codes.
+            </p>
             {% for row in mapping_rows %}
                 {% with m=row.obj %}
-                    <div class="mapping-card" id="mapping-{{ m.pk }}">
+                    <div class="mapping-card taxonomy-review"
+                         id="mapping-{{ m.pk }}"
+                         data-map-id="{{ m.pk }}"
+                         data-jurisdiction="{{ form_obj.jurisdiction }}"
+                         data-assigned-filing-phase="{{ m.filing_phase }}"
+                         data-lookup-url="{% url 'crosswalk_review:taxonomy_options' 'categories' %}"
+                         data-endpoint="{{ review_efsp_url }}">
                         <div class="mapping-header">
-                            <span class="mapping-num">#{{ forloop.counter }}</span>
-                            <!-- Phase badge -->
+                            <span class="mapping-num">Mapping #{{ forloop.counter }}</span>
                             {% if m.filing_phase == "subsequent" %}
                                 <span class="phase-badge subsequent">Subsequent</span>
                             {% elif m.filing_phase %}
                                 <span class="phase-badge">{{ m.filing_phase|capfirst }}</span>
                             {% endif %}
-                            <!-- Taxonomy breadcrumb -->
-                            <span class="taxonomy">
-                                {{ m.category }}
-                                <span class="sep">›</span>
-                                {{ m.case_type }}
-                                <span class="sep">›</span>
-                                <em>{{ m.filing_type }}</em>
-                            </span>
-                            <!-- Confidence badge -->
+                            <span class="taxonomy">{{ m.category|default:"—" }} <span class="sep">›</span> {{ m.case_type|default:"—" }} <span class="sep">›</span> <em>{{ m.filing_type|default:"—" }}</em></span>
                             {% if m.confidence is not None %}
-                                <span class="badge badge-{{ m.confidence_label }}"
-                                      title="Confidence: {{ m.confidence|floatformat:2 }}">
-                                    {{ m.confidence_percent|floatformat:0 }}%
-                                </span>
+                                <span class="badge badge-{{ m.confidence_label }}">{{ m.confidence_percent|floatformat:0 }}%</span>
                             {% else %}
                                 <span class="badge badge-unknown">No confidence score</span>
                             {% endif %}
-                            <!-- Catalog status -->
                             {% if m.catalog_status == "current" %}
                                 <span class="badge badge-current">Current</span>
-                            {% elif m.catalog_status == "stale" %}
-                                <span class="badge badge-stale">Stale</span>
                             {% elif m.catalog_status %}
                                 <span class="badge badge-default">{{ m.catalog_status }}</span>
                             {% endif %}
                         </div>
-                        <!-- /mapping-header -->
-                        <div class="mapping-body">
-                            <dl class="mapping-meta">
-                                <dt>Courts</dt>
+                        <dl class="mapping-meta">
+                            <dt>Courts</dt>
+                            <dd>
+                                {{ row.court_names_display }}
+                            </dd>
+                            <dt>Association status</dt>
+                            <dd>
+                                {{ m.association_status|default:"—" }}
+                            </dd>
+                            {% if m.notes_clean %}
+                                <dt>Notes</dt>
                                 <dd>
-                                    {{ row.court_names_display }}
+                                    {{ m.notes_clean }}
                                 </dd>
-                                <dt>Association status</dt>
-                                <dd>
-                                    {{ m.association_status|default:"—" }}
-                                </dd>
-                                {% if m.notes_clean %}
-                                    <dt>Notes</dt>
-                                    <dd>
-                                        {{ m.notes_clean }}
-                                    </dd>
-                                {% endif %}
-                            </dl>
-                            {% if m.notes %}
-                                <details style="margin-bottom:0.75rem;">
-                                    <summary style="font-size:0.78rem; color:#6b7280; cursor:pointer;">
-                                        Show raw notes (including staging observations)
-                                    </summary>
-                                    <div class="mapping-notes">{{ m.notes }}</div>
-                                </details>
                             {% endif %}
-                            <!-- Verdict row -->
-                            <div class="verdict-row">
-                                <div>
-                                    <div style="font-size:0.8rem;
-                                                font-weight:600;
-                                                color:#374151;
-                                                margin-bottom:0.4rem">Your verdict</div>
-                                    <div class="verdict-options">
-                                        <label class="verdict-label correct">
-                                            <input type="radio"
-                                                   name="verdict_{{ m.pk }}"
-                                                   value="correct"
-                                                   {% if row.selected_verdict == "correct" %}checked{% endif %}
-                                                   required />
-                                            <span class="verdict-chip">✓ Correct</span>
-                                        </label>
-                                        <label class="verdict-label incorrect">
-                                            <input type="radio"
-                                                   name="verdict_{{ m.pk }}"
-                                                   value="incorrect"
-                                                   {% if row.selected_verdict == "incorrect" %}checked{% endif %} />
-                                            <span class="verdict-chip">✗ Incorrect</span>
-                                        </label>
-                                        <label class="verdict-label unsure">
-                                            <input type="radio"
-                                                   name="verdict_{{ m.pk }}"
-                                                   value="unsure"
-                                                   {% if row.selected_verdict == "unsure" %}checked{% endif %} />
-                                            <span class="verdict-chip">? Unsure</span>
-                                        </label>
-                                    </div>
-                                </div>
-                                <div class="reviewer-notes-wrap">
-                                    <label for="notes-{{ m.pk }}">Optional notes (reasons, corrections, etc.)</label>
-                                    <textarea id="notes-{{ m.pk }}"
-                                              name="notes_{{ m.pk }}"
-                                              placeholder="e.g. 'Filing type name changed', 'Wrong court', …">{{ row.reviewer_notes }}</textarea>
-                                </div>
+                        </dl>
+                        {% if m.notes %}
+                            <details style="margin-bottom:0.75rem;">
+                                <summary style="font-size:0.78rem; color:#6b7280; cursor:pointer;">
+                                    Show raw notes (including staging observations)
+                                </summary>
+                                <div class="mapping-notes">{{ m.notes }}</div>
+                            </details>
+                        {% endif %}
+                        <div class="lookup-controls">
+                            <div>
+                                <label class="lookup-label" for="lookup-phase-{{ m.pk }}">Lookup phase</label>
+                                <select class="lookup-phase-select" id="lookup-phase-{{ m.pk }}">
+                                    <option value="initial"
+                                            {% if row.lookup_filing_phase == "initial" %}selected{% endif %}>
+                                        Initial
+                                    </option>
+                                    <option value="subsequent"
+                                            {% if row.lookup_filing_phase == "subsequent" %}selected{% endif %}>
+                                        Subsequent
+                                    </option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="lookup-label" for="court-{{ m.pk }}">Lookup court</label>
+                                <select class="court-select" id="court-{{ m.pk }}">
+                                    {% for court in row.court_specs %}
+                                        <option value="{{ court.name }}"
+                                                data-code="{{ court.route_key }}"
+                                                data-name="{{ court.name }}">{{ court.name }}</option>
+                                    {% empty %}
+                                        <option value="">Load courts…</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="lookup-status" aria-live="polite">
+                                {% if row.uses_lookup_phase_fallback %}
+                                    Assigned phase is {{ m.filing_phase|default:"not specified" }}; staging lookup starts with Initial.
+                                {% else %}
+                                    Lookup uses {{ review_efsp_url }}.
+                                {% endif %}
+                            </div>
+                            <button type="button" class="btn btn-secondary btn-sm courts-button">Refresh courts</button>
+                            <button type="button" class="btn btn-secondary btn-sm lookup-button">Load live options</button>
+                        </div>
+                        <div class="field-answer">
+                            <div class="review-field">
+                                <label for="category-{{ m.pk }}">Reviewed case category</label>
+                                <select id="category-{{ m.pk }}"
+                                        name="category_{{ m.pk }}"
+                                        class="taxonomy-select category-select"
+                                        data-current="{{ row.reviewed_category }}">
+                                    {% if row.reviewed_category %}
+                                        <option value="{{ row.reviewed_category }}" selected>{{ row.reviewed_category }} (assigned)</option>
+                                    {% endif %}
+                                </select>
+                                <p class="assigned-value">Assigned: {{ m.category|default:"—" }}</p>
+                            </div>
+                            <div class="review-field">
+                                <label for="category-verdict-{{ m.pk }}">Verdict</label>
+                                <select id="category-verdict-{{ m.pk }}" name="category_verdict_{{ m.pk }}">
+                                    <option value="">Choose…</option>
+                                    <option value="correct"
+                                            {% if row.category_verdict == "correct" %}selected{% endif %}>
+                                        Correct
+                                    </option>
+                                    <option value="incorrect"
+                                            {% if row.category_verdict == "incorrect" %}selected{% endif %}>
+                                        Incorrect
+                                    </option>
+                                    <option value="unsure"
+                                            {% if row.category_verdict == "unsure" %}selected{% endif %}>
+                                        Unsure
+                                    </option>
+                                </select>
                             </div>
                         </div>
-                        <!-- /mapping-body -->
+                        <div class="field-answer">
+                            <div class="review-field">
+                                <label for="case-type-{{ m.pk }}">Reviewed case type</label>
+                                <select id="case-type-{{ m.pk }}"
+                                        name="case_type_{{ m.pk }}"
+                                        class="taxonomy-select case-type-select"
+                                        data-current="{{ row.reviewed_case_type }}">
+                                    {% if row.reviewed_case_type %}
+                                        <option value="{{ row.reviewed_case_type }}" selected>{{ row.reviewed_case_type }} (assigned)</option>
+                                    {% endif %}
+                                </select>
+                                <p class="assigned-value">Assigned: {{ m.case_type|default:"—" }}</p>
+                            </div>
+                            <div class="review-field">
+                                <label for="case-type-verdict-{{ m.pk }}">Verdict</label>
+                                <select id="case-type-verdict-{{ m.pk }}" name="case_type_verdict_{{ m.pk }}">
+                                    <option value="">Choose…</option>
+                                    <option value="correct"
+                                            {% if row.case_type_verdict == "correct" %}selected{% endif %}>
+                                        Correct
+                                    </option>
+                                    <option value="incorrect"
+                                            {% if row.case_type_verdict == "incorrect" %}selected{% endif %}>
+                                        Incorrect
+                                    </option>
+                                    <option value="unsure"
+                                            {% if row.case_type_verdict == "unsure" %}selected{% endif %}>
+                                        Unsure
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="field-answer">
+                            <div class="review-field">
+                                <label for="filing-type-{{ m.pk }}">Reviewed filing type</label>
+                                <select id="filing-type-{{ m.pk }}"
+                                        name="filing_type_{{ m.pk }}"
+                                        class="taxonomy-select filing-type-select"
+                                        data-current="{{ row.reviewed_filing_type }}">
+                                    {% if row.reviewed_filing_type %}
+                                        <option value="{{ row.reviewed_filing_type }}" selected>{{ row.reviewed_filing_type }} (assigned)</option>
+                                    {% endif %}
+                                </select>
+                                <p class="assigned-value">Assigned: {{ m.filing_type|default:"—" }}</p>
+                            </div>
+                            <div class="review-field">
+                                <label for="filing-type-verdict-{{ m.pk }}">Verdict</label>
+                                <select id="filing-type-verdict-{{ m.pk }}"
+                                        name="filing_type_verdict_{{ m.pk }}">
+                                    <option value="">Choose…</option>
+                                    <option value="correct"
+                                            {% if row.filing_type_verdict == "correct" %}selected{% endif %}>
+                                        Correct
+                                    </option>
+                                    <option value="incorrect"
+                                            {% if row.filing_type_verdict == "incorrect" %}selected{% endif %}>
+                                        Incorrect
+                                    </option>
+                                    <option value="unsure"
+                                            {% if row.filing_type_verdict == "unsure" %}selected{% endif %}>
+                                        Unsure
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        <input type="hidden"
+                               name="lookup_{{ m.pk }}"
+                               class="lookup-context"
+                               value="{}" />
+                        <input type="hidden"
+                               name="verdict_{{ m.pk }}"
+                               value="{{ row.selected_verdict }}" />
+                        <div class="reviewer-notes-wrap">
+                            <label for="notes-{{ m.pk }}">Mapping notes</label>
+                            <textarea id="notes-{{ m.pk }}"
+                                      name="notes_{{ m.pk }}"
+                                      placeholder="Explain corrections, ambiguity, or source evidence.">{{ row.reviewer_notes }}</textarea>
+                        </div>
                     </div>
-                    <!-- /mapping-card -->
                 {% endwith %}
             {% empty %}
-                <div class="card" style="color:#6b7280; text-align:center; padding:2rem;">No mappings found for this form.</div>
+                <div class="no-mappings">
+                    No taxonomy mappings are currently assigned. Verify the form title and printed ID, then save the identity review.
+                </div>
             {% endfor %}
         </div>
-        <!-- /mappings-section -->
-        <!-- Sticky submit bar -->
         <div class="submit-bar">
-            <button type="submit" class="btn btn-primary">Save verdicts &amp; continue →</button>
+            <button type="submit" name="action" value="save" class="btn btn-secondary">Save progress</button>
+            <button type="submit" name="action" value="save_next" class="btn btn-primary">Save &amp; next unreviewed →</button>
             {% if prev_id %}
                 <a class="btn btn-secondary"
                    href="{% url 'crosswalk_review:review_form' prev_id %}?reviewer={{ reviewer|urlencode }}">← Back</a>
@@ -570,37 +792,213 @@
 {% endblock content %}
 {% block extra_js %}
     <script>
-        /* Highlight the verdict chip of the currently selected radio on click */
-        document.querySelectorAll('.verdict-label input[type="radio"]').forEach(function(radio) {
-            radio.addEventListener('change', function() {
-                /* Remove selection styling from siblings */
-                var name = this.name;
-                document.querySelectorAll('input[name="' + name + '"]').forEach(function(r) {
-                    r.nextElementSibling && (r.nextElementSibling.style.boxShadow = '');
-                });
-            });
-        });
+        const taxonomyUrl = "{% url 'crosswalk_review:taxonomy_options' 'categories' %}";
 
-        /* Keyboard shortcut: press C / I / U to mark all mappings that are currently unset */
-        document.addEventListener('keydown', function(e) {
-            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-            var key = e.key.toLowerCase();
-            var map = {
-                c: 'correct',
-                i: 'incorrect',
-                u: 'unsure'
+        function selectedOption(select) {
+            const option = select && select.selectedOptions[0];
+            return option ? {
+                name: option.value,
+                route_key: option.dataset.code || ""
+            } : {
+                name: "",
+                route_key: ""
             };
-            if (!map[key]) return;
-            document.querySelectorAll('.mapping-card').forEach(function(card) {
-                var radios = card.querySelectorAll('input[type="radio"]');
-                var anyChecked = Array.from(radios).some(function(r) {
-                    return r.checked;
-                });
-                if (!anyChecked) {
-                    var target = card.querySelector('input[value="' + map[key] + '"]');
-                    if (target) target.click();
+        }
+
+        function lookupFilingPhase(card) {
+            const select = card.querySelector(".lookup-phase-select");
+            return select ? select.value : "initial";
+        }
+
+        function updateLookupContext(card, checkedAt) {
+            const context = {
+                endpoint: card.dataset.endpoint,
+                jurisdiction: card.dataset.jurisdiction,
+                filing_phase: lookupFilingPhase(card),
+                checked_at: checkedAt || null,
+                court: selectedOption(card.querySelector(".court-select")),
+                category: selectedOption(card.querySelector(".category-select")),
+                case_type: selectedOption(card.querySelector(".case-type-select")),
+                filing_type: selectedOption(card.querySelector(".filing-type-select"))
+            };
+            card.querySelector(".lookup-context").value = JSON.stringify(context);
+        }
+
+        function addOption(select, name, code, label, selected) {
+            if (!name) return;
+            const option = document.createElement("option");
+            option.value = name;
+            option.textContent = label || name;
+            option.dataset.code = code || "";
+            option.selected = selected;
+            select.appendChild(option);
+        }
+
+        function replaceOptions(select, options, current) {
+            select.innerHTML = "";
+            const matching = options.some(function(option) {
+                return option.name === current;
+            });
+            let staleAssigned = false;
+            if (current && !matching) {
+                addOption(select, current, "", current + " (assigned; not in current lookup)", false);
+                select.lastElementChild.dataset.stale = "true";
+                staleAssigned = true;
+            }
+            options.forEach(function(option) {
+                addOption(select, option.name, option.route_key, option.name, option.name === current);
+            });
+            if (!matching && options.length) select.selectedIndex = staleAssigned ? 1 : 0;
+        }
+
+        function setStatus(card, message, kind) {
+            const status = card.querySelector(".lookup-status");
+            status.textContent = message;
+            status.className = "lookup-status" + (kind ? " " + kind : "");
+        }
+
+        async function fetchOptions(card, level, parameters) {
+            const query = new URLSearchParams({
+                jurisdiction: card.dataset.jurisdiction,
+                filing_phase: lookupFilingPhase(card),
+                ...parameters
+            });
+            const url = taxonomyUrl.replace("/categories/", "/" + level + "/") + "?" + query.toString();
+            const response = await fetch(url, {
+                headers: {
+                    Accept: "application/json"
                 }
             });
+            const payload = await response.json();
+            if (!response.ok) throw new Error(payload.error || "The live lookup failed.");
+            return payload;
+        }
+
+        async function loadCourts(card) {
+            setStatus(card, "Loading live courts…");
+            try {
+                const payload = await fetchOptions(card, "courts", {});
+                if (!payload.options.length) throw new Error("Staging returned no courts for this jurisdiction.");
+                const select = card.querySelector(".court-select");
+                const currentName = select.selectedOptions[0] ? select.selectedOptions[0].dataset.name || select.value : "";
+                select.innerHTML = "";
+                payload.options.forEach(function(option) {
+                    addOption(select, option.name, option.route_key, option.name, option.name === currentName);
+                    select.lastElementChild.dataset.name = option.name;
+                });
+                if (!select.value && payload.options.length) select.selectedIndex = 0;
+                setStatus(card, "Loaded " + payload.options.length + " live courts. Choose one, then load live options.", "success");
+                updateLookupContext(card, payload.checked_at);
+                return selectedOption(select);
+            } catch (error) {
+                setStatus(card, error.message, "error");
+                return null;
+            }
+        }
+
+        async function loadTaxonomy(card) {
+            let court = selectedOption(card.querySelector(".court-select"));
+            if (!court.route_key) {
+                court = await loadCourts(card);
+                if (!court || !court.route_key) return;
+            }
+            setStatus(card, "Loading staged categories, case types, and filing types…");
+            try {
+                const categoryPayload = await fetchOptions(card, "categories", {
+                    court: court.route_key
+                });
+                const categorySelect = card.querySelector(".category-select");
+                const currentCategory = categorySelect.dataset.current || categorySelect.value;
+                replaceOptions(categorySelect, categoryPayload.options, currentCategory);
+                const category = selectedOption(categorySelect);
+                if (!category.route_key) throw new Error("No live category is available for this court.");
+
+                const latest = await loadCaseTypes(card, category.route_key);
+                updateLookupContext(card, latest.checked_at || categoryPayload.checked_at);
+                setStatus(card, "Live options loaded from " + latest.endpoint + ".", "success");
+            } catch (error) {
+                setStatus(card, error.message, "error");
+                updateLookupContext(card, null);
+            }
+        }
+
+        async function loadCaseTypes(card, categoryCode) {
+            const court = selectedOption(card.querySelector(".court-select"));
+            const typePayload = await fetchOptions(card, "case_types", {
+                court: court.route_key,
+                category: categoryCode
+            });
+            const typeSelect = card.querySelector(".case-type-select");
+            const currentType = typeSelect.dataset.current || typeSelect.value;
+            replaceOptions(typeSelect, typePayload.options, currentType);
+            const caseType = selectedOption(typeSelect);
+            if (!caseType.route_key) throw new Error("No live case type is available for this category.");
+
+            const filingPayload = await loadFilingTypes(card, categoryCode, caseType.route_key);
+            return {
+                endpoint: filingPayload.endpoint,
+                checked_at: filingPayload.checked_at || typePayload.checked_at
+            };
+        }
+
+        async function loadFilingTypes(card, categoryCode, caseTypeCode) {
+            const court = selectedOption(card.querySelector(".court-select"));
+            const filingPayload = await fetchOptions(card, "filing_types", {
+                court: court.route_key,
+                category: categoryCode,
+                case_type: caseTypeCode
+            });
+            const filingSelect = card.querySelector(".filing-type-select");
+            replaceOptions(filingSelect, filingPayload.options, filingSelect.dataset.current || filingSelect.value);
+            return filingPayload;
+        }
+
+        document.querySelectorAll(".taxonomy-review").forEach(function(card) {
+            card.querySelector(".lookup-phase-select").addEventListener("change", function() {
+                updateLookupContext(card, null);
+                loadTaxonomy(card);
+            });
+            card.querySelector(".courts-button").addEventListener("click", function() {
+                loadCourts(card);
+            });
+            card.querySelector(".lookup-button").addEventListener("click", function() {
+                loadTaxonomy(card);
+            });
+            card.querySelector(".court-select").addEventListener("change", function() {
+                updateLookupContext(card, null);
+            });
+            card.querySelector(".category-select").addEventListener("change", async function() {
+                this.dataset.current = this.value;
+                const category = selectedOption(this);
+                updateLookupContext(card, null);
+                if (!category.route_key) return;
+                try {
+                    const latest = await loadCaseTypes(card, category.route_key);
+                    updateLookupContext(card, latest.checked_at);
+                    setStatus(card, "Case types and filing types refreshed from " + latest.endpoint + ".", "success");
+                } catch (error) {
+                    setStatus(card, error.message, "error");
+                }
+            });
+            card.querySelector(".case-type-select").addEventListener("change", async function() {
+                this.dataset.current = this.value;
+                const category = selectedOption(card.querySelector(".category-select"));
+                const caseType = selectedOption(this);
+                updateLookupContext(card, null);
+                if (!category.route_key || !caseType.route_key) return;
+                try {
+                    const latest = await loadFilingTypes(card, category.route_key, caseType.route_key);
+                    updateLookupContext(card, latest.checked_at);
+                    setStatus(card, "Filing types refreshed from " + latest.endpoint + ".", "success");
+                } catch (error) {
+                    setStatus(card, error.message, "error");
+                }
+            });
+            card.querySelector(".filing-type-select").addEventListener("change", function() {
+                this.dataset.current = this.value;
+                updateLookupContext(card, null);
+            });
+            updateLookupContext(card, null);
         });
     </script>
 {% endblock extra_js %}

@@ -1,15 +1,38 @@
 import json
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
+import requests
 from django.test import override_settings
 
 from efile.services.taxonomy_classification import (
     HierarchicalDocumentClassifier,
+    TylerTaxonomyClient,
     deterministic_form_identity,
     exact_form_crosswalk_matches,
     primary_amount_in_controversy,
+    scan_document_for_form_identifiers,
     summarize_form_crosswalk_matches,
 )
+
+
+def test_tyler_taxonomy_client_retries_a_transient_timeout():
+    response = Mock()
+    response.raise_for_status.return_value = None
+    response.json.return_value = [{"code": "352", "name": "Middlesex Probate and Family Court"}]
+    client = TylerTaxonomyClient(base_url="https://staging.example", timeout=1, attempts=2)
+
+    with (
+        patch(
+            "efile.services.taxonomy_classification.requests.get",
+            side_effect=[requests.Timeout("temporary timeout"), response],
+        ) as get,
+        patch("efile.services.taxonomy_classification.time.sleep") as sleep,
+    ):
+        options = client.courts("massachusetts")
+
+    assert options == [{"route_key": "352", "name": "Middlesex Probate and Family Court"}]
+    assert get.call_count == 2
+    sleep.assert_called_once_with(0.2)
 
 
 class FakeTaxonomy:
@@ -69,7 +92,7 @@ def test_hierarchy_uses_references_then_restores_live_names_and_route_keys(chat_
     assert run.selections["filing type"]["name"] == "Complaint for Divorce - Irretrievable Breakdown 1B"
     assert run.metadata["prompt_version"] == "v2"
     assert run.metadata["taxonomy_endpoint"] == "https://efile-test.example"
-    assert run.metadata["form_crosswalk_summary"]["route_resolution"] == "exact"
+    assert run.metadata["form_crosswalk_summary"]["route_resolution"] == "unavailable"
 
 
 @patch("efile.services.taxonomy_classification.chat_completion")
@@ -175,6 +198,114 @@ def test_form_identifier_normalization_handles_ocr_punctuation(tmp_path):
     assert identity["matches"][0]["canonical_form_id"] == "MA-CJD-101B"
 
 
+def test_document_form_identifier_scan_handles_punctuation_and_line_breaks(tmp_path):
+    crosswalk_path = tmp_path / "crosswalk.json"
+    crosswalk_path.write_text(
+        json.dumps(
+            {
+                "registry": [
+                    {
+                        "form": {
+                            "canonical_id": "TEST-CJD-101B",
+                            "jurisdiction": "massachusetts",
+                            "form_id": "CJD 101B",
+                            "canonical_name": "Test divorce complaint",
+                            "is_form": True,
+                            "is_efileable": True,
+                        },
+                        "mappings": [],
+                    }
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    with override_settings(FORM_CODE_CROSSWALK_PATH=crosswalk_path):
+        result = scan_document_for_form_identifiers(
+            "massachusetts",
+            "PROBATE AND FAMILY COURT\nForm CJ-D\n101B\nComplaint for Divorce",
+        )
+
+    assert result["status"] == "matched"
+    assert result["matches"][0]["canonical_form_id"] == "TEST-CJD-101B"
+    assert result["matches"][0]["form_id"] == "CJD 101B"
+    assert result["matches"][0]["occurrences"][0]["page"] == 1
+
+
+def test_document_form_identifier_scan_requires_alphanumeric_boundaries(tmp_path):
+    crosswalk_path = tmp_path / "crosswalk.json"
+    crosswalk_path.write_text(
+        json.dumps(
+            {
+                "registry": [
+                    {
+                        "form": {
+                            "canonical_id": "TEST-CJD-101B",
+                            "jurisdiction": "massachusetts",
+                            "form_id": "CJD 101B",
+                            "canonical_name": "Test divorce complaint",
+                            "is_form": True,
+                            "is_efileable": True,
+                        },
+                        "mappings": [],
+                    }
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    with override_settings(FORM_CODE_CROSSWALK_PATH=crosswalk_path):
+        result = scan_document_for_form_identifiers(
+            "massachusetts",
+            "XCJD-101B CJD-101BXYZ and CJD - 101B",
+        )
+
+    assert result["status"] == "matched"
+    assert len(result["matches"]) == 1
+    assert len(result["matches"][0]["occurrences"]) == 1
+
+
+def test_document_form_identifier_scan_keeps_reused_ids_ambiguous(tmp_path):
+    crosswalk_path = tmp_path / "crosswalk.json"
+    crosswalk_path.write_text(
+        json.dumps(
+            {
+                "registry": [
+                    {
+                        "form": {
+                            "canonical_id": "IL-ABCD-1",
+                            "jurisdiction": "illinois",
+                            "form_id": "ABCD",
+                            "canonical_name": "First ABCD form",
+                            "is_form": True,
+                            "is_efileable": True,
+                        },
+                        "mappings": [],
+                    },
+                    {
+                        "form": {
+                            "canonical_id": "IL-ABCD-2",
+                            "jurisdiction": "illinois",
+                            "form_id": "ABCD",
+                            "canonical_name": "Second ABCD form",
+                            "is_form": True,
+                            "is_efileable": True,
+                        },
+                        "mappings": [],
+                    },
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    with override_settings(FORM_CODE_CROSSWALK_PATH=crosswalk_path):
+        result = scan_document_for_form_identifiers("illinois", "Form ABCD")
+
+    assert result["status"] == "ambiguous"
+    assert result["match_count"] > 1
+    assert result["deterministic"] is False
+
+
 def test_conflicting_identifier_does_not_fall_back_to_title(tmp_path):
     crosswalk_path = tmp_path / "crosswalk.json"
     crosswalk_path.write_text(
@@ -207,6 +338,34 @@ def test_conflicting_identifier_does_not_fall_back_to_title(tmp_path):
         )
 
     assert identity["status"] == "unmatched"
+
+
+def test_exact_title_identity_supports_non_latin_titles(tmp_path):
+    crosswalk_path = tmp_path / "crosswalk.json"
+    crosswalk_path.write_text(
+        json.dumps(
+            {
+                "registry": [
+                    {
+                        "form": {
+                            "canonical_id": "MA-TITLE-CHINESE",
+                            "jurisdiction": "massachusetts",
+                            "form_id": None,
+                            "canonical_name": "认罪或招认暨权利放弃声明书",
+                            "is_form": True,
+                        },
+                        "mappings": [],
+                    }
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    with override_settings(FORM_CODE_CROSSWALK_PATH=crosswalk_path):
+        identity = deterministic_form_identity("massachusetts", {"form name": "认罪或招认暨权利放弃声明书"})
+
+    assert identity["status"] == "matched"
+    assert identity["matches"][0]["canonical_form_id"] == "MA-TITLE-CHINESE"
 
 
 def test_reused_form_id_is_ambiguous_without_title(tmp_path):

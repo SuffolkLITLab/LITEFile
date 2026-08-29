@@ -16,8 +16,8 @@ from audit_form_code_crosswalk import (
     normalized_name,
 )
 
-SCHEMA_VERSION = "1.1.0"
-CHANGE_DATE = "2026-08-22"
+SCHEMA_VERSION = "1.2.0"
+CHANGE_DATE = "2026-08-27"
 CANONICAL_FORMS_ROOT = DEFAULT_CROSSWALK.parent / "canonical_forms"
 SEED_MANIFEST = DEFAULT_CROSSWALK.parents[2] / "synthetic" / "seed_manifest.jsonl"
 
@@ -326,13 +326,9 @@ def normalize_document(document: dict[str, Any]) -> dict[str, Any]:
         "version": SCHEMA_VERSION,
         "date": CHANGE_DATE,
         "changes": [
-            "Separated live catalog observation from semantic form-to-taxonomy verification",
-            "Made taxonomy and court names the durable identifiers; retained environment route keys only as observations",
-            "Standardized source URLs as source_urls lists and added explicit unknown revision values",
-            "Removed outer whitespace from taxonomy names",
-            "Merged duplicate taxonomy labels created by environment-specific surrogate keys while retaining fee and observation notes",
-            "Corrected seven title-heuristic form classifications and stopped marking non-form documents e-fileable",
-            "Added a document role and a reproducible structural/live audit",
+            "Added punctuation-insensitive printed-code aliases for the sampled Illinois statewide forms",
+            "Added registry records for the sampled statewide Complaint or Petition, Petition for Divorce with Children, and Minor Guardianship forms",
+            "Recorded the Illinois sample codes as form identity only; no unverified Tyler taxonomy mappings were added",
         ],
     }
     document["changelog"] = [

@@ -127,7 +127,9 @@ def test_worker_reads_a_real_uploaded_pdf_before_classification(extraction_draft
 
     def classify_source(_classifier, jurisdiction, evidence, source_text):
         assert jurisdiction == "massachusetts"
-        assert evidence["form identifier"] == "CJD 101B"
+        # CJD 101B is not retained in the downloaded-form ID index, so the
+        # deterministic pass must not replace the model's partial evidence.
+        assert evidence["form identifier"] == "CJD 101"
         assert "COMPLAINT FOR DIVORCE" in source_text
         assert "Middlesex" in source_text
         assert "Division" in source_text
@@ -147,7 +149,7 @@ def test_worker_reads_a_real_uploaded_pdf_before_classification(extraction_draft
         patch(
             "efile.services.document_extractions.extract_fields_from_file",
             return_value={
-                "form identifier": "CJD 101B",
+                "form identifier": "CJD 101",
                 "form name": "Complaint for Divorce under G.L. c. 208, § 1B",
                 "court name": "Middlesex Division",
                 "filing phase": "initial",
@@ -162,9 +164,13 @@ def test_worker_reads_a_real_uploaded_pdf_before_classification(extraction_draft
 
     job.refresh_from_db()
     extraction_draft.refresh_from_db()
-    assert job.evidence["form identifier"] == "CJD 101B"
+    assert job.evidence["form identifier"] == "CJD 101"
     assert job.classification["court"]["route_key"] == "current-court-key"
     assert job.analysis_metadata["evidence_prompt_version"] == "v1"
+    assert job.analysis_metadata["ai_form_identifier"] == "CJD 101"
+    assert job.analysis_metadata["form_identifier_scan"]["status"] == "unmatched"
+    assert job.analysis_metadata["form_identifier_scan_source"] == "pypdf"
+    assert job.analysis_metadata["form_identifier_scan_ms"] < 2000
     assert extraction_draft.extracted_guesses["court"] == "Middlesex Probate and Family Court"
     assert extraction_draft.amount_in_controversy == "1275"
 

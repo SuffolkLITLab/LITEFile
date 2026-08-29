@@ -5,6 +5,7 @@ from contextlib import contextmanager
 from datetime import timedelta
 from pathlib import Path
 from tempfile import NamedTemporaryFile, TemporaryDirectory
+from time import perf_counter
 
 from django.conf import settings
 from django.db import connection, transaction
@@ -20,7 +21,11 @@ from efile.services.extraction_fields import (
     display_extracted_fields,
     normalize_document_evidence,
 )
-from efile.services.taxonomy_classification import HierarchicalDocumentClassifier, primary_amount_in_controversy
+from efile.services.taxonomy_classification import (
+    HierarchicalDocumentClassifier,
+    primary_amount_in_controversy,
+    scan_document_for_form_identifiers,
+)
 from efile.utils.llms import extract_fields_from_file, get_default_model
 from efile.utils.prompt_config import prompt_version
 from efile.utils.s3_upload_handler import S3UploadHandler
@@ -81,8 +86,29 @@ def limited_pdf(source_path, max_pages):
             Path(temp_path).unlink(missing_ok=True)
 
 
+def _searchable_pdf_text(file_path):
+    """Extract selectable text cheaply for the deterministic form-ID pass."""
+    reader = PdfReader(file_path)
+    return "\f".join(page.extract_text() or "" for page in reader.pages)
+
+
 def analyze_document(file_path, jurisdiction):
     """Run vision evidence extraction, source-text conversion, and live classification."""
+    source_pages = max(1, settings.DOCUMENT_CLASSIFICATION_SOURCE_PAGES)
+    with limited_pdf(file_path, source_pages) as (source_path, _total, pages_converted):
+        source_text = MarkItDown().convert(source_path).text_content
+
+    scan_started = perf_counter()
+    searchable_text = _searchable_pdf_text(file_path)
+    form_identifier_scan = scan_document_for_form_identifiers(jurisdiction, searchable_text)
+    scan_source = "pypdf"
+    if form_identifier_scan["status"] == "unmatched" and source_text:
+        markitdown_scan = scan_document_for_form_identifiers(jurisdiction, source_text)
+        if markitdown_scan["status"] != "unmatched":
+            form_identifier_scan = markitdown_scan
+            scan_source = "markitdown"
+    scan_ms = round((perf_counter() - scan_started) * 1000, 2)
+
     evidence_prompt = "document_evidence_extraction"
     evidence_version, _definition, evidence_config = prompt_version(evidence_prompt)
     evidence_model = getattr(settings, "DOCUMENT_EVIDENCE_MODEL", "") or get_default_model(
@@ -100,10 +126,12 @@ def analyze_document(file_path, jurisdiction):
             diagnostics=evidence_diagnostics,
         )
     )
-
-    source_pages = max(1, settings.DOCUMENT_CLASSIFICATION_SOURCE_PAGES)
-    with limited_pdf(file_path, source_pages) as (source_path, _total, pages_converted):
-        source_text = MarkItDown().convert(source_path).text_content
+    ai_form_identifier = evidence.get("form identifier")
+    if form_identifier_scan.get("deterministic"):
+        # The printed identifier found in the source text is stronger than an
+        # AI transcription of the same field. Keep the AI value in metadata for
+        # review and diagnostics, but classify from the deterministic value.
+        evidence["form identifier"] = form_identifier_scan["deterministic_match"]["form_id"]
     classification = HierarchicalDocumentClassifier().classify(jurisdiction, evidence, source_text)
     guesses = display_extracted_fields(evidence)
     for level, selection in classification.selections.items():
@@ -120,6 +148,10 @@ def analyze_document(file_path, jurisdiction):
             "evidence_input_mode": evidence_diagnostics.get("input_mode", "unknown"),
             "source_conversion": "markitdown",
             "source_pages": pages_converted,
+            "form_identifier_scan": form_identifier_scan,
+            "form_identifier_scan_source": scan_source,
+            "form_identifier_scan_ms": scan_ms,
+            "ai_form_identifier": ai_form_identifier,
             **classification.metadata,
         },
     }

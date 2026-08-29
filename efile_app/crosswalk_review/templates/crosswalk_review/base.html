@@ -245,6 +245,7 @@
                 <a href="{% url 'crosswalk_review:progress' %}"
                    {% if request.resolver_match.url_name == 'progress' %}class="active"{% endif %}>Progress</a>
                 <a href="{% url 'crosswalk_review:export_csv' %}">Export CSV</a>
+                <a href="{% url 'crosswalk_review:export_json' %}">Export JSON</a>
             </nav>
             {% if request.session.reviewer_name %}
                 <span class="reviewer-badge">Reviewer: {{ request.session.reviewer_name }}</span>

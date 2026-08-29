@@ -181,3 +181,5 @@ session_cookies.txt
 # Court forms dataset
 court_forms/
 
+# Derived lab-notebook visual review pages
+benchmarking/promptfoo/lab-notebook/studies/2026-08-27-deterministic-form-identifier-scan/illinois-form-code-review/

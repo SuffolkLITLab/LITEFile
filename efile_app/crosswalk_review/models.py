@@ -97,6 +97,42 @@ class CrosswalkMapping(models.Model):
         return self.confidence * 100 if self.confidence is not None else None
 
 
+class FormReview(models.Model):
+    """A reviewer's saved form-identity answers.
+
+    The crosswalk remains read-only reference data. These answers are kept in
+    the review database so a reviewer can correct a title or printed form ID
+    without silently changing the source crosswalk.
+    """
+
+    VERDICT_CHOICES = [
+        ("correct", "✓ Correct"),
+        ("incorrect", "✗ Incorrect"),
+        ("unsure", "? Unsure"),
+    ]
+
+    form = models.ForeignKey(CrosswalkForm, on_delete=models.CASCADE, related_name="reviews")
+    reviewer_name = models.CharField(max_length=100)
+    reviewed_title = models.CharField(max_length=500, blank=True)
+    title_verdict = models.CharField(max_length=20, choices=VERDICT_CHOICES, blank=True)
+    reviewed_form_id = models.CharField(max_length=200, blank=True)
+    form_id_verdict = models.CharField(max_length=20, choices=VERDICT_CHOICES, blank=True)
+    reviewer_notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["form", "reviewer_name"], name="unique_form_review_reviewer"),
+        ]
+        ordering = ["-updated_at"]
+        verbose_name = "Form review"
+        verbose_name_plural = "Form reviews"
+
+    def __str__(self) -> str:
+        return f"{self.reviewer_name}: {self.form.canonical_id}"
+
+
 class MappingVerdict(models.Model):
     """A human reviewer's verdict on one CrosswalkMapping."""
 
@@ -108,7 +144,12 @@ class MappingVerdict(models.Model):
 
     mapping = models.ForeignKey(CrosswalkMapping, on_delete=models.CASCADE, related_name="verdicts")
     reviewer_name = models.CharField(max_length=100)
-    verdict = models.CharField(max_length=20, choices=VERDICT_CHOICES)
+    verdict = models.CharField(max_length=20, choices=VERDICT_CHOICES, blank=True)
+    reviewed_category = models.CharField(max_length=300, blank=True)
+    reviewed_case_type = models.CharField(max_length=300, blank=True)
+    reviewed_filing_type = models.CharField(max_length=500, blank=True)
+    field_verdicts = models.JSONField(default=dict)
+    lookup_context = models.JSONField(default=dict)
     reviewer_notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

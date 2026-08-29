@@ -1,9 +1,11 @@
 """Production settings for the standalone crosswalk review deployment."""
 
 import os
+from pathlib import Path
 
 from efile.settings_base import *  # noqa: F401,F403
 from efile.settings_base import BASE_DIR as BASE_SETTINGS_DIR
+from efile.settings_base import EFSP_URL
 from efile.settings_base import MIDDLEWARE as BASE_MIDDLEWARE
 
 DEBUG = False
@@ -11,6 +13,13 @@ DEBUG = False
 APP_HOSTNAME = os.getenv("CROSSWALK_REVIEW_HOSTNAME", "litefile-crosswalk-review.fly.dev").strip()
 ALLOWED_HOSTS = [APP_HOSTNAME]
 CSRF_TRUSTED_ORIGINS = [f"https://{APP_HOSTNAME}"]
+
+# The review UI performs read-only hierarchy lookups against this endpoint.
+# Keep it separate from the public LITEFile link so a reviewer can point the
+# tool at another jurisdiction-aware staging environment without changing the
+# form preview URL.
+CROSSWALK_REVIEW_EFSP_URL = os.getenv("CROSSWALK_REVIEW_EFSP_URL", EFSP_URL).strip().rstrip("/")
+CROSSWALK_REVIEW_FORMS_ROOT = Path(os.getenv("CROSSWALK_REVIEW_FORMS_ROOT", BASE_SETTINGS_DIR.parent / "court_forms"))
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "")
 if not SECRET_KEY or SECRET_KEY.startswith("django-insecure-"):
