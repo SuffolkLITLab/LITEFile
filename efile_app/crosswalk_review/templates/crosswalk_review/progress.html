@@ -121,7 +121,7 @@
             <h2 class="card-title" style="margin:0;">
                 All forms
                 <span style="font-weight:400; font-size:0.85rem; color:#6b7280;">
-                    ({{ total_forms }} total · {{ total_verdicts }} verdicts)
+                    ({{ total_forms }} total · {{ total_verdicts }} mapping answers · {{ total_form_reviews }} identity answers)
                 </span>
             </h2>
             <a class="btn btn-secondary btn-sm"
@@ -151,6 +151,7 @@
                     <th>Jurisdiction</th>
                     <th>Mappings</th>
                     <th>Reviewed mappings</th>
+                    {% if reviewer %}<th>Field answers</th>{% endif %}
                     <th>Status</th>
                     <th>Action</th>
                 </tr>
@@ -170,8 +171,17 @@
                             <td style="font-size:0.85rem;">{{ form.jurisdiction|capfirst }}</td>
                             <td style="text-align:center;">{{ total_m }}</td>
                             <td style="text-align:center;">{{ reviewed }} / {{ total_m }}</td>
+                            {% if reviewer %}
+                                <td style="text-align:center;">
+                                    {{ form.field_review_progress.reviewed_fields }} / {{ form.field_review_progress.total_fields }}
+                                </td>
+                            {% endif %}
                             <td>
-                                {% if reviewed >= total_m and total_m > 0 %}
+                                {% if reviewer and form.field_review_progress.complete %}
+                                    <span class="status-dot dot-reviewed"></span>Complete
+                                {% elif reviewer and form.field_review_progress.reviewed_fields > 0 %}
+                                    <span class="status-dot dot-partial"></span>In progress
+                                {% elif reviewed >= total_m and total_m > 0 %}
                                     <span class="status-dot dot-reviewed"></span>Reviewed
                                 {% elif reviewed > 0 %}
                                     <span class="status-dot dot-partial"></span>Partial

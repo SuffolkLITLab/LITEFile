@@ -86,9 +86,10 @@
     <div class="hero">
         <h1>Crosswalk review tool</h1>
         <p>
-            Help verify the machine-generated form-to-filing-code crosswalk.
-            Each card shows one court form and all its suggested filing codes.
-            Mark each mapping as correct, incorrect, or unsure.
+            Verify the assigned form title and printed ID, then review each
+            suggested filing-code path. Answers are saved as you go and can be
+            resumed later. Live taxonomy choices come from the configured
+            staging endpoint.
         </p>
     </div>
     <!-- Overall stats -->
@@ -106,20 +107,31 @@
             <div class="stat-label">Total verdicts submitted</div>
         </div>
         <div class="stat-card">
-            <div class="stat-number">{{ forms_fully_reviewed }}</div>
-            <div class="stat-label">Fully reviewed forms</div>
+            <div class="stat-number">{{ forms_field_complete }}</div>
+            <div class="stat-label">
+                Fully reviewed forms
+                {% if reviewer %}by you{% endif %}
+            </div>
         </div>
         {% if total_forms > 0 %}
             <div class="stat-card" style="grid-column: span 2;">
                 <div style="font-size:0.8rem; color:#6b7280; margin-bottom:0.5rem;">Overall progress</div>
                 <div class="progress-bar-wrap">
                     <div class="progress-bar-fill"
-                         style="width: {{ overall_progress_percent }}%"></div>
+                         style="width: {% if reviewer %}{{ field_progress_percent }}{% else %}{{ overall_progress_percent }}{% endif %}%">
+                    </div>
                 </div>
                 <div style="font-size:0.78rem;
                             color:#6b7280;
                             margin-top:0.25rem;
-                            text-align:right">{{ forms_fully_reviewed }} / {{ total_forms }}</div>
+                            text-align:right">
+                    {% if reviewer %}
+                        {{ forms_field_complete }}
+                    {% else %}
+                        {{ forms_fully_reviewed }}
+                    {% endif %}
+                    / {{ total_forms }}
+                </div>
             </div>
         {% endif %}
     </div>
@@ -139,7 +151,7 @@
             </div>
             <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
                 <a class="btn btn-primary"
-                   href="{% url 'crosswalk_review:next_unreviewed' %}?reviewer={{ reviewer_stats.name|urlencode }}">
+                   href="{% url 'crosswalk_review:next_unreviewed' %}?reviewer={{ reviewer_stats.name|urlencode }}&amp;workflow=fields">
                     Continue reviewing →
                 </a>
                 <a class="btn btn-secondary"
@@ -185,6 +197,10 @@
             <li>
                 <a href="{% url 'crosswalk_review:export_csv' %}">Download all verdicts as CSV</a>
             </li>
+            <li>
+                <a href="{% url 'crosswalk_review:export_json' %}">Download complete saved review state as JSON</a>
+            </li>
+            <li style="font-size:0.85rem; color:#6b7280;">Live lookup endpoint: {{ review_efsp_url }}</li>
         </ul>
     </div>
 {% endblock content %}

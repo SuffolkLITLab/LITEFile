@@ -1,0 +1,1546 @@
+[
+  {
+    "path": "IL/IL_View_Form_cf8bc775.pdf",
+    "crawl_title": "View Form",
+    "extracted_title": "AOIC-12/2020 PROBATION/COURT SERVICES EMPLOYMENT/PROMOTION APPLICATION",
+    "confidence": 0.99,
+    "extraction_method": "pypdf",
+    "accepted": true
+  },
+  {
+    "path": "IL/IL_View_Form_d7ff4a1f.pdf",
+    "crawl_title": "View Form",
+    "extracted_title": "COURT FACILITY CLOSURE/MODIFIED OPERATIONS FORM",
+    "confidence": 0.99,
+    "extraction_method": "pypdf",
+    "accepted": true
+  },
+  {
+    "path": "IL/IL_View_Form_2b4af1e7.pdf",
+    "crawl_title": "View Form",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "IL/IL_View_Form_720c5460.pdf",
+    "crawl_title": "View Form",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "IL/IL_View_Form_6549c728.pdf",
+    "crawl_title": "View Form",
+    "extracted_title": "REQUEST TO SUPPRESS PERSONAL INFORMATION",
+    "confidence": 0.99,
+    "extraction_method": "pypdf",
+    "accepted": true
+  },
+  {
+    "path": "IL/IL_View_Form_87e1504b.pdf",
+    "crawl_title": "View Form",
+    "extracted_title": "Judicial Request for Removal of Personal Information",
+    "confidence": 0.66,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "IL/IL_(Untitled)_2c236a2c.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": "APPLICATION FOR CERTIFICATION - LAW SCHOOL GRADUATE",
+    "confidence": 0.99,
+    "extraction_method": "pypdf",
+    "accepted": true
+  },
+  {
+    "path": "IL/IL_(Untitled)_a4175b27.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_8f8b9508.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_8d09a7cb.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_7e806649.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Tiếng_Việt_7eaf8a79.pdf",
+    "crawl_title": "Tiếng Việt",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Kreyòl_ayisyen_7bb245ec.pdf",
+    "crawl_title": "Kreyòl ayisyen",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Kreyòl_ayisyen_6dff74cc.pdf",
+    "crawl_title": "Kreyòl ayisyen",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Português,_Portugal_6bd75823.pdf",
+    "crawl_title": "Português, Portugal",
+    "extracted_title": "Motion to the Court and Affidavit (10/09) - Portuguese (2/16)",
+    "confidence": 0.66,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_5a3f3dcf.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_5c28d9bc.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_56ebbb21.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_50c91108.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_50b5f696.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_47ec3e0c.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_47d1592c.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_46ad2f18.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Tiếng_Việt_4f12eaf2.pdf",
+    "crawl_title": "Tiếng Việt",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_4a1b29c0.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_43c34233.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_3e775077.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_4e9ccd3a.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": "Petition to Seal Record(s) (1/15) - Arabic (12/15)",
+    "confidence": 0.7,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_3fe49526.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_40e8240c.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": "Findings and Order of Court on Petition to Seal Record(s) (11/30/14) - Russian (12/15)",
+    "confidence": 0.68,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_3e186084.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Kreyòl_ayisyen_3b2e1d45.pdf",
+    "crawl_title": "Kreyòl ayisyen",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_39c1aeb7.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": "Findings and Order of Court on Petition to Seal Record(s) (11/30/14) - Chinese (12/15)",
+    "confidence": 0.68,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_29e7711f.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Kreyòl_ayisyen_2b67ab86.pdf",
+    "crawl_title": "Kreyòl ayisyen",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Português,_Portugal_2f8cfe93.pdf",
+    "crawl_title": "Português, Portugal",
+    "extracted_title": "JV-034 (05/02/13) Consent to Filing Criminal Charge - Arabic (2/16)",
+    "confidence": 0.74,
+    "extraction_method": "pypdf",
+    "accepted": true
+  },
+  {
+    "path": "MA/MA_Layout_1_2afb671f.pdf",
+    "crawl_title": "Layout 1",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_29e027c4.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_2c8b19cb.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Layout_1_28e7bbae.pdf",
+    "crawl_title": "Layout 1",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_1ce76be3.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Português,_Portugal_1d18e534.pdf",
+    "crawl_title": "Português, Portugal",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_1d6cad8a.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_22f9fb86.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_15aaf72c.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_11ce9659.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Português,_Portugal_16ce8e48.pdf",
+    "crawl_title": "Português, Portugal",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Layout_1_14e9ccf6.pdf",
+    "crawl_title": "Layout 1",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_11eae8ae.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_0b92e572.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Tiếng_Việt_0ac2d1ac.pdf",
+    "crawl_title": "Tiếng Việt",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_03e9ca0b.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_02b39d22.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Português,_Portugal_012f9ab8.pdf",
+    "crawl_title": "Português, Portugal",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_9b89a1c8.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_02ca455b.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Tiếng_Việt_8c4e269a.pdf",
+    "crawl_title": "Tiếng Việt",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_7e65dea4.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Português,_Portugal_6b2f1e2b.pdf",
+    "crawl_title": "Português, Portugal",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_7a211921.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": "DC-CR 22 (05/15) Tender of Plea or Admission and Waiver of Rights - Arabic (12/15)",
+    "confidence": 0.75,
+    "extraction_method": "pypdf",
+    "accepted": true
+  },
+  {
+    "path": "MA/MA_(Untitled)_5d3f99d3.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_51a4193f.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_5cd6f7d7.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Português,_Portugal_56a17307.pdf",
+    "crawl_title": "Português, Portugal",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_40bf7e6a.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_a9501e3f.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_3f38e198.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Português,_Portugal_38e48131.pdf",
+    "crawl_title": "Português, Portugal",
+    "extracted_title": "DC-CR 22 (05/15) Tender of Plea or Admission and Waiver of Rights - Portuguese (2/16)",
+    "confidence": 0.74,
+    "extraction_method": "pypdf",
+    "accepted": true
+  },
+  {
+    "path": "MA/MA_(Untitled)_a5e3fea3.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_a917d7df.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_a8c796fc.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_97033c70.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_a13570fb.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_953837f7.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_99d63563.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": "Findings and Order of Court on Petition to Seal Record(s) (11/30/14) - Arabic (12/15)",
+    "confidence": 0.68,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Português,_Portugal_9555447f.pdf",
+    "crawl_title": "Português, Portugal",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_89c70ebc.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Tiếng_Việt_91178b9e.pdf",
+    "crawl_title": "Tiếng Việt",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_85bb3a84.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_8609f17d.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_87fb2e48.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_88cb5c6b.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_76a8f9cf.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Kreyòl_ayisyen_8262b584.pdf",
+    "crawl_title": "Kreyòl ayisyen",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Tiếng_Việt_81813d80.pdf",
+    "crawl_title": "Tiếng Việt",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Português,_Portugal_77979f75.pdf",
+    "crawl_title": "Português, Portugal",
+    "extracted_title": "Petition to Seal Record(s) (1/15) - Portuguese (2/16)",
+    "confidence": 0.68,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Português,_Portugal_75561911.pdf",
+    "crawl_title": "Português, Portugal",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_70974f75.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_96b95467.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": "FA-16 (08/14) Notice to Plaintiff Regarding Abuse Prevention (Restraining) Order – Arabic 08/14",
+    "confidence": 0.7,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_a92156ab.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": "Motion to the Court and Affidavit (10/09) - Russian (12/15)",
+    "confidence": 0.66,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_75e6104e.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Kreyòl_ayisyen_66c46dd6.pdf",
+    "crawl_title": "Kreyòl ayisyen",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_650a8e07.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_71f0d47f.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": "OCP (04/12) Petition to Seal - Russian (12/15)",
+    "confidence": 0.8,
+    "extraction_method": "pypdf",
+    "accepted": true
+  },
+  {
+    "path": "MA/MA_(Untitled)_61404aa0.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_65f3a5f7.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": "OCP (04/12) Petition to Seal - Chinese (12/15)",
+    "confidence": 0.8,
+    "extraction_method": "pypdf",
+    "accepted": true
+  },
+  {
+    "path": "MA/MA_Kreyòl_ayisyen_588bcd41.pdf",
+    "crawl_title": "Kreyòl ayisyen",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_6262c464.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_56535057.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_563529ae.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Kreyòl_ayisyen_5174a582.pdf",
+    "crawl_title": "Kreyòl ayisyen",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Tiếng_Việt_50802d8a.pdf",
+    "crawl_title": "Tiếng Việt",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_4907e3b0.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_5393b4dc.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": "ORDER OF TRANSFER",
+    "confidence": 0.87,
+    "extraction_method": "pypdf",
+    "accepted": true
+  },
+  {
+    "path": "MA/MA_Layout_1_5022f60e.pdf",
+    "crawl_title": "Layout 1",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_488d96d2.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Kreyòl_ayisyen_3852b183.pdf",
+    "crawl_title": "Kreyòl ayisyen",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_31421bde.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_269ef999.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Layout_1_5487620c.pdf",
+    "crawl_title": "Layout 1",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_21999c57.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_25703397.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": "JV-034 (05/02/13) Consent to Filing Criminal Charge - Russian (12/15)",
+    "confidence": 0.73,
+    "extraction_method": "pypdf",
+    "accepted": true
+  },
+  {
+    "path": "MA/MA_(Untitled)_09893a12.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_164e4b09.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": "REQUEST FOR REASSIGNMENT",
+    "confidence": 0.99,
+    "extraction_method": "pypdf",
+    "accepted": true
+  },
+  {
+    "path": "MA/MA_(Untitled)_fdbc296b.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_fcb19d82.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_fc862941.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_f74de702.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_ff1cc19b.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Português,_Portugal_fcb86f66.pdf",
+    "crawl_title": "Português, Portugal",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_fee5358f.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": "Petition to Seal Record(s) (1/15) - Russian (12/15)",
+    "confidence": 0.69,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_f25ef288.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Português,_Portugal_f5b612be.pdf",
+    "crawl_title": "Português, Portugal",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_f3ac358d.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_f7dcb7a6.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": "Petition to Seal Record(s) (1/15) - Chinese (12/15)",
+    "confidence": 0.69,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Kreyòl_ayisyen_f1c55fe3.pdf",
+    "crawl_title": "Kreyòl ayisyen",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_ea4d95b4.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_ee2cfb40.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": "Motion to the Court and Affidavit (10/09) - Chinese (12/15)",
+    "confidence": 0.66,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Português,_Portugal_ec37d0f7.pdf",
+    "crawl_title": "Português, Portugal",
+    "extracted_title": "OCP (04/12) Petition to Seal - Portuguese (2/16)",
+    "confidence": 0.77,
+    "extraction_method": "pypdf",
+    "accepted": true
+  },
+  {
+    "path": "MA/MA_(Untitled)_e5dd2428.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_e808d6b0.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Kreyòl_ayisyen_e9545854.pdf",
+    "crawl_title": "Kreyòl ayisyen",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Layout_1_eb663a30.pdf",
+    "crawl_title": "Layout 1",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_e50e6820.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_ea471818.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_e44016cc.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_e0a1a042.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Tiếng_Việt_e07f3aeb.pdf",
+    "crawl_title": "Tiếng Việt",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_e2f312fb.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": "OCP (04/12) Petition to Seal - Arabic (12/15)",
+    "confidence": 0.81,
+    "extraction_method": "pypdf",
+    "accepted": true
+  },
+  {
+    "path": "MA/MA_Português,_Portugal_dcaa94b2.pdf",
+    "crawl_title": "Português, Portugal",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_e26a6fed.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": "PETITION FOR EXPUNGEMENT",
+    "confidence": 0.99,
+    "extraction_method": "pypdf",
+    "accepted": true
+  },
+  {
+    "path": "MA/MA_(Untitled)_dbc0de6c.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Kreyòl_ayisyen_dbe85432.pdf",
+    "crawl_title": "Kreyòl ayisyen",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_d7f828ba.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Português,_Portugal_d80bccf5.pdf",
+    "crawl_title": "Português, Portugal",
+    "extracted_title": "Findings and Order of Court on Petition to Seal Record(s) (11/30/14) - Portuguese (2/16)",
+    "confidence": 0.68,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_d35240e1.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_d31d725e.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_cf00d2ab.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_ce7ec799.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_cd225c33.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_cb9999b1.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_cb5fcca0.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_c069b734.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_c2d80b42.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_c9dfc287.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_be609a86.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_c1a6e203.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Tiếng_Việt_bf9665fa.pdf",
+    "crawl_title": "Tiếng Việt",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Kreyòl_ayisyen_be64fecb.pdf",
+    "crawl_title": "Kreyòl ayisyen",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Kreyòl_ayisyen_f806b23f.pdf",
+    "crawl_title": "Kreyòl ayisyen",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Tiếng_Việt_f5ac567f.pdf",
+    "crawl_title": "Tiếng Việt",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Kreyòl_ayisyen_f1cbce25.pdf",
+    "crawl_title": "Kreyòl ayisyen",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Kreyòl_ayisyen_e7927aaf.pdf",
+    "crawl_title": "Kreyòl ayisyen",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Português,_Portugal_e55aa06b.pdf",
+    "crawl_title": "Português, Portugal",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_df35d484.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_dac66455.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Layout_1_ce89fb3b.pdf",
+    "crawl_title": "Layout 1",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Tiếng_Việt_d4d17543.pdf",
+    "crawl_title": "Tiếng Việt",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Kreyòl_ayisyen_c86ca92e.pdf",
+    "crawl_title": "Kreyòl ayisyen",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_bd5e4527.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Tiếng_Việt_cc7ce79e.pdf",
+    "crawl_title": "Tiếng Việt",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_c20c4a36.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_bd3083ec.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_be5c3db0.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": "Motion to the Court and Affidavit (10/09) - Arabic (12/15)",
+    "confidence": 0.67,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_bcf00f23.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_bc0f2eb5.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": "REQUEST FOR A JUDICIAL SETTLEMENT CONFERENCE",
+    "confidence": 0.94,
+    "extraction_method": "pypdf",
+    "accepted": true
+  },
+  {
+    "path": "MA/MA_(Untitled)_b45eb9ac.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Português,_Portugal_ba2f0700.pdf",
+    "crawl_title": "Português, Portugal",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Tiếng_Việt_b5074179.pdf",
+    "crawl_title": "Tiếng Việt",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Layout_1_b4a2d40c.pdf",
+    "crawl_title": "Layout 1",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_b2049c49.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_b154cdf7.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_b20984ce.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_ad13edb8.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Layout_1_bf9b1ebc.pdf",
+    "crawl_title": "Layout 1",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_ad547107.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Layout_1_adbcf480.pdf",
+    "crawl_title": "Layout 1",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_aa19468f.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "unusable_text",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_Kreyòl_ayisyen_ab470e6e.pdf",
+    "crawl_title": "Kreyòl ayisyen",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_aa20e692.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "MA/MA_(Untitled)_ab4122f8.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": "DC-CR 22 (05/15) Tender of Plea or Admission and Waiver of Rights - Russian (12/15)",
+    "confidence": 0.75,
+    "extraction_method": "pypdf",
+    "accepted": true
+  },
+  {
+    "path": "VT/VT_(Untitled)_ac45a10f.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  },
+  {
+    "path": "VT/VT_(Untitled)_aaa7caf4.pdf",
+    "crawl_title": "(Untitled)",
+    "extracted_title": null,
+    "confidence": 0.0,
+    "extraction_method": "pypdf",
+    "accepted": false
+  }
+]

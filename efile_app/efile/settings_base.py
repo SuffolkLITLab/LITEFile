@@ -147,6 +147,10 @@ DOCUMENT_CLASSIFICATION_MODEL = os.getenv("DOCUMENT_CLASSIFICATION_MODEL", "")
 FORM_CODE_CROSSWALK_PATH = Path(
     os.getenv("FORM_CODE_CROSSWALK_PATH", BASE_DIR / "efile" / "data" / "form_code_crosswalk.json")
 )
+# Local PDFs and their form_registry.json are used by the crosswalk review UI.
+# The directory is intentionally outside the application package because the
+# downloaded dataset is local/ignored rather than part of the deploy image.
+CROSSWALK_REVIEW_FORMS_ROOT = Path(os.getenv("CROSSWALK_REVIEW_FORMS_ROOT", BASE_DIR.parent / "court_forms"))
 
 # Logging configuration
 # Uses standard Python logging. Control the app logger level via DJANGO_LOG_LEVEL env var.

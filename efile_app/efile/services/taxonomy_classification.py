@@ -5,7 +5,9 @@ from __future__ import annotations
 import json
 import logging
 import re
+import time
 import unicodedata
+from collections import deque
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
 from functools import cache
@@ -20,10 +22,12 @@ from efile.utils.prompt_config import prompt_version, render_prompt_messages
 
 logger = logging.getLogger(__name__)
 
+MIN_SCANNABLE_FORM_IDENTIFIER_LENGTH = 4
+
 
 def _normalized(value: Any) -> str:
     text = unicodedata.normalize("NFKD", str(value or "")).casefold()
-    return " ".join(re.findall(r"[a-z0-9]+", text))
+    return " ".join(re.findall(r"[^\W_]+", text, flags=re.UNICODE))
 
 
 def _normalized_form_id(value: Any) -> str:
@@ -51,6 +55,16 @@ def _form_identifier_names(form: dict[str, Any]) -> set[str]:
     }
 
 
+def _form_crosswalk_path() -> str:
+    return str(
+        getattr(
+            settings,
+            "FORM_CODE_CROSSWALK_PATH",
+            settings.BASE_DIR / "efile" / "data" / "form_code_crosswalk.json",
+        )
+    )
+
+
 def deterministic_form_identity(jurisdiction: str, evidence: dict[str, Any]) -> dict[str, Any]:
     """Resolve the uploaded form identity without selecting a Tyler path.
 
@@ -63,33 +77,28 @@ def deterministic_form_identity(jurisdiction: str, evidence: dict[str, Any]) -> 
 
     identifier = _normalized_form_id(evidence.get("form identifier"))
     form_name = _normalized(evidence.get("form name"))
-    registry_path = getattr(
-        settings,
-        "FORM_CODE_CROSSWALK_PATH",
-        settings.BASE_DIR / "efile" / "data" / "form_code_crosswalk.json",
-    )
     candidates: list[dict[str, Any]] = []
-    for entry in _crosswalk_registry(str(registry_path)):
-        form = entry.get("form", {}) if isinstance(entry, dict) else {}
-        if _normalized(form.get("jurisdiction")) != _normalized(jurisdiction):
-            continue
-        if form.get("is_form") is False or form.get("is_efileable") is False:
-            continue
-        id_match = bool(identifier and identifier in _form_identifier_names(form))
-        title_match = bool(form_name and form_name in _form_title_names(form))
-        if identifier:
-            if not id_match:
-                continue
-        elif not title_match:
-            continue
-        candidates.append(
+    if identifier:
+        candidates = [
             {
-                "entry": entry,
-                "form": form,
-                "match_basis": "exact form identifier" if identifier else "exact form name",
-                "title_match": title_match,
+                **candidate,
+                "match_basis": "exact form identifier",
+                "title_match": bool(form_name and form_name in _form_title_names(candidate["form"])),
             }
-        )
+            for candidate in _form_identifier_index(_form_crosswalk_path()).candidates.get(identifier, ())
+            if _normalized(candidate["form"].get("jurisdiction")) == _normalized(jurisdiction)
+        ]
+    else:
+        candidates = [
+            {
+                **candidate,
+                "match_basis": "exact form name",
+                "title_match": True,
+            }
+            for candidate in _form_identifier_index(_form_crosswalk_path()).title_candidates.get(
+                (_normalized(jurisdiction), form_name), ()
+            )
+        ]
 
     # If an ID is reused across a translated packet or a multi-form suite, an
     # exact descriptive title is the safe secondary discriminator.
@@ -139,13 +148,26 @@ def _option(item: Any) -> dict[str, Any] | None:
 class TylerTaxonomyClient:
     """Read the current taxonomy. Route keys are deliberately kept transient."""
 
-    def __init__(self, base_url: str | None = None, timeout: int = 15):
+    def __init__(
+        self,
+        base_url: str | None = None,
+        timeout: float | tuple[float, float] = 15,
+        attempts: int = 1,
+    ):
         self.base_url = (base_url or settings.EFSP_URL).rstrip("/")
         self.timeout = timeout
+        self.attempts = max(1, attempts)
 
     def _get(self, path: str, params: dict[str, Any] | None = None) -> list[dict[str, Any]]:
-        response = requests.get(f"{self.base_url}{path}", params=params, timeout=self.timeout)
-        response.raise_for_status()
+        for attempt in range(self.attempts):
+            try:
+                response = requests.get(f"{self.base_url}{path}", params=params, timeout=self.timeout)
+                response.raise_for_status()
+                break
+            except (requests.Timeout, requests.ConnectionError):
+                if attempt + 1 >= self.attempts:
+                    raise
+                time.sleep(0.2 * (attempt + 1))
         payload = response.json()
         if not isinstance(payload, list):
             raise ValueError(f"Tyler taxonomy endpoint returned {type(payload).__name__}, not a list")
@@ -257,6 +279,231 @@ def _crosswalk_registry(path_string: str) -> list[dict[str, Any]]:
         return []
     registry = payload.get("registry", []) if isinstance(payload, dict) else []
     return registry if isinstance(registry, list) else []
+
+
+@dataclass(frozen=True)
+class _FormIdentifierIndex:
+    """Cached Aho-Corasick index for punctuation-insensitive form-ID scans."""
+
+    transitions: tuple[dict[str, int], ...]
+    failures: tuple[int, ...]
+    outputs: tuple[tuple[str, ...], ...]
+    candidates: dict[str, tuple[dict[str, Any], ...]]
+    title_candidates: dict[tuple[str, str], tuple[dict[str, Any], ...]]
+
+
+def _build_form_identifier_index(registry: list[dict[str, Any]]) -> _FormIdentifierIndex:
+    candidates_by_identifier: dict[str, list[dict[str, Any]]] = {}
+    candidates_by_title: dict[tuple[str, str], list[dict[str, Any]]] = {}
+    seen_candidates: set[tuple[str, str, str, str]] = set()
+
+    for entry in registry:
+        form = entry.get("form", {}) if isinstance(entry, dict) else {}
+        if not isinstance(form, dict):
+            continue
+        if form.get("is_form") is False or form.get("is_efileable") is False:
+            continue
+        jurisdiction = _normalized(form.get("jurisdiction"))
+        candidate_key = (
+            jurisdiction,
+            str(form.get("canonical_id") or ""),
+            str(form.get("form_id") or ""),
+            str(form.get("canonical_name") or ""),
+        )
+        if candidate_key in seen_candidates:
+            continue
+        seen_candidates.add(candidate_key)
+        candidate = {"entry": entry, "form": form}
+        for title in _form_title_names(form):
+            if title:
+                candidates_by_title.setdefault((jurisdiction, title), []).append(candidate)
+        for raw_identifier in [form.get("form_id"), *(form.get("form_id_aliases") or [])]:
+            identifier = _normalized_form_id(raw_identifier)
+            if identifier:
+                candidates_by_identifier.setdefault(identifier, []).append(candidate)
+
+    transitions: list[dict[str, int]] = [{}]
+    outputs: list[list[str]] = [[]]
+    for identifier in candidates_by_identifier:
+        # Short Illinois group labels such as ``SC`` and ``NC`` occur as
+        # ordinary text in unrelated forms. They remain available to the
+        # evidence-based lookup, but are not safe document-scan patterns.
+        if len(identifier) < MIN_SCANNABLE_FORM_IDENTIFIER_LENGTH:
+            continue
+        state = 0
+        for character in identifier:
+            next_state = transitions[state].get(character)
+            if next_state is None:
+                next_state = len(transitions)
+                transitions[state][character] = next_state
+                transitions.append({})
+                outputs.append([])
+            state = next_state
+        outputs[state].append(identifier)
+
+    failures = [0] * len(transitions)
+    queue = deque()
+    for child in transitions[0].values():
+        queue.append(child)
+
+    while queue:
+        state = queue.popleft()
+        for character, child in transitions[state].items():
+            queue.append(child)
+            fallback = failures[state]
+            while fallback and character not in transitions[fallback]:
+                fallback = failures[fallback]
+            failures[child] = transitions[fallback].get(character, 0)
+            outputs[child].extend(outputs[failures[child]])
+
+    return _FormIdentifierIndex(
+        transitions=tuple(transitions),
+        failures=tuple(failures),
+        outputs=tuple(tuple(dict.fromkeys(items)) for items in outputs),
+        candidates={identifier: tuple(items) for identifier, items in candidates_by_identifier.items()},
+        title_candidates={key: tuple(items) for key, items in candidates_by_title.items()},
+    )
+
+
+@cache
+def _form_identifier_index(path_string: str) -> _FormIdentifierIndex:
+    """Build the reverse index once per registry path and process."""
+
+    return _build_form_identifier_index(_crosswalk_registry(path_string))
+
+
+def _compact_form_scan_text(text: str) -> tuple[str, str, list[int]]:
+    normalized_text = unicodedata.normalize("NFKC", str(text or "")).casefold()
+    positions: list[int] = []
+    compact: list[str] = []
+    for position, character in enumerate(normalized_text):
+        if character in "abcdefghijklmnopqrstuvwxyz0123456789":
+            compact.append(character)
+            positions.append(position)
+    return normalized_text, "".join(compact), positions
+
+
+def scan_text_for_form_identifier_index(index: _FormIdentifierIndex, jurisdiction: str, text: str) -> dict[str, Any]:
+    """Find exact indexed form IDs in document text in one linear scan.
+
+    The source and registry are compacted only for matching, so spaces,
+    punctuation, and line breaks inside an identifier do not matter. Boundary
+    checks remain against the original normalized text so ``CJD101B`` does not
+    match inside a larger alphanumeric token. Aho-Corasick makes the scan
+    proportional to document length plus actual matches, rather than trying
+    every registry identifier independently.
+    """
+
+    normalized_text, compact_text, positions = _compact_form_scan_text(text)
+    jurisdiction_key = _normalized(jurisdiction)
+    occurrences: list[dict[str, Any]] = []
+    state = 0
+
+    for compact_position, character in enumerate(compact_text):
+        while state and character not in index.transitions[state]:
+            state = index.failures[state]
+        state = index.transitions[state].get(character, 0)
+        for identifier in index.outputs[state]:
+            compact_start = compact_position - len(identifier) + 1
+            source_start = positions[compact_start]
+            source_end = positions[compact_position] + 1
+            before = normalized_text[source_start - 1] if source_start else ""
+            after = normalized_text[source_end] if source_end < len(normalized_text) else ""
+            if (before and before in "abcdefghijklmnopqrstuvwxyz0123456789") or (
+                after and after in "abcdefghijklmnopqrstuvwxyz0123456789"
+            ):
+                continue
+            candidates = [
+                candidate
+                for candidate in index.candidates[identifier]
+                if _normalized(candidate["form"].get("jurisdiction")) == jurisdiction_key
+            ]
+            if not candidates:
+                continue
+            occurrences.append(
+                {
+                    "identifier": identifier,
+                    "compact_start": compact_start,
+                    "compact_end": compact_position,
+                    "source_start": source_start,
+                    "source_end": source_end,
+                    "candidates": candidates,
+                }
+            )
+
+    # A short ID can be a prefix of a longer ID (for example ``CJD`` in
+    # ``CJD101B``). Keep the longest exact identifier at the same source start.
+    occurrences = [
+        occurrence
+        for occurrence in occurrences
+        if not any(
+            other["source_start"] == occurrence["source_start"]
+            and len(other["identifier"]) > len(occurrence["identifier"])
+            for other in occurrences
+        )
+    ]
+
+    matches_by_form: dict[tuple[str, str, str], dict[str, Any]] = {}
+    for occurrence in occurrences:
+        for candidate in occurrence["candidates"]:
+            form = candidate["form"]
+            key = (
+                str(form.get("canonical_id") or ""),
+                str(form.get("form_id") or ""),
+                str(form.get("canonical_name") or ""),
+            )
+            match = matches_by_form.setdefault(
+                key,
+                {
+                    "canonical_form_id": form.get("canonical_id"),
+                    "form_id": form.get("form_id"),
+                    "form_name": form.get("canonical_name"),
+                    "normalized_identifiers": [],
+                    "occurrences": [],
+                },
+            )
+            if occurrence["identifier"] not in match["normalized_identifiers"]:
+                match["normalized_identifiers"].append(occurrence["identifier"])
+            match["occurrences"].append(
+                {
+                    "page": normalized_text[: occurrence["source_start"]].count("\f") + 1,
+                    "start": occurrence["source_start"],
+                    "end": occurrence["source_end"],
+                }
+            )
+
+    matches = sorted(
+        matches_by_form.values(), key=lambda match: (str(match["form_name"]).casefold(), str(match["form_id"]))
+    )
+    first_page_occurrences = [
+        (match, occurrence) for match in matches for occurrence in match["occurrences"] if occurrence["page"] == 1
+    ]
+    deterministic_match = None
+    if first_page_occurrences:
+        earliest_start = min(occurrence["start"] for _, occurrence in first_page_occurrences)
+        earliest_matches = {
+            id(match): match for match, occurrence in first_page_occurrences if occurrence["start"] == earliest_start
+        }
+        if len(earliest_matches) == 1:
+            deterministic_match = next(iter(earliest_matches.values()))
+    return {
+        "status": "unmatched" if not matches else ("matched" if len(matches) == 1 else "ambiguous"),
+        "match_basis": "exact normalized form identifier in document text" if matches else "none",
+        "match_count": len(matches),
+        "deterministic": deterministic_match is not None,
+        "deterministic_match": deterministic_match,
+        "deterministic_scope": "earliest exact identifier on page one",
+        "matches": matches,
+    }
+
+
+def scan_document_for_form_identifiers(jurisdiction: str, text: str) -> dict[str, Any]:
+    """Find exact e-fileable registry form IDs in uploaded document text."""
+    return scan_text_for_form_identifier_index(
+        _form_identifier_index(_form_crosswalk_path()),
+        jurisdiction,
+        text,
+    )
 
 
 def _route_values(matches: list[dict[str, Any]], key: str) -> list[str]:

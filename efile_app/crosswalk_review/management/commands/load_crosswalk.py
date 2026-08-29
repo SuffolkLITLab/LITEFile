@@ -6,6 +6,7 @@ from pathlib import Path
 
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
+from django.db.models import Q
 
 from crosswalk_review.models import CrosswalkForm, CrosswalkMapping
 
@@ -104,6 +105,7 @@ class Command(BaseCommand):
         mappings_created = 0
         mappings_updated = 0
         mappings_deleted = 0
+        forms_deleted = 0
         seen_canonical_ids = set()
 
         with transaction.atomic():
@@ -139,16 +141,29 @@ class Command(BaseCommand):
                     context=f"{context}.form.source_urls",
                 )
 
+                incoming_title = _text_value(
+                    form_data, "canonical_name", model=CrosswalkForm, context=f"{context}.form"
+                )
+                incoming_form_id = _text_value(form_data, "form_id", model=CrosswalkForm, context=f"{context}.form")
+                existing_form = CrosswalkForm.objects.filter(canonical_id=canonical_id).first()
+                if (
+                    existing_form
+                    and existing_form.reviews.exists()
+                    and (existing_form.canonical_name != incoming_title or existing_form.form_id != incoming_form_id)
+                ):
+                    raise CommandError(
+                        f"{context}.form title or form ID changed after reviews were recorded. "
+                        "Re-run with --clear to explicitly discard existing reviews."
+                    )
+
                 form_obj, created = CrosswalkForm.objects.update_or_create(
                     canonical_id=canonical_id,
                     defaults={
                         "jurisdiction": _text_value(
                             form_data, "jurisdiction", model=CrosswalkForm, context=f"{context}.form"
                         ),
-                        "form_id": _text_value(form_data, "form_id", model=CrosswalkForm, context=f"{context}.form"),
-                        "canonical_name": _text_value(
-                            form_data, "canonical_name", model=CrosswalkForm, context=f"{context}.form"
-                        ),
+                        "form_id": incoming_form_id,
+                        "canonical_name": incoming_title,
                         "department": _text_value(
                             form_data, "department", model=CrosswalkForm, context=f"{context}.form"
                         ),
@@ -249,10 +264,20 @@ class Command(BaseCommand):
                     stale_mappings.delete()
                     mappings_deleted += stale_mapping_count
 
+            stale_forms = CrosswalkForm.objects.exclude(canonical_id__in=seen_canonical_ids)
+            if stale_forms.filter(Q(reviews__isnull=False) | Q(mappings__verdicts__isnull=False)).exists():
+                raise CommandError(
+                    "Crosswalk removal would delete forms with saved reviews. "
+                    "Re-run with --clear to explicitly discard those reviews."
+                )
+            forms_deleted = stale_forms.count()
+            if forms_deleted:
+                stale_forms.delete()
+
         self.stdout.write(
             self.style.SUCCESS(
                 f"\nDone!\n"
-                f"  Forms:    {forms_created} created, {forms_updated} updated\n"
+                f"  Forms:    {forms_created} created, {forms_updated} updated, {forms_deleted} deleted\n"
                 f"  Mappings: {mappings_created} created, {mappings_updated} updated, "
                 f"{mappings_deleted} deleted\n"
                 f"  Total forms in DB: {CrosswalkForm.objects.count()}\n"

@@ -1,0 +1,122 @@
+{
+  "description": "Expected printed identifiers for the Illinois forms sampled in benchmarking/synthetic. The direct PDF URLs are the provenance for the local official_templates files.",
+  "verified_from": "pypdf text extraction plus human visual review of rendered first pages",
+  "human_review": {
+    "status": "verified",
+    "reviewer": "user",
+    "reviewed_at": "2026-08-27",
+    "notes": "User visually confirmed all ten rendered Illinois form pages and assigned identifiers."
+  },
+  "samples": [
+    {
+      "sample_id": "IL-01",
+      "form_name": "Complaint or Petition",
+      "code_family": "ATJ",
+      "printed_identifier": "ATJ 561.1",
+      "revision": "02/26",
+      "canonical_form_id": "IL-ATJ-561.1",
+      "registry_form_id": "ATJ 561.1",
+      "source_url": "https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/05b0f66f-0777-4d1e-945f-e84473532bc4/CP%20Complaint%20or%20Petition.pdf",
+      "landing_page_url": "https://www.illinoiscourts.gov/documents-and-forms/approved-forms/circuit-court-standardized-forms-suites/complaint-or-petition/"
+    },
+    {
+      "sample_id": "IL-02",
+      "form_name": "Petition for Divorce with Children",
+      "code_family": "ATJ",
+      "printed_identifier": "ATJ 105.3",
+      "revision": "03/25",
+      "canonical_form_id": "IL-ATJ-105.3",
+      "registry_form_id": "ATJ 105.3",
+      "source_url": "https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/29fc2ee4-ddda-47f4-af12-f3f4d38f6a70/DWC%20Petition.pdf",
+      "landing_page_url": "https://www.illinoiscourts.gov/forms/approved-forms/forms-circuit-court/divorce-child-support-maintenance/"
+    },
+    {
+      "sample_id": "IL-03",
+      "form_name": "Eviction Complaint",
+      "code_family": "E-C",
+      "printed_identifier": "E-C 3502.3",
+      "revision": "06/24",
+      "canonical_form_id": "IL-AOIC-040",
+      "registry_form_id": "AOIC Eviction",
+      "source_url": "https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/c0f4598e-b251-4939-821c-fd7e72d68b27/EVC_EvictionComplaint.pdf",
+      "landing_page_url": "https://www.illinoiscourts.gov/documents-and-forms/approved-forms/circuit-court-standardized-forms-suites/eviction/"
+    },
+    {
+      "sample_id": "IL-04",
+      "form_name": "Small Claims Complaint",
+      "code_family": "CS-C",
+      "printed_identifier": "CS-C 702.1",
+      "revision": "08/20",
+      "canonical_form_id": "IL-AOIC-209",
+      "registry_form_id": "SMC",
+      "source_url": "https://www.illinoiscourts.gov/Resources/75f2660b-178f-4c9c-b0f8-8ad86ecf173a/SMC_SmallClaimsComplaint.pdf",
+      "landing_page_url": "https://www.illinoiscourts.gov/Resources/75f2660b-178f-4c9c-b0f8-8ad86ecf173a/SMC_SmallClaimsComplaint.pdf"
+    },
+    {
+      "sample_id": "IL-05",
+      "form_name": "Request for Name Change",
+      "code_family": "ATJ",
+      "printed_identifier": "ATJ 303.10",
+      "revision": "03/25",
+      "canonical_form_id": "IL-AOIC-170",
+      "registry_form_id": "AOIC Name Change",
+      "source_url": "https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/74f342af-7d93-4f93-b5b7-fbb92635d45a/NC-A%20Request%20for%20Name%20Change.pdf",
+      "landing_page_url": "https://www.illinoiscourts.gov/forms/approved-forms/forms-approved-forms-circuit-court/name-change/"
+    },
+    {
+      "sample_id": "IL-06",
+      "form_name": "Petition for Guardianship of a Minor",
+      "code_family": "AOIC numeric",
+      "printed_identifier": "1601.1",
+      "revision": "11/25",
+      "canonical_form_id": "IL-AOIC-1601.1",
+      "registry_form_id": "1601.1",
+      "source_url": "https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/00aa181b-1125-4f77-ae5d-b02b2d7b27f3/MG%20Petition%20Minor%20Guardian.pdf",
+      "landing_page_url": "https://www.illinoiscourts.gov/documents-and-forms/approved-forms/circuit-court-standardized-forms-suites/minor-guardianship-forms/"
+    },
+    {
+      "sample_id": "IL-07",
+      "form_name": "Petition for Order of Protection",
+      "code_family": "ATJ",
+      "printed_identifier": "ATJ 403.5",
+      "revision": "05/25",
+      "canonical_form_id": "IL-AOIC-184",
+      "registry_form_id": "OOP",
+      "source_url": "https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/2bc0a4a7-6235-49bd-8dd0-90272426d7d3/OOP%20Petition.pdf",
+      "landing_page_url": "https://www.illinoiscourts.gov/documents-and-forms/approved-forms/circuit-court-standardized-forms-suites/order-of-protection/"
+    },
+    {
+      "sample_id": "IL-08",
+      "form_name": "Application for Waiver of Court Fees",
+      "code_family": "ATJ",
+      "printed_identifier": "ATJ 601.9",
+      "revision": "08/25",
+      "canonical_form_id": "IL-AOIC-091",
+      "registry_form_id": "AOIC Fee Waiver for Civil Cases",
+      "source_url": "https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/52beec8c-25fc-4d0f-bc56-82a93b68d395/FW-CIV%20Application.pdf",
+      "landing_page_url": "https://www.illinoiscourts.gov/documents-and-forms/approved-forms/circuit-court-standardized-forms-suites/fee-waiver-civil/"
+    },
+    {
+      "sample_id": "IL-09",
+      "form_name": "Motion",
+      "code_family": "ATJ",
+      "printed_identifier": "ATJ 801.7",
+      "revision": "08/25",
+      "canonical_form_id": "IL-AOIC-152",
+      "registry_form_id": "AOIC Motions and Notice",
+      "source_url": "https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/ac43cca5-73c9-4a71-9b31-6880c69f2f96/MOT%20Motion.pdf",
+      "landing_page_url": "https://www.illinoiscourts.gov/documents-and-forms/approved-forms/circuit-forms/circuit-forms-motion/"
+    },
+    {
+      "sample_id": "IL-10",
+      "form_name": "Motion",
+      "code_family": "ATJ",
+      "printed_identifier": "ATJ 801.7",
+      "revision": "08/25",
+      "canonical_form_id": "IL-AOIC-152",
+      "registry_form_id": "AOIC Motions and Notice",
+      "source_url": "https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/ac43cca5-73c9-4a71-9b31-6880c69f2f96/MOT%20Motion.pdf",
+      "landing_page_url": "https://www.illinoiscourts.gov/documents-and-forms/approved-forms/circuit-forms/circuit-forms-motion/"
+    }
+  ]
+}
