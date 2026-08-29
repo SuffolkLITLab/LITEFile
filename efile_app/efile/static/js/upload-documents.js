@@ -35,7 +35,89 @@
     const pendingList = document.getElementById("pending-file-list");
     const pendingCount = document.getElementById("pending-file-count");
     const continueButton = document.getElementById("continue-to-analysis");
+    const aiOptOut = document.getElementById("ai-opt-out");
+    const aiNoteOn = document.getElementById("ai-note-on");
+    const aiNoteOff = document.getElementById("ai-note-off");
+    const aiExplainer = document.getElementById("ai-explainer");
+    const aiExplainerContent = document.getElementById("ai-explainer-content");
+    const aiRemember = document.getElementById("ai-remember");
+    const aiRememberChoice = document.getElementById("ai-remember-choice");
     const selectedFiles = new Map();
+    // The "remember this" row is offered only after the filer changes the
+    // setting, and only for the rest of this page load. Until then the account
+    // preference is not this request's business, so it is left out of the post.
+    let rememberOffered = false;
+
+    function aiIsOff() {
+        return Boolean(aiOptOut && aiOptOut.checked);
+    }
+
+    if (aiExplainer && aiExplainerContent && window.bootstrap) {
+        const popover = new window.bootstrap.Popover(aiExplainer, {
+            title: aiExplainer.textContent.trim(),
+            content: aiExplainerContent.innerHTML,
+            html: true,
+            trigger: "click",
+            placement: "top",
+            customClass: "ai-explainer-popover"
+        });
+        // Bootstrap's click trigger only closes on the trigger itself, which
+        // leaves the panel stranded over the page once attention moves on.
+        document.addEventListener("click", (event) => {
+            const inside = aiExplainer.contains(event.target) || event.target.closest(".ai-explainer-popover");
+            if (!inside) popover.hide();
+        });
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape") popover.hide();
+        });
+    }
+
+    function offerToRemember() {
+        if (!aiRemember || rememberOffered) return;
+        rememberOffered = true;
+        if (window.bootstrap) new window.bootstrap.Collapse(aiRemember, {
+            toggle: false
+        }).show();
+        else aiRemember.classList.add("show");
+    }
+
+    async function saveAiPreference() {
+        const optedOut = aiOptOut.checked;
+        const body = new FormData();
+        body.append("action", "ai_preference");
+        body.append("ai_opt_out", optedOut ? "yes" : "");
+        if (rememberOffered && aiRememberChoice) {
+            body.append("remember_ai_choice", aiRememberChoice.checked ? "yes" : "no");
+        }
+        body.append("csrfmiddlewaretoken", apiUtils.getCSRFToken());
+        try {
+            const response = await fetch(aiOptOut.dataset.preferenceUrl || window.location.href, {
+                method: "POST",
+                body
+            });
+            const result = await response.json();
+            if (!response.ok || !result.success) throw new Error(result.error || "Could not save that choice.");
+            // The document on file was already read the other way, so the page
+            // is showing answers that no longer apply. Reload into the fresh
+            // analysis instead of leaving them there.
+            if (result.reanalyzing) window.location.reload();
+        } catch (error) {
+            errorBox.textContent = error.message;
+            errorBox.hidden = false;
+        }
+    }
+
+    if (aiOptOut) {
+        aiOptOut.addEventListener("change", () => {
+            const optedOut = aiOptOut.checked;
+            if (aiNoteOn) aiNoteOn.hidden = optedOut;
+            if (aiNoteOff) aiNoteOff.hidden = !optedOut;
+            offerToRemember();
+            saveAiPreference();
+        });
+    }
+
+    if (aiRememberChoice) aiRememberChoice.addEventListener("change", saveAiPreference);
 
     function syncFiles() {
         const transfer = new DataTransfer();
@@ -116,8 +198,10 @@
             const result = await response.json();
             if (!response.ok || !result.success) throw new Error(result.error || "Upload failed.");
             stateTitle.textContent = result.extraction_pending ? "Your documents are uploaded" : "Your documents are ready";
+            let pendingDetail = "Analysis will continue in the background.";
+            if (aiIsOff()) pendingDetail = "We are checking your PDF's text for a form number, without AI.";
             stateDetail.textContent = result.extraction_pending ?
-                "Analysis will continue in the background." :
+                pendingDetail :
                 "Review what we found before you continue.";
             window.setTimeout(() => window.location.reload(), 300);
         } catch (error) {
@@ -165,12 +249,15 @@
             }
 
             state.querySelector(".spinner-border")?.remove();
-            stateTitle.textContent = result.status === "failed" ?
-                "Your document is ready for manual review" :
-                "Document analysis is ready";
+            let readyTitle = "Document analysis is ready";
+            if (result.ai_opted_out) readyTitle = "We finished checking your document";
+            stateTitle.textContent = result.status === "failed" ? "Your document is ready for manual review" : readyTitle;
+            // Nothing is reviewed on this page: the details are on the next
+            // one, so say where the checking actually happens.
+            const nextPageNudge = "Review the information carefully on the next page.";
             stateDetail.textContent = result.total_pages > result.pages_analyzed ?
-                `We reviewed the first ${result.pages_analyzed} of ${result.total_pages} pages.` :
-                "Review every detail before continuing.";
+                `We read the first ${result.pages_analyzed} of ${result.total_pages} pages. ${nextPageNudge}` :
+                nextPageNudge;
             continueButton.classList.remove("disabled");
             continueButton.removeAttribute("aria-disabled");
             continueButton.removeAttribute("tabindex");

@@ -212,6 +212,10 @@ def extraction_review(request, jurisdiction):
         "party_rows": party_rows,
         "party_side_options": party_side_options,
         "extraction_failed": extraction is not None and extraction.status == DocumentExtraction.Status.FAILED,
+        # The filer turned AI off for this filing, so the details below came
+        # from a keyword scan of the document's own text. The screen says so
+        # rather than crediting a reading that never happened.
+        "ai_opted_out": draft.ai_assistance_opted_out,
         "extraction_pages_analyzed": extraction.pages_analyzed if extraction else None,
         "extraction_total_pages": extraction.total_pages if extraction else None,
         "classification": classification,

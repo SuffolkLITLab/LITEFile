@@ -79,8 +79,9 @@ def test_worker_caps_pages_and_persists_the_complete_payload(extraction_draft):
 
     handler.download_file.side_effect = create_download
 
-    def inspect_limited_pdf(file_path, _jurisdiction):
+    def inspect_limited_pdf(file_path, _jurisdiction, *, use_ai=True):
         assert len(PdfReader(file_path).pages) == 2
+        assert use_ai is True
         return {
             "court": "Washington County",
             "document title": "Complaint",
@@ -211,6 +212,7 @@ def test_status_endpoint_reports_when_review_is_ready(client, extraction_draft):
     assert response.json() == {
         "success": True,
         "status": "complete",
+        "ai_opted_out": False,
         "ready": True,
         "pages_analyzed": 20,
         "total_pages": 30,
