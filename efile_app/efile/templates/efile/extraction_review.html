@@ -15,7 +15,11 @@
         {% if has_guesses %}
             <h1>{% translate "Check what we read from your document" %}</h1>
             <p class="workflow-lede">
-                {% translate "These are clues from the PDF, not answers you gave us, and the system can make mistakes. Correct anything that is wrong." %}
+                {% if ai_opted_out %}
+                    {% translate "You turned AI off, so we searched the text of your PDF for a form number and a case number instead. These are clues from the document, not answers you gave us, and the search can be wrong. Correct anything that is." %}
+                {% else %}
+                    {% translate "These are clues from the PDF, not answers you gave us, and the system can make mistakes. Correct anything that is wrong." %}
+                {% endif %}
             </p>
             <section class="extracted-details" aria-labelledby="extracted-details-heading">
                 <h2 id="extracted-details-heading">{% translate "The document we read" %}</h2>
@@ -75,12 +79,18 @@
                 <p class="workflow-help">
                     {% translate "The choices below were matched against the court's current filing lists. Please confirm each one; you can edit any match." %}
                 </p>
+            {% elif ai_opted_out %}
+                <p class="workflow-help">
+                    {% translate "Any choice already filled in below comes from the form number printed on your document. Check each one against your own case: the same form can be used for more than one kind of case, and you can change any of them." %}
+                </p>
             {% endif %}
         {% else %}
             <h1>{% translate "Tell us about your case" %}</h1>
             <div class="alert alert-info">
                 {% if extraction_failed %}
                     {% translate "Our system could not pull details from your document. You can enter the details below, or" %}
+                {% elif ai_opted_out %}
+                    {% translate "You turned AI off, and searching your PDF's text did not turn up a form number we recognize. You can enter the details below, or" %}
                 {% else %}
                     {% translate "Our system did not pull details from your document. You can enter the details below, or" %}
                 {% endif %}

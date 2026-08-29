@@ -26,6 +26,12 @@ class UserProfile(AbstractUser):
     email_updates = models.BooleanField(default=False)
     text_updates = models.BooleanField(default=False)
 
+    # The filer's standing answer to the AI question (issue #104): when set,
+    # every filing they start opts out by default. A single filing can still
+    # differ -- FilingDraft.ai_assistance_opted_out is what the worker reads --
+    # so this is the value a new draft is born with, not a lock on it.
+    ai_assistance_opted_out = models.BooleanField(default=False)
+
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -227,6 +233,12 @@ class FilingDraft(models.Model):
 
     optional_services = models.JSONField(default=list, blank=True)
     extracted_guesses = models.JSONField(default=dict, blank=True)
+    # Whether the filer asked us not to send this filing's documents to an AI
+    # model. Held per draft rather than per account: it is a choice about these
+    # documents, and a filer may answer it differently for the next filing.
+    # When it is set, the lead document is still read locally for printed form
+    # identifiers and case numbers (see services.document_extractions).
+    ai_assistance_opted_out = models.BooleanField(default=False)
     document_checklist_acknowledged = models.BooleanField(default=False)
     # The side of the case this filer is on, when the case type distinguishes
     # them (see FilingPlan.filer_role). Held here as well as on the plan so the

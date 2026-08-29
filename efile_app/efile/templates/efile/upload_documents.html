@@ -61,11 +61,85 @@
                 </span>
             </div>
             <div class="alert alert-danger" id="upload-error" role="alert" hidden></div>
-            <button class="btn btn-primary mt-3"
-                    id="upload-button"
-                    type="submit"
-                    disabled>{% translate "Upload selected files" %}</button>
+            <div class="upload-submit">
+                <button class="btn btn-primary" id="upload-button" type="submit" disabled>
+                    {% translate "Upload selected files" %}
+                </button>
+                <div class="ai-choice">
+                    <div class="form-check">
+                        <input class="form-check-input"
+                               type="checkbox"
+                               name="ai_opt_out"
+                               value="yes"
+                               id="ai-opt-out"
+                               data-preference-url="{% url 'upload_documents' jurisdiction %}"
+                               {% if ai_opted_out %}checked{% endif %} />
+                        <label class="form-check-label" for="ai-opt-out">{% translate "Do not use AI to read my documents" %}</label>
+                    </div>
+                    <button class="ai-explainer"
+                            type="button"
+                            id="ai-explainer"
+                            aria-label="{% translate "How do we use AI? Read our explanation." %}">
+                        {% translate "How do we use AI?" %}
+                    </button>
+                </div>
+            </div>
+            {% comment %}
+            Offered only once the filer has actually changed the choice above,
+            and only for the rest of that page load: someone who never touches
+            the setting is not asked to make a decision about it.
+            {% endcomment %}
+            <div class="collapse ai-remember" id="ai-remember">
+                <div class="form-check">
+                    <input class="form-check-input"
+                           type="checkbox"
+                           name="remember_ai_choice"
+                           value="yes"
+                           id="ai-remember-choice" />
+                    <label class="form-check-label" for="ai-remember-choice">
+                        {% translate "Remember this choice and use it for all my future filings" %}
+                    </label>
+                </div>
+            </div>
+            {% comment %}
+            Both states of the choice are written here so each one is a
+            translated string rather than something JavaScript assembles. The
+            script shows whichever matches the checkbox.
+            {% endcomment %}
+            <p class="ai-choice__note"
+               id="ai-note-on"
+               {% if ai_opted_out %}hidden{% endif %}>
+                <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>
+                {% translate "AI will read your first PDF so you have less to type. Your documents are never used to train AI models and are not read by a person." %}
+            </p>
+            <p class="ai-choice__note ai-choice__note--off"
+               id="ai-note-off"
+               {% if not ai_opted_out %}hidden{% endif %}>
+                <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                {% translate "AI is off for this filing. We will still search the text of your PDF for a form number or case number, the way a word search does, so you may still see details we picked up. You can correct or clear anything we get wrong, and you can fill in every answer yourself." %}
+            </p>
+            {% comment %}
+            The account-wide answer has no other screen, so the page it is set
+            from is also the page that says it is in force.
+            {% endcomment %}
+            {% if account_ai_opted_out %}
+                <p class="ai-choice__saved">
+                    <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                    {% translate "Saved to your account: every new filing starts with AI off. You can still change it here for one filing." %}
+                </p>
+            {% endif %}
         </form>
+        <template id="ai-explainer-content">
+            <p>
+                {% translate "We can use an enterprise AI service for two things: reading your uploaded document so you have less to type, and matching your form to the right court codes. This can help stop common errors and make your filing faster." %}
+            </p>
+            <p>
+                {% translate "If you opt in to using AI, your documents are covered by an enterprise agreement. They are stored only as long as necessary to complete your filing. They are never used to train AI models." %}
+            </p>
+            <p>
+                {% translate "You can turn AI off and still complete your filing. We will still search your PDF's text for a printed form number or case number, which is an ordinary word search rather than AI, so we may still recognize your document." %}
+            </p>
+        </template>
         <section class="document-list" aria-labelledby="uploaded-heading">
             <div class="document-list__heading">
                 <h2 id="uploaded-heading">{% translate "Your documents" %}</h2>

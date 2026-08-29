@@ -16,6 +16,48 @@ from efile.workflow import WorkflowStepKey, get_step_url, get_workflow_context
 
 logger = logging.getLogger(__name__)
 
+#: What the opt-out checkbox sends when it is checked. An unchecked box sends
+#: nothing at all, which is why the absence of the field means "AI allowed".
+_CHECKED_VALUES = frozenset({"yes", "true", "on", "1"})
+
+
+#: What the "remember this" checkbox sends when it is cleared. It is sent
+#: explicitly, rather than simply left out, so that clearing it is told apart
+#: from a request that never offered the choice at all.
+_CLEARED_VALUES = frozenset({"no", "false", "off", "0"})
+
+
+def _opted_out(request):
+    return request.POST.get("ai_opt_out", "").strip().casefold() in _CHECKED_VALUES
+
+
+def _remember_choice(request):
+    """Whether to save this answer to the account: True, False, or None to leave it."""
+    value = request.POST.get("remember_ai_choice", "").strip().casefold()
+    if value in _CHECKED_VALUES:
+        return True
+    if value in _CLEARED_VALUES:
+        return False
+    return None
+
+
+def _apply_remembered_choice(request, opted_out):
+    """Carry this filing's answer onto the account, or stop carrying it.
+
+    Clearing the box does not merely stop saving: it takes the standing
+    preference back off the account, so a filer who changes their mind in the
+    same breath is not left with a default they just rejected.
+    """
+
+    remember = _remember_choice(request)
+    if remember is None:
+        return False
+    account_default = opted_out if remember else False
+    if request.user.ai_assistance_opted_out != account_default:
+        request.user.ai_assistance_opted_out = account_default
+        request.user.save(update_fields=["ai_assistance_opted_out", "updated_at"])
+    return remember
+
 
 @require_http_methods(["GET", "POST"])
 def upload_documents(request, jurisdiction):
@@ -31,6 +73,28 @@ def upload_documents(request, jurisdiction):
 
     if request.method == "POST":
         action = request.POST.get("action", "upload")
+        if action == "ai_preference":
+            # The filer changed their mind after uploading. Drop what AI read
+            # from the document before re-reading it the way they now want it
+            # read, so an answer from the old mode is never left on the screen.
+            opted_out = _opted_out(request)
+            remembered = _apply_remembered_choice(request, opted_out)
+            changed = draft.ai_assistance_opted_out != opted_out
+            lead = FilingDocument.objects.filter(draft=draft, role=FilingDocument.Role.LEAD).first()
+            if changed:
+                draft.ai_assistance_opted_out = opted_out
+                draft.extracted_guesses = {}
+                draft.save(update_fields=["ai_assistance_opted_out", "extracted_guesses", "updated_at"])
+                if lead is not None:
+                    queue_document_extraction(lead)
+            return JsonResponse(
+                {
+                    "success": True,
+                    "ai_opted_out": opted_out,
+                    "remembered": remembered,
+                    "reanalyzing": changed and lead is not None,
+                }
+            )
         if action == "remove":
             document_id = request.POST.get("document_id")
             document = FilingDocument.objects.filter(pk=document_id, draft=draft).first()
@@ -65,6 +129,13 @@ def upload_documents(request, jurisdiction):
         uploaded_files = request.FILES.getlist("documents")
         if not uploaded_files:
             return JsonResponse({"success": False, "error": "Choose at least one PDF to upload."}, status=400)
+        # Saved before the upload, because uploading the lead queues the
+        # analysis that this choice decides the shape of.
+        opted_out = _opted_out(request)
+        _apply_remembered_choice(request, opted_out)
+        if draft.ai_assistance_opted_out != opted_out:
+            draft.ai_assistance_opted_out = opted_out
+            draft.save(update_fields=["ai_assistance_opted_out", "updated_at"])
         try:
             upload_data = upload_files(draft, uploaded_files, jurisdiction)
         except ValueError as error:
@@ -100,6 +171,8 @@ def upload_documents(request, jurisdiction):
         and extraction.status in {DocumentExtraction.Status.PENDING, DocumentExtraction.Status.PROCESSING},
         "max_extraction_pages": settings.DOCUMENT_EXTRACTION_MAX_PAGES,
         "upload_data": upload_data,
+        "ai_opted_out": draft.ai_assistance_opted_out,
+        "account_ai_opted_out": request.user.ai_assistance_opted_out,
     }
     context.update(get_workflow_context(WorkflowStepKey.UPLOAD_DOCUMENTS, jurisdiction, draft))
     return render(request, "efile/upload_documents.html", context)
@@ -115,12 +188,20 @@ def document_extraction_status(request, jurisdiction):
     lead = FilingDocument.objects.filter(draft=draft, role=FilingDocument.Role.LEAD).first()
     extraction = extraction_for_document(lead) if lead else None
     if extraction is None:
-        return JsonResponse({"success": True, "status": "not_queued", "ready": lead is not None})
+        return JsonResponse(
+            {
+                "success": True,
+                "status": "not_queued",
+                "ready": lead is not None,
+                "ai_opted_out": draft.ai_assistance_opted_out,
+            }
+        )
 
     return JsonResponse(
         {
             "success": True,
             "status": extraction.status,
+            "ai_opted_out": draft.ai_assistance_opted_out,
             "ready": extraction.status in {DocumentExtraction.Status.COMPLETE, DocumentExtraction.Status.FAILED},
             "pages_analyzed": extraction.pages_analyzed,
             "total_pages": extraction.total_pages,

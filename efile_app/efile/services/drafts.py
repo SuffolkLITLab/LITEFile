@@ -68,6 +68,8 @@ def create_draft(
         jurisdiction=jurisdiction,
         current_step=str(current_step),
         workflow_version=workflow_version,
+        # A filer who asked us to remember "no AI" starts every filing that way.
+        ai_assistance_opted_out=bool(getattr(user, "ai_assistance_opted_out", False)),
     )
 
 
