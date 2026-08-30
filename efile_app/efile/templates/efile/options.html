@@ -2,7 +2,7 @@
 {% load i18n %}
 {% load md_to_html %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ LANGUAGE_CODE|default:'en' }}">
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -15,56 +15,98 @@
         <link rel="stylesheet" href="{% static 'css/options.css' %}" />
         <link rel="stylesheet" href="{% static 'css/components/footer.css' %}" />
     </head>
-    <body>
+    <body class="d-flex flex-column min-vh-100">
         {% include "efile/components/profile_header.html" %}
-        <!-- Django Messages -->
-        <div style="display: flex; flex-direction: column; align-items:center;">
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show"
-                         role="alert"
-                         style="max-width: 50%">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                {% endfor %}
-            {% endif %}
-        </div>
-        <div class="container">
-            <h1>{% translate "File forms and documents with the court" %}</h1>
-            <div class="row justify-content-center">
-                <div class="col-xl-7">
-                    <p>{{ config.jurisdiction.copyedit.landing_text | md_to_html }}</p>
-                    {% if not is_logged_in %}
-                        <div class="option-card">
-                            <div class="d-flex align-items-center mb-3">
-                                <div class="option-icon">
-                                    <i class="fas fa-folder-open"></i>
-                                </div>
-                                <div class="option-content">
-                                    <h2>{% translate "Start making your filing" %}</h2>
-                                    <p>{% translate "Sign in or create an account and start making your filing." %}</p>
-                                </div>
+        <main class="options-shell flex-grow-1">
+            <section class="options-page" aria-labelledby="options-title">
+                <h1 id="options-title">{% translate "File forms and documents with the court" %}</h1>
+                <div class="options-lede">{{ config.jurisdiction.copyedit.landing_text | md_to_html }}</div>
+                {% include "efile/components/inline_messages.html" %}
+                {% if not is_logged_in %}
+                    <section class="option-card" aria-labelledby="sign-in-heading">
+                        <div class="option-card__header">
+                            <div class="option-icon">
+                                <i class="fas fa-folder-open" aria-hidden="true"></i>
                             </div>
-                            <div class="button-group">
-                                <a href="{% url 'efile_login' jurisdiction %}"
-                                   class="btn btn-primary"
-                                   tabindex="0">{% translate "Sign in" %}</a>
+                            <div class="option-content">
+                                <h2 id="sign-in-heading">{% translate "Start making your filing" %}</h2>
+                                <p>{% translate "Sign in or create an account and start making your filing." %}</p>
                             </div>
                         </div>
-                    {% else %}
-                        <div id="existing-placeholder"></div>
-                        {% if plans %}
-                            <div class="option-card">
-                                <div class="d-flex align-items-center mb-3">
-                                    <div class="option-icon">
-                                        <i class="fas fa-list-check"></i>
-                                    </div>
-                                    <div class="option-content">
-                                        <h2>{% translate "My filing plans" %}</h2>
-                                        <p>{% translate "Pick up a court matter you already started gathering documents for." %}</p>
-                                    </div>
-                                </div>
+                        <div class="option-actions">
+                            <a href="{% url 'efile_login' jurisdiction %}" class="btn btn-primary">{% translate "Sign in" %}</a>
+                        </div>
+                    </section>
+                {% else %}
+                    {% if has_case_data or draft_count %}
+                        <details class="option-card option-disclosure">
+                            <summary>
+                                <span class="option-card__header">
+                                    <span class="option-icon">
+                                        <i class="fas fa-pen-to-square" aria-hidden="true"></i>
+                                    </span>
+                                    <span class="option-content">
+                                        <span class="option-heading-line">
+                                            <span class="option-heading">{% translate "Continue a draft" %}</span>
+                                            {% if draft_count %}
+                                                <span class="option-count" aria-hidden="true">{{ draft_count }}</span>
+                                                <span class="visually-hidden">
+                                                    {% blocktranslate count counter=draft_count %}1 draft{% plural %}{{ counter }} drafts{% endblocktranslate %}
+                                                </span>
+                                            {% endif %}
+                                        </span>
+                                        <span class="option-description">
+                                            {% if draft_count > 1 %}
+                                                {% translate "Choose which filing you want to work on." %}
+                                            {% else %}
+                                                {% translate "Resume your filing where you left off." %}
+                                            {% endif %}
+                                        </span>
+                                    </span>
+                                </span>
+                                <span class="option-disclosure__action" aria-hidden="true">
+                                    <span class="option-disclosure__show">{% translate "Show" %}</span>
+                                    <span class="option-disclosure__hide">{% translate "Hide" %}</span>
+                                    <i class="fas fa-chevron-down"></i>
+                                </span>
+                            </summary>
+                            <div class="option-disclosure__body">
+                                {% if draft_count > 1 %}
+                                    <a href="{{ drafts_url }}" class="btn btn-primary">{% translate "Choose a draft" %}</a>
+                                {% else %}
+                                    <a href="{{ resume_url }}" class="btn btn-primary">{% translate "Continue filing" %}</a>
+                                {% endif %}
+                                <a href="{{ drafts_url }}" class="option-secondary-link">{% translate "See all my drafts" %}</a>
+                            </div>
+                        </details>
+                    {% endif %}
+                    {% if plans %}
+                        <details class="option-card option-disclosure">
+                            <summary>
+                                <span class="option-card__header">
+                                    <span class="option-icon">
+                                        <i class="fas fa-list-check" aria-hidden="true"></i>
+                                    </span>
+                                    <span class="option-content">
+                                        <span class="option-heading-line">
+                                            <span class="option-heading">{% translate "My filing plans" %}</span>
+                                            <span class="option-count" aria-hidden="true">{{ plan_count }}</span>
+                                            <span class="visually-hidden">
+                                                {% blocktranslate count counter=plan_count %}1 filing plan{% plural %}{{ counter }} filing plans{% endblocktranslate %}
+                                            </span>
+                                        </span>
+                                        <span class="option-description">
+                                            {% translate "Pick up a court matter you already started gathering documents for." %}
+                                        </span>
+                                    </span>
+                                </span>
+                                <span class="option-disclosure__action" aria-hidden="true">
+                                    <span class="option-disclosure__show">{% translate "Show" %}</span>
+                                    <span class="option-disclosure__hide">{% translate "Hide" %}</span>
+                                    <i class="fas fa-chevron-down"></i>
+                                </span>
+                            </summary>
+                            <div class="option-disclosure__body">
                                 <ul class="options-plan-list">
                                     {% for entry in plans %}
                                         <li>
@@ -91,162 +133,77 @@
                                         </li>
                                     {% endfor %}
                                 </ul>
-                                <div class="button-group">
-                                    <a href="{% url 'filing_plans' jurisdiction %}"
-                                       class="btn btn-primary"
-                                       tabindex="0">
-                                        {% if plan_count > plans|length %}
-                                            {% blocktranslate %}See all {{ plan_count }}{% endblocktranslate %}
-                                        {% else %}
-                                            {% translate "See my plans" %}
-                                        {% endif %}
-                                    </a>
-                                </div>
+                                <a href="{% url 'filing_plans' jurisdiction %}"
+                                   class="option-secondary-link">
+                                    {% if plan_count > plans|length %}
+                                        {% blocktranslate %}See all {{ plan_count }} filing plans{% endblocktranslate %}
+                                    {% else %}
+                                        {% translate "Manage my filing plans" %}
+                                    {% endif %}
+                                </a>
                             </div>
-                        {% endif %}
-                        <div class="option-card">
-                            <div class="d-flex align-items-center mb-3">
-                                <div class="option-icon">
-                                    <i class="fas fa-file-circle-plus"></i>
-                                </div>
-                                <div class="option-content">
-                                    <h2>{% translate "Start a new case" %}</h2>
-                                    <p>{% translate "The court has not given you a case number yet." %}</p>
-                                </div>
-                            </div>
-                            <form method="post" action="{% url 'start_filing' jurisdiction %}">
-                                {% csrf_token %}
-                                <input type="hidden" name="existing_case" value="new" />
-                                <div class="button-group">
-                                    <button class="btn btn-primary" tabindex="0" type="submit">{% translate "Begin" %}</button>
-                                </div>
-                            </form>
-                        </div>
-                        <div class="option-card">
-                            <div class="d-flex align-items-center mb-3">
-                                <div class="option-icon">
-                                    <i class="fas fa-folder-open"></i>
-                                </div>
-                                <div class="option-content">
-                                    <h2>{% translate "File into an existing case" %}</h2>
-                                    <p>{% translate "You have a case number, or the case is already open." %}</p>
-                                </div>
-                            </div>
-                            <form method="post" action="{% url 'start_filing' jurisdiction %}">
-                                {% csrf_token %}
-                                <input type="hidden" name="existing_case" value="existing" />
-                                <div class="button-group">
-                                    <button class="btn btn-primary" tabindex="0" type="submit">{% translate "Begin" %}</button>
-                                </div>
-                            </form>
-                        </div>
-                        <div class="option-card">
-                            <div class="d-flex align-items-center mb-3">
-                                <div class="option-icon">
-                                    <i class="fas fa-folder-open"></i>
-                                </div>
-                                <div class="option-content">
-                                    <h2>{% translate "My cases" %}</h2>
-                                    <p>
-                                        {% translate "See whether the court accepted a filing, read what the clerk said, and get copies of what you filed." %}
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="button-group">
-                                <a href="{% url 'filing_statuses' jurisdiction %}"
-                                   class="btn btn-primary"
-                                   tabindex="0">{% translate "View" %}</a>
-                            </div>
-                        </div>
+                        </details>
                     {% endif %}
-                    <p>{{ config.jurisdiction.copyedit.post_action_text | md_to_html }}</p>
-                </div>
-            </div>
-        </div>
+                    <section class="option-card" aria-labelledby="new-case-heading">
+                        <div class="option-card__header">
+                            <div class="option-icon">
+                                <i class="fas fa-file-circle-plus" aria-hidden="true"></i>
+                            </div>
+                            <div class="option-content">
+                                <h2 id="new-case-heading">{% translate "Start a new case" %}</h2>
+                                <p>{% translate "The court has not given you a case number yet." %}</p>
+                            </div>
+                        </div>
+                        <form method="post"
+                              class="option-actions"
+                              action="{% url 'start_filing' jurisdiction %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="existing_case" value="new" />
+                            <button class="btn btn-primary" type="submit">{% translate "Begin" %}</button>
+                        </form>
+                    </section>
+                    <section class="option-card" aria-labelledby="existing-case-heading">
+                        <div class="option-card__header">
+                            <div class="option-icon">
+                                <i class="fas fa-folder-open" aria-hidden="true"></i>
+                            </div>
+                            <div class="option-content">
+                                <h2 id="existing-case-heading">{% translate "File into an existing case" %}</h2>
+                                <p>{% translate "You have a case number, or the case is already open." %}</p>
+                            </div>
+                        </div>
+                        <form method="post"
+                              class="option-actions"
+                              action="{% url 'start_filing' jurisdiction %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="existing_case" value="existing" />
+                            <button class="btn btn-primary" type="submit">{% translate "Begin" %}</button>
+                        </form>
+                    </section>
+                    <section class="option-card" aria-labelledby="my-cases-heading">
+                        <div class="option-card__header">
+                            <div class="option-icon">
+                                <i class="fas fa-file-circle-check" aria-hidden="true"></i>
+                            </div>
+                            <div class="option-content">
+                                <h2 id="my-cases-heading">{% translate "My cases" %}</h2>
+                                <p>
+                                    {% translate "See whether the court accepted a filing, read what the clerk said, and get copies of what you filed." %}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="option-actions">
+                            <a href="{% url 'filing_statuses' jurisdiction %}"
+                               class="btn btn-primary">{% translate "View cases" %}</a>
+                        </div>
+                    </section>
+                {% endif %}
+                {% if config.jurisdiction.copyedit.post_action_text %}
+                    <div class="options-afterword">{{ config.jurisdiction.copyedit.post_action_text | md_to_html }}</div>
+                {% endif %}
+            </section>
+        </main>
         {% include "efile/components/footer.html" %}
         <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-        <script src="{% url 'javascript-catalog' %}"></script>
-        <script src="{% static 'js/api-utils.js' %}"></script>
-        {{ resume_url|json_script:"resume-url" }}
-        {{ drafts_url|json_script:"drafts-url" }}
-        {{ draft_count|json_script:"draft-count" }}
-        <script>
-            let is_logged_in = "{{is_logged_in}}" === "True";
-            const draftCount = JSON.parse(document.getElementById("draft-count").textContent);
-            const draftsUrl = JSON.parse(document.getElementById("drafts-url").textContent);
-            // Starting a filing is a plain form post now (see the cards above and
-            // the header menu), so the only thing left for JavaScript is picking
-            // up an existing one.
-            function continueDraftFiling() {
-                // One draft can be resumed straight away. Several cannot:
-                // "where you left off" names no filing in particular, so the
-                // filer picks the one they meant.
-                if (draftCount > 1) {
-                    window.location.href = draftsUrl;
-                    return;
-                }
-                const resumeUrl = JSON.parse(document.getElementById("resume-url").textContent);
-                window.location.href = resumeUrl || `/jurisdiction/{{jurisdiction}}/filing-path/`;
-            }
-
-            async function checkExistingCaseData() {
-                // Check if there's an API endpoint to retrieve saved case data
-                const result = await apiUtils.getCaseData();
-                if (is_logged_in &&
-                    result.success &&
-                    result.data &&
-                    Object.keys(result.data).length > 0
-                ) {
-                    //TODO(brycew): return more here to bring user directly to old session
-                    return true;
-                }
-                return false;
-            }
-
-            function useExistingCardHtml() {
-                const many = draftCount > 1;
-                const description = many ?
-                    interpolate(gettext("You have %s filings in progress. Pick the one you want to work on."), [draftCount]) :
-                    gettext("Resume your filing where you left off.");
-                const buttonLabel = many ? gettext("Choose a draft") : gettext("Resume");
-                let html = `
-          <div class="option-card">
-            <div class="d-flex align-items-center mb-3">
-              <div class="option-icon">
-                <i class="fas fa-reply"></i>
-              </div>
-              <div class="option-content">
-                <h2>{% translate "Continue a draft filing" %}</h2>
-                <p>${description}</p>
-              </div>
-            </div>
-            <div class="button-group">
-              <button class="btn btn-primary" tabindex="0" onclick="continueDraftFiling()">
-                ${buttonLabel}
-              </button>
-            </div>
-          </div>
-          `;
-                return html;
-            }
-
-
-            // Add keyboard navigation
-            document.addEventListener("keydown", function(e) {
-                if (e.key === "Enter") {
-                    const focusedElement = document.activeElement;
-                    if (focusedElement.classList.contains("btn")) {
-                        focusedElement.click();
-                    }
-                }
-            });
-
-            checkExistingCaseData().then(value => {
-                if (value) {
-                    let elem = document.getElementById('existing-placeholder');
-                    elem.innerHTML = useExistingCardHtml();
-                }
-            });
-        </script>
     </body>
 </html>

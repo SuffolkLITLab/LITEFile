@@ -23,65 +23,6 @@
     margin-bottom: 0.5rem;
 }
 
-.brand-header {
-    background: linear-gradient(135deg, var(--suffolk-blue) 0%, var(--better-blue) 100%);
-    color: white;
-    padding: 1.5rem;
-    display: flex;
-    align-items: center;
-}
-
-.brand-title {
-    font-size: 1.8rem;
-    font-weight: 600;
-    margin: 0;
-}
-
-.btn-back {
-    background: linear-gradient(135deg, #6b7280 0%, #9ca3af 100%);
-    border: none;
-    border-radius: 25px;
-    padding: 0.75rem 2.5rem;
-    font-weight: 600;
-    font-size: 1.1rem;
-    color: white;
-    transition: all 0.3s ease;
-    min-width: 150px;
-}
-
-.btn-back:hover {
-    background: linear-gradient(135deg, #4b5563 0%, #6b7280 100%);
-    transform: translateY(-1px);
-    color: white;
-}
-
-.btn-container {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-    margin-top: 2rem;
-    flex-wrap: wrap;
-}
-
-.btn-register {
-    background: var(--suffolk-blue);
-    border: none;
-    border-radius: 25px;
-    padding: 0.75rem 2.5rem;
-    font-weight: 600;
-    font-size: 1.1rem;
-    color: white;
-    transition: all 0.3s ease;
-    min-width: 150px;
-}
-
-.btn-register:hover {
-    background: var(--suffolk-blue);
-    filter: brightness(1.5);
-    transform: translateY(-1px);
-    color: white;
-}
-
 .checkbox-section {
     background-color: #f9fafb;
     border-radius: 10px;
@@ -131,12 +72,6 @@
     font-size: 0.9rem;
 }
 
-.main-container {
-    max-width: 600px;
-    margin: 2rem auto;
-    padding: 0 1rem;
-}
-
 .page-title {
     color: #374151;
     font-weight: 700;
@@ -184,22 +119,6 @@
     margin-bottom: 0.25rem;
 }
 
-.register-card {
-    background-color: white;
-    border-radius: 25px;
-    overflow: hidden;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-}
-
-.register-content {
-    padding: 2rem;
-}
-
-.scales-icon {
-    font-size: 1.5rem;
-    margin-right: 0.75rem;
-}
-
 .section-title {
     color: #374151;
     font-weight: 600;
@@ -238,23 +157,7 @@
 }
 
 @media (max-width: 768px) {
-    .main-container {
-        margin: 1rem auto;
-        padding: 0 0.5rem;
-    }
-
-    .register-content {
-        padding: 1.5rem;
-    }
-
-    .btn-container {
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .btn-register,
-    .btn-back {
-        width: 100%;
-        max-width: 300px;
+    .row>[class*="col-md-"] {
+        margin-bottom: 0.5rem;
     }
 }

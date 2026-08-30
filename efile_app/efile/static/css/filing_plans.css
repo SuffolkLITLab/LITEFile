@@ -1,12 +1,6 @@
 /* The filer's saved matters. Shares the option-card shell with the options
    page, and the checklist item styling with the in-flow checklist step. */
 
-.plan-card:hover {
-    border-color: var(--border-default);
-    box-shadow: none;
-    transform: none;
-}
-
 .plan-card__head {
     align-items: baseline;
     display: flex;

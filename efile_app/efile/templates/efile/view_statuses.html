@@ -16,18 +16,6 @@
     </head>
     <body>
         {% include "efile/components/profile_header.html" %}
-        <div style="display: flex; flex-direction: column; align-items:center;">
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show"
-                         role="alert"
-                         style="max-width: 50%">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                {% endfor %}
-            {% endif %}
-        </div>
         <div class="container">
             <h1>
                 {% if showing_archived %}
@@ -38,6 +26,7 @@
             </h1>
             <div class="row justify-content-center">
                 <div class="col-xl-7">
+                    {% include "efile/components/inline_messages.html" %}
                     <p>{{ config.jurisdiction.copyedit.filing_statuses }}</p>
                     {% if lookup_failed %}
                         <div class="alert alert-danger" role="alert">

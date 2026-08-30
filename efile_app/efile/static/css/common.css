@@ -113,3 +113,49 @@ h2 {
     --bs-btn-active-bg: var(--brand-blue-active);
     --bs-btn-active-border-color: var(--brand-blue-active);
 }
+
+/* Persistent, in-flow feedback shared by account, dashboard, list, and
+   workflow screens. Messages stay available to zoom and assistive-technology
+   users until they navigate or correct the problem. */
+.page-feedback {
+    display: grid;
+    gap: 0.75rem;
+    margin: 0 0 1.5rem;
+}
+
+.page-feedback__message {
+    align-items: flex-start;
+    background: var(--surface-accent);
+    border: 1px solid var(--border-accent);
+    border-left: 4px solid var(--better-blue);
+    border-radius: 8px;
+    color: var(--text-heading);
+    display: flex;
+    gap: 0.65rem;
+    padding: 0.9rem 1rem;
+}
+
+.page-feedback__message i {
+    flex: 0 0 auto;
+    margin-top: 0.2rem;
+}
+
+.page-feedback__message--success {
+    background: var(--success-surface);
+    border-color: var(--success-border);
+    border-left-color: var(--success-text);
+    color: var(--success-text);
+}
+
+.page-feedback__message--warning {
+    background: var(--warning-surface);
+    border-color: var(--warning-border);
+    border-left-color: #8a6116;
+}
+
+.page-feedback__message--error {
+    background: #fff1f2;
+    border-color: #fecdd3;
+    border-left-color: var(--failure);
+    color: #8f1d2c;
+}
