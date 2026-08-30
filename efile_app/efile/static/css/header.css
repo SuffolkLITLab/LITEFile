@@ -122,3 +122,37 @@
     outline: 3px solid var(--suffolk-blue);
     outline-offset: 2px;
 }
+
+@media (max-width: 576px) {
+    .header .container {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+
+    .header .brand-link {
+        gap: 0.5rem;
+    }
+
+    .header .brand-logo {
+        max-width: 80px;
+    }
+
+    .header .brand-title {
+        font-size: 1.15rem;
+        white-space: nowrap;
+    }
+
+    .header-menus {
+        gap: 0.4rem;
+    }
+
+    .nav-menu-toggle {
+        justify-content: center;
+        padding: 0;
+        width: 40px;
+    }
+
+    .nav-menu-toggle span {
+        display: none;
+    }
+}

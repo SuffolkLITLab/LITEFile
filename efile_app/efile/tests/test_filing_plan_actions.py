@@ -510,6 +510,9 @@ def test_the_options_page_offers_a_plan_i_already_started(client, signed_in):
     assert "My filing plans" in page
     assert plan.title in page
     assert reverse("start_filing_from_plan", kwargs={"jurisdiction": "illinois", "plan_id": plan.pk}) in page
+    assert '<details class="option-card option-disclosure">' in page
+    assert '<span class="option-count" aria-hidden="true">1</span>' in page
+    assert '<details class="option-card option-disclosure" open>' not in page
 
 
 # --- Linking a plan to a court case -----------------------------------------

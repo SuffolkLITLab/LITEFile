@@ -1,97 +1,224 @@
-.section-title {
-    color: #333;
-    font-size: 2rem;
-    font-weight: 600;
+.options-shell {
+    margin: 0 auto;
+    padding: 0 1rem 4rem;
+    width: min(100%, 1120px);
+}
+
+.options-page {
+    background: #fff;
+    border: 1px solid var(--border-default);
+    border-radius: 16px;
+    box-shadow: 0 12px 36px rgb(20 46 82 / 8%);
+    margin: 0 auto;
+    max-width: 900px;
+    padding: clamp(1.5rem, 4vw, 3rem);
+}
+
+.options-page>h1 {
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
+    letter-spacing: -0.025em;
+    margin-bottom: 0.8rem;
+}
+
+.options-lede,
+.options-afterword {
+    color: var(--text-body);
+    font-size: 1.05rem;
+    line-height: 1.6;
+}
+
+.options-lede {
     margin-bottom: 2rem;
+    max-width: 720px;
+}
+
+.options-lede> :last-child,
+.options-afterword> :last-child {
+    margin-bottom: 0;
+}
+
+.options-afterword {
+    border-top: 1px solid var(--border-subtle);
+    margin-top: 2rem;
+    padding-top: 1.5rem;
 }
 
 .option-card {
-    background: white;
-    border: 1px solid #e0e0e0;
+    background: #fff;
+    border: 2px solid var(--border-default);
     border-radius: 12px;
-    padding: 2rem;
-    margin-bottom: 1.5rem;
-    transition: all 0.3s ease;
+    margin-bottom: 1rem;
+    padding: 1.2rem;
 }
 
-.option-card:hover {
-    border-color: var(--better-blue);
-    box-shadow: 0 4px 12px rgba(44, 90, 160, 0.15);
-    transform: translateY(-2px);
-}
-
-.button-group {
-    display: flex;
-    gap: 1.5rem;
-    margin-top: 1rem;
-}
-
-.button-group .btn {
-    flex: 1;
-    max-width: 150px;
-    padding: 0.75rem 1.5rem;
-    border-radius: 25px;
-    font-weight: 500;
-    transition: all 0.2s ease;
-}
-
-.button-group .btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
-
-.button-group .btn i {
-    margin-right: 0.5rem;
+.option-card__header {
+    align-items: center;
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: auto 1fr;
+    min-width: 0;
 }
 
 .option-icon {
-    width: 60px;
-    height: 60px;
-    color: var(--better-blue);
-    border-radius: 8px;
-    display: flex;
     align-items: center;
+    background: var(--surface-accent);
+    border-radius: 10px;
+    color: var(--better-blue);
+    display: flex;
+    font-size: 1.15rem;
+    height: 44px;
     justify-content: center;
-    font-size: 2rem;
-    margin-right: 1.5rem;
-    flex-shrink: 0;
+    width: 44px;
 }
 
-.option-content h3 {
-    color: #333;
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin-bottom: 0.5rem;
+.option-content,
+.option-heading-line {
+    min-width: 0;
 }
 
-.option-content p {
-    color: #666;
-    font-size: 1.1rem;
-    margin: 0;
-    line-height: 1.4;
-}
-
-.brand-title {
-    font-size: 1.8rem;
-    font-weight: 600;
+.option-content h2,
+.option-heading {
+    color: var(--text-heading);
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1.3;
     margin: 0;
 }
 
-/* Plans a filer already started, listed on the card that opens their plans. */
-.options-plan-list {
+.option-content p,
+.option-description {
+    color: var(--text-muted);
+    display: block;
+    font-size: 0.92rem;
+    line-height: 1.45;
+    margin: 0.2rem 0 0;
+}
+
+.option-heading-line {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.option-count {
+    align-items: center;
+    background: var(--surface-accent);
+    border: 1px solid var(--border-accent);
+    border-radius: 999px;
+    color: var(--better-blue);
+    display: inline-flex;
+    font-size: 0.78rem;
+    font-weight: 750;
+    justify-content: center;
+    min-width: 1.65rem;
+    padding: 0.15rem 0.45rem;
+}
+
+.option-actions,
+.option-disclosure__body {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1rem;
+    margin-left: 60px;
+    margin-top: 1rem;
+}
+
+.option-actions .btn,
+.option-disclosure__body>.btn {
+    border-radius: 8px;
+    font-weight: 650;
+    padding: 0.65rem 1.1rem;
+}
+
+.option-disclosure {
+    padding: 0;
+}
+
+.option-disclosure>summary {
+    align-items: center;
+    cursor: pointer;
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: 1fr auto;
     list-style: none;
-    margin: 0 0 0.5rem;
+    padding: 1.2rem;
+}
+
+.option-disclosure>summary::-webkit-details-marker {
+    display: none;
+}
+
+.option-disclosure>summary::marker {
+    content: "";
+}
+
+.option-disclosure>summary:focus-visible {
+    border-radius: 10px;
+    outline: 3px solid var(--better-blue);
+    outline-offset: 3px;
+}
+
+.option-disclosure__action {
+    align-items: center;
+    color: var(--better-blue);
+    display: inline-flex;
+    font-size: 0.88rem;
+    font-weight: 700;
+    gap: 0.4rem;
+}
+
+.option-disclosure__action i {
+    transition: transform 160ms ease;
+}
+
+.option-disclosure__hide {
+    display: none;
+}
+
+.option-disclosure[open] .option-disclosure__show {
+    display: none;
+}
+
+.option-disclosure[open] .option-disclosure__hide {
+    display: inline;
+}
+
+.option-disclosure[open] .option-disclosure__action i {
+    transform: rotate(180deg);
+}
+
+.option-disclosure__body {
+    border-top: 1px solid var(--border-subtle);
+    margin: 0;
+    padding: 1rem 1.2rem 1.2rem 5rem;
+}
+
+.option-secondary-link {
+    font-size: 0.92rem;
+    font-weight: 650;
+}
+
+.options-plan-list {
+    flex-basis: 100%;
+    list-style: none;
+    margin: 0;
     padding: 0;
 }
 
 .options-plan-list li {
     align-items: center;
-    border-top: 1px solid var(--border-subtle);
+    border-bottom: 1px solid var(--border-subtle);
     display: flex;
     flex-wrap: wrap;
     gap: 0.75rem;
     justify-content: space-between;
-    padding: 0.7rem 0;
+    padding: 0.8rem 0;
+}
+
+.options-plan-list li:first-child {
+    padding-top: 0;
 }
 
 .options-plan-list strong {
@@ -101,4 +228,35 @@
 
 .options-plan-list small {
     color: var(--text-muted);
+}
+
+@media (max-width: 576px) {
+    .options-shell {
+        padding: 0 0.75rem 2.5rem;
+    }
+
+    .option-disclosure>summary {
+        align-items: start;
+        grid-template-columns: 1fr;
+    }
+
+    .option-disclosure__action {
+        margin-left: 60px;
+    }
+
+    .option-actions,
+    .option-disclosure__body {
+        align-items: stretch;
+        flex-direction: column;
+        margin-left: 0;
+    }
+
+    .option-actions .btn,
+    .option-disclosure__body>.btn {
+        width: 100%;
+    }
+
+    .option-disclosure__body {
+        padding-left: 1.2rem;
+    }
 }

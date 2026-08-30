@@ -1,128 +1,65 @@
+{% extends "efile/auth_base.html" %}
 {% load static %}
 {% load i18n %}
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>{{ config.jurisdiction.name }} - {% translate "Login/Register" %}</title>
-        <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
-              rel="stylesheet" />
-        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-              rel="stylesheet" />
-        <link rel="stylesheet" href="{% static 'css/common.css' %}" />
-        <link rel="stylesheet" href="{% static 'css/login.css' %}" />
-    </head>
-    <body>
-        <div id="currentJurisdiction" hidden>{{ jurisdiction }}</div>
-        <div class="main-container">
-            <!-- Main Login Card -->
-            <div class="login-card">
-                <!-- Brand Header -->
-                <div class="brand-header">
-                    <a class="brand-link" href="{% url 'efile_options' jurisdiction %}">
-                        <img class="brand-logo"
-                             src="{% static config.jurisdiction.logo|default:'img/litefile-logo.svg' %}"
-                             alt="{{ config.jurisdiction.logo_alt|default:'LITEFile logo' }}" />
-                        <span class="brand-title">
-                            {% if config.jurisdiction.display_name and config.jurisdiction.display_name != "LITEFile" %}
-                                {{ config.jurisdiction.display_name }} e-Filing
-                            {% else %}
-                                e-Filing
-                            {% endif %}
-                        </span>
-                    </a>
-                </div>
-                <!-- Django Messages -->
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show"
-                             role="alert">
-                            {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    {% endfor %}
-                {% endif %}
-                <!-- Sign In Form -->
-                <div class="login-form">
-                    <h1 class="mb-4"
-                        style="color: #374151;
-                               font-weight: 700;
-                               font-size: 1.8rem">{% translate "Sign in to eFile" %}</h1>
-                    <form method="post">
-                        {% csrf_token %}
-                        <div class="mb-3">
-                            <label for="{{ login_form.email.id_for_label }}" class="form-label">{% translate "Email address" %}</label>
-                            {{ login_form.email }}
-                            {% if login_form.email.errors %}
-                                <div class="text-danger mt-1">
-                                    {% for error in login_form.email.errors %}<small>{{ error }}</small>{% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-                        <div class="mb-3">
-                            <label for="{{ login_form.password.id_for_label }}" class="form-label">{% translate "Password" %}</label>
-                            {{ login_form.password }}
-                            {% if login_form.password.errors %}
-                                <div class="text-danger mt-1">
-                                    {% for error in login_form.password.errors %}<small>{{ error }}</small>{% endfor %}
-                                </div>
-                            {% endif %}
-                            <div class="text-end mt-2">
-                                <a href="#" class="show-password" onclick="togglePassword()">{% translate "Show Password" %}</a>
-                            </div>
-                        </div>
-                        <div class="text-center mb-3">
-                            <button type="submit" name="login_submit" class="btn btn-sign-in">Sign In</button>
-                        </div>
-                        <div class="text-center">
-                            <a href="{% url 'efile_password_reset' jurisdiction %}"
-                               class="forgot-password">Forgot Password?</a>
-                        </div>
-                    </form>
-                    <!-- Divider -->
-                    <div class="divider"></div>
-                    <!-- First Time Section -->
-                    <div class="first-time-section">
-                        <h2>{% translate "First time?" %}</h2>
-                        <p class="first-time-text">{% translate "To use the efile system, you must create a registration." %}</p>
-                        <div class="text-center">
-                            <a href="{% url 'efile_register' jurisdiction %}"
-                               class="btn btn-register">{% translate "Register" %}</a>
-                        </div>
+{% block title %}
+    {{ config.jurisdiction.name }} – {% translate "Sign in" %}
+{% endblock title %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/login.css' %}" />
+{% endblock extra_css %}
+{% block auth_content %}
+    <section class="auth-card auth-card--narrow" aria-labelledby="sign-in-title">
+        <h1 id="sign-in-title">{% translate "Sign in to eFile" %}</h1>
+        <p class="auth-lede">
+            {% blocktranslate with name=config.jurisdiction.display_name %}Use your court e-filing account to file in {{ name }}.{% endblocktranslate %}
+        </p>
+        {% include "efile/components/inline_messages.html" %}
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="{{ login_form.email.id_for_label }}" class="form-label">{% translate "Email address" %}</label>
+                {{ login_form.email }}
+                {% if login_form.email.errors %}
+                    <div class="text-danger mt-1"
+                         id="{{ login_form.email.id_for_label }}-error">
+                        {% for error in login_form.email.errors %}<small>{{ error }}</small>{% endfor %}
                     </div>
+                {% endif %}
+            </div>
+            <div class="mb-3">
+                <label for="{{ login_form.password.id_for_label }}" class="form-label">{% translate "Password" %}</label>
+                {{ login_form.password }}
+                {% if login_form.password.errors %}
+                    <div class="text-danger mt-1"
+                         id="{{ login_form.password.id_for_label }}-error">
+                        {% for error in login_form.password.errors %}<small>{{ error }}</small>{% endfor %}
+                    </div>
+                {% endif %}
+                <div class="text-end mt-2">
+                    <button type="button" class="show-password" id="passwordToggle">{% translate "Show password" %}</button>
                 </div>
             </div>
+            <div class="auth-actions">
+                <a href="{% url 'efile_password_reset' jurisdiction %}">{% translate "Forgot password?" %}</a>
+                <button type="submit" name="login_submit" class="btn btn-primary">{% translate "Sign in" %}</button>
+            </div>
+        </form>
+        <div class="auth-divider"></div>
+        <div class="auth-secondary-action">
+            <h2>{% translate "First time?" %}</h2>
+            <p>{% translate "Create a court e-filing account before you start your filing." %}</p>
+            <a href="{% url 'efile_register' jurisdiction %}"
+               class="btn btn-outline-primary">{% translate "Create an account" %}</a>
         </div>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-        <script src="{% url 'javascript-catalog' %}"></script>
-        <script>
-            function togglePassword() {
-                const passwordField = document.getElementById("password");
-                const showPasswordLink = document.querySelector(".show-password");
-
-                if (passwordField.type === "password") {
-                    passwordField.type = "text";
-                    showPasswordLink.textContent = '{% translate "Hide Password" %}';
-                } else {
-                    passwordField.type = "password";
-                    showPasswordLink.textContent = '{% translate "Show Password" %}';
-                }
-            }
-            // Add some interactive behavior
-            document.addEventListener("DOMContentLoaded", function() {
-                const inputs = document.querySelectorAll(".form-control");
-
-                inputs.forEach((input) => {
-                    input.addEventListener("focus", function() {
-                        this.parentElement.style.transform = "translateY(-2px)";
-                    });
-
-                    input.addEventListener("blur", function() {
-                        this.parentElement.style.transform = "translateY(0)";
-                    });
-                });
-            });
-        </script>
-    </body>
-</html>
+    </section>
+{% endblock auth_content %}
+{% block extra_js %}
+    <script>
+        document.getElementById("passwordToggle").addEventListener("click", function() {
+            const passwordField = document.getElementById("password");
+            const showing = passwordField.type === "text";
+            passwordField.type = showing ? "password" : "text";
+            this.textContent = showing ? '{% translate "Show password" %}' : '{% translate "Hide password" %}';
+        });
+    </script>
+{% endblock extra_js %}

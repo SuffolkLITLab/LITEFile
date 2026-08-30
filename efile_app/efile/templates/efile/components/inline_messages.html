@@ -1,0 +1,13 @@
+{% load i18n %}
+{% if messages %}
+    <div class="page-feedback" aria-label="{% translate "Page feedback" %}">
+        {% for message in messages %}
+            <div class="page-feedback__message page-feedback__message--{{ message.tags|default:'info' }}"
+                 {% if message.tags == "error" or message.tags == "warning" %}role="alert"{% else %}role="status"{% endif %}>
+                <i class="fas {% if message.tags == 'error' %}fa-circle-exclamation{% elif message.tags == 'warning' %}fa-triangle-exclamation{% elif message.tags == 'success' %}fa-circle-check{% else %}fa-circle-info{% endif %}"
+                   aria-hidden="true"></i>
+                <span>{{ message }}</span>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}

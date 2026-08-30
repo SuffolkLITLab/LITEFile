@@ -126,7 +126,12 @@ def test_the_options_page_sends_a_filer_with_several_drafts_to_the_list(client, 
     response = client.get(reverse("efile_options", kwargs={"jurisdiction": "illinois"}))
 
     assert response.context["draft_count"] == 2
-    assert DRAFTS_URL in response.content.decode()
+    content = response.content.decode()
+    assert DRAFTS_URL in content
+    assert "Continue a draft" in content
+    assert '<details class="option-card option-disclosure">' in content
+    assert '<span class="option-count" aria-hidden="true">2</span>' in content
+    assert '<details class="option-card option-disclosure" open>' not in content
 
 
 @pytest.mark.django_db
