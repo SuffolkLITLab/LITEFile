@@ -1,17 +1,24 @@
-function preferredConfidentialityValue(options, savedValue, defaultConfidentiality) {
-    if (savedValue) return String(savedValue);
-    if (defaultConfidentiality) {
-        const preferred = options.find((item) => item.confidentiality === defaultConfidentiality);
-        if (preferred) return String(preferred.value || preferred.code || preferred.id || "");
-    }
-    if (options.length === 1) {
-        const only = options[0];
-        return String(only.value || only.code || only.id || "");
-    }
-    return "";
-}
-
 (function() {
+    function preferredConfidentialityValue(options, savedValue, defaultConfidentiality) {
+        if (savedValue) return String(savedValue);
+        if (defaultConfidentiality) {
+            const preferred = options.find((item) => item.confidentiality === defaultConfidentiality);
+            if (preferred) return String(preferred.value || preferred.code || preferred.id || "");
+        }
+        if (options.length === 1) {
+            const only = options[0];
+            return String(only.value || only.code || only.id || "");
+        }
+        return "";
+    }
+
+    if (typeof module !== "undefined" && module.exports) {
+        module.exports = {
+            preferredConfidentialityValue
+        };
+    }
+    if (typeof document === "undefined") return;
+
     const form = document.getElementById("organize-documents-form");
     const contextElement = document.getElementById("organize-context");
     if (!form || !contextElement) return;
@@ -480,9 +487,3 @@ function preferredConfidentialityValue(options, savedValue, defaultConfidentiali
 
     Promise.all(cards().map(initializeCard)).then(updatePositions).catch((error) => showError(error.message));
 })();
-
-if (typeof module !== "undefined" && module.exports) {
-    module.exports = {
-        preferredConfidentialityValue
-    };
-}

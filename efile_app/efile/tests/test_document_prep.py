@@ -333,7 +333,10 @@ def _lead_details(document):
 
 
 @pytest.mark.django_db
-def test_organize_accepts_no_confidentiality_when_the_court_offers_no_choices(client, document_draft):
+@patch("efile.views.organize_documents._court_document_types", return_value=[])
+def test_organize_accepts_no_confidentiality_when_the_court_offers_no_choices(
+    court_document_types, client, document_draft
+):
     document_draft.document_checklist_acknowledged = True
     document_draft.save(update_fields=["document_checklist_acknowledged", "updated_at"])
     lead = document_draft.documents.get(role=FilingDocument.Role.LEAD)
@@ -351,6 +354,38 @@ def test_organize_accepts_no_confidentiality_when_the_court_offers_no_choices(cl
     assert response.status_code == 200
     assert lead.document_type_code == ""
     assert lead.document_type_name == ""
+    court_document_types.assert_called_once_with(document_draft, "petition")
+
+
+@pytest.mark.django_db
+@patch(
+    "efile.views.organize_documents._court_document_types",
+    return_value=[{"code": "PUBLIC", "name": "Non-confidential"}],
+)
+def test_organize_rejects_no_confidentiality_when_the_court_offers_choices(
+    court_document_types, client, document_draft
+):
+    document_draft.document_checklist_acknowledged = True
+    document_draft.save(update_fields=["document_checklist_acknowledged", "updated_at"])
+    lead = document_draft.documents.get(role=FilingDocument.Role.LEAD)
+    details = _lead_details(lead)
+    details["document_type"] = ""
+    details["document_type_name"] = ""
+
+    response = client.post(
+        reverse("organize_documents", kwargs={"jurisdiction": "illinois"}),
+        {"documents": [details], "main_document_id": lead.pk},
+        content_type="application/json",
+    )
+
+    lead.refresh_from_db()
+    assert response.status_code == 400
+    assert response.json() == {
+        "success": False,
+        "error": "Choose a confidentiality setting for petition.pdf.",
+    }
+    assert lead.document_type_code == ""
+    court_document_types.assert_called_once_with(document_draft, "petition")
 
 
 @pytest.mark.django_db
