@@ -15,6 +15,11 @@ CONFIG_STRINGS = [
         "about.project_partner_description",
         "LITEFile's Illinois e-filing integration was developed in close partnership with Illinois Legal Aid Online (ILAO), who provided project leadership, co-development, and funding to expand accessible electronic court filing for self-represented litigants in Illinois.",
     ),
+    # Translators: Explains when filers in this jurisdiction may mark a document confidential. A state should use the rule or order language its court approves.
+    pgettext_lazy(
+        "organize_documents.confidentiality_help",
+        "You may only file a document confidentially when a court rule or court order requires it.",
+    ),
     # vermont.yaml
     # Translators: The partner paragraph on this jurisdiction's About page. Partners approve their own wording, so set it per state.
     pgettext_lazy(

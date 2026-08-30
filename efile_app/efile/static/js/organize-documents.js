@@ -1,3 +1,16 @@
+function preferredConfidentialityValue(options, savedValue, defaultConfidentiality) {
+    if (savedValue) return String(savedValue);
+    if (defaultConfidentiality) {
+        const preferred = options.find((item) => item.confidentiality === defaultConfidentiality);
+        if (preferred) return String(preferred.value || preferred.code || preferred.id || "");
+    }
+    if (options.length === 1) {
+        const only = options[0];
+        return String(only.value || only.code || only.id || "");
+    }
+    return "";
+}
+
 (function() {
     const form = document.getElementById("organize-documents-form");
     const contextElement = document.getElementById("organize-context");
@@ -47,13 +60,22 @@
         return item.required === true || String(item.required).toLowerCase() === "true";
     }
 
-    function setRadioOptions(container, options, savedValue, fieldName, placeholder, requiredNote) {
+    function setRadioOptions(
+        container,
+        options,
+        savedValue,
+        fieldName,
+        placeholder,
+        requiredNote,
+        defaultConfidentiality,
+    ) {
         container.innerHTML = "";
         if (!options.length) {
             setPlaceholder(container, placeholder);
             return;
         }
-        options.forEach((item, index) => {
+        const selectedValue = preferredConfidentialityValue(options, savedValue, defaultConfidentiality);
+        options.forEach((item) => {
             const label = document.createElement("label");
             const input = document.createElement("input");
             input.className = "form-check-input";
@@ -61,7 +83,7 @@
             input.name = fieldName;
             input.value = optionValue(item);
             input.required = true;
-            input.checked = input.value === savedValue || (!savedValue && options.length === 1 && index === 0);
+            input.checked = input.value === selectedValue;
             // Carried on the input so the payload can name the choice without
             // scraping whatever else the label happens to show.
             input.dataset.optionText = optionText(item);
@@ -149,9 +171,11 @@
 
     async function loadDependentOptions(card, filingType) {
         const documentType = card.querySelector(".document-type-options");
+        const documentTypeField = documentType.closest("fieldset");
         const component = card.querySelector(".filing-component-options");
         const documentId = card.dataset.documentId;
         if (!filingType) {
+            documentTypeField.hidden = false;
             setRadioOptions(documentType, [], "", `document-type-${documentId}`, text.choose_filing_type_first);
             setRadioOptions(component, [], "", `filing-component-${documentId}`, text.choose_filing_type_first);
             return;
@@ -173,12 +197,15 @@
             getJson(`/api/dropdowns/document-types/?${documentParams}`),
             getJson(`/api/get-filing-components/?${componentParams}`),
         ]);
+        documentTypeField.hidden = documentTypes.length === 0;
         setRadioOptions(
             documentType,
             documentTypes,
             card.dataset.documentType,
             `document-type-${documentId}`,
             text.no_document_types,
+            undefined,
+            context.default_confidentiality,
         );
 
         let savedComponent = card.dataset.filingComponent;
@@ -453,3 +480,9 @@
 
     Promise.all(cards().map(initializeCard)).then(updatePositions).catch((error) => showError(error.message));
 })();
+
+if (typeof module !== "undefined" && module.exports) {
+    module.exports = {
+        preferredConfidentialityValue
+    };
+}

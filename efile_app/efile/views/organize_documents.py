@@ -12,6 +12,7 @@ from efile.api.suffolk_api_views import get_tyler_token
 from efile.models import FilingDocument
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.drafts import draft_snapshot
+from efile.utils.config_loader import config_loader
 from efile.utils.ui_text import get_texts
 from efile.workflow import RETURN_TO_REVIEW, ExistingCase, WorkflowStepKey, get_step_url, get_workflow_context
 
@@ -62,8 +63,8 @@ def _save_document_details(draft, document_details, main_document_id):
         document = documents[item["id"]]
         filing_type = str(item.get("filing_type") or "").strip()
         document_type = str(item.get("document_type") or "").strip()
-        if not filing_type or not document_type:
-            raise ValueError(f"Choose a filing type and confidentiality setting for {document.name}.")
+        if not filing_type:
+            raise ValueError(f"Choose a filing type for {document.name}.")
 
         document.name = str(item.get("name") or "").strip()[:255] or document.name
         document.filing_type_code = filing_type
@@ -152,6 +153,8 @@ def organize_documents(request, jurisdiction):
             }
         )
 
+    jurisdiction_config = config_loader.load_jurisdiction_config(jurisdiction) or {}
+    confidentiality_config = jurisdiction_config.get("document_confidentiality") or {}
     context = {
         "is_logged_in": True,
         "filing_draft": draft_snapshot(draft),
@@ -164,6 +167,7 @@ def organize_documents(request, jurisdiction):
             "case_type": draft.case_type_code,
             "existing_case": "yes" if draft.existing_case == ExistingCase.EXISTING else "no",
             "guessed_filing_type": (draft.extracted_guesses or {}).get("filing type", ""),
+            "default_confidentiality": confidentiality_config.get("default", ""),
             "return_to": request.GET.get("return_to", ""),
             # The script rewrites these choice lists once the court answers, so
             # the strings it renders have to travel with the page -- otherwise

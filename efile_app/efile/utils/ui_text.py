@@ -128,6 +128,13 @@ UI_STRINGS: dict[str, UIString] = {
     "organize_documents.filing_component_required_note": UIString(
         default="Required by the court for this filing type.",
     ),
+    "organize_documents.confidentiality_help": UIString(
+        default="Choose confidential only when a court rule or court order requires it.",
+        description=(
+            "Explains when filers in this jurisdiction may mark a document confidential. "
+            "A state should use the rule or order language its court approves."
+        ),
+    ),
     "organize_documents.optional_services_summary": UIString(
         default="Certified copy and courtesy email (optional)",
     ),

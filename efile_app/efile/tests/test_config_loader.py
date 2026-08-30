@@ -6,7 +6,9 @@ class TestJurisdictionConfigLoader:
 
     def test_load_jurisdiction_config(self):
         loader = JurisdictionConfigLoader()
-        assert loader.load_jurisdiction_config("illinois")["state"]["code"] == "IL"
+        config = loader.load_jurisdiction_config("illinois")
+        assert config["state"]["code"] == "IL"
+        assert config["document_confidentiality"]["default"] == "non_confidential"
 
     def test_get_available_states(self):
         loader = JurisdictionConfigLoader()
