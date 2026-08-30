@@ -537,12 +537,19 @@ class DropdownAPIViews(APIResponseMixin):
                     for document_type in api_data:
                         if isinstance(document_type, dict) and "code" in document_type and "name" in document_type:
                             lower_name = document_type["name"].lower().strip()
-                            if "non-confidential" == lower_name or "public" == lower_name:
+                            is_non_confidential = lower_name in {"non-confidential", "public"}
+                            if is_non_confidential:
                                 text = f"No ({document_type['name']})"
                             else:
                                 text = f"Yes ({document_type['name']})"
 
-                            document_types.append({"value": document_type["code"], "text": text})
+                            document_types.append(
+                                {
+                                    "value": document_type["code"],
+                                    "text": text,
+                                    "confidentiality": "non_confidential" if is_non_confidential else "confidential",
+                                }
+                            )
 
                 return DropdownAPIViews.success_response(document_types)
             else:

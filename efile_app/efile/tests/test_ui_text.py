@@ -184,3 +184,5 @@ def test_organize_documents_hands_its_own_strings_to_the_script(client, django_u
 
     assert "loading_choices" in content
     assert "filing_component_fixed_note" in content
+    assert '"default_confidentiality": "non_confidential"' in content
+    assert "only file a document confidentially when a court rule or court order requires it" in content

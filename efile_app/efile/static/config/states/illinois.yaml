@@ -35,11 +35,20 @@ state:
   name: "Illinois"
   jurisdiction: "illinois"
 
+# When the court offers both choices, preselect its public/non-confidential
+# document type. A saved filer choice always takes precedence.
+document_confidentiality:
+  default: "non_confidential"
+
 # Words and sentences this jurisdiction says differently. Keys, defaults, and
 # what each one is for are in efile/utils/ui_text.py; anything not listed here
 # uses the default English wording. Illinois keeps the default "petition" as the
 # example of a document that starts a case.
 text:
+  organize_documents:
+    confidentiality_help: >-
+      You may only file a document confidentially when a court rule or court
+      order requires it.
   about:
     project_partner_description: >-
       LITEFile's Illinois e-filing integration was developed in close
