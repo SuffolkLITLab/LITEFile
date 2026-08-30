@@ -31,6 +31,28 @@
     margin-bottom: 1.5rem;
 }
 
+.auth-jurisdiction {
+    align-items: center;
+    background: var(--background-subtle, #f7f9fc);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+}
+
+.auth-jurisdiction__label {
+    align-items: center;
+    display: flex;
+    gap: 0.45rem;
+}
+
+.auth-jurisdiction__label i {
+    color: var(--suffolk-blue);
+}
+
 .auth-divider {
     border-top: 1px solid var(--border-subtle);
     margin: 2rem 0;
@@ -77,5 +99,10 @@
 
     .auth-actions .btn {
         width: 100%;
+    }
+
+    .auth-jurisdiction {
+        align-items: stretch;
+        flex-direction: column;
     }
 }

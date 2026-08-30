@@ -67,3 +67,18 @@ def test_registration_non_field_errors_are_rendered_inline(client):
     assert "Passwords don&#x27;t match" in content
     assert 'aria-label="Form errors"' in content
     assert "page-feedback__message--error" in content
+
+
+@pytest.mark.django_db(False)
+@pytest.mark.parametrize(("jurisdiction", "state_name"), [("illinois", "Illinois"), ("vermont", "Vermont")])
+def test_registration_identifies_the_account_state(client, jurisdiction, state_name):
+    response = client.get(reverse("efile_register", kwargs={"jurisdiction": jurisdiction}))
+
+    content = response.content.decode()
+    assert response.status_code == 200
+    assert 'aria-label="Registration state"' in content
+    assert "Registering for" in content
+    assert state_name in content
+    assert f'href="{reverse("efile_choose_jurisdiction")}"' in content
+    assert "Change state" in content
+    assert 'name="state_code"' not in content
