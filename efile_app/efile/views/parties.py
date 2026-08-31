@@ -84,7 +84,7 @@ def parties(request, jurisdiction):
             filer.party_type_name = party_type_names.get(filer_type, filer.party_type_name)
             filer.save(update_fields=["party_type", "party_type_name", "updated_at"])
             ensure_required_parties(draft, party_types)
-            incomplete = incomplete_parties(draft)
+            incomplete = incomplete_parties(draft, party_types=party_types)
             if incomplete:
                 draft.current_step = WorkflowStepKey.PARTY_DETAILS
                 draft.save(update_fields=["current_step", "updated_at"])
@@ -103,7 +103,8 @@ def parties(request, jurisdiction):
             return redirect(get_step_url(draft.current_step, jurisdiction))
 
     roster = [
-        {"party": party, "complete": party_is_complete(party)} for party in FilingParty.objects.filter(draft=draft)
+        {"party": party, "complete": party_is_complete(party, party_types=party_types)}
+        for party in FilingParty.objects.filter(draft=draft)
     ]
     guessed_party_type = None if filer.party_type else guess_filer_party_type(draft, party_types)
     context = {

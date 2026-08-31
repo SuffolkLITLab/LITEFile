@@ -383,9 +383,9 @@ def test_the_party_screen_maps_sides_and_asks_only_for_what_is_missing(client, r
 
     responding.refresh_from_db()
     # The extracted defendant already covers the required defendant party type,
-    # so no blank placeholder is created alongside them -- the filer is sent to
-    # finish the person the document actually named.
+    # so no blank placeholder is created alongside them. Their name and mapped
+    # role are enough when this filing has no rule requiring an address.
     assert responding.party_type == "defendant"
     assert FilingParty.objects.filter(draft=review_draft, role="other").count() == 1
     assert response.status_code == 302
-    assert response.url.endswith(f"?party={responding.pk}")
+    assert response.url == reverse("payment", kwargs={"jurisdiction": "illinois"})

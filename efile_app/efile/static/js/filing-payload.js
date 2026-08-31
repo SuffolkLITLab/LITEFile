@@ -50,6 +50,14 @@ const FilingPayload = {
     },
 
     partyFromDraft(party) {
+        const address = {
+            address: party.address_line_1 || "",
+            unit: party.address_line_2 || "",
+            city: party.city || "",
+            state: party.state || "",
+            zip: party.zip_code || "",
+            country: party.country || "US"
+        };
         return {
             party_type: party.party_type,
             name: {
@@ -58,14 +66,12 @@ const FilingPayload = {
                 last: party.last_name || "",
                 suffix: party.suffix || ""
             },
-            address: {
-                address: party.address_line_1 || "",
-                unit: party.address_line_2 || "",
-                city: party.city || "",
-                state: party.state || "",
-                zip: party.zip_code || "",
-                country: party.country || "US"
-            },
+            // Tyler validates a present address object, even when all its
+            // values are blank. Omit it when the optional address is wholly
+            // blank; otherwise staging rejects the blank state as a bad code.
+            ...([address.address, address.unit, address.city, address.state, address.zip].some(Boolean) ? {
+                address
+            } : {}),
             email: party.email || "",
             phone_number: party.phone || "",
             is_new: !party.external_party_id
@@ -152,20 +158,24 @@ const FilingPayload = {
             .map((party) => this.partyFromDraft(party));
 
         if (other_parties.length === 0 && caseData.other_first_name && caseData.other_party_type) {
+            const legacyAddress = {
+                address: caseData.other_address_line_1 || "",
+                unit: caseData.other_address_line_2 || "",
+                city: caseData.other_address_city || "",
+                state: caseData.other_address_state || "",
+                zip: caseData.other_address_zip || "",
+                country: "US"
+            };
             other_parties.push({
                 party_type: caseData.other_party_type,
                 name: {
                     first: caseData.other_first_name,
                     last: caseData.other_last_name
                 },
-                address: {
-                    address: caseData.other_address_line_1,
-                    unit: caseData.other_address_line_2,
-                    city: caseData.other_address_city,
-                    state: caseData.other_address_state,
-                    zip: caseData.other_address_zip,
-                    country: "US"
-                },
+                ...([legacyAddress.address, legacyAddress.unit, legacyAddress.city, legacyAddress.state, legacyAddress.zip]
+                    .some(Boolean) ? {
+                        address: legacyAddress
+                    } : {}),
                 email: caseData.other_email,
                 phone_number: caseData.other_phone_number,
                 is_new: true,

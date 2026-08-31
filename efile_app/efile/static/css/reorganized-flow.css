@@ -1233,6 +1233,40 @@
     font-weight: 500;
 }
 
+.address-choice {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.85rem;
+    margin-bottom: 1rem;
+}
+
+.address-choice .form-check {
+    margin-bottom: 0;
+}
+
+.address-explainer {
+    background: none;
+    border: 0;
+    border-bottom: 1px dotted var(--better-blue);
+    color: var(--better-blue);
+    font-size: 0.92rem;
+    padding: 0;
+}
+
+.address-explainer:hover,
+.address-explainer:focus-visible {
+    border-bottom-style: solid;
+}
+
+.address-explainer-popover {
+    max-width: 23rem;
+}
+
+.address-explainer-popover .popover-body p:last-child {
+    margin-bottom: 0;
+}
+
 .people-grid {
     display: grid;
     gap: 1rem;

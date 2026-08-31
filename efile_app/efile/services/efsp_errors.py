@@ -44,6 +44,7 @@ _FIELD_LABELS = {
 
 # "al_court_bundle.elements[0].filing_type" -> document 1, field filing_type
 _BUNDLE_FIELD = re.compile(r"^al_court_bundle\.elements\[(\d+)\]\.(.+)$")
+_OTHER_PARTY_ADDRESS_FIELD = re.compile(r"^other_parties\[(\d+)\]\.address\.(address|city|state|zip)$")
 
 _MAX_RAW_BODY = 300
 
@@ -162,6 +163,7 @@ def _describe_var(var, *, missing: bool) -> str:
     name = str(var.get("name") or "").strip()
     if not name:
         return ""
+    current = str(var.get("currentVal") or "").strip()
 
     match = _BUNDLE_FIELD.match(name)
     if match:
@@ -170,9 +172,15 @@ def _describe_var(var, *, missing: bool) -> str:
     else:
         where = ""
 
-    label = _FIELD_LABELS.get(name, name.replace("_", " "))
-    current = str(var.get("currentVal") or "").strip()
+    address_match = _OTHER_PARTY_ADDRESS_FIELD.match(name)
+    if address_match:
+        index, field = address_match.groups()
+        field_label = {"address": "street address", "zip": "ZIP code"}.get(field, field)
+        if current:
+            return f"{current!r} is not a {field_label} the court accepts for other party {int(index) + 1}"
+        return f"{field_label} is required for other party {int(index) + 1}'s mailing address"
 
+    label = _FIELD_LABELS.get(name, name.replace("_", " "))
     if missing or not current:
         return f"no {label} was given{where}"
     return f"{current!r} is not a {label} this court accepts{where}"

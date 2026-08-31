@@ -13,7 +13,6 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any
 
-from django.db.models import Q
 from django.urls import reverse
 
 
@@ -191,30 +190,16 @@ def _has_incomplete_parties(draft: Any | None) -> bool:
     if parties is None:
         return bool(_draft_value(draft, "has_incomplete_parties", False))
     if hasattr(parties, "filter"):
-        incomplete = (
-            Q(party_type="")
-            | (Q(organization_name="") & (Q(first_name="") | Q(last_name="")))
-            | Q(address_line_1="")
-            | Q(city="")
-            | Q(state="")
-            | Q(zip_code="")
-        )
-        return parties.filter(incomplete).exists()
+        from efile.services.people import party_is_complete
+
+        return any(not party_is_complete(party, draft=draft) for party in parties.all())
     try:
         party_list = list(parties.all())
     except (AttributeError, TypeError):
         party_list = list(parties)
-    return any(
-        not (
-            party.party_type
-            and (party.organization_name or (party.first_name and party.last_name))
-            and party.address_line_1
-            and party.city
-            and party.state
-            and party.zip_code
-        )
-        for party in party_list
-    )
+    from efile.services.people import party_is_complete
+
+    return any(not party_is_complete(party, draft=draft) for party in party_list)
 
 
 def _has_case_questions(draft: Any | None) -> bool:

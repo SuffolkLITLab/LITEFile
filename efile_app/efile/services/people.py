@@ -11,6 +11,7 @@ from efile.models import FilingDocument, FilingDraft, FilingParty
 from efile.party_sides import PARTY_SIDE_KEYWORDS, PartySide, side_for_party_type_name
 from efile.services.document_checklists import party_type_keywords_for_role
 from efile.services.extracted_parties import party_display_name
+from efile.services.party_requirements import address_is_blank, address_is_complete, party_address_requirement
 from efile.utils.config_loader import config_loader
 from efile.workflow import ExistingCase
 
@@ -24,14 +25,23 @@ _INITIATING_PARTY_KEYWORDS = PARTY_SIDE_KEYWORDS[PartySide.INITIATING]
 _RESPONDING_PARTY_KEYWORDS = PARTY_SIDE_KEYWORDS[PartySide.RESPONDING]
 
 
-def party_is_complete(party: FilingParty) -> bool:
+def party_is_complete(party: FilingParty, *, draft=None, party_types=None) -> bool:
     has_name = bool(party.organization_name or (party.first_name and party.last_name))
-    has_address = bool(party.address_line_1 and party.city and party.state and party.zip_code)
-    return bool(party.party_type and has_name and has_address)
+    address_required = party_address_requirement(
+        draft or getattr(party, "draft", None),
+        party,
+        party_types=party_types,
+    ).required
+    valid_address = address_is_complete(party) or (not address_required and address_is_blank(party))
+    return bool(party.party_type and has_name and valid_address)
 
 
-def incomplete_parties(draft: FilingDraft):
-    return [party for party in FilingParty.objects.filter(draft=draft) if not party_is_complete(party)]
+def incomplete_parties(draft: FilingDraft, *, party_types=None):
+    return [
+        party
+        for party in FilingParty.objects.filter(draft=draft)
+        if not party_is_complete(party, draft=draft, party_types=party_types)
+    ]
 
 
 def get_party_types(draft: FilingDraft) -> list[dict[str, Any]]:
@@ -55,6 +65,13 @@ def get_party_types(draft: FilingDraft) -> list[dict[str, Any]]:
             "code": str(item.get("code") or ""),
             "name": str(item.get("name") or ""),
             "required": str(item.get("isrequired", "")).lower() == "true" or item.get("isrequired") is True,
+            # Tyler does not currently return one of these fields in the
+            # Illinois staging lists we checked. Preserve support for the live
+            # metadata rather than forcing a future flag into static YAML.
+            "address_required": any(
+                str(item.get(key, "")).lower() == "true"
+                for key in ("addressrequired", "addressRequired", "partyaddressrequired", "requirespartyaddress")
+            ),
         }
         for item in data
         if isinstance(item, dict) and item.get("code") and item.get("name")

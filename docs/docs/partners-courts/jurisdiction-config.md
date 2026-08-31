@@ -79,6 +79,28 @@ court_specific_requirements:
 When a filing is rejected by a court clerk, LITEFile automatically surfaces the clerk's phone number and email address directly on the filer's status screen so they know who to call for assistance.
 :::
 
+### Other-party address rules
+
+An other party's address is optional by default. Add a `party_address` rule only when a court or filing workflow is known to require it. The rule may be placed under `defaults`, under a case type, or directly under a court in `court_specific_requirements`. More specific layers override the default.
+
+```yaml
+defaults:
+  party_address:
+    required: false
+    required_for_party_types: []
+    required_for_filing_types: []
+    required_for_services: []
+
+court_specific_requirements:
+  "example:civil":
+    party_address:
+      required_for_filing_types: ["SUMMONS"]
+      required_for_services: ["PERSONAL_SERVICE"]
+      reason: "The court needs an address to issue or serve these documents."
+```
+
+Set `required: true` when every other party in that layer needs an address. The three `required_for_*` lists may contain a Tyler code or name and are matched without regard to capitalization. A matching party type, filing type, or selected optional service makes the address required. LITEFile also honors an address-required flag from live Tyler party metadata if the code list provides one.
+
 ---
 
 ## 3. Wording that differs by state

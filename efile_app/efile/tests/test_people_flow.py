@@ -7,6 +7,7 @@ from django.urls import reverse
 from efile.models import FilingDocument, FilingDraft, FilingParty
 from efile.services.current_drafts import CURRENT_DRAFT_SESSION_KEY
 from efile.services.drafts import read_case_data
+from efile.services.party_requirements import AddressRequirement
 from efile.services.people import guess_filer_party_type
 from efile.workflow import ExistingCase, WorkflowStepKey
 
@@ -284,6 +285,144 @@ def test_party_details_saves_party_and_advances_to_payment_when_no_questions(cli
     assert response.url == reverse("payment", kwargs={"jurisdiction": "illinois"})
     assert party.first_name == "Morgan"
     assert people_draft.current_step == WorkflowStepKey.PAYMENT
+
+
+@pytest.mark.django_db
+def test_party_details_saves_an_other_party_without_an_optional_address(client, people_draft):
+    FilingParty.objects.create(
+        draft=people_draft,
+        role="filer",
+        sort_order=0,
+        party_type="plaintiff",
+        first_name="Jamie",
+        last_name="Rivera",
+        address_line_1="100 State Street",
+        city="Chicago",
+        state="IL",
+        zip_code="60601",
+    )
+    party = FilingParty.objects.create(
+        draft=people_draft,
+        role="other",
+        sort_order=0,
+        party_type="defendant",
+        party_type_name="Defendant",
+    )
+
+    with patch("efile.views.party_details.get_party_types", return_value=PARTY_TYPES):
+        response = client.post(
+            f"{reverse('party_details', kwargs={'jurisdiction': 'illinois'})}?party={party.pk}",
+            {
+                "party_kind": "person",
+                "party_type": "defendant",
+                "first_name": "Morgan",
+                "last_name": "Lee",
+            },
+        )
+
+    party.refresh_from_db()
+    assert response.status_code == 302
+    assert response.url == reverse("payment", kwargs={"jurisdiction": "illinois"})
+    assert party.first_name == "Morgan"
+    assert party.address_line_1 == ""
+
+
+@pytest.mark.django_db
+def test_party_details_does_not_discard_a_saved_optional_address(client, people_draft):
+    party = FilingParty.objects.create(
+        draft=people_draft,
+        role="other",
+        sort_order=0,
+        party_type="defendant",
+        party_type_name="Defendant",
+        first_name="Morgan",
+        last_name="Lee",
+        address_line_1="200 Court Avenue",
+        city="Chicago",
+        state="IL",
+        zip_code="60602",
+    )
+
+    with patch("efile.views.party_details.get_party_types", return_value=PARTY_TYPES):
+        response = client.get(f"{reverse('party_details', kwargs={'jurisdiction': 'illinois'})}?party={party.pk}")
+
+    content = response.content.decode()
+    assert 'value="200 Court Avenue"' in content
+    assert 'value="60602"' in content
+    address_toggle = re.search(r'<input[^>]*id="add-party-address"[^>]*>', content)
+    assert address_toggle is not None
+    assert "checked" in address_toggle.group()
+    address_fields = re.search(r'<div[^>]*id="party-address-fields"[^>]*>', content)
+    assert address_fields is not None
+    assert "hidden" not in address_fields.group()
+
+
+@pytest.mark.django_db
+def test_optional_address_fields_start_hidden_with_checkbox_and_help(client, people_draft):
+    party = FilingParty.objects.create(
+        draft=people_draft,
+        role="other",
+        sort_order=0,
+        party_type="defendant",
+        party_type_name="Defendant",
+        first_name="Morgan",
+        last_name="Lee",
+    )
+
+    with patch("efile.views.party_details.get_party_types", return_value=PARTY_TYPES):
+        response = client.get(f"{reverse('party_details', kwargs={'jurisdiction': 'illinois'})}?party={party.pk}")
+
+    content = response.content.decode()
+    address_toggle = re.search(r'<input[^>]*id="add-party-address"[^>]*>', content)
+    assert address_toggle is not None
+    assert "checked" not in address_toggle.group()
+    address_fields = re.search(r'<div[^>]*id="party-address-fields"[^>]*>', content)
+    assert address_fields is not None
+    assert "hidden" in address_fields.group()
+    assert "Do I need to list an address?" in content
+    assert "Many filings do not require you to list an address for the opposing party" in content
+
+
+@pytest.mark.django_db
+def test_party_details_rejects_a_partial_optional_address(client, people_draft):
+    party = FilingParty.objects.create(draft=people_draft, role="other", sort_order=0)
+
+    with patch("efile.views.party_details.get_party_types", return_value=PARTY_TYPES):
+        response = client.post(
+            f"{reverse('party_details', kwargs={'jurisdiction': 'illinois'})}?party={party.pk}",
+            {
+                "party_kind": "person",
+                "party_type": "defendant",
+                "first_name": "Morgan",
+                "last_name": "Lee",
+                "state": "IL",
+            },
+        )
+
+    assert response.status_code == 200
+    assert b"Complete the optional mailing address" in response.content
+
+
+@pytest.mark.django_db
+def test_party_details_explains_a_configured_required_address(client, people_draft):
+    party = FilingParty.objects.create(draft=people_draft, role="other", sort_order=0)
+    requirement = AddressRequirement(True, "The court needs this address for service.")
+
+    with (
+        patch("efile.views.party_details.get_party_types", return_value=PARTY_TYPES),
+        patch("efile.views.party_details.party_address_requirement", return_value=requirement),
+    ):
+        response = client.get(f"{reverse('party_details', kwargs={'jurisdiction': 'illinois'})}?party={party.pk}")
+
+    content = response.content.decode()
+    assert "The court needs this address for service." in content
+    street = re.search(r'<input[^>]*name="address_line_1"[^>]*>', content)
+    assert street is not None
+    assert "required" in street.group()
+    assert 'id="add-party-address"' not in content
+    address_fields = re.search(r'<div[^>]*id="party-address-fields"[^>]*>', content)
+    assert address_fields is not None
+    assert "hidden" not in address_fields.group()
 
 
 @pytest.mark.django_db
