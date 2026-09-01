@@ -189,17 +189,19 @@ def _has_incomplete_parties(draft: Any | None) -> bool:
     parties = getattr(draft, "parties", None)
     if parties is None:
         return bool(_draft_value(draft, "has_incomplete_parties", False))
-    if hasattr(parties, "filter"):
-        from efile.services.people import party_is_complete
+    from efile.services.people import get_party_types, party_is_complete
 
-        return any(not party_is_complete(party, draft=draft) for party in parties.all())
+    party_types = []
+    if _draft_value(draft, "court_code") and _draft_value(draft, "case_type_code"):
+        party_types = get_party_types(draft)
+    if hasattr(parties, "filter"):
+        return any(not party_is_complete(party, draft=draft, party_types=party_types) for party in parties.all())
     try:
         party_list = list(parties.all())
     except (AttributeError, TypeError):
         party_list = list(parties)
-    from efile.services.people import party_is_complete
 
-    return any(not party_is_complete(party, draft=draft) for party in party_list)
+    return any(not party_is_complete(party, draft=draft, party_types=party_types) for party in party_list)
 
 
 def _has_case_questions(draft: Any | None) -> bool:
