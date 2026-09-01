@@ -76,6 +76,23 @@ def test_required_var_is_reported_as_missing():
     assert "no case type was given" in message
 
 
+def test_live_other_party_address_error_says_which_party_and_field_to_fix():
+    body = {
+        "wrong_vars": [
+            {
+                "name": "other_parties[0].address.state",
+                "description": ": no match found",
+                "currentVal": "",
+            }
+        ]
+    }
+
+    message = describe_efsp_error(FakeResponse(400, body))
+
+    assert "state is required" in message
+    assert "other party 1" in message
+
+
 def test_several_problems_are_all_reported():
     body = {
         "wrong_vars": [

@@ -27,6 +27,8 @@ def draft(**overrides):
         "existing_case": ExistingCase.NEW,
         "case_questions_required": False,
         "parties": [],
+        "court_code": "",
+        "case_type_code": "",
     }
     values.update(overrides)
     return SimpleNamespace(**values)
@@ -135,6 +137,32 @@ def test_party_details_only_appear_for_incomplete_parties():
 
     assert WorkflowStepKey.PARTY_DETAILS in keys(get_visible_workflow(draft(parties=[incomplete])))
     assert WorkflowStepKey.PARTY_DETAILS not in keys(get_visible_workflow(draft(parties=[complete])))
+
+
+def test_party_details_appear_when_live_party_metadata_requires_address(monkeypatch):
+    party = SimpleNamespace(
+        party_type="DEF",
+        first_name="Morgan",
+        last_name="Lee",
+        organization_name="",
+        address_line_1="",
+        city="",
+        state="",
+        zip_code="",
+        address_line_2="",
+    )
+    current_draft = draft(
+        parties=[party],
+        jurisdiction="illinois",
+        court_code="court-1",
+        case_type_code="case-1",
+    )
+    monkeypatch.setattr(
+        "efile.services.people.get_party_types",
+        lambda _draft: [{"code": "DEF", "name": "Defendant", "address_required": True}],
+    )
+
+    assert WorkflowStepKey.PARTY_DETAILS in keys(get_visible_workflow(current_draft))
 
 
 def test_case_questions_only_appear_when_required():

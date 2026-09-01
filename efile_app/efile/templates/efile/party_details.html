@@ -14,7 +14,9 @@
                 {% translate "Add the next party" %}
             {% endif %}
         </h1>
-        <p class="workflow-lede">{% translate "Enter the court role, name, and mailing address for this party." %}</p>
+        <p class="workflow-lede">
+            {% translate "Enter this party's court role and name. Add a mailing address if you know it or the court requires it." %}
+        </p>
         <form method="post" id="party-details-form" data-court="{{ court_code }}">
             {% csrf_token %}
             <input type="hidden" name="return_to" value="{{ return_to }}" />
@@ -102,14 +104,45 @@
                 </label>
             </div>
             <div class="people-section">
-                <h2>{% translate "Mailing address" %}</h2>
-                <div class="people-grid">
+                <h2>
+                    {% translate "Mailing address" %}
+                    {% if not address_required %}
+                        <em>{% translate "Optional" %}</em>
+                    {% endif %}
+                </h2>
+                {% if address_required %}
+                    <p class="form-text">{{ address_reason }}</p>
+                {% else %}
+                    <div class="address-choice">
+                        <div class="form-check">
+                            <input class="form-check-input"
+                                   type="checkbox"
+                                   id="add-party-address"
+                                   {% if show_optional_address %}checked{% endif %} />
+                            <label class="form-check-label" for="add-party-address">{% translate "Add an address" %}</label>
+                        </div>
+                        <button class="address-explainer"
+                                type="button"
+                                id="address-explainer"
+                                aria-label="{% translate "Do I need to list an address? Read our explanation." %}">
+                            {% translate "Do I need to list an address?" %}
+                        </button>
+                    </div>
+                    <div id="address-explainer-content" hidden>
+                        <p>
+                            {% translate "Many filings do not require you to list an address for the opposing party. Add one if the clerk tells you to or if you know it is required." %}
+                        </p>
+                    </div>
+                {% endif %}
+                <div class="people-grid"
+                     id="party-address-fields"
+                     {% if not address_required and not show_optional_address %}hidden{% endif %}>
                     <label class="form-field people-grid__wide">
                         <span>{% translate "Street address" %}</span>
                         <input class="form-control"
                                name="address_line_1"
                                value="{{ party.address_line_1 }}"
-                               required />
+                               {% if address_required %}required{% endif %} />
                     </label>
                     <label class="form-field people-grid__wide">
                         <span>{% translate "Apartment, unit, or suite" %} <em>{% translate "Optional" %}</em></span>
@@ -119,22 +152,25 @@
                     </label>
                     <label class="form-field">
                         <span>{% translate "City" %}</span>
-                        <input class="form-control" name="city" value="{{ party.city }}" required />
+                        <input class="form-control"
+                               name="city"
+                               value="{{ party.city }}"
+                               {% if address_required %}required{% endif %} />
                     </label>
                     <label class="form-field">
                         <span>{% translate "State" %}</span>
                         <input class="form-control"
                                name="state"
-                               value="{{ party.state|default:'IL' }}"
+                               value="{{ party.state }}"
                                maxlength="2"
-                               required />
+                               {% if address_required %}required{% endif %} />
                     </label>
                     <label class="form-field">
                         <span>{% translate "ZIP code" %}</span>
                         <input class="form-control"
                                name="zip_code"
                                value="{{ party.zip_code }}"
-                               required />
+                               {% if address_required %}required{% endif %} />
                     </label>
                 </div>
             </div>

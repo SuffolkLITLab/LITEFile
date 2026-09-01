@@ -295,6 +295,33 @@ test("durable non-filer parties are included without collapsing to one legacy pa
     assert.strictEqual(result.other_parties.length, 2);
     assert.strictEqual(result.other_parties[0].name.first, "Alex");
     assert.strictEqual(result.other_parties[1].name.first, "Example LLC");
+    assert.strictEqual("address" in result.other_parties[0], false);
+    assert.strictEqual("address" in result.other_parties[1], false);
+});
+
+test("a saved optional other-party address remains in the filing payload", () => {
+    const handler = makeHandler();
+    const party = {
+        party_type: "DEF",
+        first_name: "Alex",
+        last_name: "Morgan",
+        address_line_1: "10 State Street",
+        address_line_2: "Unit 2",
+        city: "Chicago",
+        state: "IL",
+        zip_code: "60601"
+    };
+
+    const result = handler.partyFromDraft(party);
+
+    assert.deepStrictEqual(result.address, {
+        address: "10 State Street",
+        unit: "Unit 2",
+        city: "Chicago",
+        state: "IL",
+        zip: "60601",
+        country: "US"
+    });
 });
 
 test("optional services for lead and supporting documents are included in bundles", () => {

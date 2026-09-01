@@ -29,6 +29,14 @@ jurisdiction:
   contact_address: "Suffolk University Law School LIT Lab, 120 Tremont Street, Boston, MA"
 
 defaults:
+  # Other-party addresses are optional unless a state/case/court layer, a
+  # selected filing/service code, or live Tyler metadata says otherwise.
+  party_address:
+    required: false
+    required_for_party_types: []
+    required_for_filing_types: []
+    required_for_services: []
+    reason: "The court requires a mailing address for this party before the filing can continue."
   sections:
     parties:
       title: "Required parties"
@@ -61,14 +69,14 @@ defaults:
               required: true
               column_width: "col-6"
         - section_title: "Their physical address"
-          required: true
+          required: false
           conditional_requirements: {}
             # Default: show for all courts except those explicitly hidden
           fields:
             - name: "other_address_line_1"
               label: "Street Address"
               type: "text"
-              required: true
+              required: false
               column_width: "col-12"
             - name: "other_address_line_2"
               label: "Street Address 2"
@@ -78,17 +86,17 @@ defaults:
             - name: "other_address_city"
               label: "City"
               type: "text"
-              required: true
+              required: false
               column_width: "col-6"
             - name: "other_address_state"
               label: "State"
               type: "us_state"
-              required: true
+              required: false
               column_width: "col-6"
             - name: "other_address_zip"
               label: "Zip Code"
               type: "text"
-              required: true
+              required: false
               column_width: "col-6"
         - section_title: "Their contact information"
           required: true
