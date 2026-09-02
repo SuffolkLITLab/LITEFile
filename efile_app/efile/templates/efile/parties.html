@@ -147,11 +147,6 @@
                         <i class="fa-solid fa-user-plus" aria-hidden="true"></i> {% translate "Add me as a party" %}
                     </button>
                 {% endif %}
-                {% if not filer.party_type and roster|length > 1 %}
-                    <p class="party-roster__hint">
-                        {% translate "If one of the people below is you, choose \"This is me\" rather than adding yourself again." %}
-                    </p>
-                {% endif %}
                 <form method="post">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="add" />
@@ -161,6 +156,11 @@
                     </button>
                 </form>
             </div>
+            {% if not filer.party_type and roster|length > 1 %}
+                <p class="party-roster__hint">
+                    {% translate "If one of the people below is you, say so on their row rather than adding yourself again." %}
+                </p>
+            {% endif %}
             {% for item in roster %}
                 <article class="party-row">
                     <span class="party-avatar party-avatar--small"><i class="fa-solid fa-user" aria-hidden="true"></i></span>
@@ -195,15 +195,32 @@
                     </span>
                     {% if item.party.role == "other" %}
                         {% if not filer.party_type %}
-                            {# The court's required parties are often all taken by people the
+                            {% comment %}
+                            The court's required parties are often all taken by people the
                             document named, so becoming one of them is claiming a row rather
-                            than adding another person. #}
-                            <form method="post">
+                            than adding another person. Claiming a row whose name is not
+                            yours replaces a person in the case, so it is not offered under
+                            the same words, and claim-party.js asks before it happens.
+                            {% endcomment %}
+                            <form method="post"
+                                  class="claim-party-form"
+                                  data-party-id="{{ item.party.pk }}"
+                                  data-party-name="{{ item.name }}"
+                                  data-party-role="{{ item.party.party_type_name }}"
+                                  data-filer-name="{{ filer_display_name }}"
+                                  data-replaces-a-name="{{ item.replaces_a_name|yesno:'true,false' }}">
                                 {% csrf_token %}
                                 <input type="hidden" name="action" value="claim_party" />
                                 <input type="hidden" name="party_id" value="{{ item.party.pk }}" />
+                                <input type="hidden" name="name_choice" value="" />
                                 <input type="hidden" name="return_to" value="{{ return_to }}" />
-                                <button class="btn btn-sm btn-light" type="submit">{% translate "This is me" %}</button>
+                                <button class="btn btn-sm btn-light" type="submit">
+                                    {% if item.replaces_a_name %}
+                                        {% translate "Replace with me" %}
+                                    {% else %}
+                                        {% translate "This is me" %}
+                                    {% endif %}
+                                </button>
                             </form>
                         {% endif %}
                         <a class="btn btn-sm btn-light"
@@ -233,7 +250,9 @@
             {% endif %}
         </div>
     </section>
+    {% include "efile/components/claim_party_dialog.html" %}
 {% endblock workflow_content %}
 {% block extra_js %}
     <script src="{% static 'js/parties.js' %}"></script>
+    <script src="{% static 'js/claim-party.js' %}"></script>
 {% endblock extra_js %}

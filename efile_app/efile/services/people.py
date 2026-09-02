@@ -121,17 +121,55 @@ def filer_name_match(draft: FilingDraft) -> FilingParty | None:
     return matches[0] if matches else None
 
 
-def claim_party_as_filer(draft: FilingDraft, party: FilingParty) -> None:
-    """Answer "yes, that party is me": become them, and stop listing them twice.
+def names_match(filer: FilingParty | None, party: FilingParty | None) -> bool:
+    """Whether two rows are the same name once spelling is set aside."""
 
-    The filer's own row is kept rather than the caption's, because it is the
-    one with the address and email the court needs, and the caption row is
-    deleted rather than left as a second person of the same name.
+    if filer is None or party is None:
+        return False
+    filer_name = _comparable(party_display_name(filer))
+    return bool(filer_name) and filer_name == _comparable(party_display_name(party))
+
+
+def claim_replaces_a_name(filer: FilingParty | None, party: FilingParty | None) -> bool:
+    """Whether claiming this party would put a different name in the case.
+
+    Claiming the blank row someone started is not replacing anybody, and
+    claiming a row that already carries the filer's name is confirming who
+    they are. Only the third case -- a named party who is not them by name --
+    changes what the court is told the case is about, and only that one has a
+    question to ask first.
+    """
+
+    if party is None:
+        return False
+    return bool(party_display_name(party)) and not names_match(filer, party)
+
+
+def claim_party_as_filer(draft: FilingDraft, party: FilingParty, *, use_party_name: bool = False) -> None:
+    """Answer "that party is me": become them, and stop listing them twice.
+
+    The filer's own row is the one kept, because it is the one with the
+    address and email the court needs; the claimed row is deleted rather than
+    left behind as a second person in the case.
+
+    Which name the court then sees is a real question whenever the two rows
+    are not the same name, and it is the caller's to have asked. Passing
+    ``use_party_name`` keeps what the case already says -- the right answer
+    for a filer whose caption name is not the one on their account -- and
+    the default keeps their own.
     """
 
     filer = FilingParty.objects.filter(draft=draft, role="filer").first()
     if filer is None:
         return
+    name_fields: list[str] = []
+    if use_party_name and party_display_name(party):
+        filer.first_name = party.first_name
+        filer.middle_name = party.middle_name
+        filer.last_name = party.last_name
+        filer.suffix = party.suffix
+        filer.organization_name = party.organization_name
+        name_fields = ["first_name", "middle_name", "last_name", "suffix", "organization_name"]
     filer.party_type = party.party_type or filer.party_type
     filer.party_type_name = party.party_type_name or filer.party_type_name
     filer.party_side = filer.party_side or party.party_side
@@ -142,6 +180,7 @@ def claim_party_as_filer(draft: FilingDraft, party: FilingParty) -> None:
     filer.is_filing_party = bool(filer.party_type)
     filer.save(
         update_fields=[
+            *name_fields,
             "party_type",
             "party_type_name",
             "party_side",

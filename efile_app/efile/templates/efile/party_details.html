@@ -209,24 +209,40 @@
             </div>
         </form>
         {% if not filer_is_party %}
-            {# Offered for a party the document named as much as for a blank row:
+            {% comment %}
+            Offered for a party the document named as much as for a blank row:
             a filer looking at a detected party is exactly who needs to say that
-            it is them, and their own name and address are already on the draft. #}
+            it is them, and their own name and address are already on the draft.
+            {% endcomment %}
             <form method="post"
                   action="{% url 'parties' jurisdiction %}"
-                  class="party-details__its-me">
+                  class="party-details__its-me claim-party-form"
+                  data-party-id="{{ party.pk }}"
+                  data-party-name="{{ party_name }}"
+                  data-party-role="{{ party.party_type_name }}"
+                  data-filer-name="{{ filer_display_name }}"
+                  data-replaces-a-name="{{ replaces_a_name|yesno:'true,false' }}">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="claim_party" />
                 <input type="hidden" name="party_id" value="{{ party.pk }}" />
+                <input type="hidden" name="name_choice" value="" />
                 <input type="hidden" name="return_to" value="{{ return_to }}" />
-                <button class="btn btn-link" type="submit">{% translate "This party is me" %}</button>
+                <button class="btn btn-link" type="submit">
+                    {% if replaces_a_name %}
+                        {% translate "Replace this party with me" %}
+                    {% else %}
+                        {% translate "This party is me" %}
+                    {% endif %}
+                </button>
                 <span class="form-text">
-                    {% translate "We will list you in the case as this party. We already have your name and address, so there is nothing more to fill in here." %}
+                    {% translate "We will list you in the case in this role. We already have your name and address, so there is nothing more to fill in here." %}
                 </span>
             </form>
         {% endif %}
     </section>
+    {% include "efile/components/claim_party_dialog.html" %}
 {% endblock workflow_content %}
 {% block extra_js %}
     <script src="{% static 'js/party-details.js' %}"></script>
+    <script src="{% static 'js/claim-party.js' %}"></script>
 {% endblock extra_js %}

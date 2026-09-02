@@ -609,7 +609,7 @@ def test_every_listed_party_can_be_claimed_as_you(client, draft):
 
     claimable = set(re.findall(r'name="party_id" value="(\d+)"', content))
     assert claimable == {str(tenant.pk), str(landlord.pk)}
-    assert content.count(">This is me</button>") == 2
+    assert content.count("Replace with me") == 2
     # And the list says so, for a filer who would otherwise add themselves again.
     assert "If one of the people below is you" in content
 
@@ -619,7 +619,7 @@ def test_claiming_a_detected_party_takes_their_role_and_drops_the_row(client, dr
     filer = make_filer(draft)
     tenant, landlord = both_sides(draft)
 
-    post_parties(client, action="claim_party", party_id=tenant.pk)
+    post_parties(client, action="claim_party", party_id=tenant.pk, name_choice="mine")
 
     filer.refresh_from_db()
     assert filer.party_type == "defendant"
@@ -653,7 +653,7 @@ def test_the_party_details_screen_offers_it_for_a_party_with_a_name(client, draf
         url = f"{reverse('party_details', kwargs={'jurisdiction': 'illinois'})}?party={tenant.pk}"
         content = client.get(url).content.decode()
 
-    assert "This party is me" in content
+    assert "Replace this party with me" in content
 
 
 @pytest.mark.django_db
@@ -670,3 +670,108 @@ def test_claiming_a_party_with_no_role_yet_leaves_the_role_question_to_answer(cl
     assert filer.party_type == ""
     assert filer.is_filing_party is False
     assert not FilingParty.objects.filter(pk=blank.pk).exists()
+
+
+# --- Claiming a party who is not your name -----------------------------------
+
+
+@pytest.mark.django_db
+def test_replacing_a_differently_named_party_needs_an_answer_about_the_name(client, draft):
+    """It changes who the court is told the case is about. One click is not
+    enough for that, so the screen asks and the server holds out for it."""
+
+    filer = make_filer(draft)
+    tenant, _landlord = both_sides(draft)
+
+    response = post_parties(client, action="claim_party", party_id=tenant.pk)
+
+    filer.refresh_from_db()
+    tenant.refresh_from_db()
+    assert response.status_code == 302
+    assert filer.party_type == ""
+    assert FilingParty.objects.filter(pk=tenant.pk).exists()
+    assert "Say which name the court should see" in client.get(PARTIES_URL, follow=True).content.decode()
+
+
+@pytest.mark.django_db
+def test_keeping_the_name_already_in_the_case_renames_the_filers_own_row(client, draft):
+    """For the filer whose caption name is not the one on their account: the
+    court keeps seeing the name it already has."""
+
+    filer = make_filer(draft, first_name="Q", last_name="Steenhuis")
+    tenant, _landlord = both_sides(draft)
+
+    post_parties(client, action="claim_party", party_id=tenant.pk, name_choice="theirs")
+
+    filer.refresh_from_db()
+    assert (filer.first_name, filer.last_name) == ("Real", "Tenant")
+    assert filer.party_type == "defendant"
+    assert not FilingParty.objects.filter(pk=tenant.pk).exists()
+
+
+@pytest.mark.django_db
+def test_using_your_own_name_replaces_the_one_in_the_case(client, draft):
+    filer = make_filer(draft, first_name="Q", last_name="Steenhuis")
+    tenant, _landlord = both_sides(draft)
+
+    post_parties(client, action="claim_party", party_id=tenant.pk, name_choice="mine")
+
+    filer.refresh_from_db()
+    assert (filer.first_name, filer.last_name) == ("Q", "Steenhuis")
+    assert filer.party_type == "defendant"
+    assert not FilingParty.objects.filter(pk=tenant.pk).exists()
+
+
+@pytest.mark.django_db
+def test_claiming_a_party_who_is_already_your_name_asks_nothing(client, draft):
+    """There is no name question when both rows say the same thing."""
+
+    filer = make_filer(draft, first_name="Jamie", last_name="Rivera")
+    twin = make_party(draft, 0, first_name="Jamie", last_name="Rivera")
+
+    post_parties(client, action="claim_party", party_id=twin.pk)
+
+    filer.refresh_from_db()
+    assert filer.party_type == "defendant"
+    assert not FilingParty.objects.filter(pk=twin.pk).exists()
+
+
+@pytest.mark.django_db
+def test_the_two_actions_are_not_offered_under_the_same_words(client, draft):
+    """ "This is me" and "replace a person in the case with me" are different
+    things, and a filer should be able to tell which one a button does."""
+
+    make_filer(draft, first_name="Jamie", last_name="Rivera")
+    make_party(draft, 0, first_name="Jamie", last_name="Rivera")
+    make_party(
+        draft,
+        1,
+        party_type="plaintiff",
+        party_type_name="Plaintiff",
+        first_name="Someone",
+        last_name="Else",
+    )
+
+    with patch("efile.views.parties.get_party_types", return_value=PARTY_TYPES):
+        content = client.get(PARTIES_URL).content.decode()
+
+    assert content.count("This is me") == 1
+    assert content.count("Replace with me") == 1
+
+
+@pytest.mark.django_db
+def test_the_confirmation_carries_what_it_needs_to_ask_about(client, draft):
+    """The dialog is filled in from the row, so the row has to say who is
+    being replaced, by whom, and whether that is a rename at all."""
+
+    make_filer(draft, first_name="Q", last_name="Steenhuis")
+    tenant, _landlord = both_sides(draft)
+
+    with patch("efile.views.parties.get_party_types", return_value=PARTY_TYPES):
+        content = client.get(PARTIES_URL).content.decode()
+
+    assert 'id="claim-party-dialog"' in content
+    assert 'data-party-name="Real Tenant"' in content
+    assert 'data-filer-name="Q Steenhuis"' in content
+    assert 'data-replaces-a-name="true"' in content
+    assert "Are you helping this person file, rather than being them?" in content

@@ -16,6 +16,7 @@ from efile.services.people import (
     absorb_filer_duplicates,
     apply_party_sides,
     claim_party_as_filer,
+    claim_replaces_a_name,
     discard_empty_parties,
     ensure_required_parties,
     filer_name_match,
@@ -133,7 +134,18 @@ def parties(request, jurisdiction):
             # name and an address, so the other row goes rather than reaching
             # the court as a second person.
             party = get_object_or_404(FilingParty, pk=request.POST.get("party_id"), draft=draft, role="other")
-            claim_party_as_filer(draft, party)
+            name_choice = request.POST.get("name_choice", "")
+            if claim_replaces_a_name(filer, party) and name_choice not in {"mine", "theirs"}:
+                # Replacing a differently-named party changes who the court is
+                # told this case is about. Nobody should be able to do that by
+                # clicking one button, so the screen asks first and this is
+                # what happens when the answer did not arrive.
+                messages.error(
+                    request,
+                    "Say which name the court should see before replacing a party with yourself.",
+                )
+                return redirect(_parties_url(jurisdiction, return_to))
+            claim_party_as_filer(draft, party, use_party_name=name_choice == "theirs")
             filer.refresh_from_db()
             if filer.party_type:
                 messages.success(
@@ -183,7 +195,15 @@ def parties(request, jurisdiction):
             messages.error(request, "Choose your role in this case, or tell us you are filing for someone else.")
 
     roster = [
-        {"party": party, "complete": party_is_complete(party, party_types=party_types)}
+        {
+            "party": party,
+            "name": party_display_name(party),
+            "complete": party_is_complete(party, party_types=party_types),
+            # Whether claiming this row is confirming who you are or replacing
+            # somebody with a different name. The two are not the same action
+            # and the screen does not call them the same thing.
+            "replaces_a_name": claim_replaces_a_name(filer, party),
+        }
         for party in FilingParty.objects.filter(draft=draft)
     ]
     saved_filing_for = {
@@ -216,6 +236,7 @@ def parties(request, jurisdiction):
         "roster": roster,
         "guessed_party_type": guessed_party_type,
         "not_a_party_value": NOT_A_PARTY,
+        "filer_display_name": party_display_name(filer),
         "named_in_document": named_in_document,
         "named_in_document_name": party_display_name(named_in_document) if named_in_document else "",
         "named_in_document_role": (
