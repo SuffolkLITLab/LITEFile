@@ -18,7 +18,6 @@ module.exports = defineConfig({
     timeout: 120000,
     use: {
         baseURL: process.env.A11Y_TEST_BASE_URL || 'http://127.0.0.1:8000',
-        storageState: process.env.A11Y_STORAGE_STATE,
         trace: 'on-first-retry',
     },
     projects: [{

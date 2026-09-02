@@ -56,6 +56,17 @@ repos:
             uv run --directory "$ROOT_DIR/efile_app" css-beautify -r "${files[@]}"
           - --
 
+      - id: stylelint
+        name: Stylelint accessibility rules
+        entry: bash -c
+        language: system
+        files: ^efile_app/efile/.*\.css$
+        args:
+          - |
+            ROOT_DIR=$(git rev-parse --show-toplevel)
+            cd "$ROOT_DIR/efile_app" && npm exec -- stylelint "efile/**/*.css"
+          - --
+
       - id: js-beautify
         name: js-beautify (format)
         entry: bash -c

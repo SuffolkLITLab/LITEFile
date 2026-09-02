@@ -112,6 +112,10 @@ jobs:
         working-directory: efile_app
         run: npm run format:js:check
 
+      - name: Stylelint accessibility rules
+        working-directory: efile_app
+        run: npm run lint:css
+
       - name: JavaScript unit tests
         working-directory: efile_app
         run: npm run test:unit

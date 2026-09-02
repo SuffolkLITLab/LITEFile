@@ -170,6 +170,7 @@ docs/.docusaurus/
 
 # Playwright
 test-results/
+efile_app/playwright/.auth/
 efile_app/screenshots
 efile_app/playwright-report
 efile_app/tmp

@@ -70,34 +70,46 @@ for (const [label, url] of publicScreens) {
     });
 }
 
-for (const [label, url] of signedInScreens) {
-    test(`accessible: ${label}`, async ({
+test.describe('authenticated filing screens', () => {
+    test.use({
+        storageState: process.env.A11Y_STORAGE_STATE
+    });
+
+    for (const [label, url] of signedInScreens) {
+        test(`accessible: ${label}`, async ({
+            page
+        }) => {
+            await page.goto(url, {
+                waitUntil: 'networkidle'
+            });
+            await expect(page).toHaveURL(routePattern(url));
+            await expect(page.locator('main, [role="main"]').first()).toBeVisible();
+            await audit(page, label);
+        });
+    }
+});
+
+test.describe('authenticated dialog behavior', () => {
+    test.use({
+        storageState: process.env.A11Y_STORAGE_STATE
+    });
+
+    test('accessible: claim-party dialog', async ({
         page
     }) => {
-        await page.goto(url, {
+        await page.goto('/jurisdiction/illinois/parties/', {
             waitUntil: 'networkidle'
         });
-        await expect(page).toHaveURL(routePattern(url));
-        await expect(page.locator('main, [role="main"]').first()).toBeVisible();
-        await audit(page, label);
+        const dialog = page.locator('#claim-party-dialog');
+        await expect(dialog).toBeAttached();
+        // Dialog copy and its triggering suggestion vary with the filing data, so
+        // open the native dialog independently of either to keep this check stable.
+        await dialog.evaluate(element => element.showModal());
+        await expect(dialog).toBeVisible();
+        await audit(page, 'claim-party dialog', '#claim-party-dialog');
+        await dialog.evaluate(element => element.close());
+        await expect(dialog).toBeHidden();
     });
-}
-
-test('accessible: claim-party dialog', async ({
-    page
-}) => {
-    await page.goto('/jurisdiction/illinois/parties/', {
-        waitUntil: 'networkidle'
-    });
-    const dialog = page.locator('#claim-party-dialog');
-    await expect(dialog).toBeAttached();
-    // Dialog copy and its triggering suggestion vary with the filing data, so
-    // open the native dialog independently of either to keep this check stable.
-    await dialog.evaluate(element => element.showModal());
-    await expect(dialog).toBeVisible();
-    await audit(page, 'claim-party dialog', '#claim-party-dialog');
-    await dialog.evaluate(element => element.close());
-    await expect(dialog).toBeHidden();
 });
 
 test.afterAll(() => {
@@ -108,8 +120,11 @@ test.afterAll(() => {
         recursive: true
     });
     fs.writeFileSync('test-results/axe-results.json', JSON.stringify(report, null, 2));
+    // This is deliberately a risk gate while the existing accessibility
+    // backlog is addressed. Moderate and minor WCAG findings remain in the
+    // uploaded report; serious and critical findings block a pull request.
     const blocking = findings.filter(finding => blockingImpacts.has(finding.impact));
     if (blocking.length) {
-        throw new Error(`${blocking.length} serious or critical Axe accessibility finding(s); see test-results/axe-results.json.`);
+        throw new Error(`${blocking.length} serious or critical WCAG A/AA Axe finding(s); see test-results/axe-results.json.`);
     }
 });
