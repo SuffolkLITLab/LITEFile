@@ -208,7 +208,7 @@
                 </button>
             </div>
         </form>
-        {% if not filer_is_party %}
+        {% if not filer_is_party and claimable %}
             {% comment %}
             Offered for a party the document named as much as for a blank row:
             a filer looking at a detected party is exactly who needs to say that

@@ -224,7 +224,7 @@
                         {% endif %}
                     </span>
                     {% if item.party.role == "other" %}
-                        {% if not filer.party_type %}
+                        {% if not filer.party_type and item.claimable %}
                             {% comment %}
                             The court's required parties are often all taken by people the
                             document named, so becoming one of them is claiming a row rather

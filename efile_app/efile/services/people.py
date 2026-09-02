@@ -164,6 +164,20 @@ def names_match(filer: FilingParty | None, party: FilingParty | None) -> bool:
     return bool(filer_name) and filer_name == _comparable(party_display_name(party))
 
 
+def party_can_be_the_filer(party: FilingParty | None) -> bool:
+    """Whether "this party is me" is a thing anyone could truthfully say of it.
+
+    Never of an organization. Accounts are registered as individuals
+    (``views.register`` sends ``registrationType: INDIVIDUAL``), so a person
+    claiming a company is always the wrong action -- and a costly one, because
+    the filer's row would become the company and reach Tyler through the
+    account-user path, which has no way to say it is a business. A landlord
+    whose LLC is the plaintiff wants to file *for* the company instead.
+    """
+
+    return party is not None and not party.organization_name
+
+
 def claim_replaces_a_name(filer: FilingParty | None, party: FilingParty | None) -> bool:
     """Whether claiming this party would put a different name in the case.
 

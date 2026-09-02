@@ -607,9 +607,13 @@ def test_every_listed_party_can_be_claimed_as_you(client, draft):
     with patch("efile.views.parties.get_party_types", return_value=PARTY_TYPES):
         content = client.get(PARTIES_URL).content.decode()
 
-    claimable = set(re.findall(r'name="party_id" value="(\d+)"', content))
-    assert claimable == {str(tenant.pk), str(landlord.pk)}
-    assert content.count("Replace with me") == 2
+    # The company is not offered: a person signed in cannot be one.
+    # data-party-id is on the claim forms only, unlike the remove forms'
+    # party_id input, which every row still has.
+    claimable = set(re.findall(r'data-party-id="(\d+)"', content))
+    assert claimable == {str(tenant.pk)}
+    assert str(landlord.pk) not in claimable
+    assert content.count("Replace with me") == 1
     # And the list says so, for a filer who would otherwise add themselves again.
     assert "If one of them is you" in content
 
@@ -880,3 +884,21 @@ def test_the_screen_credits_the_document_only_when_the_document_named_anyone(cli
     assert "These are the people you told us about" in typed_in
     assert "we read from your document" not in typed_in
     assert "These are the people we read from your document" in read_off
+
+
+@pytest.mark.django_db
+def test_an_organization_is_never_offered_as_you(client, draft):
+    """Accounts are registered as individuals, so a person claiming a company
+    is always wrong -- and it would send their row to Tyler through the path
+    that has no way to say a party is a business."""
+
+    filer = make_filer(draft)
+    _tenant, landlord = both_sides(draft)
+
+    post_parties(client, action="claim_party", party_id=landlord.pk, name_choice="theirs")
+
+    filer.refresh_from_db()
+    assert filer.party_type == ""
+    assert filer.organization_name == ""
+    assert FilingParty.objects.filter(pk=landlord.pk).exists()
+    assert "An organization cannot be you" in client.get(PARTIES_URL, follow=True).content.decode()

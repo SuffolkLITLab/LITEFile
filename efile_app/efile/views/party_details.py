@@ -17,6 +17,7 @@ from efile.services.people import (
     get_party_types,
     incomplete_parties,
     needs_amount_in_controversy,
+    party_can_be_the_filer,
 )
 from efile.workflow import RETURN_TO_REVIEW, WorkflowStepKey, get_step_url, get_workflow_context, with_return_to
 
@@ -120,6 +121,7 @@ def party_details(request, jurisdiction):
         "party": party,
         # Someone already listed in the case has no use for "this party is me".
         "filer_is_party": filer_is_party(draft),
+        "claimable": party_can_be_the_filer(party),
         "party_name": party_display_name(party),
         "filer_display_name": party_display_name(filer_row) if filer_row else "",
         # Claiming a row whose name is not the filer's replaces a person in

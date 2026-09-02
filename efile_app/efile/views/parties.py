@@ -29,6 +29,7 @@ from efile.services.people import (
     incomplete_parties,
     names_match,
     needs_amount_in_controversy,
+    party_can_be_the_filer,
     party_is_complete,
     self_claimed_party,
     set_filing_parties,
@@ -117,7 +118,7 @@ def parties(request, jurisdiction):
     # two rows agree on the name; when they do not, replacing one name with
     # another is a question, and it is put below rather than done quietly.
     marked_self = self_claimed_party(draft)
-    if marked_self is not None and names_match(filer, marked_self):
+    if marked_self is not None and party_can_be_the_filer(marked_self) and names_match(filer, marked_self):
         claim_party_as_filer(draft, marked_self)
         filer.refresh_from_db()
 
@@ -146,6 +147,12 @@ def parties(request, jurisdiction):
             # name and an address, so the other row goes rather than reaching
             # the court as a second person.
             party = get_object_or_404(FilingParty, pk=request.POST.get("party_id"), draft=draft, role="other")
+            if not party_can_be_the_filer(party):
+                messages.error(
+                    request,
+                    "An organization cannot be you. Say you are filing for them instead.",
+                )
+                return redirect(f"{_parties_url(jurisdiction, return_to)}#your-role")
             name_choice = request.POST.get("name_choice", "")
             if claim_replaces_a_name(filer, party) and name_choice not in {"mine", "theirs"}:
                 # Replacing a differently-named party changes who the court is
@@ -215,6 +222,7 @@ def parties(request, jurisdiction):
             # somebody with a different name. The two are not the same action
             # and the screen does not call them the same thing.
             "replaces_a_name": claim_replaces_a_name(filer, party),
+            "claimable": party_can_be_the_filer(party),
         }
         for party in FilingParty.objects.filter(draft=draft)
     ]
