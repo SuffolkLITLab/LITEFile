@@ -78,6 +78,64 @@ _ORGANIZATION_PHRASES = ("city of", "county of", "town of", "state of", "commonw
 # filer can correct on the party screen.
 _NAME_SUFFIXES = frozenset({"jr", "jr.", "sr", "sr.", "ii", "iii", "iv", "v", "esq", "esq."})
 
+# Answers that are not names. A model told to list the parties will sometimes
+# say that it could not find any, in the field where the names were supposed
+# to go, and the filer then has to work out that "Unknown" is not a person
+# they need to keep.
+#
+# Matched against the whole name and never against part of one, because the
+# words themselves are ordinary in real party names: an eviction complaint
+# genuinely names "All Unknown Occupants", and a case genuinely has a party
+# called "None Smith" more often than this list should get to decide.
+_NOT_A_NAME = frozenset(
+    {
+        "unknown",
+        "unknown party",
+        "unknown parties",
+        "unknown name",
+        "name unknown",
+        "no name",
+        "none",
+        "none listed",
+        "none given",
+        "none stated",
+        "n a",
+        "na",
+        "not applicable",
+        "not available",
+        "not given",
+        "not listed",
+        "not named",
+        "not provided",
+        "not specified",
+        "not stated",
+        "no parties listed",
+        "no other parties",
+        "tbd",
+        "to be determined",
+        "et al",
+        "same as above",
+        "see above",
+        "see attached",
+        "see caption",
+        "null",
+        "blank",
+        "empty",
+        "unspecified",
+        "unnamed",
+        "party",
+        "parties",
+        "plaintiff",
+        "plaintiffs",
+        "petitioner",
+        "petitioners",
+        "defendant",
+        "defendants",
+        "respondent",
+        "respondents",
+    }
+)
+
 
 def looks_like_organization(name: str) -> bool:
     lowered = str(name or "").lower()
@@ -103,6 +161,16 @@ def split_person_name(name: str) -> dict[str, str]:
     return {"first_name": tokens[0], "middle_name": " ".join(tokens[1:-1]), "last_name": tokens[-1]}
 
 
+def is_placeholder_name(name: str) -> bool:
+    """True for an answer that says there is no name, rather than giving one.
+
+    Whole-name comparison only. "All Unknown Occupants" is a real defendant in
+    a real eviction, and a guard that reached inside names would delete them.
+    """
+
+    return _comparable_name(name) in _NOT_A_NAME
+
+
 def split_extracted_names(value: Any) -> list[dict[str, str]]:
     """Split one extraction field into ``{"name", "role_hint"}`` entries."""
 
@@ -121,18 +189,26 @@ def split_extracted_names(value: Any) -> list[dict[str, str]]:
         if match and match.group("name").strip():
             role_hint = (match.group("paren") or match.group("dash") or "").strip()
             text = match.group("name").strip()
+        if is_placeholder_name(text):
+            continue
         entries.append({"name": text, "role_hint": role_hint})
     return entries
 
 
 def extracted_party_suggestions(guesses: dict[str, Any] | None) -> list[dict[str, str]]:
-    """Every person the document named, in caption order, with their side."""
+    """Every person the document named, in caption order, with their side.
+
+    A name is listed once however many times the document printed it. The
+    same person read onto two sides is a misreading rather than two people,
+    so the first side -- caption order, which runs from the initiating side
+    down -- is the one that survives.
+    """
 
     suggestions: list[dict[str, str]] = []
-    seen: set[tuple[str, str]] = set()
+    seen: set[str] = set()
     for key, side in SIDE_BY_GUESS_KEY.items():
         for entry in split_extracted_names((guesses or {}).get(key)):
-            fingerprint = (side, _comparable_name(entry["name"]))
+            fingerprint = _comparable_name(entry["name"])
             if fingerprint in seen:
                 continue
             seen.add(fingerprint)
@@ -181,11 +257,21 @@ def review_rows(draft: FilingDraft) -> list[dict[str, Any]]:
                 "side": party.party_side or side_for_party_type_name(party.party_type_name),
                 "role_hint": party.party_role_hint,
                 "party_type_name": party.party_type_name,
+                "is_self": party.is_self,
+                "is_organization": bool(party.organization_name),
             }
             for party in saved
         ]
     return [
-        {"id": "", "name": entry["name"], "side": entry["side"], "role_hint": entry["role_hint"], "party_type_name": ""}
+        {
+            "id": "",
+            "name": entry["name"],
+            "side": entry["side"],
+            "role_hint": entry["role_hint"],
+            "party_type_name": "",
+            "is_self": False,
+            "is_organization": looks_like_organization(entry["name"]),
+        }
         for entry in extracted_party_suggestions(draft.extracted_guesses)
     ]
 
@@ -202,6 +288,8 @@ def save_reviewed_parties(draft: FilingDraft, rows: list[dict[str, str]]) -> Non
     existing = {party.pk: party for party in FilingParty.objects.filter(draft=draft, role="other")}
     kept: set[int] = set()
     next_order = max((party.sort_order for party in existing.values()), default=-1) + 1
+    # Only one of them can be the person filing, however many rows say so.
+    claimed_self = False
 
     for index, row in enumerate(rows):
         name = row.get("name", "").strip()
@@ -212,7 +300,9 @@ def save_reviewed_parties(draft: FilingDraft, rows: list[dict[str, str]]) -> Non
         party = existing.get(row.get("id"))
 
         if party is None:
-            if not name:
+            # "Unknown" is the document extraction saying it found nobody, not
+            # a person to add to the case.
+            if not name or is_placeholder_name(name):
                 continue
             party = FilingParty(draft=draft, role="other", sort_order=next_order + index)
         else:
@@ -227,6 +317,16 @@ def save_reviewed_parties(draft: FilingDraft, rows: list[dict[str, str]]) -> Non
             party.party_type_name = ""
         party.party_side = side
         party.party_role_hint = role_hint
+        # An organization can never be the person signed in, whose account is
+        # registered to an individual -- the rule
+        # ``people.party_can_be_the_filer`` enforces everywhere else, applied
+        # here too so the answer is never *stored* on a row that could only be
+        # ignored later. It also keeps a company off the one self slot: a name
+        # typed into the same submit that ticked it is only known to be a
+        # company by the time ``apply_name`` above has run.
+        is_self = str(row.get("is_self", "")).lower() == "true" and not party.organization_name and not claimed_self
+        claimed_self = claimed_self or is_self
+        party.is_self = is_self
         party.save()
 
     for pk, party in existing.items():

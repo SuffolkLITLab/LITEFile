@@ -9,6 +9,7 @@ from efile.api.suffolk_api_views import get_tyler_token
 from efile.models import FilingDocument, FilingParty
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.drafts import draft_snapshot, read_case_data
+from efile.services.people import filing_parties
 
 from ..workflow import WorkflowStepKey, get_step_url, get_workflow_context
 
@@ -32,7 +33,10 @@ def efile_payment(request, jurisdiction):
         messages.error(request, "Add and organize at least one document before choosing payment.")
         return redirect("upload_documents", jurisdiction=jurisdiction)
     filer = FilingParty.objects.filter(draft=draft, role="filer").first()
-    if filer is None or not filer.party_type:
+    # What has to be settled is who the filing is *for*, not whether the filer
+    # is a party: someone filing for their child has no party type of their own
+    # and is no less finished with this step.
+    if filer is None or not filing_parties(draft):
         messages.error(request, "Complete the people in this filing before choosing payment.")
         return redirect("parties", jurisdiction=jurisdiction)
 

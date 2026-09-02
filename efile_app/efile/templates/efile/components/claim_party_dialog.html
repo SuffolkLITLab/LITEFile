@@ -1,0 +1,57 @@
+{% load i18n %}
+{% comment %}
+Confirms "this party is me", which replaces a person already in the case with
+the person signed in. Two things it has to get across, because getting either
+wrong changes who the court thinks the case is about:
+
+* whose name the court ends up seeing, when the two are not the same name
+* that this is not how you say you are *helping* that party file
+
+Populated from the clicked row by claim-party.js, which also submits it.
+{% endcomment %}
+<dialog id="claim-party-dialog" class="claim-party-dialog">
+    <form method="dialog">
+        <h2 id="claim-party-title">{% translate "Replace this party with you?" %}</h2>
+        <p id="claim-party-lede"></p>
+        <div id="claim-party-helping" class="alert alert-warning" hidden>
+            <p>
+                <strong>{% translate "Are you helping this person file, rather than being them?" %}</strong>
+            </p>
+            <p id="claim-party-helping-detail"></p>
+            <button class="btn btn-sm btn-outline-secondary"
+                    type="button"
+                    id="claim-party-instead-filing-for">{% translate "I am filing for them instead" %}</button>
+        </div>
+        <fieldset id="claim-party-name-choice" class="form-field" hidden>
+            <legend>{% translate "Which name should the court see for this party?" %}</legend>
+            <p class="form-text">
+                {% translate "The case lists one name and your account has another. Only you know which is right." %}
+            </p>
+            <div class="compact-choice-list">
+                <label>
+                    <input class="form-check-input"
+                           type="radio"
+                           name="claim_party_name_choice"
+                           value="mine" />
+                    <span id="claim-party-name-mine"></span>
+                </label>
+                <label>
+                    <input class="form-check-input"
+                           type="radio"
+                           name="claim_party_name_choice"
+                           value="theirs" />
+                    <span id="claim-party-name-theirs"></span>
+                </label>
+            </div>
+        </fieldset>
+        <p id="claim-party-name-error" class="alert alert-danger" hidden>
+            {% translate "Choose which name the court should see." %}
+        </p>
+        <div class="workflow-actions">
+            <button class="btn btn-outline-secondary"
+                    type="button"
+                    id="claim-party-cancel">{% translate "Cancel" %}</button>
+            <button class="btn btn-primary" type="button" id="claim-party-confirm">{% translate "Replace them with me" %}</button>
+        </div>
+    </form>
+</dialog>

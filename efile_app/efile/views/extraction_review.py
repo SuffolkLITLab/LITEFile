@@ -42,15 +42,18 @@ def _offered_filer_roles(request, jurisdiction):
 def _submitted_party_rows(request):
     """Read the party editor back off the form, keeping its rows aligned.
 
-    Every row posts all four of its inputs, including the empty id of a row
-    the filer just added, so the four lists stay index-aligned even when rows
-    were added or removed in the browser.
+    Every row posts all of its inputs, including the empty id of a row the
+    filer just added, so the lists stay index-aligned even when rows were
+    added or removed in the browser.
     """
 
     ids = request.POST.getlist("party_id")
     names = request.POST.getlist("party_name")
     sides = request.POST.getlist("party_side")
     hints = request.POST.getlist("party_role_hint")
+    # A hidden value rather than a checkbox, so an unticked row still posts
+    # something and the lists stay index-aligned with the names beside them.
+    selves = request.POST.getlist("party_is_self")
     rows = []
     for index, name in enumerate(names):
         raw_id = ids[index] if index < len(ids) else ""
@@ -60,6 +63,7 @@ def _submitted_party_rows(request):
                 "name": name,
                 "side": sides[index] if index < len(sides) else "",
                 "role_hint": hints[index] if index < len(hints) else "",
+                "is_self": selves[index] if index < len(selves) else "",
             }
         )
     return rows

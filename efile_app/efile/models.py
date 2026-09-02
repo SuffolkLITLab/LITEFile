@@ -219,6 +219,14 @@ class FilingDraft(models.Model):
     docket_number = models.CharField(max_length=255, blank=True)
     case_title = models.CharField(max_length=500, blank=True)
 
+    # Where notices about this case should go. Only asked of someone filing
+    # for a party they are not, because only then are the two addresses
+    # different questions: the account signed in belongs to the person doing
+    # the filing, and the notices belong to whoever is meant to read them --
+    # them, the party, or a relative handling the mail. Blank means the
+    # filer's own account address, which is what it is offered filled in with.
+    notice_email = models.EmailField(blank=True)
+
     selected_payment_account_id = models.CharField(max_length=255, blank=True)
     selected_payment_account_name = models.CharField(max_length=255, blank=True)
     # Tyler's paymentAccountTypeCode for the selected account (e.g. "WV" for a fee
@@ -389,6 +397,22 @@ class FilingParty(models.Model):
     party_type = models.CharField(max_length=100, blank=True)
     party_type_name = models.CharField(max_length=255, blank=True)
     external_party_id = models.CharField(max_length=255, blank=True)
+
+    # Set on the review screen, where the people read off the document are
+    # first shown: "this one is me". It is recorded on the party rather than
+    # on the filer because the filer has no row of their own yet -- theirs is
+    # made two screens later, on your-information -- and the parties screen
+    # is where the two are finally put together.
+    is_self = models.BooleanField(default=False)
+
+    # Whether the filing is made *on behalf of* this party -- what Tyler calls
+    # a filing party, and a different question from who is in the case. The
+    # person signed in is usually a party themselves, and then their own row
+    # carries this. But someone can file for a party they are not: a parent
+    # for a child, a friend helping a neighbour answer an eviction. Their row
+    # then has no ``party_type`` at all, and the party they are filing for
+    # carries this instead. See ``efile.services.people.filing_parties``.
+    is_filing_party = models.BooleanField(default=False)
 
     # Which side of the caption this person is on, in the only vocabulary a
     # document itself establishes: whoever started the case, whoever is

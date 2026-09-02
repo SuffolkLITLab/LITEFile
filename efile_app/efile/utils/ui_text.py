@@ -186,7 +186,10 @@ UI_STRINGS: dict[str, UIString] = {
         default="What is your role in this case?",
     ),
     "parties.role_help": UIString(
-        default="Choose the role that describes you. The court uses it to list you as a party in this case.",
+        default=(
+            "Choose the role that describes you, and the court will list you as a party in this case. "
+            "You do not have to be one: if you are filing for someone else, say so and we will ask who."
+        ),
     ),
     # -- Public pages --------------------------------------------------------
     "about.project_partner_description": UIString(

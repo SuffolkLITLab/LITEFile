@@ -112,7 +112,28 @@
                             {{ filer.phone }}
                         {% endif %}
                     </address>
-                    <span class="status-pill status-pill--ready">{{ filer.party_type_name|default:filer.party_type }}</span>
+                    {% if filer.party_type %}
+                        <span class="status-pill status-pill--ready">{{ filer.party_type_name|default:filer.party_type }}</span>
+                    {% else %}
+                        <p class="review-filing-for">
+                            {% if filing_for %}
+                                {% blocktranslate with names=filing_for|join:", " %}You are not a party in this case. This filing is on behalf of {{ names }}.{% endblocktranslate %}
+                            {% else %}
+                                {% translate "You are not a party in this case." %}
+                            {% endif %}
+                        </p>
+                        <a class="btn btn-outline-primary btn-sm"
+                           href="{% url 'parties' jurisdiction %}?return_to=review#your-role">
+                            <i class="fa-solid fa-user-plus" aria-hidden="true"></i> {% translate "Add me as a party" %}
+                        </a>
+                    {% endif %}
+                {% endif %}
+                {% if notice_email %}
+                    <p class="review-notice-email">
+                        {% blocktranslate with email=notice_email %}Notices about this case go to {{ email }}.{% endblocktranslate %}
+                        <a href="{% url 'parties' jurisdiction %}?return_to=review#notice_email"
+                           aria-label="{% translate "Edit where notices about this case go" %}">{% translate "Edit" %}</a>
+                    </p>
                 {% endif %}
             </section>
             <section class="review-summary-card">

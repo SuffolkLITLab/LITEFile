@@ -8,12 +8,16 @@ from efile.models import FilingParty
 from efile.party_sides import PartySide, side_for_party_type_name
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.drafts import draft_snapshot
+from efile.services.extracted_parties import party_display_name
 from efile.services.party_requirements import address_is_blank, party_address_requirement
 from efile.services.people import (
+    claim_replaces_a_name,
+    filer_is_party,
     get_case_questions,
     get_party_types,
     incomplete_parties,
     needs_amount_in_controversy,
+    party_can_be_the_filer,
 )
 from efile.workflow import RETURN_TO_REVIEW, WorkflowStepKey, get_step_url, get_workflow_context, with_return_to
 
@@ -30,6 +34,7 @@ def party_details(request, jurisdiction):
         workflow_version=2,
     )
     party = get_object_or_404(FilingParty, draft=draft, role="other", pk=request.GET.get("party"))
+    filer_row = FilingParty.objects.filter(draft=draft, role="filer").first()
     party_types = get_party_types(draft)
     party_type_names = {item["code"]: item["name"] for item in party_types}
     show_optional_address = not address_is_blank(party)
@@ -114,6 +119,15 @@ def party_details(request, jurisdiction):
         "is_logged_in": True,
         "filing_draft": draft_snapshot(draft),
         "party": party,
+        # Someone already listed in the case has no use for "this party is me".
+        "filer_is_party": filer_is_party(draft),
+        "claimable": party_can_be_the_filer(party),
+        "party_name": party_display_name(party),
+        "filer_display_name": party_display_name(filer_row) if filer_row else "",
+        # Claiming a row whose name is not the filer's replaces a person in
+        # the case rather than confirming who they are, and the two are not
+        # offered under the same words.
+        "replaces_a_name": claim_replaces_a_name(filer_row, party),
         "party_types": party_types,
         "party_kind": "organization" if party.organization_name else "person",
         "return_to": request.GET.get("return_to", ""),

@@ -277,6 +277,7 @@ def read_case_data(draft: FilingDraft | None) -> dict[str, Any]:
     _put(data, "previous_case_id", draft.previous_case_id)
     _put(data, "docket_number", draft.docket_number)
     _put(data, "case_title", draft.case_title)
+    _put(data, "notice_email", draft.notice_email)
     _put(data, "selected_payment_account", draft.selected_payment_account_id)
     _put(data, "selected_payment_account_name", draft.selected_payment_account_name)
     _put(data, "optional_services", list(draft.optional_services or []))
@@ -309,6 +310,10 @@ def read_case_data(draft: FilingDraft | None) -> dict[str, Any]:
         {
             "id": party.pk,
             "role": party.role,
+            # Whether the filing is made on behalf of this party -- the filer
+            # themselves when they are one, someone they are filing for when
+            # they are not. The payload names these as Tyler's filing parties.
+            "is_filing_party": party.is_filing_party,
             "party_type": party.party_type,
             "party_type_name": party.party_type_name,
             "first_name": party.first_name,

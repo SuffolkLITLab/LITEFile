@@ -345,3 +345,265 @@ test("optional services for lead and supporting documents are included in bundle
     assert.deepStrictEqual(bundles[0].optional_services, ["143487"]);
     assert.deepStrictEqual(bundles[1].optional_services, ["143491"]);
 });
+// -- Filing for a party the filer is not ------------------------------------
+//
+// Being the person filing and being a party are different things. Tyler asks
+// only who the filing is on behalf of, so a filer who is not a party names
+// someone else and stays out of the caption entirely.
+
+const FILING_FOR_SOMEONE_ELSE = {
+    case_category: "cat",
+    case_type: "type",
+    filing_parties: [{
+        role: "filer",
+        is_filing_party: false,
+        party_type: "",
+        first_name: "Helper",
+        last_name: "Neighbor",
+        email: "helper@example.com"
+    }, {
+        role: "other",
+        is_filing_party: true,
+        party_type: "DEF",
+        first_name: "Real",
+        last_name: "Tenant",
+        email: "tenant@example.com"
+    }, {
+        role: "other",
+        is_filing_party: false,
+        party_type: "PLA",
+        organization_name: "Landlord LLC"
+    }]
+};
+
+test("a filer who is not a party files on behalf of the party they named", () => {
+    const handler = makeHandler();
+    const userData = handler.userDataFromCaseData(FILING_FOR_SOMEONE_ELSE);
+    const result = handler.buildEFilingData(userData, FILING_FOR_SOMEONE_ELSE, {}, "pay-1");
+
+    assert.strictEqual(result.users.length, 1);
+    assert.strictEqual(result.users[0].name.first, "Real");
+    assert.strictEqual(result.users[0].party_type, "DEF");
+    // The helper reaches the court as the contact, never as a party.
+    assert.strictEqual(result.other_parties.length, 1);
+    assert.strictEqual(result.other_parties[0].name.first, "Landlord LLC");
+    assert.strictEqual(result.lead_contact.name.first, "Helper");
+    assert.strictEqual(result.lead_contact.email, "helper@example.com");
+});
+
+test("the party being filed for is not repeated in other_parties", () => {
+    const handler = makeHandler();
+    const userData = handler.userDataFromCaseData(FILING_FOR_SOMEONE_ELSE);
+    const result = handler.buildEFilingData(userData, FILING_FOR_SOMEONE_ELSE, {}, "pay-1");
+
+    const names = result.other_parties.map((party) => party.name.first);
+    assert.strictEqual(names.includes("Real"), false);
+});
+
+test("a filing party with no email of their own borrows the filer's", () => {
+    const handler = makeHandler();
+    const caseData = structuredClone(FILING_FOR_SOMEONE_ELSE);
+    caseData.filing_parties[1].email = "";
+    const userData = handler.userDataFromCaseData(caseData);
+    const result = handler.buildEFilingData(userData, caseData, {}, "pay-1");
+
+    // Tyler rejects a new case whose first filing party has no email at all.
+    assert.strictEqual(result.users[0].email, "helper@example.com");
+});
+
+test("every document is filed on behalf of the named party, not the filer", () => {
+    const handler = makeHandler();
+    const userData = handler.userDataFromCaseData(FILING_FOR_SOMEONE_ELSE);
+    const result = handler.buildEFilingData(userData, FILING_FOR_SOMEONE_ELSE, {
+        files: {
+            lead: {
+                name: "answer.pdf"
+            }
+        }
+    }, "pay-1");
+
+    assert.deepStrictEqual(result.al_court_bundle[0].filing_parties, ["users[0]"]);
+});
+
+test("a filer who is a party is still the filing party themselves", () => {
+    const handler = makeHandler();
+    const caseData = {
+        case_category: "cat",
+        case_type: "type",
+        filing_parties: [{
+            role: "filer",
+            is_filing_party: true,
+            party_type: "PLA",
+            first_name: "Jordan",
+            last_name: "Taylor",
+            email: "jordan@example.com"
+        }, {
+            role: "other",
+            is_filing_party: false,
+            party_type: "DEF",
+            first_name: "Alex",
+            last_name: "Morgan"
+        }]
+    };
+    const userData = handler.userDataFromCaseData(caseData);
+    const result = handler.buildEFilingData(userData, caseData, {}, "pay-1");
+
+    assert.strictEqual(result.users.length, 1);
+    assert.strictEqual(result.users[0].name.first, "Jordan");
+    assert.strictEqual(result.users[0].party_type, "PLA");
+    assert.strictEqual(result.other_parties.length, 1);
+});
+
+test("co-parties who are both filing are both named as filing parties", () => {
+    const handler = makeHandler();
+    const caseData = {
+        case_category: "cat",
+        case_type: "type",
+        filing_parties: [{
+            role: "filer",
+            is_filing_party: false,
+            party_type: "",
+            first_name: "Helper",
+            last_name: "Neighbor",
+            email: "helper@example.com"
+        }, {
+            role: "other",
+            is_filing_party: true,
+            party_type: "PLA",
+            first_name: "First",
+            last_name: "Tenant",
+            email: "one@example.com"
+        }, {
+            role: "other",
+            is_filing_party: true,
+            party_type: "PLA",
+            first_name: "Second",
+            last_name: "Tenant"
+        }]
+    };
+    const userData = handler.userDataFromCaseData(caseData);
+    const result = handler.buildEFilingData(userData, caseData, {
+        files: {
+            lead: {
+                name: "complaint.pdf"
+            }
+        }
+    }, "pay-1");
+
+    assert.strictEqual(result.users.length, 2);
+    assert.deepStrictEqual(
+        result.al_court_bundle[0].filing_parties,
+        ["users[0]", "users[1]"]
+    );
+});
+test("the notice address answers both the lead contact and a party with no email", () => {
+    const handler = makeHandler();
+    const caseData = structuredClone(FILING_FOR_SOMEONE_ELSE);
+    caseData.notice_email = "aunt@example.com";
+    caseData.filing_parties[1].email = "";
+    const userData = handler.userDataFromCaseData(caseData);
+    const result = handler.buildEFilingData(userData, caseData, {}, "pay-1");
+
+    assert.strictEqual(result.users[0].email, "aunt@example.com");
+    assert.strictEqual(result.lead_contact.email, "aunt@example.com");
+});
+
+test("a party's own email is not overwritten by the notice address", () => {
+    const handler = makeHandler();
+    const caseData = structuredClone(FILING_FOR_SOMEONE_ELSE);
+    caseData.notice_email = "aunt@example.com";
+    const userData = handler.userDataFromCaseData(caseData);
+    const result = handler.buildEFilingData(userData, caseData, {}, "pay-1");
+
+    assert.strictEqual(result.users[0].email, "tenant@example.com");
+});
+
+test("with no notice address given, the filer's own is still what is used", () => {
+    const handler = makeHandler();
+    const caseData = structuredClone(FILING_FOR_SOMEONE_ELSE);
+    caseData.filing_parties[1].email = "";
+    const userData = handler.userDataFromCaseData(caseData);
+    const result = handler.buildEFilingData(userData, caseData, {}, "pay-1");
+
+    assert.strictEqual(result.users[0].email, "helper@example.com");
+    assert.strictEqual(result.lead_contact.email, "helper@example.com");
+});
+// -- Organizations ----------------------------------------------------------
+
+test("an organization says it is a business, so it is not read as a nameless person", () => {
+    const handler = makeHandler();
+    const caseData = {
+        case_category: "cat",
+        case_type: "type",
+        filing_parties: [{
+            role: "filer",
+            is_filing_party: true,
+            party_type: "PLA",
+            first_name: "Quinten",
+            last_name: "Steenhuis",
+            email: "q@example.com"
+        }, {
+            role: "other",
+            party_type: "DEF",
+            organization_name: "Fox River Phone Repair LLC"
+        }]
+    };
+    const userData = handler.userDataFromCaseData(caseData);
+    const result = handler.buildEFilingData(userData, caseData, {}, "pay-1");
+
+    // Without this the court rejects the envelope with "PersonSurName is
+    // required", because an organization has no surname to give.
+    assert.strictEqual(result.other_parties[0].person_type, "business");
+    assert.strictEqual(result.other_parties[0].name.first, "Fox River Phone Repair LLC");
+});
+
+test("a person is not labelled a business", () => {
+    const handler = makeHandler();
+    const caseData = {
+        case_category: "cat",
+        case_type: "type",
+        filing_parties: [{
+            role: "filer",
+            is_filing_party: true,
+            party_type: "PLA",
+            first_name: "Quinten",
+            last_name: "Steenhuis"
+        }, {
+            role: "other",
+            party_type: "DEF",
+            first_name: "Luca",
+            last_name: "Martin"
+        }]
+    };
+    const userData = handler.userDataFromCaseData(caseData);
+    const result = handler.buildEFilingData(userData, caseData, {}, "pay-1");
+
+    assert.strictEqual("person_type" in result.other_parties[0], false);
+    assert.strictEqual(result.other_parties[0].name.last, "Martin");
+});
+
+test("an organization being filed for is labelled too", () => {
+    const handler = makeHandler();
+    const caseData = {
+        case_category: "cat",
+        case_type: "type",
+        filing_parties: [{
+            role: "filer",
+            is_filing_party: false,
+            party_type: "",
+            first_name: "Quinten",
+            last_name: "Steenhuis",
+            email: "q@example.com"
+        }, {
+            role: "other",
+            is_filing_party: true,
+            party_type: "PLA",
+            organization_name: "Riverbend Properties LLC"
+        }]
+    };
+    const userData = handler.userDataFromCaseData(caseData);
+    const result = handler.buildEFilingData(userData, caseData, {}, "pay-1");
+
+    assert.strictEqual(result.users[0].person_type, "business");
+    assert.strictEqual(result.users[0].name.first, "Riverbend Properties LLC");
+});

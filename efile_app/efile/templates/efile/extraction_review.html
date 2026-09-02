@@ -242,7 +242,11 @@
             <fieldset class="review-parties" id="review-parties">
                 <legend>{% translate "People named in your document" %}</legend>
                 <p class="review-parties__lede">
-                    {% translate "Fix any name we misread, and say which side each person is on. You will add addresses later." %}
+                    {% if party_rows %}
+                        {% translate "Fix any name we got wrong, and say which side each person is on. If one of them is you, say so here and we will not ask you to enter yourself again. You will add addresses later." %}
+                    {% else %}
+                        {% translate "Add the people involved in this case, and say which side each one is on. If one of them is you, say so here and we will not ask you to enter yourself again. You will add addresses later." %}
+                    {% endif %}
                 </p>
                 <ol class="review-parties__list" id="review-parties-list">
                     {% for row in party_rows %}
@@ -278,6 +282,24 @@
                                     {% endfor %}
                                 </select>
                             </label>
+                            <div class="review-party__is-me">
+                                {% comment %}
+                                The value posts from every row, ticked or not, so the lists the
+                                view reads back stay lined up with the names. Only the button is
+                                conditional: a company can never be the person signed in, whose
+                                account is registered to an individual.
+                                {% endcomment %}
+                                <input type="hidden"
+                                       name="party_is_self"
+                                       value="{{ row.is_self|yesno:'true,false' }}" />
+                                {% if not row.is_organization %}
+                                    <button class="btn btn-sm btn-outline-secondary review-party__is-me-toggle"
+                                            type="button"
+                                            aria-pressed="{{ row.is_self|yesno:'true,false' }}">
+                                        {% translate "This is me" %}
+                                    </button>
+                                {% endif %}
+                            </div>
                             <button class="btn btn-link text-danger review-party__remove"
                                     type="button"
                                     aria-label="{% translate "Remove this person" %}">
@@ -312,6 +334,12 @@
                                 {% for option in party_side_options %}<option value="{{ option.value }}">{{ option.label }}</option>{% endfor %}
                             </select>
                         </label>
+                        <div class="review-party__is-me">
+                            <input type="hidden" name="party_is_self" value="false" />
+                            <button class="btn btn-sm btn-outline-secondary review-party__is-me-toggle"
+                                    type="button"
+                                    aria-pressed="false">{% translate "This is me" %}</button>
+                        </div>
                         <button class="btn btn-link text-danger review-party__remove"
                                 type="button"
                                 aria-label="{% translate "Remove this person" %}">

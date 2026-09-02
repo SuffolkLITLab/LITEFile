@@ -752,4 +752,5 @@ def test_the_role_question_is_asked_the_way_other_primary_questions_are(client, 
     content = response.content.decode()
     assert 'class="form-field primary-question"' in content
     assert "What is your role in this case?" in content
-    assert "The court uses it to list you as a party" in content
+    assert "list you as a party" in content
+    assert "if you are filing for someone else" in content
