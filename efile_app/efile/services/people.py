@@ -10,7 +10,7 @@ from django.conf import settings
 from efile.models import FilingDocument, FilingDraft, FilingParty
 from efile.party_sides import PARTY_SIDE_KEYWORDS, PartySide, side_for_party_type_name
 from efile.services.document_checklists import party_type_keywords_for_role
-from efile.services.extracted_parties import party_display_name
+from efile.services.extracted_parties import extracted_party_suggestions, party_display_name
 from efile.services.party_requirements import address_is_blank, address_is_complete, party_address_requirement
 from efile.utils.config_loader import config_loader
 from efile.workflow import ExistingCase
@@ -101,6 +101,40 @@ def set_filing_parties(draft: FilingDraft, parties) -> None:
         if party.is_filing_party != (party.pk in wanted):
             party.is_filing_party = party.pk in wanted
             party.save(update_fields=["is_filing_party", "updated_at"])
+
+
+def self_claimed_party(draft: FilingDraft) -> FilingParty | None:
+    """The party the filer ticked as themselves while reviewing the document."""
+
+    if filer_is_party(draft):
+        return None
+    return FilingParty.objects.filter(draft=draft, role="other", is_self=True).first()
+
+
+def case_has_named_parties(draft: FilingDraft) -> bool:
+    """Whether the case's other people have been settled already.
+
+    Once they have, a suggestion about which side the filer is probably on is
+    not a help but a contradiction: it is guessing at something the filer has
+    already been asked and answered. True however they were settled -- read
+    off the document, or typed in by hand.
+    """
+
+    return any(party_display_name(party) for party in FilingParty.objects.filter(draft=draft, role="other"))
+
+
+def document_named_the_parties(draft: FilingDraft) -> bool:
+    """Whether the people in this case came off the document or out of a form.
+
+    A filer who turned AI off gets a keyword scan, which reads a form number
+    and a case number and never a name (see
+    ``document_extractions.keyword_document_analysis``), so on that route the
+    party list is entirely their own typing. Screens that would otherwise
+    credit a reading have to know the difference, or they tell the filer the
+    system did something for them that it did not do.
+    """
+
+    return bool(extracted_party_suggestions(draft.extracted_guesses))
 
 
 def filer_name_match(draft: FilingDraft) -> FilingParty | None:

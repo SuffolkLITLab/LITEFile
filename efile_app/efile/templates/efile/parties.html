@@ -10,21 +10,40 @@
         <div class="workflow-eyebrow">{% translate "People" %}</div>
         <h1>{% translate "Who is involved in this case?" %}</h1>
         <p class="workflow-lede">
-            {% translate "Start with your own part in this case. Then we will ask about any other people, one at a time." %}
+            {% if case_has_parties %}
+                {% translate "You already told us who is in this case. The one thing left is your own part in it — the list below is here to check, not to fill in again." %}
+            {% else %}
+                {% translate "Start with your own part in this case. Then we will ask about any other people, one at a time." %}
+            {% endif %}
         </p>
         {% if named_in_document %}
-            <form method="post" class="alert alert-info party-name-match">
+            <form method="post"
+                  class="alert alert-info party-name-match claim-party-form"
+                  data-party-id="{{ named_in_document.pk }}"
+                  data-party-name="{{ named_in_document_name }}"
+                  data-party-role="{{ named_in_document_role }}"
+                  data-filer-name="{{ filer_display_name }}"
+                  data-replaces-a-name="{{ named_in_document_was_claimed|yesno:'true,false' }}">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="claim_party" />
                 <input type="hidden" name="party_id" value="{{ named_in_document.pk }}" />
+                <input type="hidden" name="name_choice" value="" />
                 <input type="hidden" name="return_to" value="{{ return_to }}" />
                 <i class="fa-regular fa-lightbulb" aria-hidden="true"></i>
-                {% if named_in_document_role %}
+                {% if named_in_document_was_claimed %}
+                    {% blocktranslate with name=named_in_document_name %}You said {{ name }} is you. That is a different name from the one on your account, so tell us which the court should see and we will list you in their place.{% endblocktranslate %}
+                {% elif named_in_document_role %}
                     {% blocktranslate with name=named_in_document_name role=named_in_document_role %}Your document lists {{ name }} as the {{ role }} — that is your name too. Is this you?{% endblocktranslate %}
                 {% else %}
                     {% blocktranslate with name=named_in_document_name %}Your document lists {{ name }}, which is your name too. Is this you?{% endblocktranslate %}
                 {% endif %}
-                <button class="btn btn-sm btn-outline-primary" type="submit">{% translate "Yes, that is me" %}</button>
+                <button class="btn btn-sm btn-outline-primary" type="submit">
+                    {% if named_in_document_was_claimed %}
+                        {% translate "Confirm" %}
+                    {% else %}
+                        {% translate "Yes, that is me" %}
+                    {% endif %}
+                </button>
                 <span class="form-text">
                     {% translate "If it is a different person with the same name, leave them on the list and answer for yourself below." %}
                 </span>
@@ -156,7 +175,18 @@
                     </button>
                 </form>
             </div>
-            {% if not filer.party_type and roster|length > 1 %}
+            {% if case_has_parties %}
+                <p class="party-roster__hint">
+                    {% if parties_from_document %}
+                        {% translate "These are the people we read from your document and you confirmed. Change anything that is wrong." %}
+                    {% else %}
+                        {% translate "These are the people you told us about. Change anything that is wrong." %}
+                    {% endif %}
+                    {% if not filer.party_type %}
+                        {% translate "If one of them is you, say so on their row rather than adding yourself again." %}
+                    {% endif %}
+                </p>
+            {% elif not filer.party_type and roster|length > 1 %}
                 <p class="party-roster__hint">
                     {% translate "If one of the people below is you, say so on their row rather than adding yourself again." %}
                 </p>

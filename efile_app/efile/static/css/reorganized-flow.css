@@ -577,7 +577,13 @@
     align-items: end;
     display: grid;
     gap: 0.75rem;
-    grid-template-columns: minmax(0, 2fr) minmax(0, 1.4fr) auto;
+    /* Name, side, "this is me", remove. */
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1.4fr) auto auto;
+}
+
+/* Sits on the baseline of the two fields beside it rather than above them. */
+.review-party__is-me {
+    padding-bottom: 0.15rem;
 }
 
 .review-party label {

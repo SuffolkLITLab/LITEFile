@@ -257,11 +257,19 @@ def review_rows(draft: FilingDraft) -> list[dict[str, Any]]:
                 "side": party.party_side or side_for_party_type_name(party.party_type_name),
                 "role_hint": party.party_role_hint,
                 "party_type_name": party.party_type_name,
+                "is_self": party.is_self,
             }
             for party in saved
         ]
     return [
-        {"id": "", "name": entry["name"], "side": entry["side"], "role_hint": entry["role_hint"], "party_type_name": ""}
+        {
+            "id": "",
+            "name": entry["name"],
+            "side": entry["side"],
+            "role_hint": entry["role_hint"],
+            "party_type_name": "",
+            "is_self": False,
+        }
         for entry in extracted_party_suggestions(draft.extracted_guesses)
     ]
 
@@ -278,6 +286,8 @@ def save_reviewed_parties(draft: FilingDraft, rows: list[dict[str, str]]) -> Non
     existing = {party.pk: party for party in FilingParty.objects.filter(draft=draft, role="other")}
     kept: set[int] = set()
     next_order = max((party.sort_order for party in existing.values()), default=-1) + 1
+    # Only one of them can be the person filing, however many rows say so.
+    claimed_self = False
 
     for index, row in enumerate(rows):
         name = row.get("name", "").strip()
@@ -305,6 +315,9 @@ def save_reviewed_parties(draft: FilingDraft, rows: list[dict[str, str]]) -> Non
             party.party_type_name = ""
         party.party_side = side
         party.party_role_hint = role_hint
+        is_self = str(row.get("is_self", "")).lower() == "true" and not claimed_self
+        claimed_self = claimed_self or is_self
+        party.is_self = is_self
         party.save()
 
     for pk, party in existing.items():

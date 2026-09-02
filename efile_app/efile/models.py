@@ -398,6 +398,13 @@ class FilingParty(models.Model):
     party_type_name = models.CharField(max_length=255, blank=True)
     external_party_id = models.CharField(max_length=255, blank=True)
 
+    # Set on the review screen, where the people read off the document are
+    # first shown: "this one is me". It is recorded on the party rather than
+    # on the filer because the filer has no row of their own yet -- theirs is
+    # made two screens later, on your-information -- and the parties screen
+    # is where the two are finally put together.
+    is_self = models.BooleanField(default=False)
+
     # Whether the filing is made *on behalf of* this party -- what Tyler calls
     # a filing party, and a different question from who is in the case. The
     # person signed in is usually a party themselves, and then their own row

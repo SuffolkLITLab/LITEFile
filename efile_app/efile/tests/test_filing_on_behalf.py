@@ -611,7 +611,7 @@ def test_every_listed_party_can_be_claimed_as_you(client, draft):
     assert claimable == {str(tenant.pk), str(landlord.pk)}
     assert content.count("Replace with me") == 2
     # And the list says so, for a filer who would otherwise add themselves again.
-    assert "If one of the people below is you" in content
+    assert "If one of them is you" in content
 
 
 @pytest.mark.django_db
@@ -775,3 +775,108 @@ def test_the_confirmation_carries_what_it_needs_to_ask_about(client, draft):
     assert 'data-filer-name="Q Steenhuis"' in content
     assert 'data-replaces-a-name="true"' in content
     assert "Are you helping this person file, rather than being them?" in content
+
+
+# --- Saying "this is me" while reading the document --------------------------
+
+
+@pytest.mark.django_db
+def test_a_party_ticked_as_you_on_the_document_screen_needs_no_second_answer(client, draft):
+    """The whole point of ticking it there: by the time the role question is
+    asked, it has been answered."""
+
+    filer = make_filer(draft, first_name="Real", last_name="Tenant")
+    tenant, landlord = both_sides(draft)
+    tenant.is_self = True
+    tenant.save(update_fields=["is_self"])
+
+    with patch("efile.views.parties.get_party_types", return_value=PARTY_TYPES):
+        content = client.get(PARTIES_URL).content.decode()
+
+    filer.refresh_from_db()
+    assert filer.party_type == "defendant"
+    assert filer.is_filing_party is True
+    assert not FilingParty.objects.filter(pk=tenant.pk).exists()
+    assert FilingParty.objects.filter(pk=landlord.pk).exists()
+    assert filing_parties(draft) == [filer]
+    assert "Is this you?" not in content
+
+
+@pytest.mark.django_db
+def test_a_tick_on_a_differently_named_party_is_confirmed_rather_than_applied(client, draft):
+    """Replacing one name with another is the same question wherever it was
+    asked from, and it does not get to skip being asked."""
+
+    filer = make_filer(draft, first_name="Q", last_name="Steenhuis")
+    tenant, _landlord = both_sides(draft)
+    tenant.is_self = True
+    tenant.save(update_fields=["is_self"])
+
+    with patch("efile.views.parties.get_party_types", return_value=PARTY_TYPES):
+        content = client.get(PARTIES_URL).content.decode()
+
+    filer.refresh_from_db()
+    assert filer.party_type == ""
+    assert FilingParty.objects.filter(pk=tenant.pk).exists()
+    assert "You said Real Tenant is you" in content
+    assert 'data-replaces-a-name="true"' in content
+
+
+@pytest.mark.django_db
+def test_the_likely_role_guess_is_not_offered_against_parties_already_named(client, draft):
+    """It contradicts an answer the filer has already given, on a screen that
+    knew more than the guess does."""
+
+    make_filer(draft)
+    both_sides(draft)
+
+    with patch("efile.views.parties.get_party_types", return_value=PARTY_TYPES):
+        content = client.get(PARTIES_URL).content.decode()
+
+    assert 'id="apply-party-type-guess"' not in content
+    assert "you are likely the" not in content
+
+
+@pytest.mark.django_db
+def test_the_guess_is_still_offered_when_nobody_has_been_named(client, draft):
+    """With nothing else to go on, the case posture is the only help there is."""
+
+    make_filer(draft)
+
+    with patch("efile.views.parties.get_party_types", return_value=PARTY_TYPES):
+        content = client.get(PARTIES_URL).content.decode()
+
+    assert 'id="apply-party-type-guess"' in content
+
+
+@pytest.mark.django_db
+def test_the_screen_says_it_is_checking_work_already_done(client, draft):
+    make_filer(draft)
+    both_sides(draft)
+
+    with patch("efile.views.parties.get_party_types", return_value=PARTY_TYPES):
+        content = client.get(PARTIES_URL).content.decode()
+
+    assert "You already told us who is in this case" in content
+
+
+@pytest.mark.django_db
+def test_the_screen_credits_the_document_only_when_the_document_named_anyone(client, draft):
+    """A filer who turned AI off got a keyword scan, which reads a form number
+    and never a name -- so on that route the list is entirely their own typing
+    and the screen must not tell them we read it off their document."""
+
+    make_filer(draft)
+    both_sides(draft)
+
+    with patch("efile.views.parties.get_party_types", return_value=PARTY_TYPES):
+        typed_in = client.get(PARTIES_URL).content.decode()
+
+    draft.extracted_guesses = {"defendant or respondent names": "Real Tenant"}
+    draft.save(update_fields=["extracted_guesses"])
+    with patch("efile.views.parties.get_party_types", return_value=PARTY_TYPES):
+        read_off = client.get(PARTIES_URL).content.decode()
+
+    assert "These are the people you told us about" in typed_in
+    assert "we read from your document" not in typed_in
+    assert "These are the people we read from your document" in read_off

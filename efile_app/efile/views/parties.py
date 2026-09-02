@@ -15,9 +15,11 @@ from efile.services.people import (
     NOT_A_PARTY,
     absorb_filer_duplicates,
     apply_party_sides,
+    case_has_named_parties,
     claim_party_as_filer,
     claim_replaces_a_name,
     discard_empty_parties,
+    document_named_the_parties,
     ensure_required_parties,
     filer_name_match,
     filing_party_candidates,
@@ -25,8 +27,10 @@ from efile.services.people import (
     get_party_types,
     guess_filer_party_type,
     incomplete_parties,
+    names_match,
     needs_amount_in_controversy,
     party_is_complete,
+    self_claimed_party,
     set_filing_parties,
 )
 from efile.workflow import RETURN_TO_REVIEW, WorkflowStepKey, get_step_url, get_workflow_context, with_return_to
@@ -108,6 +112,14 @@ def parties(request, jurisdiction):
     # duplicate in first keeps them from reaching the court twice.
     absorb_filer_duplicates(draft)
     apply_party_sides(draft, party_types)
+    # The answer given two screens ago, now that there is a filer row to give
+    # it to and a court party type to give them. Folded straight in when the
+    # two rows agree on the name; when they do not, replacing one name with
+    # another is a question, and it is put below rather than done quietly.
+    marked_self = self_claimed_party(draft)
+    if marked_self is not None and names_match(filer, marked_self):
+        claim_party_as_filer(draft, marked_self)
+        filer.refresh_from_db()
 
     if request.method == "POST":
         action = request.POST.get("action", "continue")
@@ -215,9 +227,15 @@ def parties(request, jurisdiction):
     # role question is still unanswered -- a filer who has said they are
     # filing for someone else has answered it, and does not need telling again
     # every time they come back to this screen.
-    named_in_document = None if saved_filing_for else filer_name_match(draft)
+    marked_self = self_claimed_party(draft)
+    named_in_document = None if saved_filing_for else (marked_self or filer_name_match(draft))
+    # Never alongside the people themselves: a filer who has said who is in
+    # this case has answered a better version of this question already, and
+    # being told what they are "likely" to be contradicts it.
     guessed_party_type = (
-        None if filer.party_type or named_in_document is not None else guess_filer_party_type(draft, party_types)
+        None
+        if filer.party_type or named_in_document is not None or case_has_named_parties(draft)
+        else guess_filer_party_type(draft, party_types)
     )
     # Which branch of the role question the screen comes back on. A filer who
     # has never answered gets neither pre-selected -- their own role is not
@@ -238,6 +256,16 @@ def parties(request, jurisdiction):
         "not_a_party_value": NOT_A_PARTY,
         "filer_display_name": party_display_name(filer),
         "named_in_document": named_in_document,
+        # Whether that came from the filer ticking "this is me" while reading
+        # their document, which is worth saying back to them in those words.
+        "named_in_document_was_claimed": marked_self is not None and named_in_document == marked_self,
+        # Two different routes reach this screen with a party list: the
+        # document named these people and the filer confirmed them, or the
+        # filer typed them all in because they turned AI off and the keyword
+        # scan never reads names. The screen must not credit the first when
+        # it was the second.
+        "case_has_parties": case_has_named_parties(draft),
+        "parties_from_document": document_named_the_parties(draft),
         "named_in_document_name": party_display_name(named_in_document) if named_in_document else "",
         "named_in_document_role": (
             (named_in_document.party_type_name or PARTY_SIDE_LABELS.get(named_in_document.party_side, ""))

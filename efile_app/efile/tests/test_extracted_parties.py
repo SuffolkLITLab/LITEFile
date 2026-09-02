@@ -491,3 +491,69 @@ def test_a_placeholder_typed_into_the_review_screen_adds_nobody(review_draft):
 
     names = [party.last_name for party in FilingParty.objects.filter(draft=review_draft, role="other")]
     assert names == ["Lee"]
+
+
+# --- "This is me", said on the screen that reads the document ----------------
+
+
+@pytest.mark.django_db
+def test_the_review_screen_records_which_person_is_the_filer(client, review_draft):
+    authorize(client, review_draft)
+
+    client.post(
+        reverse("extraction_review", kwargs={"jurisdiction": "illinois"}),
+        {
+            "reviewed_extraction": "yes",
+            "existing_case": ExistingCase.NEW,
+            "court_code": "cook:cvd1",
+            "case_category_code": "civil",
+            "case_type_code": "NC",
+            "party_id": ["", ""],
+            "party_name": ["Alex Rivera", "Morgan Lee"],
+            "party_side": [PartySide.INITIATING, PartySide.RESPONDING],
+            "party_role_hint": ["", ""],
+            "party_is_self": ["false", "true"],
+        },
+    )
+
+    parties = list(FilingParty.objects.filter(draft=review_draft, role="other").order_by("sort_order"))
+    assert [(party.last_name, party.is_self) for party in parties] == [("Rivera", False), ("Lee", True)]
+
+
+@pytest.mark.django_db
+def test_only_one_person_can_be_the_filer(client, review_draft):
+    """However many rows say so -- there is one person signed in."""
+
+    authorize(client, review_draft)
+
+    client.post(
+        reverse("extraction_review", kwargs={"jurisdiction": "illinois"}),
+        {
+            "reviewed_extraction": "yes",
+            "existing_case": ExistingCase.NEW,
+            "court_code": "cook:cvd1",
+            "case_category_code": "civil",
+            "case_type_code": "NC",
+            "party_id": ["", ""],
+            "party_name": ["Alex Rivera", "Morgan Lee"],
+            "party_side": [PartySide.INITIATING, PartySide.RESPONDING],
+            "party_role_hint": ["", ""],
+            "party_is_self": ["true", "true"],
+        },
+    )
+
+    marked = FilingParty.objects.filter(draft=review_draft, role="other", is_self=True)
+    assert [party.last_name for party in marked] == ["Rivera"]
+
+
+@pytest.mark.django_db
+def test_the_review_screen_offers_the_tick_on_every_person_it_found(client, review_draft):
+    authorize(client, review_draft)
+
+    content = client.get(reverse("extraction_review", kwargs={"jurisdiction": "illinois"})).content.decode()
+
+    listing = re.search(r'id="review-parties-list">(.*?)</ol>', content, re.S)
+    assert listing is not None
+    assert listing.group(1).count('name="party_is_self"') == 4
+    assert "This is me" in content
+    assert "If one of them is you, say so here" in content
