@@ -132,11 +132,14 @@ def claim_party_as_filer(draft: FilingDraft, party: FilingParty) -> None:
     filer = FilingParty.objects.filter(draft=draft, role="filer").first()
     if filer is None:
         return
-    filer.party_type = party.party_type
-    filer.party_type_name = party.party_type_name
+    filer.party_type = party.party_type or filer.party_type
+    filer.party_type_name = party.party_type_name or filer.party_type_name
     filer.party_side = filer.party_side or party.party_side
     filer.party_role_hint = filer.party_role_hint or party.party_role_hint
-    filer.is_filing_party = True
+    # A row claimed before anyone gave it a court role leaves the role question
+    # unanswered rather than making the filer a filing party with no role at
+    # all, which is a state the payload cannot say anything useful about.
+    filer.is_filing_party = bool(filer.party_type)
     filer.save(
         update_fields=[
             "party_type",
@@ -148,7 +151,8 @@ def claim_party_as_filer(draft: FilingDraft, party: FilingParty) -> None:
         ]
     )
     party.delete()
-    set_filing_parties(draft, [filer])
+    if filer.is_filing_party:
+        set_filing_parties(draft, [filer])
 
 
 def discard_empty_parties(draft: FilingDraft) -> int:

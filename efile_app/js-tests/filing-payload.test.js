@@ -528,3 +528,82 @@ test("with no notice address given, the filer's own is still what is used", () =
     assert.strictEqual(result.users[0].email, "helper@example.com");
     assert.strictEqual(result.lead_contact.email, "helper@example.com");
 });
+// -- Organizations ----------------------------------------------------------
+
+test("an organization says it is a business, so it is not read as a nameless person", () => {
+    const handler = makeHandler();
+    const caseData = {
+        case_category: "cat",
+        case_type: "type",
+        filing_parties: [{
+            role: "filer",
+            is_filing_party: true,
+            party_type: "PLA",
+            first_name: "Quinten",
+            last_name: "Steenhuis",
+            email: "q@example.com"
+        }, {
+            role: "other",
+            party_type: "DEF",
+            organization_name: "Fox River Phone Repair LLC"
+        }]
+    };
+    const userData = handler.userDataFromCaseData(caseData);
+    const result = handler.buildEFilingData(userData, caseData, {}, "pay-1");
+
+    // Without this the court rejects the envelope with "PersonSurName is
+    // required", because an organization has no surname to give.
+    assert.strictEqual(result.other_parties[0].person_type, "business");
+    assert.strictEqual(result.other_parties[0].name.first, "Fox River Phone Repair LLC");
+});
+
+test("a person is not labelled a business", () => {
+    const handler = makeHandler();
+    const caseData = {
+        case_category: "cat",
+        case_type: "type",
+        filing_parties: [{
+            role: "filer",
+            is_filing_party: true,
+            party_type: "PLA",
+            first_name: "Quinten",
+            last_name: "Steenhuis"
+        }, {
+            role: "other",
+            party_type: "DEF",
+            first_name: "Luca",
+            last_name: "Martin"
+        }]
+    };
+    const userData = handler.userDataFromCaseData(caseData);
+    const result = handler.buildEFilingData(userData, caseData, {}, "pay-1");
+
+    assert.strictEqual("person_type" in result.other_parties[0], false);
+    assert.strictEqual(result.other_parties[0].name.last, "Martin");
+});
+
+test("an organization being filed for is labelled too", () => {
+    const handler = makeHandler();
+    const caseData = {
+        case_category: "cat",
+        case_type: "type",
+        filing_parties: [{
+            role: "filer",
+            is_filing_party: false,
+            party_type: "",
+            first_name: "Quinten",
+            last_name: "Steenhuis",
+            email: "q@example.com"
+        }, {
+            role: "other",
+            is_filing_party: true,
+            party_type: "PLA",
+            organization_name: "Riverbend Properties LLC"
+        }]
+    };
+    const userData = handler.userDataFromCaseData(caseData);
+    const result = handler.buildEFilingData(userData, caseData, {}, "pay-1");
+
+    assert.strictEqual(result.users[0].person_type, "business");
+    assert.strictEqual(result.users[0].name.first, "Riverbend Properties LLC");
+});

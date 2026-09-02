@@ -290,7 +290,7 @@ def test_the_add_a_person_screen_offers_actually_this_is_me(client, draft):
         url = f"{reverse('party_details', kwargs={'jurisdiction': 'illinois'})}?party={blank.pk}"
         response = client.get(url)
 
-    assert "Actually, this party is me" in response.content.decode()
+    assert "This party is me" in response.content.decode()
 
 
 @pytest.mark.django_db
@@ -301,7 +301,7 @@ def test_saying_a_new_party_is_you_drops_the_row_instead_of_duplicating_you(clie
     make_filer(draft)
     blank = FilingParty.objects.create(draft=draft, role="other", sort_order=0)
 
-    response = post_parties(client, action="remove", party_id=blank.pk, instead="me")
+    response = post_parties(client, action="claim_party", party_id=blank.pk)
 
     assert response.status_code == 302
     assert response.url.endswith("#your-role")
@@ -590,3 +590,83 @@ def test_the_courts_own_required_party_placeholder_is_not_swept_up(client, draft
         client.get(PARTIES_URL)
 
     assert FilingParty.objects.filter(pk=placeholder.pk).exists()
+
+
+# --- Becoming one of the parties the document already named ------------------
+
+
+@pytest.mark.django_db
+def test_every_listed_party_can_be_claimed_as_you(client, draft):
+    """The court's required parties are routinely all taken by people the
+    document named, so being one of them is claiming a row rather than adding
+    another person -- which would file a second plaintiff nobody wanted."""
+
+    make_filer(draft)
+    tenant, landlord = both_sides(draft)
+
+    with patch("efile.views.parties.get_party_types", return_value=PARTY_TYPES):
+        content = client.get(PARTIES_URL).content.decode()
+
+    claimable = set(re.findall(r'name="party_id" value="(\d+)"', content))
+    assert claimable == {str(tenant.pk), str(landlord.pk)}
+    assert content.count(">This is me</button>") == 2
+    # And the list says so, for a filer who would otherwise add themselves again.
+    assert "If one of the people below is you" in content
+
+
+@pytest.mark.django_db
+def test_claiming_a_detected_party_takes_their_role_and_drops_the_row(client, draft):
+    filer = make_filer(draft)
+    tenant, landlord = both_sides(draft)
+
+    post_parties(client, action="claim_party", party_id=tenant.pk)
+
+    filer.refresh_from_db()
+    assert filer.party_type == "defendant"
+    assert filer.party_type_name == "Defendant"
+    assert filer.is_filing_party is True
+    assert not FilingParty.objects.filter(pk=tenant.pk).exists()
+    assert FilingParty.objects.filter(pk=landlord.pk).exists()
+    assert filing_parties(draft) == [filer]
+
+
+@pytest.mark.django_db
+def test_a_filer_who_is_already_a_party_is_not_offered_more_of_them(client, draft):
+    make_filer(draft, party_type="defendant", party_type_name="Defendant")
+    both_sides(draft)
+
+    with patch("efile.views.parties.get_party_types", return_value=PARTY_TYPES):
+        content = client.get(PARTIES_URL).content.decode()
+
+    assert "This is me" not in content
+
+
+@pytest.mark.django_db
+def test_the_party_details_screen_offers_it_for_a_party_with_a_name(client, draft):
+    """A filer sent to check a detected party's details is exactly who needs
+    to be able to say that the party is them."""
+
+    make_filer(draft)
+    tenant, _landlord = both_sides(draft)
+
+    with patch("efile.views.party_details.get_party_types", return_value=PARTY_TYPES):
+        url = f"{reverse('party_details', kwargs={'jurisdiction': 'illinois'})}?party={tenant.pk}"
+        content = client.get(url).content.decode()
+
+    assert "This party is me" in content
+
+
+@pytest.mark.django_db
+def test_claiming_a_party_with_no_role_yet_leaves_the_role_question_to_answer(client, draft):
+    """Nothing to adopt: the filer should not come out of it as a filing party
+    with no court role, which the payload cannot describe."""
+
+    filer = make_filer(draft)
+    blank = FilingParty.objects.create(draft=draft, role="other", sort_order=4)
+
+    post_parties(client, action="claim_party", party_id=blank.pk)
+
+    filer.refresh_from_db()
+    assert filer.party_type == ""
+    assert filer.is_filing_party is False
+    assert not FilingParty.objects.filter(pk=blank.pk).exists()

@@ -60,6 +60,15 @@ const FilingPayload = {
         };
         return {
             party_type: party.party_type,
+            // An organization has one name where a person has three, and the
+            // EFSP only reads `name.first` that way when the entry says it is
+            // a business. Without this a company reaches Tyler as a person
+            // with no surname, and the court rejects the whole envelope --
+            // "PersonSurName is required or does not match regular
+            // expression" -- as far along as the fee quote.
+            ...(party.organization_name ? {
+                person_type: "business"
+            } : {}),
             name: {
                 first: party.first_name || party.organization_name || "",
                 middle: party.middle_name || "",

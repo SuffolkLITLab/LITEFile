@@ -147,6 +147,11 @@
                         <i class="fa-solid fa-user-plus" aria-hidden="true"></i> {% translate "Add me as a party" %}
                     </button>
                 {% endif %}
+                {% if not filer.party_type and roster|length > 1 %}
+                    <p class="party-roster__hint">
+                        {% translate "If one of the people below is you, choose \"This is me\" rather than adding yourself again." %}
+                    </p>
+                {% endif %}
                 <form method="post">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="add" />
@@ -189,6 +194,18 @@
                         {% endif %}
                     </span>
                     {% if item.party.role == "other" %}
+                        {% if not filer.party_type %}
+                            {# The court's required parties are often all taken by people the
+                            document named, so becoming one of them is claiming a row rather
+                            than adding another person. #}
+                            <form method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="claim_party" />
+                                <input type="hidden" name="party_id" value="{{ item.party.pk }}" />
+                                <input type="hidden" name="return_to" value="{{ return_to }}" />
+                                <button class="btn btn-sm btn-light" type="submit">{% translate "This is me" %}</button>
+                            </form>
+                        {% endif %}
                         <a class="btn btn-sm btn-light"
                            href="{% url 'party_details' jurisdiction %}?party={{ item.party.pk }}{% if return_to %}&return_to={{ return_to }}{% endif %}">{% translate "Edit" %}</a>
                         <form method="post">

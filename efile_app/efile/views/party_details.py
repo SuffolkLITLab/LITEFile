@@ -10,6 +10,7 @@ from efile.services.current_drafts import ensure_current_draft
 from efile.services.drafts import draft_snapshot
 from efile.services.party_requirements import address_is_blank, party_address_requirement
 from efile.services.people import (
+    filer_is_party,
     get_case_questions,
     get_party_types,
     incomplete_parties,
@@ -114,6 +115,8 @@ def party_details(request, jurisdiction):
         "is_logged_in": True,
         "filing_draft": draft_snapshot(draft),
         "party": party,
+        # Someone already listed in the case has no use for "this party is me".
+        "filer_is_party": filer_is_party(draft),
         "party_types": party_types,
         "party_kind": "organization" if party.organization_name else "person",
         "return_to": request.GET.get("return_to", ""),

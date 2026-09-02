@@ -127,20 +127,25 @@ def parties(request, jurisdiction):
             draft.save(update_fields=["current_step", "updated_at"])
             return redirect(_party_details_url(jurisdiction, party, return_to))
         if action == "claim_party":
-            # "Yes, that party in my document is me."
+            # "That party is me." Said of a person the document named, or of
+            # the blank row someone started before realising they were adding
+            # themselves. Either way the filer is already on this draft with a
+            # name and an address, so the other row goes rather than reaching
+            # the court as a second person.
             party = get_object_or_404(FilingParty, pk=request.POST.get("party_id"), draft=draft, role="other")
             claim_party_as_filer(draft, party)
-            messages.success(request, "Added you to the case as this party. Check the role below.")
+            filer.refresh_from_db()
+            if filer.party_type:
+                messages.success(
+                    request,
+                    f"You are listed in this case as the {filer.party_type_name or filer.party_type}.",
+                )
+            else:
+                messages.success(request, "Choose your own role below to add yourself as a party.")
             return redirect(f"{_parties_url(jurisdiction, return_to)}#your-role")
         if action == "remove":
             party = get_object_or_404(FilingParty, pk=request.POST.get("party_id"), draft=draft, role="other")
             party.delete()
-            if request.POST.get("instead") == "me":
-                # "Actually, this is me" on the add-a-person screen. The blank
-                # row goes, because the filer is already on this draft once and
-                # a second copy of them would reach the court as two people.
-                messages.success(request, "Choose your own role below to add yourself as a party.")
-                return redirect(f"{_parties_url(jurisdiction, return_to)}#your-role")
             messages.success(request, "Party removed.")
             return redirect(_parties_url(jurisdiction, return_to))
 
