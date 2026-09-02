@@ -283,14 +283,22 @@
                                 </select>
                             </label>
                             <div class="review-party__is-me">
+                                {% comment %}
+                                The value posts from every row, ticked or not, so the lists the
+                                view reads back stay lined up with the names. Only the button is
+                                conditional: a company can never be the person signed in, whose
+                                account is registered to an individual.
+                                {% endcomment %}
                                 <input type="hidden"
                                        name="party_is_self"
                                        value="{{ row.is_self|yesno:'true,false' }}" />
-                                <button class="btn btn-sm btn-outline-secondary review-party__is-me-toggle"
-                                        type="button"
-                                        aria-pressed="{{ row.is_self|yesno:'true,false' }}">
-                                    {% translate "This is me" %}
-                                </button>
+                                {% if not row.is_organization %}
+                                    <button class="btn btn-sm btn-outline-secondary review-party__is-me-toggle"
+                                            type="button"
+                                            aria-pressed="{{ row.is_self|yesno:'true,false' }}">
+                                        {% translate "This is me" %}
+                                    </button>
+                                {% endif %}
                             </div>
                             <button class="btn btn-link text-danger review-party__remove"
                                     type="button"

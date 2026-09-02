@@ -108,7 +108,8 @@ def self_claimed_party(draft: FilingDraft) -> FilingParty | None:
 
     if filer_is_party(draft):
         return None
-    return FilingParty.objects.filter(draft=draft, role="other", is_self=True).first()
+    marked = FilingParty.objects.filter(draft=draft, role="other", is_self=True).first()
+    return marked if party_can_be_the_filer(marked) else None
 
 
 def case_has_named_parties(draft: FilingDraft) -> bool:

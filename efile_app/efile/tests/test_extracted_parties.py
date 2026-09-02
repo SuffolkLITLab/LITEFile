@@ -557,3 +557,20 @@ def test_the_review_screen_offers_the_tick_on_every_person_it_found(client, revi
     assert listing.group(1).count('name="party_is_self"') == 4
     assert "This is me" in content
     assert "If one of them is you, say so here" in content
+
+
+@pytest.mark.django_db
+def test_a_company_is_not_offered_as_the_person_filing(client, review_draft):
+    """The account is registered to an individual, so no company is them --
+    and the row still posts its value, or the lists stop lining up."""
+
+    authorize(client, review_draft)
+
+    content = client.get(reverse("extraction_review", kwargs={"jurisdiction": "illinois"})).content.decode()
+
+    listing = re.search(r'id="review-parties-list">(.*?)</ol>', content, re.S)
+    assert listing is not None
+    rows = listing.group(1)
+    # Four people, one of them Riverbend Properties LLC.
+    assert rows.count('name="party_is_self"') == 4
+    assert rows.count("review-party__is-me-toggle") == 3

@@ -258,6 +258,7 @@ def review_rows(draft: FilingDraft) -> list[dict[str, Any]]:
                 "role_hint": party.party_role_hint,
                 "party_type_name": party.party_type_name,
                 "is_self": party.is_self,
+                "is_organization": bool(party.organization_name),
             }
             for party in saved
         ]
@@ -269,6 +270,7 @@ def review_rows(draft: FilingDraft) -> list[dict[str, Any]]:
             "role_hint": entry["role_hint"],
             "party_type_name": "",
             "is_self": False,
+            "is_organization": looks_like_organization(entry["name"]),
         }
         for entry in extracted_party_suggestions(draft.extracted_guesses)
     ]
