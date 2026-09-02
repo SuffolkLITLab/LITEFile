@@ -129,7 +129,7 @@
                 <div class="review-field"
                      data-field="case_category"
                      data-guess-key="case category">
-                    <span>{{ case_category_label }}</span>
+                    <label for="case_category_code">{{ case_category_label }}</label>
                     <div class="review-field__display" hidden>
                         <div class="review-field__found">
                             <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
@@ -156,7 +156,7 @@
                 <div class="review-field"
                      data-field="case_type"
                      data-guess-key="case type">
-                    <span>{% translate "Case type" %}</span>
+                    <label for="case_type_code">{% translate "Case type" %}</label>
                     <div class="review-field__display" hidden>
                         <div class="review-field__found">
                             <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
@@ -181,7 +181,9 @@
                 <div class="review-field"
                      data-field="filing_type"
                      data-guess-key="filing type">
-                    <span>{% translate "Filing type" %} <em>{% translate "if known" %}</em></span>
+                    <label for="filing_type_code">
+                        {% translate "Filing type" %} <em>{% translate "if known" %}</em>
+                    </label>
                     <div class="review-field__display" hidden>
                         <div class="review-field__found">
                             <i class="fa-solid fa-circle-check" aria-hidden="true"></i>

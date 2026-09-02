@@ -1392,6 +1392,27 @@
     margin-top: 0;
 }
 
+/* Bootstrap's secondary outline is too light against the warning panel used
+   for this alternative action. Keep its text and border legible at AA. */
+#claim-party-instead-filing-for,
+#claim-party-cancel {
+    --bs-btn-color: #343a40;
+    --bs-btn-border-color: #343a40;
+    --bs-btn-hover-bg: #343a40;
+    --bs-btn-hover-border-color: #343a40;
+    --bs-btn-active-bg: #212529;
+    --bs-btn-active-border-color: #212529;
+}
+
+.document-plan__save {
+    --bs-btn-color: #343a40;
+    --bs-btn-border-color: #343a40;
+    --bs-btn-hover-bg: #343a40;
+    --bs-btn-hover-border-color: #343a40;
+    --bs-btn-active-bg: #212529;
+    --bs-btn-active-border-color: #212529;
+}
+
 .claim-party-dialog .workflow-actions {
     display: flex;
     gap: 0.75rem;
