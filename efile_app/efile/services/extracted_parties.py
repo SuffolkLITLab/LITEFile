@@ -317,7 +317,14 @@ def save_reviewed_parties(draft: FilingDraft, rows: list[dict[str, str]]) -> Non
             party.party_type_name = ""
         party.party_side = side
         party.party_role_hint = role_hint
-        is_self = str(row.get("is_self", "")).lower() == "true" and not claimed_self
+        # An organization can never be the person signed in, whose account is
+        # registered to an individual -- the rule
+        # ``people.party_can_be_the_filer`` enforces everywhere else, applied
+        # here too so the answer is never *stored* on a row that could only be
+        # ignored later. It also keeps a company off the one self slot: a name
+        # typed into the same submit that ticked it is only known to be a
+        # company by the time ``apply_name`` above has run.
+        is_self = str(row.get("is_self", "")).lower() == "true" and not party.organization_name and not claimed_self
         claimed_self = claimed_self or is_self
         party.is_self = is_self
         party.save()

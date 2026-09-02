@@ -574,3 +574,58 @@ def test_a_company_is_not_offered_as_the_person_filing(client, review_draft):
     # Four people, one of them Riverbend Properties LLC.
     assert rows.count('name="party_is_self"') == 4
     assert rows.count("review-party__is-me-toggle") == 3
+
+
+@pytest.mark.django_db
+def test_a_company_ticked_as_you_is_not_recorded_as_you(client, review_draft):
+    """Storing it would be storing an answer nothing can act on: a company is
+    never the person signed in, so the parties screen would ignore it and the
+    filer would be left wondering where their answer went."""
+
+    authorize(client, review_draft)
+
+    client.post(
+        reverse("extraction_review", kwargs={"jurisdiction": "illinois"}),
+        {
+            "reviewed_extraction": "yes",
+            "existing_case": ExistingCase.NEW,
+            "court_code": "cook:cvd1",
+            "case_category_code": "civil",
+            "case_type_code": "NC",
+            "party_id": [""],
+            "party_name": ["Riverbend Properties LLC"],
+            "party_side": [PartySide.INITIATING],
+            "party_role_hint": [""],
+            "party_is_self": ["true"],
+        },
+    )
+
+    party = FilingParty.objects.get(draft=review_draft, role="other")
+    assert party.organization_name == "Riverbend Properties LLC"
+    assert party.is_self is False
+
+
+@pytest.mark.django_db
+def test_a_company_does_not_use_up_the_one_slot_for_you(client, review_draft):
+    """Otherwise the real person on the next row silently loses the tick."""
+
+    authorize(client, review_draft)
+
+    client.post(
+        reverse("extraction_review", kwargs={"jurisdiction": "illinois"}),
+        {
+            "reviewed_extraction": "yes",
+            "existing_case": ExistingCase.NEW,
+            "court_code": "cook:cvd1",
+            "case_category_code": "civil",
+            "case_type_code": "NC",
+            "party_id": ["", ""],
+            "party_name": ["Riverbend Properties LLC", "Morgan Lee"],
+            "party_side": [PartySide.INITIATING, PartySide.RESPONDING],
+            "party_role_hint": ["", ""],
+            "party_is_self": ["true", "true"],
+        },
+    )
+
+    marked = FilingParty.objects.filter(draft=review_draft, role="other", is_self=True)
+    assert [party.last_name for party in marked] == ["Lee"]
