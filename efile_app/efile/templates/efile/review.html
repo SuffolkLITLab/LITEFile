@@ -128,6 +128,13 @@
                         </a>
                     {% endif %}
                 {% endif %}
+                {% if notice_email %}
+                    <p class="review-notice-email">
+                        {% blocktranslate with email=notice_email %}Notices about this case go to {{ email }}.{% endblocktranslate %}
+                        <a href="{% url 'parties' jurisdiction %}?return_to=review#notice_email"
+                           aria-label="{% translate "Edit where notices about this case go" %}">{% translate "Edit" %}</a>
+                    </p>
+                {% endif %}
             </section>
             <section class="review-summary-card">
                 <header>

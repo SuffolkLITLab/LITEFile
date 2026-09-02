@@ -12,6 +12,24 @@
         <p class="workflow-lede">
             {% translate "Start with your own part in this case. Then we will ask about any other people, one at a time." %}
         </p>
+        {% if named_in_document %}
+            <form method="post" class="alert alert-info party-name-match">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="claim_party" />
+                <input type="hidden" name="party_id" value="{{ named_in_document.pk }}" />
+                <input type="hidden" name="return_to" value="{{ return_to }}" />
+                <i class="fa-regular fa-lightbulb" aria-hidden="true"></i>
+                {% if named_in_document_role %}
+                    {% blocktranslate with name=named_in_document_name role=named_in_document_role %}Your document lists {{ name }} as the {{ role }} — that is your name too. Is this you?{% endblocktranslate %}
+                {% else %}
+                    {% blocktranslate with name=named_in_document_name %}Your document lists {{ name }}, which is your name too. Is this you?{% endblocktranslate %}
+                {% endif %}
+                <button class="btn btn-sm btn-outline-primary" type="submit">{% translate "Yes, that is me" %}</button>
+                <span class="form-text">
+                    {% translate "If it is a different person with the same name, leave them on the list and answer for yourself below." %}
+                </span>
+            </form>
+        {% endif %}
         <form method="post" class="your-role-card" id="your-role">
             {% csrf_token %}
             <input type="hidden" name="action" value="continue" />
@@ -96,6 +114,17 @@
                         </p>
                     {% endfor %}
                 </div>
+                <label class="form-field" for="notice_email">
+                    <span>{% translate "Where should notices about this case go?" %}</span>
+                    <input class="form-control"
+                           type="email"
+                           name="notice_email"
+                           id="notice_email"
+                           value="{{ notice_email }}" />
+                    <small class="form-text">
+                        {% translate "We filled in your own email. Change it if the court should write to the party you are filing for, or to someone else handling their mail." %}
+                    </small>
+                </label>
             </fieldset>
             {% if not party_types %}
                 <p class="alert alert-warning">

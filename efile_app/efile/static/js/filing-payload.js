@@ -150,21 +150,20 @@ const FilingPayload = {
      * distinction: `users` is the list of filing parties, whoever they are.
      *
      * @param {Object} party a durable draft party row
-     * @param {Object} userData the signed-in filer's contact details
+     * @param {string} noticeEmail where notices about this case should go
      */
-    filingPartyFromDraft(party, userData) {
+    filingPartyFromDraft(party, noticeEmail) {
         const base = this.partyFromDraft(party);
         return {
             ...base,
             mobile_number: base.phone_number,
             date_of_birth: "",
             is_form_filler: false,
-            // Tyler rejects a new case whose first filing party has no email.
-            // Someone filing for another person often does not have one for
-            // them, and the filer's own address is the honest stand-in: they
-            // are already this envelope's lead contact, and they are who the
-            // court would reach about this filing.
-            email: base.email || userData.email
+            // Tyler rejects a new case whose first filing party has no email,
+            // and someone filing for another person often does not have one
+            // for them. The notice address is the answer they gave to exactly
+            // that question, on the parties screen, and it is theirs to change.
+            email: base.email || noticeEmail
         };
     },
 
@@ -191,11 +190,15 @@ const FilingPayload = {
             throw new Error('Party type could not be determined. This is required for eFiling.');
         }
 
+        // Where the court should write about this case: the filer's own
+        // address, unless someone filing for another person said otherwise.
+        const noticeEmail = caseData.notice_email || userData.email;
+
         // The filer's own entry, built only when they are a party themselves.
         const mainUser = filerIsFilingParty ? this.accountUser(userData, partyType) : null;
         const users = filingParties.length ?
             filingParties.map((party) => (
-                party.role === "filer" ? mainUser : this.filingPartyFromDraft(party, userData)
+                party.role === "filer" ? mainUser : this.filingPartyFromDraft(party, noticeEmail)
             )) : [mainUser];
 
         // Add second user if needed for name changes
@@ -275,13 +278,16 @@ const FilingPayload = {
             ...(caseData?.amount_in_controversy ? {
                 amount_in_controversy: caseData.amount_in_controversy
             } : {}),
+            // "Someone to contact about this case", in the EFSP's own words.
+            // The person filing, at whichever address they said notices about
+            // the case should reach.
             lead_contact: {
                 name: {
                     first: firstName,
                     middle: middleName,
                     last: lastName
                 },
-                email: userData.email
+                email: noticeEmail
             },
             return_date: ""
         };

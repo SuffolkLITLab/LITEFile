@@ -496,3 +496,35 @@ test("co-parties who are both filing are both named as filing parties", () => {
         ["users[0]", "users[1]"]
     );
 });
+test("the notice address answers both the lead contact and a party with no email", () => {
+    const handler = makeHandler();
+    const caseData = structuredClone(FILING_FOR_SOMEONE_ELSE);
+    caseData.notice_email = "aunt@example.com";
+    caseData.filing_parties[1].email = "";
+    const userData = handler.userDataFromCaseData(caseData);
+    const result = handler.buildEFilingData(userData, caseData, {}, "pay-1");
+
+    assert.strictEqual(result.users[0].email, "aunt@example.com");
+    assert.strictEqual(result.lead_contact.email, "aunt@example.com");
+});
+
+test("a party's own email is not overwritten by the notice address", () => {
+    const handler = makeHandler();
+    const caseData = structuredClone(FILING_FOR_SOMEONE_ELSE);
+    caseData.notice_email = "aunt@example.com";
+    const userData = handler.userDataFromCaseData(caseData);
+    const result = handler.buildEFilingData(userData, caseData, {}, "pay-1");
+
+    assert.strictEqual(result.users[0].email, "tenant@example.com");
+});
+
+test("with no notice address given, the filer's own is still what is used", () => {
+    const handler = makeHandler();
+    const caseData = structuredClone(FILING_FOR_SOMEONE_ELSE);
+    caseData.filing_parties[1].email = "";
+    const userData = handler.userDataFromCaseData(caseData);
+    const result = handler.buildEFilingData(userData, caseData, {}, "pay-1");
+
+    assert.strictEqual(result.users[0].email, "helper@example.com");
+    assert.strictEqual(result.lead_contact.email, "helper@example.com");
+});

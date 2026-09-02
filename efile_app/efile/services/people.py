@@ -103,6 +103,77 @@ def set_filing_parties(draft: FilingDraft, parties) -> None:
             party.save(update_fields=["is_filing_party", "updated_at"])
 
 
+def filer_name_match(draft: FilingDraft) -> FilingParty | None:
+    """The caption party who has the filer's own name, when they are not one.
+
+    A document names the person filing along with everyone else, so this is
+    the strongest signal there is that they belong in the case -- stronger
+    than the case-posture guess, because the document itself said which side
+    they were on. It is a suggestion and not an answer: two people share a
+    name often enough, and a parent filing for a child they are named after
+    is exactly the case this whole screen exists for. The parties screen puts
+    it to them; :func:`claim_party_as_filer` is what confirming it does.
+    """
+
+    if filer_is_party(draft):
+        return None
+    matches = _filer_duplicates(draft)
+    return matches[0] if matches else None
+
+
+def claim_party_as_filer(draft: FilingDraft, party: FilingParty) -> None:
+    """Answer "yes, that party is me": become them, and stop listing them twice.
+
+    The filer's own row is kept rather than the caption's, because it is the
+    one with the address and email the court needs, and the caption row is
+    deleted rather than left as a second person of the same name.
+    """
+
+    filer = FilingParty.objects.filter(draft=draft, role="filer").first()
+    if filer is None:
+        return
+    filer.party_type = party.party_type
+    filer.party_type_name = party.party_type_name
+    filer.party_side = filer.party_side or party.party_side
+    filer.party_role_hint = filer.party_role_hint or party.party_role_hint
+    filer.is_filing_party = True
+    filer.save(
+        update_fields=[
+            "party_type",
+            "party_type_name",
+            "party_side",
+            "party_role_hint",
+            "is_filing_party",
+            "updated_at",
+        ]
+    )
+    party.delete()
+    set_filing_parties(draft, [filer])
+
+
+def discard_empty_parties(draft: FilingDraft) -> int:
+    """Delete party rows that were started and never filled in.
+
+    Adding a person creates the row before the form that names them, so
+    leaving that form without saving strands a row with nothing in it. It
+    reaches the party list as a nameless entry the filer did not add on
+    purpose and cannot tell apart from one they did.
+
+    A nameless row that carries a party type is left alone: that is the
+    court's own required-party placeholder, which is waiting for a name
+    rather than missing one by accident.
+    """
+
+    empty = [
+        party
+        for party in FilingParty.objects.filter(draft=draft, role="other", party_type="")
+        if not party_display_name(party) and not party.party_side
+    ]
+    for party in empty:
+        party.delete()
+    return len(empty)
+
+
 def filing_party_candidates(draft: FilingDraft) -> list[FilingParty]:
     """The parties a filer who is not one could say they are filing for.
 
@@ -309,7 +380,16 @@ def absorb_filer_duplicates(draft: FilingDraft) -> str:
     filing for a party who turns out to be themselves under a second name is
     still filing for that party, and dropping the flag with the row would
     leave the envelope on behalf of nobody.
+
+    Only ever folds into a filer who has said they are a party. Before that,
+    a caption name matching theirs is a question rather than an answer --
+    they may be that party, or they may be a different person with the same
+    name, or they may be filing for a relative they share a name with. It is
+    put to them on the parties screen instead; see :func:`filer_name_match`.
     """
+
+    if not filer_is_party(draft):
+        return side_named_for_filer(draft)
 
     duplicates = _filer_duplicates(draft)
     if not duplicates:

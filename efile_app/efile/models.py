@@ -219,6 +219,14 @@ class FilingDraft(models.Model):
     docket_number = models.CharField(max_length=255, blank=True)
     case_title = models.CharField(max_length=500, blank=True)
 
+    # Where notices about this case should go. Only asked of someone filing
+    # for a party they are not, because only then are the two addresses
+    # different questions: the account signed in belongs to the person doing
+    # the filing, and the notices belong to whoever is meant to read them --
+    # them, the party, or a relative handling the mail. Blank means the
+    # filer's own account address, which is what it is offered filled in with.
+    notice_email = models.EmailField(blank=True)
+
     selected_payment_account_id = models.CharField(max_length=255, blank=True)
     selected_payment_account_name = models.CharField(max_length=255, blank=True)
     # Tyler's paymentAccountTypeCode for the selected account (e.g. "WV" for a fee

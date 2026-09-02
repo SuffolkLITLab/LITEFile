@@ -9,8 +9,19 @@ from django.urls import reverse
 from efile.models import FilingDocument, FilingDraft, FilingParty
 from efile.party_sides import PartySide
 from efile.services.current_drafts import CURRENT_DRAFT_SESSION_KEY
-from efile.services.extracted_parties import extracted_party_suggestions, looks_like_organization, split_person_name
-from efile.services.people import absorb_filer_duplicates, apply_party_sides, guess_filer_party_type, match_party_type
+from efile.services.extracted_parties import (
+    extracted_party_suggestions,
+    looks_like_organization,
+    save_reviewed_parties,
+    split_person_name,
+)
+from efile.services.people import (
+    absorb_filer_duplicates,
+    apply_party_sides,
+    filer_name_match,
+    guess_filer_party_type,
+    match_party_type,
+)
 from efile.workflow import ExistingCase, WorkflowStepKey
 
 PARTY_TYPES = [
@@ -299,7 +310,13 @@ def test_a_party_type_the_filer_already_chose_is_never_overwritten(review_draft)
 @pytest.mark.django_db
 def test_the_filer_is_not_also_filed_as_a_second_person_of_the_same_name(review_draft):
     filer = FilingParty.objects.create(
-        draft=review_draft, role="filer", sort_order=0, first_name="Alex", last_name="Rivera"
+        draft=review_draft,
+        role="filer",
+        sort_order=0,
+        first_name="Alex",
+        last_name="Rivera",
+        party_type="plaintiff",
+        party_type_name="Plaintiff/Petitioner",
     )
     FilingParty.objects.create(
         draft=review_draft,
@@ -324,6 +341,29 @@ def test_the_filer_is_not_also_filed_as_a_second_person_of_the_same_name(review_
     assert side == PartySide.INITIATING
     assert filer.party_side == PartySide.INITIATING
     assert [party.last_name for party in FilingParty.objects.filter(draft=review_draft, role="other")] == ["Lee"]
+
+
+@pytest.mark.django_db
+def test_a_caption_name_matching_a_filer_who_is_not_a_party_is_kept(review_draft):
+    """Two people share a name, and someone filing for a relative they are
+    named after is the whole reason that answer exists. Deleting the party on
+    a name alone would take a real party out of the case."""
+
+    FilingParty.objects.create(draft=review_draft, role="filer", sort_order=0, first_name="Alex", last_name="Rivera")
+    named = FilingParty.objects.create(
+        draft=review_draft,
+        role="other",
+        sort_order=0,
+        first_name="Alex",
+        last_name="Rivera",
+        party_side=PartySide.INITIATING,
+    )
+
+    side = absorb_filer_duplicates(review_draft)
+
+    assert side == PartySide.INITIATING
+    assert FilingParty.objects.filter(pk=named.pk).exists()
+    assert filer_name_match(review_draft) == named
 
 
 @pytest.mark.django_db
@@ -389,3 +429,65 @@ def test_the_party_screen_maps_sides_and_asks_only_for_what_is_missing(client, r
     assert FilingParty.objects.filter(draft=review_draft, role="other").count() == 1
     assert response.status_code == 302
     assert response.url == reverse("payment", kwargs={"jurisdiction": "illinois"})
+
+
+# --- Answers that are not names ----------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "answer",
+    ["Unknown", "unknown party", "N/A", "None", "Not listed", "TBD", "et al.", "See attached", "Defendants"],
+)
+def test_a_model_saying_it_found_nobody_does_not_become_a_party(answer):
+    """The names field is where a model puts "Unknown" when the caption had
+    nobody in it, and the filer should not have to work out that Unknown is
+    not a person."""
+
+    assert extracted_party_suggestions({"defendant or respondent names": answer}) == []
+
+
+@pytest.mark.parametrize(
+    "name",
+    ["All Unknown Occupants", "Unknown Occupants of 12 Main Street", "Jane None", "Party City Inc"],
+)
+def test_a_real_name_containing_one_of_those_words_is_kept(name):
+    """ "All Unknown Occupants" is a real defendant in a real eviction. The
+    guard compares whole names for exactly this reason."""
+
+    assert [item["name"] for item in extracted_party_suggestions({"defendant or respondent names": name})] == [name]
+
+
+def test_a_placeholder_among_real_names_is_the_only_one_dropped():
+    suggestions = extracted_party_suggestions({"defendant or respondent names": "Morgan Lee; Unknown; Sam Lee"})
+
+    assert [item["name"] for item in suggestions] == ["Morgan Lee", "Sam Lee"]
+
+
+def test_the_same_person_read_onto_two_sides_is_listed_once():
+    """A name in both the caption and the "other parties" answer is one person
+    misread, not two people, and adding them twice adds a party to the case."""
+
+    suggestions = extracted_party_suggestions(
+        {
+            "plaintiff or petitioner names": "Alex Rivera",
+            "defendant or respondent names": "Morgan Lee",
+            "other party names": "Morgan Lee (Tenant)",
+        }
+    )
+
+    assert [item["name"] for item in suggestions] == ["Alex Rivera", "Morgan Lee"]
+    assert [item["side"] for item in suggestions] == [PartySide.INITIATING, PartySide.RESPONDING]
+
+
+@pytest.mark.django_db
+def test_a_placeholder_typed_into_the_review_screen_adds_nobody(review_draft):
+    save_reviewed_parties(
+        review_draft,
+        [
+            {"id": None, "name": "Morgan Lee", "side": PartySide.RESPONDING, "role_hint": ""},
+            {"id": None, "name": "Unknown", "side": PartySide.RESPONDING, "role_hint": ""},
+        ],
+    )
+
+    names = [party.last_name for party in FilingParty.objects.filter(draft=review_draft, role="other")]
+    assert names == ["Lee"]

@@ -18,12 +18,15 @@ from django.urls import reverse
 
 from efile.models import FilingDocument, FilingDraft, FilingParty
 from efile.services.current_drafts import CURRENT_DRAFT_SESSION_KEY
-from efile.services.people import NOT_A_PARTY, filing_parties, party_is_complete
+from efile.services.drafts import read_case_data
+from efile.services.people import NOT_A_PARTY, absorb_filer_duplicates, filing_parties, party_is_complete
 from efile.workflow import ExistingCase, WorkflowStepKey
 
 PARTIES_URL = reverse("parties", kwargs={"jurisdiction": "illinois"})
 PAYMENT_URL = reverse("payment", kwargs={"jurisdiction": "illinois"})
 REVIEW_URL = reverse("case_review", kwargs={"jurisdiction": "illinois"})
+
+NOTICE_EMAIL = "helper@example.com"
 
 PARTY_TYPES = [
     {"code": "plaintiff", "name": "Plaintiff", "required": True},
@@ -123,7 +126,7 @@ def test_a_filer_who_is_not_a_party_names_who_they_are_filing_for(client, draft)
     filer = make_filer(draft)
     tenant, landlord = both_sides(draft)
 
-    response = post_parties(client, filer_party_type=NOT_A_PARTY, filing_for=tenant.pk)
+    response = post_parties(client, filer_party_type=NOT_A_PARTY, filing_for=tenant.pk, notice_email=NOTICE_EMAIL)
 
     filer.refresh_from_db()
     tenant.refresh_from_db()
@@ -186,7 +189,7 @@ def test_someone_can_be_filed_for_by_two_co_parties_at_once(client, draft):
     filer = make_filer(draft)
     tenant, landlord = both_sides(draft)
 
-    post_parties(client, filer_party_type=NOT_A_PARTY, filing_for=[tenant.pk, landlord.pk])
+    post_parties(client, filer_party_type=NOT_A_PARTY, filing_for=[tenant.pk, landlord.pk], notice_email=NOTICE_EMAIL)
 
     assert {party.pk for party in filing_parties(draft)} == {tenant.pk, landlord.pk}
     filer.refresh_from_db()
@@ -202,7 +205,7 @@ def test_becoming_a_party_takes_the_filing_back_from_who_you_named(client, draft
 
     filer = make_filer(draft)
     tenant, _landlord = both_sides(draft)
-    post_parties(client, filer_party_type=NOT_A_PARTY, filing_for=tenant.pk)
+    post_parties(client, filer_party_type=NOT_A_PARTY, filing_for=tenant.pk, notice_email=NOTICE_EMAIL)
 
     post_parties(client, filer_party_type="defendant")
 
@@ -219,7 +222,7 @@ def test_filing_for_someone_else_gives_up_your_own_party_type(client, draft):
     filer = make_filer(draft, party_type="defendant", party_type_name="Defendant", is_filing_party=True)
     tenant, _landlord = both_sides(draft)
 
-    post_parties(client, filer_party_type=NOT_A_PARTY, filing_for=tenant.pk)
+    post_parties(client, filer_party_type=NOT_A_PARTY, filing_for=tenant.pk, notice_email=NOTICE_EMAIL)
 
     filer.refresh_from_db()
     assert filer.party_type == ""
@@ -349,24 +352,15 @@ def test_review_says_who_the_filing_is_for_and_offers_to_add_you(client, draft):
 
 
 @pytest.mark.django_db
-def test_filing_for_someone_who_turns_out_to_be_you_still_files_for_them(client, draft):
-    """The roster's copy of the filer is folded into the filer's own row. The
-    envelope has to come out on behalf of someone all the same."""
+def test_folding_a_party_who_is_you_keeps_the_filing_on_behalf_of_someone(draft):
+    """The roster's copy of the filer is folded into the filer's own row once
+    they say they are a party. The envelope has to come out on behalf of
+    somebody all the same."""
 
-    filer = make_filer(draft, first_name="Jamie", last_name="Rivera")
+    filer = make_filer(draft, first_name="Jamie", last_name="Rivera", party_type="defendant")
     twin = make_party(draft, 0, first_name="Jamie", last_name="Rivera", is_filing_party=True)
-    make_party(
-        draft,
-        1,
-        party_type="plaintiff",
-        party_type_name="Plaintiff",
-        first_name="",
-        last_name="",
-        organization_name="Landlord LLC",
-    )
 
-    with patch("efile.views.parties.get_party_types", return_value=PARTY_TYPES):
-        client.get(PARTIES_URL)
+    absorb_filer_duplicates(draft)
 
     filer.refresh_from_db()
     assert not FilingParty.objects.filter(pk=twin.pk).exists()
@@ -385,3 +379,214 @@ def test_a_draft_answered_before_this_question_still_files_as_the_filer(client, 
 
     assert filer.is_filing_party is False
     assert filing_parties(draft) == [filer]
+
+
+# --- Where notices about the case go -----------------------------------------
+
+
+@pytest.mark.django_db
+def test_the_notice_address_is_offered_filled_in_with_the_filers_own(client, draft):
+    make_filer(draft, email="helper@example.com")
+    both_sides(draft)
+
+    with patch("efile.views.parties.get_party_types", return_value=PARTY_TYPES):
+        content = client.get(PARTIES_URL).content.decode()
+
+    assert "Where should notices about this case go?" in content
+    assert re.search(r'name="notice_email"[^>]*value="helper@example\.com"', content) is not None
+
+
+@pytest.mark.django_db
+def test_a_notice_address_can_be_someone_other_than_the_filer(client, draft):
+    """The point of asking: the court may need to write to the party, or to
+    whoever handles their mail, rather than to the person filing."""
+
+    make_filer(draft)
+    tenant, _landlord = both_sides(draft)
+
+    post_parties(client, filer_party_type=NOT_A_PARTY, filing_for=tenant.pk, notice_email="tenant@example.com")
+
+    draft.refresh_from_db()
+    assert draft.notice_email == "tenant@example.com"
+
+
+@pytest.mark.django_db
+def test_filing_for_someone_else_without_any_notice_address_is_refused(client, draft):
+    make_filer(draft)
+    tenant, _landlord = both_sides(draft)
+
+    response = post_parties(client, filer_party_type=NOT_A_PARTY, filing_for=tenant.pk, notice_email="")
+
+    tenant.refresh_from_db()
+    assert response.status_code == 200
+    assert "Give an email address for notices" in response.content.decode()
+    assert tenant.is_filing_party is False
+
+
+@pytest.mark.django_db
+def test_a_notice_address_that_is_not_an_address_is_refused(client, draft):
+    make_filer(draft)
+    tenant, _landlord = both_sides(draft)
+
+    response = post_parties(client, filer_party_type=NOT_A_PARTY, filing_for=tenant.pk, notice_email="not an email")
+
+    assert response.status_code == 200
+    assert "Give an email address for notices" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_becoming_a_party_stops_naming_a_separate_notice_address(client, draft):
+    """It applied to a filing on someone else's behalf. There isn't one now."""
+
+    make_filer(draft)
+    tenant, _landlord = both_sides(draft)
+    post_parties(client, filer_party_type=NOT_A_PARTY, filing_for=tenant.pk, notice_email="tenant@example.com")
+
+    post_parties(client, filer_party_type="defendant")
+
+    draft.refresh_from_db()
+    assert draft.notice_email == ""
+
+
+@pytest.mark.django_db
+def test_review_shows_where_notices_go_with_a_way_to_change_it(client, draft):
+    make_filer(draft)
+    tenant, _landlord = both_sides(draft)
+    tenant.is_filing_party = True
+    tenant.save(update_fields=["is_filing_party"])
+    draft.notice_email = "tenant@example.com"
+    draft.selected_payment_account_id = "pay-1"
+    draft.selected_payment_account_name = "Card"
+    draft.save(update_fields=["notice_email", "selected_payment_account_id", "selected_payment_account_name"])
+
+    content = client.get(REVIEW_URL).content.decode()
+
+    assert "Notices about this case go to tenant@example.com" in content
+    assert "#notice_email" in content
+
+
+@pytest.mark.django_db
+def test_the_notice_address_reaches_the_filing_payload(client, draft):
+    make_filer(draft)
+    tenant, _landlord = both_sides(draft)
+    tenant.is_filing_party = True
+    tenant.save(update_fields=["is_filing_party"])
+    draft.notice_email = "tenant@example.com"
+    draft.save(update_fields=["notice_email"])
+
+    assert read_case_data(draft)["notice_email"] == "tenant@example.com"
+
+
+# --- The document naming the filer -------------------------------------------
+
+
+@pytest.mark.django_db
+def test_a_caption_party_with_the_filers_name_is_offered_as_them(client, draft):
+    make_filer(draft, first_name="Jamie", last_name="Rivera")
+    twin = make_party(draft, 0, first_name="Jamie", last_name="Rivera")
+    make_party(
+        draft,
+        1,
+        party_type="plaintiff",
+        party_type_name="Plaintiff",
+        first_name="",
+        last_name="",
+        organization_name="Landlord LLC",
+    )
+
+    with patch("efile.views.parties.get_party_types", return_value=PARTY_TYPES):
+        content = client.get(PARTIES_URL).content.decode()
+
+    assert "Jamie Rivera" in content
+    assert "Is this you?" in content
+    assert f'name="party_id" value="{twin.pk}"' in content
+    # The concrete suggestion replaces the vaguer one rather than joining it.
+    assert 'id="apply-party-type-guess"' not in content
+
+
+@pytest.mark.django_db
+def test_confirming_that_party_is_you_adopts_their_role_and_stops_listing_them(client, draft):
+    filer = make_filer(draft, first_name="Jamie", last_name="Rivera")
+    twin = make_party(draft, 0, first_name="Jamie", last_name="Rivera")
+
+    response = post_parties(client, action="claim_party", party_id=twin.pk)
+
+    filer.refresh_from_db()
+    assert response.status_code == 302
+    assert response.url.endswith("#your-role")
+    assert not FilingParty.objects.filter(pk=twin.pk).exists()
+    assert filer.party_type == "defendant"
+    assert filer.is_filing_party is True
+    assert filing_parties(draft) == [filer]
+
+
+@pytest.mark.django_db
+def test_a_party_who_shares_the_filers_name_is_left_alone_until_they_say_so(client, draft):
+    """Saying nothing is not saying yes. Two people share a name, and someone
+    filing for a relative they are named after is why this screen exists."""
+
+    make_filer(draft, first_name="Jamie", last_name="Rivera")
+    twin = make_party(draft, 0, first_name="Jamie", last_name="Rivera")
+
+    with patch("efile.views.parties.get_party_types", return_value=PARTY_TYPES):
+        client.get(PARTIES_URL)
+
+    assert FilingParty.objects.filter(pk=twin.pk).exists()
+
+
+@pytest.mark.django_db
+def test_the_suggestion_stops_once_the_filer_has_answered_for_themselves(client, draft):
+    """A filer who said they are filing for someone else has answered the
+    question, and should not be asked it again every time they come back."""
+
+    make_filer(draft, first_name="Jamie", last_name="Rivera")
+    twin = make_party(draft, 0, first_name="Jamie", last_name="Rivera")
+    make_party(
+        draft,
+        1,
+        party_type="plaintiff",
+        party_type_name="Plaintiff",
+        first_name="",
+        last_name="",
+        organization_name="Landlord LLC",
+    )
+    post_parties(client, filer_party_type=NOT_A_PARTY, filing_for=twin.pk, notice_email=NOTICE_EMAIL)
+
+    with patch("efile.views.parties.get_party_types", return_value=PARTY_TYPES):
+        content = client.get(PARTIES_URL).content.decode()
+
+    assert "Is this you?" not in content
+
+
+# --- Parties nobody added ----------------------------------------------------
+
+
+@pytest.mark.django_db
+def test_a_party_started_and_never_named_does_not_stay_on_the_list(client, draft):
+    """Adding a person makes the row before the form that names them, so
+    leaving without saving used to strand a nameless entry on the list."""
+
+    make_filer(draft)
+    both_sides(draft)
+    abandoned = FilingParty.objects.create(draft=draft, role="other", sort_order=9)
+
+    with patch("efile.views.parties.get_party_types", return_value=PARTY_TYPES):
+        client.get(PARTIES_URL)
+
+    assert not FilingParty.objects.filter(pk=abandoned.pk).exists()
+
+
+@pytest.mark.django_db
+def test_the_courts_own_required_party_placeholder_is_not_swept_up(client, draft):
+    """It is nameless for a different reason: the court requires that party,
+    and the filer is on their way to naming them."""
+
+    make_filer(draft)
+    placeholder = FilingParty.objects.create(
+        draft=draft, role="other", sort_order=9, party_type="plaintiff", party_type_name="Plaintiff"
+    )
+
+    with patch("efile.views.parties.get_party_types", return_value=PARTY_TYPES):
+        client.get(PARTIES_URL)
+
+    assert FilingParty.objects.filter(pk=placeholder.pk).exists()
