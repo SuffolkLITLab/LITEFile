@@ -208,6 +208,21 @@
                 </button>
             </div>
         </form>
+        {% if not party.first_name and not party.organization_name %}
+            {# Only offered on a party nobody has named yet: past that point this
+            button would throw away someone's typing. #}
+            <form method="post"
+                  action="{% url 'parties' jurisdiction %}"
+                  class="party-details__its-me">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="remove" />
+                <input type="hidden" name="party_id" value="{{ party.pk }}" />
+                <input type="hidden" name="instead" value="me" />
+                <input type="hidden" name="return_to" value="{{ return_to }}" />
+                <button class="btn btn-link" type="submit">{% translate "Actually, this party is me" %}</button>
+                <span class="form-text">{% translate "We already have your name and address — you only need to choose your role." %}</span>
+            </form>
+        {% endif %}
     </section>
 {% endblock workflow_content %}
 {% block extra_js %}

@@ -10,9 +10,9 @@
         <div class="workflow-eyebrow">{% translate "People" %}</div>
         <h1>{% translate "Who is involved in this case?" %}</h1>
         <p class="workflow-lede">
-            {% translate "Start with your role. Then we will ask about any other people, one at a time." %}
+            {% translate "Start with your own part in this case. Then we will ask about any other people, one at a time." %}
         </p>
-        <form method="post" class="your-role-card">
+        <form method="post" class="your-role-card" id="your-role">
             {% csrf_token %}
             <input type="hidden" name="action" value="continue" />
             <input type="hidden" name="return_to" value="{{ return_to }}" />
@@ -52,6 +52,49 @@
                             </span>
                         </label>
                     {% endfor %}
+                    {% if party_types %}
+                        <label>
+                            <input class="form-check-input"
+                                   type="radio"
+                                   name="filer_party_type"
+                                   id="filer-not-a-party"
+                                   value="{{ not_a_party_value }}"
+                                   {% if filing_for_someone_else %}checked{% endif %}
+                                   required />
+                            <span>{% translate "I am not one of the parties — I am filing for someone else" %}</span>
+                        </label>
+                    {% endif %}
+                </div>
+            </fieldset>
+            <fieldset class="form-field"
+                      id="filing-for"
+                      {% if not filing_for_someone_else %}hidden{% endif %}>
+                <legend>{% translate "Who are you filing for?" %}</legend>
+                <p>
+                    {% translate "The court records every filing as being made on behalf of a party. Choose the person you are filing for." %}
+                </p>
+                <div class="compact-choice-list">
+                    {% for candidate in filing_for_candidates %}
+                        <label>
+                            <input class="form-check-input"
+                                   type="checkbox"
+                                   name="filing_for"
+                                   value="{{ candidate.party.pk }}"
+                                   {% if candidate.selected %}checked{% endif %} />
+                            <span>
+                                {% if candidate.party.organization_name %}
+                                    {{ candidate.party.organization_name }}
+                                {% else %}
+                                    {{ candidate.party.first_name }} {{ candidate.party.last_name }}
+                                {% endif %}
+                                {% if candidate.party.party_type_name %}— {{ candidate.party.party_type_name }}{% endif %}
+                            </span>
+                        </label>
+                    {% empty %}
+                        <p class="alert alert-warning">
+                            {% translate "Add the person you are filing for to the party list below first, then come back and choose them here." %}
+                        </p>
+                    {% endfor %}
                 </div>
             </fieldset>
             {% if not party_types %}
@@ -68,6 +111,13 @@
         <div class="party-roster">
             <div class="party-roster__heading">
                 <h2>{% translate "Party list" %}</h2>
+                {% if not filer.party_type %}
+                    <button class="btn btn-outline-primary btn-sm"
+                            type="button"
+                            id="add-me-as-party">
+                        <i class="fa-solid fa-user-plus" aria-hidden="true"></i> {% translate "Add me as a party" %}
+                    </button>
+                {% endif %}
                 <form method="post">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="add" />
@@ -88,9 +138,17 @@
                                 {{ item.party.first_name }} {{ item.party.last_name }}
                             {% endif %}
                         </strong>
-                        <small>{% firstof item.party.party_type_name item.party.get_party_side_display "Role not chosen" %}
-                            {% if item.party.role == "filer" %}
-                                · {% translate "You" %}
+                        <small>
+                            {% if item.party.role == "filer" and not item.party.party_type %}
+                                {% translate "You — filing this, but not a party in the case" %}
+                            {% else %}
+                                {% firstof item.party.party_type_name item.party.get_party_side_display "Role not chosen" %}
+                                {% if item.party.role == "filer" %}
+                                    · {% translate "You" %}
+                                {% endif %}
+                            {% endif %}
+                            {% if item.party.is_filing_party and item.party.role != "filer" %}
+                                · {% translate "you are filing for them" %}
                             {% endif %}
                         </small>
                     </span>

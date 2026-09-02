@@ -78,23 +78,44 @@ const FilingPayload = {
         };
     },
 
-    buildEFilingData(userData, caseData, uploadData, paymentAccountID) {
-        const nameParts = userData.fullName.split(" ");
-        const firstName = nameParts[0] || "";
-        const lastName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : "";
-        const middleName = nameParts.length > 2 ? nameParts.slice(1, -1).join(" ") : "";
+    /** Split a single display name into the parts Tyler asks for. */
+    splitName(fullName) {
+        const parts = String(fullName || "").split(" ");
+        return {
+            firstName: parts[0] || "",
+            lastName: parts.length > 1 ? parts[parts.length - 1] : "",
+            middleName: parts.length > 2 ? parts.slice(1, -1).join(" ") : ""
+        };
+    },
 
-        const durableParties = caseData.filing_parties || [];
-        const durableFiler = durableParties.find((party) => party.role === "filer");
-        const partyType = durableFiler?.party_type || caseData.determined_party_type ||
-            caseData.petitioner_party_type || caseData.party_type;
-
-        if (!partyType) {
-            throw new Error('Party type could not be determined. This is required for eFiling.');
+    /**
+     * Who this filing is made on behalf of, out of the draft's own parties.
+     *
+     * Being the filer and being a party are different things: someone can
+     * file for a party they are not (a parent for a child, a neighbour
+     * helping with an eviction answer), and then it is that party Tyler must
+     * be told the filing is for. A draft saved before that question existed
+     * has nothing marked, and back then the filer was the only thing a filing
+     * party could be.
+     *
+     * @returns {Array} the marked parties, or the filer, or nothing at all
+     */
+    resolveFilingParties(durableParties, durableFiler) {
+        const marked = durableParties.filter((party) => party.is_filing_party && party.party_type);
+        if (marked.length) {
+            return marked;
         }
+        return durableFiler?.party_type ? [durableFiler] : [];
+    },
 
-        // Build user object
-        const mainUser = {
+    /** The signed-in filer as a party, from the account they confirmed. */
+    accountUser(userData, partyType) {
+        const {
+            firstName,
+            middleName,
+            lastName
+        } = this.splitName(userData.fullName);
+        return {
             mobile_number: userData.phone,
             phone_number: userData.phone,
             address: {
@@ -120,11 +141,65 @@ const FilingPayload = {
             },
             is_new: true
         };
+    },
 
-        const users = [mainUser];
+    /**
+     * A party the filing is made on behalf of, who is not the person filing.
+     *
+     * Same shape as the signed-in filer's own entry, because Tyler makes no
+     * distinction: `users` is the list of filing parties, whoever they are.
+     *
+     * @param {Object} party a durable draft party row
+     * @param {Object} userData the signed-in filer's contact details
+     */
+    filingPartyFromDraft(party, userData) {
+        const base = this.partyFromDraft(party);
+        return {
+            ...base,
+            mobile_number: base.phone_number,
+            date_of_birth: "",
+            is_form_filler: false,
+            // Tyler rejects a new case whose first filing party has no email.
+            // Someone filing for another person often does not have one for
+            // them, and the filer's own address is the honest stand-in: they
+            // are already this envelope's lead contact, and they are who the
+            // court would reach about this filing.
+            email: base.email || userData.email
+        };
+    },
+
+    buildEFilingData(userData, caseData, uploadData, paymentAccountID) {
+        const {
+            firstName,
+            middleName,
+            lastName
+        } = this.splitName(userData.fullName);
+
+        const durableParties = caseData.filing_parties || [];
+        const durableFiler = durableParties.find((party) => party.role === "filer");
+        const partyType = durableFiler?.party_type || caseData.determined_party_type ||
+            caseData.petitioner_party_type || caseData.party_type;
+
+        // A draft older than durable party rows has none of them, and says who
+        // it is for with `partyType` alone.
+        const filingParties = this.resolveFilingParties(durableParties, durableFiler);
+        const filerIsFilingParty = filingParties.length ?
+            filingParties.some((party) => party.role === "filer") :
+            Boolean(partyType);
+
+        if (!filingParties.length && !partyType) {
+            throw new Error('Party type could not be determined. This is required for eFiling.');
+        }
+
+        // The filer's own entry, built only when they are a party themselves.
+        const mainUser = filerIsFilingParty ? this.accountUser(userData, partyType) : null;
+        const users = filingParties.length ?
+            filingParties.map((party) => (
+                party.role === "filer" ? mainUser : this.filingPartyFromDraft(party, userData)
+            )) : [mainUser];
 
         // Add second user if needed for name changes
-        if (caseData.new_name_party_type) {
+        if (caseData.new_name_party_type && mainUser) {
             users.push({
                 ...mainUser,
                 party_type: caseData.new_name_party_type,
@@ -154,7 +229,7 @@ const FilingPayload = {
         }
 
         let other_parties = durableParties
-            .filter((party) => party.role !== "filer" && party.party_type)
+            .filter((party) => party.role !== "filer" && party.party_type && !filingParties.includes(party))
             .map((party) => this.partyFromDraft(party));
 
         if (other_parties.length === 0 && caseData.other_first_name && caseData.other_party_type) {

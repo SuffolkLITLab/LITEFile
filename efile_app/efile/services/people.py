@@ -24,9 +24,21 @@ logger = logging.getLogger(__name__)
 _INITIATING_PARTY_KEYWORDS = PARTY_SIDE_KEYWORDS[PartySide.INITIATING]
 _RESPONDING_PARTY_KEYWORDS = PARTY_SIDE_KEYWORDS[PartySide.RESPONDING]
 
+# What the parties screen posts when the person filing says they are not one
+# of the parties themselves. It can never collide with a court's own code:
+# every value is checked against the court's published list before it is
+# stored, and this one is deliberately not in any of them.
+NOT_A_PARTY = "__not_a_party__"
+
 
 def party_is_complete(party: FilingParty, *, draft=None, party_types=None) -> bool:
     has_name = bool(party.organization_name or (party.first_name and party.last_name))
+    if getattr(party, "role", "") == "filer" and not party.party_type:
+        # Someone filing for a party they are not. They have no party type to
+        # be missing, and no caption address to complete: their name and
+        # address were collected on their own screen and reach the court as
+        # the filing's contact rather than as a person in the case.
+        return has_name
     address_required = party_address_requirement(
         draft or getattr(party, "draft", None),
         party,
@@ -41,6 +53,68 @@ def incomplete_parties(draft: FilingDraft, *, party_types=None):
         party
         for party in FilingParty.objects.filter(draft=draft)
         if not party_is_complete(party, draft=draft, party_types=party_types)
+    ]
+
+
+def filer_is_party(draft: FilingDraft) -> bool:
+    """True when the person signed in is one of the parties in the case.
+
+    Being the filer and being a party are two different things. Most people
+    using this are self-represented and are both, but a parent filing for a
+    child, or a neighbour helping someone answer an eviction, is neither
+    named in the caption nor required to be.
+    """
+
+    filer = FilingParty.objects.filter(draft=draft, role="filer").first()
+    return bool(filer and filer.party_type)
+
+
+def filing_parties(draft: FilingDraft) -> list[FilingParty]:
+    """The parties this filing is made on behalf of.
+
+    Tyler needs at least one and names it on every document in the envelope
+    (``filing_parties`` in a court bundle). It is the filer's own row when
+    they are a party, and whoever they named when they are not.
+
+    Falls back to the filer when nothing has been marked: a draft that was
+    answered before this question existed said only that the filer was a
+    party, and back then that was the same answer.
+    """
+
+    marked = list(FilingParty.objects.filter(draft=draft, is_filing_party=True))
+    if marked:
+        return marked
+    filer = FilingParty.objects.filter(draft=draft, role="filer").first()
+    return [filer] if filer is not None and filer.party_type else []
+
+
+def set_filing_parties(draft: FilingDraft, parties) -> None:
+    """Record who this filing is on behalf of, and no one else.
+
+    Written as a replacement rather than a toggle: a filer who corrects
+    "I am the plaintiff" to "I am filing for my daughter" must not leave
+    themselves behind as a second filing party.
+    """
+
+    wanted = {party.pk for party in parties}
+    for party in FilingParty.objects.filter(draft=draft):
+        if party.is_filing_party != (party.pk in wanted):
+            party.is_filing_party = party.pk in wanted
+            party.save(update_fields=["is_filing_party", "updated_at"])
+
+
+def filing_party_candidates(draft: FilingDraft) -> list[FilingParty]:
+    """The parties a filer who is not one could say they are filing for.
+
+    Only parties that have been named: a blank row the court's required-party
+    rule created is not yet anybody, and choosing it would tell the court
+    this filing is on behalf of no one.
+    """
+
+    return [
+        party
+        for party in FilingParty.objects.filter(draft=draft, role="other").order_by("sort_order", "created_at")
+        if party_display_name(party)
     ]
 
 
@@ -230,6 +304,11 @@ def absorb_filer_duplicates(draft: FilingDraft) -> str:
     reach the court as a second, address-less person of the same name. The
     side moves across first, so deleting the duplicate does not throw away
     the document's own answer to the question the filer is being asked.
+
+    Being the one filed for moves across with it. Someone who said they were
+    filing for a party who turns out to be themselves under a second name is
+    still filing for that party, and dropping the flag with the row would
+    leave the envelope on behalf of nobody.
     """
 
     duplicates = _filer_duplicates(draft)
@@ -238,12 +317,22 @@ def absorb_filer_duplicates(draft: FilingDraft) -> str:
 
     filer = FilingParty.objects.filter(draft=draft, role="filer").first()
     side = filer.party_side if filer is not None else ""
+    files_on_behalf = filer.is_filing_party if filer is not None else False
     for party in duplicates:
         side = side or party.party_side or side_for_party_type_name(party.party_type_name)
+        files_on_behalf = files_on_behalf or party.is_filing_party
         party.delete()
-    if filer is not None and side and not filer.party_side:
+    if filer is None:
+        return side
+    updated = []
+    if side and not filer.party_side:
         filer.party_side = side
-        filer.save(update_fields=["party_side", "updated_at"])
+        updated.append("party_side")
+    if files_on_behalf and not filer.is_filing_party:
+        filer.is_filing_party = True
+        updated.append("is_filing_party")
+    if updated:
+        filer.save(update_fields=[*updated, "updated_at"])
     return side
 
 

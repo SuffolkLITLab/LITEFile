@@ -309,6 +309,10 @@ def read_case_data(draft: FilingDraft | None) -> dict[str, Any]:
         {
             "id": party.pk,
             "role": party.role,
+            # Whether the filing is made on behalf of this party -- the filer
+            # themselves when they are one, someone they are filing for when
+            # they are not. The payload names these as Tyler's filing parties.
+            "is_filing_party": party.is_filing_party,
             "party_type": party.party_type,
             "party_type_name": party.party_type_name,
             "first_name": party.first_name,

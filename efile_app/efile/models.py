@@ -390,6 +390,15 @@ class FilingParty(models.Model):
     party_type_name = models.CharField(max_length=255, blank=True)
     external_party_id = models.CharField(max_length=255, blank=True)
 
+    # Whether the filing is made *on behalf of* this party -- what Tyler calls
+    # a filing party, and a different question from who is in the case. The
+    # person signed in is usually a party themselves, and then their own row
+    # carries this. But someone can file for a party they are not: a parent
+    # for a child, a friend helping a neighbour answer an eviction. Their row
+    # then has no ``party_type`` at all, and the party they are filing for
+    # carries this instead. See ``efile.services.people.filing_parties``.
+    is_filing_party = models.BooleanField(default=False)
+
     # Which side of the caption this person is on, in the only vocabulary a
     # document itself establishes: whoever started the case, whoever is
     # answering it, or someone else it names. Unlike ``party_type`` -- a code
