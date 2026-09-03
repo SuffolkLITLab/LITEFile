@@ -40,6 +40,7 @@
                 {% for value in jurisdiction_details %}
                     <div class="option-card" style="position:relative">
                         <a href="{% url 'jurisdiction_homepage' jurisdiction=value.jurisdiction.code %}"
+                           aria-label="{% blocktranslate with name=value.jurisdiction.display_name %}Choose {{ name }}{% endblocktranslate %}"
                            style="position:absolute;
                                   width:100%;
                                   height:100%;

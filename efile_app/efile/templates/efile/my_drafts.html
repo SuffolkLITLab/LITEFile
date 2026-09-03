@@ -16,7 +16,7 @@
     </head>
     <body>
         {% include "efile/components/profile_header.html" %}
-        <div class="container">
+        <main class="container">
             <h1>{% translate "My draft e-filings" %}</h1>
             <div class="row justify-content-center">
                 <div class="col-xl-7">
@@ -91,7 +91,7 @@
                        class="btn btn-outline-secondary mb-3">{% translate "Go back" %}</a>
                 </div>
             </div>
-        </div>
+        </main>
         {% include "efile/components/footer.html" %}
         <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
         <script src="{% url 'javascript-catalog' %}"></script>

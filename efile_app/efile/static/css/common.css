@@ -114,6 +114,31 @@ h2 {
     --bs-btn-active-border-color: var(--brand-blue-active);
 }
 
+/* Bootstrap's default secondary outline is too faint on several light
+   surfaces, especially in compact controls. */
+.btn-outline-secondary {
+    --bs-btn-color: #343a40;
+    --bs-btn-border-color: #343a40;
+    --bs-btn-hover-bg: #343a40;
+    --bs-btn-hover-border-color: #343a40;
+    --bs-btn-active-bg: #212529;
+    --bs-btn-active-border-color: #212529;
+}
+
+/* Respect a person's system setting even when an individual component's
+   motion has not opted into the no-preference media query yet. */
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
 /* Persistent, in-flow feedback shared by account, dashboard, list, and
    workflow screens. Messages stay available to zoom and assistive-technology
    users until they navigate or correct the problem. */

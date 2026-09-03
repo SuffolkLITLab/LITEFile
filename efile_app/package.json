@@ -10,7 +10,9 @@
     "test:unit": "node --test js-tests/*.test.js",
     "lint:js": "eslint --max-warnings=0 .",
     "format:js": "prettier --write eslint.config.mjs",
-    "format:js:check": "prettier --check eslint.config.mjs"
+    "format:js:check": "prettier --check eslint.config.mjs",
+    "lint:css": "stylelint 'efile/**/*.css'",
+    "test:a11y": "playwright test --config=playwright.a11y.config.js"
   },
   "keywords": [],
   "author": "",
@@ -21,10 +23,14 @@
     "dotenv": "^17.2.1"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@eslint/js": "^10.0.1",
     "eslint": "^10.9.1",
     "eslint-plugin-sonarjs": "^4.2.0",
     "globals": "^17.11.0",
-    "prettier": "^3.9.6"
+    "prettier": "^3.9.6",
+    "stylelint": "^17.14.1",
+    "stylelint-config-standard": "^40.0.0",
+    "stylelint-plugin-defensive-css": "^2.9.6"
   }
 }

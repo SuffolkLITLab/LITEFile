@@ -1,0 +1,70 @@
+name: Accessibility
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: accessibility-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  axe:
+    name: Axe accessibility checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: latest
+
+      - name: Install Python dependencies
+        working-directory: efile_app
+        run: uv sync --group dev
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: efile_app/package-lock.json
+
+      - name: Install browser dependencies
+        working-directory: efile_app
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Seed the local accessibility fixture
+        working-directory: efile_app
+        run: |
+          uv run python manage.py migrate --noinput
+          uv run python manage.py seed_accessibility_session --output playwright/.auth/a11y.json
+
+      - name: Run Axe checks
+        working-directory: efile_app
+        env:
+          A11Y_STORAGE_STATE: playwright/.auth/a11y.json
+        run: |
+          uv run python manage.py runserver 127.0.0.1:8000 > /tmp/litefile-a11y-server.log 2>&1 &
+          curl --retry 30 --retry-connrefused --retry-delay 1 --fail http://127.0.0.1:8000/choose-jurisdiction
+          npm run test:a11y
+
+      - name: Upload accessibility results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: axe-accessibility-results
+          path: |
+            efile_app/test-results/
+            /tmp/litefile-a11y-server.log
+          if-no-files-found: warn
