@@ -37,6 +37,18 @@ def test_prioritize_options_marks_document_matches_with_an_asterisk():
     assert "Recommended" not in petition["text"]
 
 
+def test_prioritize_options_leaves_merely_similar_options_unmarked():
+    """Three edits separate Motion from Notice, and the marker would claim the document said so."""
+    options = prioritize_options(
+        [{"code": "MOT", "name": "Motion"}, {"code": "NOT", "name": "Notice"}],
+        guessed="Motion",
+    )
+
+    notice = next(opt for opt in options if opt["value"] == "NOT")
+    assert notice["text"] == "Notice"
+    assert not notice.get("selected")
+
+
 def test_guessed_court_uses_extraction_marker_without_location_recommendation():
     courts = [
         {"value": "cook:law1", "text": "Cook County Law Division"},
@@ -47,6 +59,90 @@ def test_guessed_court_uses_extraction_marker_without_location_recommendation():
 
     assert options[0]["text"] == "Cook County Law Division *"
     assert "Recommended" not in options[0]["text"]
+
+
+def test_guessed_court_matches_whole_county_names_only():
+    """A county name inside a longer one must not be picked, let alone auto-selected."""
+    courts = [
+        {"value": "henry", "text": "Henry County"},
+        {"value": "mchenry", "text": "McHenry County"},
+        {"value": "will", "text": "Will County"},
+    ]
+
+    options = DropdownAPIViews._prioritize_courts_by_location(courts, guessed_court="McHenry County")
+
+    marked = [court for court in options if court["text"].endswith("*")]
+    assert [court["value"] for court in marked] == ["mchenry"]
+    assert options[0]["value"] == "mchenry"
+    assert options[0]["selected"] is True
+    assert not any(court.get("selected") for court in options[1:])
+
+
+def test_guessed_court_matches_a_county_named_inside_a_full_court_name():
+    """The extracted guess is usually the caption, not the court code."""
+    courts = [
+        {"value": "cook:law1", "text": "Cook County Law Division"},
+        {"value": "will", "text": "Will County"},
+    ]
+
+    options = DropdownAPIViews._prioritize_courts_by_location(
+        courts, guessed_court="Circuit Court of Cook County, Illinois"
+    )
+
+    assert options[0]["text"] == "Cook County Law Division *"
+
+
+def test_guessed_court_matches_a_multi_word_county_written_with_spaces():
+    courts = [
+        {"value": "stclair", "text": "St. Clair County"},
+        {"value": "clark", "text": "Clark County"},
+    ]
+
+    options = DropdownAPIViews._prioritize_courts_by_location(courts, guessed_court="St. Clair County Circuit Court")
+
+    assert options[0]["text"] == "St. Clair County *"
+    assert not options[1]["text"].endswith("*")
+
+
+def test_an_ambiguous_court_guess_is_prioritized_but_not_chosen_for_the_filer():
+    """A caption naming only the county cannot pick between that county's divisions."""
+    courts = [
+        {"value": "cook:chd1", "text": "Cook County - Chancery"},
+        {"value": "cook:law1", "text": "Cook County - Law"},
+        {"value": "will", "text": "Will County"},
+    ]
+
+    options = DropdownAPIViews._prioritize_courts_by_location(
+        courts, guessed_court="Circuit Court of Cook County, Illinois"
+    )
+
+    assert [court["text"] for court in options[:2]] == ["Cook County - Chancery *", "Cook County - Law *"]
+    assert not any(court.get("selected") for court in options)
+
+
+def test_a_court_guess_naming_the_division_is_still_chosen():
+    courts = [
+        {"value": "tazewell", "text": "Tazewell County"},
+        {"value": "tazewell:tr", "text": "Tazewell County - Traffic"},
+    ]
+
+    options = DropdownAPIViews._prioritize_courts_by_location(courts, guessed_court="Tazewell County - Traffic")
+
+    chosen = [court for court in options if court.get("selected")]
+    assert [court["value"] for court in chosen] == ["tazewell:tr"]
+
+
+def test_document_match_outranks_a_location_recommendation():
+    courts = [
+        {"value": "cook:law1", "text": "Cook County Law Division"},
+        {"value": "will", "text": "Will County"},
+    ]
+
+    options = DropdownAPIViews._prioritize_courts_by_location(courts, guessed_court="Will County", user_county="Cook")
+
+    assert options[0]["text"] == "Will County *"
+    assert options[1]["text"] == "Cook County Law Division (Recommended)"
+    assert options[0]["selected"] is True
 
 
 class _FilingTypesResponse:

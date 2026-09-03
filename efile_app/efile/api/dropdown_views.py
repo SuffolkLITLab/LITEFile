@@ -5,6 +5,7 @@ Uses GET requests to external APIs exclusively.
 """
 
 import logging
+import re
 
 import requests
 from django.conf import settings
@@ -13,14 +14,34 @@ from django.views.decorators.http import require_http_methods
 from efile.services.efsp_payload import parse_optional_services
 from efile.utils.jurisdiction_stuff import get_jurisdiction_from_request
 
-from ..utils.str_dist import levenshtein_distance
 from ..utils.zip_to_county_il import get_county_by_zip
 from .base import APIResponseMixin
 
 logger = logging.getLogger(__name__)
 
-# The maximum "string distance" that options should be from the guessed value to be "recommended"
-MAX_LEV_DIST = 5
+# Words that appear in nearly every Illinois court name, so they say nothing
+# about which county a guess is pointing at.
+_COURT_NOISE_WORDS = frozenset(
+    {"circuit", "county", "court", "courts", "division", "illinois", "in", "judicial", "of", "the"}
+)
+
+
+def _county_tokens(text):
+    """Split a court name into the words that could name a county."""
+    words = re.split(r"[^a-z0-9]+", str(text or "").lower())
+    return [word for word in words if word and word not in _COURT_NOISE_WORDS]
+
+
+def _county_keys(text):
+    """Every run of whole words in a court name, joined the way court codes are.
+
+    Court codes drop the spaces inside a county name ("stclair", "rockisland"),
+    so a run of whole words is the smallest unit worth comparing. Comparing runs
+    instead of raw substrings is what keeps "Henry County" from matching a
+    document that said "McHenry County".
+    """
+    tokens = _county_tokens(text)
+    return {"".join(tokens[start:end]) for start in range(len(tokens)) for end in range(start + 1, len(tokens) + 1)}
 
 
 def prioritize_options(api_data, guessed):
@@ -51,12 +72,11 @@ def prioritize_options(api_data, guessed):
         option_text = opt.get("text", "").lower().strip()
 
         # Direct value match (e.g., 'cook' matches 'cook') or text match (e.g., 'Cook County' matches 'cook')
+        # Edit distance used to count as a match here, but at any threshold loose
+        # enough to forgive a typo it also pairs unrelated options ("Motion" and
+        # "Notice" are 3 edits apart), and the marker below claims the document
+        # actually said so.
         is_match = option_text == guessed_norm or option_text in guessed_norm or guessed_norm in option_text
-
-        if not is_match:
-            dist = levenshtein_distance(option_text, guessed_norm)
-            if dist <= MAX_LEV_DIST:
-                is_match = True
 
         if is_match:
             # Mark matches from document extraction with a compact marker.
@@ -456,70 +476,62 @@ class DropdownAPIViews(APIResponseMixin):
         if not target_county and not guessed_court:
             return courts
 
-        guessed_court_norm = (
-            guessed_court.lower()
-            .replace("court", "")
-            .replace("illinois", "")
-            .replace("county", "")
-            .replace(" ", "")
-            .strip()
-        )
-
-        # Normalize county name for matching (lowercase, no spaces)
-        target_county_norm = (target_county or "").lower().replace(" ", "").replace("county", "")
+        guessed_keys = _county_keys(guessed_court)
+        guessed_key = "".join(_county_tokens(guessed_court))
+        target_key = "".join(_county_tokens(target_county))
 
         # Create prioritized list
-        prioritized_courts = []
+        guessed_courts = []
+        exact_guessed_courts = []
+        location_courts = []
         other_courts = []
 
         for court in courts:
-            court_value = court.get("value", "").lower().replace("county", "")
-            court_value_norm = court_value.replace(" ", "")
-            court_county = court_value_norm.split(":", 1)[0]
-            court_text = court.get("text", "").lower()
+            court_value = court.get("value", "").lower()
+            # Cook County's divisions all share a "cook:" prefix, so the county
+            # is whatever sits in front of the colon.
+            court_county = court_value.split(":", 1)[0].replace(" ", "")
+            court_key = "".join(_county_tokens(court.get("text", "")))
+            court_keys = _county_keys(court.get("text", "")) | {court_county}
 
-            # Check if this court matches the user's county
-            is_match = False
+            guessed_match = bool(guessed_keys) and court_county in guessed_keys
+            location_match = bool(target_key) and target_key in court_keys
 
-            # Direct value match (e.g., 'cook' matches 'cook') or text match (e.g., 'Cook County' matches 'cook')
-            guessed_match = bool(guessed_court_norm) and (
-                court_county == guessed_court_norm
-                or court_value_norm == guessed_court_norm
-                or court_value_norm in guessed_court_norm
-            )
-            location_match = bool(target_county_norm) and (
-                court_value == target_county_norm or target_county_norm in court_text
-            )
             if guessed_match:
-                is_match = True
-            elif location_match:
-                is_match = True
-            # Special handling for Cook County divisions
-            elif target_county_norm == "cook" and "cook:" in court_value:
-                is_match = True
-
-            if is_match:
-                # A document match gets the extraction marker. Location-only
-                # recommendations keep their existing wording below.
+                # A document match gets the extraction marker, and comes first:
+                # the document is better evidence of the court than a zip code.
                 court_copy = court.copy()
-                location_recommendation = location_match or (target_county_norm == "cook" and "cook:" in court_value)
-                if guessed_match:
-                    court_copy["text"] = f"{court['text']} *"
-                elif location_recommendation:
-                    court_copy["text"] = f"{court['text']} (Recommended)"
-                prioritized_courts.append(court_copy)
+                court_copy["text"] = f"{court['text']} *"
+                guessed_courts.append(court_copy)
+                if court_key == guessed_key:
+                    exact_guessed_courts.append(court_copy)
+            elif location_match:
+                # Location-only recommendations keep their existing wording.
+                court_copy = court.copy()
+                court_copy["text"] = f"{court['text']} (Recommended)"
+                location_courts.append(court_copy)
             else:
                 other_courts.append(court)
 
-        # Mark only the first prioritized court as selected/default
-        final_courts = prioritized_courts + other_courts
-        if prioritized_courts:
-            # Mark the first recommended court as selected using multiple flag approaches
-            final_courts[0]["selected"] = True
-            final_courts[0]["default"] = True
-            final_courts[0]["recommended"] = True
+        # Only pre-select a court the evidence actually singles out. A caption
+        # reading "Circuit Court of Cook County" matches every Cook division,
+        # and picking one of them for the filer would be a guess the document
+        # never made. Leave those at the top of the list and let them choose.
+        selected_court = None
+        if len(guessed_courts) == 1:
+            selected_court = guessed_courts[0]
+        elif len(exact_guessed_courts) == 1:
+            selected_court = exact_guessed_courts[0]
+        elif not guessed_courts and location_courts:
+            selected_court = location_courts[0]
 
-        return final_courts
+        if selected_court is not None:
+            # Mark the recommended court as selected using multiple flag approaches
+            selected_court["selected"] = True
+            selected_court["default"] = True
+            selected_court["recommended"] = True
+
+        return guessed_courts + location_courts + other_courts
 
     @staticmethod
     @require_http_methods(["GET"])

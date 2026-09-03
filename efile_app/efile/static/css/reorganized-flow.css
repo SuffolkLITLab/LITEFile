@@ -472,6 +472,10 @@
     padding: 1.25rem;
 }
 
+.extraction-page-help[hidden] {
+    display: none;
+}
+
 .extraction-page-help {
     align-items: center;
     color: var(--text-muted);

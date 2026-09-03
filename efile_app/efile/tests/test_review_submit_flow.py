@@ -102,8 +102,25 @@ def test_final_review_marks_extracted_values_and_explains_the_marker(client, sub
 
     assert response.status_code == 200
     assert "Jordan Taylor v. Acme *" in content
-    assert "The * means this is the value we automatically detected from your document." in content
+    assert "A * marks a value that matches what we automatically detected in your document." in content
     assert 'data-bs-target="#extraction-marker-modal"' in content
+
+
+@pytest.mark.django_db
+def test_final_review_drops_the_marker_from_a_docket_number_the_filer_corrected(client, submission_draft):
+    submission_draft.docket_number = "2026-CV-123"
+    submission_draft.extracted_guesses = {"docket number": "2026-CV-1234"}
+    submission_draft.selected_payment_account_id = "pay-123"
+    submission_draft.save(
+        update_fields=["docket_number", "extracted_guesses", "selected_payment_account_id", "updated_at"]
+    )
+
+    response = client.get(reverse("case_review", kwargs={"jurisdiction": "illinois"}))
+    content = response.content.decode()
+
+    assert response.status_code == 200
+    assert "2026-CV-123 *" not in content
+    assert "2026-CV-123" in content
 
 
 class _PaymentAccountTypesResponse:

@@ -12,12 +12,19 @@ from efile.services.people import get_case_questions
 from ..workflow import WorkflowStepKey, get_workflow_context
 
 
-def _matches_extracted_value(current, extracted):
-    """Return whether a saved value is still the value extraction suggested."""
+def _matches_extracted_value(current, extracted, exact=False):
+    """Return whether a saved value is still the value extraction suggested.
+
+    Pass exact=True for short values where one character is the whole meaning: a
+    filer who corrects docket 2026-CV-1234 to 2026-CV-123 has not left our guess
+    in place, and the marker would tell them their document said otherwise.
+    """
     current_text = " ".join(str(current or "").casefold().split())
     extracted_text = " ".join(str(extracted or "").casefold().split())
     if not current_text or not extracted_text:
         return False
+    if exact:
+        return current_text == extracted_text
     return (
         current_text == extracted_text
         or (len(extracted_text) >= 4 and extracted_text in current_text)
@@ -49,8 +56,9 @@ def case_review(request, jurisdiction):
         for key, value in (draft.supplemental_fields or {}).items()
         if not key.startswith("_") and value not in (None, "")
     ]
-    parties = FilingParty.objects.filter(draft=draft)
-    all_parties = list(parties)
+    parties = list(FilingParty.objects.filter(draft=draft).order_by("sort_order", "created_at"))
+    filer = next((party for party in parties if party.role == "filer"), None)
+    other_parties = [party for party in parties if party.role != "filer"]
     documents = FilingDocument.objects.filter(draft=draft).order_by("role", "sort_order", "created_at")
     extracted_guesses = draft.extracted_guesses or {}
     extracted_party_text = "; ".join(
@@ -59,14 +67,14 @@ def case_review(request, jurisdiction):
     )
     extracted_markers = {
         "case_title": _matches_extracted_value(draft.case_title, extracted_guesses.get("case title")),
-        "docket_number": _matches_extracted_value(draft.docket_number, extracted_guesses.get("docket number")),
+        "docket_number": _matches_extracted_value(
+            draft.docket_number, extracted_guesses.get("docket number"), exact=True
+        ),
         "court": _matches_extracted_value(draft.court_name, extracted_guesses.get("court")),
         "case_category": _matches_extracted_value(draft.case_category_name, extracted_guesses.get("case category")),
         "case_type": _matches_extracted_value(draft.case_type_name, extracted_guesses.get("case type")),
         "party_ids": {
-            party.id
-            for party in all_parties
-            if _matches_extracted_value(party_display_name(party), extracted_party_text)
+            party.id for party in parties if _matches_extracted_value(party_display_name(party), extracted_party_text)
         },
         "document_ids": {
             document.id
@@ -83,15 +91,12 @@ def case_review(request, jurisdiction):
         "upload_data": read_upload_data(draft),
         "filing_draft": draft_snapshot(draft),
         "draft": draft,
-        "filer": parties.filter(role="filer").first(),
-        "parties": parties.exclude(role="filer").order_by("sort_order", "created_at"),
+        "filer": filer,
+        "parties": other_parties,
         # Who the filing is on behalf of, when that is not the filer. Worth
         # saying out loud on the last screen before submission: a filing sent
         # under the wrong party's name is not something the filer can undo.
-        "filing_for": [
-            party_display_name(party)
-            for party in parties.filter(is_filing_party=True).exclude(role="filer").order_by("sort_order", "created_at")
-        ],
+        "filing_for": [party_display_name(party) for party in other_parties if party.is_filing_party],
         # Only shown when it was actually asked for. A filer who is a party in
         # their own case is reached at their account address, and saying so
         # here would be one more line of screen for nothing.
