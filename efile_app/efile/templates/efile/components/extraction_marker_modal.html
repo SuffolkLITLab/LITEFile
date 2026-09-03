@@ -1,0 +1,22 @@
+{% load i18n %}
+<div class="modal fade extraction-marker-modal"
+     id="extraction-marker-modal"
+     tabindex="-1"
+     aria-labelledby="extraction-marker-modal-title"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title fs-5" id="extraction-marker-modal-title">{% translate "About the *" %}</h2>
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="{% translate "Close" %}"></button>
+            </div>
+            <div class="modal-body">
+                <p>{% translate "A * marks a value that matches what we automatically detected in your document." %}</p>
+                <p class="mb-0">{% translate "Automatic detection can make mistakes. Check this value against your document and correct it if needed." %}</p>
+            </div>
+        </div>
+    </div>
+</div>

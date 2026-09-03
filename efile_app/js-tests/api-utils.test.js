@@ -71,6 +71,14 @@ test("reference-data GETs are cached: repeated reads hit the network once", asyn
     assert.strictEqual(calls(), 1);
 });
 
+test("cleanOptionText removes recommendation markers before saving labels", () => {
+    const {
+        client
+    } = makeClient();
+    assert.strictEqual(client.cleanOptionText("Cook County *"), "Cook County");
+    assert.strictEqual(client.cleanOptionText("Cook County (Recommended)"), "Cook County");
+});
+
 test("reference-data GETs are isolated by the current jurisdiction", async () => {
     const {
         client,

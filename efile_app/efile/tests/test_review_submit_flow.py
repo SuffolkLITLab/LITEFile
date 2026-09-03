@@ -72,6 +72,57 @@ def test_payment_saves_account_and_advances_durable_step(client, submission_draf
     assert submission_draft.current_step == WorkflowStepKey.REVIEW
 
 
+@pytest.mark.django_db
+def test_final_review_marks_extracted_values_and_explains_the_marker(client, submission_draft):
+    submission_draft.case_title = "Jordan Taylor v. Acme"
+    submission_draft.docket_number = "2026-CV-123"
+    submission_draft.extracted_guesses = {
+        "case title": "Jordan Taylor v. Acme",
+        "docket number": "2026-CV-123",
+        "court": "Cook County",
+        "case category": "Civil",
+        "case type": "Contract",
+        "filing type": "Petition",
+    }
+    submission_draft.selected_payment_account_id = "pay-123"
+    submission_draft.selected_payment_account_name = "Card ending in 4242"
+    submission_draft.save(
+        update_fields=[
+            "case_title",
+            "docket_number",
+            "extracted_guesses",
+            "selected_payment_account_id",
+            "selected_payment_account_name",
+            "updated_at",
+        ]
+    )
+
+    response = client.get(reverse("case_review", kwargs={"jurisdiction": "illinois"}))
+    content = response.content.decode()
+
+    assert response.status_code == 200
+    assert "Jordan Taylor v. Acme *" in content
+    assert "A * marks a value that matches what we automatically detected in your document." in content
+    assert 'data-bs-target="#extraction-marker-modal"' in content
+
+
+@pytest.mark.django_db
+def test_final_review_drops_the_marker_from_a_docket_number_the_filer_corrected(client, submission_draft):
+    submission_draft.docket_number = "2026-CV-123"
+    submission_draft.extracted_guesses = {"docket number": "2026-CV-1234"}
+    submission_draft.selected_payment_account_id = "pay-123"
+    submission_draft.save(
+        update_fields=["docket_number", "extracted_guesses", "selected_payment_account_id", "updated_at"]
+    )
+
+    response = client.get(reverse("case_review", kwargs={"jurisdiction": "illinois"}))
+    content = response.content.decode()
+
+    assert response.status_code == 200
+    assert "2026-CV-123 *" not in content
+    assert "2026-CV-123" in content
+
+
 class _PaymentAccountTypesResponse:
     status_code = 200
 

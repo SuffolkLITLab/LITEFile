@@ -22,7 +22,10 @@
                 {% endif %}
             </p>
             <section class="extracted-details" aria-labelledby="extracted-details-heading">
-                <h2 id="extracted-details-heading">{% translate "The document we read" %}</h2>
+                <div class="extraction-section-heading">
+                    <h2 id="extracted-details-heading">{% translate "The document we read" %}</h2>
+                    {% include "efile/components/extraction_marker_help.html" %}
+                </div>
                 {% if document_summary_details %}
                     <dl>
                         {% for detail in document_summary_details %}

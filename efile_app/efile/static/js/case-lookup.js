@@ -8,6 +8,7 @@
     const errorBox = document.getElementById("lookup-error");
     const submitButton = document.getElementById("find-case-button");
     const guessedCourt = JSON.parse(document.getElementById("guessed-court").textContent || '""');
+    const extractionHelp = document.getElementById("court-extraction-help");
     const selectedCourtCode = JSON.parse(document.getElementById("selected-court-code").textContent || '""');
 
     async function loadCourts() {
@@ -18,15 +19,20 @@
             });
             if (!response.success) throw new Error(response.error || "Could not load courts.");
             courtSelect.innerHTML = '<option value="">Choose a court</option>';
+            let hasMarkedCourt = false;
             response.data.forEach((court) => {
                 const option = document.createElement("option");
                 option.value = court.value;
                 option.textContent = court.text;
+                // The guess only earns a marker when it matches a real court, so the
+                // help text that explains the marker waits for one to show up.
+                if (String(court.text || "").trim().endsWith("*")) hasMarkedCourt = true;
                 if (court.value === selectedCourtCode || (!selectedCourtCode && (court.selected || court.default))) {
                     option.selected = true;
                 }
                 courtSelect.appendChild(option);
             });
+            if (extractionHelp) extractionHelp.hidden = !hasMarkedCourt;
         } catch (error) {
             courtSelect.innerHTML = '<option value="">Courts could not be loaded</option>';
             errorBox.textContent = error.message;
@@ -61,7 +67,7 @@
                 },
                 body: JSON.stringify({
                     court: courtSelect.value,
-                    court_name: selectedCourt?.textContent?.replace(" (Recommended)", "") || "",
+                    court_name: apiUtils.cleanOptionText(selectedCourt?.textContent),
                     case_tracking_id: caseInfo.caseTrackingID,
                     case_docket_id: caseInfo.caseDocketID || caseNumber.value.trim(),
                     case_title: caseInfo.caseTitle || "",

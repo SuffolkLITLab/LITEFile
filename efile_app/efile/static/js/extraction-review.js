@@ -66,7 +66,7 @@
     }
 
     function optionText(item) {
-        return (item.text || item.name || optionValue(item)).replace(/ \(Recommended\)$/, "");
+        return item.text || item.name || optionValue(item);
     }
 
     async function getJson(url) {
@@ -132,8 +132,9 @@
 
         if (chosen) {
             field.select.value = chosen.value;
-            field.nameInput.value = chosen.textContent;
-            field.valueEl.textContent = chosen.textContent;
+            const chosenText = apiUtils.cleanOptionText(chosen.textContent);
+            field.nameInput.value = chosenText;
+            field.valueEl.textContent = chosenText + (chosen.textContent.trim().endsWith("*") ? " *" : "");
             setMode(key, "found");
             await ADVANCE[key]();
         } else {
@@ -307,19 +308,19 @@
     };
 
     fields.court.select.addEventListener("change", () => {
-        fields.court.nameInput.value = fields.court.select.selectedOptions[0]?.textContent || "";
+        fields.court.nameInput.value = apiUtils.cleanOptionText(fields.court.select.selectedOptions[0]?.textContent);
         loadCaseCategories();
     });
     fields.case_category.select.addEventListener("change", () => {
-        fields.case_category.nameInput.value = fields.case_category.select.selectedOptions[0]?.textContent || "";
+        fields.case_category.nameInput.value = apiUtils.cleanOptionText(fields.case_category.select.selectedOptions[0]?.textContent);
         loadCaseTypes();
     });
     fields.case_type.select.addEventListener("change", () => {
-        fields.case_type.nameInput.value = fields.case_type.select.selectedOptions[0]?.textContent || "";
+        fields.case_type.nameInput.value = apiUtils.cleanOptionText(fields.case_type.select.selectedOptions[0]?.textContent);
         loadFilingTypesAndRoles();
     });
     fields.filing_type.select.addEventListener("change", () => {
-        fields.filing_type.nameInput.value = fields.filing_type.select.selectedOptions[0]?.textContent || "";
+        fields.filing_type.nameInput.value = apiUtils.cleanOptionText(fields.filing_type.select.selectedOptions[0]?.textContent);
         loadFilerRoles();
     });
 
