@@ -6,7 +6,7 @@ a chosen filing type requires an amount in controversy.
 import pytest
 from django.urls import reverse
 
-from efile.api.dropdown_views import prioritize_options
+from efile.api.dropdown_views import DropdownAPIViews, prioritize_options
 from efile.models import FilingDraft
 from efile.services.current_drafts import CURRENT_DRAFT_SESSION_KEY
 
@@ -35,6 +35,18 @@ def test_prioritize_options_marks_document_matches_with_an_asterisk():
     petition = next(opt for opt in options if opt["value"] == "PET")
     assert petition["text"] == "Petition *"
     assert "Recommended" not in petition["text"]
+
+
+def test_guessed_court_uses_extraction_marker_without_location_recommendation():
+    courts = [
+        {"value": "cook:law1", "text": "Cook County Law Division"},
+        {"value": "will:law1", "text": "Will County Law Division"},
+    ]
+
+    options = DropdownAPIViews._prioritize_courts_by_location(courts, guessed_court="Cook County")
+
+    assert options[0]["text"] == "Cook County Law Division *"
+    assert "Recommended" not in options[0]["text"]
 
 
 class _FilingTypesResponse:

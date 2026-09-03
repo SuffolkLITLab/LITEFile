@@ -41,10 +41,6 @@
         return item.text || item.name || item.description || optionValue(item);
     }
 
-    function cleanOptionText(value) {
-        return String(value || "").replace(/ \(Recommended\)$/, "").replace(/ \*$/, "");
-    }
-
     function setOptions(select, options, savedValue, placeholder) {
         select.innerHTML = "";
         if (!options.length) {
@@ -448,7 +444,7 @@
                 id: Number(card.dataset.documentId),
                 name: card.querySelector(".document-name").value,
                 filing_type: filingType.value,
-                filing_type_name: cleanOptionText(filingType.selectedOptions[0]?.text),
+                filing_type_name: apiUtils.cleanOptionText(filingType.selectedOptions[0]?.text),
                 document_type: documentType?.value || "",
                 document_type_name: documentType?.dataset.optionText || "",
                 filing_component: component?.value || "",

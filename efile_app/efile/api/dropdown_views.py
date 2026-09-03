@@ -447,15 +447,23 @@ class DropdownAPIViews(APIResponseMixin):
         if not courts:
             return courts
 
-        # Determine user county from zip code if provided
-        target_county = user_county or guessed_court
+        # Location data controls location recommendations. Keep the extracted
+        # court guess separate so it can receive the extraction marker below.
+        target_county = user_county
         if user_zip and not target_county:
             target_county = get_county_by_zip(user_zip)
 
         if not target_county and not guessed_court:
             return courts
 
-        guessed_court_norm = guessed_court.lower().replace("court", "").replace("illinois", "").strip()
+        guessed_court_norm = (
+            guessed_court.lower()
+            .replace("court", "")
+            .replace("illinois", "")
+            .replace("county", "")
+            .replace(" ", "")
+            .strip()
+        )
 
         # Normalize county name for matching (lowercase, no spaces)
         target_county_norm = (target_county or "").lower().replace(" ", "").replace("county", "")
@@ -466,6 +474,8 @@ class DropdownAPIViews(APIResponseMixin):
 
         for court in courts:
             court_value = court.get("value", "").lower().replace("county", "")
+            court_value_norm = court_value.replace(" ", "")
+            court_county = court_value_norm.split(":", 1)[0]
             court_text = court.get("text", "").lower()
 
             # Check if this court matches the user's county
@@ -473,7 +483,9 @@ class DropdownAPIViews(APIResponseMixin):
 
             # Direct value match (e.g., 'cook' matches 'cook') or text match (e.g., 'Cook County' matches 'cook')
             guessed_match = bool(guessed_court_norm) and (
-                court_value == guessed_court_norm or court_value in guessed_court_norm
+                court_county == guessed_court_norm
+                or court_value_norm == guessed_court_norm
+                or court_value_norm in guessed_court_norm
             )
             location_match = bool(target_county_norm) and (
                 court_value == target_county_norm or target_county_norm in court_text

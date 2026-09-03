@@ -39,6 +39,10 @@ class ApiUtils {
         return null;
     }
 
+    cleanOptionText(value) {
+        return String(value || "").replace(/ \(Recommended\)$/, "").replace(/ \*$/, "");
+    }
+
     getCache() {
         try {
             const cached = localStorage.getItem('apiResponseCache');
