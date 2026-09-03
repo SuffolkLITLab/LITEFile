@@ -14,6 +14,12 @@
         <p class="workflow-lede">
             {% translate "Check each section carefully. Use Edit to go back to the screen where you entered it." %}
         </p>
+        {% if extracted_markers.has_any %}
+            <div class="extraction-page-help">
+                <span>{% translate "Some values may be marked with an asterisk because they came from your document." %}</span>
+                {% include "efile/components/extraction_marker_help.html" %}
+            </div>
+        {% endif %}
         <div class="review-summary-grid">
             <section class="review-summary-card">
                 <header>
@@ -32,7 +38,7 @@
                         <div>
                             <dt>{% translate "Case name" %}</dt>
                             <dd>
-                                {{ draft.case_title }}
+                                {{ draft.case_title }}{% if extracted_markers.case_title %} *{% endif %}
                             </dd>
                         </div>
                     {% endif %}
@@ -40,26 +46,26 @@
                         <div>
                             <dt>{% translate "Case number" %}</dt>
                             <dd>
-                                {{ draft.docket_number }}
+                                {{ draft.docket_number }}{% if extracted_markers.docket_number %} *{% endif %}
                             </dd>
                         </div>
                     {% endif %}
                     <div>
                         <dt>{% translate "Court" %}</dt>
                         <dd>
-                            {{ draft.court_name|default:draft.court_code }}
+                            {{ draft.court_name|default:draft.court_code }}{% if extracted_markers.court %} *{% endif %}
                         </dd>
                     </div>
                     <div>
                         <dt>{% translate "Category" %}</dt>
                         <dd>
-                            {{ draft.case_category_name|default:draft.case_category_code }}
+                            {{ draft.case_category_name|default:draft.case_category_code }}{% if extracted_markers.case_category %} *{% endif %}
                         </dd>
                     </div>
                     <div>
                         <dt>{% translate "Case type" %}</dt>
                         <dd>
-                            {{ draft.case_type_name|default:draft.case_type_code }}
+                            {{ draft.case_type_name|default:draft.case_type_code }}{% if extracted_markers.case_type %} *{% endif %}
                         </dd>
                     </div>
                 </dl>
@@ -85,7 +91,7 @@
                                     {% if document.document_type_name %}· {{ document.document_type_name }}{% endif %}
                                 </small>
                                 {% if document.filing_type_name %}
-                                    <span class="review-document-tag">{% translate "Filing type:" %} {{ document.filing_type_name }}</span>
+                                    <span class="review-document-tag">{% translate "Filing type:" %} {{ document.filing_type_name }}{% if document.id in extracted_markers.document_ids %} *{% endif %}</span>
                                 {% endif %}
                             </div>
                         </article>
@@ -99,7 +105,9 @@
                        aria-label="{% translate "Edit your information" %}">{% translate "Edit" %}</a>
                 </header>
                 {% if filer %}
-                    <p class="review-person-name">{{ filer.first_name }} {{ filer.middle_name }} {{ filer.last_name }}</p>
+                    <p class="review-person-name">
+                        {{ filer.first_name }} {{ filer.middle_name }} {{ filer.last_name }}{% if filer.id in extracted_markers.party_ids %} *{% endif %}
+                    </p>
                     <address>
                         {{ filer.address_line_1 }}
                         {% if filer.address_line_2 %}, {{ filer.address_line_2 }}{% endif %}
@@ -149,7 +157,7 @@
                                 {{ party.organization_name }}
                             {% else %}
                                 {{ party.first_name }} {{ party.middle_name }} {{ party.last_name }}
-                            {% endif %}
+                            {% endif %}{% if party.id in extracted_markers.party_ids %} *{% endif %}
                         </strong>
                         <small>{{ party.party_type_name|default:party.party_type }}</small>
                     </div>

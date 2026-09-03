@@ -10,6 +10,10 @@
     const guessedCourt = JSON.parse(document.getElementById("guessed-court").textContent || '""');
     const selectedCourtCode = JSON.parse(document.getElementById("selected-court-code").textContent || '""');
 
+    function cleanOptionText(value) {
+        return String(value || "").replace(/ \(Recommended\)$/, "").replace(/ \*$/, "");
+    }
+
     async function loadCourts() {
         try {
             const response = await apiUtils.fetchJSON("/api/dropdowns/courts/", "GET", {
@@ -61,7 +65,7 @@
                 },
                 body: JSON.stringify({
                     court: courtSelect.value,
-                    court_name: selectedCourt?.textContent?.replace(" (Recommended)", "") || "",
+                    court_name: cleanOptionText(selectedCourt?.textContent),
                     case_tracking_id: caseInfo.caseTrackingID,
                     case_docket_id: caseInfo.caseDocketID || caseNumber.value.trim(),
                     case_title: caseInfo.caseTitle || "",

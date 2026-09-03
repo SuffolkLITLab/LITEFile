@@ -12,6 +12,19 @@ from efile.services.people import get_case_questions
 from ..workflow import WorkflowStepKey, get_workflow_context
 
 
+def _matches_extracted_value(current, extracted):
+    """Return whether a saved value is still the value extraction suggested."""
+    current_text = " ".join(str(current or "").casefold().split())
+    extracted_text = " ".join(str(extracted or "").casefold().split())
+    if not current_text or not extracted_text:
+        return False
+    return (
+        current_text == extracted_text
+        or (len(extracted_text) >= 4 and extracted_text in current_text)
+        or (len(current_text) >= 4 and current_text in extracted_text)
+    )
+
+
 def case_review(request, jurisdiction):
     """Render a single read-only summary from the durable draft before submit."""
     if not request.user.is_authenticated or not get_tyler_token(request, jurisdiction):
@@ -37,6 +50,33 @@ def case_review(request, jurisdiction):
         if not key.startswith("_") and value not in (None, "")
     ]
     parties = FilingParty.objects.filter(draft=draft)
+    all_parties = list(parties)
+    documents = FilingDocument.objects.filter(draft=draft).order_by("role", "sort_order", "created_at")
+    extracted_guesses = draft.extracted_guesses or {}
+    extracted_party_text = "; ".join(
+        str(extracted_guesses.get(key, ""))
+        for key in ("plaintiff or petitioner names", "defendant or respondent names", "other party names")
+    )
+    extracted_markers = {
+        "case_title": _matches_extracted_value(draft.case_title, extracted_guesses.get("case title")),
+        "docket_number": _matches_extracted_value(draft.docket_number, extracted_guesses.get("docket number")),
+        "court": _matches_extracted_value(draft.court_name, extracted_guesses.get("court")),
+        "case_category": _matches_extracted_value(draft.case_category_name, extracted_guesses.get("case category")),
+        "case_type": _matches_extracted_value(draft.case_type_name, extracted_guesses.get("case type")),
+        "party_ids": {
+            party.id
+            for party in all_parties
+            if _matches_extracted_value(party_display_name(party), extracted_party_text)
+        },
+        "document_ids": {
+            document.id
+            for document in documents
+            if _matches_extracted_value(document.filing_type_name, extracted_guesses.get("filing type"))
+        },
+    }
+    extracted_markers["has_any"] = any(
+        value for key, value in extracted_markers.items() if key not in {"document_ids", "party_ids"}
+    ) or bool(extracted_markers["document_ids"] or extracted_markers["party_ids"])
     context = {
         "is_logged_in": True,
         "case_data": read_case_data(draft),
@@ -56,7 +96,8 @@ def case_review(request, jurisdiction):
         # their own case is reached at their account address, and saying so
         # here would be one more line of screen for nothing.
         "notice_email": draft.notice_email,
-        "documents": FilingDocument.objects.filter(draft=draft).order_by("role", "sort_order", "created_at"),
+        "documents": documents,
+        "extracted_markers": extracted_markers,
         "question_answers": question_answers,
         # Everything in one envelope reaches the clerk together. This is the
         # last point at which adding a document is still free and easy, so say

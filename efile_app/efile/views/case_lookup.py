@@ -73,7 +73,7 @@ def case_lookup(request, jurisdiction):
     context = {
         "is_logged_in": True,
         "filing_draft": draft_snapshot(draft),
-        "guessed_court": draft.court_name or (draft.extracted_guesses or {}).get("court", ""),
+        "guessed_court": (draft.extracted_guesses or {}).get("court", ""),
         "selected_court_code": draft.court_code,
         "docket_number": draft.docket_number or (draft.extracted_guesses or {}).get("docket number", ""),
     }

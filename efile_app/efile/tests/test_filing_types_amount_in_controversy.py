@@ -26,6 +26,17 @@ def test_prioritize_options_keeps_extra_fields_from_the_court():
     assert answer["amountincontroversy"] == "NotApplicable"
 
 
+def test_prioritize_options_marks_document_matches_with_an_asterisk():
+    options = prioritize_options(
+        [{"code": "PET", "name": "Petition"}, {"code": "ANS", "name": "Answer"}],
+        guessed="Petition",
+    )
+
+    petition = next(opt for opt in options if opt["value"] == "PET")
+    assert petition["text"] == "Petition *"
+    assert "Recommended" not in petition["text"]
+
+
 class _FilingTypesResponse:
     status_code = 200
     headers = {"Content-Type": "application/json"}

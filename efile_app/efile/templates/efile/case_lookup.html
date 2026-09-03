@@ -11,6 +11,12 @@
         <p class="workflow-lede">
             {% translate "Choose the court and enter the case number exactly as it appears on your documents." %}
         </p>
+        {% if guessed_court %}
+            <div class="extraction-page-help">
+                <span>{% translate "Your document gave us a suggested court, marked with an asterisk." %}</span>
+                {% include "efile/components/extraction_marker_help.html" %}
+            </div>
+        {% endif %}
         <form id="case-lookup-form">
             {% csrf_token %}
             <div class="lookup-fields">

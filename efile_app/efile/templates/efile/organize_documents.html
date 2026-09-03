@@ -12,6 +12,12 @@
         <p class="workflow-lede">
             {% translate "Tell the court what each PDF is and if it should be public or confidential. You can also rename and reorder additional documents." %}
         </p>
+        {% if organize_context.guessed_filing_type %}
+            <div class="extraction-page-help">
+                <span>{% translate "Some choices may be marked with an asterisk." %}</span>
+                {% include "efile/components/extraction_marker_help.html" %}
+            </div>
+        {% endif %}
         <div class="alert alert-danger" id="organize-error" role="alert" hidden></div>
         <form id="organize-documents-form">
             {% csrf_token %}

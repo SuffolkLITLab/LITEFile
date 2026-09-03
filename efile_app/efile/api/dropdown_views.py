@@ -59,9 +59,9 @@ def prioritize_options(api_data, guessed):
                 is_match = True
 
         if is_match:
-            # Mark as default/recommended court with recommended text
+            # Mark matches from document extraction with a compact marker.
             opt_copy = opt.copy()
-            opt_copy["text"] = f"{opt['text']} (Recommended)"
+            opt_copy["text"] = f"{opt['text']} *"
             prioritized_options.append(opt_copy)
         else:
             other_options.append(opt)
@@ -429,7 +429,9 @@ class DropdownAPIViews(APIResponseMixin):
                 ]
                 logger.debug("Returning fallback courts")
                 return DropdownAPIViews.success_response(
-                    DropdownAPIViews._prioritize_courts_by_location(fallback_courts, user_zip, user_county)
+                    DropdownAPIViews._prioritize_courts_by_location(
+                        fallback_courts, guessed_court, user_zip, user_county
+                    )
                 )
 
         except Exception as e:
@@ -450,13 +452,13 @@ class DropdownAPIViews(APIResponseMixin):
         if user_zip and not target_county:
             target_county = get_county_by_zip(user_zip)
 
-        if not target_county:
+        if not target_county and not guessed_court:
             return courts
 
-        guessed_court_norm = guessed_court.lower().replace("court", "").replace("illinois", "")
+        guessed_court_norm = guessed_court.lower().replace("court", "").replace("illinois", "").strip()
 
         # Normalize county name for matching (lowercase, no spaces)
-        target_county_norm = target_county.lower().replace(" ", "").replace("county", "")
+        target_county_norm = (target_county or "").lower().replace(" ", "").replace("county", "")
 
         # Create prioritized list
         prioritized_courts = []
@@ -470,18 +472,29 @@ class DropdownAPIViews(APIResponseMixin):
             is_match = False
 
             # Direct value match (e.g., 'cook' matches 'cook') or text match (e.g., 'Cook County' matches 'cook')
-            if court_value == guessed_court_norm or court_value in guessed_court_norm:
+            guessed_match = bool(guessed_court_norm) and (
+                court_value == guessed_court_norm or court_value in guessed_court_norm
+            )
+            location_match = bool(target_county_norm) and (
+                court_value == target_county_norm or target_county_norm in court_text
+            )
+            if guessed_match:
                 is_match = True
-            elif court_value == target_county_norm or target_county_norm in court_text:
+            elif location_match:
                 is_match = True
             # Special handling for Cook County divisions
             elif target_county_norm == "cook" and "cook:" in court_value:
                 is_match = True
 
             if is_match:
-                # Mark as default/recommended court with recommended text
+                # A document match gets the extraction marker. Location-only
+                # recommendations keep their existing wording below.
                 court_copy = court.copy()
-                court_copy["text"] = f"{court['text']} (Recommended)"
+                location_recommendation = location_match or (target_county_norm == "cook" and "cook:" in court_value)
+                if guessed_match:
+                    court_copy["text"] = f"{court['text']} *"
+                elif location_recommendation:
+                    court_copy["text"] = f"{court['text']} (Recommended)"
                 prioritized_courts.append(court_copy)
             else:
                 other_courts.append(court)
