@@ -38,6 +38,28 @@ EXTRACTION_LABELS = {
     "classification evidence": "Classification evidence",
 }
 
+EXTRACTION_KEY_ALIASES = {
+    "plaintiff name": "plaintiff or petitioner names",
+    "plaintiff names": "plaintiff or petitioner names",
+    "petitioner name": "plaintiff or petitioner names",
+    "petitioner names": "plaintiff or petitioner names",
+    "plaintiff/petitioner names": "plaintiff or petitioner names",
+    "plaintiff and petitioner names": "plaintiff or petitioner names",
+    "defendant name": "defendant or respondent names",
+    "defendant names": "defendant or respondent names",
+    "respondent name": "defendant or respondent names",
+    "respondent names": "defendant or respondent names",
+    "defendant/respondent names": "defendant or respondent names",
+    "defendant and respondent names": "defendant or respondent names",
+    "other parties": "other party names",
+    "other party name": "other party names",
+}
+
+
+def _normalized_key(raw_key):
+    key = str(raw_key).strip().lower()
+    return EXTRACTION_KEY_ALIASES.get(key, key)
+
 
 def normalize_extracted_fields(found_fields):
     """Keep every extracted value while normalizing keys used by the workflow."""
@@ -48,7 +70,7 @@ def normalize_extracted_fields(found_fields):
     for raw_key, value in found_fields.items():
         if value in (None, "", [], {}):
             continue
-        key = str(raw_key).strip().lower()
+        key = _normalized_key(raw_key)
         if key in {"court name", "court unit", "court or county"}:
             key = "court"
         elif key in {"docker number", "case number"}:
@@ -71,7 +93,7 @@ def normalize_document_evidence(found_fields):
     for raw_key, value in found_fields.items():
         if value in (None, "", [], {}):
             continue
-        key = str(raw_key).strip().lower()
+        key = _normalized_key(raw_key)
         if key in {"court unit", "court or county"}:
             key = "court name"
         elif key in {"monetary amount", "amount in controversy"}:
@@ -88,7 +110,7 @@ def display_extracted_fields(found_fields):
     for raw_key, value in found_fields.items():
         if value in (None, "", [], {}):
             continue
-        key = str(raw_key).strip().lower()
+        key = _normalized_key(raw_key)
         if key in {"court name", "court unit", "court or county"}:
             key = "court"
         if isinstance(value, list):

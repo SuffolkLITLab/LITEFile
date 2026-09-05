@@ -11,7 +11,30 @@
     const extractionHelp = document.getElementById("court-extraction-help");
     const selectedCourtCode = JSON.parse(document.getElementById("selected-court-code").textContent || '""');
 
+    async function mountCourtSelector() {
+        const container = document.getElementById("court-selector");
+        if (!container || !window.courtSelector) return false;
+        const selector = window.courtSelector.mount({
+            container,
+            jurisdiction: apiUtils.getCurrentJurisdiction(),
+            select: courtSelect,
+        });
+        const started = await selector.start(selectedCourtCode || "", guessedCourt || "");
+        if (!started) {
+            container.remove();
+            return false;
+        }
+        courtSelect.hidden = true;
+        // Native validation cannot point at a hidden field, and the selector is
+        // what asks for the court now, so the check moves into the submit below.
+        courtSelect.required = false;
+        return true;
+    }
+
     async function loadCourts() {
+        // Guided questions where the jurisdiction configures them, the flat
+        // list everywhere else. Either way the answer lands in the same select.
+        if (await mountCourtSelector()) return;
         try {
             const response = await apiUtils.fetchJSON("/api/dropdowns/courts/", "GET", {
                 jurisdiction: apiUtils.getCurrentJurisdiction(),
@@ -47,6 +70,7 @@
         submitButton.disabled = true;
 
         try {
+            if (!courtSelect.value) throw new Error("Choose a court to search for your case.");
             const jurisdiction = apiUtils.getCurrentJurisdiction();
             const lookup = await apiUtils.fetchJSON("/api/suffolk/lookup-case/", "GET", {
                 court: courtSelect.value,

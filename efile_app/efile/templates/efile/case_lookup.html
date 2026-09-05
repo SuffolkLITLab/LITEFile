@@ -21,19 +21,22 @@
         <form id="case-lookup-form">
             {% csrf_token %}
             <div class="lookup-fields">
-                <label class="form-field" for="court">
+                <div class="form-field">
                     <span>{% translate "Court" %}</span>
+                    {# Filled in by court-selector.js where the jurisdiction configures guided questions. The select below keeps carrying the answer either way. #}
+                    <div class="court-selector" id="court-selector"></div>
                     <select class="form-select"
                             id="court"
                             name="court"
+                            aria-label="{% translate 'Court' %}"
                             {% if guessed_court %}aria-describedby="court-hint"{% endif %}
                             required>
-                        <option value="">{% translate "Loading Illinois courts…" %}</option>
+                        <option value="">{% translate "Loading courts…" %}</option>
                     </select>
                     {% if guessed_court %}
                         <small id="court-hint">{% blocktranslate %}Suggested from your document: {{ guessed_court }}{% endblocktranslate %}</small>
                     {% endif %}
-                </label>
+                </div>
                 <label class="form-field" for="case-number">
                     <span>{% translate "Case number" %}</span>
                     <input class="form-control"
@@ -65,5 +68,6 @@
     {{ selected_court_code|json_script:"selected-court-code" }}
 {% endblock workflow_content %}
 {% block extra_js %}
+    <script src="{% static 'js/court-selector.js' %}"></script>
     <script src="{% static 'js/case-lookup.js' %}"></script>
 {% endblock extra_js %}

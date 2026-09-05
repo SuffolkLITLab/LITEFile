@@ -5,7 +5,10 @@ const {
 const path = require('path');
 const {
     getTestConfig,
-    loginViaLoginPage
+    loginViaLoginPage,
+    continueFromExtractionReview,
+    continueFromDocumentChecklist,
+    selectGuidedCourt
 } = require('./test-utils');
 
 const SAMPLE_PDF = path.resolve(__dirname, '../../testing/sample_test.pdf');
@@ -153,7 +156,7 @@ async function selectAfterLoad(page, selector, value) {
 
 async function fillRequiredInputs(page, values) {
     for (const [name, value] of Object.entries(values)) {
-        const field = page.locator(`[name="${name}"]`);
+        const field = page.locator(`[name="${name}"]:visible`).first();
         if (await field.count()) await field.fill(value);
     }
     const required = page.locator('input[required]:visible');
@@ -175,6 +178,8 @@ async function completeParty(page, ordinal) {
         await roleRadios.first().check();
     }
     await page.locator('input[name="party_kind"][value="person"]').check();
+    const addressToggle = page.locator('#add-party-address');
+    if (await addressToggle.count()) await addressToggle.check();
     await fillRequiredInputs(page, {
         first_name: `Alex${ordinal}`,
         last_name: `Respondent${ordinal}`,
@@ -214,13 +219,7 @@ async function completeQuestions(page) {
 
 async function finishFiling(page, scenario, ordinal) {
     console.log(`${scenario.label}: confirming checklist`);
-    await page.locator('input[name="documents_complete"]').check();
-    await Promise.all([
-        page.waitForURL(/\/organize-documents\//),
-        page.getByRole('button', {
-            name: /Continue to organize/i
-        }).click(),
-    ]);
+    await continueFromDocumentChecklist(page);
     console.log(`${scenario.label}: organizing document`);
     const filingType = page.locator('.organize-card .filing-type');
     if (scenario.filingType) {
@@ -368,19 +367,12 @@ async function runNewCase(page, scenario, ordinal) {
     ]);
 
     console.log(`${scenario.label}: selecting case codes`);
-    await selectAfterLoad(page, '#court_code', scenario.court);
+    await selectGuidedCourt(page, 'illinois', scenario.court);
     await selectAfterLoad(page, '#case_category_code', scenario.category);
     await selectAfterLoad(page, '#case_type_code', scenario.caseType);
     await selectAfterLoad(page, '#filing_type_code', scenario.filingType);
-    await page.locator('input[name="existing_case"][value="new"]').check();
-    await Promise.all([
-        page.waitForURL(/\/document-checklist\//, {
-            timeout: 120000
-        }),
-        page.getByRole('button', {
-            name: /Confirm and continue/i
-        }).click(),
-    ]);
+    await page.locator('input[type="radio"][name="existing_case"][value="new"]').check();
+    await continueFromExtractionReview(page, /\/document-checklist\//);
 
     await finishFiling(page, scenario, ordinal);
 }
@@ -400,16 +392,9 @@ async function runExistingCase(page, scenario, ordinal) {
         page.locator('#continue-to-analysis').click(),
     ]);
 
-    await selectAfterLoad(page, '#court_code', scenario.court);
-    await page.locator('input[name="existing_case"][value="existing"]').check();
-    await Promise.all([
-        page.waitForURL(/\/case-lookup\//, {
-            timeout: 120000
-        }),
-        page.getByRole('button', {
-            name: /Confirm and continue/i
-        }).click(),
-    ]);
+    await selectGuidedCourt(page, 'illinois', scenario.court);
+    await page.locator('input[type="radio"][name="existing_case"][value="existing"]').check();
+    await continueFromExtractionReview(page, /\/case-lookup\//);
     await selectAfterLoad(page, '#court', scenario.court);
     await page.locator('#case-number').fill(scenario.caseNumber);
     const lookupOutcome = await Promise.race([

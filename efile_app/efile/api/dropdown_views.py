@@ -11,6 +11,7 @@ import requests
 from django.conf import settings
 from django.views.decorators.http import require_http_methods
 
+from efile.services.court_selection import is_non_filing_court
 from efile.services.efsp_payload import parse_optional_services
 from efile.utils.jurisdiction_stuff import get_jurisdiction_from_request
 
@@ -285,24 +286,11 @@ class DropdownAPIViews(APIResponseMixin):
                     if isinstance(api_data, list):
                         for court in api_data:
                             if isinstance(court, dict) and "code" in court and "name" in court:
-                                # Filter out courts with unwanted patterns in the name
-                                court_name_standardized = court["name"].lower()
-                                if any(
-                                    pattern in court_name_standardized
-                                    for pattern in [
-                                        "(zodyssey)",
-                                        "z -",
-                                        "zz",
-                                        "zdev",
-                                        "courtview test",
-                                        "rsi test",
-                                        "do not use",
-                                        "not used",
-                                        "file & serve",
-                                        "system",
-                                    ]
-                                ):
-                                    continue  # Skip this court
+                                # Rows that exist only inside Tyler -- test
+                                # fixtures, retired locations -- are not courts
+                                # anyone can file into.
+                                if is_non_filing_court(court["name"]):
+                                    continue
 
                                 courts.append({"value": court["code"], "text": court["name"]})
 

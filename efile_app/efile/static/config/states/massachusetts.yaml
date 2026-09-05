@@ -131,3 +131,146 @@ terminology:
   petitioner: "Plaintiff"
   case_number: "Docket Number"
   filing_fee: "Entry Fee"
+
+# How a filer says which court this filing goes to.
+#
+# Massachusetts does not route by county, and asking a filer for one produces a
+# confident wrong answer: the District Court that serves Somerville is not in
+# the county its Probate and Family Court is, and which Boston Municipal Court
+# division serves an address is a question about a specific building. So the
+# Trial Court asks for a department and then for a place the filer knows, and
+# MACourts turns that place into the courts that serve it. The list is always
+# there as well -- the lookup is an alternative, never a requirement.
+court_selector:
+  title: "Choose the Massachusetts court for this filing"
+  # The e-filing service names courts so that they sort -- department first,
+  # then county, then place -- which is not what anyone calls them. A filer
+  # holding paperwork is looking for "Boston Juvenile Court", so that is what
+  # the list says. The first rule that matches wins.
+  court_names:
+    - match: '^Juvenile Court -+ (?P<county>.+?) -+ (?P<place>.+)$'
+      name: "{place} Juvenile Court - {county}"
+    - match: '^District Court -+ (?P<place>.+)$'
+      name: "{place} District Court"
+    - match: '^BMC -+ (?P<place>.+)$'
+      name: "{place} Division, Boston Municipal Court"
+    - match: '^Superior Court -+ (?P<place>.+)$'
+      name: "{place} Superior Court"
+    - match: '^Housing -+ (?P<place>[^(]+?) \((?P<city>.+)\)$'
+      name: "{place} Housing Court ({city})"
+    - match: '^Housing -+ (?P<place>.+)$'
+      name: "{place} Housing Court"
+  lede: >-
+    Start with the court shown on your paperwork.
+  steps:
+    - id: level
+      type: choice
+      short_label: "Court level"
+      label: "What level of Massachusetts court is this filing for?"
+      options:
+        - value: trial
+          label: "Trial Court"
+          help: "District/BMC, Housing, Probate and Family, Juvenile, Superior, or Land Court."
+          courts:
+            exclude_name_pattern: "Appeals Court|Supreme Judicial Court"
+        - value: appeals
+          label: "Appeals Court"
+          help: "For a filing in the Massachusetts Appeals Court."
+          courts:
+            name_pattern: "Appeals Court"
+        - value: sjc
+          label: "Supreme Judicial Court"
+          help: "The highest court in Massachusetts."
+          courts:
+            name_pattern: "Supreme Judicial Court"
+
+    - id: proceeding
+      type: choice
+      short_label: "Proceeding"
+      when:
+        level: [appeals]
+      label: "Which Appeals Court proceeding?"
+      hint: >-
+        The docket number on your paperwork tells you which one: a P docket is
+        a panel, a J docket is a single justice.
+      options:
+        - value: panel
+          label: "Panel"
+          help: "A regular appellate panel proceeding (P docket)."
+          courts:
+            name_pattern: "Panel"
+        - value: single_justice
+          label: "Single justice"
+          help: "A single-justice proceeding (J docket)."
+          courts:
+            name_pattern: "Single Justice"
+
+    - id: department
+      type: select
+      short_label: "Department"
+      when:
+        level: [trial]
+      label: "Which Trial Court department?"
+      placeholder: "Choose a department…"
+      hint: >-
+        The department is named on your paperwork. Choose District Court or
+        Boston Municipal Court for either of those.
+      # `court_types` are the department names MACourts matches on. `courts` is
+      # how that department's locations are picked out of the e-filing service's
+      # own list, by name -- the parent rows Tyler carries for a whole
+      # department ("Housing Courts", "Superior Courts") are not places to file.
+      options:
+        - value: district
+          label: "District Court or Boston Municipal Court"
+          court_types: ["District Court", "Boston Municipal Court"]
+          courts:
+            name_pattern: "District Court$|Boston Municipal Court$"
+        - value: housing
+          label: "Housing Court"
+          court_types: ["Housing Court"]
+          courts:
+            name_pattern: "Housing"
+            exclude_name_pattern: "^Housing Courts$"
+        - value: probate
+          label: "Probate and Family Court"
+          court_types: ["Probate and Family Court"]
+          courts:
+            name_pattern: "Probate and Family Court$"
+        - value: juvenile
+          label: "Juvenile Court"
+          court_types: ["Juvenile Court"]
+          courts:
+            name_pattern: "Juvenile Court - .+ County$"
+        - value: superior
+          label: "Superior Court"
+          court_types: ["Superior Court"]
+          courts:
+            name_pattern: "Superior Court"
+            exclude_name_pattern: "^Superior Courts$"
+        - value: land
+          label: "Land Court"
+          help: "The Land Court covers all of Massachusetts."
+          court_types: ["Land Court"]
+          courts:
+            name_pattern: "^Land Court$"
+
+    - id: place
+      type: location
+      short_label: "Place"
+      when:
+        level: [trial]
+        department:
+          not: [land]
+      label: "Where is the case connected to?"
+      placeholder: "Town, city, or street address"
+      button_label: "Find courts"
+      hint: >-
+        A town, a city, or a street address -- whatever you know. For a Boston
+        address, include the street.
+      examples: ["Cambridge", "Somerville", "24 Beacon St, Boston", "Brockton", "Northampton"]
+      matcher: macourts
+      court_types_from: department
+      manual_label: "Or choose your court from the list"
+      no_match_hint: >-
+        We could not match that place to a court. Try adding a street address,
+        or choose your court from the list below.

@@ -51,6 +51,7 @@ versions:
         * Keep form purpose to one short, evidence-grounded sentence; do not add legal conclusions or a taxonomy label.
         * Return monetary amounts as a JSON array. Each item must have `label`, `raw`, `amount`, `currency`, and `evidence`. Copy `raw` exactly; use plain decimal digits without currency symbols or separators for `amount`; use `USD` when a dollar sign or dollars label establishes it. Omit a property that the source does not establish.
         * Keep classification evidence, requested relief, and selected options as JSON arrays. Other fields are strings; join multiple names with semicolons.
+        * Treat the case caption as required evidence: when a document labels a plaintiff, petitioner, defendant, or respondent and prints a name for that role, always return that name in the corresponding requested names field. Read the filled value near the label even when instructions or blank lines appear between them.
         * Include only evidence relevant to identifying the document or its underlying proceeding.
         * Omit unsupported fields. Use "unknown" only for filing phase when the document does not establish it.
         * Do not include addresses, phone numbers, email addresses, financial account numbers, or unrelated allegations in classification evidence.
@@ -74,6 +75,7 @@ versions:
         * Keep form purpose to one short, evidence-grounded sentence; do not add legal conclusions or a taxonomy label.
         * Return monetary amounts as a JSON array. Each item must have `label`, `raw`, `amount`, `currency`, and `evidence`. Copy `raw` exactly; use plain decimal digits without currency symbols or separators for `amount`; use `USD` when a dollar sign or dollars label establishes it. Omit a property that the source does not establish.
         * Keep classification evidence, requested relief, and selected options as JSON arrays. Other fields are strings; join multiple names with semicolons.
+        * Treat the case caption as required evidence: when the text labels a plaintiff, petitioner, defendant, or respondent and includes a nearby filled name for that role, always return that name in the corresponding requested names field. Read past intervening instructions or blank lines when necessary.
         * Include only evidence relevant to identifying the document or its underlying proceeding.
         * Omit unsupported fields. Use "unknown" only for filing phase when the document does not establish it.
         * Do not include addresses, phone numbers, email addresses, financial account numbers, or unrelated allegations in classification evidence.

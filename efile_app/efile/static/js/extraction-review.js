@@ -146,8 +146,36 @@
         }
     }
 
+    async function mountCourtSelector(field) {
+        const container = document.getElementById("court-selector");
+        if (!container || !window.courtSelector) return false;
+        const selector = window.courtSelector.mount({
+            container,
+            jurisdiction: context.jurisdiction,
+            select: field.select,
+            nameInput: field.nameInput,
+        });
+        const started = await selector.start(field.savedCode || "", guesses.court || "");
+        if (!started) {
+            container.remove();
+            return false;
+        }
+        // The selector shows the court it settled on, and stays open so the
+        // filer can change it, so the field's own found/edit panels have
+        // nothing left to say.
+        field.select.hidden = true;
+        field.select.disabled = false; // a disabled select is never submitted
+        field.display.remove();
+        setMode("court", "edit");
+        return true;
+    }
+
     async function loadCourts() {
         const field = fields.court;
+        // Where the jurisdiction configures guided questions, they replace the
+        // flat list: the filer answers their own state's routing questions and
+        // the selector writes the court into the same <select> the form posts.
+        if (await mountCourtSelector(field)) return;
         field.select.disabled = true;
         field.select.innerHTML = "<option value=\"\">Loading courts…</option>";
         try {
@@ -179,6 +207,14 @@
                 court: courtCode,
                 guessed_case_category: guesses["case category"] || "",
             })}`);
+            if (!options.length) {
+                // Some courts in the court list take no filings at all. Saying
+                // so beats leaving the filer with three dropdowns that will not
+                // open and no idea which choice caused it.
+                resetField("case_category", "Choose a case category");
+                field.hint.textContent = gettext("This court does not accept filings through e-filing. Choose a different court above.");
+                return;
+            }
             await populate("case_category", options, "Choose a case category");
         } catch (error) {
             resetField("case_category", "Choose a case category");

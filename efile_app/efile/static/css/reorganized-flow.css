@@ -464,6 +464,13 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+/* The guided court questions are taller than the dropdowns beside them, so the
+   court takes a row of its own rather than stretching its neighbour to match.
+   Only where the selector actually drew itself: a flat court list stays paired. */
+.review-field:has(.court-selector:not(:empty)) {
+    grid-column: 1 / -1;
+}
+
 .extracted-details {
     background: var(--surface-subtle);
     border: 1px solid var(--border-default);

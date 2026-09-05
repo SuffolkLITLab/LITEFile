@@ -5,7 +5,10 @@ const {
 const path = require('path');
 const {
     getTestConfig,
-    loginViaLoginPage
+    loginViaLoginPage,
+    continueFromExtractionReview,
+    continueFromDocumentChecklist,
+    selectGuidedCourt
 } = require('./test-utils');
 
 const SAMPLE_PDF = path.resolve(__dirname, '../../testing/sample_test.pdf');
@@ -19,7 +22,7 @@ async function selectAfterLoad(page, selector, value) {
 
 async function fillRequiredInputs(page, values) {
     for (const [name, value] of Object.entries(values)) {
-        const field = page.locator(`[name="${name}"]`);
+        const field = page.locator(`[name="${name}"]:visible`).first();
         if (await field.count()) await field.fill(value);
     }
     const required = page.locator('input[required]:visible');
@@ -43,6 +46,8 @@ async function completeParty(page, ordinal) {
         await roleRadios.first().check();
     }
     await page.locator('input[name="party_kind"][value="person"]').check();
+    const addressToggle = page.locator('#add-party-address');
+    if (await addressToggle.count()) await addressToggle.check();
     await fillRequiredInputs(page, {
         first_name: `Alex${ordinal}`,
         last_name: `Respondent${ordinal}`,
@@ -97,11 +102,7 @@ test('adding and removing optional services dynamically updates calculated fees 
     ]);
 
     console.log('Step 4: Selecting case codes (Adams County - Small Claims)...');
-    const reviewedCheckbox = page.locator('input[name="reviewed_extraction"]');
-    if (await reviewedCheckbox.count()) {
-        await reviewedCheckbox.check();
-    }
-    await selectAfterLoad(page, '#court_code', 'adams');
+    await selectGuidedCourt(page, 'illinois', 'adams');
     await selectAfterLoad(page, '#case_category_code', '6198'); // Small Claims
     await selectAfterLoad(page, '#case_type_code', '183541'); // Contract
     await selectAfterLoad(page, '#filing_type_code', '143132'); // Amended Complaint
@@ -109,23 +110,10 @@ test('adding and removing optional services dynamically updates calculated fees 
     if (await radioNew.count()) {
         await radioNew.check();
     }
-    await Promise.all([
-        page.waitForURL(/\/document-checklist\//, {
-            timeout: 120000
-        }),
-        page.getByRole('button', {
-            name: /Confirm and continue/i
-        }).click(),
-    ]);
+    await continueFromExtractionReview(page, /\/document-checklist\//);
 
     console.log('Step 5: Confirming checklist...');
-    await page.locator('input[name="documents_complete"]').check();
-    await Promise.all([
-        page.waitForURL(/\/organize-documents\//),
-        page.getByRole('button', {
-            name: /Continue to organize/i
-        }).click(),
-    ]);
+    await continueFromDocumentChecklist(page);
 
     console.log('Step 6: Organizing document with Optional Service (Certification with Seal - $6.00)...');
     const filingType = page.locator('.organize-card .filing-type');

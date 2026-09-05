@@ -118,6 +118,8 @@
                         </button>
                     </div>
                     <div class="review-field__input">
+                        {# Filled in by court-selector.js where the jurisdiction configures guided questions. The select below keeps carrying the answer either way. #}
+                        <div class="court-selector" id="court-selector"></div>
                         <select class="form-select"
                                 name="court_code"
                                 id="court_code"
@@ -426,5 +428,6 @@
     {{ extraction_context|json_script:"extraction-context" }}
 {% endblock workflow_content %}
 {% block extra_js %}
+    <script src="{% static 'js/court-selector.js' %}"></script>
     <script src="{% static 'js/extraction-review.js' %}"></script>
 {% endblock extra_js %}

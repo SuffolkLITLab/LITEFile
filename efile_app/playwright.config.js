@@ -17,8 +17,10 @@ module.exports = defineConfig({
     // Global setup file (uncomment to use setup.js)
     globalSetup: require.resolve('./tests/setup.js'),
 
-    // Run tests in files in parallel
-    fullyParallel: true,
+    // Filing drafts are durable user-owned records. The E2E suite uses one
+    // Tyler test account, so parallel browser contexts can replace each
+    // other's current draft even though their cookies are isolated.
+    fullyParallel: false,
 
     // Fail the build on CI if you accidentally left test.only in the source code
     forbidOnly: !!process.env.CI,
@@ -26,8 +28,8 @@ module.exports = defineConfig({
     // Retry on CI only
     retries: process.env.CI ? 2 : 0,
 
-    // Opt out of parallel tests on CI
-    workers: process.env.CI ? 1 : undefined,
+    // Keep the shared test account on one filing at a time locally and in CI.
+    workers: 1,
 
     // Reporter to use
     reporter: 'list',

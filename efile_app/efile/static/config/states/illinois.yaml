@@ -551,3 +551,258 @@ court_specific_requirements:
             modifications:
               conditional_requirements:
                 hidden_for_courts: ["bond"]
+
+# How a filer says which court this filing goes to.
+#
+# Illinois routes by county: the e-filing service lists more than 200 courts,
+# and all but a handful of them belong to one county. So the county question
+# does nearly all the narrowing, and only the counties that divide their
+# Circuit Court further -- Cook above all -- get asked a second question. An
+# appeal can be identified either way round: by the appellate district if the
+# paperwork names one, or by the county the Circuit Court case came from.
+court_selector:
+  title: "Choose the Illinois court for this filing"
+  lede: >-
+    Start with the court level shown on your paperwork.
+  # The county a court belongs to, read off the front of its name. Illinois
+  # names them every which way -- "Adams County", "Kankakee - Civil", "Peoria
+  # CR", "St. Clair County-Backlog" -- and they all have to land in one group.
+  group_by: '^(.*?)(?:\s+County\b.*|\s+-\s+.*|\s+(?:CR|CS|TR)$|$)'
+  steps:
+    - id: level
+      type: choice
+      short_label: "Court level"
+      label: "What level of Illinois court is this filing for?"
+      options:
+        - value: circuit
+          label: "Circuit Court"
+          help: "The Illinois trial court."
+          courts:
+            # "Goodin ECF5" is a vendor test location that the e-filing
+            # service lists alongside the real courts.
+            exclude_name_pattern: 'Supreme Court|Appellate Court|ARDC|^Goodin'
+        - value: appellate
+          label: "Appellate Court"
+          help: "The Illinois intermediate appellate court."
+          courts:
+            name_pattern: 'Appellate Court'
+        - value: supreme
+          label: "Illinois Supreme Court"
+          help: "The highest court in Illinois."
+          courts:
+            name_pattern: 'Supreme Court of Illinois'
+
+    - id: county
+      type: select
+      short_label: "County"
+      when:
+        level: [circuit]
+      label: "Which county is the Circuit Court case in?"
+      placeholder: "Choose a county…"
+      hint: >-
+        The county your case is in. It is usually named at the top of your
+        paperwork.
+      options_from_courts:
+        # One option per county, gathered from every court in it -- including
+        # counties that only appear as divisions, and counties whose own row the
+        # e-filing service does not offer for filing.
+        group: true
+        label: "{group} County"
+        courts:
+          group: "{value}"
+
+    - id: division
+      type: select
+      short_label: "Division or courthouse"
+      when:
+        level: [circuit]
+      label: "Which division or courthouse does your paperwork name?"
+      placeholder: "Choose a division or courthouse…"
+      hint: >-
+        Your paperwork names a division, a district, or a courthouse. Look for
+        it near the top of the first page.
+      # "Cook County" on its own is not a court anyone can file into, and a
+      # caption naming only the county is the ordinary case. Municipal Civil is
+      # where most Cook filings go, so the question starts there.
+      default_by:
+        answer: county
+        values:
+          Cook: "cook:cvd"
+      default_hint: >-
+        We have started you at Municipal Civil, where most Cook County filings
+        go. Change it if your paperwork names a different division or courthouse.
+      options_from_courts:
+        match:
+          group: "{county}"
+        strip: '^.*?\s+-\s+'
+        label: "{stem}"
+        # Cook County lists more than eighty locations in one alphabetical run.
+        # Grouped by courthouse, a filer finds the building they are going to and
+        # then the division -- and the Chicago courts, where most Cook filings
+        # go, are all together at the top.
+        option_group_pattern: '^(?P<label>.*?)\s+-\s+(?P<group>District \d+)\b(?:\s+-\s+(?P<extra>.*))?$'
+        # The court list names each district by number; the filer knows the
+        # place. Written here in the order they are shown in.
+        option_group_names:
+          - "District 1 - Chicago"
+          - "District 2 - Skokie"
+          - "District 3 - Rolling Meadows"
+          - "District 4 - Maywood"
+          - "District 5 - Bridgeview"
+          - "District 6 - Markham"
+        option_group_other: "No courthouse given"
+
+    - id: appellate_district
+      type: select
+      short_label: "Appellate district"
+      when:
+        level: [appellate]
+      label: "Which appellate district?"
+      placeholder: "Choose a district…"
+      hint: >-
+        If your paperwork names the appellate district, choose it here.
+        Otherwise use the county question below. You only need one of them.
+      options_from_courts:
+        match:
+          name_pattern: 'Appellate Court'
+        label: "{name}"
+
+    - id: appellate_county
+      type: select
+      short_label: "County the case came from"
+      when:
+        level: [appellate]
+      alternative_to: appellate_district
+      label: "Or the county the Circuit Court case came from"
+      placeholder: "Choose a county instead…"
+      hint: >-
+        The county the original case was filed in. Each one shows the appellate
+        district it belongs to.
+      option_groups:
+        - label: "1st Appellate District"
+          member_label: "{member} County — {group}"
+          courts:
+            name_pattern: '1st District'
+          members:
+            - "Cook"
+        - label: "2nd Appellate District"
+          member_label: "{member} County — {group}"
+          courts:
+            name_pattern: '2nd District'
+          members:
+            - "DeKalb"
+            - "Kane"
+            - "Kendall"
+            - "Lake"
+            - "McHenry"
+        - label: "3rd Appellate District"
+          member_label: "{member} County — {group}"
+          courts:
+            name_pattern: '3rd District'
+          members:
+            - "Bureau"
+            - "DuPage"
+            - "Grundy"
+            - "Iroquois"
+            - "Kankakee"
+            - "LaSalle"
+            - "Will"
+        - label: "4th Appellate District"
+          member_label: "{member} County — {group}"
+          courts:
+            name_pattern: '4th District'
+          members:
+            - "Adams"
+            - "Boone"
+            - "Brown"
+            - "Calhoun"
+            - "Carroll"
+            - "Cass"
+            - "Fulton"
+            - "Greene"
+            - "Hancock"
+            - "Henderson"
+            - "Henry"
+            - "Jersey"
+            - "Jo Daviess"
+            - "Knox"
+            - "Lee"
+            - "Livingston"
+            - "Logan"
+            - "Macoupin"
+            - "Marshall"
+            - "Mason"
+            - "McDonough"
+            - "McLean"
+            - "Menard"
+            - "Mercer"
+            - "Morgan"
+            - "Ogle"
+            - "Peoria"
+            - "Pike"
+            - "Putnam"
+            - "Rock Island"
+            - "Sangamon"
+            - "Schuyler"
+            - "Scott"
+            - "Stark"
+            - "Stephenson"
+            - "Tazewell"
+            - "Warren"
+            - "Whiteside"
+            - "Winnebago"
+            - "Woodford"
+            - "Ford"
+        - label: "5th Appellate District"
+          member_label: "{member} County — {group}"
+          courts:
+            name_pattern: '5th District'
+          members:
+            - "Alexander"
+            - "Bond"
+            - "Champaign"
+            - "Christian"
+            - "Clark"
+            - "Clay"
+            - "Clinton"
+            - "Coles"
+            - "Crawford"
+            - "Cumberland"
+            - "De Witt"
+            - "Douglas"
+            - "Edgar"
+            - "Edwards"
+            - "Effingham"
+            - "Fayette"
+            - "Franklin"
+            - "Gallatin"
+            - "Hamilton"
+            - "Hardin"
+            - "Jackson"
+            - "Jasper"
+            - "Jefferson"
+            - "Johnson"
+            - "Lawrence"
+            - "Macon"
+            - "Madison"
+            - "Marion"
+            - "Massac"
+            - "Monroe"
+            - "Montgomery"
+            - "Moultrie"
+            - "Perry"
+            - "Piatt"
+            - "Pope"
+            - "Pulaski"
+            - "Randolph"
+            - "Richland"
+            - "Saline"
+            - "Shelby"
+            - "St. Clair"
+            - "Union"
+            - "Vermilion"
+            - "Wabash"
+            - "Washington"
+            - "Wayne"
+            - "White"
+            - "Williamson"

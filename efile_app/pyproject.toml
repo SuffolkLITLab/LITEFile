@@ -22,6 +22,12 @@ dependencies = [
     "bleach>=6.2,<7",
     "markdown>=3.10.2",
     "markdownify>=1.2.2",
+    # Massachusetts court records and jurisdiction matching, shared with
+    # docassemble-MACourts. Pinned to the GitHub repository until it is
+    # published to PyPI.
+    "suffolklitlab-macourts @ git+https://github.com/SuffolkLITLab/MACourts@main",
+    # Vermont Superior Court unit lookup by town, county, or ZIP.
+    "suffolklitlab-vtcourts @ git+https://github.com/SuffolkLITLab/VTCourts@main",
 ]
 
 [build-system]
