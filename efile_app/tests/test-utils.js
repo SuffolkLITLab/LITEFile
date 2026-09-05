@@ -172,15 +172,16 @@ async function selectGuidedCourt(page, jurisdiction, courtCode) {
 
     for (const step of data.steps || []) {
         if (!step.answer) continue;
+        if (step.type === 'location') continue;
+
         const choice = page.locator(`#court-selector input[data-step="${step.id}"][value="${step.answer}"]`);
         const select = page.locator(`#court-selector select[data-step="${step.id}"]`);
-        if (await choice.count()) {
+
+        if (step.type === 'choice') {
+            await choice.waitFor({ state: 'visible', timeout: 120000 });
             await choice.check();
         } else {
-            await select.waitFor({
-                state: 'visible',
-                timeout: 120000
-            });
+            await select.waitFor({ state: 'visible', timeout: 120000 });
             await select.selectOption(step.answer);
         }
     }
