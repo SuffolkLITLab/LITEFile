@@ -4,9 +4,10 @@ FROM python:3.12-slim AS base
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
-# Install system deps (curl for uv installer, build tools only if needed)
+# Install system deps (curl for the uv installer; git because MACourts and
+# VTCourts are installed straight from GitHub until they are on PyPI)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl ca-certificates \
+    curl ca-certificates git \
  && rm -rf /var/lib/apt/lists/*
 
 # Install uv

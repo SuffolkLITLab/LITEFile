@@ -15,6 +15,7 @@ from .auth_views import (
 )
 from .case_type_config import get_case_type_config
 from .config_views import get_filer_roles, get_form_config
+from .court_selector_views import get_court_selector
 from .dropdown_views import (
     get_case_categories,
     get_case_types,
@@ -45,6 +46,7 @@ urlpatterns = [
     path("dropdowns/case-types/", get_case_types, name="case_types"),
     path("dropdowns/filing-types/", get_filing_types, name="filing_types"),
     path("dropdowns/courts/", get_courts, name="courts"),
+    path("dropdowns/court-selector/", get_court_selector, name="court_selector"),
     path("dropdowns/document-types/", get_document_types, name="document_types"),
     path("dropdowns/optional-services/", get_optional_services, name="optional_services"),
     path("dropdowns/party-types/", get_party_types, name="party_types"),

@@ -63,3 +63,100 @@ case_types:
     # Vermont requires, and what its courts call each form, is not what Illinois
     # requires -- so add `matches` and `documents` here to turn one on. See the
     # "Document checklists" section of ../README.md.
+
+# How a filer says which court this filing goes to.
+#
+# Vermont's public hierarchy is already close to its e-filing hierarchy: court
+# level, then Superior Court division, then the geographic unit for the
+# divisions that have one. Units follow county lines, so each one is labelled
+# with its county -- the Judiciary says "unit", and filers say "county".
+court_selector:
+  title: "Choose the Vermont court for this filing"
+  lede: >-
+    Start with the court shown on your paperwork.
+  steps:
+    - id: level
+      type: choice
+      short_label: "Court"
+      label: "What Vermont court is this filing for?"
+      options:
+        - value: superior
+          label: "Superior Court"
+          help: "Vermont's trial court."
+          courts:
+            name_pattern: "Unit$|^Environmental Division$"
+        - value: supreme
+          label: "Supreme Court"
+          help: "Vermont's appellate court. It sits statewide."
+          courts:
+            name_pattern: "^Supreme Court$"
+        - value: bureau
+          label: "Judicial Bureau"
+          help: "Traffic tickets and other civil violations, statewide."
+          courts:
+            name_pattern: "^Judicial Bureau$"
+
+    - id: division
+      type: select
+      short_label: "Division"
+      when:
+        level: [superior]
+      label: "Which Superior Court division?"
+      placeholder: "Choose a division…"
+      hint: "The division is named on your paperwork."
+      # Only the Environmental Division is its own e-filing location. The other
+      # four are divisions of the unit the case is filed in, so they narrow
+      # nothing here and the unit question below does the routing.
+      options:
+        - value: civil
+          label: "Civil Division"
+        - value: criminal
+          label: "Criminal Division"
+        - value: family
+          label: "Family Division"
+        - value: probate
+          label: "Probate Division"
+        - value: environmental
+          label: "Environmental Division"
+          courts:
+            name_pattern: "^Environmental Division$"
+
+    - id: unit
+      type: select
+      short_label: "Unit"
+      when:
+        level: [superior]
+        division:
+          not: [environmental]
+      label: "Which court unit?"
+      placeholder: "Choose a unit…"
+      hint: >-
+        Court units follow county lines, so each one is shown with the county
+        it covers.
+      options_from_courts:
+        match:
+          name_pattern: " Unit$"
+        strip: " Unit$"
+        label: "{name} ({stem} County)"
+
+    # A filer knows the town they live in. Whether that town is in the Washington
+    # Unit is a different question, and one they should not have to answer, so
+    # the unit dropdown above and this lookup are two ways into the same answer.
+    - id: place
+      type: location
+      short_label: "Town or ZIP code"
+      when:
+        level: [superior]
+        division:
+          not: [environmental]
+      alternative_to: unit
+      label: "Or find the unit from a town or ZIP code"
+      placeholder: "Town, city, or ZIP code"
+      button_label: "Find unit"
+      hint: >-
+        The town or ZIP code the case is connected to.
+      examples: ["Burlington", "Montpelier", "Rutland", "Brattleboro", "05487"]
+      matcher: vtcourts
+      no_match_hint: >-
+        We could not match that town or ZIP code to a unit. Check the spelling,
+        or choose the unit from the list above.

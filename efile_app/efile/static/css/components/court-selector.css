@@ -1,0 +1,229 @@
+/* The guided court question: a short cascade of answers that narrows the
+   e-filing service's whole court list down to one court. Drawn by
+   court-selector.js from what each jurisdiction's YAML configures, so the same
+   styles carry a three-question Illinois cascade and a Massachusetts place
+   lookup. */
+.court-selector:empty {
+    display: none;
+}
+
+.court-selector__lede {
+    color: var(--text-muted);
+    margin: 0 0 1rem;
+}
+
+/* Questions already answered, folded to one line each. The whole point is
+   height: the court field sits beside three others on the confirm-filing
+   screen, and an open cascade pushed them off the screen. */
+.court-selector__trail {
+    display: grid;
+    gap: 0.35rem;
+    margin-bottom: 0.9rem;
+}
+
+.court-selector__answered {
+    align-items: baseline;
+    background: var(--surface-subtle);
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.4rem 0.7rem;
+    text-align: left;
+    width: 100%;
+}
+
+.court-selector__answered-label {
+    color: var(--text-muted);
+    flex: 0 0 auto;
+    font-size: 0.8rem;
+}
+
+.court-selector__answered-value {
+    color: var(--text-heading);
+    flex: 1 1 auto;
+    font-weight: 600;
+}
+
+.court-selector__change {
+    color: var(--better-blue);
+    flex: 0 0 auto;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+@media (hover: hover) {
+    .court-selector__answered:hover {
+        border-color: var(--better-blue);
+    }
+}
+
+.court-selector__step {
+    border: 0;
+    margin: 0 0 1.15rem;
+    padding: 0;
+}
+
+.court-selector__step legend,
+.court-selector__label {
+    color: var(--text-heading);
+    display: block;
+    float: none;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+    width: auto;
+}
+
+.court-selector__hint {
+    color: var(--text-muted);
+    display: block;
+    font-size: 0.86rem;
+    margin: 0 0 0.5rem;
+}
+
+/* Where an answer came from the uploaded document rather than the filer. */
+.court-selector__source {
+    color: var(--better-blue);
+    display: block;
+    font-size: 0.84rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem;
+}
+
+.court-selector__choices {
+    display: grid;
+    gap: 0.6rem;
+}
+
+.court-selector__choice,
+.court-selector__candidate {
+    align-items: flex-start;
+    background: #fff;
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    gap: 0.75rem;
+    margin: 0 0 0.5rem;
+    padding: 0.8rem;
+}
+
+.court-selector__choice:has(input:checked),
+.court-selector__candidate:has(input:checked) {
+    background: var(--surface-accent);
+    border-color: var(--better-blue);
+}
+
+.court-selector__choice strong,
+.court-selector__candidate strong {
+    color: var(--text-heading);
+    display: block;
+}
+
+.court-selector__choice small,
+.court-selector__candidate small {
+    color: var(--text-muted);
+    display: block;
+}
+
+/* The place lookup. The button sits beside the box on a wide screen and under
+   it on a narrow one, where a half-width text box would be unusable. */
+.court-selector__lookup {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.court-selector__lookup input {
+    flex: 1 1 14rem;
+}
+
+.court-selector__examples {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+}
+
+.court-selector__example {
+    background: #fff;
+    border: 1px solid var(--border-default);
+    border-radius: 999px;
+    color: var(--better-blue);
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 0.3rem 0.65rem;
+}
+
+@media (hover: hover) {
+    .court-selector__example:hover {
+        background: var(--surface-accent);
+        border-color: var(--better-blue);
+    }
+}
+
+.court-selector__subhead {
+    color: var(--text-heading);
+    font-weight: 600;
+    margin: 1rem 0 0.5rem;
+}
+
+.court-selector__note {
+    background: var(--warning-surface);
+    border: 1px solid var(--warning-border);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    margin: 0.8rem 0;
+    padding: 0.75rem 0.9rem;
+}
+
+.court-selector__manual {
+    margin: 0.8rem 0;
+}
+
+.court-selector__manual summary {
+    color: var(--better-blue);
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.court-selector__manual-body {
+    padding-top: 0.7rem;
+}
+
+.court-selector__result {
+    background: var(--success-surface);
+    border: 1px solid var(--success-border);
+    border-radius: 10px;
+    margin-top: 1rem;
+    padding: 0.85rem 1rem;
+}
+
+.court-selector__result-label {
+    color: var(--text-muted);
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.court-selector__result strong {
+    color: var(--text-heading);
+    display: block;
+    font-size: 1.05rem;
+}
+
+.court-selector__result small {
+    color: var(--text-muted);
+    display: block;
+}
+
+.court-selector__path {
+    margin-top: 0.2rem;
+}

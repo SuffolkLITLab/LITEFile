@@ -40,15 +40,25 @@ test('real uploaded PDF is extracted and classified against live Tyler choices',
     ]);
 
     await expect(page.getByRole('heading', {
-        name: /Here is everything we pulled from your document/i
+        name: /Check what we read from your document/i
     })).toBeVisible();
-    await expect(page.locator('.extracted-details')).toContainText('Dana Kim');
-    await expect(page.locator('.extracted-details')).toContainText('Elliot Kim');
     await expect(page.locator('.extracted-details')).toContainText(/Petition for Divorce with Children/i);
+    await expect(page.locator('.extracted-details')).toContainText('ATJ 105.3');
+    const partyNames = page.locator('.review-parties input[name="party_name"]');
+    await expect(partyNames.nth(0)).toHaveValue('Dana Kim');
+    await expect(partyNames.nth(1)).toHaveValue('Elliot Kim');
 
-    await expect(page.locator('#court_name')).toHaveValue(/Lake County/i);
-    await expect(page.locator('#case_category_name')).toHaveValue('Dissolution (Divorce) with Children');
-    await expect(page.locator('#case_type_name')).toHaveValue('Dissolution (with children)');
-    await expect(page.locator('#filing_type_name')).toHaveValue('Petition Dissolution of Marriage/Civil Union');
+    await expect(page.locator('#court_name')).toHaveValue(/Lake County/i, {
+        timeout: 120000
+    });
+    await expect(page.locator('#case_category_name')).toHaveValue('Dissolution (Divorce) with Children', {
+        timeout: 120000
+    });
+    await expect(page.locator('#case_type_name')).toHaveValue('Dissolution (with children)', {
+        timeout: 120000
+    });
+    await expect(page.locator('#filing_type_name')).toHaveValue('Petition Dissolution of Marriage/Civil Union', {
+        timeout: 120000
+    });
     await expect(page.locator('input[type="radio"][name="existing_case"][value="new"]')).toBeChecked();
 });

@@ -94,6 +94,105 @@ async function loginViaLoginPage(page, config = getTestConfig()) {
     await waitForLogin(page);
 }
 
+/**
+ * Submit the extraction review after answering its conditional questions.
+ * The filer-side question only appears for case types whose checklist differs
+ * by side, and it is populated asynchronously after the taxonomy choices.
+ */
+async function continueFromExtractionReview(page, nextUrl = /\/(document-checklist|case-lookup)\//) {
+    const reviewed = page.locator('input[name="reviewed_extraction"]');
+    if (await reviewed.count()) await reviewed.check();
+
+    const roleField = page.locator('#filer-role-field');
+    if (await roleField.count()) {
+        await page.waitForLoadState('networkidle', {
+            timeout: 120000
+        });
+        if (await roleField.isVisible()) {
+            await roleField.locator('input[name="filer_role"]').first().check();
+        }
+    }
+
+    await Promise.all([
+        page.waitForURL(nextUrl, {
+            timeout: 120000
+        }),
+        page.getByRole('button', {
+            name: /Confirm and continue/i
+        }).click(),
+    ]);
+}
+
+/**
+ * Confirm the document checklist, first resolving a filer-side question if a
+ * caller reached this page from an older or incomplete draft.
+ */
+async function continueFromDocumentChecklist(page) {
+    const role = page.locator('input[name="filer_role"]:visible').first();
+    if (await role.count()) {
+        await role.check();
+        await page.getByRole('button', {
+            name: /Show my documents/i
+        }).click();
+        await page.locator('input[name="documents_complete"]').waitFor({
+            state: 'visible',
+            timeout: 120000
+        });
+    }
+
+    await page.locator('input[name="documents_complete"]').check();
+    await Promise.all([
+        page.waitForURL(/\/organize-documents\//, {
+            timeout: 120000
+        }),
+        page.getByRole('button', {
+            name: /Continue to organize/i
+        }).click(),
+    ]);
+}
+
+/**
+ * Choose a known court through the jurisdiction's visible guided questions.
+ * Asking the selector endpoint for the route keeps state-specific court logic
+ * out of the browser suite; the test still answers each rendered control.
+ */
+async function selectGuidedCourt(page, jurisdiction, courtCode) {
+    const response = await page.request.get('/api/dropdowns/court-selector/', {
+        params: {
+            jurisdiction,
+            court: courtCode
+        }
+    });
+    if (!response.ok()) throw new Error(`Could not resolve the guided route for court ${courtCode}`);
+    const payload = await response.json();
+    const data = payload.data || {};
+    if (!payload.success || !data.available) {
+        throw new Error(`No guided court selector is available for ${jurisdiction}`);
+    }
+
+    for (const step of data.steps || []) {
+        if (!step.answer) continue;
+        const choice = page.locator(`#court-selector input[data-step="${step.id}"][value="${step.answer}"]`);
+        const select = page.locator(`#court-selector select[data-step="${step.id}"]`);
+        if (await choice.count()) {
+            await choice.check();
+        } else {
+            await select.waitFor({
+                state: 'visible',
+                timeout: 120000
+            });
+            await select.selectOption(step.answer);
+        }
+    }
+
+    await page.locator('#court_code').waitFor({
+        state: 'attached'
+    });
+    await page.waitForFunction((expected) => document.getElementById('court_code')?.value === expected, courtCode, {
+        timeout: 120000
+    });
+}
+
 // Alias for backward compatibility
 const loginUser = loginViaLogout;
 
@@ -101,5 +200,8 @@ module.exports = {
     getTestConfig,
     loginUser,
     loginViaLogout,
-    loginViaLoginPage
+    loginViaLoginPage,
+    continueFromExtractionReview,
+    continueFromDocumentChecklist,
+    selectGuidedCourt
 };

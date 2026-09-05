@@ -15,7 +15,7 @@ from efile.services.document_extractions import (
     process_document_extraction,
     queue_document_extraction,
 )
-from efile.services.extraction_fields import normalize_extracted_fields
+from efile.services.extraction_fields import normalize_document_evidence, normalize_extracted_fields
 from efile.services.taxonomy_classification import ClassificationRun, HierarchicalDocumentClassifier
 from efile.workflow import ExistingCase
 
@@ -53,6 +53,21 @@ def test_normalization_keeps_every_extracted_field():
         "other party names": "Guardian: Pat Lee; Minor: Casey Lee",
         "unexpected useful detail": "Shown on page two",
     }
+
+
+@pytest.mark.parametrize("normalizer", [normalize_extracted_fields, normalize_document_evidence])
+def test_normalization_canonicalizes_common_party_name_keys(normalizer):
+    normalized = normalizer(
+        {
+            "petitioner names": "Dana Kim",
+            "respondent name": "Elliot Kim",
+            "other parties": "Ari Kim (Child)",
+        }
+    )
+
+    assert normalized["plaintiff or petitioner names"] == "Dana Kim"
+    assert normalized["defendant or respondent names"] == "Elliot Kim"
+    assert normalized["other party names"] == "Ari Kim (Child)"
 
 
 @pytest.mark.django_db
