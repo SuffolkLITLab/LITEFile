@@ -186,8 +186,8 @@ const PaymentPage = {
             global: "false",
             type_code: "CC",
             tyler_info: authData.data.tyler_token,
-            original_url: `${window.location.origin}/jurisdiction/${jurisdiction}/payment/?payment_status=success`,
-            error_url: `${window.location.origin}/jurisdiction/${jurisdiction}/payment/?payment_status=failure`
+            original_url: window.withFilingDraft(`${window.location.origin}/jurisdiction/${jurisdiction}/payment/?payment_status=success`),
+            error_url: window.withFilingDraft(`${window.location.origin}/jurisdiction/${jurisdiction}/payment/?payment_status=failure`)
         };
         Object.entries(fields).forEach(([name, value]) => {
             const input = document.createElement("input");

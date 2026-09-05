@@ -147,8 +147,8 @@ def test_resuming_a_filing_by_name_picks_it_back_up(signed_in, last_months_filin
 
     assert page.context["filing_draft"]["id"] == last_months_filing.pk
     assert [document.name for document in page.context["documents"]] == ["last-months-petition.pdf"]
-    # And it stays picked up, without the URL having to say so again.
-    assert current_draft_id(signed_in) == last_months_filing.pk
+    # Resuming names this page's draft without replacing another tab's pointer.
+    assert current_draft_id(signed_in) is None
 
 
 @pytest.mark.django_db
@@ -162,7 +162,7 @@ def test_resuming_switches_away_from_the_filing_you_were_in(signed_in, last_mont
     page = signed_in.get(f"{UPLOAD_URL}?draft={last_months_filing.pk}")
 
     assert page.context["filing_draft"]["id"] == last_months_filing.pk
-    assert current_draft_id(signed_in) == last_months_filing.pk
+    assert current_draft_id(signed_in) == new_draft_id
 
 
 @pytest.mark.django_db
@@ -176,8 +176,8 @@ def test_you_cannot_resume_someone_elses_filing(signed_in, last_months_filing, d
 
     page = signed_in.get(f"{UPLOAD_URL}?draft={last_months_filing.pk}")
 
-    assert page.context["filing_draft"]["id"] != last_months_filing.pk
-    assert list(page.context["documents"]) == []
+    assert page.status_code == 409
+    assert not FilingDraft.objects.filter(user=intruder).exists()
 
 
 @pytest.mark.django_db
@@ -186,4 +186,4 @@ def test_a_filing_from_another_jurisdiction_is_not_resumed(signed_in, last_month
 
     page = signed_in.get(f"{UPLOAD_URL}?draft={last_months_filing.pk}")
 
-    assert page.context["filing_draft"]["id"] != last_months_filing.pk
+    assert page.status_code == 409

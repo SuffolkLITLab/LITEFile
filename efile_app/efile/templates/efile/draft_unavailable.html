@@ -1,0 +1,14 @@
+{% extends "efile/site_base.html" %}
+{% load i18n %}
+{% block title %}
+    {% translate "Draft unavailable" %}
+{% endblock title %}
+{% block public_content %}
+    <h1>{% translate "This draft is no longer available here" %}</h1>
+    <p>{% translate "It may have been submitted or deleted, or belong to a different account. Open My drafts to choose a filing, or start a new one." %}</p>
+    {% if jurisdiction %}
+        <a href="{% url 'my_drafts' jurisdiction=jurisdiction %}">{% translate "Open My drafts" %}</a>
+    {% else %}
+        <a href="{% url 'efile_choose_jurisdiction' %}">{% translate "Choose a jurisdiction" %}</a>
+    {% endif %}
+{% endblock public_content %}

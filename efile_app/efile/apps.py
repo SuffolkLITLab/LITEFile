@@ -7,4 +7,7 @@ class EfileConfig(AppConfig):
 
     def ready(self):
         # Registers the checks in efile/checks.py by importing them.
-        from efile import checks  # noqa: F401
+        from efile import (
+            checks,  # noqa: F401
+            signals,  # noqa: F401
+        )

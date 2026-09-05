@@ -29,7 +29,7 @@ def test_new_case_skips_case_lookup(client, django_user_model):
     response = client.get(reverse("case_lookup", kwargs={"jurisdiction": "illinois"}))
 
     assert response.status_code == 302
-    assert response.url == reverse("document_checklist", kwargs={"jurisdiction": "illinois"})
+    assert response.url.partition("?")[0] == reverse("document_checklist", kwargs={"jurisdiction": "illinois"})
 
 
 @pytest.mark.django_db
@@ -53,7 +53,7 @@ def test_case_lookup_result_is_persisted_on_the_draft(client, django_user_model)
     )
 
     assert response.status_code == 200
-    assert response.json()["redirect_url"] == reverse(
+    assert response.json()["redirect_url"].partition("?")[0] == reverse(
         "case_confirmation",
         kwargs={"jurisdiction": "illinois"},
     )
@@ -79,7 +79,7 @@ def test_case_confirmation_accepts_case_and_converges_on_checklist(client, djang
     )
 
     assert response.status_code == 302
-    assert response.url == reverse("document_checklist", kwargs={"jurisdiction": "illinois"})
+    assert response.url.partition("?")[0] == reverse("document_checklist", kwargs={"jurisdiction": "illinois"})
     draft.refresh_from_db()
     assert draft.current_step == WorkflowStepKey.DOCUMENT_CHECKLIST
 
@@ -98,7 +98,7 @@ def test_case_confirmation_rejection_clears_result_and_returns_to_lookup(client,
     )
 
     assert response.status_code == 302
-    assert response.url == reverse("case_lookup", kwargs={"jurisdiction": "illinois"})
+    assert response.url.partition("?")[0] == reverse("case_lookup", kwargs={"jurisdiction": "illinois"})
     draft.refresh_from_db()
     assert draft.previous_case_id == ""
     assert draft.docket_number == ""

@@ -12,11 +12,11 @@ fields:
   court name: The complete court name, including department, division, unit, county, or venue when shown
   docket number: The docket or case number and any visible prefix
   case title: The complete caption or case title
-  plaintiff or petitioner names: All plaintiff or petitioner names
-  defendant or respondent names: All defendant or respondent names
-  other party names: Other named parties with their stated roles
+  plaintiff or petitioner names: Only people or organizations explicitly identified as plaintiffs or petitioners in the case caption; exclude children, witnesses, and other people merely mentioned in the document
+  defendant or respondent names: Only people or organizations explicitly identified as defendants or respondents in the case caption; exclude children, witnesses, and other people merely mentioned in the document
+  other party names: Other names mentioned in the document with their stated roles; these are reviewable evidence, not confirmed case parties
   document date: The date and its printed label, such as signed, issued, or filed
-  filing phase: Initial, subsequent, or unknown, only when document evidence supports the value
+  filing phase: Initial or subsequent, only when document evidence supports the value; otherwise omit
   requested relief: A concise list of expressly requested orders or remedies
   monetary amounts: Every expressly stated claim amount, amount in controversy, damages demand, rent due, estate value, or other classification-relevant amount, preserving its printed label
   selected options: Checked boxes or selected choices that distinguish the proceeding or filing
@@ -52,7 +52,7 @@ versions:
         * Return monetary amounts as a JSON array. Each item must have `label`, `raw`, `amount`, `currency`, and `evidence`. Copy `raw` exactly; use plain decimal digits without currency symbols or separators for `amount`; use `USD` when a dollar sign or dollars label establishes it. Omit a property that the source does not establish.
         * Keep classification evidence, requested relief, and selected options as JSON arrays. Other fields are strings; join multiple names with semicolons.
         * Include only evidence relevant to identifying the document or its underlying proceeding.
-        * Omit unsupported fields. Use "unknown" only for filing phase when the document does not establish it.
+        * Omit unsupported fields. Do not return placeholders such as "unknown", "N/A", or "not provided".
         * Do not include addresses, phone numbers, email addresses, financial account numbers, or unrelated allegations in classification evidence.
 
         Requested fields:
@@ -75,7 +75,7 @@ versions:
         * Return monetary amounts as a JSON array. Each item must have `label`, `raw`, `amount`, `currency`, and `evidence`. Copy `raw` exactly; use plain decimal digits without currency symbols or separators for `amount`; use `USD` when a dollar sign or dollars label establishes it. Omit a property that the source does not establish.
         * Keep classification evidence, requested relief, and selected options as JSON arrays. Other fields are strings; join multiple names with semicolons.
         * Include only evidence relevant to identifying the document or its underlying proceeding.
-        * Omit unsupported fields. Use "unknown" only for filing phase when the document does not establish it.
+        * Omit unsupported fields. Do not return placeholders such as "unknown", "N/A", or "not provided".
         * Do not include addresses, phone numbers, email addresses, financial account numbers, or unrelated allegations in classification evidence.
 
         Requested fields:

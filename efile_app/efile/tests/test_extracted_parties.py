@@ -118,7 +118,7 @@ def test_match_prefers_the_plain_party_type_over_a_compound_one():
 
 
 @pytest.mark.django_db
-def test_review_screen_shows_every_name_with_its_side_chosen(client, review_draft):
+def test_review_screen_only_preselects_captioned_case_parties(client, review_draft):
     authorize(client, review_draft)
 
     content = client.get(reverse("extraction_review", kwargs={"jurisdiction": "illinois"})).content.decode()
@@ -127,10 +127,11 @@ def test_review_screen_shows_every_name_with_its_side_chosen(client, review_draf
     assert listing is not None
     listed = listing.group(1)
     rows = re.findall(r'name="party_name"\s+value="([^"]*)"', listed)
-    assert rows == ["Alex Rivera", "Riverbend Properties LLC", "Morgan Lee", "Pat Lee"]
+    assert rows == ["Alex Rivera", "Riverbend Properties LLC", "Morgan Lee"]
     chosen = re.findall(r'<option value="([a-z]+)"\s*selected>', listed)
-    assert chosen == ["initiating", "initiating", "responding", "other"]
-    assert "Guardian ad Litem" in listed
+    assert chosen == ["initiating", "initiating", "responding"]
+    assert "Guardian ad Litem" not in listed
+    assert "Pat Lee (Guardian ad Litem)" in content
 
 
 @pytest.mark.django_db
@@ -428,7 +429,7 @@ def test_the_party_screen_maps_sides_and_asks_only_for_what_is_missing(client, r
     assert responding.party_type == "defendant"
     assert FilingParty.objects.filter(draft=review_draft, role="other").count() == 1
     assert response.status_code == 302
-    assert response.url == reverse("payment", kwargs={"jurisdiction": "illinois"})
+    assert response.url.partition("?")[0] == reverse("payment", kwargs={"jurisdiction": "illinois"})
 
 
 # --- Answers that are not names ----------------------------------------------
@@ -554,7 +555,7 @@ def test_the_review_screen_offers_the_tick_on_every_person_it_found(client, revi
 
     listing = re.search(r'id="review-parties-list">(.*?)</ol>', content, re.S)
     assert listing is not None
-    assert listing.group(1).count('name="party_is_self"') == 4
+    assert listing.group(1).count('name="party_is_self"') == 3
     assert "This is me" in content
     assert "If one of them is you, say so here" in content
 
@@ -571,9 +572,9 @@ def test_a_company_is_not_offered_as_the_person_filing(client, review_draft):
     listing = re.search(r'id="review-parties-list">(.*?)</ol>', content, re.S)
     assert listing is not None
     rows = listing.group(1)
-    # Four people, one of them Riverbend Properties LLC.
-    assert rows.count('name="party_is_self"') == 4
-    assert rows.count("review-party__is-me-toggle") == 3
+    # Three captioned parties, one of them Riverbend Properties LLC.
+    assert rows.count('name="party_is_self"') == 3
+    assert rows.count("review-party__is-me-toggle") == 2
 
 
 @pytest.mark.django_db

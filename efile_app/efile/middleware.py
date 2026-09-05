@@ -1,6 +1,57 @@
 from django.contrib.auth import logout
+from django.http import JsonResponse
+from django.shortcuts import render
+from django.utils.deprecation import MiddlewareMixin
 
+from efile.models import FilingDraft
+from efile.services.current_drafts import DraftIdentityError, resolve_explicit_draft
+from efile.services.draft_urls import draft_url
 from efile.utils.jurisdiction_stuff import get_jurisdiction_from_request
+
+
+class DraftIdentityMiddleware(MiddlewareMixin):
+    """Validate named drafts before views run and preserve them in redirects."""
+
+    def process_view(self, request, view_func, view_args, view_kwargs):
+        statuses = (FilingDraft.Status.DRAFT, FilingDraft.Status.ERROR)
+        if request.resolver_match.url_name == "submit_final_filing":
+            statuses = (*statuses, FilingDraft.Status.SUBMITTING)
+        if request.resolver_match.url_name == "filing_confirmation":
+            statuses = (FilingDraft.Status.SUBMITTED,)
+        try:
+            resolve_explicit_draft(request, jurisdiction=view_kwargs.get("jurisdiction"), statuses=statuses)
+        except DraftIdentityError as error:
+            return self.process_exception(request, error)
+
+    def process_exception(self, request, exception):
+        if isinstance(exception, DraftIdentityError):
+            if (
+                not request.path.startswith("/api/")
+                and "application/json" not in request.headers.get("Accept", "")
+                and request.content_type != "application/json"
+            ):
+                return render(request, "efile/draft_unavailable.html", status=409)
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "This draft is no longer available here. Open My drafts to choose a filing, or start a new one.",
+                },
+                status=409,
+            )
+
+    def process_response(self, request, response):
+        draft = getattr(request, "filing_draft", None)
+        if draft is not None:
+            if response.has_header("Location"):
+                response["Location"] = draft_url(response["Location"], draft.pk)
+            elif isinstance(response, JsonResponse):
+                import json
+
+                payload = json.loads(response.content)
+                if isinstance(payload, dict) and isinstance(payload.get("redirect_url"), str):
+                    payload["redirect_url"] = draft_url(payload["redirect_url"], draft.pk)
+                    response.content = json.dumps(payload)
+        return response
 
 
 class JurisdictionSessionMiddleware:

@@ -81,7 +81,7 @@ def test_starting_a_filing_from_the_menu_knows_which_kind_it_is(client, user, ch
 
     draft = FilingDraft.objects.get(user=user)
     assert response.status_code == 302
-    assert response.url == UPLOAD_URL
+    assert response.url == f"{UPLOAD_URL}?draft={draft.pk}"
     assert draft.existing_case == expected
     assert draft.current_step == WorkflowStepKey.UPLOAD_DOCUMENTS
     # The filing the filer just asked for is the one they are now in.
@@ -94,7 +94,7 @@ def test_starting_a_filing_without_saying_which_kind_asks(client, user):
 
     response = client.post(START_URL, {})
 
-    assert response.url == FILING_PATH_URL
+    assert response.url == f"{FILING_PATH_URL}?draft={FilingDraft.objects.get(user=user).pk}"
     assert FilingDraft.objects.get(user=user).existing_case == ""
 
 

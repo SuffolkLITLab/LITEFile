@@ -227,6 +227,20 @@ def write_case_data(
         draft.current_step = str(current_step)
         update_fields.append("current_step")
 
+    # Legacy clients still send the primary type here. Write explicit edits
+    # through to the authoritative lead before saving the summary.
+    filing_fields = {
+        field: _as_str(value)
+        for field in ("filing_type_code", "filing_type_name")
+        if (value := _first_present(data, _DRAFT_FIELD_SOURCES[field])) is not _MISSING
+    }
+    if filing_fields:
+        lead = FilingDocument.objects.filter(draft=draft, role=FilingDocument.Role.LEAD).first()
+        if lead is not None:
+            for field, value in filing_fields.items():
+                setattr(lead, field, value)
+            lead.save(update_fields=[*filing_fields, "updated_at"])
+
     if update_fields:
         draft.save(update_fields=sorted({*update_fields, "updated_at"}))
 

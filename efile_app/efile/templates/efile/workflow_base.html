@@ -5,6 +5,8 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        {{ draft_scope|json_script:"draft-scope" }}
+        <script src="{% static 'js/draft-scope.js' %}"></script>
         <title>
             {% block title %}
                 {% translate "Make a court filing" %}

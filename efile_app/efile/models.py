@@ -1,7 +1,7 @@
 # models.py - Optional extension to store additional user information
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 
 from efile.party_sides import PARTY_SIDE_CHOICES
@@ -280,6 +280,7 @@ class FilingDraft(models.Model):
         return f"{self.get_status_display()} filing draft #{self.pk} ({self.jurisdiction})"
 
     def mark_submitted(self, response_data):
+        sync_primary_filing_type(self)
         self.status = self.Status.SUBMITTED
         self.current_step = WorkflowStepKey.CONFIRMATION
         self.submission_response = response_data or {}
@@ -291,9 +292,18 @@ class FilingDraft(models.Model):
         self.submission_response = response_data or {}
         self.save(update_fields=["status", "submission_response", "updated_at"])
 
+    def save(self, *args, **kwargs):
+        update_fields = kwargs.get("update_fields")
+        if self.pk and (update_fields is None or {"filing_type_code", "filing_type_name"}.intersection(update_fields)):
+            lead = self.documents.filter(role=FilingDocument.Role.LEAD).order_by("sort_order", "pk").first()
+            if lead is not None:
+                self.filing_type_code = lead.filing_type_code
+                self.filing_type_name = lead.filing_type_name
+        super().save(*args, **kwargs)
+
 
 class FilingDocument(models.Model):
-    """Uploaded document that belongs to a filing draft."""
+    """Uploaded document; the lead's filing type is authoritative for the draft."""
 
     class Role(models.TextChoices):
         LEAD = "lead", "Lead document"
@@ -347,6 +357,27 @@ class FilingDocument(models.Model):
 
     def __str__(self):
         return self.name or f"{self.get_role_display()} for draft #{self.draft_id}"
+
+    @transaction.atomic
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        sync_primary_filing_type(self.draft)
+
+
+def sync_primary_filing_type(draft):
+    """Persist the lead's filing type as the draft's primary filing summary.
+
+    Query after saving: organization can promote or demote documents in either
+    order. Also update the caller's draft instance so a later save cannot undo it.
+    """
+    lead = draft.documents.filter(role=FilingDocument.Role.LEAD).order_by("sort_order", "pk").first()
+    values = {
+        "filing_type_code": lead.filing_type_code if lead else "",
+        "filing_type_name": lead.filing_type_name if lead else "",
+    }
+    FilingDraft.objects.filter(pk=draft.pk).update(**values)
+    for field, value in values.items():
+        setattr(draft, field, value)
 
 
 class DocumentExtraction(models.Model):

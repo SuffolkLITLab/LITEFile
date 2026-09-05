@@ -401,7 +401,11 @@ def test_adding_a_document_on_the_way_back_from_review_goes_through_organizing(c
         {"documents_complete": "yes", "return_to": "review", "status_petition": "have"},
     )
 
-    assert response.url == reverse("organize_documents", kwargs={"jurisdiction": "illinois"}) + "?return_to=review"
+    assert (
+        response.url
+        == reverse("organize_documents", kwargs={"jurisdiction": "illinois"})
+        + f"?return_to=review&draft={signed_in.pk}"
+    )
 
 
 @pytest.mark.django_db
@@ -411,7 +415,7 @@ def test_a_complete_filing_returns_straight_to_review(client, signed_in):
         {"documents_complete": "yes", "return_to": "review", "status_petition": "have"},
     )
 
-    assert response.url == reverse("case_review", kwargs={"jurisdiction": "illinois"})
+    assert response.url.partition("?")[0] == reverse("case_review", kwargs={"jurisdiction": "illinois"})
 
 
 # --- The plan's own home -----------------------------------------------------
@@ -612,7 +616,7 @@ def test_a_case_the_plan_knows_is_not_searched_for_again(client, signed_in):
     response = client.get(reverse("case_lookup", kwargs={"jurisdiction": "illinois"}))
 
     assert response.status_code == 302
-    assert response.url == reverse("case_confirmation", kwargs={"jurisdiction": "illinois"})
+    assert response.url.partition("?")[0] == reverse("case_confirmation", kwargs={"jurisdiction": "illinois"})
 
 
 @pytest.mark.django_db
