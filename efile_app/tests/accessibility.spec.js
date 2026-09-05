@@ -53,8 +53,11 @@ async function audit(page, label, scope) {
     }
 }
 
+// The workflow screens rewrite their own URL to name the draft they are on
+// (see static/js/draft-scope.js), so match the path and ignore any query or
+// fragment. This still catches a screen that redirects somewhere else.
 function routePattern(url) {
-    return new RegExp(`${url.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}/?$`);
+    return new RegExp(`${url.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}/?(?:[?#].*)?$`);
 }
 
 for (const [label, url] of publicScreens) {
