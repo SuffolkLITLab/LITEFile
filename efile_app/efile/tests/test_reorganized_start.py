@@ -36,7 +36,7 @@ def test_filing_path_saves_normalized_branch(client, reorganized_draft):
 
     reorganized_draft.refresh_from_db()
     assert response.status_code == 302
-    assert response.url == reverse("upload_documents", kwargs={"jurisdiction": "illinois"})
+    assert response.url.partition("?")[0] == reverse("upload_documents", kwargs={"jurisdiction": "illinois"})
     assert reorganized_draft.existing_case == ExistingCase.EXISTING
     assert reorganized_draft.current_step == WorkflowStepKey.UPLOAD_DOCUMENTS
 
@@ -131,7 +131,7 @@ def test_extraction_review_branches_new_case_to_checklist(client, reorganized_dr
 
     reorganized_draft.refresh_from_db()
     assert response.status_code == 302
-    assert response.url == reverse("document_checklist", kwargs={"jurisdiction": "illinois"})
+    assert response.url.partition("?")[0] == reverse("document_checklist", kwargs={"jurisdiction": "illinois"})
     assert reorganized_draft.existing_case == ExistingCase.NEW
     assert reorganized_draft.court_code == "cook"
     assert reorganized_draft.case_type_code == "NC"
@@ -163,7 +163,7 @@ def test_extraction_review_returns_to_review_when_edited_from_there(client, reor
 
     reorganized_draft.refresh_from_db()
     assert response.status_code == 302
-    assert response.url == reverse("case_review", kwargs={"jurisdiction": "illinois"})
+    assert response.url.partition("?")[0] == reverse("case_review", kwargs={"jurisdiction": "illinois"})
     assert reorganized_draft.current_step == WorkflowStepKey.REVIEW
 
 

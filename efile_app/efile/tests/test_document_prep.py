@@ -61,7 +61,7 @@ def test_document_checklist_continues_to_organize(client, document_draft):
 
     document_draft.refresh_from_db()
     assert response.status_code == 302
-    assert response.url == reverse("organize_documents", kwargs={"jurisdiction": "illinois"})
+    assert response.url.partition("?")[0] == reverse("organize_documents", kwargs={"jurisdiction": "illinois"})
     assert document_draft.document_checklist_acknowledged is True
     assert document_draft.current_step == WorkflowStepKey.ORGANIZE_DOCUMENTS
 
@@ -132,7 +132,7 @@ def test_document_checklist_saves_gathered_documents(client, planned_draft):
     planned_draft.refresh_from_db()
     checklist = planned_draft.plan.checklist
     assert response.status_code == 302
-    assert response.url == reverse("document_checklist", kwargs={"jurisdiction": "illinois"})
+    assert response.url.partition("?")[0] == reverse("document_checklist", kwargs={"jurisdiction": "illinois"})
     assert checklist["petition"]["status"] == "have"
     assert checklist["proposed_order"]["status"] == "filed"
     assert checklist["publication_notice"]["status"] == ""
@@ -149,7 +149,7 @@ def test_document_checklist_saves_gathered_documents_when_continuing(client, pla
 
     planned_draft.refresh_from_db()
     assert response.status_code == 302
-    assert response.url == reverse("organize_documents", kwargs={"jurisdiction": "illinois"})
+    assert response.url.partition("?")[0] == reverse("organize_documents", kwargs={"jurisdiction": "illinois"})
     assert planned_draft.document_checklist_acknowledged is True
     assert planned_draft.plan.checklist["petition"]["status"] == "have"
 
@@ -159,7 +159,7 @@ def test_organize_requires_completed_checklist(client, document_draft):
     response = client.get(reverse("organize_documents", kwargs={"jurisdiction": "illinois"}))
 
     assert response.status_code == 302
-    assert response.url == reverse("document_checklist", kwargs={"jurisdiction": "illinois"})
+    assert response.url.partition("?")[0] == reverse("document_checklist", kwargs={"jurisdiction": "illinois"})
 
 
 @pytest.mark.django_db
@@ -171,7 +171,7 @@ def test_organize_redirects_when_court_is_missing(client, document_draft):
     response = client.get(reverse("organize_documents", kwargs={"jurisdiction": "illinois"}))
 
     assert response.status_code == 302
-    assert response.url == reverse("extraction_review", kwargs={"jurisdiction": "illinois"})
+    assert response.url.partition("?")[0] == reverse("extraction_review", kwargs={"jurisdiction": "illinois"})
 
 
 @pytest.mark.django_db
@@ -200,7 +200,9 @@ def test_organize_returns_to_review_when_edited_from_there(client, document_draf
 
     document_draft.refresh_from_db()
     assert response.status_code == 200
-    assert response.json()["redirect_url"] == reverse("case_review", kwargs={"jurisdiction": "illinois"})
+    assert response.json()["redirect_url"].partition("?")[0] == reverse(
+        "case_review", kwargs={"jurisdiction": "illinois"}
+    )
     assert document_draft.current_step == WorkflowStepKey.REVIEW
 
 
@@ -302,7 +304,9 @@ def test_organize_saves_details_and_supporting_order(client, document_draft):
     document_draft.refresh_from_db()
     lead.refresh_from_db()
     assert response.status_code == 200
-    assert response.json()["redirect_url"] == reverse("your_information", kwargs={"jurisdiction": "illinois"})
+    assert response.json()["redirect_url"].partition("?")[0] == reverse(
+        "your_information", kwargs={"jurisdiction": "illinois"}
+    )
     assert document_draft.current_step == WorkflowStepKey.YOUR_INFORMATION
     assert lead.role == FilingDocument.Role.SUPPORTING
     assert lead.filing_type_code == "petition"
@@ -311,6 +315,10 @@ def test_organize_saves_details_and_supporting_order(client, document_draft):
     assert lead.filing_requires_amount_in_controversy is True
     second.refresh_from_db()
     assert second.role == FilingDocument.Role.LEAD
+    assert (document_draft.filing_type_code, document_draft.filing_type_name) == (
+        second.filing_type_code,
+        second.filing_type_name,
+    )
     assert list(
         document_draft.documents.filter(role=FilingDocument.Role.SUPPORTING)
         .order_by("sort_order")

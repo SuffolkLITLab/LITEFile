@@ -66,7 +66,7 @@ def test_payment_saves_account_and_advances_durable_step(client, submission_draf
     )
 
     assert response.status_code == 302
-    assert response.url == reverse("case_review", kwargs={"jurisdiction": "illinois"})
+    assert response.url.partition("?")[0] == reverse("case_review", kwargs={"jurisdiction": "illinois"})
     submission_draft.refresh_from_db()
     assert submission_draft.selected_payment_account_id == "pay-123"
     assert submission_draft.current_step == WorkflowStepKey.REVIEW
@@ -246,8 +246,8 @@ def test_review_uses_new_edit_routes_and_durable_summary(client, submission_draf
     assert b"review-document-tag" in response.content
     assert reverse("organize_documents", kwargs={"jurisdiction": "illinois"}).encode() in response.content
     assert reverse("your_information", kwargs={"jurisdiction": "illinois"}).encode() in response.content
-    assert reverse("expert_form", kwargs={"jurisdiction": "illinois"}).encode() not in response.content
-    assert reverse("upload", kwargs={"jurisdiction": "illinois"}).encode() not in response.content
+    assert f'href="{reverse("expert_form", kwargs={"jurisdiction": "illinois"})}'.encode() not in response.content
+    assert f'href="{reverse("upload", kwargs={"jurisdiction": "illinois"})}'.encode() not in response.content
 
 
 @pytest.mark.django_db

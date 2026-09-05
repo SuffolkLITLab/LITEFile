@@ -1,5 +1,7 @@
 """The complete, reviewable set of details requested from a lead document."""
 
+import re
+
 from efile.utils.prompt_config import load_prompt
 
 DOCUMENT_EXTRACTION_PROMPT = load_prompt("document_evidence_extraction")
@@ -28,7 +30,7 @@ EXTRACTION_LABELS = {
     "case title": "Case title",
     "plaintiff or petitioner names": "Plaintiff or petitioner names",
     "defendant or respondent names": "Defendant or respondent names",
-    "other party names": "Other party names",
+    "other party names": "Other names mentioned in the document",
     "document date": "Document date",
     "filing phase": "Filing phase",
     "requested relief": "Requested relief",
@@ -61,13 +63,56 @@ def _normalized_key(raw_key):
     return EXTRACTION_KEY_ALIASES.get(key, key)
 
 
+_PLACEHOLDERS = frozenset(
+    {
+        "unknown",
+        "none",
+        "null",
+        "n a",
+        "na",
+        "not applicable",
+        "not available",
+        "not provided",
+        "not specified",
+        "not stated",
+        "not found",
+        "not listed",
+        "unspecified",
+        "blank",
+        "empty",
+        "tbd",
+        "to be determined",
+    }
+)
+
+
+def clean_extracted_value(value):
+    """Discard missing-value answers, recursively, without matching inside facts.
+
+    Keep meaningful zero/false answers and names such as All Unknown Occupants.
+    This also runs at display time so older saved extractions are covered.
+    """
+    if isinstance(value, str):
+        value = value.strip()
+        comparable = re.sub(r"[^a-z0-9]+", " ", value.casefold()).strip()
+        return None if not value or comparable in _PLACEHOLDERS else value
+    if isinstance(value, dict):
+        return {
+            key: cleaned for key, item in value.items() if (cleaned := clean_extracted_value(item)) is not None
+        } or None
+    if isinstance(value, list | tuple | set):
+        return [cleaned for item in value if (cleaned := clean_extracted_value(item)) is not None] or None
+    return value
+
+
 def normalize_extracted_fields(found_fields):
-    """Keep every extracted value while normalizing keys used by the workflow."""
+    """Keep supported extracted values and normalize keys used by the workflow."""
     if not isinstance(found_fields, dict):
         return {}
 
     normalized = {}
     for raw_key, value in found_fields.items():
+        value = clean_extracted_value(value)
         if value in (None, "", [], {}):
             continue
         key = _normalized_key(raw_key)
@@ -91,6 +136,7 @@ def normalize_document_evidence(found_fields):
         return {}
     normalized = {}
     for raw_key, value in found_fields.items():
+        value = clean_extracted_value(value)
         if value in (None, "", [], {}):
             continue
         key = _normalized_key(raw_key)
@@ -108,6 +154,7 @@ def display_extracted_fields(found_fields):
         return {}
     display = {}
     for raw_key, value in found_fields.items():
+        value = clean_extracted_value(value)
         if value in (None, "", [], {}):
             continue
         key = _normalized_key(raw_key)
@@ -144,7 +191,6 @@ CONFIRMED_IN_FORM_KEYS: frozenset[str] = frozenset(
         "case title",
         "plaintiff or petitioner names",
         "defendant or respondent names",
-        "other party names",
     }
 )
 
@@ -161,7 +207,7 @@ DOCUMENT_SUMMARY_KEYS: tuple[str, ...] = (
 
 def extracted_details(guesses):
     """Return every extracted item in a stable, user-facing order."""
-    guesses = guesses or {}
+    guesses = display_extracted_fields(guesses or {})
     ordered_keys = [*EXTRACTION_LABELS, *(key for key in guesses if key not in EXTRACTION_LABELS)]
     return [
         {

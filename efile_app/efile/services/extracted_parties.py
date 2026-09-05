@@ -273,6 +273,10 @@ def review_rows(draft: FilingDraft) -> list[dict[str, Any]]:
             "is_organization": looks_like_organization(entry["name"]),
         }
         for entry in extracted_party_suggestions(draft.extracted_guesses)
+        # Mentioning a child, witness, guardian, or other person does not
+        # establish that they are a case party. Keep these names in the
+        # supporting evidence; the filer can explicitly add a party if needed.
+        if entry["side"] in {PartySide.INITIATING, PartySide.RESPONDING}
     ]
 
 

@@ -145,7 +145,7 @@ def test_complete_new_filing_flow_by_jurisdiction(
         {"existing_case": ExistingCase.NEW},
     )
     assert path_response.status_code == 302
-    assert path_response.url == reverse("upload_documents", kwargs={"jurisdiction": jurisdiction})
+    assert path_response.url.partition("?")[0] == reverse("upload_documents", kwargs={"jurisdiction": jurisdiction})
     draft.refresh_from_db()
     assert draft.existing_case == ExistingCase.NEW
     assert draft.current_step == WorkflowStepKey.UPLOAD_DOCUMENTS
@@ -251,7 +251,7 @@ def test_complete_new_filing_flow_by_jurisdiction(
         },
     )
     assert ext_post.status_code == 302
-    assert ext_post.url == reverse("document_checklist", kwargs={"jurisdiction": jurisdiction})
+    assert ext_post.url.partition("?")[0] == reverse("document_checklist", kwargs={"jurisdiction": jurisdiction})
 
     draft.refresh_from_db()
     assert draft.court_code == court_code
@@ -263,7 +263,7 @@ def test_complete_new_filing_flow_by_jurisdiction(
         {"documents_complete": "yes"},
     )
     assert checklist_resp.status_code == 302
-    assert checklist_resp.url == reverse("organize_documents", kwargs={"jurisdiction": jurisdiction})
+    assert checklist_resp.url.partition("?")[0] == reverse("organize_documents", kwargs={"jurisdiction": jurisdiction})
 
     draft.refresh_from_db()
     assert draft.document_checklist_acknowledged is True
@@ -302,7 +302,9 @@ def test_complete_new_filing_flow_by_jurisdiction(
     )
     assert org_resp.status_code == 200
     assert org_resp.json()["success"] is True
-    assert org_resp.json()["redirect_url"] == reverse("your_information", kwargs={"jurisdiction": jurisdiction})
+    assert org_resp.json()["redirect_url"].partition("?")[0] == reverse(
+        "your_information", kwargs={"jurisdiction": jurisdiction}
+    )
 
     draft.refresh_from_db()
     lead_doc.refresh_from_db()
@@ -326,7 +328,7 @@ def test_complete_new_filing_flow_by_jurisdiction(
         },
     )
     assert your_info_resp.status_code == 302
-    assert your_info_resp.url == reverse("parties", kwargs={"jurisdiction": jurisdiction})
+    assert your_info_resp.url.partition("?")[0] == reverse("parties", kwargs={"jurisdiction": jurisdiction})
 
     draft.refresh_from_db()
     filer_party = draft.parties.get(role="filer")
@@ -373,7 +375,7 @@ def test_complete_new_filing_flow_by_jurisdiction(
             },
         )
         assert party_details_resp.status_code == 302
-        assert party_details_resp.url == reverse("payment", kwargs={"jurisdiction": jurisdiction})
+        assert party_details_resp.url.partition("?")[0] == reverse("payment", kwargs={"jurisdiction": jurisdiction})
 
     draft.refresh_from_db()
     other_party.refresh_from_db()
@@ -390,7 +392,7 @@ def test_complete_new_filing_flow_by_jurisdiction(
         },
     )
     assert pay_resp.status_code == 302
-    assert pay_resp.url == reverse("case_review", kwargs={"jurisdiction": jurisdiction})
+    assert pay_resp.url.partition("?")[0] == reverse("case_review", kwargs={"jurisdiction": jurisdiction})
 
     draft.refresh_from_db()
     assert draft.selected_payment_account_id == "waiver-account-1"

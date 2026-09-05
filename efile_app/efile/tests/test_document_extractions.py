@@ -204,7 +204,7 @@ def test_review_waits_for_background_analysis(client, extraction_draft):
     response = client.get(reverse("extraction_review", kwargs={"jurisdiction": "illinois"}))
 
     assert response.status_code == 302
-    assert response.url == reverse("upload_documents", kwargs={"jurisdiction": "illinois"})
+    assert response.url.partition("?")[0] == reverse("upload_documents", kwargs={"jurisdiction": "illinois"})
 
 
 @pytest.mark.django_db

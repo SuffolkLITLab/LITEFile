@@ -10,7 +10,7 @@ from efile.services.document_checklists import resolve_filer_roles
 from efile.services.document_extractions import extraction_for_document
 from efile.services.drafts import draft_snapshot, write_case_data
 from efile.services.extracted_parties import review_rows, save_reviewed_parties
-from efile.services.extraction_fields import document_summary_details, supporting_details
+from efile.services.extraction_fields import display_extracted_fields, document_summary_details, supporting_details
 from efile.utils.ui_text import get_text
 from efile.workflow import (
     RETURN_TO_REVIEW,
@@ -169,7 +169,7 @@ def extraction_review(request, jurisdiction):
                 write_case_data(draft, {}, current_step=next_step.key)
                 return redirect(get_step_url(next_step.key, jurisdiction))
 
-    guesses = draft.extracted_guesses or {}
+    guesses = display_extracted_fields(draft.extracted_guesses or {})
     classification = extraction.classification if extraction is not None else {}
 
     def classified(level, key):

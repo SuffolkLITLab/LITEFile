@@ -11,6 +11,38 @@ from efile.workflow import WorkflowStepKey
 CURRENT_DRAFT_SESSION_KEY = "filing_draft_id"
 
 
+class DraftIdentityError(Exception):
+    """An explicit draft is no longer available for this request."""
+
+
+def explicit_draft_id(request):
+    """Read tab-local identity; never substitute the shared session pointer."""
+    values = request.GET.getlist("draft")
+    if request.headers.get("X-Filing-Draft") is not None:
+        values.append(request.headers["X-Filing-Draft"])
+    if request.content_type in {"application/x-www-form-urlencoded", "multipart/form-data"}:
+        values.extend(request.POST.getlist("draft"))
+    if not values:
+        return None
+    if len(set(values)) != 1 or not values[0].isascii() or not values[0].isdigit() or len(values[0]) > 18:
+        raise DraftIdentityError
+    return int(values[0])
+
+
+def resolve_explicit_draft(request, *, jurisdiction=None, statuses=CURRENT_DRAFT_STATUSES):
+    draft_id = explicit_draft_id(request)
+    if draft_id is None:
+        return None
+    user = _authenticated_user(request)
+    draft = (
+        get_active_draft(user=user, draft_id=draft_id, jurisdiction=jurisdiction, statuses=statuses) if user else None
+    )
+    if draft is None:
+        raise DraftIdentityError
+    request.filing_draft = draft
+    return draft
+
+
 def _authenticated_user(request):
     user = getattr(request, "user", None)
     return user if getattr(user, "is_authenticated", False) else None
@@ -22,9 +54,13 @@ def attach_current_draft(request, draft: FilingDraft) -> None:
     request.session[CURRENT_DRAFT_SESSION_KEY] = draft.pk
     request.session["jurisdiction"] = draft.jurisdiction
     request.session.modified = True
+    request.filing_draft = draft
 
 
 def clear_current_draft(request) -> None:
+    draft = getattr(request, "filing_draft", None)
+    if draft is not None and request.session.get(CURRENT_DRAFT_SESSION_KEY) != draft.pk:
+        return
     if CURRENT_DRAFT_SESSION_KEY in request.session:
         del request.session[CURRENT_DRAFT_SESSION_KEY]
         request.session.modified = True
@@ -37,6 +73,9 @@ def pointed_at_draft(request, *, jurisdiction: str | None = None) -> FilingDraft
     supplied) jurisdiction are enforced on every lookup.
     """
 
+    explicit = resolve_explicit_draft(request, jurisdiction=jurisdiction)
+    if explicit is not None:
+        return explicit
     user = _authenticated_user(request)
     if user is None:
         clear_current_draft(request)
@@ -61,6 +100,8 @@ def pointed_at_draft(request, *, jurisdiction: str | None = None) -> FilingDraft
     )
     if draft is None:
         clear_current_draft(request)
+    else:
+        request.filing_draft = draft
     return draft
 
 
@@ -102,16 +143,12 @@ def get_current_draft(
     request,
     *,
     jurisdiction: str | None = None,
-    resume_latest: bool = True,
+    resume_latest: bool = False,
 ) -> FilingDraft | None:
-    """Resolve the current user's draft, without ever choosing one for them.
+    """Resolve a named draft, falling back only to this session's own pointer.
 
-    Reading is not choosing. This used to attach whatever draft it found to the
-    session, which meant that merely loading a page -- or an API call that page
-    fired -- could make an old filing the current one, and could do so *after* a
-    new filing had been started, silently putting the filer back in the old one.
-    Nothing here writes to the session now: adoption is ``adopt_draft``, and it
-    happens only where the filer asked for it.
+    Only resume offers opt into finding the account's latest draft. APIs must
+    not read a filing just because another browser recently worked on it.
     """
 
     draft = pointed_at_draft(request, jurisdiction=jurisdiction)
@@ -157,12 +194,9 @@ def ensure_current_draft(
     from a matter they finished last month.
     """
 
-    # A named draft wins over the one the session is holding: naming it is the
-    # filer saying "this one", and they may well be switching away from
-    # whatever they were last in.
-    draft = adopt_draft(request, request.GET.get(RESUME_DRAFT_PARAM), jurisdiction=jurisdiction)
-    if draft is None:
-        draft = pointed_at_draft(request, jurisdiction=jurisdiction)
+    # A named draft belongs to this request. Resolving it must not replace the
+    # shared session pointer, and an invalid identity must never fall through.
+    draft = pointed_at_draft(request, jurisdiction=jurisdiction)
     if draft is None:
         return create_current_draft(
             request,

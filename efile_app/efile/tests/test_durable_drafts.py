@@ -401,7 +401,7 @@ def test_current_draft_enforces_owner(client, django_user_model):
     illinois_user = django_user_model.objects.create_user(username="illinois-user", tyler_jurisdiction="illinois")
     other_user = django_user_model.objects.create_user(username="other-user", tyler_jurisdiction="massachusetts")
     other_draft = FilingDraft.objects.create(user=other_user, jurisdiction="illinois")
-    expected_draft = FilingDraft.objects.create(user=illinois_user, jurisdiction="illinois")
+    FilingDraft.objects.create(user=illinois_user, jurisdiction="illinois")
 
     client.force_login(illinois_user)
     session = client.session
@@ -411,23 +411,27 @@ def test_current_draft_enforces_owner(client, django_user_model):
     response = client.get(reverse("get_current_draft"))
 
     assert response.status_code == 200
-    assert response.json()["data"]["filing_draft"]["id"] == expected_draft.pk
+    assert response.json()["data"]["filing_draft"] is None
 
 
 @pytest.mark.django_db
 def test_current_draft_does_not_cross_jurisdictions(client, django_user_model):
     user = django_user_model.objects.create_user(username="multi-state-user", tyler_jurisdiction="illinois")
-    illinois_draft = FilingDraft.objects.create(user=user, jurisdiction="illinois")
+    FilingDraft.objects.create(user=user, jurisdiction="illinois")
     massachusetts_draft = FilingDraft.objects.create(user=user, jurisdiction="massachusetts")
     client.force_login(user)
     session = client.session
     session[CURRENT_DRAFT_SESSION_KEY] = massachusetts_draft.pk
     session.save()
 
-    request = type("Request", (), {"user": user, "session": client.session})()
+    from django.test import RequestFactory
+
+    request = RequestFactory().get("/")
+    request.user = user
+    request.session = client.session
     current = get_current_draft(request, jurisdiction="illinois")
 
-    assert current == illinois_draft
+    assert current is None
 
 
 @pytest.mark.django_db
@@ -671,9 +675,13 @@ def test_route_jurisdiction_isolates_reads(client, django_user_model):
     session = client.session
     session[CURRENT_DRAFT_SESSION_KEY] = massachusetts_draft.pk
     session.save()
-    request = type("Request", (), {"user": user, "session": client.session})()
+    from django.test import RequestFactory
 
-    assert get_case_data(request, jurisdiction="illinois").get("court") == "cook:cd"
+    request = RequestFactory().get("/")
+    request.user = user
+    request.session = client.session
+
+    assert get_case_data(request, jurisdiction="illinois") == {}
 
 
 @pytest.mark.django_db

@@ -62,7 +62,7 @@ def test_your_information_persists_filer_contact(client, people_draft):
     people_draft.refresh_from_db()
     filer = people_draft.parties.get(role="filer")
     assert response.status_code == 302
-    assert response.url == reverse("parties", kwargs={"jurisdiction": "illinois"})
+    assert response.url.partition("?")[0] == reverse("parties", kwargs={"jurisdiction": "illinois"})
     assert filer.first_name == "Jamie"
     assert filer.address_line_1 == "100 State Street"
     assert people_draft.current_step == WorkflowStepKey.PARTIES
@@ -97,7 +97,7 @@ def test_your_information_returns_to_review_when_edited_from_there(client, peopl
 
     people_draft.refresh_from_db()
     assert response.status_code == 302
-    assert response.url == reverse("case_review", kwargs={"jurisdiction": "illinois"})
+    assert response.url.partition("?")[0] == reverse("case_review", kwargs={"jurisdiction": "illinois"})
     assert people_draft.current_step == WorkflowStepKey.REVIEW
 
 
@@ -182,7 +182,7 @@ def test_parties_creates_missing_required_party_and_repeats_details(client, peop
     filer.refresh_from_db()
     other = people_draft.parties.get(role="other")
     assert response.status_code == 302
-    assert response.url.endswith(f"?party={other.pk}")
+    assert response.url.endswith(f"?party={other.pk}&draft={people_draft.pk}")
     assert filer.party_type == "plaintiff"
     assert other.party_type == "defendant"
     assert other.party_type_name == "Defendant"
@@ -224,7 +224,7 @@ def test_parties_returns_to_review_when_edited_from_there(client, people_draft):
 
     people_draft.refresh_from_db()
     assert response.status_code == 302
-    assert response.url == reverse("case_review", kwargs={"jurisdiction": "illinois"})
+    assert response.url.partition("?")[0] == reverse("case_review", kwargs={"jurisdiction": "illinois"})
     assert people_draft.current_step == WorkflowStepKey.REVIEW
 
 
@@ -282,7 +282,7 @@ def test_party_details_saves_party_and_advances_to_payment_when_no_questions(cli
     people_draft.refresh_from_db()
     party.refresh_from_db()
     assert response.status_code == 302
-    assert response.url == reverse("payment", kwargs={"jurisdiction": "illinois"})
+    assert response.url.partition("?")[0] == reverse("payment", kwargs={"jurisdiction": "illinois"})
     assert party.first_name == "Morgan"
     assert people_draft.current_step == WorkflowStepKey.PAYMENT
 
@@ -322,7 +322,7 @@ def test_party_details_saves_an_other_party_without_an_optional_address(client, 
 
     party.refresh_from_db()
     assert response.status_code == 302
-    assert response.url == reverse("payment", kwargs={"jurisdiction": "illinois"})
+    assert response.url.partition("?")[0] == reverse("payment", kwargs={"jurisdiction": "illinois"})
     assert party.first_name == "Morgan"
     assert party.address_line_1 == ""
 
@@ -465,7 +465,7 @@ def test_party_details_returns_to_review_when_edited_from_there(client, people_d
 
     people_draft.refresh_from_db()
     assert response.status_code == 302
-    assert response.url == reverse("case_review", kwargs={"jurisdiction": "illinois"})
+    assert response.url.partition("?")[0] == reverse("case_review", kwargs={"jurisdiction": "illinois"})
     assert people_draft.current_step == WorkflowStepKey.REVIEW
 
 
@@ -482,7 +482,7 @@ def test_case_questions_are_configured_and_saved(client, people_draft):
 
     people_draft.refresh_from_db()
     assert response.status_code == 302
-    assert response.url == reverse("payment", kwargs={"jurisdiction": "illinois"})
+    assert response.url.partition("?")[0] == reverse("payment", kwargs={"jurisdiction": "illinois"})
     assert people_draft.supplemental_fields["has_children"] is True
     assert people_draft.supplemental_fields["child_count"] == 2
     assert people_draft.supplemental_fields["_case_questions_required"] is True
@@ -501,7 +501,7 @@ def test_case_questions_returns_to_review_when_edited_from_there(client, people_
 
     people_draft.refresh_from_db()
     assert response.status_code == 302
-    assert response.url == reverse("case_review", kwargs={"jurisdiction": "illinois"})
+    assert response.url.partition("?")[0] == reverse("case_review", kwargs={"jurisdiction": "illinois"})
     assert people_draft.current_step == WorkflowStepKey.REVIEW
 
 
@@ -543,7 +543,7 @@ def test_case_questions_saves_a_valid_amount_in_controversy(client, people_draft
 
     people_draft.refresh_from_db()
     assert response.status_code == 302
-    assert response.url == reverse("payment", kwargs={"jurisdiction": "illinois"})
+    assert response.url.partition("?")[0] == reverse("payment", kwargs={"jurisdiction": "illinois"})
     assert people_draft.amount_in_controversy == "12500.00"
 
 
@@ -614,7 +614,7 @@ def test_parties_routes_to_case_questions_when_amount_in_controversy_is_needed(c
 
     people_draft.refresh_from_db()
     assert response.status_code == 302
-    assert response.url == reverse("case_questions", kwargs={"jurisdiction": "illinois"})
+    assert response.url.partition("?")[0] == reverse("case_questions", kwargs={"jurisdiction": "illinois"})
     assert people_draft.current_step == WorkflowStepKey.CASE_QUESTIONS
 
 
