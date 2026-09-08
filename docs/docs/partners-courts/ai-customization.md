@@ -79,12 +79,33 @@ DOCUMENT_EVIDENCE_MODEL="gpt-5-nano"                 # Optional exact deployment
 DOCUMENT_CLASSIFICATION_MODEL="gpt-5-mini"           # Optional exact deployment
 ```
 
-### Model selection and tiers
+---
 
-In `llms.py`, models are arranged in three performance tiers:
+## Supported AI models and enterprise providers
 
-- **Small (default)**: `gpt-4o-mini`, `gpt-4.1-nano`, `gemini-2.5-flash-lite`, `claude-3-5-haiku`
-- **Medium**: `gpt-4o`, `gpt-4.1-mini`, `claude-3-7-sonnet`
-- **Large**: `gpt-4o`, `o3`, `claude-3-7-sonnet`
+*Last updated: September 2026 (subject to periodic updates for security, quality, and performance).*
 
-The system automatically verifies model availability against the `/models` endpoint of your configured provider and falls back gracefully.
+LITEFile connects exclusively to enterprise-tier endpoints operating under commercial privacy agreements. User documents, extracted evidence, and case data are **never** used to train, retrain, or improve any public or private artificial intelligence models.
+
+### Currently supported enterprise models and tiers
+
+In `efile/utils/llms.py`, models are arranged into three performance tiers with automatic fallback against the provider's `/models` endpoint:
+
+| Tier | Default & supported models | Primary purpose |
+| :--- | :--- | :--- |
+| **Small (default)** | `gpt-4o-mini`, `gpt-4.1-nano`, `gemini-2.5-flash-lite`, `claude-3-5-haiku` | Fast fact extraction, caption reading, and single-level category selection |
+| **Medium** | `gpt-4o`, `gpt-4.1-mini`, `claude-3-7-sonnet` | Complex multi-party caption extraction and ambiguous case-type matching |
+| **Large** | `gpt-4o`, `o3`, `claude-3-7-sonnet` | Advanced edge-case classification and unstructured document review |
+
+### Approved enterprise provider configurations
+
+LITEFile deployments can route requests through any of the following enterprise configurations:
+
+1. **Enterprise OpenAI / Azure OpenAI Service**: Commercial enterprise tier with zero data retention (ZDR) or ephemeral operational processing, and explicit no-training clauses.
+2. **Private enterprise gateways**: Custom OpenAI-compatible proxy gateways (such as LiteLLM, vLLM, or court-hosted infrastructure) enforcing local jurisdictional encryption and data-residency boundaries.
+3. **Vertex AI / AWS Bedrock endpoints**: Enterprise cloud platforms compliant with FedRAMP, HIPAA, SOC 2 Type II, and state court data requirements.
+
+### Quality monitoring and human evaluation
+
+Approved LITEFile staff may monitor AI performance manually from time to time to evaluate system accuracy, benchmark prompts, and improve the tool. Any manual review is conducted under strict confidentiality and access controls by authorized personnel, and documents are never used to train third-party AI models.
+
