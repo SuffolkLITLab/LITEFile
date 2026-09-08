@@ -25,6 +25,7 @@ from efile.services.filings import (
     fetch_filing_detail,
     unarchive_case,
 )
+from efile.services.handoff import local_submission
 
 logger = logging.getLogger(__name__)
 
@@ -118,6 +119,7 @@ def filing_detail(request, jurisdiction, court_code, filing_id):
         {
             "is_logged_in": True,
             "filing": detail,
+            "local_draft": local_submission(request.user, jurisdiction, court_code, filing_id),
             "court_code": court_code,
             "filing_id": filing_id,
             "court_contact": court_contact(jurisdiction, court_code),

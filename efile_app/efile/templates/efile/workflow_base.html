@@ -28,6 +28,9 @@
         <main class="workflow-shell">
             {% include "efile/components/workflow_progress.html" %}
             {% include "efile/components/inline_messages.html" %}
+            {% if handoff_draft_id %}
+                <p><a href="{% url 'handoff_review' handoff_draft_id %}">{% translate "Return to saved interview answers and corrections" %}</a></p>
+            {% endif %}
             {% block workflow_content %}
             {% endblock workflow_content %}
         </main>

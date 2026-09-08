@@ -1,0 +1,15 @@
+{% extends "efile/site_base.html" %}
+{% block title %}Continue your filing{% endblock title %}
+{% block public_content %}
+    {% if expired %}
+        <h1>This filing link has expired</h1>
+        <p>Return to your interview and choose “Continue in LITEFile” again.</p>
+    {% elif unavailable %}
+        <h1>This draft belongs to another account</h1>
+        <p>Sign in with the account you used to claim the draft.</p>
+    {% else %}
+        <h1>Continue your filing</h1>
+        <p>{{ source }} sent your answers and documents to LITEFile. Add this draft to your signed-in account to check the filing details and send it to court.</p>
+        <form method="post">{% csrf_token %}<button class="btn btn-primary" type="submit">Add this draft to my account</button></form>
+    {% endif %}
+{% endblock public_content %}

@@ -16,6 +16,14 @@ from .views.draft_views import get_current_draft_view, start_filing, start_filin
 from .views.extraction_review import extraction_review
 from .views.filing_path import filing_path
 from .views.filing_plans import filing_plans
+from .views.handoff import (
+    correct_filing,
+    external_handoff,
+    handoff_claim,
+    handoff_review,
+    replace_documents,
+    return_to_interview,
+)
 from .views.legacy_workflow import legacy_workflow_redirect
 from .views.login import efile_login, efile_logout, efile_password_reset
 from .views.my_cases import filing_detail, filing_statuses
@@ -54,6 +62,12 @@ def jurisdiction_homepage(request, jurisdiction):
 
 
 urlpatterns = [
+    path("api/handoffs/v1/", external_handoff, name="external_handoff"),
+    path("api/handoffs/v1/documents/", replace_documents, name="handoff_replace_documents"),
+    path("handoff/claim/<str:token>/", handoff_claim, name="handoff_claim"),
+    path("handoff/drafts/<int:draft_id>/", handoff_review, name="handoff_review"),
+    path("handoff/drafts/<int:draft_id>/correct/", correct_filing, name="correct_filing"),
+    path("handoff/drafts/<int:draft_id>/interview/", return_to_interview, name="return_to_interview"),
     path("jsi18n/", JavaScriptCatalog.as_view(), name="javascript-catalog"),
     path("review/", include("crosswalk_review.urls")),
     path("", homepage, name="home"),

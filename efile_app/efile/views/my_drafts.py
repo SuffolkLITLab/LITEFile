@@ -22,6 +22,7 @@ from efile.services.current_drafts import (
     pointed_at_draft,
 )
 from efile.services.drafts import active_drafts_for
+from efile.services.handoff import receipt_for
 from efile.workflow import ExistingCase, get_resume_step_url, get_step
 
 logger = logging.getLogger(__name__)
@@ -63,6 +64,8 @@ def my_drafts(request, jurisdiction):
             messages.error(request, "That draft is no longer here.")
         elif action == "resume":
             adopt_draft(request, draft.pk, jurisdiction=jurisdiction)
+            if receipt_for(draft) or draft.correction_of_id:
+                return redirect("handoff_review", draft_id=draft.pk)
             resume_url = get_resume_step_url(draft.current_step, jurisdiction, draft_id=draft.pk)
             return redirect(resume_url or reverse("efile_options", kwargs={"jurisdiction": jurisdiction}))
         elif action == "delete":

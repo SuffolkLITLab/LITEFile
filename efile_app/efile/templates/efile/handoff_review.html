@@ -1,0 +1,30 @@
+{% extends "efile/site_base.html" %}
+{% block title %}Continue your filing{% endblock title %}
+{% block public_content %}
+    <h1>{{ draft.case_title|default:"Continue your filing" }}</h1>
+    {% if closed %}
+        <p>This filing is {{ draft.get_status_display|lower }}.</p>
+        {% if draft.status == 'submitted' %}<a href="{% url 'correct_filing' draft.pk %}">Check for a clerk return and correct this filing</a>{% endif %}
+    {% else %}
+        {% if draft.correction_of_id %}<p>You are correcting the same matter. Your previous submission and documents are preserved.</p>{% endif %}
+        {% for comment in draft.clerk_return.comments %}<p>{{ comment.text }}</p>{% endfor %}
+        <p>Your interview answers and documents are saved. Complete the missing details below. You can edit any answer that needs a correction.</p>
+        <form method="post">{% csrf_token %}<button type="submit" name="action" value="resolve" class="btn btn-secondary">Look up current court choices</button></form>
+        <h2>Details to complete</h2>
+        <ul>{% for issue in issues %}<li><a href="{{ issue.url }}">{{ issue.message }}</a></li>{% empty %}<li>Your draft is ready for the final filing checks.</li>{% endfor %}</ul>
+        <form method="post">{% csrf_token %}<button type="submit" name="action" value="confirm" class="btn btn-secondary">Confirm my corrections</button></form>
+        <h2>Saved case information</h2>
+        <p>{{ draft.court_name }} {{ draft.docket_number }} {{ draft.case_type_name }}</p>
+        <a href="{{ case_url }}">Edit case details</a>
+        <h2>People</h2>
+        <ul>{% for party in parties %}<li>{{ party }} — {{ party.party_role_hint }} {{ party.party_type_name }}</li>{% endfor %}</ul>
+        <a href="{{ parties_url }}">Edit people and party types</a>
+        <h2>Documents</h2>
+        <ul>{% for document in documents %}<li>{{ document.name }} — {{ document.filing_type_name }}</li>{% endfor %}</ul>
+        <a href="{{ documents_url }}">Edit documents and filing types</a>
+        {% if can_return %}
+            <form method="post" action="{% url 'return_to_interview' draft.pk %}">{% csrf_token %}<button type="submit" class="btn btn-secondary">Return to my interview to correct a PDF</button></form>
+        {% endif %}
+        <p><a href="{{ review_url }}" class="btn btn-primary">Review and submit</a></p>
+    {% endif %}
+{% endblock public_content %}

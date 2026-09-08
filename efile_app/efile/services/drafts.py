@@ -511,10 +511,10 @@ def write_upload_data(
     return draft
 
 
-def _document_file(doc: FilingDocument) -> dict[str, Any]:
+def _document_file(doc: FilingDocument, urls: dict[int, str] | None = None) -> dict[str, Any]:
     file_obj: dict[str, Any] = {}
     _put(file_obj, "name", doc.name)
-    _put(file_obj, "url", doc.public_url)
+    _put(file_obj, "url", (urls or {}).get(doc.pk, doc.public_url))
     _put(file_obj, "s3_key", doc.s3_key)
     _put(file_obj, "type", doc.content_type)
     _put(file_obj, "size", doc.size)
@@ -546,10 +546,20 @@ def read_upload_data(draft: FilingDraft | None) -> dict[str, Any]:
         FilingDocument.objects.filter(draft=draft, role=FilingDocument.Role.SUPPORTING).order_by("sort_order")
     )
 
+    # Imported PDFs must remain usable after the handoff link's original
+    # signature expires. Regenerate access URLs from durable private S3 keys.
+    from efile.services.handoff import receipt_for
+    from efile.utils.s3_upload_handler import S3UploadHandler
+
+    urls = {}
+    if receipt_for(draft):
+        handler = S3UploadHandler()
+        if handler._ensure_initialized():
+            urls = {doc.pk: handler.get_public_url(doc.s3_key) for doc in [lead, *supporting] if doc and doc.s3_key}
     files: dict[str, Any] = {}
     if lead is not None:
-        files["lead"] = _document_file(lead)
-    supporting_files = [_document_file(doc) for doc in supporting]
+        files["lead"] = _document_file(lead, urls)
+    supporting_files = [_document_file(doc, urls) for doc in supporting]
     if supporting_files:
         files["supporting"] = supporting_files
 

@@ -1,6 +1,7 @@
 from django.contrib.auth import logout
 from django.http import JsonResponse
 from django.shortcuts import render
+from django.urls import reverse
 from django.utils.deprecation import MiddlewareMixin
 
 from efile.models import FilingDraft
@@ -42,14 +43,27 @@ class DraftIdentityMiddleware(MiddlewareMixin):
     def process_response(self, request, response):
         draft = getattr(request, "filing_draft", None)
         if draft is not None:
+            # A targeted edit opened from the interview handoff returns to its
+            # missing-details list, instead of re-asking completed later steps.
+            targeted = request.GET.get("return_to") == "handoff" or request.POST.get("return_to") == "handoff"
+            destination = None
+            if (
+                targeted
+                and request.method == "POST"
+                and response.status_code < 400
+                and draft.status == FilingDraft.Status.DRAFT
+            ):
+                destination = reverse("handoff_review", args=[draft.pk])
             if response.has_header("Location"):
+                if destination:
+                    response["Location"] = destination
                 response["Location"] = draft_url(response["Location"], draft.pk)
             elif isinstance(response, JsonResponse):
                 import json
 
                 payload = json.loads(response.content)
                 if isinstance(payload, dict) and isinstance(payload.get("redirect_url"), str):
-                    payload["redirect_url"] = draft_url(payload["redirect_url"], draft.pk)
+                    payload["redirect_url"] = destination or draft_url(payload["redirect_url"], draft.pk)
                     response.content = json.dumps(payload)
         return response
 

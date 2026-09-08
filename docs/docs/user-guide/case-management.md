@@ -53,4 +53,7 @@ If a court clerk rejects your filing, do not panic! Filings are often rejected f
 1. Open the rejected filing in **My Cases**.
 2. Read the exact **Clerk Rejection Note** explaining why the document was returned.
 3. If you need clarification on local requirements, check the court clerk contact information provided directly on the filing details screen.
-4. Correct your PDF document, start a new filing, and re-upload the corrected form.
+4. Choose **Correct and resubmit** when available. Select the fields the clerk asked you to correct. LITEFile keeps your other answers and documents in the same matter.
+5. If the PDF needs changes, use **Return to my interview to correct a PDF**, or replace the document in LITEFile. Review the updated details and fees before submitting again.
+
+LITEFile checks the court's status before creating a correction draft. If the outcome is uncertain or part of the submission was accepted, contact the clerk before trying to file again. Filings made outside LITEFile may not have a saved draft to correct.
