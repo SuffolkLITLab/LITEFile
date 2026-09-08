@@ -78,6 +78,71 @@ def _hints(value, path):
                 _string(hint, field)
 
 
+def _scope_name(value, scope):
+    name = normalize_name(value)
+    if scope == "counties":
+        name = name.removesuffix(" county")
+    return name
+
+
+def _validate_filing_hint_overrides(payload, document_ids):
+    overrides = _object(payload.get("filing_hint_overrides", {}), "filing_hint_overrides")
+    for scope in ("counties", "courts"):
+        choices = _object(overrides.get(scope, {}), f"filing_hint_overrides.{scope}")
+        if len(choices) > 100:
+            raise HandoffError(f"filing_hint_overrides.{scope} supports up to 100 names.")
+        normalized = set()
+        for name, values in choices.items():
+            _string(name, f"filing_hint_overrides.{scope} name")
+            key = _scope_name(name, scope)
+            if not key or key in normalized:
+                raise HandoffError(f"filing_hint_overrides.{scope} names must be unique.")
+            normalized.add(key)
+            values = _object(values, f"filing_hint_overrides.{scope}.{name}")
+            _hints(values, f"filing_hint_overrides.{scope}.{name}")
+            documents = _object(values.get("documents", {}), f"filing_hint_overrides.{scope}.{name}.documents")
+            if not set(documents).issubset(document_ids):
+                raise HandoffError("Scoped document hints must use a declared document id.")
+            for document_id, document_hints in documents.items():
+                _hints(
+                    _object(
+                        document_hints,
+                        f"filing_hint_overrides.{scope}.{name}.documents.{document_id}",
+                    ),
+                    f"filing_hint_overrides.{scope}.{name}.documents.{document_id}",
+                )
+
+
+def _matching_hint_override(payload, scope, candidates):
+    choices = payload.get("filing_hint_overrides", {}).get(scope, {})
+    wanted = {_scope_name(candidate, scope) for candidate in candidates if candidate}
+    return next(
+        (values for name, values in choices.items() if _scope_name(name, scope) in wanted),
+        {},
+    )
+
+
+def effective_hints(payload, *, court_name="", document=None):
+    """Apply general, county, then court-specific semantic hint overrides."""
+    base = document if document is not None else payload
+    result = {field: list(value) for field in HINT_FIELDS if isinstance((value := base.get(field)), list)}
+    case = payload.get("case", {})
+    scopes = (
+        _matching_hint_override(payload, "counties", [case.get("county", "")]),
+        _matching_hint_override(
+            payload,
+            "courts",
+            [case.get("court_name", ""), court_name],
+        ),
+    )
+    for override in scopes:
+        selected = override.get("documents", {}).get(document.get("id", ""), {}) if document else override
+        for field in HINT_FIELDS:
+            if field in selected:
+                result[field] = list(selected[field])
+    return result
+
+
 def validate_payload(payload, source_config, files):
     _object(payload, "payload")
     if type(payload.get("schema_version")) is not int or payload["schema_version"] != 1:
@@ -98,6 +163,7 @@ def validate_payload(payload, source_config, files):
         raise HandoffError("case.existing_case must be true or false when known.")
     for field in CASE_FIELDS:
         _string(case.get(field, ""), f"case.{field}", FilingDraft._meta.get_field(field).max_length)
+    _string(case.get("county", ""), "case.county")
     _object(payload.get("known_filing_facts", {}), "known_filing_facts")
     parties = payload.get("parties", [])
     if not isinstance(parties, list) or len(parties) > 100:
@@ -167,6 +233,7 @@ def validate_payload(payload, source_config, files):
         raise HandoffError("A document bundle needs exactly one lead PDF.")
     if set(files) != ids or any(len(files.getlist(key)) != 1 for key in files):
         raise HandoffError("Upload each declared document exactly once.")
+    _validate_filing_hint_overrides(payload, ids)
     return payload
 
 
@@ -296,12 +363,13 @@ def resolve_metadata(draft):
     choose(draft, "court_code", _codes(draft.jurisdiction, "", with_names=True), court_hints(draft, payload))
     if not draft.court_code:
         return
+    payload_hints = effective_hints(payload, court_name=draft.court_name)
     timing = "Subsequent" if draft.existing_case == ExistingCase.EXISTING else "Initial"
     choose(
         draft,
         "case_category_code",
         _codes(draft.jurisdiction, f"{draft.court_code}/categories", timing=timing, fileable_only=True),
-        intent.get("case_category_name_aliases", []) + payload.get("case_category_name_hints", []),
+        intent.get("case_category_name_aliases", []) + payload_hints.get("case_category_name_hints", []),
     )
     if not draft.case_category_code:
         return
@@ -311,7 +379,7 @@ def resolve_metadata(draft):
         _codes(
             draft.jurisdiction, f"{draft.court_code}/case_types/", category_id=draft.case_category_code, timing=timing
         ),
-        intent.get("case_type_name_aliases", []) + payload.get("case_type_name_hints", []),
+        intent.get("case_type_name_aliases", []) + payload_hints.get("case_type_name_hints", []),
     )
     if not draft.case_type_code:
         return
@@ -325,6 +393,7 @@ def resolve_metadata(draft):
     for document in draft.documents.all():
         suggestion = draft.metadata_events.filter(path=f"documents.{document.pk}", kind="source_suggestion").first()
         hints = suggestion.value if suggestion else {}
+        document_hints = effective_hints(payload, court_name=draft.court_name, document=hints)
         curated = intent.get("documents", {}).get(hints.get("id", ""), {})
         choose(
             document,
@@ -332,9 +401,9 @@ def resolve_metadata(draft):
             options,
             curated.get("filing_type_name_aliases", [])
             + (
-                hints.get("filing_type_name_hints", [])
+                document_hints.get("filing_type_name_hints", [])
                 or (
-                    intent.get("filing_type_name_aliases", []) + payload.get("filing_type_name_hints", [])
+                    intent.get("filing_type_name_aliases", []) + payload_hints.get("filing_type_name_hints", [])
                     if document.role == "lead"
                     else [hints.get("form_name", "")]
                 )
@@ -348,7 +417,12 @@ def resolve_metadata(draft):
                 choices = _codes(
                     draft.jurisdiction, f"{draft.court_code}/filing_types/{document.filing_type_code}/{endpoint}"
                 )
-                choose(document, field, choices, hints.get(field.replace("_code", "_name_hints"), []))
+                choose(
+                    document,
+                    field,
+                    choices,
+                    document_hints.get(field.replace("_code", "_name_hints"), []),
+                )
     party_options = _codes(draft.jurisdiction, f"{draft.court_code}/case_types/{draft.case_type_code}/party_types")
     for party in draft.parties.all():
         if party.role == "filer" and not (party.is_self or party.is_filing_party):

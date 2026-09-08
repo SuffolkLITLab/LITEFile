@@ -121,6 +121,52 @@ suggestions remain in the receipt; numeric suggestions never populate resolved
 court-code fields. Supported questionnaire answers `has_children` and
 `child_count` also populate their normal filing fields.
 
+### County-specific and court-specific hints
+
+Use `filing_hint_overrides` when a semantic name is correct in one filing
+location and wrong in another. Matching county values replace general hints
+field by field. Matching court values apply afterward and replace the county
+value for the same field. Fields that an override omits continue using the less
+specific value.
+
+```json
+{
+  "case_category_name_hints": ["Civil"],
+  "case_type_name_hints": ["General case type"],
+  "filing_hint_overrides": {
+    "counties": {
+      "Cook": {
+        "case_type_name_hints": ["Cook County case type"],
+        "documents": {
+          "complaint": {
+            "filing_type_name_hints": ["Cook County complaint"]
+          }
+        }
+      }
+    },
+    "courts": {
+      "First Municipal District": {
+        "case_category_name_hints": ["Court-specific category"],
+        "documents": {
+          "complaint": {
+            "filing_type_name_hints": ["Court-specific complaint"],
+            "document_type_name_hints": ["Court-specific document type"],
+            "filing_component_name_hints": ["Court-specific lead document"]
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+County keys match `case.county`; they may include or omit the word `County`.
+Court keys match either the source's `case.court_name` or the official court
+name resolved from live metadata. Matching ignores capitalization and ordinary
+name punctuation. Scoped `documents` keys must be document IDs declared in the
+same request. Names remain semantic suggestions: LITEFile only saves a code
+when exactly one live option matches.
+
 ## Response, continuation, and retries
 
 A new receipt returns HTTP 201. An identical retry returns HTTP 200 with the same

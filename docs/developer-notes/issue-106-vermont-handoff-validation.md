@@ -100,8 +100,8 @@ minor-specific semantic hint was verified by a sender unit test.
 
 ## Final automated checks
 
-- LITEFile: `uv run pytest -q` — 782 passed.
-- Vermont sender: `python -m pytest -q tests/test_litefile.py` — 16 passed.
+- LITEFile: `uv run pytest -q` — 784 passed.
+- Vermont sender: `python -m pytest -q tests/test_litefile.py` — 17 passed.
 - LITEFile: `uv run ruff check .` and `uv run ty check` — passed.
 - Django: `makemigrations --check --dry-run` — no model drift; migration 0023
   was applied to the isolated test database.
@@ -179,7 +179,7 @@ Installed the refactored adapter on the running Docassemble server and verified:
 - Retrying the correction kept one replacement receipt and two total transfer
   caches (initial and correction).
 - Text extraction from the stored affidavit confirmed the new correction text.
-- Sixteen adapter tests, Ruff, whitespace checks, and the documentation build
+- Seventeen adapter tests, Ruff, whitespace checks, and the documentation build
   pass.
 
 The reusable person helper defaults to the standard AssemblyLine and
@@ -190,6 +190,15 @@ keyword-only `fields` mapping for different object shapes and tests can replace
 The final live retry used the flat `litefile` server configuration and logged an
 empty argument mapping for `litefile_upload`. Credentials, correction tokens,
 and interview answers therefore remained outside the background job arguments.
+
+Follow-up contract tests cover county and court-specific semantic hints. They
+verify court-over-county-over-general precedence across case categories, case
+types, filing types, document types, and filing components. Validation rejects
+unknown document IDs and county keys that normalize to the same name. The
+sender test confirms that the declarative override mapping reaches the payload.
+The updated interview was also reinstalled and completed another live
+background handoff: draft 11 received four PDFs plus the default empty county
+and court override maps, and the success screen cleared the pending task.
 
 The first attempt encountered a stopped LocalStack container and a recoverable
 HTTP 503. Restarting local storage allowed the same cached transfer to succeed.

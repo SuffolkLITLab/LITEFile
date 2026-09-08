@@ -7,7 +7,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 
 from efile.models import FilingDraft, InterviewHandoff
-from efile.services.handoff import HandoffError, create_correction, resolve_metadata, unique_match
+from efile.services.handoff import HandoffError, create_correction, effective_hints, resolve_metadata, unique_match
 
 pytestmark = pytest.mark.django_db
 PDF = b"%PDF-1.4\nsynthetic test document"
@@ -157,6 +157,72 @@ def test_live_resolution_and_user_override_provenance(client, source, payload, s
     doc.save()
     assert draft.metadata_events.filter(kind="user_edit", path=f"documents.{doc.pk}.filing_type_code").exists()
     assert InterviewHandoff.objects.get().payload["documents"][0]["filing_type_code"] == "9999"
+
+
+def test_county_and_court_hint_overrides_replace_general_hints(client, source, payload, storage):
+    payload["case"]["county"] = "Cook County"
+    payload["filing_hint_overrides"] = {
+        "counties": {
+            "Cook": {
+                "case_category_name_hints": ["County category"],
+                "case_type_name_hints": ["County case type"],
+                "documents": {"complaint": {"document_type_name_hints": ["County confidential"]}},
+            }
+        },
+        "courts": {
+            "Test Family Court": {
+                "case_category_name_hints": ["Court category"],
+                "documents": {
+                    "complaint": {
+                        "filing_type_name_hints": ["Court complaint"],
+                        "filing_component_name_hints": ["Court lead"],
+                    }
+                },
+            }
+        },
+    }
+    assert effective_hints(payload, court_name="Test family court")["case_category_name_hints"] == ["Court category"]
+    send(client, source, payload)
+    draft = FilingDraft.objects.get()
+
+    def codes(jurisdiction, path, **params):
+        return {
+            "": [{"code": "vt", "name": "Test family court"}],
+            "vt/categories": [
+                {"code": "county", "name": "County category"},
+                {"code": "court", "name": "Court category"},
+            ],
+            "vt/case_types/": [{"code": "county-type", "name": "County case type"}],
+            "vt/filing_types/": [{"code": "court-filing", "name": "Court complaint"}],
+            "vt/filing_types/court-filing/document_types": [
+                {"code": "county-confidential", "name": "County confidential"}
+            ],
+            "vt/filing_types/court-filing/filing_components": [{"code": "court-lead", "name": "Court lead"}],
+        }.get(path, [])
+
+    with patch("efile.services.handoff._codes", side_effect=codes):
+        resolve_metadata(draft)
+    draft.refresh_from_db()
+    document = draft.documents.get()
+    assert draft.case_category_code == "court"
+    assert draft.case_type_code == "county-type"
+    assert document.filing_type_code == "court-filing"
+    assert document.document_type_code == "county-confidential"
+    assert document.filing_component_code == "court-lead"
+
+
+def test_scoped_hints_reject_unknown_documents_and_duplicate_counties(client, source, payload, storage):
+    payload["filing_hint_overrides"] = {
+        "counties": {"Cook": {"documents": {"missing": {"filing_type_name_hints": ["Complaint"]}}}}
+    }
+    assert send(client, source, payload).status_code == 400
+    payload["filing_hint_overrides"] = {
+        "counties": {
+            "Cook": {"case_type_name_hints": ["One"]},
+            "Cook County": {"case_type_name_hints": ["Two"]},
+        }
+    }
+    assert send(client, source, payload).status_code == 400
 
 
 def test_correction_preserves_snapshot_and_blocks_ambiguous_attempts(
