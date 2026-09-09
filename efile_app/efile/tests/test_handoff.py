@@ -234,7 +234,17 @@ def test_correction_preserves_snapshot_and_blocks_ambiguous_attempts(
     draft.save()
     doc = draft.documents.get()
     doc.filing_type_code = "old"
+    doc.filing_type_name = "Old filing type"
+    doc.document_type_name = "Old document type"
+    doc.filing_component_name = "Old filing component"
     doc.save()
+    party = draft.parties.get()
+    party.party_type = "PET"
+    party.party_type_name = "Petitioner"
+    party.save()
+    draft.case_category_name = "Family"
+    draft.case_type_name = "Relief from abuse"
+    draft.save()
     with pytest.raises(HandoffError):
         create_correction(draft, {"status": "rejected"}, [f"documents.{doc.pk}.filing_type_code"])
     draft.mark_submitted({"filing_id": "confirmed"})
@@ -250,6 +260,32 @@ def test_correction_preserves_snapshot_and_blocks_ambiguous_attempts(
     assert draft.documents.get().filing_type_code == "old"
     assert create_correction(draft, {"status": "rejected"}, ["documents"]).pk == revision.pk
     assert revision.selected_payment_account_id == ""
+
+
+def test_scoped_correction_clears_dependent_names(client, source, payload, storage, django_user_model):
+    send(client, source, payload)
+    draft = FilingDraft.objects.get()
+    draft.user = login(client, django_user_model)
+    draft.case_category_name = "Family"
+    draft.case_type_name = "Relief from abuse"
+    draft.save()
+    document = draft.documents.get()
+    document.filing_type_name = "Old filing type"
+    document.document_type_name = "Old document type"
+    document.filing_component_name = "Old filing component"
+    document.save()
+    party = draft.parties.get()
+    party.party_type_name = "Petitioner"
+    party.save()
+    draft.mark_submitted({"filing_id": "confirmed"})
+    scoped = create_correction(draft, {"status": "rejected"}, ["court_code"])
+    scoped_document = scoped.documents.get()
+    assert scoped.case_category_name == ""
+    assert scoped.case_type_name == ""
+    assert scoped_document.filing_type_name == ""
+    assert scoped_document.document_type_name == ""
+    assert scoped_document.filing_component_name == ""
+    assert scoped.parties.get().party_type_name == ""
 
 
 def test_replacement_retains_metadata_and_is_idempotent(client, source, payload, storage, django_user_model):
@@ -374,7 +410,21 @@ def test_correction_api_rejects_partly_accepted_submission(client, django_user_m
     ):
         response = client.post(reverse("correct_filing", args=[draft.pk]), {"fields": ["documents"]})
     assert response.status_code == 409
+    assert b"The court has not confirmed a clerk return for every filing in this submission." in response.content
+    assert b"What needs a correction?" not in response.content
     assert not FilingDraft.objects.filter(correction_of=draft).exists()
+
+
+def test_non_metadata_save_does_not_fetch_previous_metadata(client, source, payload, storage, django_user_model):
+    send(client, source, payload)
+    draft = FilingDraft.objects.get()
+    draft.user = login(client, django_user_model)
+    draft.save()
+    document = draft.documents.get()
+    with patch("efile.signals.FilingDocument.objects.filter") as existing:
+        document.name = "Renamed document"
+        document.save(update_fields=["name"])
+    existing.assert_not_called()
 
 
 def test_correction_attempts_share_the_remote_case_group(django_user_model):

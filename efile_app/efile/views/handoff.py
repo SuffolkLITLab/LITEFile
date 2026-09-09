@@ -246,6 +246,7 @@ def handoff_review(request, draft_id):
 
 @require_http_methods(["GET", "POST"])
 def correct_filing(request, draft_id):
+    draft = None
     try:
         draft = _owned(request, draft_id)
         if not get_tyler_token(request, draft.jurisdiction):
@@ -299,10 +300,15 @@ def correct_filing(request, draft_id):
         choices.extend((f"parties.{party.pk}.party_type", f"{party}: party type") for party in draft.parties.all())
         return render(request, "efile/correct_filing.html", {"draft": draft, "detail": detail, "choices": choices})
     except HandoffError as exc:
-        return JsonResponse({"error": str(exc)}, status=exc.status)
+        return render(request, "efile/correct_filing.html", {"draft": draft, "error": str(exc)}, status=exc.status)
 
     except (requests.RequestException, ValueError, TypeError):
-        return JsonResponse({"error": "The court status is unavailable. Try checking it again later."}, status=503)
+        return render(
+            request,
+            "efile/correct_filing.html",
+            {"draft": draft, "error": "The court status is unavailable. Try checking it again later."},
+            status=503,
+        )
 
 
 @require_http_methods(["POST"])

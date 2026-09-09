@@ -613,11 +613,19 @@ def create_correction(draft, detail, fields):
     if any(field in fields for field in ("court_code", "case_category_code", "case_type_code")):
         if "court_code" in fields:
             revision.case_category_code = ""
+            revision.case_category_name = ""
         revision.case_type_code = ""
+        revision.case_type_name = ""
         revision.documents.update(
-            filing_type_code="", document_type_code="", filing_component_code="", requested_optional_services=[]
+            filing_type_code="",
+            filing_type_name="",
+            document_type_code="",
+            document_type_name="",
+            filing_component_code="",
+            filing_component_name="",
+            requested_optional_services=[],
         )
-        revision.parties.update(party_type="")
+        revision.parties.update(party_type="", party_type_name="")
         revision.optional_services = []
     revision.correction_fields = revised_fields
     revision.save()

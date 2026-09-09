@@ -34,6 +34,10 @@ def remember_metadata_before_edit(sender, instance, **kwargs):
     if not instance.pk:
         instance._metadata_before = None
         return
+    update_fields = kwargs.get("update_fields")
+    if update_fields is not None and not set(update_fields).intersection(_METADATA_FIELDS[sender]):
+        instance._metadata_before = None
+        return
     instance._metadata_before = sender.objects.filter(pk=instance.pk).values(*_METADATA_FIELDS[sender]).first()
 
 
