@@ -123,14 +123,16 @@ LITEFile generates a **customized document checklist** based on your specific co
   alt="Step 6: Document checklist"
   className="doc-screenshot"
 />
-<p className="screenshot-caption">Figure 6: Dynamic checklist showing required, standard, and conditional documents.</p>
+<p className="screenshot-caption">Figure 6: Checklist of documents that are commonly included, often included, or may apply.</p>
 
-The checklist groups documents into clear categories:
-- **Always needed**: Critical documents required to open the case (e.g., *Request for Name Change*).
-- **Usually needed**: Standard documents expected in most cases of this type (e.g., *Proposed Order*, *Notice of Hearing*).
-- **Sometimes needed**: Conditional documents depending on specific facts (e.g., *Publication Notice*, *Fee Waiver Application*).
+The checklist is a guide to documents that often go with filings like yours. It groups them into categories:
+- **Commonly included**: Documents most filings like this include (e.g., *Request for Name Change*).
+- **Often included**: Standard documents included in many filings of this type (e.g., *Proposed Order*, *Notice of Hearing*).
+- **May apply**: Documents that depend on your situation (e.g., *Publication Notice*, *Fee Waiver Application*).
 
-For each item, you can indicate:
+Depending on your situation, you may need other documents, or some of these may not apply. You don't have to check anything off to continue.
+
+If it helps, you can mark each item:
 - *I have it now*
 - *I already filed this*
 - *I will file it later*
