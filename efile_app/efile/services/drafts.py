@@ -485,22 +485,31 @@ def write_upload_data(
         # does not send would be lost. A document's answer to a checklist item
         # is one such thing, and it belongs to the file rather than to the row
         # that happens to describe it, so it is carried across by storage key.
-        claimed_items = {
-            document.s3_key: document.checklist_item_id
-            for document in FilingDocument.objects.filter(draft=draft, role=FilingDocument.Role.SUPPORTING).exclude(
-                checklist_item_id=""
-            )
+        previous = [
+            document
+            for document in FilingDocument.objects.filter(draft=draft, role=FilingDocument.Role.SUPPORTING)
             if document.s3_key
-        }
+        ]
+        claimed_items = {document.s3_key: document.checklist_item_id for document in previous}
+        # Handoff provenance and pending corrections are keyed by row id, so
+        # they follow the file to its rebuilt row the same way.
+        previous_ids = {document.s3_key: document.pk for document in previous}
         FilingDocument.objects.filter(draft=draft, role=FilingDocument.Role.SUPPORTING).delete()
         for index, file_obj in enumerate(supporting_files):
             config = supporting_configs[index] if index < len(supporting_configs) else {}
             _upsert_document(draft, FilingDocument.Role.SUPPORTING, index, file_obj or {}, config or {})
+        moved = {}
         for document in FilingDocument.objects.filter(draft=draft, role=FilingDocument.Role.SUPPORTING):
             item_id = claimed_items.get(document.s3_key, "")
             if item_id:
                 document.checklist_item_id = item_id
                 document.save(update_fields=["checklist_item_id", "updated_at"])
+            if document.s3_key in previous_ids:
+                moved[previous_ids[document.s3_key]] = document.pk
+        if moved:
+            from efile.services.handoff import carry_document_paths
+
+            carry_document_paths(draft, moved)
 
     if current_step is not None and draft.current_step != str(current_step):
         draft.current_step = str(current_step)

@@ -115,7 +115,8 @@ merges into the filer row, preserving collected contact details.
 mean the person operating the browser is necessarily a party.
 
 Documents use stable source IDs, `lead` or `supporting` roles, and SHA-256 hashes.
-A nonempty bundle must contain exactly one lead. The limits are 20 PDFs, 10 MB
+A nonempty handoff bundle must contain exactly one lead; the lead can appear
+anywhere in the list. The limits are 20 PDFs, 10 MB
 per PDF, 100 parties, and 512 KB of JSON metadata. Unknown source facts and numeric
 suggestions remain in the receipt; numeric suggestions never populate resolved
 court-code fields. Supported questionnaire answers `has_children` and
@@ -237,13 +238,19 @@ same revision. Filing history groups the attempts together, including returns
 that occurred before a court assigned a case number.
 
 For substantive PDF changes, use **Return to my interview to correct a PDF**.
+A filer without an interview can instead upload the corrected PDF in LITEFile.
+Either way, the **PDF contents** correction is complete once a PDF differs from
+the returned filing.
 LITEFile adds an expiring `litefile_correction` parameter to the approved return
 URL. Docassemble resumes the existing interview. After the filer edits the
 answers, the sender posts the updated PDFs to `/api/handoffs/v1/documents/`,
 with its normal source headers and `X-LITEFile-Correction: <token>`.
 
 The replacement request uses the original `source_id`, stable document IDs,
-updated hashes, and a replacement idempotency key. It changes PDF storage
+updated hashes, and a replacement idempotency key. It sends only the documents
+that changed, so it can replace a supporting PDF without resending the lead; it
+can include at most one lead. Document IDs keep working after the filer
+reorganizes documents in LITEFile. It changes PDF storage
 references, retains the draft's filing metadata, records the replacement, and
 invalidates its fee quote. It cannot modify submitted or uncertain attempts.
 Other source answers in a replacement request do not overwrite the filer's

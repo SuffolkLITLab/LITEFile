@@ -22,6 +22,7 @@ from efile.services.filings import describe_filing_detail, fetch_filing_detail
 from efile.services.handoff import (
     HandoffError,
     create_correction,
+    documents_replaced,
     fingerprint,
     issues_for,
     populate,
@@ -48,7 +49,7 @@ def _source(request):
     return source, config
 
 
-def _read(request, config):
+def _read(request, config, *, require_lead=True):
     try:
         raw = request.POST.get("payload", "") if request.content_type == "multipart/form-data" else request.body
         if len(raw) > 512 * 1024:
@@ -56,7 +57,7 @@ def _read(request, config):
         payload = json.loads(raw)
     except (ValueError, UnicodeDecodeError) as exc:
         raise HandoffError("Send a JSON payload, with multipart PDF files when present.") from exc
-    return validate_payload(payload, config, request.FILES)
+    return validate_payload(payload, config, request.FILES, require_lead=require_lead)
 
 
 def _response(request, receipt, *, created=False):
@@ -206,7 +207,7 @@ def handoff_review(request, draft_id):
                     row = getattr(draft, parts[0]).filter(pk=parts[1]).first()
                     value = getattr(row, parts[2], "")
                 else:
-                    value = getattr(draft, path, "") if path != "documents" else ""
+                    value = getattr(draft, path, "") if path != "documents" else documents_replaced(draft)
                 if not value:
                     remaining.append(path)
                 else:
@@ -336,7 +337,8 @@ def replace_documents(request):
     keys = []
     try:
         source, config = _source(request)
-        payload = _read(request, config)
+        # A correction may replace only the supporting PDF the clerk flagged.
+        payload = _read(request, config, require_lead=False)
         token = request.headers.get("X-LITEFile-Correction", "")
         try:
             scope = signing.loads(token, salt=REPLACE_SALT, max_age=settings.LITEFILE_HANDOFF_TOKEN_MAX_AGE)

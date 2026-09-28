@@ -48,7 +48,8 @@ def record_metadata_edit(sender, instance, update_fields=None, **kwargs):
     from efile.services.handoff import receipt_for, record
 
     before = getattr(instance, "_metadata_before", None)
-    if before is None or getattr(instance, "_metadata_kind", "") == "live_resolution":
+    # Live resolutions and clerk corrections record their own provenance.
+    if before is None or getattr(instance, "_metadata_kind", ""):
         return
     changes = {
         field: {"before": previous, "after": getattr(instance, field)}

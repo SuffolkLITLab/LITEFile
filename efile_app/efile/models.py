@@ -191,7 +191,7 @@ class FilingDraft(models.Model):
         related_name="filing_drafts",
     )
     correction_of = models.OneToOneField(
-        "self", null=True, blank=True, on_delete=models.PROTECT, related_name="correction"
+        "self", null=True, blank=True, on_delete=models.RESTRICT, related_name="correction"
     )
     submission_snapshot = models.JSONField(default=dict, blank=True)
     clerk_return = models.JSONField(default=dict, blank=True)

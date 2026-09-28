@@ -143,7 +143,7 @@ def effective_hints(payload, *, court_name="", document=None):
     return result
 
 
-def validate_payload(payload, source_config, files):
+def validate_payload(payload, source_config, files, *, require_lead=True):
     _object(payload, "payload")
     if type(payload.get("schema_version")) is not int or payload["schema_version"] != 1:
         raise HandoffError("Supported schema_version: 1.")
@@ -229,7 +229,7 @@ def validate_payload(payload, source_config, files):
         uploaded.seek(0)
         if digest.hexdigest() != document.get("sha256"):
             raise HandoffError(f"Document hash mismatch: {key}.")
-    if leads > 1 or (documents and leads != 1):
+    if leads > 1 or (require_lead and documents and leads != 1):
         raise HandoffError("A document bundle needs exactly one lead PDF.")
     if set(files) != ids or any(len(files.getlist(key)) != 1 for key in files):
         raise HandoffError("Upload each declared document exactly once.")
@@ -260,6 +260,29 @@ def _person(draft, values, role, order):
     )
 
 
+def carry_document_paths(draft, moved):
+    """Keep provenance and pending corrections on a document whose row was rebuilt.
+
+    ``moved`` maps each old row id to its replacement. Every path is mapped once
+    from its original id, so ids a database reuses cannot chain.
+    """
+
+    def carried(path):
+        parts = path.split(".")
+        if len(parts) >= 2 and parts[0] == "documents" and parts[1].isdigit() and int(parts[1]) in moved:
+            parts[1] = str(moved[int(parts[1])])
+        return ".".join(parts)
+
+    for event in draft.metadata_events.filter(path__startswith="documents."):
+        path = carried(event.path)
+        if path != event.path:
+            FilingMetadataEvent.objects.filter(pk=event.pk).update(path=path)
+    fields = [carried(path) for path in draft.correction_fields]
+    if fields != draft.correction_fields:
+        draft.correction_fields = fields
+        FilingDraft.objects.filter(pk=draft.pk).update(correction_fields=fields)
+
+
 def populate(draft, payload, uploads):
     case = payload.get("case", {})
     for field in CASE_FIELDS:
@@ -288,12 +311,15 @@ def populate(draft, payload, uploads):
             row.save()
         else:
             _person(draft, party, "other", i)
-    for i, document in enumerate(payload.get("documents", [])):
+    # Number documents within their role, as the upload screens do; the lead is
+    # always sort_order 0 wherever the source listed it.
+    order = {"lead": 0, "supporting": 0}
+    for document in payload.get("documents", []):
         uploaded = uploads[document["id"]]
         row = FilingDocument.objects.create(
             draft=draft,
             role=document["role"],
-            sort_order=i,
+            sort_order=order[document["role"]],
             name=document.get("form_name") or uploaded["filename"],
             original_filename=uploaded["filename"],
             size=uploaded["size"],
@@ -301,6 +327,7 @@ def populate(draft, payload, uploads):
             s3_key=uploaded["key"],
             public_url=uploaded["url"],
         )
+        order[document["role"]] += 1
         record(draft, f"documents.{row.pk}", "source_suggestion", document)
     record(draft, "handoff", "source_suggestion", payload)
 
@@ -439,6 +466,14 @@ def resolve_metadata(draft):
         choose(party, "party_type", party_options, hints)
 
 
+def documents_replaced(draft):
+    """Whether the filer has swapped in a PDF the returned filing did not have."""
+    if not draft.correction_of_id:
+        return False
+    returned = set(draft.correction_of.documents.values_list("s3_key", flat=True))
+    return any(key not in returned for key in draft.documents.values_list("s3_key", flat=True))
+
+
 def issues_for(draft):
     """Editable requirements, not a claim that the final EFSP payload is valid."""
     issues = []
@@ -515,7 +550,7 @@ def issues_for(draft):
         "Choose a payment method or fee waiver and check fees.",
         "payment",
     )
-    if "documents" in draft.correction_fields and draft.documents.exists():
+    if "documents" in draft.correction_fields and draft.documents.exists() and not documents_replaced(draft):
         need("documents", False, "Replace the PDF the clerk asked you to correct.", "upload_documents")
     return issues
 
@@ -535,6 +570,8 @@ def create_correction(draft, detail, fields):
         "returned",
     }:
         raise HandoffError("Only a confirmed clerk return can be corrected. Check the filing status first.", status=409)
+    # Court responses carry datetimes, which JSONField cannot store as-is.
+    detail = json.loads(json.dumps(detail, cls=DjangoJSONEncoder))
     existing = FilingDraft.objects.filter(correction_of=original).first()
     if existing:
         return existing
@@ -570,6 +607,8 @@ def create_correction(draft, detail, fields):
         selected_payment_account_type="",
     )
     revision = FilingDraft.objects.create(**values, correction_of=original, clerk_return=detail)
+    # These clearings are recorded below as clerk_correction, not user_edit.
+    revision._metadata_kind = "clerk_correction"
     mapping = {}
     for relation in ("documents", "parties"):
         for row in getattr(original, relation).all():
@@ -595,6 +634,7 @@ def create_correction(draft, detail, fields):
         parts = path.split(".")
         if len(parts) == 3:
             obj = getattr(revision, parts[0]).get(pk=parts[1])
+            obj._metadata_kind = "clerk_correction"
             setattr(obj, parts[2], "")
             name_field = parts[2].replace("_code", "_name") if parts[2] != "party_type" else "party_type_name"
             setattr(obj, name_field, "")
@@ -614,21 +654,25 @@ def create_correction(draft, detail, fields):
         if "court_code" in fields:
             revision.case_category_code = ""
             revision.case_category_name = ""
-        revision.case_type_code = ""
-        revision.case_type_name = ""
-        revision.documents.update(
-            filing_type_code="",
-            filing_type_name="",
-            document_type_code="",
-            document_type_name="",
-            filing_component_code="",
-            filing_component_name="",
-            requested_optional_services=[],
-        )
-        revision.parties.update(party_type="", party_type_name="")
+        for field in ("case_type_code", "case_type_name", "case_subtype_code", "case_subtype_name"):
+            setattr(revision, field, "")
+        for document in revision.documents.all():
+            document._metadata_kind = "clerk_correction"
+            for field in ("filing_type", "document_type", "filing_component"):
+                setattr(document, f"{field}_code", "")
+                setattr(document, f"{field}_name", "")
+            document.requested_optional_services = []
+            document.save()
+        for party in revision.parties.all():
+            party._metadata_kind = "clerk_correction"
+            party.party_type = ""
+            party.party_type_name = ""
+            party.save()
         revision.optional_services = []
     revision.correction_fields = revised_fields
+    # FilingDraft.save() copies the (now cleared) lead filing type into the summary.
     revision.save()
+    del revision._metadata_kind
     return revision
 
 

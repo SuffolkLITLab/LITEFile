@@ -533,3 +533,142 @@ def test_dev_submission_confirmation_uses_envelope_reference():
         )
         == "envelope-1"
     )
+
+
+def send_with_exhibit(client, source, payload):
+    """Send the lead after a supporting exhibit, as a source may order them."""
+    payload["documents"].insert(
+        0,
+        {"id": "exhibit", "role": "supporting", "form_name": "Exhibit A", "sha256": hashlib.sha256(PDF).hexdigest()},
+    )
+    return client.post(
+        reverse("external_handoff"),
+        {
+            "payload": json.dumps(payload),
+            "complaint": SimpleUploadedFile("complaint.pdf", PDF, "application/pdf"),
+            "exhibit": SimpleUploadedFile("exhibit.pdf", PDF, "application/pdf"),
+        },
+        **source,
+    )
+
+
+def test_correction_stores_court_timestamps(client, source, payload, storage, django_user_model):
+    from datetime import UTC, datetime
+
+    send(client, source, payload)
+    draft = FilingDraft.objects.get()
+    draft.user = login(client, django_user_model)
+    draft.save()
+    draft.mark_submitted({"filing_id": "confirmed"})
+    submitted = datetime(2026, 9, 1, 12, tzinfo=UTC)
+    revision = create_correction(draft, {"status": "rejected", "submitted_at": submitted}, ["documents"])
+    revision.refresh_from_db()
+    assert revision.clerk_return["submitted_at"].startswith("2026-09-01T12:00:00")
+
+
+def test_lead_listed_second_is_not_duplicated_by_upload_screens(client, source, payload, storage):
+    from efile.services.drafts import read_upload_data, write_upload_data
+
+    send_with_exhibit(client, source, payload)
+    draft = FilingDraft.objects.get()
+    assert draft.documents.get(role="lead").sort_order == 0
+    write_upload_data(draft, read_upload_data(draft))
+    assert draft.documents.filter(role="lead").count() == 1
+
+
+def test_supporting_pdf_can_be_replaced_alone_after_organizing(client, source, payload, storage, django_user_model):
+    from urllib.parse import parse_qs, urlsplit
+
+    from efile.services.drafts import read_upload_data, write_upload_data
+
+    storage.upload_file.side_effect = lambda file, **kwargs: {
+        "success": True,
+        "key": f"private/{file.name}",
+        "url": "https://s3.example/signed",
+        "filename": file.name,
+        "size": len(PDF),
+    }
+    send_with_exhibit(client, source, payload)
+    draft = FilingDraft.objects.get()
+    draft.user = login(client, django_user_model)
+    draft.save()
+    old_pk = draft.documents.get(role="supporting").pk
+    write_upload_data(draft, read_upload_data(draft))
+    exhibit = draft.documents.get(role="supporting")
+    assert draft.metadata_events.filter(path=f"documents.{exhibit.pk}", kind="source_suggestion").exists()
+    if exhibit.pk != old_pk:
+        assert not draft.metadata_events.filter(path=f"documents.{old_pk}").exists()
+
+    response = client.post(reverse("return_to_interview", args=[draft.pk]))
+    token = parse_qs(urlsplit(response.url).query)["litefile_correction"][0]
+    payload["idempotency_key"] = "replace-exhibit"
+    payload["documents"] = [payload["documents"][0]]
+    response = client.post(
+        reverse("handoff_replace_documents"),
+        {"payload": json.dumps(payload), "exhibit": SimpleUploadedFile("exhibit-v2.pdf", PDF)},
+        **source,
+        HTTP_X_LITEFILE_CORRECTION=token,
+    )
+    assert response.status_code == 200, response.json()
+    assert draft.documents.get(role="supporting").s3_key == "private/exhibit-v2.pdf"
+
+
+def test_pdf_correction_is_resolved_by_uploading_in_litefile(client, source, payload, storage, django_user_model):
+    from efile.services.drafts import read_upload_data, write_upload_data
+    from efile.services.handoff import issues_for
+
+    send(client, source, payload)
+    draft = FilingDraft.objects.get()
+    draft.user = login(client, django_user_model)
+    draft.save()
+    draft.mark_submitted({"filing_id": "confirmed"})
+    revision = create_correction(draft, {"status": "rejected"}, ["documents"])
+    message = "Replace the PDF the clerk asked you to correct."
+    assert message in [issue["message"] for issue in issues_for(revision)]
+    data = read_upload_data(revision)
+    data["files"]["lead"]["s3_key"] = "private/corrected.pdf"
+    write_upload_data(revision, data)
+    assert message not in [issue["message"] for issue in issues_for(revision)]
+    client.post(reverse("handoff_review", args=[revision.pk]), {"action": "confirm"})
+    revision.refresh_from_db()
+    assert "documents" not in revision.correction_fields
+
+
+def test_court_correction_clears_dependent_names_without_user_edits(
+    client, source, payload, storage, django_user_model
+):
+    send(client, source, payload)
+    draft = FilingDraft.objects.get()
+    draft.user = login(client, django_user_model)
+    draft.court_code, draft.case_category_code, draft.case_category_name = "court", "cat", "Family"
+    draft.case_type_code, draft.case_type_name = "type", "Relief from abuse"
+    draft.save()
+    doc = draft.documents.get()
+    doc.filing_type_code, doc.filing_type_name = "ft", "Complaint"
+    doc.document_type_code, doc.document_type_name = "dt", "Lead"
+    doc.save()
+    party = draft.parties.get()
+    party.party_type, party.party_type_name = "pt", "Plaintiff"
+    party.save()
+    draft.mark_submitted({"filing_id": "confirmed"})
+    revision = create_correction(draft, {"status": "rejected"}, ["court_code"])
+    revision.refresh_from_db()
+    assert (revision.case_category_name, revision.case_type_name) == ("", "")
+    assert (revision.filing_type_code, revision.filing_type_name) == ("", "")
+    doc = revision.documents.get()
+    assert (doc.filing_type_name, doc.document_type_name) == ("", "")
+    assert revision.parties.get().party_type_name == ""
+    original_edits = draft.metadata_events.filter(kind="user_edit").count()
+    assert revision.metadata_events.filter(kind="user_edit").count() == original_edits
+
+
+def test_user_with_a_correction_draft_can_be_deleted(client, source, payload, storage, django_user_model):
+    send(client, source, payload)
+    draft = FilingDraft.objects.get()
+    user = login(client, django_user_model)
+    draft.user = user
+    draft.save()
+    draft.mark_submitted({"filing_id": "confirmed"})
+    create_correction(draft, {"status": "rejected"}, ["documents"])
+    user.delete()
+    assert not FilingDraft.objects.exists()
