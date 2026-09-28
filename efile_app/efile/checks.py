@@ -66,12 +66,13 @@ def configured_ui_text_keys_are_known(app_configs, **kwargs):
     should not be blocked by a paragraph that reverts to its default.
     """
     from efile.utils.config_loader import config_loader
-    from efile.utils.ui_text import UI_STRINGS, config_overrides
+    from efile.utils.ui_text import UI_STRINGS, config_overrides, has_markdown_link
 
     problems = []
     for jurisdiction in config_loader.get_available_jurisdictions():
         config = config_loader.load_jurisdiction_config(jurisdiction) or {}
-        for key in sorted(config_overrides(config)):
+        overrides = config_overrides(config)
+        for key in sorted(overrides):
             if key not in UI_STRINGS:
                 problems.append(
                     Warning(
@@ -81,6 +82,19 @@ def configured_ui_text_keys_are_known(app_configs, **kwargs):
                             "the key there with an English default if this is new copy."
                         ),
                         id="efile.W002",
+                    )
+                )
+            elif not UI_STRINGS[key].links and has_markdown_link(str(overrides[key])):
+                # Shown as its words only: a link in a label, a question, or a
+                # script-rendered string is a control no one can use.
+                problems.append(
+                    Warning(
+                        f"{jurisdiction}.yaml puts a link in text.{key}, which cannot show one.",
+                        hint=(
+                            "Links work only in longer passages (keys marked links=True in "
+                            "efile/utils/ui_text.py). Move the link into the matching help text."
+                        ),
+                        id="efile.W003",
                     )
                 )
     return problems
