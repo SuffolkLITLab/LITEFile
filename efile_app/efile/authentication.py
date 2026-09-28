@@ -5,7 +5,7 @@ from django.contrib.auth.backends import BaseBackend
 
 from efile.utils.account_ids import jurisdiction_account_username
 from efile.utils.jurisdiction_stuff import get_jurisdiction_from_request
-from efile.utils.proxy_connection import auth_with_tyler_api
+from efile.utils.proxy_connection import EfspUnavailable, auth_with_tyler_api
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -20,7 +20,14 @@ class SuffolkEFileBackend(BaseBackend):
             return None
 
         try:
-            auth_data = auth_with_tyler_api(username, password, jurisdiction)
+            try:
+                auth_data = auth_with_tyler_api(username, password, jurisdiction)
+            except EfspUnavailable:
+                # Read by the login view, so the filer is not told to check a
+                # password that may well be right.
+                if request is not None:
+                    request.efsp_unavailable = True
+                return None
             if not auth_data or "tokens" not in auth_data:
                 logger.info("Tyler auth failed for user %s", username)
                 return None

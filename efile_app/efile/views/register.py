@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.shortcuts import redirect, render
 from django.utils.translation import gettext
 
+from efile.models import PendingActivation
 from efile.utils.config_loader import config_loader
 
 from ..forms import EFileRegistrationForm
@@ -95,14 +96,9 @@ def efile_register(request, jurisdiction):
                 headers = {"x-api-key": api_key} if api_key else {}
                 endpoint = f"{settings.EFSP_URL}/jurisdictions/{jurisdiction}/adminusers/users"
 
-                response = requests.post(endpoint, json=data, headers=headers, timeout=10)
-
                 logger.debug(
                     "POST %s with header keys=%s payload keys=%s", endpoint, list(headers.keys()), list(data.keys())
                 )
-                logger.debug("Headers: %s", headers)
-                logger.debug("Payload: %s", data)
-
                 response = requests.post(endpoint, json=data, headers=headers, timeout=10)
 
                 logger.debug(
@@ -110,18 +106,25 @@ def efile_register(request, jurisdiction):
                     response.status_code,
                     response.headers.get("Content-Type"),
                 )
-                logger.debug("Response body: %s", response.text)
                 if response.status_code == 201:
                     content_type = response.headers.get("Content-Type", "")
-                    tokens = response.json().get("tokens") if content_type.startswith("application/json") else None
+                    body = response.json() if content_type.startswith("application/json") else {}
+                    tokens = body.get("tokens")
                     if tokens:
                         request.session["user_tokens"] = tokens
+                    # The court's system will refuse this email until the filer
+                    # clicks the link it sends, and it will not say that is why.
+                    if body.get("activationRequired", True):
+                        PendingActivation.remember(data["email"], jurisdiction)
                     messages.success(
                         request,
-                        "Registration successful! Please log in with your new account after verifying your email.",
+                        gettext(
+                            "Your account is registered. Before you can sign in, open the email sent to %(email)s "
+                            "and select the activation link in it."
+                        )
+                        % {"email": data["email"]},
                     )
-                    # Redirect to login page
-                    return redirect(f"/{jurisdiction}/login/")
+                    return redirect("efile_login", jurisdiction=jurisdiction)
                 else:
                     try:
                         error_msg = response.json().get("error") or response.text
