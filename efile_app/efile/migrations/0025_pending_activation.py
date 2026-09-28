@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('efile', '0023_interview_handoff'),
+        ('efile', '0024_workflow_step_labels'),
     ]
 
     operations = [
