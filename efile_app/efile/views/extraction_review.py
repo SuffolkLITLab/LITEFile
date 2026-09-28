@@ -10,8 +10,7 @@ from efile.services.document_checklists import resolve_filer_roles
 from efile.services.document_extractions import extraction_for_document
 from efile.services.drafts import draft_snapshot, write_case_data
 from efile.services.extracted_parties import review_rows, save_reviewed_parties
-from efile.services.extraction_fields import display_extracted_fields, document_summary_details, supporting_details
-from efile.utils.ui_text import get_text
+from efile.services.extraction_fields import display_extracted_fields, document_summary_details
 from efile.workflow import (
     RETURN_TO_REVIEW,
     ExistingCase,
@@ -80,6 +79,19 @@ def _set_lead_filing_type(draft, filing_type_code, filing_type_name):
     lead.save(update_fields=["filing_type_code", "filing_type_name", "updated_at"])
 
 
+def _case_identity(existing_case, docket_number):
+    """The case number and title this screen may save.
+
+    A new case has neither until the court opens it, so both are cleared (and
+    a number would make Tyler treat the filing as subsequent). An existing
+    case's number is only a search term for the case lookup; its title is left
+    alone, because the court sets it when the case is found.
+    """
+    if existing_case == ExistingCase.NEW:
+        return {"docket_number": "", "case_title": ""}
+    return {"docket_number": docket_number}
+
+
 @require_http_methods(["GET", "POST"])
 def extraction_review(request, jurisdiction):
     if not request.user.is_authenticated or not get_tyler_token(request, jurisdiction):
@@ -109,6 +121,12 @@ def extraction_review(request, jurisdiction):
     # otherwise what is saved (falling back to what the document named).
     party_rows = _submitted_party_rows(request) if request.method == "POST" else review_rows(draft)
 
+    # The acknowledgement is only asked for when the page shows something to
+    # acknowledge, so the check below and the template both key off this.
+    guesses = display_extracted_fields(draft.extracted_guesses or {})
+    needs_acknowledgement = bool(guesses)
+    acknowledgement_error = False
+
     if request.method == "POST":
         existing_case = request.POST.get("existing_case", draft.existing_case)
         court_code = request.POST.get("court_code", "")
@@ -118,8 +136,10 @@ def extraction_review(request, jurisdiction):
         offered_roles = {role["id"] for role in _offered_filer_roles(request, jurisdiction)}
         filer_role = request.POST.get("filer_role", "")
 
-        if draft.extracted_guesses and request.POST.get("reviewed_extraction") != "yes":
-            messages.error(request, "Review all the information pulled from your document before continuing.")
+        if needs_acknowledgement and request.POST.get("reviewed_extraction") != "yes":
+            # Shown beside the checkbox rather than as a toast, so it stays put
+            # and is tied to the control that needs attention.
+            acknowledgement_error = True
         elif existing_case not in {ExistingCase.NEW, ExistingCase.EXISTING}:
             messages.error(request, "Choose whether this is a new or existing court case to continue.")
         elif existing_case == ExistingCase.NEW and not (court_code and case_category_code and case_type_code):
@@ -146,8 +166,7 @@ def extraction_review(request, jurisdiction):
                     "case_category_name": request.POST.get("case_category_name", ""),
                     "case_type": case_type_code,
                     "case_type_name": request.POST.get("case_type_name", ""),
-                    "docket_number": request.POST.get("docket_number", ""),
-                    "case_title": request.POST.get("case_title", ""),
+                    **_case_identity(existing_case, request.POST.get("docket_number", "")),
                 },
                 current_step=WorkflowStepKey.EXTRACTION_REVIEW,
             )
@@ -169,25 +188,17 @@ def extraction_review(request, jurisdiction):
                 write_case_data(draft, {}, current_step=next_step.key)
                 return redirect(get_step_url(next_step.key, jurisdiction))
 
-    guesses = display_extracted_fields(draft.extracted_guesses or {})
     classification = extraction.classification if extraction is not None else {}
 
     def classified(level, key):
         selection = classification.get(level, {}) if isinstance(classification, dict) else {}
         return selection.get(key, "") if selection.get("status") == "selected" else ""
 
-    # Two tiers, not one long dump: what identifies the document sits in the
-    # open, and the rest of the evidence waits behind a disclosure. Anything
-    # the form below collects appears in neither, since the form is where the
-    # filer confirms it.
+    # Only what identifies the document is shown as read-only text. Anything
+    # else the extraction found is either asked for by the form below, where
+    # the filer can correct it, or not used by the filing at all, so it is not
+    # shown.
     summary_details = document_summary_details(guesses)
-    other_details = supporting_details(guesses)
-    jurisdiction_labels = {
-        "court": get_text("extraction_review.court_label", jurisdiction=jurisdiction),
-        "case category": get_text("extraction_review.case_category_label", jurisdiction=jurisdiction),
-    }
-    for detail in (*summary_details, *other_details):
-        detail["label"] = jurisdiction_labels.get(detail["key"], detail["label"])
     party_side_options = [
         {"value": str(side), "label": PARTY_SIDE_LABELS[side], "help": PARTY_SIDE_HELP[side]} for side in PartySide
     ]
@@ -207,12 +218,38 @@ def extraction_review(request, jurisdiction):
         # the chosen case type turns out to be one of them.
         "filer_role": draft.filer_role,
     }
+    suggested_existing_case = (
+        "new"
+        if not draft.existing_case and (extraction.evidence if extraction else {}).get("filing phase") == "initial"
+        else "existing"
+        if not draft.existing_case and (extraction.evidence if extraction else {}).get("filing phase") == "subsequent"
+        else ""
+    )
+    chosen_existing_case = draft.existing_case or suggested_existing_case
+    docket_number = draft.docket_number or guesses.get("docket number")
+    if request.method == "POST":
+        # Sent back to fix something: show what the filer submitted, not what
+        # was saved before, so no answer has to be entered twice.
+        for key in (
+            "court_code",
+            "court_name",
+            "case_category_code",
+            "case_category_name",
+            "case_type_code",
+            "case_type_name",
+            "filing_type_code",
+            "filing_type_name",
+            "filer_role",
+        ):
+            extraction_context[key] = request.POST.get(key, "")
+        chosen_existing_case = request.POST.get("existing_case", "")
+        docket_number = request.POST.get("docket_number", "")
+        extraction_context["existing_case"] = chosen_existing_case
     context = {
         "is_logged_in": True,
         "filing_draft": draft_snapshot(draft),
-        "has_guesses": bool(guesses),
+        "has_guesses": needs_acknowledgement,
         "document_summary_details": summary_details,
-        "supporting_details": other_details,
         "party_rows": party_rows,
         "party_side_options": party_side_options,
         "extraction_failed": extraction is not None and extraction.status == DocumentExtraction.Status.FAILED,
@@ -223,16 +260,11 @@ def extraction_review(request, jurisdiction):
         "extraction_pages_analyzed": extraction.pages_analyzed if extraction else None,
         "extraction_total_pages": extraction.total_pages if extraction else None,
         "classification": classification,
-        "suggested_existing_case": (
-            "new"
-            if not draft.existing_case and (extraction.evidence if extraction else {}).get("filing phase") == "initial"
-            else "existing"
-            if not draft.existing_case
-            and (extraction.evidence if extraction else {}).get("filing phase") == "subsequent"
-            else ""
-        ),
-        "docket_number": draft.docket_number or guesses.get("docket number"),
-        "case_title": draft.case_title or guesses.get("case title"),
+        "chosen_existing_case": chosen_existing_case,
+        "docket_number": docket_number,
+        "needs_acknowledgement": needs_acknowledgement,
+        "acknowledgement_error": acknowledgement_error,
+        "reviewed_extraction": request.method == "POST" and request.POST.get("reviewed_extraction") == "yes",
         "extraction_context": extraction_context,
         "return_to": request.GET.get("return_to", ""),
     }

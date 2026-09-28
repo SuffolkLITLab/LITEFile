@@ -47,35 +47,31 @@
                         {% blocktranslate %}This PDF has {{ extraction_total_pages }} pages. We analyzed only the first {{ extraction_pages_analyzed }} pages.{% endblocktranslate %}
                     </p>
                 {% endif %}
-                {% comment %}
-                Everything else the extraction found. None of it is asked for
-                below, so it is here for the filer who wants to check our
-                reading -- closed by default, because most filers do not.
-                {% endcomment %}
-                {% if supporting_details %}
-                    <details class="extracted-details__more">
-                        <summary>{% translate "See everything else we found in this PDF" %}</summary>
-                        <dl>
-                            {% for detail in supporting_details %}
-                                <div>
-                                    <dt>{{ detail.label }}</dt>
-                                    <dd>
-                                        {{ detail.value }}
-                                    </dd>
-                                </div>
-                            {% endfor %}
-                        </dl>
-                    </details>
-                {% endif %}
-                <label class="extraction-acknowledgment">
-                    <input type="checkbox"
-                           class="form-check-input"
-                           name="reviewed_extraction"
-                           value="yes"
-                           form="extraction-review-form"
-                           required />
-                    <span>{% translate "I checked this against my document and will correct anything wrong below." %}</span>
-                </label>
+                <div class="extraction-acknowledgment{% if acknowledgement_error %} extraction-acknowledgment--invalid{% endif %}"
+                     id="extraction-acknowledgment">
+                    <label>
+                        <input type="checkbox"
+                               class="form-check-input"
+                               name="reviewed_extraction"
+                               id="reviewed_extraction"
+                               value="yes"
+                               form="extraction-review-form"
+                               {% if acknowledgement_error %}aria-invalid="true" aria-describedby="reviewed-extraction-error"{% endif %}
+                               {% if reviewed_extraction %}checked{% endif %}
+                               required />
+                        <span>{% translate "I checked this against my document and will correct anything wrong below." %}</span>
+                    </label>
+                    {% comment %}
+                    The checkbox only points at this while it is showing: a hidden
+                    element named by aria-describedby is still read out. Focusing
+                    the checkbox is what announces it.
+                    {% endcomment %}
+                    <p class="field-error"
+                       id="reviewed-extraction-error"
+                       {% if not acknowledgement_error %}hidden{% endif %}>
+                        {% translate "Check the box to confirm you compared these details with your document. Then continue." %}
+                    </p>
+                </div>
             </section>
             <h2 class="confirm-filing-details-heading">{% translate "Confirm the details used for this filing" %}</h2>
             {% if classification %}
@@ -210,32 +206,25 @@
                         <small class="review-field__hint" id="filing_type_code-hint">{% translate "We will confirm this again when you organize your documents." %}</small>
                     </div>
                 </div>
-                <div class="form-field" id="docket-number-field">
-                    <span>{% translate "Case number" %} <em>{% translate "if shown" %}</em></span>
-                    <label class="form-check mb-2" id="docket-number-toggle" hidden>
-                        <input type="checkbox" class="form-check-input" id="has-docket-number" />
-                        <span class="form-check-label">{% translate "This case already has a number from the court" %}</span>
+                {% comment %}
+                Only an existing case has a number, and it is only asked for here
+                to find the case in the court's records. The case title is not
+                asked for at all: a new case has none until the court opens it,
+                and an existing case's title comes from the court once it is found.
+                {% endcomment %}
+                <div class="form-field"
+                     id="docket-number-field"
+                     {% if chosen_existing_case != "existing" %}hidden{% endif %}>
+                    <label for="docket_number">
+                        {% translate "Case number" %} <em>{% translate "if shown" %}</em>
                     </label>
                     <input class="form-control"
                            type="text"
                            name="docket_number"
                            id="docket_number"
                            value="{{ docket_number|default:'' }}"
-                           aria-describedby="docket-number-hint"
-                           hidden />
-                    <small id="docket-number-hint">{% translate "Leave blank if the court has not assigned one." %}</small>
-                </div>
-                <div class="form-field" id="case-title-field">
-                    <label for="case_title">
-                        {% translate "Case title" %} <em>{% translate "if shown" %}</em>
-                    </label>
-                    <input class="form-control"
-                           type="text"
-                           name="case_title"
-                           id="case_title"
-                           value="{{ case_title|default:'' }}"
-                           aria-describedby="case-title-hint" />
-                    <small id="case-title-hint">{% translate "This is usually the names shown at the top of the document." %}</small>
+                           aria-describedby="docket-number-hint" />
+                    <small id="docket-number-hint">{% translate "We will use this to find your case in the court's records." %}</small>
                 </div>
             </div>
             {% comment %}
@@ -384,14 +373,14 @@
                     <input type="radio"
                            name="existing_case"
                            value="new"
-                           {% if filing_draft.existing_case == "new" or suggested_existing_case == "new" %}checked{% endif %} />
+                           {% if chosen_existing_case == "new" %}checked{% endif %} />
                     <span><strong>{% translate "New case" %}</strong><small>{% translate "There is no case number yet." %}</small></span>
                 </label>
                 <label>
                     <input type="radio"
                            name="existing_case"
                            value="existing"
-                           {% if filing_draft.existing_case == "existing" or suggested_existing_case == "existing" %}checked{% endif %} />
+                           {% if chosen_existing_case == "existing" %}checked{% endif %} />
                     <span><strong>{% translate "Existing case" %}</strong><small>{% translate "The case is already open with the court." %}</small></span>
                 </label>
                 <button class="help-toggle"

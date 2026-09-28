@@ -838,7 +838,7 @@ class HierarchicalDocumentClassifier:
             model=self.model,
             json_mode=True,
             temperature=inference.get("temperature", 0),
-            reasoning_effort=inference.get("reasoning_effort", "low"),
+            reasoning_effort=inference.get("reasoning_effort"),
             model_type=version_config.get("preferred_model_tier", "medium"),
         )
         if not isinstance(result, dict):

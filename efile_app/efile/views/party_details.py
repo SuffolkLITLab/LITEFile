@@ -38,6 +38,11 @@ def party_details(request, jurisdiction):
     party_types = get_party_types(draft)
     party_type_names = {item["code"]: item["name"] for item in party_types}
     show_optional_address = not address_is_blank(party)
+    # The filer's own court role, if they are a party. Another party can share
+    # it -- joint petitioners, co-plaintiffs -- but far more often choosing it
+    # is a slip for the other side's role, so it is offered with a question.
+    filer_party_type = filer_row.party_type if filer_row else ""
+    same_role_error = False
 
     if request.method == "POST":
         party_kind = request.POST.get("party_kind", "person")
@@ -64,8 +69,25 @@ def party_details(request, jurisdiction):
         address_complete = all(address.values())
         show_optional_address = address_started
         has_name = organization_name if party_kind == "organization" else first_name and last_name
+        same_role_confirmed = request.POST.get("same_role_confirmed") == "yes"
         if not party_type or not has_name:
             messages.error(request, "Complete the party role and name.")
+        elif filer_party_type and party_type == filer_party_type and not same_role_confirmed:
+            # Keep everything they entered, so answering the question is all
+            # that is left to do.
+            same_role_error = True
+            party.party_type = party_type
+            party.party_type_name = party_type_names.get(party_type, party.party_type_name)
+            party.organization_name = organization_name if party_kind == "organization" else ""
+            party.first_name = first_name if party_kind == "person" else ""
+            party.middle_name = request.POST.get("middle_name", "").strip() if party_kind == "person" else ""
+            party.last_name = last_name if party_kind == "person" else ""
+            party.suffix = request.POST.get("suffix", "").strip() if party_kind == "person" else ""
+            for field, value in address.items():
+                setattr(party, field, value)
+            party.address_line_2 = address_line_2
+            party.email = request.POST.get("email", "").strip()
+            party.phone = request.POST.get("phone", "").strip()
         elif (address_requirement.required or address_started) and not address_complete:
             # Keep the attempted address visible when returning validation
             # errors. These assignments only affect this rendered instance;
@@ -135,6 +157,13 @@ def party_details(request, jurisdiction):
         "address_required": address_requirement.required,
         "address_reason": address_requirement.reason,
         "show_optional_address": show_optional_address,
+        "filer_party_type": filer_party_type,
+        "filer_party_type_name": party_type_names.get(filer_party_type, filer_row.party_type_name if filer_row else ""),
+        # Already given the filer's role and saved: that was confirmed then, or
+        # came from the filer saying on Confirm case that this person is on
+        # their side.
+        "same_role_confirmed": bool(filer_party_type) and party.party_type == filer_party_type and not same_role_error,
+        "same_role_error": same_role_error,
     }
     context.update(get_workflow_context(WorkflowStepKey.PARTY_DETAILS, jurisdiction, draft))
     return render(request, "efile/party_details.html", context)

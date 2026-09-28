@@ -260,13 +260,12 @@ def test_complete_new_filing_flow_by_jurisdiction(
     # 4. Step: document-checklist
     checklist_resp = client.post(
         reverse("document_checklist", kwargs={"jurisdiction": jurisdiction}),
-        {"documents_complete": "yes"},
+        {},
     )
     assert checklist_resp.status_code == 302
     assert checklist_resp.url.partition("?")[0] == reverse("organize_documents", kwargs={"jurisdiction": jurisdiction})
 
     draft.refresh_from_db()
-    assert draft.document_checklist_acknowledged is True
     assert draft.current_step == WorkflowStepKey.ORGANIZE_DOCUMENTS
 
     # 5. Step: organize-documents

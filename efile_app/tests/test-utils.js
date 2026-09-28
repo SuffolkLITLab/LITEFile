@@ -128,26 +128,27 @@ async function continueFromExtractionReview(page, nextUrl = /\/(document-checkli
  * caller reached this page from an older or incomplete draft.
  */
 async function continueFromDocumentChecklist(page) {
+    const continueButton = page.getByRole('button', {
+        name: /Continue to organize/i
+    });
     const role = page.locator('input[name="filer_role"]:visible').first();
     if (await role.count()) {
         await role.check();
         await page.getByRole('button', {
             name: /Show my documents/i
         }).click();
-        await page.locator('input[name="documents_complete"]').waitFor({
+        await continueButton.waitFor({
             state: 'visible',
             timeout: 120000
         });
     }
 
-    await page.locator('input[name="documents_complete"]').check();
+    // The checklist is a guide, not a gate: continue without ticking anything.
     await Promise.all([
         page.waitForURL(/\/organize-documents\//, {
             timeout: 120000
         }),
-        page.getByRole('button', {
-            name: /Continue to organize/i
-        }).click(),
+        continueButton.click(),
     ]);
 }
 

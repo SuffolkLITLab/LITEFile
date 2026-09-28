@@ -210,10 +210,12 @@ def test_extraction_review_requires_a_case_path(client, reorganized_draft):
 
 
 @pytest.mark.django_db
-def test_extraction_review_hides_case_number_behind_a_checkbox(client, reorganized_draft):
-    """Tyler rejects a docket number on a new case, so it should not be
-    presented as a normal always-visible field -- see the "checked out
-    docket number on a new case" 500 that surfaced this."""
+def test_extraction_review_does_not_offer_case_number_or_title_for_a_new_case(client, reorganized_draft):
+    """Tyler rejects a docket number on a new case, and a new case has no
+    title until the court opens it -- neither is asked for."""
+    reorganized_draft.existing_case = ExistingCase.NEW
+    reorganized_draft.extracted_guesses = {"case title": "Rivera v. Example", "docket number": "2024-L-1"}
+    reorganized_draft.save(update_fields=["existing_case", "extracted_guesses"])
     FilingDocument.objects.create(
         draft=reorganized_draft,
         role=FilingDocument.Role.LEAD,
@@ -224,7 +226,79 @@ def test_extraction_review_hides_case_number_behind_a_checkbox(client, reorganiz
 
     assert response.status_code == 200
     content = response.content.decode()
-    assert 'id="has-docket-number"' in content
-    docket_input = re.search(r"<input[^>]*id=\"docket_number\"[^>]*>", content)
-    assert docket_input is not None
-    assert "hidden" in docket_input.group()
+    assert 'name="case_title"' not in content
+    docket_field = re.search(r'<div class="form-field"\s+id="docket-number-field"[^>]*>', content)
+    assert docket_field is not None
+    assert "hidden" in docket_field.group()
+
+
+@pytest.mark.django_db
+def test_extraction_review_asks_existing_case_for_its_number_only(client, reorganized_draft):
+    reorganized_draft.existing_case = ExistingCase.EXISTING
+    reorganized_draft.save(update_fields=["existing_case"])
+    FilingDocument.objects.create(draft=reorganized_draft, role=FilingDocument.Role.LEAD, name="motion.pdf")
+
+    content = client.get(reverse("extraction_review", kwargs={"jurisdiction": "illinois"})).content.decode()
+
+    docket_field = re.search(r'<div class="form-field"\s+id="docket-number-field"[^>]*>', content)
+    assert docket_field is not None
+    assert "hidden" not in docket_field.group()
+    assert 'name="case_title"' not in content
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("existing_case", "expected_docket", "expected_title"),
+    [
+        (ExistingCase.NEW, "", ""),
+        # An existing case's title is the court's, set by the case lookup.
+        (ExistingCase.EXISTING, "2024-L-1", "Court's own title"),
+    ],
+)
+def test_extraction_review_saves_case_identity_only_for_existing_cases(
+    client, reorganized_draft, existing_case, expected_docket, expected_title
+):
+    reorganized_draft.case_title = "Court's own title"
+    reorganized_draft.docket_number = "stale"
+    reorganized_draft.save(update_fields=["case_title", "docket_number"])
+    FilingDocument.objects.create(draft=reorganized_draft, role=FilingDocument.Role.LEAD, name="petition.pdf")
+
+    response = client.post(
+        reverse("extraction_review", kwargs={"jurisdiction": "illinois"}),
+        {
+            "existing_case": existing_case,
+            "court_code": "cook",
+            "case_category_code": "civil",
+            "case_type_code": "contract",
+            "docket_number": "2024-L-1",
+            "case_title": "Typed by the filer",
+        },
+    )
+
+    assert response.status_code == 302
+    reorganized_draft.refresh_from_db()
+    assert reorganized_draft.docket_number == expected_docket
+    assert reorganized_draft.case_title == expected_title
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("jurisdiction", ["illinois", "vermont"])
+def test_first_progress_stage_reads_start_not_filing(client, reorganized_draft, jurisdiction):
+    # "Filing" read as the final submit step, so the first stage is "Start".
+    reorganized_draft.jurisdiction = jurisdiction
+    reorganized_draft.save(update_fields=["jurisdiction"])
+    reorganized_draft.user.tyler_jurisdiction = jurisdiction
+    reorganized_draft.user.save(update_fields=["tyler_jurisdiction"])
+    session = client.session
+    session["auth_tokens"] = {f"TYLER-TOKEN-{jurisdiction.upper()}": "token"}
+    session["jurisdiction"] = jurisdiction
+    session.save()
+
+    response = client.get(reverse("filing_path", kwargs={"jurisdiction": jurisdiction}))
+
+    progress = re.search(r'<nav class="workflow-progress".*?</nav>', response.content.decode(), re.S)
+    assert progress is not None
+    labels = re.findall(r'<span class="workflow-progress__label">([^<]+)</span>', progress.group(0))
+    assert labels[0] == "Start"
+    assert "Filing" not in labels
+    assert labels[-1] == "Review"

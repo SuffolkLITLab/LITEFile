@@ -133,9 +133,6 @@ def organize_documents(request, jurisdiction):
     documents = FilingDocument.objects.filter(draft=draft).order_by("role", "sort_order", "created_at")
     if not documents.exists():
         return redirect("upload_documents", jurisdiction=jurisdiction)
-    if not draft.document_checklist_acknowledged:
-        messages.info(request, "Check that you have all of your documents before organizing them.")
-        return redirect("document_checklist", jurisdiction=jurisdiction)
     if not draft.court_code:
         # Filing types can't be looked up without a court. Send the filer back
         # to whichever step is responsible for setting one, instead of

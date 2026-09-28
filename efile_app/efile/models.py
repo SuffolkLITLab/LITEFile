@@ -288,6 +288,16 @@ class FilingDraft(models.Model):
     def __str__(self):
         return f"{self.get_status_display()} filing draft #{self.pk} ({self.jurisdiction})"
 
+    @property
+    def is_filing_into_found_case(self):
+        """Whether the case number and title are the court's, for a case it found.
+
+        Only then are they shown. A new case has neither until the court opens
+        it, and an existing case's number is only a search term until the case
+        lookup has matched it to a court record.
+        """
+        return self.existing_case == ExistingCase.EXISTING and bool(self.previous_case_id)
+
     def mark_submitted(self, response_data):
         sync_primary_filing_type(self)
         from efile.services.handoff import full_snapshot

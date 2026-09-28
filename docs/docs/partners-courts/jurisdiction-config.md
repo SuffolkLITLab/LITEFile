@@ -129,6 +129,24 @@ text:
 - Keys under `terms` are short nouns. Each one is also available to every longer string as a placeholder named for its last segment, so changing `starting_document_example` changes every sentence that names it.
 - Longer strings can also use `{brand_name}`, `{state_name}`, `{state_code}`, and `{court_name}`, which come from the `jurisdiction` and `state` sections of the same file.
 
+### Links in your text
+
+Help text and other longer passages can link to your own rules, forms, or help pages. Write the link in Markdown:
+
+```yaml
+text:
+  organize_documents:
+    confidentiality_help: >-
+      You may only file a document confidentially when
+      [Supreme Court Rule 138](https://www.illinoiscourts.gov/rules/supreme-court-rules?a=ii)
+      or a court order requires it.
+```
+
+- Web links (`https://…`) open in a new tab, and screen readers announce "opens in a new tab". Email (`mailto:`) and phone (`tel:`) links are allowed too.
+- `*emphasis*`, `**bold**`, and `` `code` `` also work. Headings, lists, images, and raw HTML are removed, because these passages sit inside a sentence or paragraph the page already provides.
+- Links only work in longer passages: the keys marked `links=True` in `efile_app/efile/utils/ui_text.py`, such as `*_help`, `your_information.lede`, and `about.project_partner_description`. A label, question, or term shows only the words of a link, and `manage.py check` warns about it (`efile.W003`).
+- Translators see the Markdown, so they keep the link and translate only its words.
+
 ### What is *not* here
 
 Ordinary copy that no state wants to change stays in the templates. Only strings a state might genuinely reword belong in `text`, so the file stays readable and reviewable by the people who own the wording.

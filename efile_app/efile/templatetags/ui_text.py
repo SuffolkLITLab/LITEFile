@@ -10,19 +10,22 @@ keyword arguments become placeholder values:
 
     {% ui_text "parties.role_help" name=filer.first_name %}
 
+A passage marked ``links=True`` in the catalog renders its inline Markdown as
+sanitized HTML; every other key is plain, escaped text.
+
 See ``efile/utils/ui_text.py`` for the catalog of keys.
 """
 
 from django import template
 
-from efile.utils.ui_text import get_text
+from efile.utils.ui_text import get_html
 
 register = template.Library()
 
 
 @register.simple_tag(takes_context=True)
 def ui_text(context, key, **params):
-    return get_text(
+    return get_html(
         key,
         jurisdiction=context.get("jurisdiction"),
         config=context.get("config"),

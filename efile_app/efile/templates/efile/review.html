@@ -34,19 +34,24 @@
                             {{ draft.get_existing_case_display }}
                         </dd>
                     </div>
-                    {% if draft.case_title %}
-                        <div>
-                            <dt>{% translate "Case name" %}</dt>
-                            <dd>
-                                {{ draft.case_title }}{% if extracted_markers.case_title %} *{% endif %}
-                            </dd>
-                        </div>
-                    {% endif %}
-                    {% if draft.docket_number %}
+                    {% if draft.is_filing_into_found_case %}
+                        {% comment %}
+                        The court's own record for the case, found in the case
+                        lookup. Shown as read-only: the filer cannot change it.
+                        {% endcomment %}
+                        {% if draft.case_title %}
+                            <div>
+                                <dt>{% translate "Case name" %}</dt>
+                                <dd>
+                                    {{ draft.case_title }}
+                                </dd>
+                            </div>
+                        {% endif %}
                         <div>
                             <dt>{% translate "Case number" %}</dt>
                             <dd>
-                                {{ draft.docket_number }}{% if extracted_markers.docket_number %} *{% endif %}
+                                {{ draft.docket_number }}
+                                <small class="text-muted d-block">{% translate "From the court's records" %}</small>
                             </dd>
                         </div>
                     {% endif %}
@@ -213,7 +218,7 @@
             </section>
         </div>
         {% if plan_missing_documents %}
-            <div class="plan-alert plan-alert--review" role="alert">
+            <div class="plan-alert plan-alert--review" role="note">
                 <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
                 <div>
                     <strong>{% translate "Your plan lists documents that are not in this filing" %}</strong>
@@ -224,7 +229,7 @@
                                 {% if item.reason == "have" %}
                                     <small>{% translate "you said you have this" %}</small>
                                 {% else %}
-                                    <small>{% translate "this court always wants one" %}</small>
+                                    <small>{% translate "commonly included with filings like this" %}</small>
                                 {% endif %}
                             </li>
                         {% endfor %}

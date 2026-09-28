@@ -559,39 +559,6 @@
     font-size: 0.9rem;
 }
 
-/* Progressive disclosure for the rest of the extraction: closed by default,
-   and visibly a control rather than a heading, so nobody reads past it
-   thinking the summary above is all there was. */
-.extracted-details__more {
-    border-top: 1px solid var(--border-default);
-    margin-top: 0.5rem;
-    padding-top: 0.75rem;
-}
-
-.extracted-details__more>summary {
-    color: var(--link-color, #1a4480);
-    cursor: pointer;
-    font-size: 0.92rem;
-    font-weight: 650;
-    list-style: none;
-}
-
-.extracted-details__more>summary::marker,
-.extracted-details__more>summary::-webkit-details-marker {
-    display: none;
-}
-
-.extracted-details__more>summary::before {
-    content: "\002B";
-    display: inline-block;
-    font-weight: 800;
-    margin-right: 0.45rem;
-}
-
-.extracted-details__more[open]>summary::before {
-    content: "\2212";
-}
-
 /* The people the document named, edited in place on the review screen. */
 .review-parties {
     border: 1px solid var(--border-default);
@@ -677,14 +644,32 @@
     border: 1px solid var(--border-strong);
     border-radius: 8px;
     display: flex;
+    flex-direction: column;
     gap: 0.7rem;
     margin-top: 1rem;
     padding: 0.9rem;
 }
 
+.extraction-acknowledgment label {
+    align-items: flex-start;
+    display: flex;
+    gap: 0.7rem;
+}
+
 .extraction-acknowledgment input {
     flex-shrink: 0;
     margin-top: 0.2rem;
+}
+
+.extraction-acknowledgment--invalid {
+    border-color: var(--danger-icon);
+    border-width: 2px;
+}
+
+.extraction-acknowledgment .field-error {
+    color: var(--danger-icon);
+    font-weight: 700;
+    margin: 0;
 }
 
 .form-field>span {
@@ -1074,8 +1059,7 @@
     font-size: 1.35rem;
 }
 
-.checklist-file small,
-.checklist-confirmation small {
+.checklist-file small {
     color: var(--text-muted);
     display: block;
 }
@@ -1095,17 +1079,6 @@
     border-radius: 10px;
     margin-bottom: 1.2rem;
     padding: 1.2rem;
-}
-
-.checklist-confirmation {
-    align-items: flex-start;
-    background: var(--warning-surface);
-    border: 1px solid var(--warning-border);
-    border-radius: 10px;
-    display: flex;
-    gap: 0.8rem;
-    margin-top: 1.5rem;
-    padding: 1rem;
 }
 
 .organize-list {
@@ -1916,4 +1889,35 @@
     display: flex;
     gap: 0.45rem;
     margin-bottom: 0 !important;
+}
+
+/* Asked when another party is given the filer's own role. */
+.same-role-confirm {
+    background: var(--warning-surface);
+    border: 1px solid var(--warning-border);
+    border-radius: 10px;
+    margin: 1rem 0;
+    padding: 0.9rem 1rem;
+}
+
+.same-role-confirm p {
+    margin-bottom: 0.5rem;
+}
+
+.same-role-confirm label {
+    align-items: flex-start;
+    display: flex;
+    gap: 0.6rem;
+    font-weight: 600;
+}
+
+.same-role-confirm--invalid {
+    border-color: var(--danger-icon);
+    border-width: 2px;
+}
+
+.same-role-confirm .field-error {
+    color: var(--danger-icon);
+    font-weight: 700;
+    margin: 0.5rem 0 0;
 }

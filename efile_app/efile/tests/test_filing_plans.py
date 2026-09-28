@@ -218,7 +218,7 @@ def test_grouped_checklist_orders_levels_and_keeps_progress(user):
     groups = grouped_checklist(plan)
 
     assert [group["requirement"] for group in groups] == ["always", "usually", "sometimes"]
-    assert groups[0]["label"] == "Always needed"
+    assert groups[0]["label"] == "Commonly included"
     assert groups[0]["items"][0]["status"] == "have"
     assert grouped_checklist(None) == []
 

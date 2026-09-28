@@ -48,6 +48,7 @@ def test_the_list_says_enough_to_tell_two_drafts_apart(client, user):
     make_draft(
         user,
         existing_case=ExistingCase.EXISTING,
+        previous_case_id="tracking-123",
         docket_number="2024-EV-000123",
         case_title="Blue Harbor LLC v. Ada Torres",
         current_step=WorkflowStepKey.REVIEW,
@@ -140,3 +141,24 @@ def test_my_drafts_needs_a_signed_in_filer(client):
 
     assert response.status_code == 302
     assert "/login/" in response.url
+
+
+@pytest.mark.django_db
+def test_an_existing_case_not_yet_found_shows_no_case_identity(client, user):
+    """Before the lookup finds the case, the number is only a search term and
+    the title may be stale -- neither is the court's record yet."""
+    sign_in(client, user)
+    plan = FilingPlan.objects.create(user=user, jurisdiction="illinois", title="My eviction answer")
+    make_draft(
+        user,
+        plan=plan,
+        existing_case=ExistingCase.EXISTING,
+        docket_number="typed-by-filer",
+        case_title="Stale title",
+    )
+
+    content = client.get(DRAFTS_URL).content.decode()
+
+    assert "My eviction answer" in content
+    assert "typed-by-filer" not in content
+    assert "Stale title" not in content

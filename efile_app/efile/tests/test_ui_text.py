@@ -8,7 +8,7 @@ from django.urls import reverse
 from efile.checks import configured_ui_text_keys_are_known
 from efile.models import FilingDocument, FilingDraft
 from efile.services.current_drafts import CURRENT_DRAFT_SESSION_KEY
-from efile.utils.ui_text import UI_STRINGS, config_overrides, get_text, get_texts
+from efile.utils.ui_text import UI_STRINGS, config_overrides, get_html, get_text, get_texts
 from efile.workflow import ExistingCase, WorkflowStepKey
 
 
@@ -88,6 +88,113 @@ def test_the_check_reports_a_key_that_does_not_exist(monkeypatch):
     problems = configured_ui_text_keys_are_known(None)
 
     assert [problem.id for problem in problems] == ["efile.W002"]
+
+
+# -- Links in configured copy ------------------------------------------------
+
+RULE_LINK = {
+    "text": {
+        "organize_documents": {
+            "confidentiality_help": (
+                "Only when [Rule 138](https://courts.example.gov/rule-138) or a court order requires it."
+            ),
+        }
+    }
+}
+
+
+def test_a_passage_can_link_to_a_states_own_rules():
+    rendered = get_html("organize_documents.confidentiality_help", config=RULE_LINK)
+
+    assert '<a href="https://courts.example.gov/rule-138"' in rendered
+    assert 'target="_blank"' in rendered
+    assert 'rel="noopener noreferrer"' in rendered
+    # Said, not only shown: a new tab opening is a surprise to a screen reader user.
+    assert "Rule 138 (opens in a new tab)</a>" in rendered
+    # Inline: the template already wraps it in its own paragraph.
+    assert "<p>" not in rendered
+
+
+def test_the_template_tag_renders_a_passages_link():
+    template = Template('{% load ui_text %}<small>{% ui_text "organize_documents.confidentiality_help" %}</small>')
+
+    rendered = template.render(Context({"jurisdiction": "illinois", "config": RULE_LINK}))
+
+    assert '<small>Only when <a href="https://courts.example.gov/rule-138"' in rendered
+
+
+def test_email_and_phone_links_stay_in_this_tab():
+    config = {"text": {"parties": {"role_help": "Ask [us](mailto:help@example.org) or [call](tel:+18005550100)."}}}
+
+    rendered = get_html("parties.role_help", config=config)
+
+    assert '<a href="mailto:help@example.org">us</a>' in rendered
+    assert '<a href="tel:+18005550100">call</a>' in rendered
+    assert "target" not in rendered
+
+
+@pytest.mark.parametrize(
+    "unsafe",
+    [
+        "[click](javascript:alert(1))",
+        '<a href="https://example.org" onclick="alert(1)">click</a>',
+        "<script>alert(1)</script>",
+        '<img src="x" onerror="alert(1)">',
+        "# A heading",
+    ],
+)
+def test_configured_copy_cannot_carry_script_or_block_markup(unsafe):
+    config = {"text": {"parties": {"role_help": unsafe}}}
+
+    rendered = get_html("parties.role_help", config=config)
+
+    for forbidden in ("javascript:", "onclick", "onerror", "<script", "<img", "<h1"):
+        assert forbidden not in rendered
+
+
+def test_a_placeholder_value_cannot_become_a_link():
+    """A value filled in at render time -- which can be a filer's own name -- is
+    shown as typed, never read as Markdown or HTML."""
+
+    rendered = get_html("your_information.lede", jurisdiction="illinois", brand_name="[x](https://evil.example) <b>")
+
+    assert "<a" not in rendered
+    assert "<b>" not in rendered
+    assert "[x](https://evil.example) &lt;b&gt;" in rendered
+
+
+def test_a_label_shows_only_the_words_of_a_link():
+    """A link inside a <label> or <legend> is a control no one can use, and a
+    label also ends up in aria-label attributes, so it stays plain text."""
+
+    config = {"text": {"parties": {"role_question": "Your [role](https://example.org)?"}}}
+
+    assert get_html("parties.role_question", config=config) == "Your role?"
+    assert get_text("parties.role_question", config=config) == "Your role?"
+
+
+def test_plain_text_for_scripts_drops_the_markdown():
+    assert get_text("organize_documents.confidentiality_help", config=RULE_LINK) == (
+        "Only when Rule 138 or a court order requires it."
+    )
+
+
+def test_the_check_reports_a_link_where_one_cannot_show(monkeypatch):
+    from efile.utils import config_loader as loader_module
+
+    real = loader_module.config_loader.load_jurisdiction_config
+
+    def with_link(jurisdiction):
+        config = dict(real(jurisdiction) or {})
+        if jurisdiction == "illinois":
+            config["text"] = {"parties": {"role_question": "Your [role](https://example.org)?"}}
+        return config
+
+    monkeypatch.setattr(loader_module.config_loader, "load_jurisdiction_config", with_link)
+
+    problems = configured_ui_text_keys_are_known(None)
+
+    assert [problem.id for problem in problems] == ["efile.W003"]
 
 
 def test_configured_copy_is_extracted_for_translators():
