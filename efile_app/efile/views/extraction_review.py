@@ -10,8 +10,7 @@ from efile.services.document_checklists import resolve_filer_roles
 from efile.services.document_extractions import extraction_for_document
 from efile.services.drafts import draft_snapshot, write_case_data
 from efile.services.extracted_parties import review_rows, save_reviewed_parties
-from efile.services.extraction_fields import display_extracted_fields, document_summary_details, supporting_details
-from efile.utils.ui_text import get_text
+from efile.services.extraction_fields import display_extracted_fields, document_summary_details
 from efile.workflow import (
     RETURN_TO_REVIEW,
     ExistingCase,
@@ -176,18 +175,11 @@ def extraction_review(request, jurisdiction):
         selection = classification.get(level, {}) if isinstance(classification, dict) else {}
         return selection.get(key, "") if selection.get("status") == "selected" else ""
 
-    # Two tiers, not one long dump: what identifies the document sits in the
-    # open, and the rest of the evidence waits behind a disclosure. Anything
-    # the form below collects appears in neither, since the form is where the
-    # filer confirms it.
+    # Only what identifies the document is shown as read-only text. Anything
+    # else the extraction found is either asked for by the form below, where
+    # the filer can correct it, or not used by the filing at all, so it is not
+    # shown.
     summary_details = document_summary_details(guesses)
-    other_details = supporting_details(guesses)
-    jurisdiction_labels = {
-        "court": get_text("extraction_review.court_label", jurisdiction=jurisdiction),
-        "case category": get_text("extraction_review.case_category_label", jurisdiction=jurisdiction),
-    }
-    for detail in (*summary_details, *other_details):
-        detail["label"] = jurisdiction_labels.get(detail["key"], detail["label"])
     party_side_options = [
         {"value": str(side), "label": PARTY_SIDE_LABELS[side], "help": PARTY_SIDE_HELP[side]} for side in PartySide
     ]
@@ -212,7 +204,6 @@ def extraction_review(request, jurisdiction):
         "filing_draft": draft_snapshot(draft),
         "has_guesses": bool(guesses),
         "document_summary_details": summary_details,
-        "supporting_details": other_details,
         "party_rows": party_rows,
         "party_side_options": party_side_options,
         "extraction_failed": extraction is not None and extraction.status == DocumentExtraction.Status.FAILED,

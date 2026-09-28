@@ -47,26 +47,6 @@
                         {% blocktranslate %}This PDF has {{ extraction_total_pages }} pages. We analyzed only the first {{ extraction_pages_analyzed }} pages.{% endblocktranslate %}
                     </p>
                 {% endif %}
-                {% comment %}
-                Everything else the extraction found. None of it is asked for
-                below, so it is here for the filer who wants to check our
-                reading -- closed by default, because most filers do not.
-                {% endcomment %}
-                {% if supporting_details %}
-                    <details class="extracted-details__more">
-                        <summary>{% translate "See everything else we found in this PDF" %}</summary>
-                        <dl>
-                            {% for detail in supporting_details %}
-                                <div>
-                                    <dt>{{ detail.label }}</dt>
-                                    <dd>
-                                        {{ detail.value }}
-                                    </dd>
-                                </div>
-                            {% endfor %}
-                        </dl>
-                    </details>
-                {% endif %}
                 <label class="extraction-acknowledgment">
                     <input type="checkbox"
                            class="form-check-input"

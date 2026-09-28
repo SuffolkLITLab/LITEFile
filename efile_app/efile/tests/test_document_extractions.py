@@ -236,11 +236,10 @@ def test_status_endpoint_reports_when_review_is_ready(client, extraction_draft):
 
 
 @pytest.mark.django_db
-def test_review_leads_with_the_document_and_hides_the_rest_behind_a_disclosure(client, extraction_draft):
-    """Everything extracted is still reachable, but the screen no longer opens
-    with all of it at once: what identifies the document is in the open, the
-    remaining evidence is one click away, and anything the form below collects
-    is left to that form rather than printed twice."""
+def test_review_shows_only_the_document_summary_and_fields_the_filer_can_edit(client, extraction_draft):
+    """Read-only text is limited to what identifies the document. Values the
+    filing uses are shown in the form below, where they can be corrected, and
+    values it does not use (like amounts) are not shown at all."""
 
     authorize(client, extraction_draft)
     FilingDocument.objects.create(
@@ -253,15 +252,17 @@ def test_review_leads_with_the_document_and_hides_the_rest_behind_a_disclosure(c
         "document title": "Complaint",
         "plaintiff or petitioner names": "Alex Rivera",
         "unexpected useful detail": "Shown on page two",
+        "amounts": [{"label": "Amount claimed", "raw": "$1,200"}],
     }
     extraction_draft.save(update_fields=["extracted_guesses", "updated_at"])
 
     page = client.get(reverse("extraction_review", kwargs={"jurisdiction": "illinois"}))
     content = page.content.decode()
-    summary, _, rest = content.partition("extracted-details__more")
+    summary = content.partition('class="extracted-details"')[2].partition("</section>")[0]
     assert "Document title" in summary
-    assert "Unexpected useful detail" not in summary
-    assert "Unexpected useful detail" in rest
+    assert "See everything else" not in content
+    assert "Shown on page two" not in summary
+    assert "$1,200" not in summary
     # The court is asked for by the form's own court picker further down.
     assert "Washington County" not in summary
     # The names are asked for by the party editor, not printed as evidence.
