@@ -14,6 +14,9 @@ from enum import StrEnum
 from typing import Any
 
 from django.urls import reverse
+from django.utils.functional import Promise
+from django.utils.translation import gettext_lazy as _
+from django.utils.translation import pgettext_lazy
 
 
 class ExistingCase(StrEnum):
@@ -63,14 +66,15 @@ class WorkflowStage(StrEnum):
 
 
 WORKFLOW_STAGE_LABELS = {
-    WorkflowStage.FILING: "Filing",
-    WorkflowStage.UPLOAD: "Upload",
-    WorkflowStage.CONFIRM_CASE: "Confirm case",
-    WorkflowStage.CHECK_DOCUMENTS: "Check documents",
-    WorkflowStage.ORGANIZE_DOCUMENTS: "Organize documents",
-    WorkflowStage.PEOPLE: "People",
-    WorkflowStage.FEES: "Fees",
-    WorkflowStage.REVIEW: "Review",
+    # "Start", not "Filing": filers read "Filing" as the final submit step.
+    WorkflowStage.FILING: pgettext_lazy("workflow stage", "Start"),
+    WorkflowStage.UPLOAD: _("Upload"),
+    WorkflowStage.CONFIRM_CASE: _("Confirm case"),
+    WorkflowStage.CHECK_DOCUMENTS: _("Check documents"),
+    WorkflowStage.ORGANIZE_DOCUMENTS: _("Organize documents"),
+    WorkflowStage.PEOPLE: _("People"),
+    WorkflowStage.FEES: _("Fees"),
+    WorkflowStage.REVIEW: _("Review"),
 }
 
 
@@ -103,52 +107,54 @@ class WorkflowStepKey(StrEnum):
 @dataclass(frozen=True)
 class WorkflowStep:
     key: WorkflowStepKey
-    label: str
+    label: str | Promise
     url_name: str
     stage: WorkflowStage
 
 
 FILING_WORKFLOW: tuple[WorkflowStep, ...] = (
-    WorkflowStep(WorkflowStepKey.OPTIONS, "Options", "efile_options", WorkflowStage.FILING),
-    WorkflowStep(WorkflowStepKey.FILING_PATH, "Filing", "filing_path", WorkflowStage.FILING),
-    WorkflowStep(WorkflowStepKey.UPLOAD_DOCUMENTS, "Upload documents", "upload_documents", WorkflowStage.UPLOAD),
+    WorkflowStep(WorkflowStepKey.OPTIONS, _("Options"), "efile_options", WorkflowStage.FILING),
+    WorkflowStep(
+        WorkflowStepKey.FILING_PATH, pgettext_lazy("workflow stage", "Start"), "filing_path", WorkflowStage.FILING
+    ),
+    WorkflowStep(WorkflowStepKey.UPLOAD_DOCUMENTS, _("Upload documents"), "upload_documents", WorkflowStage.UPLOAD),
     WorkflowStep(
         WorkflowStepKey.EXTRACTION_REVIEW,
-        "Confirm filing",
+        _("Confirm filing"),
         "extraction_review",
         WorkflowStage.CONFIRM_CASE,
     ),
-    WorkflowStep(WorkflowStepKey.CASE_LOOKUP, "Find your case", "case_lookup", WorkflowStage.CONFIRM_CASE),
+    WorkflowStep(WorkflowStepKey.CASE_LOOKUP, _("Find your case"), "case_lookup", WorkflowStage.CONFIRM_CASE),
     WorkflowStep(
         WorkflowStepKey.CASE_CONFIRMATION,
-        "Confirm your case",
+        _("Confirm your case"),
         "case_confirmation",
         WorkflowStage.CONFIRM_CASE,
     ),
     WorkflowStep(
         WorkflowStepKey.DOCUMENT_CHECKLIST,
-        "Check documents",
+        _("Check documents"),
         "document_checklist",
         WorkflowStage.CHECK_DOCUMENTS,
     ),
     WorkflowStep(
         WorkflowStepKey.ORGANIZE_DOCUMENTS,
-        "Organize documents",
+        _("Organize documents"),
         "organize_documents",
         WorkflowStage.ORGANIZE_DOCUMENTS,
     ),
     WorkflowStep(
         WorkflowStepKey.YOUR_INFORMATION,
-        "Your information",
+        _("Your information"),
         "your_information",
         WorkflowStage.PEOPLE,
     ),
-    WorkflowStep(WorkflowStepKey.PARTIES, "People in this filing", "parties", WorkflowStage.PEOPLE),
-    WorkflowStep(WorkflowStepKey.PARTY_DETAILS, "Person details", "party_details", WorkflowStage.PEOPLE),
-    WorkflowStep(WorkflowStepKey.CASE_QUESTIONS, "Case questions", "case_questions", WorkflowStage.PEOPLE),
-    WorkflowStep(WorkflowStepKey.PAYMENT, "Fees", "payment", WorkflowStage.FEES),
-    WorkflowStep(WorkflowStepKey.REVIEW, "Review", "case_review", WorkflowStage.REVIEW),
-    WorkflowStep(WorkflowStepKey.CONFIRMATION, "Confirmation", "filing_confirmation", WorkflowStage.REVIEW),
+    WorkflowStep(WorkflowStepKey.PARTIES, _("People in this filing"), "parties", WorkflowStage.PEOPLE),
+    WorkflowStep(WorkflowStepKey.PARTY_DETAILS, _("Person details"), "party_details", WorkflowStage.PEOPLE),
+    WorkflowStep(WorkflowStepKey.CASE_QUESTIONS, _("Case questions"), "case_questions", WorkflowStage.PEOPLE),
+    WorkflowStep(WorkflowStepKey.PAYMENT, _("Fees"), "payment", WorkflowStage.FEES),
+    WorkflowStep(WorkflowStepKey.REVIEW, _("Review"), "case_review", WorkflowStage.REVIEW),
+    WorkflowStep(WorkflowStepKey.CONFIRMATION, _("Confirmation"), "filing_confirmation", WorkflowStage.REVIEW),
 )
 
 _STEPS_BY_KEY = {step.key: step for step in FILING_WORKFLOW}
@@ -166,7 +172,7 @@ def get_workflow_steps() -> tuple[WorkflowStep, ...]:
     return FILING_WORKFLOW
 
 
-def get_workflow_step_choices() -> tuple[tuple[str, str], ...]:
+def get_workflow_step_choices() -> tuple[tuple[str, str | Promise], ...]:
     """Return choices for the canonical reorganized workflow."""
 
     return tuple((step.key.value, step.label) for step in _STEPS_BY_KEY.values())
