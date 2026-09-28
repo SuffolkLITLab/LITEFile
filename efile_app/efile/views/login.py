@@ -11,12 +11,33 @@ from django.contrib.auth import authenticate, login
 from django.shortcuts import redirect, render
 from django.utils.translation import gettext
 
+from efile.models import PendingActivation
 from efile.utils.config_loader import config_loader
 from efile.utils.proxy_connection import tyler_password_reset
 
 from ..forms import EFileLoginForm, EFilePasswordResetForm
 
 logger = logging.getLogger(__name__)
+
+
+def _sign_in_failure_message(request, email, jurisdiction):
+    """Say why a sign-in failed, as far as anyone can tell.
+
+    The court's system refuses every failed sign-in the same way, so an
+    unactivated account is only recognizable because this app registered it.
+    """
+    if getattr(request, "efsp_unavailable", False):
+        return gettext("We could not reach the court's e-filing system. Try again in a few minutes.")
+    if PendingActivation.exists_for(email, jurisdiction):
+        return gettext(
+            "Your account is not activated yet. Open the email sent to %(email)s when you registered, "
+            "and select the activation link in it. Then sign in here. If you cannot find the email, "
+            "check your spam or junk folder."
+        ) % {"email": email}
+    return gettext(
+        "That email and password did not match an account. Check them and try again, or reset your "
+        "password. If you just registered, activate your account from the email we sent you first."
+    )
 
 
 def efile_login(request, jurisdiction):
@@ -41,12 +62,13 @@ def efile_login(request, jurisdiction):
                         request.session["auth_tokens"] = auth_tokens
                         request.session["user_email"] = user.email
                         request.session["jurisdiction"] = jurisdiction
+                        PendingActivation.forget(email, jurisdiction)
                         messages.success(request, "Successfully logged in!")
                         if handoff_continue and handoff_continue.startswith("/handoff/claim/"):
                             return redirect(handoff_continue)
                         return redirect(f"/jurisdiction/{jurisdiction}/options/")
                     else:
-                        messages.error(request, "Login service error. Please try again later.")
+                        messages.error(request, _sign_in_failure_message(request, email, jurisdiction))
                 except Exception as e:
                     logger.exception("Login request failed")
                     messages.error(request, f"Login failed: {str(e)}")

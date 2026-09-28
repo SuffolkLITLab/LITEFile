@@ -553,3 +553,36 @@ class HandoffDocumentUpdate(models.Model):
         constraints = [
             models.UniqueConstraint(fields=["source", "idempotency_key"], name="handoff_document_update_identity")
         ]
+
+
+class PendingActivation(models.Model):
+    """An account this app registered that the court's system has not activated.
+
+    The e-filing service answers every failed sign-in the same way -- a bare
+    403, whether the password is wrong, the account does not exist, or the
+    filer has not yet clicked the activation link in their email. Only this app
+    knows it registered the account moments ago, so it remembers, and a failed
+    sign-in for that email can say what to do instead of "try again". Cleared
+    by the first successful sign-in.
+    """
+
+    email = models.EmailField()
+    jurisdiction = models.CharField(max_length=50)
+    registered_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["email", "jurisdiction"], name="pending_activation_identity"),
+        ]
+
+    @classmethod
+    def remember(cls, email, jurisdiction):
+        cls.objects.update_or_create(email=email.strip().lower(), jurisdiction=jurisdiction)
+
+    @classmethod
+    def exists_for(cls, email, jurisdiction):
+        return cls.objects.filter(email=email.strip().lower(), jurisdiction=jurisdiction).exists()
+
+    @classmethod
+    def forget(cls, email, jurisdiction):
+        cls.objects.filter(email=email.strip().lower(), jurisdiction=jurisdiction).delete()

@@ -35,7 +35,7 @@ def test_login_error_stays_inline_and_cannot_be_dismissed(_authenticate, client)
 
     content = response.content.decode()
     assert response.status_code == 200
-    assert "Login service error. Please try again later." in content
+    assert "That email and password did not match an account." in content
     assert "page-feedback__message--error" in content
     assert 'role="alert"' in content
     assert "alert-dismissible" not in content
