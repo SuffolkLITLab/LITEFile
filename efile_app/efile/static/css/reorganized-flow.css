@@ -1890,3 +1890,34 @@
     gap: 0.45rem;
     margin-bottom: 0 !important;
 }
+
+/* Asked when another party is given the filer's own role. */
+.same-role-confirm {
+    background: var(--warning-surface);
+    border: 1px solid var(--warning-border);
+    border-radius: 10px;
+    margin: 1rem 0;
+    padding: 0.9rem 1rem;
+}
+
+.same-role-confirm p {
+    margin-bottom: 0.5rem;
+}
+
+.same-role-confirm label {
+    align-items: flex-start;
+    display: flex;
+    gap: 0.6rem;
+    font-weight: 600;
+}
+
+.same-role-confirm--invalid {
+    border-color: var(--danger-icon);
+    border-width: 2px;
+}
+
+.same-role-confirm .field-error {
+    color: var(--danger-icon);
+    font-weight: 700;
+    margin: 0.5rem 0 0;
+}
