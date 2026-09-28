@@ -6,6 +6,8 @@
     const context = JSON.parse(contextEl.textContent);
     const guesses = context.guesses || {};
     const errorBox = document.getElementById("extraction-review-error");
+    const acknowledgement = document.getElementById("reviewed_extraction");
+    const acknowledgementError = document.getElementById("reviewed-extraction-error");
 
     const fields = {
         court: {
@@ -475,6 +477,42 @@
             block: "center"
         });
     });
+
+    // The acknowledgement sits above the form, so a filer pressing Continue at
+    // the bottom never sees the browser's own tooltip. Native validation fires
+    // "invalid" before "submit", so this is where the error has to be shown.
+    function showAcknowledgementError() {
+        acknowledgement.setAttribute("aria-invalid", "true");
+        acknowledgement.setAttribute("aria-describedby", acknowledgementError.id);
+        acknowledgementError.hidden = false;
+        acknowledgementError.parentElement.classList.add("extraction-acknowledgment--invalid");
+        acknowledgement.focus({
+            preventScroll: true
+        });
+        acknowledgementError.parentElement.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+        });
+    }
+
+    function clearAcknowledgementError() {
+        acknowledgement.removeAttribute("aria-invalid");
+        acknowledgement.removeAttribute("aria-describedby");
+        acknowledgementError.hidden = true;
+        acknowledgementError.parentElement.classList.remove("extraction-acknowledgment--invalid");
+    }
+
+    if (acknowledgement && acknowledgementError) {
+        acknowledgement.addEventListener("invalid", (event) => {
+            event.preventDefault();
+            showAcknowledgementError();
+        });
+        acknowledgement.addEventListener("change", () => {
+            if (acknowledgement.checked) clearAcknowledgementError();
+        });
+        // The server sent the page back for this: take the filer straight to it.
+        if (!acknowledgementError.hidden) showAcknowledgementError();
+    }
 
     loadCourts();
 })();
