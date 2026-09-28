@@ -279,7 +279,90 @@ def test_review_shows_only_the_document_summary_and_fields_the_filer_can_edit(cl
         },
     )
     assert response.status_code == 200
-    assert "Review all the information pulled" in response.content.decode()
+    assert "Check the box to confirm you compared these details" in response.content.decode()
+
+
+def _post_review(client, jurisdiction="illinois", **fields):
+    data = {
+        "existing_case": ExistingCase.NEW,
+        "court_code": "washington",
+        "court_name": "Washington County",
+        "case_category_code": "civil",
+        "case_category_name": "Civil",
+        "case_type_code": "small-claims",
+        "case_type_name": "Small Claims",
+        "case_title": "Rivera v. Example",
+        "party_name": ["Alex Rivera"],
+        "party_side": ["plaintiff"],
+        "party_is_me": ["0"],
+        "party_kind": ["person"],
+    }
+    data.update(fields)
+    return client.post(reverse("extraction_review", kwargs={"jurisdiction": jurisdiction}), data)
+
+
+@pytest.mark.django_db
+def test_missing_acknowledgement_shows_an_error_beside_the_checkbox_and_keeps_edits(client, extraction_draft):
+    authorize(client, extraction_draft)
+    FilingDocument.objects.create(draft=extraction_draft, role=FilingDocument.Role.LEAD, name="petition.pdf")
+    extraction_draft.extracted_guesses = {"document title": "Complaint", "case title": "Old title"}
+    extraction_draft.save(update_fields=["extracted_guesses", "updated_at"])
+
+    response = _post_review(client, case_title="Rivera v. Example")
+
+    assert response.status_code == 200
+    content = response.content.decode()
+    checkbox = re.search(r'<input[^>]*name="reviewed_extraction"[^>]*>', content, re.S)
+    assert checkbox is not None
+    assert 'aria-invalid="true"' in checkbox.group(0)
+    assert 'aria-describedby="reviewed-extraction-error"' in checkbox.group(0)
+    error = re.search(r'<p class="field-error"\s+id="reviewed-extraction-error"\s*>', content)
+    assert error is not None, "the error must be rendered visible, not hidden"
+    # What the filer submitted comes back, not what was saved or guessed.
+    assert re.search(r'name="case_title"\s+id="case_title"\s+value="Rivera v. Example"', content)
+    assert re.search(r'value="new"\s+checked', content)
+    assert '"court_code": "washington"' in content
+    assert '"case_type_code": "small-claims"' in content
+    assert re.search(r'name="party_name"\s+value="Alex Rivera"', content)
+    extraction_draft.refresh_from_db()
+    assert extraction_draft.case_title == ""
+
+
+@pytest.mark.django_db
+def test_acknowledging_after_the_error_lets_the_filer_continue(client, extraction_draft):
+    authorize(client, extraction_draft)
+    FilingDocument.objects.create(draft=extraction_draft, role=FilingDocument.Role.LEAD, name="petition.pdf")
+    extraction_draft.extracted_guesses = {"document title": "Complaint"}
+    extraction_draft.save(update_fields=["extracted_guesses", "updated_at"])
+
+    assert _post_review(client).status_code == 200
+    response = _post_review(client, reviewed_extraction="yes")
+
+    assert response.status_code == 302
+    extraction_draft.refresh_from_db()
+    assert extraction_draft.case_title == "Rivera v. Example"
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "extracted_guesses",
+    [
+        {},
+        # Found, but nothing worth showing: no checkbox is rendered, so none may be demanded.
+        {"document title": "", "case title": None},
+    ],
+)
+def test_no_acknowledgement_is_demanded_when_none_is_shown(client, extraction_draft, extracted_guesses):
+    authorize(client, extraction_draft)
+    FilingDocument.objects.create(draft=extraction_draft, role=FilingDocument.Role.LEAD, name="petition.pdf")
+    extraction_draft.extracted_guesses = extracted_guesses
+    extraction_draft.save(update_fields=["extracted_guesses", "updated_at"])
+
+    page = client.get(reverse("extraction_review", kwargs={"jurisdiction": "illinois"})).content.decode()
+    assert 'name="reviewed_extraction"' not in page
+
+    response = _post_review(client)
+    assert response.status_code == 302
 
 
 @pytest.mark.django_db
