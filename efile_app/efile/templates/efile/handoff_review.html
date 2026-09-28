@@ -1,9 +1,9 @@
 {% extends "efile/site_base.html" %}
 {% block title %}Continue your filing{% endblock title %}
 {% block public_content %}
-    {# A new case has no title or number until the court opens it. #}
+    {# Only the court's own record, once the case lookup has found it. #}
     <h1>
-        {% if draft.existing_case == "existing" and draft.case_title %}
+        {% if draft.is_filing_into_found_case and draft.case_title %}
             {{ draft.case_title }}
         {% else %}
             Continue your filing
@@ -23,7 +23,7 @@
         <h2>Saved case information</h2>
         <p>
             {{ draft.court_name }}
-            {% if draft.existing_case == "existing" %}{{ draft.docket_number }}{% endif %}
+            {% if draft.is_filing_into_found_case %}{{ draft.docket_number }}{% endif %}
             {{ draft.case_type_name }}
         </p>
         <a href="{{ case_url }}">Edit case details</a>

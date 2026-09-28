@@ -672,3 +672,25 @@ def test_user_with_a_correction_draft_can_be_deleted(client, source, payload, st
     create_correction(draft, {"status": "rejected"}, ["documents"])
     user.delete()
     assert not FilingDraft.objects.exists()
+
+
+@pytest.mark.parametrize(("previous_case_id", "shown"), [("", False), ("tracking-1", True)])
+def test_handoff_review_shows_case_identity_only_once_the_case_is_found(
+    client, source, payload, storage, django_user_model, previous_case_id, shown
+):
+    payload["case"] = {
+        "existing_case": True,
+        "court_name": "Test family court",
+        "docket_number": "24-FA-00123",
+        "case_title": "Doe v. Doe",
+    }
+    assert send(client, source, payload).status_code == 201
+    draft = FilingDraft.objects.get()
+    draft.user = login(client, django_user_model)
+    draft.previous_case_id = previous_case_id
+    draft.save()
+
+    content = client.get(reverse("handoff_review", args=[draft.pk])).content.decode()
+
+    assert ("Doe v. Doe" in content) is shown
+    assert ("24-FA-00123" in content) is shown
