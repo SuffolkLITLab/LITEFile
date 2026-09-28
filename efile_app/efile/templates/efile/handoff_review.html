@@ -1,7 +1,14 @@
 {% extends "efile/site_base.html" %}
 {% block title %}Continue your filing{% endblock title %}
 {% block public_content %}
-    <h1>{{ draft.case_title|default:"Continue your filing" }}</h1>
+    {# A new case has no title or number until the court opens it. #}
+    <h1>
+        {% if draft.existing_case == "existing" and draft.case_title %}
+            {{ draft.case_title }}
+        {% else %}
+            Continue your filing
+        {% endif %}
+    </h1>
     {% if closed %}
         <p>This filing is {{ draft.get_status_display|lower }}.</p>
         {% if draft.status == 'submitted' %}<a href="{% url 'correct_filing' draft.pk %}">Check for a clerk return and correct this filing</a>{% endif %}
@@ -14,7 +21,11 @@
         <ul>{% for issue in issues %}<li><a href="{{ issue.url }}">{{ issue.message }}</a></li>{% empty %}<li>Your draft is ready for the final filing checks.</li>{% endfor %}</ul>
         <form method="post">{% csrf_token %}<button type="submit" name="action" value="confirm" class="btn btn-secondary">Confirm my corrections</button></form>
         <h2>Saved case information</h2>
-        <p>{{ draft.court_name }} {{ draft.docket_number }} {{ draft.case_type_name }}</p>
+        <p>
+            {{ draft.court_name }}
+            {% if draft.existing_case == "existing" %}{{ draft.docket_number }}{% endif %}
+            {{ draft.case_type_name }}
+        </p>
         <a href="{{ case_url }}">Edit case details</a>
         <h2>People</h2>
         <ul>{% for party in parties %}<li>{{ party }} — {{ party.party_role_hint }} {{ party.party_type_name }}</li>{% endfor %}</ul>

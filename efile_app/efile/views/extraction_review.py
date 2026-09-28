@@ -80,6 +80,19 @@ def _set_lead_filing_type(draft, filing_type_code, filing_type_name):
     lead.save(update_fields=["filing_type_code", "filing_type_name", "updated_at"])
 
 
+def _case_identity(existing_case, docket_number):
+    """The case number and title this screen may save.
+
+    A new case has neither until the court opens it, so both are cleared (and
+    a number would make Tyler treat the filing as subsequent). An existing
+    case's number is only a search term for the case lookup; its title is left
+    alone, because the court sets it when the case is found.
+    """
+    if existing_case == ExistingCase.NEW:
+        return {"docket_number": "", "case_title": ""}
+    return {"docket_number": docket_number}
+
+
 @require_http_methods(["GET", "POST"])
 def extraction_review(request, jurisdiction):
     if not request.user.is_authenticated or not get_tyler_token(request, jurisdiction):
@@ -146,8 +159,7 @@ def extraction_review(request, jurisdiction):
                     "case_category_name": request.POST.get("case_category_name", ""),
                     "case_type": case_type_code,
                     "case_type_name": request.POST.get("case_type_name", ""),
-                    "docket_number": request.POST.get("docket_number", ""),
-                    "case_title": request.POST.get("case_title", ""),
+                    **_case_identity(existing_case, request.POST.get("docket_number", "")),
                 },
                 current_step=WorkflowStepKey.EXTRACTION_REVIEW,
             )
@@ -232,7 +244,6 @@ def extraction_review(request, jurisdiction):
             else ""
         ),
         "docket_number": draft.docket_number or guesses.get("docket number"),
-        "case_title": draft.case_title or guesses.get("case title"),
         "extraction_context": extraction_context,
         "return_to": request.GET.get("return_to", ""),
     }

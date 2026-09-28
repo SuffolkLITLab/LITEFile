@@ -34,19 +34,24 @@
                             {{ draft.get_existing_case_display }}
                         </dd>
                     </div>
-                    {% if draft.case_title %}
-                        <div>
-                            <dt>{% translate "Case name" %}</dt>
-                            <dd>
-                                {{ draft.case_title }}{% if extracted_markers.case_title %} *{% endif %}
-                            </dd>
-                        </div>
-                    {% endif %}
-                    {% if draft.docket_number %}
+                    {% if draft.is_filing_into_found_case %}
+                        {% comment %}
+                        The court's own record for the case, found in the case
+                        lookup. Shown as read-only: the filer cannot change it.
+                        {% endcomment %}
+                        {% if draft.case_title %}
+                            <div>
+                                <dt>{% translate "Case name" %}</dt>
+                                <dd>
+                                    {{ draft.case_title }}
+                                </dd>
+                            </div>
+                        {% endif %}
                         <div>
                             <dt>{% translate "Case number" %}</dt>
                             <dd>
-                                {{ draft.docket_number }}{% if extracted_markers.docket_number %} *{% endif %}
+                                {{ draft.docket_number }}
+                                <small class="text-muted d-block">{% translate "From the court's records" %}</small>
                             </dd>
                         </div>
                     {% endif %}

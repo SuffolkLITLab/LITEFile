@@ -79,7 +79,7 @@ def test_final_review_marks_extracted_values_and_explains_the_marker(client, sub
     submission_draft.extracted_guesses = {
         "case title": "Jordan Taylor v. Acme",
         "docket number": "2026-CV-123",
-        "court": "Cook County",
+        "court": "Circuit Court of Cook County",
         "case category": "Civil",
         "case type": "Contract",
         "filing type": "Petition",
@@ -101,26 +101,49 @@ def test_final_review_marks_extracted_values_and_explains_the_marker(client, sub
     content = response.content.decode()
 
     assert response.status_code == 200
-    assert "Jordan Taylor v. Acme *" in content
+    assert "Circuit Court of Cook County *" in content
     assert "A * marks a value that matches what we automatically detected in your document." in content
     assert 'data-bs-target="#extraction-marker-modal"' in content
 
 
+def _case_card(content):
+    return content.partition('<section class="review-summary-card">')[2].partition("</section>")[0]
+
+
 @pytest.mark.django_db
-def test_final_review_drops_the_marker_from_a_docket_number_the_filer_corrected(client, submission_draft):
+def test_final_review_hides_case_title_and_number_for_a_new_case(client, submission_draft):
+    # Saved by an older version of the confirm-case screen.
+    submission_draft.case_title = "Jordan Taylor v. Acme"
     submission_draft.docket_number = "2026-CV-123"
-    submission_draft.extracted_guesses = {"docket number": "2026-CV-1234"}
     submission_draft.selected_payment_account_id = "pay-123"
-    submission_draft.save(
-        update_fields=["docket_number", "extracted_guesses", "selected_payment_account_id", "updated_at"]
-    )
+    submission_draft.save(update_fields=["case_title", "docket_number", "selected_payment_account_id", "updated_at"])
 
-    response = client.get(reverse("case_review", kwargs={"jurisdiction": "illinois"}))
-    content = response.content.decode()
+    content = client.get(reverse("case_review", kwargs={"jurisdiction": "illinois"})).content.decode()
+    case_card = _case_card(content)
 
-    assert response.status_code == 200
-    assert "2026-CV-123 *" not in content
-    assert "2026-CV-123" in content
+    assert "Jordan Taylor v. Acme" not in case_card
+    assert "2026-CV-123" not in case_card
+
+
+@pytest.mark.django_db
+def test_final_review_shows_a_found_case_as_the_courts_read_only_record(client, submission_draft):
+    submission_draft.existing_case = "existing"
+    submission_draft.previous_case_id = "tracking-1"
+    submission_draft.case_title = "Jordan Taylor v. Acme"
+    submission_draft.docket_number = "2026-CV-123"
+    submission_draft.extracted_guesses = {"case title": "Jordan Taylor v. Acme", "docket number": "2026-CV-123"}
+    submission_draft.selected_payment_account_id = "pay-123"
+    submission_draft.save()
+
+    content = client.get(reverse("case_review", kwargs={"jurisdiction": "illinois"})).content.decode()
+    case_card = _case_card(content)
+
+    assert "Jordan Taylor v. Acme" in case_card
+    assert "2026-CV-123" in case_card
+    assert "From the court" in case_card
+    # The court's values, not something we read from the document.
+    assert "Jordan Taylor v. Acme *" not in case_card
+    assert "2026-CV-123 *" not in case_card
 
 
 class _PaymentAccountTypesResponse:

@@ -39,9 +39,13 @@ def _describe(draft: FilingDraft, current_draft_id: int | None) -> dict:
         step_label = get_step(draft.current_step).label
     except KeyError:
         step_label = ""
+    is_existing = draft.existing_case == ExistingCase.EXISTING
     return {
         "draft": draft,
-        "title": draft.case_title or (draft.plan.title if draft.plan else ""),
+        # A new case has no title or number until the court opens it, so a
+        # stale one saved on an older draft is not shown.
+        "title": (draft.case_title if is_existing else "") or (draft.plan.title if draft.plan else ""),
+        "docket_number": draft.docket_number if is_existing else "",
         "path_label": PATH_LABELS.get(draft.existing_case, ""),
         "step_label": step_label,
         "resume_url": get_resume_step_url(draft.current_step, draft.jurisdiction, draft_id=draft.pk),

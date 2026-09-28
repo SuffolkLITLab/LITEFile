@@ -37,8 +37,8 @@
                                         {% endif %}
                                     </h2>
                                     <p class="list-card__detail">
-                                        {% if entry.draft.docket_number %}
-                                            {% blocktranslate with docket=entry.draft.docket_number %}Case {{ docket }}{% endblocktranslate %}
+                                        {% if entry.docket_number %}
+                                            {% blocktranslate with docket=entry.docket_number %}Case {{ docket }}{% endblocktranslate %}
                                             ·
                                         {% endif %}
                                         {% if entry.draft.court_name %}{{ entry.draft.court_name }} ·{% endif %}
