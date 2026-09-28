@@ -13,6 +13,7 @@ from efile.services.drafts import (
     write_upload_data,
 )
 from efile.services.efsp_payload import PayloadValidationError
+from efile.services.fee_quotes import record_fee_quote
 from efile.workflow import WorkflowStepKey, get_workflow_step_choices
 
 
@@ -38,6 +39,8 @@ def _prepare_submission(client, draft, jurisdiction="illinois"):
     """Populate the draft (the source of truth) and session so submit can run."""
     write_case_data(draft, {"court": "cook:cd"})
     write_upload_data(draft, {"files": {"lead": {"url": "https://example.com/petition.pdf"}}})
+    # Submission is only offered against a quote that still prices the filing.
+    record_fee_quote(draft, "0.00", [])
     session = client.session
     session[CURRENT_DRAFT_SESSION_KEY] = draft.pk
     session["jurisdiction"] = jurisdiction

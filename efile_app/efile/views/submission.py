@@ -9,8 +9,9 @@ from django.views.decorators.http import require_http_methods
 
 from efile.models import FilingDraft
 from efile.services.current_drafts import clear_current_draft, get_current_draft
+from efile.services.fee_quotes import fee_quote_is_usable
 from efile.services.filing_plans import mark_attached_items_filed
-from efile.services.submission_errors import PRE_SUBMIT_ERROR_CODES
+from efile.services.submission_errors import PRE_SUBMIT_ERROR_CODES, SubmissionErrorCode
 
 from .confirmation import LAST_SUBMITTED_DRAFT_SESSION_KEY
 from .session_api import submit_final_filing as legacy_submit_final_filing
@@ -77,6 +78,20 @@ def submit_final_filing(request):
 
     jurisdiction = request.session.get("jurisdiction")
     draft = get_current_draft(request, jurisdiction=jurisdiction, resume_latest=False)
+
+    # The filer agreed to a total on Review. If anything that prices the filing
+    # changed since, that total is not the one they would be charged, so the
+    # page has to show the new one before anything reaches the court.
+    if draft is not None and not fee_quote_is_usable(draft):
+        return JsonResponse(
+            {
+                "success": False,
+                "error_code": SubmissionErrorCode.FEE_QUOTE_STALE,
+                "error": "The court's fees for this filing changed or could not be confirmed. "
+                "Check the new total on this page before you submit.",
+            },
+            status=412,
+        )
 
     # Claim the draft before forwarding so a concurrent request can't file twice.
     if draft is not None and not _claim_for_submission(draft):

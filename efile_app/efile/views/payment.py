@@ -1,5 +1,3 @@
-import json
-
 from django.conf import settings
 from django.contrib import messages
 from django.shortcuts import redirect, render
@@ -46,26 +44,18 @@ def efile_payment(request, jurisdiction):
         if not account_id:
             messages.error(request, "Choose a payment method to continue.")
         else:
-            try:
-                fee_breakdown = json.loads(request.POST.get("quoted_fee_breakdown") or "[]")
-            except json.JSONDecodeError:
-                fee_breakdown = []
-            if not isinstance(fee_breakdown, list):
-                fee_breakdown = []
-
             draft.selected_payment_account_id = account_id
             draft.selected_payment_account_name = account_name or "Selected payment method"
             draft.selected_payment_account_type = request.POST.get("selected_payment_account_type", "").strip()
-            draft.quoted_fee_total = request.POST.get("quoted_fee_total", "").strip()
-            draft.quoted_fee_breakdown = fee_breakdown
+            # The fee quote itself is not read from this form: the fee API
+            # recorded it on the draft, with what it was priced on, when it
+            # answered (see efile.services.fee_quotes).
             draft.current_step = WorkflowStepKey.REVIEW
             draft.save(
                 update_fields=[
                     "selected_payment_account_id",
                     "selected_payment_account_name",
                     "selected_payment_account_type",
-                    "quoted_fee_total",
-                    "quoted_fee_breakdown",
                     "current_step",
                     "updated_at",
                 ]

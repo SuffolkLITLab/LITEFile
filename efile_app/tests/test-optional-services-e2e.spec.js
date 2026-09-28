@@ -292,46 +292,17 @@ test('adding and removing optional services dynamically updates calculated fees 
         page.locator('#save-document-details').click(),
     ]);
 
-    // Step 12: Navigate to Payment page to recalculate fee without optional service
-    console.log('Step 12: Re-checking Payment page fee WITHOUT optional service...');
-    const editPaymentLink = page.locator('a[aria-label="Edit payment"], a[href$="/payment/"]');
-    await Promise.all([
-        page.waitForURL(/\/payment\//, {
-            timeout: 120000
-        }),
-        editPaymentLink.first().click(),
-    ]);
-
-    const bankAccountAgain = page.locator('input[name="paymentMethod"][data-type="BankAccount"], input[name="paymentMethod"][value="d44fd7ed-6683-48e1-a670-f7964e5bba4d"]');
-    await expect(bankAccountAgain.first()).toBeAttached({
-        timeout: 120000
-    });
-    await bankAccountAgain.first().check();
-
-    await expect(paymentInfo).toContainText('256.25', {
+    // Step 12: Review recalculates on its own. The saved $262.25 quote no longer
+    // prices this filing, so it is not shown; the page asks the court again and
+    // offers Submit only once the new total is on screen. No trip to Payment.
+    console.log('Step 12: Waiting for Review to recalculate the fee WITHOUT optional service...');
+    await expect(page.locator('#fee-quote')).not.toContainText('262.25');
+    await expect(page.locator('.review-fee-total')).toContainText('256.25', {
         timeout: 180000
     });
-    await expect(paymentInfo).not.toContainText('Optional Service Fee');
-
-    const paymentInfoWithoutService = await paymentInfo.innerText();
-    console.log('Payment Info WITHOUT Optional Service:\n' + paymentInfoWithoutService);
-    console.log('✓ Verified: Fee without optional service reduced by $6.00 to $256.25 ($256 initiation + $0.25 convenience fee)!');
-
-    // Step 13: Proceed back to Review page and verify updated lower fee
-    console.log('Step 13: Proceeding to Review page to verify updated fee quote...');
-    await Promise.all([
-        page.waitForURL(/\/review\//, {
-            timeout: 120000
-        }),
-        page.locator('#submitButton').click(),
-    ]);
-
-    await expect(page.locator('.review-fee-total')).toBeVisible({
-        timeout: 120000
-    });
-    const reviewTotalWithoutService = await page.locator('.review-fee-total').innerText();
-    console.log('Review Total WITHOUT Optional Service:\n' + reviewTotalWithoutService);
-    expect(reviewTotalWithoutService).toContain('256.25');
     await expect(page.locator('.review-fee-breakdown')).not.toContainText('Optional Service Fee');
-    console.log('✓ Verified: Review page updated to $256.25 total with Optional Service Fee removed.');
+    await expect(page.locator('#fee-quote')).toHaveAttribute('data-state', 'current');
+    await page.locator('#confirm-filing').check();
+    await expect(page.locator('#submitButton')).toBeEnabled();
+    console.log('✓ Verified: Review requoted $256.25 with the Optional Service Fee removed, without revisiting Payment.');
 });

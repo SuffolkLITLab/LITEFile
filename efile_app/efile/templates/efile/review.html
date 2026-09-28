@@ -196,25 +196,43 @@
                        aria-label="{% translate "Edit payment" %}">{% translate "Edit" %}</a>
                 </header>
                 <p class="review-person-name">{{ draft.selected_payment_account_name }}</p>
-                {% if draft.selected_payment_account_type == "WV" %}
-                    <small class="text-muted">{% translate "This filing has an approved fee waiver. No payment will be charged." %}</small>
-                {% elif draft.quoted_fee_total %}
-                    <dl class="review-fee-total">
-                        <div>
-                            <dt>{% translate "Total" %}</dt>
-                            <dd>
-                                ${{ draft.quoted_fee_total }}
-                            </dd>
-                        </div>
-                    </dl>
-                    {% if draft.quoted_fee_breakdown %}
-                        <ul class="review-fee-breakdown">
-                            {% for fee in draft.quoted_fee_breakdown %}<li>{{ fee.label }}: ${{ fee.amount }}</li>{% endfor %}
+                {% comment %}
+                A total is only shown while it still prices this filing. After
+                a fee-affecting edit the saved quote is stale, and review.js
+                asks the court again before Submit is offered.
+                {% endcomment %}
+                <div id="fee-quote" data-state="{{ fee_quote.state }}" aria-live="polite">
+                    {% if fee_quote.state == "waived" %}
+                        <small class="text-muted">{% translate "This filing has an approved fee waiver. No payment will be charged." %}</small>
+                    {% else %}
+                        <dl class="review-fee-total"
+                            id="fee-quote-total"
+                            {% if fee_quote.state != "current" %}hidden{% endif %}>
+                            <div>
+                                <dt>{% translate "Total" %}</dt>
+                                <dd id="fee-quote-amount">
+                                    {% if fee_quote.total %}${{ fee_quote.total }}{% endif %}
+                                </dd>
+                            </div>
+                        </dl>
+                        <ul class="review-fee-breakdown" id="fee-quote-breakdown">
+                            {% for fee in fee_quote.breakdown %}<li>{{ fee.label }}: ${{ fee.amount }}</li>{% endfor %}
                         </ul>
+                        <p class="text-muted"
+                           id="fee-quote-pending"
+                           {% if fee_quote.state == "current" %}hidden{% endif %}>
+                            {% if fee_quote.state == "stale" %}
+                                {% translate "Something that affects the court's fees changed since they were calculated. We are calculating them again." %}
+                            {% else %}
+                                {% translate "We are calculating the court's fees for this filing." %}
+                            {% endif %}
+                        </p>
+                        <p class="alert alert-warning" id="fee-quote-error" hidden>
+                            <span id="fee-quote-error-text"></span>
+                            <a href="{% url 'payment' jurisdiction %}">{% translate "Check fees on the Payment step" %}</a>
+                        </p>
                     {% endif %}
-                {% else %}
-                    <small class="text-muted">{% translate "Confirm the fee amount on the Payment step." %}</small>
-                {% endif %}
+                </div>
             </section>
         </div>
         {% if plan_missing_documents %}
@@ -275,6 +293,7 @@
     {{ case_data|json_script:"case-data" }}
     {{ upload_data|json_script:"upload-data" }}
     {{ draft.selected_payment_account_id|json_script:"payment-account-id" }}
+    {{ fee_quote.state|json_script:"fee-quote-state" }}
 {% endblock workflow_content %}
 {% block extra_js %}
     <script src="{% static 'js/filing-payload.js' %}"></script>

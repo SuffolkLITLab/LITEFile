@@ -245,6 +245,9 @@ class FilingDraft(models.Model):
     # display the same numbers instead of telling the filer to go look again.
     quoted_fee_total = models.CharField(max_length=50, blank=True)
     quoted_fee_breakdown = models.JSONField(default=list, blank=True)
+    # What the quote was priced on (see efile.services.fee_quotes). A quote is
+    # only current while the draft still produces the same fingerprint.
+    quoted_fee_fingerprint = models.CharField(max_length=64, blank=True)
 
     name_change_reason = models.TextField(blank=True)
 

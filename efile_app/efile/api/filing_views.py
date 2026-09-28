@@ -13,8 +13,10 @@ from django.views.decorators.http import require_http_methods
 
 from efile.utils.jurisdiction_stuff import get_jurisdiction_from_request
 
+from ..services.current_drafts import get_current_draft
 from ..services.efsp_errors import describe_efsp_error
 from ..services.efsp_payload import PayloadValidationError, prepare_efile_payload
+from ..services.fee_quotes import fee_quote_summary, quote_from_efsp_response, record_fee_quote
 from ..utils.case_data_utils import get_case_data
 from ..utils.proxy_connection import get_headers
 from .base import APIResponseMixin
@@ -192,11 +194,27 @@ class FilingAPIViews(APIResponseMixin):
                 response_data = response.json()
 
                 logger.info(f"Sending back: {response_data}")
+                # Kept on the draft with what it was priced on, so Review shows
+                # it only while it still describes the filing.
+                draft = get_current_draft(request, jurisdiction=jurisdiction_id, resume_latest=False)
+                quote = quote_from_efsp_response(response_data)
+                recorded = False
+                if draft is not None and quote is not None:
+                    total, breakdown = quote
+                    record_fee_quote(
+                        draft,
+                        total,
+                        breakdown,
+                        payment_account_id=str(data.get("payment_account_id") or draft.selected_payment_account_id),
+                    )
+                    recorded = True
                 return JsonResponse(
                     {
                         "success": True,
                         "message": "Payment fees submitted successfully",
                         "api_response": response_data,
+                        "quote_recorded": recorded,
+                        "quote": fee_quote_summary(draft) if draft is not None else None,
                     }
                 )
             else:
