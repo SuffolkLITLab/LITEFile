@@ -367,8 +367,90 @@
                 </p>
                 <div class="filer-role__options" id="filer-role-options"></div>
             </fieldset>
-            <fieldset class="path-confirmation">
+            {% comment %}
+            The new-or-existing answer, when the filer already gave one, is
+            shown as their answer with Change rather than asked again. The
+            radios below still carry it (a hidden fieldset still posts), and
+            open when Change is chosen, when there is no answer yet or it was
+            "not sure", or when the form came back with a different one.
+            {% endcomment %}
+            {% if saved_path %}
+                <div class="path-summary" id="path-summary">
+                    <div>
+                        <span class="path-summary__label">{% translate "New or existing case" %}</span>
+                        <strong>
+                            {% if saved_path == "new" %}
+                                {% translate "Start a new case" %}
+                            {% else %}
+                                {% translate "File in an existing case" %}
+                            {% endif %}
+                        </strong>
+                        <small>{% translate "You chose this when you started." %}</small>
+                    </div>
+                    <button class="btn btn-link path-summary__change"
+                            type="button"
+                            id="change-filing-path"
+                            aria-controls="path-question"
+                            aria-expanded="{{ path_question_open|yesno:'true,false' }}">
+                        {% translate "Change" %}
+                    </button>
+                </div>
+            {% endif %}
+            {% if path_conflict %}
+                {% comment %}
+                The document's own reading disagrees with the answer. Said once,
+                neutrally, with the way to correct it; the answer is the filer's
+                and nothing here changes it for them.
+                {% endcomment %}
+                <div class="alert alert-warning path-conflict"
+                     id="path-conflict"
+                     role="note">
+                    <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                    <div>
+                        <p>
+                            {% if path_conflict.suggested == "existing" %}
+                                {% if path_conflict.document_title %}
+                                    {% blocktranslate with title=path_conflict.document_title %}Your document, "{{ title }}", reads like a filing in a case that is already open, such as an answer or a motion. You chose to start a new case.{% endblocktranslate %}
+                                {% else %}
+                                    {% translate "Your document reads like a filing in a case that is already open, such as an answer or a motion. You chose to start a new case." %}
+                                {% endif %}
+                            {% else %}
+                                {% if path_conflict.document_title %}
+                                    {% blocktranslate with title=path_conflict.document_title %}Your document, "{{ title }}", reads like one that starts a new case, such as a complaint or a petition. You chose to file in an existing case.{% endblocktranslate %}
+                                {% else %}
+                                    {% translate "Your document reads like one that starts a new case, such as a complaint or a petition. You chose to file in an existing case." %}
+                                {% endif %}
+                            {% endif %}
+                        </p>
+                        <p>
+                            {% if path_conflict.suggested == "existing" %}
+                                {% translate "This is only how the document reads to us, not legal advice, so check your paperwork. If the case is already open with the court, change your answer. Your uploaded documents stay as they are." %}
+                            {% else %}
+                                {% translate "This is only how the document reads to us, not legal advice, so check your paperwork. If this filing starts the case, change your answer. Your uploaded documents stay as they are." %}
+                            {% endif %}
+                        </p>
+                        <button class="btn btn-sm btn-outline-primary"
+                                type="button"
+                                id="apply-path-suggestion"
+                                data-value="{{ path_conflict.suggested }}">
+                            {% if path_conflict.suggested == "existing" %}
+                                {% translate "Change to an existing case" %}
+                            {% else %}
+                                {% translate "Change to a new case" %}
+                            {% endif %}
+                        </button>
+                    </div>
+                </div>
+            {% endif %}
+            <fieldset class="path-confirmation"
+                      id="path-question"
+                      {% if not path_question_open %}hidden{% endif %}>
                 <legend>{% translate "Is this for a new or existing court case?" %}</legend>
+                {% if saved_path %}
+                    <p class="path-confirmation__note">
+                        {% translate "Changing this keeps your uploaded documents. Filing types and fees are chosen again, and an existing case is looked up in the court's records." %}
+                    </p>
+                {% endif %}
                 <label>
                     <input type="radio"
                            name="existing_case"

@@ -233,8 +233,17 @@ def get_visible_workflow(
     except (TypeError, ValueError):
         pass
 
+    from efile.services.filing_path import filing_path_question_was_asked
+
     visible: list[WorkflowStep] = []
     for step in FILING_WORKFLOW:
+        if step.key == WorkflowStepKey.FILING_PATH:
+            # A filer who chose "Start a new case" or "File into an existing
+            # case" from the start menu, or started from a plan, never saw this
+            # question. Back from Upload goes to where they did start, and the
+            # question is only reached by choosing Change.
+            if draft is not None and not filing_path_question_was_asked(draft) and step.key != current_key:
+                continue
         if step.key in {WorkflowStepKey.CASE_LOOKUP, WorkflowStepKey.CASE_CONFIRMATION}:
             if existing_case != ExistingCase.EXISTING and step.key != current_key:
                 continue

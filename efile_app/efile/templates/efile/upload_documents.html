@@ -11,6 +11,20 @@
         <p class="workflow-lede">
             {% blocktranslate with page_count=max_extraction_pages %}Add the forms and other documents you want to file. We will analyze up to the first {{ page_count }} pages of the first PDF, and you can choose the main document later.{% endblocktranslate %}
         </p>
+        {% if saved_path %}
+            <p class="path-summary path-summary--inline">
+                <span class="path-summary__label">{% translate "New or existing case" %}</span>
+                <strong>
+                    {% if saved_path == "new" %}
+                        {% translate "Start a new case" %}
+                    {% else %}
+                        {% translate "File in an existing case" %}
+                    {% endif %}
+                </strong>
+                <a href="{% url 'filing_path' jurisdiction %}"
+                   aria-label="{% translate "Change whether this is a new or existing case" %}">{% translate "Change" %}</a>
+            </p>
+        {% endif %}
         <div class="requirements-strip">
             <span><i class="fa-solid fa-file-pdf" aria-hidden="true"></i> {% translate "PDF only" %}</span>
             <span><i class="fa-solid fa-weight-hanging" aria-hidden="true"></i> {% translate "10 MB per file" %}</span>
@@ -181,8 +195,12 @@
             {% endif %}
         </section>
         <div class="workflow-actions">
-            <a class="btn btn-outline-secondary"
-               href="{% url 'filing_path' jurisdiction %}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {% translate "Back" %}</a>
+            {% comment %}
+            Back follows the way this filing started: the start menu or a plan
+            never showed "What are you trying to do?", so it is not where Back
+            goes. See efile.workflow.get_visible_workflow.
+            {% endcomment %}
+            <a class="btn btn-outline-secondary" href="{{ workflow_previous_url }}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {% translate "Back" %}</a>
             <a class="btn btn-primary {% if not has_lead_document or extraction_pending %}disabled{% endif %}"
                id="continue-to-analysis"
                href="{% url 'extraction_review' jurisdiction %}"

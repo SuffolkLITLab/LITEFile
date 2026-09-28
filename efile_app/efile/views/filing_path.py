@@ -5,6 +5,12 @@ from django.views.decorators.http import require_http_methods
 from efile.api.suffolk_api_views import get_tyler_token
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.drafts import draft_snapshot, write_case_data
+from efile.services.filing_path import (
+    FilingPathSource,
+    change_filing_path,
+    describe_path_change,
+    record_filing_path_source,
+)
 from efile.workflow import ExistingCase, WorkflowStepKey, get_step_url, get_workflow_context
 
 
@@ -26,11 +32,14 @@ def filing_path(request, jurisdiction):
         if existing_case not in allowed:
             messages.error(request, "Choose the option that best describes your filing.")
         else:
-            write_case_data(
-                draft,
-                {"existing_case": existing_case},
-                current_step=WorkflowStepKey.UPLOAD_DOCUMENTS,
-            )
+            # Reached from the start of a filing, or on purpose from Change:
+            # either way the same draft carries on, and anything chosen for
+            # the other kind of filing is cleared in one place.
+            change = change_filing_path(draft, existing_case)
+            record_filing_path_source(draft, FilingPathSource.QUESTION)
+            write_case_data(draft, {}, current_step=WorkflowStepKey.UPLOAD_DOCUMENTS)
+            if change.changed and change.cleared:
+                messages.info(request, describe_path_change(change))
             return redirect(get_step_url(WorkflowStepKey.UPLOAD_DOCUMENTS, jurisdiction))
 
     context = {
