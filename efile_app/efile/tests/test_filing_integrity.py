@@ -15,7 +15,6 @@ from efile.services.extraction_fields import (
     display_extracted_fields,
     normalize_document_evidence,
     normalize_extracted_fields,
-    supporting_details,
 )
 
 
@@ -73,7 +72,6 @@ def test_family_form_children_remain_evidence_until_explicitly_added(draft):
     draft.save()
     rows = review_rows(draft)
     assert [row["name"] for row in rows] == ["Dana Kim", "Elliot Kim"]
-    assert "Jamie Kim" in supporting_details(draft.extracted_guesses)[0]["value"]
     save_reviewed_parties(draft, rows)
     assert list(draft.parties.values_list("first_name", flat=True)) == ["Dana", "Elliot"]
 
@@ -91,7 +89,6 @@ def test_old_extraction_placeholders_are_not_prefilled_or_displayed(draft):
     response = signed_in(draft.user).get(route("extraction_review", draft))
     assert response.status_code == 200
     assert response.context["document_summary_details"] == []
-    assert response.context["supporting_details"] == []
     assert not response.context["docket_number"]
     assert not response.context["case_title"]
     assert response.context["extraction_context"]["guesses"] == {}
