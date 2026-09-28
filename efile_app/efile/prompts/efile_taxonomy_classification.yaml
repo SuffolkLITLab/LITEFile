@@ -29,11 +29,10 @@ versions:
     status: experimental
     preferred_model_tier: medium
     preferred_models:
-      - gpt-5-mini
-      - gpt-4o
+      - gpt-6-sol
+      - gpt-5.4-mini
     inference:
       temperature: 0
-      reasoning_effort: low
       response_format: json_object
     templates:
       text_system: |-
@@ -106,11 +105,10 @@ versions:
     status: production
     preferred_model_tier: medium
     preferred_models:
-      - gpt-5-mini
-      - gpt-4o
+      - gpt-6-sol
+      - gpt-5.4-mini
     inference:
       temperature: 0
-      reasoning_effort: low
       response_format: json_object
     templates:
       text_system: |-

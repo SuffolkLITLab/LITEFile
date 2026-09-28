@@ -29,11 +29,10 @@ versions:
     status: experimental
     preferred_model_tier: small
     preferred_models:
-      - gpt-5-nano
-      - gpt-4o-mini
+      - gpt-6-luna
+      - gpt-5.4-nano
     inference:
       temperature: 0
-      reasoning_effort: low
       response_format: json_object
     templates:
       file_system: |-
