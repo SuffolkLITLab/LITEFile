@@ -508,6 +508,13 @@ def absorb_filer_duplicates(draft: FilingDraft) -> str:
     return side
 
 
+def missing_required_party_types(draft: FilingDraft, party_types: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """The court's required party roles nobody on this draft holds yet."""
+
+    covered = set(FilingParty.objects.filter(draft=draft).exclude(party_type="").values_list("party_type", flat=True))
+    return [item for item in party_types if item["required"] and item["code"] not in covered]
+
+
 def ensure_required_parties(draft: FilingDraft, party_types: list[dict[str, Any]]) -> None:
     parties = FilingParty.objects.filter(draft=draft)
     covered = set(parties.exclude(party_type="").values_list("party_type", flat=True))

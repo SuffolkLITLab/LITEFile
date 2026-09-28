@@ -198,9 +198,13 @@ test('adding and removing optional services dynamically updates calculated fees 
         timeout: 120000
     });
     await filerRoles.first().check();
+    // Save keeps the filer on People to check the party list; only the
+    // Continue button after that list moves on.
     await page.getByRole('button', {
-        name: /Save role and check required parties/i
+        name: /^Save role$/i
     }).click();
+    await expect(page).toHaveURL(/\/parties\//);
+    await page.locator('.workflow-actions button[value="continue"]').click();
 
     let partyOrdinal = 1;
     while (/\/party-details\//.test(page.url())) {
