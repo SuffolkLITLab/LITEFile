@@ -279,3 +279,26 @@ def test_extraction_review_saves_case_identity_only_for_existing_cases(
     reorganized_draft.refresh_from_db()
     assert reorganized_draft.docket_number == expected_docket
     assert reorganized_draft.case_title == expected_title
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("jurisdiction", ["illinois", "vermont"])
+def test_first_progress_stage_reads_start_not_filing(client, reorganized_draft, jurisdiction):
+    # "Filing" read as the final submit step, so the first stage is "Start".
+    reorganized_draft.jurisdiction = jurisdiction
+    reorganized_draft.save(update_fields=["jurisdiction"])
+    reorganized_draft.user.tyler_jurisdiction = jurisdiction
+    reorganized_draft.user.save(update_fields=["tyler_jurisdiction"])
+    session = client.session
+    session["auth_tokens"] = {f"TYLER-TOKEN-{jurisdiction.upper()}": "token"}
+    session["jurisdiction"] = jurisdiction
+    session.save()
+
+    response = client.get(reverse("filing_path", kwargs={"jurisdiction": jurisdiction}))
+
+    progress = re.search(r'<nav class="workflow-progress".*?</nav>', response.content.decode(), re.S)
+    assert progress is not None
+    labels = re.findall(r'<span class="workflow-progress__label">([^<]+)</span>', progress.group(0))
+    assert labels[0] == "Start"
+    assert "Filing" not in labels
+    assert labels[-1] == "Review"
