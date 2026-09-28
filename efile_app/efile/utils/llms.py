@@ -69,12 +69,43 @@ else:
 
 # Each tier is a model and how hard it thinks. Medium and large share a model
 # and differ only in reasoning effort. The GPT-5 rows are fallbacks for an
-# endpoint that has not deployed GPT-6.
+# endpoint that has not deployed GPT-6; the Claude and Gemini rows are for the
+# Bedrock, Vertex, and gateway deployments the docs support.
 DEFAULT_MODEL_SETS: dict[str, list[list[str]]] = {
-    "small": [["gpt-6-luna"], ["gpt-5.4-nano"], ["gpt-5-nano"]],
-    "medium": [["gpt-6-sol"], ["gpt-5.4-mini"], ["gpt-5-mini"]],
-    "large": [["gpt-6-sol"], ["gpt-5.4"], ["gpt-5"]],
+    "small": [
+        ["gpt-6-luna"],
+        ["gpt-5.4-nano"],
+        ["gpt-5-nano"],
+        ["claude-haiku-4-5"],
+        ["gemini-2.5-flash-lite"],
+    ],
+    "medium": [
+        ["gpt-6-sol"],
+        ["gpt-5.4-mini"],
+        ["gpt-5-mini"],
+        ["claude-sonnet-5-5"],
+        ["claude-sonnet-4-5"],
+        ["gemini-2.5-flash"],
+    ],
+    "large": [
+        ["gpt-6-sol"],
+        ["gpt-5.4"],
+        ["gpt-5"],
+        ["claude-opus-5-5"],
+        ["claude-sonnet-5-5"],
+        ["gemini-2.5-pro"],
+    ],
 }
+
+# When no named model is deployed, a listed model whose name suggests the
+# tier is still better than a GPT name the endpoint does not have. Gateways
+# often add a date or provider prefix, so these match anywhere in the name.
+TIER_NAME_HINTS: dict[str, tuple[str, ...]] = {
+    "small": ("nano", "haiku", "flash-lite", "lite", "mini", "small"),
+    "medium": ("sonnet", "mini", "flash", "medium"),
+    "large": ("opus", "pro", "sonnet", "large"),
+}
+_NOT_CHAT_MODELS = ("embed", "whisper", "tts", "transcribe", "dall-e", "image", "moderation", "audio", "realtime")
 
 MODEL_TYPE_FALLBACKS = {
     "small": "gpt-6-luna",
@@ -282,14 +313,27 @@ def get_default_model(
     selected_set = get_first_available_model_set(
         _normalize_model_sets(configured_sets) + DEFAULT_MODEL_SETS.get(normalized_model_type, []),
         openai_client=openai_client,
+        # The tier-aware fallback below does better than any small model.
+        fallback_to_first_small_model=False,
     )
     if selected_set:
         return selected_set[0]
 
-    if normalized_model_type == "small":
-        small_model = get_first_small_model(openai_client)
-        if small_model:
-            return small_model
+    listed = [
+        model
+        for model in list_available_models(openai_client)
+        if not any(marker in model.lower() for marker in _NOT_CHAT_MODELS)
+    ]
+    for hint in TIER_NAME_HINTS.get(normalized_model_type, ()):
+        match = next((model for model in listed if hint in model.lower()), None)
+        if match:
+            log(f"No default {normalized_model_type} model is deployed; using {match}.", "warning")
+            return match
+    if listed:
+        log(f"No {normalized_model_type}-sized model is deployed; using {listed[0]}.", "warning")
+        return listed[0]
+    # The endpoint lists nothing (some gateways do not implement /models), so
+    # there is nothing better to go on than the name the defaults expect.
     return MODEL_TYPE_FALLBACKS.get(normalized_model_type, MODEL_TYPE_FALLBACKS["small"])
 
 

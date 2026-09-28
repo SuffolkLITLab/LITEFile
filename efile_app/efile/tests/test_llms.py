@@ -209,3 +209,43 @@ def test_pdf_extraction_sends_the_tiers_effort_to_responses(tmp_path: Path):
     extract_fields_from_file(pdf_path, {"form identifier": "id"}, openai_client=openai_client, model="gpt-6-luna")
 
     assert openai_client.responses.create.call_args.kwargs["reasoning"] == {"effort": "none"}
+
+
+@pytest.mark.parametrize(
+    ("listed", "model_type", "expected"),
+    [
+        # Bedrock-style gateway: named Claude defaults.
+        (["claude-haiku-4-5", "claude-sonnet-5-5", "claude-opus-5-5"], "medium", "claude-sonnet-5-5"),
+        (["claude-haiku-4-5", "claude-sonnet-5-5", "claude-opus-5-5"], "large", "claude-opus-5-5"),
+        # Vertex-style: named Gemini defaults.
+        (["gemini-2.5-flash-lite", "gemini-2.5-flash", "gemini-2.5-pro"], "medium", "gemini-2.5-flash"),
+        (["gemini-2.5-flash-lite", "gemini-2.5-flash", "gemini-2.5-pro"], "large", "gemini-2.5-pro"),
+        # Gateway names with prefixes and dates still match the tier by name.
+        (
+            ["bedrock/anthropic.claude-sonnet-4-5-20250929", "text-embedding-3-large"],
+            "medium",
+            "bedrock/anthropic.claude-sonnet-4-5-20250929",
+        ),
+        (["vertex/gemini-3-pro-preview", "vertex/gemini-3-flash"], "large", "vertex/gemini-3-pro-preview"),
+        # Nothing tier-like: any chat model beats a GPT name that is not there.
+        (["llama-4-maverick", "text-embedding-3-large"], "large", "llama-4-maverick"),
+    ],
+)
+def test_a_non_gpt_endpoint_gets_a_model_it_actually_has(monkeypatch, listed, model_type, expected):
+    monkeypatch.setattr("efile.utils.llms.list_available_models", lambda *_args: listed)
+
+    assert get_default_model(model_type) == expected
+
+
+def test_medium_does_not_fall_back_to_a_small_model(monkeypatch):
+    monkeypatch.setattr(
+        "efile.utils.llms.list_available_models", lambda *_args: ["claude-haiku-4-5", "claude-sonnet-4-5"]
+    )
+
+    assert get_default_model("medium") == "claude-sonnet-4-5"
+
+
+def test_an_endpoint_that_lists_nothing_gets_the_gpt6_default(monkeypatch):
+    monkeypatch.setattr("efile.utils.llms.list_available_models", lambda *_args: [])
+
+    assert get_default_model("large") == "gpt-6-sol"
