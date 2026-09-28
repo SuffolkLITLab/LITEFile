@@ -40,13 +40,25 @@ Placeholders are filled in from the jurisdiction's config (``brand_name``,
 from any keyword arguments passed by the caller. An unknown placeholder is left
 in the text rather than raising, because these strings can come from a YAML file
 that no test has rendered.
+
+A passage marked ``links=True`` may carry inline Markdown -- ``[text](url)``,
+``*emphasis*``, ``**strong**`` -- so a state can point filers at its own rules or
+help pages. ``{% ui_text %}`` renders it as sanitized HTML. Everywhere else (a
+label, a question, a string handed to JavaScript) the Markdown is reduced to its
+plain text, because a link inside a ``<label>`` or ``<legend>``, or an attribute,
+is a control no one can use.
 """
 
+import html
 import logging
+import re
 from dataclasses import dataclass
 from string import Formatter
 
-from django.utils.translation import pgettext
+import bleach
+import markdown
+from django.utils.safestring import SafeString
+from django.utils.translation import gettext, pgettext
 
 logger = logging.getLogger(__name__)
 
@@ -68,10 +80,14 @@ class UIString:
         description: Why this string is configurable, and what a state should
             consider when rewording it. Shown to config authors in the docs and
             to translators as a comment.
+        links: Whether the string is a passage that may carry inline Markdown
+            links. Only set on text a template renders as running prose, never
+            on a label, a question, or a string handed to JavaScript.
     """
 
     default: str
     description: str = ""
+    links: bool = False
 
 
 UI_STRINGS: dict[str, UIString] = {
@@ -100,6 +116,7 @@ UI_STRINGS: dict[str, UIString] = {
     "organize_documents.main_document_help": UIString(
         default="Choose the document that starts this filing, like a {starting_document_example}. Upload order does not matter.",
         description="Names the kind of document that opens a case, which differs by state.",
+        links=True,
     ),
     "organize_documents.single_document_note": UIString(
         default="This is the only document in this filing, so it is the {main_document}.",
@@ -121,6 +138,7 @@ UI_STRINGS: dict[str, UIString] = {
             "Explains why several PDFs can each say “Lead Document” here. Reword it if the "
             "court in this state names its components differently."
         ),
+        links=True,
     ),
     "organize_documents.filing_component_fixed_note": UIString(
         default="The court requires this component for this filing type, so there is nothing to choose.",
@@ -134,6 +152,7 @@ UI_STRINGS: dict[str, UIString] = {
             "Explains when filers in this jurisdiction may mark a document confidential. "
             "A state should use the rule or order language its court approves."
         ),
+        links=True,
     ),
     "organize_documents.optional_services_summary": UIString(
         default="Certified copy and courtesy email (optional)",
@@ -144,6 +163,7 @@ UI_STRINGS: dict[str, UIString] = {
             "ask for it here. Neither one is required."
         ),
         description="Says plainly that these are requests the filer may make, not steps they must complete.",
+        links=True,
     ),
     # Placeholders the organize-documents page renders from JavaScript once the
     # court's own choices have loaded. They are resolved here, and handed to the
@@ -167,6 +187,7 @@ UI_STRINGS: dict[str, UIString] = {
     ),
     "extraction_review.court_help": UIString(
         default="Choose the court that should receive this filing.",
+        links=True,
     ),
     "extraction_review.case_category_label": UIString(
         default="Case category",
@@ -175,11 +196,13 @@ UI_STRINGS: dict[str, UIString] = {
     "extraction_review.case_category_help": UIString(
         default="Choose the broad category that best describes the case.",
         description="May include familiar examples that help filers recognize the court's formal categories.",
+        links=True,
     ),
     # -- Your information ----------------------------------------------------
     "your_information.lede": UIString(
         default="Confirm how the court can contact you. We filled in what we could from your {brand_name} account.",
         description="Names the account the filer signed in with. Uses the jurisdiction's brand name.",
+        links=True,
     ),
     # -- People / parties ----------------------------------------------------
     "parties.role_question": UIString(
@@ -190,6 +213,7 @@ UI_STRINGS: dict[str, UIString] = {
             "Choose the role that describes you, and the court will list you as a party in this case. "
             "You do not have to be one: if you are filing for someone else, say so and we will ask who."
         ),
+        links=True,
     ),
     # -- Public pages --------------------------------------------------------
     "about.project_partner_description": UIString(
@@ -203,6 +227,7 @@ UI_STRINGS: dict[str, UIString] = {
             "The partner paragraph on this jurisdiction's About page. Partners approve their own "
             "wording, so set it per state."
         ),
+        links=True,
     ),
 }
 
@@ -278,6 +303,67 @@ def _format(text, params):
         return text
 
 
+# Inline only: these passages sit inside a <p>, <small>, or <summary> that the
+# template already provides, so nothing here may open a block of its own.
+INLINE_TAGS = frozenset({"a", "em", "strong", "code"})
+LINK_PROTOCOLS = frozenset({"http", "https", "mailto", "tel"})
+
+# ``[text](url)`` and ``<url>`` -- enough to reduce a link to its words.
+_MARKDOWN_LINK = re.compile(r"\[([^\]]*)\]\([^)]*\)")
+_MARKDOWN_AUTOLINK = re.compile(r"<((?:https?|mailto|tel):[^>\s]+)>")
+_MARKDOWN_EMPHASIS = re.compile(r"(\*\*|__|\*|`)(.+?)\1")
+# Every character Markdown gives a meaning to, so a value filled into a
+# placeholder -- a filer's name, a brand name -- is shown as typed.
+_MARKDOWN_SPECIAL = re.compile(r"([\\`*_{}\[\]()#+\-.!<>|~])")
+
+
+def has_markdown_link(text):
+    """Whether configured copy tries to link somewhere."""
+    return bool(_MARKDOWN_LINK.search(text or "") or _MARKDOWN_AUTOLINK.search(text or ""))
+
+
+def plain_text(text):
+    """Configured copy with its inline Markdown reduced to the words."""
+    text = _MARKDOWN_LINK.sub(r"\1", text or "")
+    text = _MARKDOWN_AUTOLINK.sub(r"\1", text)
+    return _MARKDOWN_EMPHASIS.sub(r"\2", text)
+
+
+def _escape_markdown(value):
+    return _MARKDOWN_SPECIAL.sub(r"\\\1", html.escape(str(value), quote=False))
+
+
+def _open_off_site_links_in_new_tab(attrs, new=False):
+    href = attrs.get((None, "href"), "")
+    if href.startswith(("http://", "https://")):
+        attrs[(None, "target")] = "_blank"
+        attrs[(None, "rel")] = "noopener noreferrer"
+        # Said out loud, and not only by an icon: a new tab is a surprise
+        # to someone who cannot see it open.
+        attrs["_text"] = f"{attrs['_text']} ({gettext('opens in a new tab')})"
+    return attrs
+
+
+def render_inline_markdown(text):
+    """Render trusted configured copy as inline HTML, allowing only safe links.
+
+    The copy comes from a state's own YAML, but it is still sanitized: only
+    inline tags survive, links keep only ``href`` and ``title``, and only web,
+    email, and phone links are allowed. A ``javascript:`` link loses its href.
+    """
+    rendered = markdown.markdown(text or "")
+    cleaned = bleach.clean(
+        rendered,
+        tags=INLINE_TAGS,
+        attributes={"a": ["href", "title"]},
+        protocols=LINK_PROTOCOLS,
+        strip=True,
+    ).strip()
+    linked = bleach.linkify(cleaned, callbacks=[_open_off_site_links_in_new_tab], parse_email=False)
+    # Bleach enforces the allowlists above before this reviewed safe-output boundary.
+    return SafeString(linked)  # nosec B703
+
+
 def get_text(key, jurisdiction=None, config=None, **params):
     """Resolve one UI string for a jurisdiction, translated and formatted.
 
@@ -291,6 +377,28 @@ def get_text(key, jurisdiction=None, config=None, **params):
     Returns:
         str: The final string to show the filer.
     """
+    text, values = _source_and_values(key, jurisdiction, config, params)
+    return plain_text(_format(text, values))
+
+
+def get_html(key, jurisdiction=None, config=None, **params):
+    """Like :func:`get_text`, but a passage's inline Markdown becomes HTML.
+
+    Only strings marked ``links=True`` are rendered; any other key comes back
+    as its plain text, escaped. Placeholder values are escaped before they go
+    in, so a filer's name cannot turn into markup or a link.
+
+    Returns:
+        SafeString: Ready to put straight into a template.
+    """
+    text, values = _source_and_values(key, jurisdiction, config, params)
+    entry = UI_STRINGS.get(key)
+    if entry is None or not entry.links:
+        return SafeString(html.escape(plain_text(_format(text, values))))  # nosec B703
+    return render_inline_markdown(_format(text, {name: _escape_markdown(value) for name, value in values.items()}))
+
+
+def _source_and_values(key, jurisdiction, config, params):
     config = _load_config(jurisdiction, config)
     overrides = config_overrides(config)
     text = pgettext(key, _source(key, overrides))
@@ -301,9 +409,9 @@ def get_text(key, jurisdiction=None, config=None, **params):
         # refer to itself or to another term and loop.
         for term_key in UI_STRINGS:
             if term_key.startswith(TERM_PREFIX):
-                values[term_key[len(TERM_PREFIX) :]] = pgettext(term_key, _source(term_key, overrides))
+                values[term_key[len(TERM_PREFIX) :]] = plain_text(pgettext(term_key, _source(term_key, overrides)))
     values.update(params)
-    return _format(text, values)
+    return text, values
 
 
 def get_texts(keys, jurisdiction=None, config=None, **params):
