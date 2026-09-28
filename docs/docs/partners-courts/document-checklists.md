@@ -72,13 +72,15 @@ case_types:
 
 ## 2. Requirement levels
 
-Checklist items are grouped into three clear tiers:
+Checklist items are grouped into three tiers. The YAML keys describe how often a document goes with this kind of filing. Filers see softer labels, because LITEFile cannot know which forms a particular filer's situation calls for:
 
 | Requirement level | Displayed as | Meaning |
 | :--- | :--- | :--- |
-| `always` | **Always needed** | Mandatory document required to open or respond to the matter. |
-| `usually` | **Usually needed** | Standard documents expected in the majority of cases of this type. |
-| `sometimes` | **Sometimes needed** | Conditional documents required only when specific factual conditions apply. |
+| `always` | **Commonly included** | Documents that almost every filing of this type includes, such as the form that opens the matter. |
+| `usually` | **Often included** | Standard documents included in most filings of this type. |
+| `sometimes` | **May apply** | Documents that depend on specific facts. |
+
+The checklist never blocks a filer. Filers can continue with any item unticked, and they are never asked to confirm that the list is complete.
 
 ---
 

@@ -79,10 +79,6 @@ def _attach_to_item(request, draft, plan, jurisdiction):
             messages.error(request, str(error))
             return redirect(_this_page(request, jurisdiction))
         document = _newest_document(draft)
-        # Adding a file means the filer has more to organize and re-confirm.
-        if draft.document_checklist_acknowledged:
-            draft.document_checklist_acknowledged = False
-            draft.save(update_fields=["document_checklist_acknowledged", "updated_at"])
     else:
         document = FilingDocument.objects.filter(draft=draft, pk=document_id).first() if document_id else None
 
@@ -135,9 +131,6 @@ def document_checklist(request, jurisdiction):
             )
         except ValueError as error:
             return JsonResponse({"success": False, "error": str(error)}, status=400)
-        if draft.document_checklist_acknowledged:
-            draft.document_checklist_acknowledged = False
-            draft.save(update_fields=["document_checklist_acknowledged", "updated_at"])
         return JsonResponse({"success": True, "document_count": FilingDocument.objects.filter(draft=draft).count()})
 
     # In a two-sided case the same case type means two different jobs, and the
@@ -171,25 +164,25 @@ def document_checklist(request, jurisdiction):
         if action == "save_progress":
             messages.success(request, "We saved your document list.")
             return redirect(_this_page(request, jurisdiction))
-        if request.POST.get("documents_complete") != "yes":
-            messages.error(request, "Confirm that you have added every document you want to file.")
-        else:
-            draft.document_checklist_acknowledged = True
-            # Coming back here from Review to add a document is common now that
-            # the review step names what is missing. Go straight back to Review,
-            # unless a document still needs a filing type -- organizing is where
-            # that is chosen, and the court will not take a filing without it.
-            return_to = request.POST.get("return_to", "")
-            needs_organizing = documents.filter(Q(filing_type_code="") | Q(document_type_code="")).exists()
-            next_step = (
-                WorkflowStepKey.REVIEW
-                if return_to == RETURN_TO_REVIEW and not needs_organizing
-                else WorkflowStepKey.ORGANIZE_DOCUMENTS
-            )
-            draft.current_step = next_step
-            draft.save(update_fields=["document_checklist_acknowledged", "current_step", "updated_at"])
-            next_url = get_step_url(next_step, jurisdiction)
-            return redirect(with_return_to(next_url, return_to) if next_step != WorkflowStepKey.REVIEW else next_url)
+        # The checklist is a guide, not a gate: the filer can continue with any
+        # item unticked, and is never asked to say the list is complete. It
+        # cannot know which forms a filer's situation actually needs.
+        #
+        # Coming back here from Review to add a document is common now that
+        # the review step names what is missing. Go straight back to Review,
+        # unless a document still needs a filing type -- organizing is where
+        # that is chosen, and the court will not take a filing without it.
+        return_to = request.POST.get("return_to", "")
+        needs_organizing = documents.filter(Q(filing_type_code="") | Q(document_type_code="")).exists()
+        next_step = (
+            WorkflowStepKey.REVIEW
+            if return_to == RETURN_TO_REVIEW and not needs_organizing
+            else WorkflowStepKey.ORGANIZE_DOCUMENTS
+        )
+        draft.current_step = next_step
+        draft.save(update_fields=["current_step", "updated_at"])
+        next_url = get_step_url(next_step, jurisdiction)
+        return redirect(with_return_to(next_url, return_to) if next_step != WorkflowStepKey.REVIEW else next_url)
 
     missing = documents_missing_from_envelope(plan, draft)
     context = {

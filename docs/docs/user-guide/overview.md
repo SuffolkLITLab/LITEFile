@@ -55,14 +55,14 @@ As you move through the tool, here is what each step does and what you'll do on 
 * **What you do**: Enter your case number (for example, `2026-MR-001234`). LITEFile connects to the court records to find your case title, judge, and registered parties so you don't have to type them all in by hand.
 
 ### 5. Checking your document checklist
-* **What you see**: A tailored checklist of forms commonly needed for your specific case type (like a Name Change or an Eviction defense).
-* **What you do**: Review the list to see if you have everything you need:
-  - **Always needed**: The main forms the court requires to open your matter.
-  - **Usually needed**: Standard forms like proposed orders or notices.
-  - **Sometimes needed**: Conditional forms like fee waivers or publication notices.
+* **What you see**: A checklist of forms that are often filed with your type of case (like a Name Change or an Eviction defense).
+* **What you do**: Use the list as a guide. Checking items off is optional:
+  - **Commonly included**: Forms most filings like yours include, such as the one that opens your matter.
+  - **Often included**: Standard forms like proposed orders or notices.
+  - **May apply**: Forms that depend on your situation, like fee waivers or publication notices.
 
 :::note The checklist is a helpful guide
-The checklist is here to help you avoid missing court forms—it never stops or blocks you from filing if your situation is different.
+The checklist is here to help you avoid missing court forms. It can't tell you which forms your situation needs, and it never stops you from continuing.
 :::
 
 ### 6. Organizing your documents

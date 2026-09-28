@@ -492,12 +492,6 @@ def issues_for(draft):
     if draft.existing_case == ExistingCase.EXISTING:
         need("previous_case_id", draft.previous_case_id, "Find and confirm the existing court case.", "case_lookup")
     need("main_document", draft.documents.filter(role="lead").exists(), "Add the main PDF.", "upload_documents")
-    need(
-        "document_checklist_acknowledged",
-        draft.document_checklist_acknowledged,
-        "Check that all required documents are included.",
-        "document_checklist",
-    )
     for doc in draft.documents.all():
         for field, label in (
             ("filing_type_code", "filing type"),

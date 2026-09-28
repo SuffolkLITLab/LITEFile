@@ -218,7 +218,7 @@
             </section>
         </div>
         {% if plan_missing_documents %}
-            <div class="plan-alert plan-alert--review" role="alert">
+            <div class="plan-alert plan-alert--review" role="note">
                 <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
                 <div>
                     <strong>{% translate "Your plan lists documents that are not in this filing" %}</strong>
@@ -229,7 +229,7 @@
                                 {% if item.reason == "have" %}
                                     <small>{% translate "you said you have this" %}</small>
                                 {% else %}
-                                    <small>{% translate "this court always wants one" %}</small>
+                                    <small>{% translate "commonly included with filings like this" %}</small>
                                 {% endif %}
                             </li>
                         {% endfor %}

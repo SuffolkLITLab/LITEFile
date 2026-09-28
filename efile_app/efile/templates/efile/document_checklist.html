@@ -7,17 +7,17 @@
 {% block workflow_content %}
     <section class="workflow-card">
         <div class="workflow-eyebrow">{% translate "Check documents" %}</div>
-        <h1>{% translate "Do you have all your documents?" %}</h1>
+        <h1>{% translate "Check your documents" %}</h1>
         <p class="workflow-lede">
             {% translate "Review the files below. Add anything else you want the court to get with this filing." %}
         </p>
         <div class="checklist-guidance" role="note">
             <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
             <div>
-                <strong>{% translate "Before you continue" %}</strong>
+                <strong>{% translate "This list is a guide" %}</strong>
                 {% if checklist_groups %}
                     <p>
-                        {% blocktranslate with court=plan.court_name|default:filing_draft.court_name %}The list below is a guide for cases like yours at {{ court }}. Your case may need more or fewer documents.{% endblocktranslate %}
+                        {% blocktranslate with court=plan.court_name|default:filing_draft.court_name %}Some filings like yours at {{ court }} include the documents below. Depending on your situation, other documents may be needed, or some of these may not apply. You do not have to check anything off to continue.{% endblocktranslate %}
                     </p>
                 {% else %}
                     <p>
@@ -239,15 +239,6 @@
         <form method="post" id="checklist-confirm-form">
             {% csrf_token %}
             <input type="hidden" name="return_to" value="{{ return_to }}" />
-            <label class="checklist-confirmation">
-                <input class="form-check-input"
-                       type="checkbox"
-                       name="documents_complete"
-                       value="yes"
-                       {% if filing_draft.document_checklist_acknowledged %}checked{% endif %}
-                       required />
-                <span><strong>{% translate "I have added all the documents I want to file." %}</strong><small>{% translate "I understand that I can go back and add another PDF before I submit." %}</small></span>
-            </label>
             <div class="workflow-actions">
                 <a class="btn btn-outline-secondary"
                    href="{% url 'extraction_review' jurisdiction %}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {% translate "Back" %}</a>

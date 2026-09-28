@@ -43,27 +43,22 @@ def document_draft(client, django_user_model):
 
 
 @pytest.mark.django_db
-def test_document_checklist_requires_acknowledgement(client, document_draft):
+def test_document_checklist_continues_without_any_confirmation(client, document_draft):
+    # A guide, not a gate: nothing has to be ticked or confirmed to continue.
     response = client.post(reverse("document_checklist", kwargs={"jurisdiction": "illinois"}), {})
-
-    document_draft.refresh_from_db()
-    assert response.status_code == 200
-    assert document_draft.document_checklist_acknowledged is False
-    assert b"Confirm that you have added every document" in response.content
-
-
-@pytest.mark.django_db
-def test_document_checklist_continues_to_organize(client, document_draft):
-    response = client.post(
-        reverse("document_checklist", kwargs={"jurisdiction": "illinois"}),
-        {"documents_complete": "yes"},
-    )
 
     document_draft.refresh_from_db()
     assert response.status_code == 302
     assert response.url.partition("?")[0] == reverse("organize_documents", kwargs={"jurisdiction": "illinois"})
-    assert document_draft.document_checklist_acknowledged is True
     assert document_draft.current_step == WorkflowStepKey.ORGANIZE_DOCUMENTS
+
+
+@pytest.mark.django_db
+def test_document_checklist_does_not_ask_the_filer_to_confirm_it_is_complete(client, document_draft):
+    page = client.get(reverse("document_checklist", kwargs={"jurisdiction": "illinois"})).content.decode()
+
+    assert 'name="documents_complete"' not in page
+    assert "I have added all the documents" not in page
 
 
 @pytest.mark.django_db
@@ -105,7 +100,9 @@ def test_document_checklist_shows_configured_guidance(client, planned_draft):
     page = response.content.decode()
     assert response.status_code == 200
     assert "Your document plan" in page
-    assert "Always needed" in page
+    assert "Commonly included" in page
+    assert "Always needed" not in page
+    assert "Depending on your situation, other documents may be needed" in page
     assert "Request for name change" in page
     assert "County Division information sheet" in page
     assert planned_draft.plan.checklist["petition"]["requirement"] == "always"
@@ -136,30 +133,37 @@ def test_document_checklist_saves_gathered_documents(client, planned_draft):
     assert checklist["petition"]["status"] == "have"
     assert checklist["proposed_order"]["status"] == "filed"
     assert checklist["publication_notice"]["status"] == ""
-    # Saving the matter checklist is not the same as saying this filing is ready.
-    assert planned_draft.document_checklist_acknowledged is False
 
 
 @pytest.mark.django_db
 def test_document_checklist_saves_gathered_documents_when_continuing(client, planned_draft):
     response = client.post(
         reverse("document_checklist", kwargs={"jurisdiction": "illinois"}),
-        {"documents_complete": "yes", "status_petition": "have"},
+        {"status_petition": "have"},
     )
 
     planned_draft.refresh_from_db()
     assert response.status_code == 302
     assert response.url.partition("?")[0] == reverse("organize_documents", kwargs={"jurisdiction": "illinois"})
-    assert planned_draft.document_checklist_acknowledged is True
     assert planned_draft.plan.checklist["petition"]["status"] == "have"
 
 
 @pytest.mark.django_db
-def test_organize_requires_completed_checklist(client, document_draft):
+def test_document_checklist_continues_with_every_item_unticked(client, planned_draft):
+    response = client.post(reverse("document_checklist", kwargs={"jurisdiction": "illinois"}), {})
+
+    planned_draft.refresh_from_db()
+    assert response.status_code == 302
+    assert response.url.partition("?")[0] == reverse("organize_documents", kwargs={"jurisdiction": "illinois"})
+    # Nothing the filer left alone is treated as missing or an error.
+    assert planned_draft.plan.checklist["publication_notice"]["status"] == ""
+
+
+@pytest.mark.django_db
+def test_organize_does_not_require_the_checklist(client, document_draft):
     response = client.get(reverse("organize_documents", kwargs={"jurisdiction": "illinois"}))
 
-    assert response.status_code == 302
-    assert response.url.partition("?")[0] == reverse("document_checklist", kwargs={"jurisdiction": "illinois"})
+    assert response.status_code == 200
 
 
 @pytest.mark.django_db
