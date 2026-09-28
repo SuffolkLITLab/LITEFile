@@ -66,10 +66,6 @@ def case_review(request, jurisdiction):
         for key in ("plaintiff or petitioner names", "defendant or respondent names", "other party names")
     )
     extracted_markers = {
-        "case_title": _matches_extracted_value(draft.case_title, extracted_guesses.get("case title")),
-        "docket_number": _matches_extracted_value(
-            draft.docket_number, extracted_guesses.get("docket number"), exact=True
-        ),
         "court": _matches_extracted_value(draft.court_name, extracted_guesses.get("court")),
         "case_category": _matches_extracted_value(draft.case_category_name, extracted_guesses.get("case category")),
         "case_type": _matches_extracted_value(draft.case_type_name, extracted_guesses.get("case type")),

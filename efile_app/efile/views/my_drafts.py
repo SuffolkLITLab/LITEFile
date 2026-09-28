@@ -39,9 +39,13 @@ def _describe(draft: FilingDraft, current_draft_id: int | None) -> dict:
         step_label = get_step(draft.current_step).label
     except KeyError:
         step_label = ""
+    # Only the court's record, once the lookup has found it: before that the
+    # title may be stale and the number is just what the filer searched for.
+    found = draft.is_filing_into_found_case
     return {
         "draft": draft,
-        "title": draft.case_title or (draft.plan.title if draft.plan else ""),
+        "title": (draft.case_title if found else "") or (draft.plan.title if draft.plan else ""),
+        "docket_number": draft.docket_number if found else "",
         "path_label": PATH_LABELS.get(draft.existing_case, ""),
         "step_label": step_label,
         "resume_url": get_resume_step_url(draft.current_step, draft.jurisdiction, draft_id=draft.pk),

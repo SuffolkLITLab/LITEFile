@@ -319,7 +319,8 @@ def test_missing_acknowledgement_shows_an_error_beside_the_checkbox_and_keeps_ed
     error = re.search(r'<p class="field-error"\s+id="reviewed-extraction-error"\s*>', content)
     assert error is not None, "the error must be rendered visible, not hidden"
     # What the filer submitted comes back, not what was saved or guessed.
-    assert re.search(r'name="case_title"\s+id="case_title"\s+value="Rivera v. Example"', content)
+    # A new case has no case title field to refill (#196).
+    assert 'name="case_title"' not in content
     assert re.search(r'value="new"\s+checked', content)
     assert '"court_code": "washington"' in content
     assert '"case_type_code": "small-claims"' in content
@@ -340,7 +341,9 @@ def test_acknowledging_after_the_error_lets_the_filer_continue(client, extractio
 
     assert response.status_code == 302
     extraction_draft.refresh_from_db()
-    assert extraction_draft.case_title == "Rivera v. Example"
+    assert extraction_draft.court_code == "washington"
+    # A new case has no court title yet, so none is saved (#196).
+    assert extraction_draft.case_title == ""
 
 
 @pytest.mark.django_db

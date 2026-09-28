@@ -90,7 +90,6 @@ def test_old_extraction_placeholders_are_not_prefilled_or_displayed(draft):
     assert response.status_code == 200
     assert response.context["document_summary_details"] == []
     assert not response.context["docket_number"]
-    assert not response.context["case_title"]
     assert response.context["extraction_context"]["guesses"] == {}
 
 

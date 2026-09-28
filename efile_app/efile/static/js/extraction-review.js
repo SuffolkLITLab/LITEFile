@@ -431,34 +431,20 @@
         partyList.lastElementChild.querySelector('input[name="party_name"]').focus();
     });
 
-    // Tyler rejects a docket/case number on a new case ("doesn't allow
-    // subsequent filing into non-indexed cases"), so keep the field out of
-    // the way unless the filer is sure they have one.
-    const docketToggleWrap = document.getElementById("docket-number-toggle");
-    const docketCheckbox = document.getElementById("has-docket-number");
-    const docketInput = document.getElementById("docket_number");
-    const docketHint = document.getElementById("docket-number-hint");
+    // Only an existing case has a number: Tyler rejects one on a new case
+    // ("doesn't allow subsequent filing into non-indexed cases"), and a new
+    // case has none until the court opens it. The server drops it for a new
+    // case, so the value is kept here in case the filer switches back.
+    const docketField = document.getElementById("docket-number-field");
 
     function updateDocketNumberVisibility() {
         const existingCase = form.querySelector('input[name="existing_case"]:checked')?.value;
-        if (existingCase === "existing") {
-            docketToggleWrap.hidden = true;
-            docketInput.hidden = false;
-            docketHint.hidden = false;
-            return;
-        }
-        docketToggleWrap.hidden = false;
-        const show = docketCheckbox.checked;
-        docketInput.hidden = !show;
-        docketHint.hidden = !show;
-        if (!show) docketInput.value = "";
+        docketField.hidden = existingCase !== "existing";
     }
 
-    docketCheckbox.addEventListener("change", updateDocketNumberVisibility);
     form.querySelectorAll('input[name="existing_case"]').forEach((radio) => {
         radio.addEventListener("change", updateDocketNumberVisibility);
     });
-    if (docketInput.value.trim()) docketCheckbox.checked = true;
     updateDocketNumberVisibility();
 
     form.addEventListener("submit", (event) => {

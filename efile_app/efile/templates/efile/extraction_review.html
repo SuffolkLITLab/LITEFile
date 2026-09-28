@@ -206,32 +206,25 @@
                         <small class="review-field__hint" id="filing_type_code-hint">{% translate "We will confirm this again when you organize your documents." %}</small>
                     </div>
                 </div>
-                <div class="form-field" id="docket-number-field">
-                    <span>{% translate "Case number" %} <em>{% translate "if shown" %}</em></span>
-                    <label class="form-check mb-2" id="docket-number-toggle" hidden>
-                        <input type="checkbox" class="form-check-input" id="has-docket-number" />
-                        <span class="form-check-label">{% translate "This case already has a number from the court" %}</span>
+                {% comment %}
+                Only an existing case has a number, and it is only asked for here
+                to find the case in the court's records. The case title is not
+                asked for at all: a new case has none until the court opens it,
+                and an existing case's title comes from the court once it is found.
+                {% endcomment %}
+                <div class="form-field"
+                     id="docket-number-field"
+                     {% if chosen_existing_case != "existing" %}hidden{% endif %}>
+                    <label for="docket_number">
+                        {% translate "Case number" %} <em>{% translate "if shown" %}</em>
                     </label>
                     <input class="form-control"
                            type="text"
                            name="docket_number"
                            id="docket_number"
                            value="{{ docket_number|default:'' }}"
-                           aria-describedby="docket-number-hint"
-                           hidden />
-                    <small id="docket-number-hint">{% translate "Leave blank if the court has not assigned one." %}</small>
-                </div>
-                <div class="form-field" id="case-title-field">
-                    <label for="case_title">
-                        {% translate "Case title" %} <em>{% translate "if shown" %}</em>
-                    </label>
-                    <input class="form-control"
-                           type="text"
-                           name="case_title"
-                           id="case_title"
-                           value="{{ case_title|default:'' }}"
-                           aria-describedby="case-title-hint" />
-                    <small id="case-title-hint">{% translate "This is usually the names shown at the top of the document." %}</small>
+                           aria-describedby="docket-number-hint" />
+                    <small id="docket-number-hint">{% translate "We will use this to find your case in the court's records." %}</small>
                 </div>
             </div>
             {% comment %}

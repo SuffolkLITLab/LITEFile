@@ -28,15 +28,15 @@
         {% endif %}
         {% if draft %}
             <dl class="confirmation-summary">
-                {% if draft.case_title %}
-                    <div>
-                        <dt>{% translate "Case" %}</dt>
-                        <dd>
-                            {{ draft.case_title }}
-                        </dd>
-                    </div>
-                {% endif %}
-                {% if draft.docket_number %}
+                {% if draft.is_filing_into_found_case %}
+                    {% if draft.case_title %}
+                        <div>
+                            <dt>{% translate "Case" %}</dt>
+                            <dd>
+                                {{ draft.case_title }}
+                            </dd>
+                        </div>
+                    {% endif %}
                     <div>
                         <dt>{% translate "Case number" %}</dt>
                         <dd>
