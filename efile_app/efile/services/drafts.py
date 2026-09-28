@@ -485,22 +485,31 @@ def write_upload_data(
         # does not send would be lost. A document's answer to a checklist item
         # is one such thing, and it belongs to the file rather than to the row
         # that happens to describe it, so it is carried across by storage key.
-        claimed_items = {
-            document.s3_key: document.checklist_item_id
-            for document in FilingDocument.objects.filter(draft=draft, role=FilingDocument.Role.SUPPORTING).exclude(
-                checklist_item_id=""
-            )
+        previous = [
+            document
+            for document in FilingDocument.objects.filter(draft=draft, role=FilingDocument.Role.SUPPORTING)
             if document.s3_key
-        }
+        ]
+        claimed_items = {document.s3_key: document.checklist_item_id for document in previous}
+        # Handoff provenance and pending corrections are keyed by row id, so
+        # they follow the file to its rebuilt row the same way.
+        previous_ids = {document.s3_key: document.pk for document in previous}
         FilingDocument.objects.filter(draft=draft, role=FilingDocument.Role.SUPPORTING).delete()
         for index, file_obj in enumerate(supporting_files):
             config = supporting_configs[index] if index < len(supporting_configs) else {}
             _upsert_document(draft, FilingDocument.Role.SUPPORTING, index, file_obj or {}, config or {})
+        moved = {}
         for document in FilingDocument.objects.filter(draft=draft, role=FilingDocument.Role.SUPPORTING):
             item_id = claimed_items.get(document.s3_key, "")
             if item_id:
                 document.checklist_item_id = item_id
                 document.save(update_fields=["checklist_item_id", "updated_at"])
+            if document.s3_key in previous_ids:
+                moved[previous_ids[document.s3_key]] = document.pk
+        if moved:
+            from efile.services.handoff import carry_document_paths
+
+            carry_document_paths(draft, moved)
 
     if current_step is not None and draft.current_step != str(current_step):
         draft.current_step = str(current_step)
@@ -511,10 +520,10 @@ def write_upload_data(
     return draft
 
 
-def _document_file(doc: FilingDocument) -> dict[str, Any]:
+def _document_file(doc: FilingDocument, urls: dict[int, str] | None = None) -> dict[str, Any]:
     file_obj: dict[str, Any] = {}
     _put(file_obj, "name", doc.name)
-    _put(file_obj, "url", doc.public_url)
+    _put(file_obj, "url", (urls or {}).get(doc.pk, doc.public_url))
     _put(file_obj, "s3_key", doc.s3_key)
     _put(file_obj, "type", doc.content_type)
     _put(file_obj, "size", doc.size)
@@ -546,10 +555,20 @@ def read_upload_data(draft: FilingDraft | None) -> dict[str, Any]:
         FilingDocument.objects.filter(draft=draft, role=FilingDocument.Role.SUPPORTING).order_by("sort_order")
     )
 
+    # Imported PDFs must remain usable after the handoff link's original
+    # signature expires. Regenerate access URLs from durable private S3 keys.
+    from efile.services.handoff import receipt_for
+    from efile.utils.s3_upload_handler import S3UploadHandler
+
+    urls = {}
+    if receipt_for(draft):
+        handler = S3UploadHandler()
+        if handler._ensure_initialized():
+            urls = {doc.pk: handler.get_public_url(doc.s3_key) for doc in [lead, *supporting] if doc and doc.s3_key}
     files: dict[str, Any] = {}
     if lead is not None:
-        files["lead"] = _document_file(lead)
-    supporting_files = [_document_file(doc) for doc in supporting]
+        files["lead"] = _document_file(lead, urls)
+    supporting_files = [_document_file(doc, urls) for doc in supporting]
     if supporting_files:
         files["supporting"] = supporting_files
 

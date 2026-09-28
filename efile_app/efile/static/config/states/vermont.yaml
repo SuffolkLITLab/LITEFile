@@ -160,3 +160,18 @@ court_selector:
       no_match_hint: >-
         We could not match that town or ZIP code to a unit. Check the spelling,
         or choose the unit from the list above.
+
+# Interview hints remain suggestions. Only unique live-name matches preselect.
+handoff:
+  filing_intents:
+    relief_from_abuse:
+      case_category_name_aliases: [Family]
+      documents:
+        RFAaffidavit:
+          filing_type_name_aliases: [Affidavit]
+        RFAaffidavitonbehalfofminor:
+          filing_type_name_aliases: [Affidavit]
+        RFAconfidentialcontactinfo:
+          filing_type_name_aliases: [Relief from Abuse Litigant Address Form]
+        RFAserviceinfo:
+          filing_type_name_aliases: ["Protection Order Service Information DPS #132"]

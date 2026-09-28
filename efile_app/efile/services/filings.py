@@ -240,10 +240,17 @@ def cases_for_user(
     names = court_names(jurisdiction)
     archived = archived_case_ids(request.user, jurisdiction)
 
+    from efile.services.handoff import matter_keys
+
+    linked_matters = matter_keys(request.user, jurisdiction, filings)
     cases: dict[str, dict[str, Any]] = {}
     for filing in filings:
         tracking_id = str(filing.get("case_tracking_id") or "")
-        key = tracking_id or f"filing:{filing.get('filing_id') or filing.get('envelope_id') or len(cases)}"
+        key = (
+            linked_matters.get(str(filing.get("filing_id", "")))
+            or tracking_id
+            or f"filing:{filing.get('filing_id') or filing.get('envelope_id') or len(cases)}"
+        )
         described = describe_filing(filing, names)
         entry = cases.setdefault(
             key,
@@ -260,6 +267,8 @@ def cases_for_user(
         )
         # The court fills in a case title and number once it indexes the case,
         # so later filings in the same case know more than the first one did.
+        entry["case_tracking_id"] = entry["case_tracking_id"] or tracking_id
+        entry["is_archived"] = bool(entry["case_tracking_id"]) and entry["case_tracking_id"] in archived
         entry["case_title"] = entry["case_title"] or filing.get("case_title", "")
         entry["docket_number"] = entry["docket_number"] or filing.get("case_number", "")
         entry["filings"].append(described)

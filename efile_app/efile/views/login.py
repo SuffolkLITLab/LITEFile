@@ -35,12 +35,15 @@ def efile_login(request, jurisdiction):
 
                     if user is not None:  # response.status_code == 200:
                         auth_tokens = request.session.get("auth_tokens", {})
+                        handoff_continue = request.session.get("handoff_continue")
                         request.session.flush()
                         login(request, user)
                         request.session["auth_tokens"] = auth_tokens
                         request.session["user_email"] = user.email
                         request.session["jurisdiction"] = jurisdiction
                         messages.success(request, "Successfully logged in!")
+                        if handoff_continue and handoff_continue.startswith("/handoff/claim/"):
+                            return redirect(handoff_continue)
                         return redirect(f"/jurisdiction/{jurisdiction}/options/")
                     else:
                         messages.error(request, "Login service error. Please try again later.")

@@ -68,6 +68,9 @@
                                 </p>
                             {% endif %}
                         </section>
+                        {% if local_draft and filing.status_presentation.tone == 'rejected' %}
+                            <p><a href="{% url 'correct_filing' local_draft.pk %}">{% translate "Correct and resubmit" %}</a></p>
+                        {% endif %}
                         {% for comment in filing.comments %}
                             <section class="option-card clerk-comment clerk-comment--{{ comment.kind }}">
                                 <h2>{{ comment.heading }}</h2>

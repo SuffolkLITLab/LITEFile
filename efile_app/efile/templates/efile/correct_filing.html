@@ -1,0 +1,19 @@
+{% extends "efile/site_base.html" %}
+{% block title %}Correct and resubmit{% endblock title %}
+{% block public_content %}
+    <h1>Correct and resubmit</h1>
+    {% if error %}
+        <p>{{ error }}</p>
+    {% else %}
+        <p>The court returned this filing. Select the details the clerk asked you to correct. Your other answers and documents will stay in the same matter.</p>
+        {% for comment in detail.comments %}<p>{{ comment.text }}</p>{% endfor %}
+        <form method="post">
+            {% csrf_token %}
+            <fieldset>
+                <legend>What needs a correction?</legend>
+                {% for value, label in choices %}<div><label><input type="checkbox" name="fields" value="{{ value }}"> {{ label }}</label></div>{% endfor %}
+            </fieldset>
+            <button type="submit" class="btn btn-primary">Create correction draft</button>
+        </form>
+    {% endif %}
+{% endblock public_content %}

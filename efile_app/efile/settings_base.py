@@ -1,3 +1,4 @@
+import json
 import os
 from pathlib import Path
 
@@ -185,3 +186,9 @@ LOGGING = {
         },
     },
 }
+
+# Per-source bearer credentials; never send these to the browser.
+# {"vermont-rfa": {"token": "...", "jurisdictions": ["vermont"],
+#                  "return_origins": ["https://interviews.example.org"]}}
+LITEFILE_HANDOFF_SOURCES = json.loads(os.getenv("LITEFILE_HANDOFF_SOURCES", "{}"))
+LITEFILE_HANDOFF_TOKEN_MAX_AGE = 86400

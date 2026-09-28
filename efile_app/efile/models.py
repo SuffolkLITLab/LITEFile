@@ -176,6 +176,8 @@ class FilingDraft(models.Model):
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
         on_delete=models.CASCADE,
         related_name="filing_drafts",
     )
@@ -188,6 +190,13 @@ class FilingDraft(models.Model):
         on_delete=models.SET_NULL,
         related_name="filing_drafts",
     )
+    correction_of = models.OneToOneField(
+        "self", null=True, blank=True, on_delete=models.RESTRICT, related_name="correction"
+    )
+    submission_snapshot = models.JSONField(default=dict, blank=True)
+    clerk_return = models.JSONField(default=dict, blank=True)
+    correction_fields = models.JSONField(default=list, blank=True)
+
     jurisdiction = models.CharField(max_length=40, db_index=True)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT, db_index=True)
     current_step = models.CharField(
@@ -281,11 +290,23 @@ class FilingDraft(models.Model):
 
     def mark_submitted(self, response_data):
         sync_primary_filing_type(self)
+        from efile.services.handoff import full_snapshot
+
+        self.submission_snapshot = full_snapshot(self)
         self.status = self.Status.SUBMITTED
         self.current_step = WorkflowStepKey.CONFIRMATION
         self.submission_response = response_data or {}
         self.submitted_at = timezone.now()
-        self.save(update_fields=["status", "current_step", "submission_response", "submitted_at", "updated_at"])
+        self.save(
+            update_fields=[
+                "status",
+                "current_step",
+                "submission_response",
+                "submission_snapshot",
+                "submitted_at",
+                "updated_at",
+            ]
+        )
 
     def mark_error(self, response_data):
         self.status = self.Status.ERROR
@@ -486,3 +507,49 @@ class FilingParty(models.Model):
     def __str__(self):
         display_name = " ".join(part for part in [self.first_name, self.middle_name, self.last_name] if part)
         return display_name or self.organization_name or f"{self.role} for draft #{self.draft_id}"
+
+
+class InterviewHandoff(models.Model):
+    """Authenticated source receipt, retained independently of browser sessions."""
+
+    draft = models.OneToOneField(FilingDraft, on_delete=models.CASCADE, related_name="handoff")
+    source = models.CharField(max_length=100)
+    source_id = models.CharField(max_length=255)
+    idempotency_key = models.CharField(max_length=255)
+    fingerprint = models.CharField(max_length=64)
+    payload = models.JSONField(default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["source", "source_id"], name="handoff_source_identity"),
+            models.UniqueConstraint(fields=["source", "idempotency_key"], name="handoff_idempotency"),
+        ]
+
+
+class FilingMetadataEvent(models.Model):
+    """Append-only provenance of suggestions, resolutions, and corrections."""
+
+    draft = models.ForeignKey(FilingDraft, on_delete=models.CASCADE, related_name="metadata_events")
+    path = models.CharField(max_length=255)
+    kind = models.CharField(max_length=40)
+    value = models.JSONField(default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["pk"]
+
+
+class HandoffDocumentUpdate(models.Model):
+    """A replacement receipt makes retries safe without overwriting user edits."""
+
+    draft = models.ForeignKey(FilingDraft, on_delete=models.CASCADE)
+    source = models.CharField(max_length=100)
+    idempotency_key = models.CharField(max_length=255)
+    fingerprint = models.CharField(max_length=64)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["source", "idempotency_key"], name="handoff_document_update_identity")
+        ]

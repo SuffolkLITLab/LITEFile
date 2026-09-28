@@ -12,7 +12,15 @@ LAST_SUBMITTED_DRAFT_SESSION_KEY = "last_submitted_filing_draft_id"
 
 def _confirmation_number(response):
     if isinstance(response, dict):
-        for key in ("confirmation_number", "confirmationNumber", "filing_id", "filingId", "id"):
+        for key in (
+            "confirmation_number",
+            "confirmationNumber",
+            "envelopeId",
+            "envelope_id",
+            "filing_id",
+            "filingId",
+            "id",
+        ):
             if response.get(key):
                 return str(response[key])
         values = response.values()
