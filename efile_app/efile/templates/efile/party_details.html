@@ -40,6 +40,36 @@
                     {% endfor %}
                 </div>
             </fieldset>
+            {% if filer_party_type %}
+                {% comment %}
+                Shown when the role chosen above is the filer's own. Rendered for
+                every party so the script can reveal it; the server asks the same
+                question whether or not the script ran.
+                {% endcomment %}
+                <div class="same-role-confirm{% if same_role_error %} same-role-confirm--invalid{% endif %}"
+                     id="same-role-confirm"
+                     data-filer-party-type="{{ filer_party_type }}"
+                     {% if party.party_type != filer_party_type %}hidden{% endif %}>
+                    <p id="same-role-help">
+                        {% blocktranslate with role=filer_party_type_name %}You are the {{ role }} in this case too. Choose this role only if this person is on your side, like someone filing with you.{% endblocktranslate %}
+                    </p>
+                    <label>
+                        <input class="form-check-input"
+                               type="checkbox"
+                               name="same_role_confirmed"
+                               id="same_role_confirmed"
+                               value="yes"
+                               {% if same_role_confirmed %}checked{% endif %}
+                               {% if same_role_error %}aria-invalid="true" aria-describedby="same-role-help same-role-error"{% else %}aria-describedby="same-role-help"{% endif %} />
+                        <span>{% translate "Yes, this person is on my side of the case" %}</span>
+                    </label>
+                    <p class="field-error"
+                       id="same-role-error"
+                       {% if not same_role_error %}hidden{% endif %}>
+                        {% translate "Check the box if this person is on your side, or choose a different role above." %}
+                    </p>
+                </div>
+            {% endif %}
             <fieldset class="party-kind">
                 <legend>{% translate "Is this a person or organization?" %}</legend>
                 <label>

@@ -21,6 +21,52 @@
         updateAddressFields();
     }
 
+    // Choosing the filer's own role for someone else asks whether they are
+    // on the filer's side. The box is required only while it is showing.
+    const sameRole = document.getElementById("same-role-confirm");
+    if (sameRole) {
+        const confirmBox = document.getElementById("same_role_confirmed");
+        const sameRoleError = document.getElementById("same-role-error");
+        const filerType = sameRole.dataset.filerPartyType;
+
+        const showSameRoleError = () => {
+            sameRoleError.hidden = false;
+            sameRole.classList.add("same-role-confirm--invalid");
+            confirmBox.setAttribute("aria-invalid", "true");
+            confirmBox.setAttribute("aria-describedby", "same-role-help same-role-error");
+        };
+        const clearSameRoleError = () => {
+            sameRoleError.hidden = true;
+            sameRole.classList.remove("same-role-confirm--invalid");
+            confirmBox.removeAttribute("aria-invalid");
+            confirmBox.setAttribute("aria-describedby", "same-role-help");
+        };
+        const syncSameRole = () => {
+            const chosen = form.querySelector('input[name="party_type"]:checked');
+            const same = Boolean(chosen) && chosen.value === filerType;
+            sameRole.hidden = !same;
+            confirmBox.required = same;
+            if (!same) {
+                confirmBox.checked = false;
+                clearSameRoleError();
+            }
+        };
+
+        form.querySelectorAll('input[name="party_type"]').forEach((radio) => {
+            radio.addEventListener("change", syncSameRole);
+        });
+        confirmBox.addEventListener("invalid", (event) => {
+            event.preventDefault();
+            showSameRoleError();
+            confirmBox.focus();
+        });
+        confirmBox.addEventListener("change", () => {
+            if (confirmBox.checked) clearSameRoleError();
+        });
+        syncSameRole();
+        if (!sameRoleError.hidden) showSameRoleError();
+    }
+
     if (addressExplainer && addressExplainerContent && window.bootstrap) {
         const popover = new window.bootstrap.Popover(addressExplainer, {
             title: addressExplainer.textContent.trim(),

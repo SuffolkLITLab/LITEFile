@@ -754,3 +754,94 @@ def test_the_role_question_is_asked_the_way_other_primary_questions_are(client, 
     assert "What is your role in this case?" in content
     assert "list you as a party" in content
     assert "if you are filing for someone else" in content
+
+
+def _filer_and_other(draft, *, filer_type="plaintiff", other_type=""):
+    FilingParty.objects.create(
+        draft=draft,
+        role="filer",
+        sort_order=0,
+        party_type=filer_type,
+        party_type_name="Plaintiff" if filer_type == "plaintiff" else "",
+        first_name="Jamie",
+        last_name="Rivera",
+        address_line_1="100 State Street",
+        city="Chicago",
+        state="IL",
+        zip_code="60601",
+    )
+    return FilingParty.objects.create(draft=draft, role="other", sort_order=1, party_type=other_type)
+
+
+def _post_party(client, party, **fields):
+    data = {"party_kind": "person", "first_name": "Morgan", "last_name": "Lee", **fields}
+    with patch("efile.views.party_details.get_party_types", return_value=PARTY_TYPES):
+        return client.post(f"{reverse('party_details', kwargs={'jurisdiction': 'illinois'})}?party={party.pk}", data)
+
+
+@pytest.mark.django_db
+def test_giving_another_party_the_filers_role_asks_whether_they_are_on_the_filers_side(client, people_draft):
+    party = _filer_and_other(people_draft)
+
+    response = _post_party(client, party, party_type="plaintiff", email="morgan@example.com")
+
+    party.refresh_from_db()
+    assert response.status_code == 200
+    assert party.party_type == ""
+    content = response.content.decode()
+    confirm = re.search(r'<div class="same-role-confirm[^"]*"\s+id="same-role-confirm"[^>]*>', content)
+    assert confirm is not None
+    assert "hidden" not in confirm.group()
+    assert re.search(r'<p class="field-error"\s+id="same-role-error"\s*>', content)
+    assert re.search(r'id="same_role_confirmed"[^>]*aria-invalid="true"', content, re.S)
+    # Nothing they typed is lost.
+    assert 'value="Morgan"' in content
+    assert 'value="morgan@example.com"' in content
+    assert re.search(r'value="plaintiff"\s+checked', content)
+
+
+@pytest.mark.django_db
+def test_a_confirmed_co_party_can_share_the_filers_role(client, people_draft):
+    party = _filer_and_other(people_draft)
+
+    response = _post_party(client, party, party_type="plaintiff", same_role_confirmed="yes")
+
+    party.refresh_from_db()
+    assert response.status_code == 302
+    assert party.party_type == "plaintiff"
+
+
+@pytest.mark.django_db
+def test_a_different_role_needs_no_confirmation(client, people_draft):
+    party = _filer_and_other(people_draft)
+
+    response = _post_party(client, party, party_type="defendant")
+
+    party.refresh_from_db()
+    assert response.status_code == 302
+    assert party.party_type == "defendant"
+
+
+@pytest.mark.django_db
+def test_a_filer_who_is_not_a_party_is_never_asked(client, people_draft):
+    party = _filer_and_other(people_draft, filer_type="")
+
+    with patch("efile.views.party_details.get_party_types", return_value=PARTY_TYPES):
+        page = client.get(f"{reverse('party_details', kwargs={'jurisdiction': 'illinois'})}?party={party.pk}")
+    assert 'id="same-role-confirm"' not in page.content.decode()
+
+    response = _post_party(client, party, party_type="plaintiff")
+    assert response.status_code == 302
+
+
+@pytest.mark.django_db
+def test_a_party_already_saved_with_the_filers_role_starts_confirmed(client, people_draft):
+    party = _filer_and_other(people_draft, other_type="plaintiff")
+
+    with patch("efile.views.party_details.get_party_types", return_value=PARTY_TYPES):
+        page = client.get(f"{reverse('party_details', kwargs={'jurisdiction': 'illinois'})}?party={party.pk}")
+
+    content = page.content.decode()
+    confirm = re.search(r'<div class="same-role-confirm[^"]*"\s+id="same-role-confirm"[^>]*>', content)
+    assert confirm is not None and "hidden" not in confirm.group()
+    assert re.search(r'id="same_role_confirmed"[^>]*checked', content, re.S)
