@@ -227,3 +227,22 @@
 .court-selector__path {
     margin-top: 0.2rem;
 }
+
+/* Update and Cancel while a settled court is being changed. */
+.court-selector__actions {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.75rem;
+    margin-top: 0.8rem;
+}
+
+.court-selector__actions .court-selector__note {
+    flex-basis: 100%;
+    margin: 0;
+}
+
+.court-selector__apply-note {
+    color: var(--text-muted);
+    flex-basis: 100%;
+}

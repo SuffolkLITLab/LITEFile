@@ -750,6 +750,27 @@
     text-decoration: none;
 }
 
+/* A summary whose list is reloading because a choice above it changed. */
+.review-field__checking {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
+.review-field__actions {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 0.6rem;
+    margin-top: 0.6rem;
+}
+
+.review-field__apply-note {
+    color: var(--text-muted);
+    flex-basis: 100%;
+    font-size: 0.8rem;
+}
+
 .path-confirmation {
     background: var(--surface-subtle);
     border: 1px solid var(--border-default);

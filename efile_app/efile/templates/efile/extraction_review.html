@@ -125,6 +125,7 @@
                         </select>
                         <input type="hidden" name="court_name" id="court_name" />
                         <small class="review-field__hint" id="court_code-hint">{{ court_help }}</small>
+                        {% include "efile/components/review_field_actions.html" %}
                     </div>
                 </div>
                 <div class="review-field"
@@ -152,6 +153,7 @@
                         </select>
                         <input type="hidden" name="case_category_name" id="case_category_name" />
                         <small class="review-field__hint" id="case_category_code-hint">{{ case_category_help }}</small>
+                        {% include "efile/components/review_field_actions.html" %}
                     </div>
                 </div>
                 <div class="review-field"
@@ -177,6 +179,7 @@
                         </select>
                         <input type="hidden" name="case_type_name" id="case_type_name" />
                         <small class="review-field__hint" id="case_type_code-hint"></small>
+                        {% include "efile/components/review_field_actions.html" %}
                     </div>
                 </div>
                 <div class="review-field"
@@ -204,6 +207,7 @@
                         </select>
                         <input type="hidden" name="filing_type_name" id="filing_type_name" />
                         <small class="review-field__hint" id="filing_type_code-hint">{% translate "We will confirm this again when you organize your documents." %}</small>
+                        {% include "efile/components/review_field_actions.html" %}
                     </div>
                 </div>
                 {% comment %}
@@ -396,6 +400,11 @@
                     </p>
                 </div>
             </fieldset>
+            {# Loading, cleared-choice and update messages from extraction-review.js. #}
+            <p class="visually-hidden"
+               id="confirm-case-status"
+               role="status"
+               aria-live="polite"></p>
             <div class="alert alert-danger"
                  id="extraction-review-error"
                  role="alert"

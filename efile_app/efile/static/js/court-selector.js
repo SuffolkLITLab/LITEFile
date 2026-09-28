@@ -224,8 +224,19 @@
             jurisdiction,
             select,
             nameInput,
-            onSelect
+            onSelect,
+            onStatus
         } = options;
+        const labels = {
+            apply: "Update court",
+            cancel: "Cancel",
+            applyNote: "Updates this page only. Nothing is saved until you confirm and continue.",
+            chooseFirst: "Choose a court to update, or Cancel to keep the one you had.",
+            wait: "Still finding courts for that answer. Try Update again in a moment.",
+            updated: "Court updated:",
+            cancelled: "Change cancelled. The court is back to",
+            ...(options.labels || {}),
+        };
         const answers = {};
         let latest = 0;
         let lastSteps = [];
@@ -233,6 +244,11 @@
         let lastRender = {
             steps: []
         }; // redrawn as-is when only the folding changes
+        // Set while the filer is changing a court they had already settled on:
+        // the answers and drawing to go back to on Cancel, and which question
+        // they reopened. Nothing is published to the <select> until Update,
+        // so the fields below do not reload for every answer on the way.
+        let editing = null;
         // Mounting again over the same element retires the previous mount's
         // listeners, so two selectors can never both answer one click.
         if (container.courtSelectorListeners) container.courtSelectorListeners.abort();
@@ -246,19 +262,46 @@
             // A suggested answer is not one the filer gave, so it stays in
             // front of them rather than folding away as settled.
             if (expanded === step.id || !step.answer || step.defaulted) return true;
+            if (editing && editing.opened.has(step.id)) return true;
             if (step.type === "location" && data.location) {
                 return Boolean(data.location.searched) && !(data.location.matched || []).length;
             }
             return false;
         }
 
+        function focusKey(element) {
+            // Enough to find "the same control" again once the questions are
+            // redrawn, so answering one does not drop focus to the page.
+            if (!element || !container.contains(element)) return "";
+            if (element.id) return `#${CSS.escape(element.id)}`;
+            if (element.dataset.change) return `[data-change="${CSS.escape(element.dataset.change)}"]`;
+            if (element.dataset.courtList) return `[data-court-list="${CSS.escape(element.dataset.courtList)}"]`;
+            if (element.name) return `input[name="${CSS.escape(element.name)}"][value="${CSS.escape(element.value)}"]`;
+            if (element.hasAttribute("data-court-apply")) return "[data-court-apply]";
+            if (element.hasAttribute("data-court-cancel")) return "[data-court-cancel]";
+            return "";
+        }
+
+        function actionsHtml(data) {
+            if (!editing) return "";
+            const note = editing.note ? `<p class="court-selector__note court-selector__note--warn" id="court-selector-apply-note">${escapeHtml(editing.note)}</p>` : "";
+            return `
+                <div class="court-selector__actions">
+                    ${note}
+                    <button type="button" class="btn btn-sm btn-primary" data-court-apply${editing.note ? ' aria-describedby="court-selector-apply-note"' : ""}>${escapeHtml(labels.apply)}</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-court-cancel>${escapeHtml(labels.cancel)}</button>
+                    <small class="court-selector__apply-note">${escapeHtml(data.selected ? labels.applyNote : labels.chooseFirst)}</small>
+                </div>`;
+        }
+
         function render(data) {
             lastSteps = data.steps || [];
             const chosen = data.selected ? data.selected.value : "";
+            const refocus = focusKey(document.activeElement);
             // Once there is a court, the questions that produced it fold away
             // and so does everything that was there to choose between: the
             // answer is stated, and "Change" is how the filer goes back to it.
-            const settled = Boolean(data.selected) && !expanded && !lastSteps.some((step) => step.defaulted);
+            const settled = Boolean(data.selected) && !expanded && !editing && !lastSteps.some((step) => step.defaulted);
             const steps = settled ? [] : lastSteps.filter((step) => open(step, data));
             const answered = settled ?
                 lastSteps.filter((step) => step.answer) :
@@ -268,8 +311,58 @@
                 ${trailHtml(answered)}
                 <div class="court-selector__steps">${steps.map(stepHtml).join("")}</div>
                 ${settled ? "" : extraHtml(data, chosen)}
-                ${resultHtml(data)}`;
-            publish(data.selected, data.courts || []);
+                ${resultHtml(data)}
+                ${actionsHtml(data)}`;
+            if (refocus) {
+                const again = container.querySelector(refocus) || container.querySelector("[data-court-apply]");
+                if (again) again.focus();
+            }
+            if (!editing) publish(data.selected, data.courts || []);
+        }
+
+        function focusChange(stepId) {
+            const target = container.querySelector(`[data-change="${CSS.escape(stepId)}"]`) || container.querySelector("[data-change]");
+            if (target) target.focus();
+        }
+
+        function apply() {
+            if (!editing) return;
+            if (container.getAttribute("aria-busy") === "true") {
+                editing.note = labels.wait;
+                render(lastRender);
+                return;
+            }
+            if (!lastRender.selected) {
+                editing.note = labels.chooseFirst;
+                render(lastRender);
+                container.querySelector("[data-court-apply]")?.focus();
+                return;
+            }
+            const stepId = editing.step;
+            editing = null;
+            expanded = "";
+            render(lastRender);
+            focusChange(stepId);
+            if (onStatus) onStatus(`${labels.updated} ${lastRender.selected.text}.`);
+        }
+
+        function cancel() {
+            if (!editing) return;
+            const {
+                answers: before,
+                render: drawing,
+                step: stepId
+            } = editing;
+            latest += 1; // whatever is still loading is for the edit being dropped
+            Object.keys(answers).forEach((key) => delete answers[key]);
+            Object.assign(answers, before);
+            editing = null;
+            expanded = "";
+            lastRender = drawing;
+            render(drawing);
+            container.removeAttribute("aria-busy");
+            focusChange(stepId);
+            if (onStatus && drawing.selected) onStatus(`${labels.cancelled} ${drawing.selected.text}.`);
         }
 
         function publish(selected, courts) {
@@ -319,7 +412,15 @@
 
         function answerStep(stepId, value) {
             answers[stepId] = value;
-            expanded = "";
+            // While editing, the question being changed stays open until
+            // Update: the filer is still deciding, and folding it away under
+            // them is the "jumping" this is here to stop.
+            if (editing) {
+                editing.opened.add(stepId);
+                editing.note = "";
+            } else {
+                expanded = "";
+            }
             // Two steps that are alternatives to each other are two ways of
             // naming one court, so answering either clears the other rather
             // than leaving a stale answer to disagree with it.
@@ -347,11 +448,41 @@
             signal: listeners.signal
         });
 
+        function reopenStep(stepId) {
+            if (!editing && lastRender.selected) {
+                editing = {
+                    answers: {
+                        ...answers
+                    },
+                    render: lastRender,
+                    step: stepId,
+                    opened: new Set([stepId]),
+                    note: "",
+                };
+            } else if (editing) {
+                editing.opened.add(stepId);
+            }
+            expanded = stepId;
+            render(lastRender);
+            // The Change button just went; the question it opened is where
+            // the filer is headed.
+            const step = container.querySelector(`.court-selector__step[data-step="${CSS.escape(stepId)}"]`);
+            const control = step && step.querySelector("select, input:checked, input");
+            if (control) control.focus();
+        }
+
         container.addEventListener("click", (event) => {
             const reopen = event.target.closest("[data-change]");
             if (reopen) {
-                expanded = reopen.dataset.change;
-                render(lastRender);
+                reopenStep(reopen.dataset.change);
+                return;
+            }
+            if (event.target.closest("[data-court-apply]")) {
+                apply();
+                return;
+            }
+            if (event.target.closest("[data-court-cancel]")) {
+                cancel();
                 return;
             }
             const findButton = event.target.closest("[data-find-courts]");
@@ -404,6 +535,10 @@
                 lastRender = result.data;
                 render(result.data);
                 return true;
+            },
+            /** True while a settled court is being changed and not yet applied. */
+            isEditing() {
+                return Boolean(editing);
             },
         };
     }
