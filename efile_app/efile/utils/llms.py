@@ -67,32 +67,54 @@ else:
     client = None
 
 
+# Each tier is a model and how hard it thinks. Medium and large share a model
+# and differ only in reasoning effort. The GPT-5 rows are fallbacks for an
+# endpoint that has not deployed GPT-6.
 DEFAULT_MODEL_SETS: dict[str, list[list[str]]] = {
-    "small": [
-        ["gpt-5-nano", "gpt-4.1-nano", "gpt-4o-mini"],
-        ["o4-mini", "o3-mini", "gpt-4o-mini"],
-        ["claude-3-5-haiku", "claude-3-haiku"],
-        ["gemini-2.5-flash-lite", "gemini-2.5-flash"],
-    ],
-    "medium": [
-        ["gpt-5-mini", "gpt-4.1-mini", "gpt-4o"],
-        ["o3", "gpt-4o"],
-        ["claude-3-7-sonnet", "claude-3-5-sonnet"],
-        ["gemini-2.5-flash"],
-    ],
-    "large": [
-        ["gpt-5", "gpt-4.1", "gpt-4o"],
-        ["o1", "o1-preview", "gpt-4o"],
-        ["claude-3-7-sonnet", "claude-3-opus"],
-        ["gemini-2.5-pro"],
-    ],
+    "small": [["gpt-6-luna"], ["gpt-5.4-nano"], ["gpt-5-nano"]],
+    "medium": [["gpt-6-sol"], ["gpt-5.4-mini"], ["gpt-5-mini"]],
+    "large": [["gpt-6-sol"], ["gpt-5.4"], ["gpt-5"]],
 }
 
 MODEL_TYPE_FALLBACKS = {
-    "small": "gpt-5-nano",
-    "medium": "gpt-5-mini",
-    "large": "gpt-5",
+    "small": "gpt-6-luna",
+    "medium": "gpt-6-sol",
+    "large": "gpt-6-sol",
 }
+
+ReasoningEffort = Literal["none", "minimal", "low", "medium", "high"]
+
+# Used when neither the caller, the prompt version, nor the ``open ai`` config
+# names an effort. Small work (reading facts off a page) needs no thinking.
+TIER_REASONING_EFFORT: dict[str, ReasoningEffort] = {
+    "small": "none",
+    "medium": "low",
+    "large": "medium",
+}
+
+THINKING_MODEL_PREFIXES = ("o1", "o3", "o4", "gpt-5", "gpt-6")
+
+
+def is_thinking_model(model: str) -> bool:
+    """Reasoning models take an effort and reject any temperature but the default."""
+    return model.lower().startswith(THINKING_MODEL_PREFIXES)
+
+
+def reasoning_effort_for(model: str, effort: str | None, model_type: str = "small") -> str:
+    """The effort to send ``model``, in the vocabulary that model accepts.
+
+    GPT-6 and GPT-5.1 onward take "none" but not "minimal"; the original GPT-5
+    models take "minimal" but not "none". Each is the other's nearest value.
+    """
+    effort = effort or TIER_REASONING_EFFORT.get((model_type or "small").lower(), "low")
+    lowered = model.lower()
+    original_gpt5 = re.match(r"^gpt-5(-mini|-nano)?(-\d{4}-\d{2}-\d{2})?$", lowered) is not None
+    if effort == "none" and original_gpt5:
+        return "minimal"
+    if effort == "minimal" and not original_gpt5 and lowered.startswith(("gpt-5", "gpt-6")):
+        return "none"
+    return effort
+
 
 MODEL_FAMILY_PATTERNS: dict[str, list[str]] = {
     "openai": [
@@ -284,12 +306,12 @@ def chat_completion(
     openai_base_url: str | None = None,
     max_output_tokens: int | None = None,
     max_input_tokens: int | None = None,
-    reasoning_effort: Literal["minimal", "low", "medium", "high"] | None = None,
+    reasoning_effort: ReasoningEffort | None = None,
     model_type: str = "small",
 ) -> list[Any] | dict[str, Any] | str:
     """Call an OpenAI-compatible chat endpoint and optionally parse JSON."""
     config = get_config("open ai", {}) or {}
-    reasoning_effort = reasoning_effort or config.get("reasoning effort") or "low"
+    reasoning_effort = reasoning_effort or config.get("reasoning effort")
     configured_base_url = config.get("base url") or get_config("openai base url")
     explicit_base_url = openai_base_url is not None
     openai_base_url = openai_base_url or configured_base_url or "https://api.openai.com/v1/"
@@ -349,7 +371,6 @@ def chat_completion(
         if moderation_response.results[0].flagged:
             raise RuntimeError(f"OpenAI moderation error: {moderation_response.results[0]}")
 
-    is_thinking_model = model.startswith(("o1", "o3", "gpt-5"))
     parameters: dict[str, Any] = {
         "model": model,
         "messages": messages,
@@ -357,8 +378,8 @@ def chat_completion(
     }
     if json_mode:
         parameters["response_format"] = {"type": "json_object"}
-    if is_thinking_model:
-        parameters["reasoning_effort"] = reasoning_effort
+    if is_thinking_model(model):
+        parameters["reasoning_effort"] = reasoning_effort_for(model, reasoning_effort, model_type)
     else:
         parameters["temperature"] = temperature
 
@@ -382,7 +403,7 @@ def extract_fields_from_text(
     openai_api: str | None = None,
     temperature: float = 0,
     model: str | None = None,
-    reasoning_effort: Literal["minimal", "low", "medium", "high"] | None = "low",
+    reasoning_effort: ReasoningEffort | None = None,
     openai_base_url: str | None = None,
     llm_hint: str | None = "",
     prompt_version_name: str | None = None,
@@ -434,7 +455,7 @@ def extract_fields_from_file(
     openai_client: OpenAI | None = None,
     openai_api: str | None = None,
     model: str | None = None,
-    reasoning_effort: Literal["minimal", "low", "medium", "high"] | None = "low",
+    reasoning_effort: ReasoningEffort | None = None,
     llm_hint: str | None = "",
     process_pdfs_with_ai: bool = True,
     ocr_images_and_pdfs: bool = False,
@@ -513,10 +534,10 @@ def extract_fields_from_file(
 
     if not openai_client:
         raise RuntimeError("An OpenAI client or API key must be provided.")
-    model = model or get_default_model(
-        model_type=version_config.get("preferred_model_tier", "small"),
-        openai_client=openai_client,
-    )
+    model_type = version_config.get("preferred_model_tier", "small")
+    model = model or get_default_model(model_type=model_type, openai_client=openai_client)
+    effort = reasoning_effort_for(model, inference.get("reasoning_effort", reasoning_effort), model_type)
+    thinking = {"reasoning": {"effort": effort}} if is_thinking_model(model) else {}
 
     # Responses accepts an inline PDF and lets providers that support native
     # document input inspect page images as well as embedded text. Inline data
@@ -544,6 +565,7 @@ def extract_fields_from_file(
                 },
             ],
             text={"format": {"type": "json_object"}},
+            **thinking,
         )
         response_text = getattr(response, "output_text", None)
         if isinstance(response_text, str):
@@ -571,7 +593,7 @@ def extract_fields_from_file(
                     },
                 ],
                 response_format={"type": "json_object"},
-                reasoning_effort=inference.get("reasoning_effort", reasoning_effort),
+                **({"reasoning_effort": effort} if thinking else {}),
             )
         except NotFoundError:
             # Some OpenAI-compatible gateways accept Files API uploads but do

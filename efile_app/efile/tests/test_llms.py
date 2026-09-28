@@ -2,16 +2,20 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import httpx
+import pytest
 from django.conf import settings
 from openai import NotFoundError
 
 from efile.utils.llms import (
+    DEFAULT_MODEL_SETS,
     LlmError,
     chat_completion,
     extract_fields_from_file,
     extract_fields_from_text,
     get_config,
+    get_default_model,
     list_available_models,
+    reasoning_effort_for,
 )
 
 
@@ -115,9 +119,93 @@ def test_pdf_extraction_falls_back_when_gateway_cannot_read_uploaded_file(
         {"court name": "Court name"},
         openai_client=openai_client,
         model="gpt-test",
-        reasoning_effort="low",
+        reasoning_effort=None,
         llm_hint="",
         prompt_version_name=None,
         prompt_name="document_extraction",
     )
     openai_client.files.delete.assert_called_once_with("file-test")
+
+
+def _completion_client():
+    openai_client = MagicMock()
+    response = MagicMock()
+    response.choices[0].finish_reason = "stop"
+    response.choices[0].message.content = "{}"
+    openai_client.chat.completions.create.return_value = response
+    return openai_client
+
+
+@pytest.mark.parametrize(
+    ("model_type", "model", "effort"),
+    [("small", "gpt-6-luna", "none"), ("medium", "gpt-6-sol", "low"), ("large", "gpt-6-sol", "medium")],
+)
+def test_each_tier_defaults_to_its_model_and_effort(monkeypatch, model_type, model, effort):
+    monkeypatch.setattr("efile.utils.llms.list_available_models", lambda *_args: ["gpt-6-luna", "gpt-6-sol", "gpt-5"])
+    openai_client = _completion_client()
+
+    chat_completion(
+        system_message="Return JSON.",
+        user_message="{}",
+        json_mode=True,
+        openai_client=openai_client,
+        model_type=model_type,
+    )
+
+    request = openai_client.chat.completions.create.call_args.kwargs
+    assert request["model"] == model
+    assert request["reasoning_effort"] == effort
+    # GPT-6 rejects any temperature but its default.
+    assert "temperature" not in request
+
+
+def test_a_tier_falls_back_to_gpt5_when_gpt6_is_not_deployed(monkeypatch):
+    monkeypatch.setattr("efile.utils.llms.list_available_models", lambda *_args: ["gpt-5-nano", "gpt-4o"])
+
+    assert get_default_model("small") == "gpt-5-nano"
+
+
+def test_gpt4o_is_no_longer_a_default():
+    for model_sets in DEFAULT_MODEL_SETS.values():
+        assert not any(model.startswith(("gpt-4", "o1")) for model_set in model_sets for model in model_set)
+
+
+@pytest.mark.parametrize(
+    ("model", "asked", "sent"),
+    [
+        ("gpt-6-luna", "none", "none"),
+        ("gpt-6-luna", "minimal", "none"),
+        ("gpt-5-nano", "none", "minimal"),
+        ("gpt-5-nano-2025-08-07", "none", "minimal"),
+        ("gpt-5.4-nano", "minimal", "none"),
+        ("gpt-6-sol", "high", "high"),
+    ],
+)
+def test_effort_is_translated_to_what_the_model_accepts(model, asked, sent):
+    assert reasoning_effort_for(model, asked) == sent
+
+
+def test_an_explicit_effort_wins_over_the_tier():
+    openai_client = _completion_client()
+
+    chat_completion(
+        system_message="s",
+        user_message="u",
+        model="gpt-6-sol",
+        openai_client=openai_client,
+        model_type="small",
+        reasoning_effort="high",
+    )
+
+    assert openai_client.chat.completions.create.call_args.kwargs["reasoning_effort"] == "high"
+
+
+def test_pdf_extraction_sends_the_tiers_effort_to_responses(tmp_path: Path):
+    pdf_path = tmp_path / "filing.pdf"
+    pdf_path.write_bytes(b"%PDF-1.4 native document input")
+    openai_client = MagicMock()
+    openai_client.responses.create.return_value.output_text = "{}"
+
+    extract_fields_from_file(pdf_path, {"form identifier": "id"}, openai_client=openai_client, model="gpt-6-luna")
+
+    assert openai_client.responses.create.call_args.kwargs["reasoning"] == {"effort": "none"}

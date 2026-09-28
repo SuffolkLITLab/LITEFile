@@ -75,8 +75,8 @@ LITEFile uses an OpenAI-compatible endpoint. Provider capabilities differ, so te
 OPENAI_API_KEY="sk-..."
 OPENAI_BASE_URL="https://api.openai.com/v1/"  # Or http://localhost:8000/v1/
 LITEFILE_PROMPTS_DIR="/app/efile_app/efile/prompts"  # Optional deployment override
-DOCUMENT_EVIDENCE_MODEL="gpt-5-nano"                 # Optional exact deployment
-DOCUMENT_CLASSIFICATION_MODEL="gpt-5-mini"           # Optional exact deployment
+DOCUMENT_EVIDENCE_MODEL="gpt-6-luna"                 # Optional exact deployment
+DOCUMENT_CLASSIFICATION_MODEL="gpt-6-sol"            # Optional exact deployment
 ```
 
 ---
@@ -89,13 +89,15 @@ LITEFile connects exclusively to enterprise-tier endpoints operating under comme
 
 ### Currently supported enterprise models and tiers
 
-In `efile/utils/llms.py`, models are arranged into three performance tiers with automatic fallback against the provider's `/models` endpoint:
+In `efile/utils/llms.py`, each tier is a model plus a reasoning effort. LITEFile checks the provider's `/models` endpoint and uses the first model in the tier that is deployed:
 
-| Tier | Default & supported models | Primary purpose |
-| :--- | :--- | :--- |
-| **Small (default)** | `gpt-4o-mini`, `gpt-4.1-nano`, `gemini-2.5-flash-lite`, `claude-3-5-haiku` | Fast fact extraction, caption reading, and single-level category selection |
-| **Medium** | `gpt-4o`, `gpt-4.1-mini`, `claude-3-7-sonnet` | Complex multi-party caption extraction and ambiguous case-type matching |
-| **Large** | `gpt-4o`, `o3`, `claude-3-7-sonnet` | Advanced edge-case classification and unstructured document review |
+| Tier | Default model | Reasoning effort | Fallbacks | Primary purpose |
+| :--- | :--- | :--- | :--- | :--- |
+| **Small (default)** | `gpt-6-luna` | `none` | `gpt-5.4-nano`, `gpt-5-nano` | Fast fact extraction, caption reading, and single-level category selection |
+| **Medium** | `gpt-6-sol` | `low` | `gpt-5.4-mini`, `gpt-5-mini` | Complex multi-party caption extraction and ambiguous case-type matching |
+| **Large** | `gpt-6-sol` | `medium` | `gpt-5.4`, `gpt-5` | Advanced edge-case classification and unstructured document review |
+
+A prompt version can set its own `inference.reasoning_effort`, and a deployment can set one for every call with the `open ai` → `reasoning effort` config. LITEFile translates the effort to what the model accepts: GPT-6 takes `none` but not `minimal`, and the original GPT-5 models take `minimal` but not `none`. Reasoning models don't accept a custom `temperature`, so LITEFile doesn't send one.
 
 ### Approved enterprise provider configurations
 
