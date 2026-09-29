@@ -1,5 +1,7 @@
 """Authenticated payment accounts, including user-requested managed waivers."""
 
+from urllib.parse import quote
+
 import requests
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -66,3 +68,16 @@ def ensure_waiver_account(user, jurisdiction, token, preferred_id=""):
             "accountName": MANAGED_WAIVER_NAME,
             "paymentAccountTypeCode": "WV",
         }
+
+
+def remove_payment_account(jurisdiction, token, account_id):
+    """Remove an account only after finding it in this authenticated account list."""
+    account = next((a for a in payment_accounts(jurisdiction, token) if str(a["paymentAccountID"]) == account_id), None)
+    if account is None or account.get("paymentAccountTypeCode") == "WV":
+        raise ValueError("Choose a payment account from your account list.")
+    response = requests.delete(
+        f"{settings.EFSP_URL}/jurisdictions/{jurisdiction}/payments/payment-accounts/{quote(account_id, safe='')}",
+        headers=account_headers(jurisdiction, token),
+        timeout=20,
+    )
+    response.raise_for_status()
