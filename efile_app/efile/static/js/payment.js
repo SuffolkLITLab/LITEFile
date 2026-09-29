@@ -57,7 +57,7 @@ const PaymentPage = {
 
     setFeesState(loading) {
         document.getElementById("loadingSpinner").style.display = loading ? "block" : "none";
-        document.getElementById("submitButton").disabled = loading || this.waiverUploading || !this.feeQuoteReady || !document.getElementById("selected-payment-account").value;
+        document.getElementById("submitButton").disabled = loading || this.removingAccount || this.waiverUploading || !this.feeQuoteReady || !document.getElementById("selected-payment-account").value;
     },
 
     async loadAccountTypes() {
@@ -172,13 +172,16 @@ const PaymentPage = {
             const selectedId = accounts.some((account) => String(account.paymentAccountID) === String(saved)) ? saved : accounts[0]?.paymentAccountID;
             const rows = accounts.map((account) => {
                 const label = this.accountLabel(account, 0);
-                return `<label><input class="form-check-input" type="radio" name="paymentMethod" value="${escapeAttribute(account.paymentAccountID)}" data-name="${escapeAttribute(label)}" data-type="${escapeAttribute(account.paymentAccountTypeCode || "")}" ${String(selectedId) === String(account.paymentAccountID) ? "checked" : ""}/> <span><strong>${escapeHTML(label)}</strong></span></label>`;
+                return `<div><label><input class="form-check-input" type="radio" name="paymentMethod" value="${escapeAttribute(account.paymentAccountID)}" data-name="${escapeAttribute(label)}" data-type="${escapeAttribute(account.paymentAccountTypeCode || "")}" ${String(selectedId) === String(account.paymentAccountID) ? "checked" : ""}/> <span><strong>${escapeHTML(label)}</strong></span></label> <button type="button" class="btn btn-outline-secondary btn-sm remove-payment-method" data-account-id="${escapeAttribute(account.paymentAccountID)}" data-account-label="${escapeAttribute(label)}" aria-label="${escapeAttribute(gettext("Remove payment method"))}: ${escapeAttribute(label)}">${gettext("Remove")}</button></div>`;
             }).join("");
             const noAccountHelp = accounts.length ? "" : `<p>${gettext("Add a credit or bank account to continue.")}</p>`;
             container.innerHTML = `${noAccountHelp}<div class="compact-choice-list">${rows}</div>
                 <button type="button" class="btn btn-outline-primary mt-2" id="add-payment-method">${gettext("Add credit or bank account")}</button>`;
             container.querySelectorAll('input[name="paymentMethod"]').forEach((input) => {
                 input.addEventListener("change", () => this.selectAndQuote());
+            });
+            container.querySelectorAll(".remove-payment-method").forEach((button) => {
+                button.addEventListener("click", () => this.removeAccount(button));
             });
             document.getElementById("add-payment-method").addEventListener("click", () => this.addAccount());
             if (accounts.length) await this.selectAndQuote();
@@ -243,6 +246,35 @@ const PaymentPage = {
             if (currentRequestId !== this.quoteRequestId) return;
             this.feeQuoteReady = false;
             paymentMessages.showError(error?.serverMessage || gettext("We could not calculate fees. Please try again."));
+            this.setFeesState(false);
+        }
+    },
+
+    async removeAccount(button) {
+        if (this.removingAccount) return;
+        if (!window.confirm(`${gettext("Remove this payment method from your court account?")}\n${button.dataset.accountLabel}`)) return;
+        this.removingAccount = true;
+        button.disabled = true;
+        this.quoteRequestId = (this.quoteRequestId || 0) + 1;
+        this.feeQuoteReady = false;
+        document.getElementById("selected-payment-account").value = "";
+        document.getElementById("paymentSection").hidden = true;
+        this.setFeesState(false);
+        paymentMessages.hide();
+        try {
+            const result = await apiUtils.delete(`${PAYMENT_URLS.accounts}${encodeURIComponent(button.dataset.accountId)}/`, {
+                jurisdiction: apiUtils.getCurrentJurisdiction()
+            });
+            if (!result?.success) throw new Error("Account removal failed");
+            // Do not let the initial saved selection choose the removed account.
+            document.getElementById("selected-payment-account-id").textContent = '""';
+            await this.chooseIntent();
+            paymentMessages.showSuccess(gettext("Payment method removed."));
+        } catch {
+            paymentMessages.showError(gettext("We could not remove this payment method. Please try again."));
+        } finally {
+            this.removingAccount = false;
+            button.disabled = false;
             this.setFeesState(false);
         }
     },

@@ -35,6 +35,7 @@ function pageHarness(post) {
             addEventListener() {}
         },
         window: {
+            confirm: () => true,
             location: {
                 search: ""
             }
@@ -57,6 +58,7 @@ function pageHarness(post) {
         "\nglobalThis.payment = PaymentPage;", context);
     return {
         payment: context.payment,
+        window: context.window,
         apiUtils: context.apiUtils,
         node,
         intent
@@ -252,4 +254,71 @@ test("a saved waiver alone does not request another waiver automatically", async
     payment.chooseIntent = async () => assert.fail("Waiver requires an explicit choice");
     await payment.loadAccounts();
     assert.equal(intent.checked, false);
+});
+
+test("removing a payment method clears the selection and reloads accounts", async () => {
+    const {
+        payment,
+        apiUtils,
+        node
+    } = pageHarness();
+    const calls = [];
+    apiUtils.delete = async (url) => {
+        calls.push(url);
+        return {
+            success: true
+        };
+    };
+    node("selected-payment-account").value = "old-card";
+    payment.feeQuoteReady = true;
+    payment.chooseIntent = async () => calls.push("reload");
+    await payment.removeAccount({
+        dataset: {
+            accountId: "old-card",
+            accountLabel: "Old card"
+        }
+    });
+    assert.deepEqual(calls, ["/api/payment-accounts/old-card/", "reload"]);
+    assert.equal(node("selected-payment-account").value, "");
+    assert.equal(node("submitButton").disabled, true);
+    assert.equal(node("successText").textContent, "Payment method removed.");
+});
+
+test("cancelling removal keeps the payment selection", async () => {
+    const {
+        payment,
+        apiUtils,
+        node,
+        window
+    } = pageHarness();
+    window.confirm = () => false;
+    apiUtils.delete = async () => assert.fail("Cancelled removal");
+    node("selected-payment-account").value = "card";
+    await payment.removeAccount({
+        dataset: {
+            accountId: "card"
+        }
+    });
+    assert.equal(node("selected-payment-account").value, "card");
+});
+
+test("failed removal reports the error and permits retry", async () => {
+    const {
+        payment,
+        apiUtils,
+        node
+    } = pageHarness();
+    apiUtils.delete = async () => {
+        throw new Error("offline");
+    };
+    const button = {
+        dataset: {
+            accountId: "card"
+        }
+    };
+    await payment.removeAccount(button);
+    assert.equal(button.disabled, false);
+    assert.equal(payment.removingAccount, false);
+    assert.equal(node("errorMessage").hidden, false);
+    assert.equal(node("submitButton").disabled, true);
 });
