@@ -8,12 +8,18 @@ function harness() {
     const radio = (value) => ({
         value,
         checked: false,
-        listeners: [],
+        listeners: {},
         addEventListener(event, handler) {
-            this.listeners.push(handler);
+            this.listeners[event] ||= [];
+            this.listeners[event].push(handler);
+        },
+        click(detail) {
+            (this.listeners.click || []).forEach((handler) => handler({
+                detail
+            }));
         },
         change() {
-            this.listeners.forEach((handler) => handler());
+            (this.listeners.change || []).forEach((handler) => handler());
         }
     });
     const plaintiff = radio("plaintiff");
@@ -48,11 +54,12 @@ function harness() {
     };
 }
 
-test("choosing a court role immediately submits Save role", () => {
+test("clicking a court role immediately submits Save role", () => {
     const page = harness();
     assert.equal(page.submitted.length, 0);
     page.plaintiff.checked = true;
     page.plaintiff.change();
+    page.plaintiff.click(1);
     assert.deepEqual(page.submitted, [page.save]);
     assert.equal(page.filingFor.disabled, true);
 });
@@ -64,4 +71,12 @@ test("filing for someone else reveals the questions before saving", () => {
     assert.equal(page.submitted.length, 0);
     assert.equal(page.filingFor.hidden, false);
     assert.equal(page.filingFor.disabled, false);
+});
+
+test("keyboard role changes do not submit the form", () => {
+    const page = harness();
+    page.plaintiff.checked = true;
+    page.plaintiff.change();
+    page.plaintiff.click(0);
+    assert.equal(page.submitted.length, 0);
 });

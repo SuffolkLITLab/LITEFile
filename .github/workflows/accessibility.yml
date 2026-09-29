@@ -67,6 +67,10 @@ jobs:
         # are mocked in the browser.
         run: npm run test:confirm-case
 
+      - name: Run party role keyboard checks
+        working-directory: efile_app
+        run: npx playwright test --config=playwright.parties.config.js
+
       - name: Upload accessibility results
         if: always()
         uses: actions/upload-artifact@v7
