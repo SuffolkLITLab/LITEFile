@@ -34,6 +34,7 @@ class JurisdictionConfigLoader:
         # Using in object cache because `@lru_cache` can cause
         # memory leaks when used on objects.
         self._jurisdiction_cache = {}
+        self._jurisdiction_versions = {}
 
     def _load_base_config(self):
         """Load the base configuration file"""
@@ -72,11 +73,12 @@ class JurisdictionConfigLoader:
         Returns:
             dict: Merged configuration
         """
-        if jurisdiction in self._jurisdiction_cache:
-            return self._jurisdiction_cache[jurisdiction]
-
         jurisdiction_path = self.states_dir / f"{jurisdiction}.yaml"
         try:
+            stat = jurisdiction_path.stat()
+            version = (stat.st_mtime_ns, stat.st_size)
+            if jurisdiction in self._jurisdiction_cache and self._jurisdiction_versions.get(jurisdiction) == version:
+                return self._jurisdiction_cache[jurisdiction]
             with open(jurisdiction_path) as f:
                 jurisdiction_config = yaml.safe_load(f)
 
@@ -99,6 +101,7 @@ class JurisdictionConfigLoader:
                         # Deep merge base config with the current config
                         merged["case_types"][case_name] = JurisdictionConfigLoader._deep_merge(base, case_config)
             self._jurisdiction_cache[jurisdiction] = merged
+            self._jurisdiction_versions[jurisdiction] = version
             return merged
 
         except FileNotFoundError:

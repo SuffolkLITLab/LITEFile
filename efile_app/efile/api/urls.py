@@ -27,6 +27,7 @@ from .dropdown_views import (
     get_party_types,
 )
 from .filing_views import get_filings, payment_fees
+from .payment_views import waiver_account
 from .s3_upload import (
     mock_s3_upload,
     simple_s3_upload,
@@ -65,6 +66,7 @@ urlpatterns = [
     path("auth/tyler-token/", tyler_token, name="tyler_token"),
     # Payment API endpoints
     path("payment-accounts/", payment_accounts, name="payment_accounts"),
+    path("waiver-account/", waiver_account, name="waiver_account"),
     path("payment-account-types/", payment_account_types, name="payment_account_types"),
     path("payment-fees/", payment_fees, name="payment_fees"),
     # Filing API endpoints

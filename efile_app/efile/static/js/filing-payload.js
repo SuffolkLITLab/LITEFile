@@ -397,27 +397,39 @@ const FilingPayload = {
         }
     },
 
+    feeReceiptRow(label, amount, isTotal = false) {
+        const row = document.createElement("div");
+        row.className = isTotal ? "fee-receipt-total" : "fee-receipt-row";
+        const term = document.createElement("dt");
+        term.textContent = label;
+        const value = document.createElement("dd");
+        value.textContent = Number(amount).toLocaleString("en-US", {
+            style: "currency",
+            currency: "USD"
+        });
+        row.append(term, value);
+        return row;
+    },
+
     handleFeesResponse(result) {
         if (result?.success) {
             const response = result.api_response || {};
             const infoElem = document.getElementById("paymentInfo");
             infoElem.replaceChildren();
-            const total = document.createElement("p");
-            const label = document.createElement("strong");
-            label.textContent = gettext("Total");
-            total.append(label, `: $${response.feesCalculationAmount?.value || "0.00"}`);
-            infoElem.appendChild(total);
-
+            const receipt = document.createElement("dl");
+            receipt.className = "fee-receipt";
+            const totalAmount = response.feesCalculationAmount?.value;
             const fees = (response.allowanceCharge || []).filter((fee) => fee.chargeIndicator?.value);
-            if (fees.length) {
-                const list = document.createElement("ul");
+            if (Number(totalAmount) !== 0) {
                 fees.forEach((fee) => {
-                    const item = document.createElement("li");
-                    item.textContent = `${fee.allowanceChargeReason?.value || gettext("Court fee")}: $${fee.amount?.value || "0.00"}`;
-                    list.appendChild(item);
+                    receipt.appendChild(this.feeReceiptRow(
+                        fee.allowanceChargeReason?.value || gettext("Court fee"),
+                        fee.amount?.value || "0.00"
+                    ));
                 });
-                infoElem.appendChild(list);
             }
+            receipt.appendChild(this.feeReceiptRow(gettext("Total"), totalAmount || "0.00", true));
+            infoElem.appendChild(receipt);
             document.getElementById("paymentSection").removeAttribute("hidden");
         } else {
             Messages.showError(result?.error || "An error occurred when calculating fees.");

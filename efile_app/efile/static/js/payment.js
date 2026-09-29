@@ -2,7 +2,14 @@ const PAYMENT_URLS = {
     accounts: "/api/payment-accounts/",
     accountTypes: "/api/payment-account-types/",
     token: "/api/auth/tyler-token/",
-    fees: "/api/payment-fees/"
+    fees: "/api/payment-fees/",
+    waiver: "/api/waiver-account/"
+};
+
+// Tyler sends Active as a JAXB element ({value: true, ...}), not a bare boolean.
+const isActive = (account) => {
+    const active = account.active?.value ?? account.active;
+    return active !== false && active !== "false";
 };
 
 const paymentJSON = (id) => {
@@ -50,7 +57,7 @@ const PaymentPage = {
 
     setFeesState(loading) {
         document.getElementById("loadingSpinner").style.display = loading ? "block" : "none";
-        document.getElementById("submitButton").disabled = loading || !this.feeQuoteReady || !document.querySelector('input[name="paymentMethod"]:checked');
+        document.getElementById("submitButton").disabled = loading || this.waiverUploading || !this.feeQuoteReady || !document.getElementById("selected-payment-account").value;
     },
 
     async loadAccountTypes() {
@@ -90,29 +97,103 @@ const PaymentPage = {
         const result = await apiUtils.fetchJSON(PAYMENT_URLS.accounts, "GET", {
             jurisdiction: apiUtils.getCurrentJurisdiction()
         });
-        const accounts = result?.success ? result.data : [];
-        const container = document.getElementById("paymentMethodsContainer");
-        if (!accounts?.length) {
-            container.innerHTML = `<div class="alert alert-info">${gettext("You have no saved payment methods. Add one to continue.")}</div>
-                <button type="button" class="btn btn-outline-primary" id="add-payment-method">${gettext("Add payment method")}</button>`;
-            document.getElementById("add-payment-method").addEventListener("click", () => this.addAccount());
-            return;
-        }
-
+        if (!result?.success || !Array.isArray(result.data)) throw new Error("Account lookup failed");
+        this.accounts = result.data.filter((account) => isActive(account));
         const saved = paymentJSON("selected-payment-account-id");
-        const waiverCount = accounts.filter((account) => account.paymentAccountTypeCode === "WV").length;
-        const rows = accounts.map((account, index) => {
-            const label = this.accountLabel(account, waiverCount);
-            const checked = saved ? String(saved) === String(account.paymentAccountID) : index === 0;
-            return `<label><input class="form-check-input" type="radio" name="paymentMethod" value="${escapeAttribute(account.paymentAccountID)}" data-name="${escapeAttribute(label)}" data-type="${escapeAttribute(account.paymentAccountTypeCode || "")}" ${checked ? "checked" : ""}/> <span><strong>${escapeHTML(label)}</strong></span></label>`;
-        }).join("");
-        container.innerHTML = `<div class="compact-choice-list">${rows}</div>
-        <button type="button" class="btn btn-link ps-0 mt-2" id="add-payment-method">+ ${gettext("Add another payment method")}</button>`;
-        container.querySelectorAll('input[name="paymentMethod"]').forEach((input) => {
-            input.addEventListener("change", () => this.selectAndQuote());
-        });
-        document.getElementById("add-payment-method").addEventListener("click", () => this.addAccount());
-        await this.selectAndQuote();
+        const account = this.accounts.find((item) => String(item.paymentAccountID) === String(saved));
+        if (document.querySelector('input[name="paymentIntent"]:checked')) return;
+        let intent = account ? "pay" : "";
+        // A saved waiver is not a fresh statement that the person qualifies.
+        if (account?.paymentAccountTypeCode === "WV") intent = "";
+        if (paymentJSON("estimated-zero-fees") === true) intent = "pay";
+        if (new URLSearchParams(window.location.search).get("payment_status") === "success") intent = "pay";
+        if (intent) {
+            document.querySelector(`input[name="paymentIntent"][value="${intent}"]`).checked = true;
+            await this.chooseIntent();
+        }
+    },
+
+    async chooseIntent() {
+        const intent = document.querySelector('input[name="paymentIntent"]:checked')?.value;
+        const requestId = this.quoteRequestId = (this.quoteRequestId || 0) + 1;
+        this.feeQuoteReady = false;
+        document.getElementById("selected-payment-account").value = "";
+        document.getElementById("paymentSection").hidden = true;
+        const container = document.getElementById("paymentMethodsContainer");
+        container.innerHTML = "";
+        paymentMessages.hide();
+        this.setFeesState(false);
+        document.getElementById("roughFeeSummary").hidden = false;
+        document.getElementById("freeFilingHelp").hidden = intent !== "pay" || paymentJSON("estimated-zero-fees") !== true;
+        document.getElementById("waiverHelp").hidden = intent !== "waiver";
+        if (intent === "waiver") return this.chooseWaiver(requestId);
+        if (intent === "pay") return this.choosePaidAccount(requestId);
+    },
+
+    async chooseWaiver(requestId) {
+        this.setFeesState(true);
+        try {
+            // Share an in-flight creation when someone toggles back and forth.
+            this.waiverRequest ||= apiUtils.post(PAYMENT_URLS.waiver, {
+                preferred_id: paymentJSON("selected-payment-account-id") || ""
+            }, {
+                jurisdiction: apiUtils.getCurrentJurisdiction()
+            });
+            const result = await this.waiverRequest;
+            if (!result?.success || !result.data?.paymentAccountID) throw new Error("Waiver setup failed");
+            if (requestId !== this.quoteRequestId) return;
+            const account = result.data;
+            document.getElementById("selected-payment-account").value = account.paymentAccountID;
+            document.getElementById("selected-payment-account-name").value = account.accountName;
+            document.getElementById("selected-payment-account-type").value = "WV";
+            this.feeQuoteReady = true;
+            paymentMessages.showSuccess(gettext("Fee waiver requested: $0 due now. The court may ask you to pay if it denies your request."));
+        } catch {
+            this.waiverRequest = null;
+            if (requestId !== this.quoteRequestId) return;
+            paymentMessages.showError(gettext("We could not set up your waiver account. Please try again."));
+            this.showChoiceRetry();
+        } finally {
+            if (requestId === this.quoteRequestId) this.setFeesState(false);
+        }
+    },
+
+    async choosePaidAccount(requestId) {
+        const container = document.getElementById("paymentMethodsContainer");
+        try {
+            // A lookup failure is not evidence that there are no accounts.
+            const result = await apiUtils.fetchJSON(PAYMENT_URLS.accounts, "GET", {
+                jurisdiction: apiUtils.getCurrentJurisdiction()
+            });
+            if (requestId !== this.quoteRequestId) return;
+            if (!result?.success || !Array.isArray(result.data)) throw new Error("Account lookup failed");
+            const accounts = result.data.filter((account) => account.paymentAccountTypeCode !== "WV" && isActive(account));
+            const saved = paymentJSON("selected-payment-account-id");
+            const selectedId = accounts.some((account) => String(account.paymentAccountID) === String(saved)) ? saved : accounts[0]?.paymentAccountID;
+            const rows = accounts.map((account) => {
+                const label = this.accountLabel(account, 0);
+                return `<label><input class="form-check-input" type="radio" name="paymentMethod" value="${escapeAttribute(account.paymentAccountID)}" data-name="${escapeAttribute(label)}" data-type="${escapeAttribute(account.paymentAccountTypeCode || "")}" ${String(selectedId) === String(account.paymentAccountID) ? "checked" : ""}/> <span><strong>${escapeHTML(label)}</strong></span></label>`;
+            }).join("");
+            const noAccountHelp = accounts.length ? "" : `<p>${gettext("Add a credit or bank account to continue.")}</p>`;
+            container.innerHTML = `${noAccountHelp}<div class="compact-choice-list">${rows}</div>
+                <button type="button" class="btn btn-outline-primary mt-2" id="add-payment-method">${gettext("Add credit or bank account")}</button>`;
+            container.querySelectorAll('input[name="paymentMethod"]').forEach((input) => {
+                input.addEventListener("change", () => this.selectAndQuote());
+            });
+            document.getElementById("add-payment-method").addEventListener("click", () => this.addAccount());
+            if (accounts.length) await this.selectAndQuote();
+        } catch {
+            if (requestId === this.quoteRequestId) {
+                paymentMessages.showError(gettext("We could not load payment methods. Please try again."));
+                this.showChoiceRetry();
+            }
+        }
+    },
+
+    showChoiceRetry() {
+        const container = document.getElementById("paymentMethodsContainer");
+        container.innerHTML = `<button type="button" class="btn btn-outline-primary" id="retry-payment-choice">${gettext("Try again")}</button>`;
+        document.getElementById("retry-payment-choice").addEventListener("click", () => this.chooseIntent());
     },
 
     async selectAndQuote() {
@@ -125,6 +206,7 @@ const PaymentPage = {
         document.getElementById("selected-payment-account-type").value = selected.dataset.type || "";
         document.getElementById("paymentSection").hidden = true;
         this.feeQuoteReady = false;
+        document.getElementById("roughFeeSummary").hidden = false;
         paymentMessages.hide();
         this.setFeesState(true);
         try {
@@ -145,6 +227,13 @@ const PaymentPage = {
             // from it; one it could not read is not a quote to go on with.
             this.feeQuoteReady = Boolean(result?.success && result.quote_recorded);
             this.handleFeesResponse(result);
+            document.getElementById("paymentSection").hidden = !this.feeQuoteReady;
+            document.getElementById("roughFeeSummary").hidden = this.feeQuoteReady;
+            document.getElementById("freeFilingHelp").hidden = this.feeQuoteReady || paymentJSON("estimated-zero-fees") !== true;
+            const amount = result?.api_response?.feesCalculationAmount?.value;
+            if (this.feeQuoteReady && amount != null && String(amount).trim() !== "" && Number(amount) === 0) {
+                paymentMessages.showSuccess(gettext("You will not be charged."));
+            }
             if (result?.success && result.quote_superseded) {
                 paymentMessages.showError(gettext("This filing changed while we were calculating fees, perhaps in another window. Reload this page to calculate them again."));
             } else if (result?.success && !result.quote_recorded) {
@@ -193,6 +282,9 @@ const PaymentPage = {
         const status = new URLSearchParams(window.location.search).get("payment_status");
         if (status === "failure") paymentMessages.showError(gettext("The payment method was not added."));
         if (status === "success") paymentMessages.showSuccess(gettext("Payment method added."));
+        document.querySelectorAll('input[name="paymentIntent"]').forEach((input) => {
+            input.addEventListener("change", () => this.chooseIntent());
+        });
         await this.loadAccountTypes();
         this.loadAccounts().catch(() => paymentMessages.showError(gettext("We could not load payment methods.")));
     }

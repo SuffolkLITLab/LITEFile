@@ -39,3 +39,15 @@ class TestJurisdictionConfigLoader:
         loader = JurisdictionConfigLoader()
         v = loader.validate_configuration("illinois", "name_change")
         assert v["valid"]
+
+
+def test_state_changes_refresh_cached_configuration(tmp_path):
+    (tmp_path / "base-case-types.yaml").write_text("{}")
+    states = tmp_path / "states"
+    states.mkdir()
+    state = states / "illinois.yaml"
+    state.write_text("fee_waiver: {income_bands: []}")
+    loader = JurisdictionConfigLoader(tmp_path)
+    assert loader.load_jurisdiction_config("illinois")["fee_waiver"]["income_bands"] == []
+    state.write_text("fee_waiver: {income_bands: [{max_fpl_percent: 200}]}")
+    assert loader.load_jurisdiction_config("illinois")["fee_waiver"]["income_bands"][0]["max_fpl_percent"] == 200

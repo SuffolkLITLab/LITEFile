@@ -60,7 +60,11 @@ def submission_draft(client, django_user_model):
 
 
 @pytest.mark.django_db
-def test_payment_saves_account_and_advances_durable_step(client, submission_draft):
+def test_payment_saves_account_and_advances_durable_step(client, submission_draft, monkeypatch):
+    monkeypatch.setattr(
+        "efile.views.payment.payment_accounts",
+        lambda *args: [{"paymentAccountID": "pay-123", "accountName": "Saved account", "paymentAccountTypeCode": "CC"}],
+    )
     response = client.post(
         reverse("payment", kwargs={"jurisdiction": "illinois"}),
         {"selected_payment_account": "pay-123", "selected_payment_account_name": "Card ending in 4242"},
@@ -174,9 +178,12 @@ def test_payment_account_types_proxies_the_courts_type_list(client, submission_d
 
 
 @pytest.mark.django_db
-def test_payment_persists_account_type_but_not_a_posted_fee_total(client, submission_draft):
+def test_payment_persists_account_type_but_not_a_posted_fee_total(client, submission_draft, monkeypatch):
     """The quote comes from the fee API, which recorded what it priced; a form field cannot set it."""
-
+    monkeypatch.setattr(
+        "efile.views.payment.payment_accounts",
+        lambda *args: [{"paymentAccountID": "pay-123", "accountName": "Saved account", "paymentAccountTypeCode": "CC"}],
+    )
     response = client.post(
         reverse("payment", kwargs={"jurisdiction": "illinois"}),
         {
@@ -195,7 +202,11 @@ def test_payment_persists_account_type_but_not_a_posted_fee_total(client, submis
 
 
 @pytest.mark.django_db
-def test_payment_tolerates_malformed_fee_breakdown(client, submission_draft):
+def test_payment_tolerates_malformed_fee_breakdown(client, submission_draft, monkeypatch):
+    monkeypatch.setattr(
+        "efile.views.payment.payment_accounts",
+        lambda *args: [{"paymentAccountID": "pay-123", "accountName": "Saved account", "paymentAccountTypeCode": "WV"}],
+    )
     response = client.post(
         reverse("payment", kwargs={"jurisdiction": "illinois"}),
         {
@@ -224,7 +235,8 @@ def test_review_shows_waiver_messaging_instead_of_fee_reference(client, submissi
     response = client.get(reverse("case_review", kwargs={"jurisdiction": "illinois"}))
 
     assert response.status_code == 200
-    assert b"fee waiver" in response.content
+    assert b"Fee waiver requested" in response.content
+    assert b"approved fee waiver" not in response.content
     assert b"the previous screen" not in response.content
 
 
@@ -295,3 +307,26 @@ def test_confirmation_uses_saved_submission_reference(client, submission_draft):
     assert response.status_code == 200
     assert b"IL-2026-12345" in response.content
     assert b"Circuit Court of Cook County" in response.content
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("total,stale,visible", [("0.00", False, True), ("10.00", False, False), ("0.00", True, False)])
+def test_free_filing_explanation_requires_current_zero_quote(client, submission_draft, total, stale, visible):
+    submission_draft.selected_payment_account_id = "pay-123"
+    submission_draft.selected_payment_account_type = "CC"
+    submission_draft.save()
+    record_fee_quote(submission_draft, total, [{"label": "Test fee item", "amount": total}])
+    if stale:
+        submission_draft.amount_in_controversy = "999"
+        submission_draft.save()
+    response = client.get(reverse("case_review", kwargs={"jurisdiction": "illinois"}))
+    assert response.status_code == 200
+    assert response.context["fee_quote"]["is_zero"] is visible
+    body = response.content.decode()
+    help_tag = body.split('id="free-filing-help"', 1)[1].split(">", 1)[0]
+    assert ("hidden" not in help_tag) is visible
+    assert 'class="info-explainer"' in body
+    assert 'id="free-filing-explainer-content" hidden' in body
+    assert "Your confirmed total is $0, so you will not be charged." in body
+    assert ("Test fee item" in body) is (not visible and not stale)
+    assert ("Submit and pay" in body) is (total != "0.00" and not stale)

@@ -607,3 +607,26 @@ test("an organization being filed for is labelled too", () => {
     assert.strictEqual(result.users[0].person_type, "business");
     assert.strictEqual(result.users[0].name.first, "Riverbend Properties LLC");
 });
+test("identical PDF names and URLs remain separate filings with separate codes", () => {
+    const pdf = {
+        name: "appearance.pdf",
+        url: "https://example.com/appearance.pdf"
+    };
+    const bundles = bundlesFor({
+        files: {
+            lead: pdf,
+            supporting: [{
+                ...pdf
+            }]
+        },
+        lead_filing_type: "appearance",
+        supporting_documents: [{
+            filing_type: "jury-demand",
+            document_type: "public",
+            filing_component: "lead"
+        }]
+    });
+    assert.equal(bundles.length, 2);
+    assert.deepStrictEqual(bundles.map(bundle => bundle.filename), ["appearance.pdf", "appearance.pdf"]);
+    assert.deepStrictEqual(bundles.map(bundle => bundle.filing_type), ["appearance", "jury-demand"]);
+});

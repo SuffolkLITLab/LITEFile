@@ -1,14 +1,21 @@
 from django.conf import settings
 from django.contrib import messages
 from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.views.decorators.http import require_http_methods
+from requests import RequestException
 
 from efile.api.suffolk_api_views import get_tyler_token
 from efile.models import FilingDocument, FilingParty
 from efile.services.current_drafts import ensure_current_draft
+from efile.services.draft_urls import draft_url
 from efile.services.drafts import draft_snapshot, read_case_data
+from efile.services.fee_estimates import estimate_fees
 from efile.services.fee_quotes import fee_inputs_token
+from efile.services.payment_accounts import payment_accounts
 from efile.services.people import filing_parties
+from efile.services.waiver_documents import has_waiver_document
+from efile.utils.config_loader import config_loader
 
 from ..workflow import WorkflowStepKey, get_step_url, get_workflow_context
 
@@ -41,13 +48,17 @@ def efile_payment(request, jurisdiction):
 
     if request.method == "POST":
         account_id = request.POST.get("selected_payment_account", "").strip()
-        account_name = request.POST.get("selected_payment_account_name", "").strip()
-        if not account_id:
+        try:
+            accounts = payment_accounts(jurisdiction, get_tyler_token(request, jurisdiction)) if account_id else []
+            account = next((a for a in accounts if str(a["paymentAccountID"]) == account_id), None)
+        except (RequestException, ValueError):
+            account = None
+        if not account:
             messages.error(request, "Choose a payment method to continue.")
         else:
             draft.selected_payment_account_id = account_id
-            draft.selected_payment_account_name = account_name or "Selected payment method"
-            draft.selected_payment_account_type = request.POST.get("selected_payment_account_type", "").strip()
+            draft.selected_payment_account_name = account.get("accountName") or "Selected payment method"
+            draft.selected_payment_account_type = account.get("paymentAccountTypeCode", "")
             # The fee quote itself is not read from this form: the fee API
             # recorded it on the draft, with what it was priced on, when it
             # answered (see efile.services.fee_quotes).
@@ -64,6 +75,8 @@ def efile_payment(request, jurisdiction):
             return redirect(get_step_url(WorkflowStepKey.REVIEW, jurisdiction))
 
     context = {
+        "waiver_upload_url": draft_url(reverse("waiver_documents", kwargs={"jurisdiction": jurisdiction}), draft.pk),
+        "has_waiver_document": has_waiver_document(draft),
         "is_logged_in": True,
         "new_toga_url": f"{settings.EFSP_URL}/jurisdictions/{jurisdiction}/payments/new-toga-account",
         "case_data": read_case_data(draft),
@@ -72,6 +85,8 @@ def efile_payment(request, jurisdiction):
         # Sent back with the fee request, so the quote is only kept if it
         # priced the filing as this page shows it (see fee_inputs_token).
         "fee_inputs_token": fee_inputs_token(draft),
+        "fee_estimate": estimate_fees(draft),
+        "fee_waiver": config_loader.load_jurisdiction_config(jurisdiction).get("fee_waiver", {}),
     }
     context.update(get_workflow_context(WorkflowStepKey.PAYMENT, jurisdiction, draft))
     return render(request, "efile/payment.html", context)

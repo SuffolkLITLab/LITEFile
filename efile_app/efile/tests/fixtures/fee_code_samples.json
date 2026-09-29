@@ -1,0 +1,325 @@
+{
+  "retrieved": "2026-09-29",
+  "samples": [
+    {
+      "id": "il_free",
+      "jurisdiction": "illinois",
+      "court": "calhoun",
+      "category": "7062",
+      "case_type": {
+        "code": "27894",
+        "name": "Civil No Contact Order",
+        "casecategory": "7062",
+        "initial": true,
+        "fee": 0.0,
+        "willfileddate": "Not Available",
+        "efspcode": "",
+        "location": "calhoun"
+      },
+      "filings": [
+        {
+          "code": "142966",
+          "name": "Petition No Contact Order",
+          "fee": "",
+          "casecategory": "7062",
+          "casetypeid": "",
+          "filingtype": "Both",
+          "iscourtuseonly": false,
+          "civilclaimamount": "Not Available",
+          "probateestateamount": "Not Available",
+          "amountincontroversy": "Not Available",
+          "useduedate": false,
+          "isproposedorder": false,
+          "efspcode": "",
+          "location": "calhoun"
+        },
+        {
+          "code": "142905",
+          "name": "Affidavit",
+          "fee": "",
+          "casecategory": "7062",
+          "casetypeid": "",
+          "filingtype": "Both",
+          "iscourtuseonly": false,
+          "civilclaimamount": "Not Available",
+          "probateestateamount": "Not Available",
+          "amountincontroversy": "Not Available",
+          "useduedate": false,
+          "isproposedorder": false,
+          "efspcode": "OPAS410.1EFSP",
+          "location": "calhoun"
+        }
+      ],
+      "expected": "0.00",
+      "sources": [
+        "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/calhoun/case_types?category_id=7062",
+        "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/calhoun/filing_types?initial=true&category_id=7062&type_id=27894"
+      ]
+    },
+    {
+      "id": "il_paid",
+      "jurisdiction": "illinois",
+      "court": "calhoun",
+      "category": "190921",
+      "case_type": {
+        "code": "254115",
+        "name": "Residential - Eviction",
+        "casecategory": "190921",
+        "initial": true,
+        "fee": 256.0,
+        "willfileddate": "Not Available",
+        "efspcode": "",
+        "location": "calhoun"
+      },
+      "filings": [
+        {
+          "code": "292221",
+          "name": "Eviction Complaint",
+          "fee": "",
+          "casecategory": "190921",
+          "casetypeid": "",
+          "filingtype": "Both",
+          "iscourtuseonly": false,
+          "civilclaimamount": "Not Available",
+          "probateestateamount": "Not Available",
+          "amountincontroversy": "Not Available",
+          "useduedate": false,
+          "isproposedorder": false,
+          "efspcode": "",
+          "location": "calhoun"
+        }
+      ],
+      "expected": "256.00",
+      "sources": [
+        "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/calhoun/case_types?category_id=190921",
+        "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/calhoun/filing_types?initial=true&category_id=190921&type_id=254115"
+      ]
+    },
+    {
+      "id": "ma_free",
+      "jurisdiction": "massachusetts",
+      "court": "435",
+      "category": "7",
+      "case_type": {
+        "code": "99304",
+        "name": "Superior Court refile after a Dismissal Nisi order MGL C212\u00a7 3A(d)- No fee.",
+        "casecategory": "7",
+        "initial": true,
+        "fee": 0.0,
+        "willfileddate": "Not Available",
+        "efspcode": "",
+        "location": "435"
+      },
+      "filings": [
+        {
+          "code": "6535",
+          "name": "E-File complaint filed.",
+          "fee": "",
+          "casecategory": "7",
+          "casetypeid": "",
+          "filingtype": "Initial",
+          "iscourtuseonly": false,
+          "civilclaimamount": "Not Available",
+          "probateestateamount": "Not Available",
+          "amountincontroversy": "Not Available",
+          "useduedate": false,
+          "isproposedorder": false,
+          "efspcode": "",
+          "location": "435"
+        }
+      ],
+      "expected": "0.00",
+      "sources": [
+        "https://efile-test.suffolklitlab.org/jurisdictions/massachusetts/codes/courts/435/case_types?category_id=7",
+        "https://efile-test.suffolklitlab.org/jurisdictions/massachusetts/codes/courts/435/filing_types?initial=true&category_id=7&type_id=99304"
+      ]
+    },
+    {
+      "id": "ma_paid",
+      "jurisdiction": "massachusetts",
+      "court": "435",
+      "category": "7",
+      "case_type": {
+        "code": "1356",
+        "name": "Money Action - District Court/BMC Filing",
+        "casecategory": "7",
+        "initial": true,
+        "fee": 195.0,
+        "willfileddate": "Not Available",
+        "efspcode": "",
+        "location": "435"
+      },
+      "filings": [
+        {
+          "code": "6535",
+          "name": "E-File complaint filed.",
+          "fee": "",
+          "casecategory": "7",
+          "casetypeid": "",
+          "filingtype": "Initial",
+          "iscourtuseonly": false,
+          "civilclaimamount": "Not Available",
+          "probateestateamount": "Not Available",
+          "amountincontroversy": "Not Available",
+          "useduedate": false,
+          "isproposedorder": false,
+          "efspcode": "",
+          "location": "435"
+        }
+      ],
+      "expected": "195.00",
+      "sources": [
+        "https://efile-test.suffolklitlab.org/jurisdictions/massachusetts/codes/courts/435/case_types?category_id=7",
+        "https://efile-test.suffolklitlab.org/jurisdictions/massachusetts/codes/courts/435/filing_types?initial=true&category_id=7&type_id=1356"
+      ]
+    },
+    {
+      "id": "vt_free",
+      "jurisdiction": "vermont",
+      "court": "vermont:sc",
+      "category": "210",
+      "case_type": {
+        "code": "6177",
+        "name": "Relief from Abuse",
+        "casecategory": "210",
+        "initial": true,
+        "fee": 0.0,
+        "willfileddate": "Not Available",
+        "efspcode": "RELIEFFROMABUSEEFSP",
+        "location": "vermont:sc"
+      },
+      "filings": [
+        {
+          "code": "9564",
+          "name": "Initial Filing",
+          "fee": "",
+          "casecategory": "210",
+          "casetypeid": "",
+          "filingtype": "Initial",
+          "iscourtuseonly": false,
+          "civilclaimamount": "Not Available",
+          "probateestateamount": "Not Available",
+          "amountincontroversy": "Not Available",
+          "useduedate": false,
+          "isproposedorder": false,
+          "efspcode": "INITIALFILINGEFSP",
+          "location": "vermont:sc"
+        }
+      ],
+      "expected": "0.00",
+      "sources": [
+        "https://efile-test.suffolklitlab.org/jurisdictions/vermont/codes/courts/vermont:sc/case_types?category_id=210",
+        "https://efile-test.suffolklitlab.org/jurisdictions/vermont/codes/courts/vermont:sc/filing_types?initial=true&category_id=210&type_id=6177"
+      ]
+    },
+    {
+      "id": "vt_paid",
+      "jurisdiction": "vermont",
+      "court": "vermont:sc",
+      "category": "210",
+      "case_type": {
+        "code": "6106",
+        "name": "Dissolution Contested with Minor Children",
+        "casecategory": "210",
+        "initial": true,
+        "fee": 295.0,
+        "willfileddate": "Not Available",
+        "efspcode": "",
+        "location": "vermont:sc"
+      },
+      "filings": [
+        {
+          "code": "9564",
+          "name": "Initial Filing",
+          "fee": "",
+          "casecategory": "210",
+          "casetypeid": "",
+          "filingtype": "Initial",
+          "iscourtuseonly": false,
+          "civilclaimamount": "Not Available",
+          "probateestateamount": "Not Available",
+          "amountincontroversy": "Not Available",
+          "useduedate": false,
+          "isproposedorder": false,
+          "efspcode": "INITIALFILINGEFSP",
+          "location": "vermont:sc"
+        }
+      ],
+      "expected": "295.00",
+      "sources": [
+        "https://efile-test.suffolklitlab.org/jurisdictions/vermont/codes/courts/vermont:sc/case_types?category_id=210",
+        "https://efile-test.suffolklitlab.org/jurisdictions/vermont/codes/courts/vermont:sc/filing_types?initial=true&category_id=210&type_id=6106"
+      ]
+    }
+  ],
+  "illinois_answers": [
+    {
+      "code": "123468",
+      "name": "Answer",
+      "fee": "186.00",
+      "casecategory": "190921",
+      "casetypeid": "",
+      "filingtype": "Subsequent",
+      "iscourtuseonly": false,
+      "civilclaimamount": "Not Available",
+      "probateestateamount": "Not Available",
+      "amountincontroversy": "Not Available",
+      "useduedate": false,
+      "isproposedorder": false,
+      "efspcode": "",
+      "location": "calhoun"
+    },
+    {
+      "code": "123486",
+      "name": "Answer",
+      "fee": "",
+      "casecategory": "190921",
+      "casetypeid": "",
+      "filingtype": "Subsequent",
+      "iscourtuseonly": false,
+      "civilclaimamount": "Not Available",
+      "probateestateamount": "Not Available",
+      "amountincontroversy": "Not Available",
+      "useduedate": false,
+      "isproposedorder": false,
+      "efspcode": "",
+      "location": "calhoun"
+    },
+    {
+      "code": "177377",
+      "name": "Appearance",
+      "fee": "186.00",
+      "casecategory": "190921",
+      "casetypeid": "",
+      "filingtype": "Subsequent",
+      "iscourtuseonly": false,
+      "civilclaimamount": "Not Available",
+      "probateestateamount": "Not Available",
+      "amountincontroversy": "Not Available",
+      "useduedate": false,
+      "isproposedorder": false,
+      "efspcode": "",
+      "location": "calhoun"
+    }
+  ],
+  "amount_dependent": {
+    "code": "174314",
+    "name": "Complaint / Petition - Breach Of Warranty - Fee",
+    "fee": "",
+    "casecategory": "",
+    "casetypeid": "",
+    "filingtype": "Initial",
+    "iscourtuseonly": false,
+    "civilclaimamount": "Not Available",
+    "probateestateamount": "Not Available",
+    "amountincontroversy": "Required",
+    "useduedate": false,
+    "isproposedorder": false,
+    "efspcode": "",
+    "location": "cook:cvd1"
+  },
+  "additional_sources": [
+    "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/calhoun/filing_types?initial=false&category_id=190921&type_id=254115",
+    "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook:cvd1/filing_types?initial=true"
+  ]
+}

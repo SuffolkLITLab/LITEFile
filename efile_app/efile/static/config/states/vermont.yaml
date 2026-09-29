@@ -175,3 +175,63 @@ handoff:
           filing_type_name_aliases: [Relief from Abuse Litigant Address Form]
         RFAserviceinfo:
           filing_type_name_aliases: ["Protection Order Service Information DPS #132"]
+
+# Statewide claim-dependent entry fees, reviewed 2026-09-29.
+# Estate-value and stipulated-family fees require facts beyond claim amount;
+# use Tyler's static fee when available, otherwise leave them unknown.
+fee_estimates:
+  surcharges:
+    reviewed: "2026-09-29"
+    waiver_account_types: [WV]
+    payment_methods:
+      BankAccount:
+        fixed: "1.00"
+        only_when_amount_due: true
+      CC:
+        percent: "2.89"
+        basis: court_and_platform
+        only_when_amount_due: true
+    platform:
+      amount: "14.00"
+      timing: first_filing_per_filer
+      exempt_when_court_fees_zero: true
+      exemptions:
+        - id: no_court_fee_case
+          requires_waiver_account: false
+        - id: protection_order
+          case_pattern: 'relief from abuse|stalking|sexual assault|abuse prevention|abuse/neglect/exploitation|vulnerable adult'
+          requires_waiver_account: true
+          note: "For this type of case, choose a waiver payment account to claim the exemption. You do not need to qualify based on income."
+        - id: government_or_appointed
+          requires_waiver_account: true
+        - id: criminal
+          case_pattern: '^criminal\b'
+          requires_waiver_account: false
+  sources:
+    - https://www.vtcourts.gov/about-vermont-judiciary/electronic-access/electronic-filing
+    - https://legislature.vermont.gov/statutes/section/32/017/01431
+  note: >-
+    Vermont small-claims entry fees depend on the claim amount.
+    Counterclaims have a separate, lower fee schedule.
+  rules:
+    - case_pattern: 'small\s*claims?'
+      filing_pattern: '^counter\s*claim'
+      bands:
+        - {up_to: 500, low: 25, high: 25}
+        - {up_to: null, low: 35, high: 35}
+    - case_pattern: 'small\s*claims?'
+      filing_pattern: '^(complaint|initial|small\s*claims?|statement of claim)'
+      initial_only: true
+      bands:
+        - {up_to: 1000, low: 65, high: 65}
+        - {up_to: null, low: 90, high: 90}
+
+fee_waiver:
+  source_url: "https://www.vermontjudiciary.org/self-help/application-waive-filing-fees-and-service-costs"
+  benefits: "Some public benefits qualify you. See the court's rules for details."
+  income_bands:
+    - max_fpl_percent: 150
+      waiver_percent: 100
+      description: "Use your income before taxes. You may have fees waived."
+  # Repeat-filing and prior-order requirements have not yet been confirmed.
+  document_guidance: "Include your waiver form or order. Ask the court if an earlier order covers this filing."

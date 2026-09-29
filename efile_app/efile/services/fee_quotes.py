@@ -187,5 +187,6 @@ def fee_quote_summary(draft: FilingDraft) -> dict[str, Any]:
     return {
         "state": state,
         "total": draft.quoted_fee_total if current else "",
+        "is_zero": current and Decimal(draft.quoted_fee_total) == 0,
         "breakdown": list(draft.quoted_fee_breakdown or []) if current else [],
     }

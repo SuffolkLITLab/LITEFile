@@ -383,14 +383,20 @@ def test_complete_new_filing_flow_by_jurisdiction(
     assert draft.current_step == WorkflowStepKey.PAYMENT
 
     # 8. Step: payment
-    pay_resp = client.post(
-        reverse("payment", kwargs={"jurisdiction": jurisdiction}),
-        {
-            "selected_payment_account": "waiver-account-1",
-            "selected_payment_account_name": "Fee Waiver",
-            "selected_payment_account_type": "WV",
-        },
-    )
+    with patch(
+        "efile.views.payment.payment_accounts",
+        return_value=[
+            {"paymentAccountID": "waiver-account-1", "accountName": "Fee Waiver", "paymentAccountTypeCode": "WV"}
+        ],
+    ):
+        pay_resp = client.post(
+            reverse("payment", kwargs={"jurisdiction": jurisdiction}),
+            {
+                "selected_payment_account": "waiver-account-1",
+                "selected_payment_account_name": "Fee Waiver",
+                "selected_payment_account_type": "WV",
+            },
+        )
     assert pay_resp.status_code == 302
     assert pay_resp.url.partition("?")[0] == reverse("case_review", kwargs={"jurisdiction": jurisdiction})
 
