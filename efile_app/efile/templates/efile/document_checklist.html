@@ -11,21 +11,17 @@
         <p class="workflow-lede">
             {% translate "Review the files below. Add anything else you want the court to get with this filing." %}
         </p>
-        <div class="checklist-guidance" role="note">
-            <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
-            <div>
-                <strong>{% translate "This list is a guide" %}</strong>
-                {% if checklist_groups %}
+        {% if checklist_groups %}
+            <div class="checklist-guidance" role="note">
+                <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                <div>
+                    <strong>{% translate "This list is a guide" %}</strong>
                     <p>
                         {% blocktranslate with court=plan.court_name|default:filing_draft.court_name %}Some filings like yours at {{ court }} include the documents below. Depending on your situation, other documents may be needed, or some of these may not apply. You do not have to check anything off to continue.{% endblocktranslate %}
                     </p>
-                {% else %}
-                    <p>
-                        {% translate "Include every completed court form, exhibit, translation, or proposed order that belongs with this filing. This list cannot tell you which legal forms your case needs." %}
-                    </p>
-                {% endif %}
+                </div>
             </div>
-        </div>
+        {% endif %}
         {% if choosing_filer_role %}
             <section class="document-plan filer-role" aria-labelledby="filer-role-heading">
                 <h2 id="filer-role-heading">{% translate "Which side of this case are you on?" %}</h2>
