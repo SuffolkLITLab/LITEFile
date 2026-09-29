@@ -124,8 +124,6 @@ const PaymentPage = {
         document.getElementById("selected-payment-account-name").value = selected.dataset.name;
         document.getElementById("selected-payment-account-type").value = selected.dataset.type || "";
         document.getElementById("paymentSection").hidden = true;
-        document.getElementById("quoted-fee-total").value = "";
-        document.getElementById("quoted-fee-breakdown").value = "";
         this.feeQuoteReady = false;
         paymentMessages.hide();
         this.setFeesState(true);
@@ -137,36 +135,27 @@ const PaymentPage = {
             const result = await apiUtils.post(PAYMENT_URLS.fees, {
                 efile_data: efileData,
                 confirm_submission: true,
-                payment_account_id: selected.value
+                payment_account_id: selected.value,
+                fee_inputs_token: paymentJSON("fee-inputs-token")
             }, {}, {
                 timeout: ApiUtils.FEE_TIMEOUT_MS
             });
             if (currentRequestId !== this.quoteRequestId) return;
-            this.feeQuoteReady = Boolean(result?.success);
+            // The server keeps the quote for Review once it can read a total
+            // from it; one it could not read is not a quote to go on with.
+            this.feeQuoteReady = Boolean(result?.success && result.quote_recorded);
             this.handleFeesResponse(result);
-            this.storeFeeQuote(result);
+            if (result?.success && result.quote_superseded) {
+                paymentMessages.showError(gettext("This filing changed while we were calculating fees, perhaps in another window. Reload this page to calculate them again."));
+            } else if (result?.success && !result.quote_recorded) {
+                paymentMessages.showError(gettext("The court did not return a fee total for this filing. Try again, or contact the court before you file."));
+            }
         } catch (error) {
             if (currentRequestId !== this.quoteRequestId) return;
             this.feeQuoteReady = false;
             paymentMessages.showError(error?.serverMessage || gettext("We could not calculate fees. Please try again."));
             this.setFeesState(false);
         }
-    },
-
-    // Persist the quote Review will later display, so it shows the same
-    // numbers the filer already saw here instead of sending them back to
-    // look them up again.
-    storeFeeQuote(result) {
-        if (!result?.success) return;
-        const response = result.api_response || {};
-        const fees = (response.allowanceCharge || [])
-            .filter((fee) => fee.chargeIndicator?.value)
-            .map((fee) => ({
-                label: fee.allowanceChargeReason?.value || gettext("Court fee"),
-                amount: fee.amount?.value || "0.00"
-            }));
-        document.getElementById("quoted-fee-total").value = response.feesCalculationAmount?.value || "0.00";
-        document.getElementById("quoted-fee-breakdown").value = JSON.stringify(fees);
     },
 
     async addAccount() {

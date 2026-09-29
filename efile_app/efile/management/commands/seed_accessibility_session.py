@@ -9,6 +9,7 @@ from django.test import Client
 
 from efile.models import FilingDocument, FilingDraft, FilingParty, FilingPlan
 from efile.services.current_drafts import CURRENT_DRAFT_SESSION_KEY
+from efile.services.fee_quotes import record_fee_quote
 from efile.workflow import ExistingCase, WorkflowStepKey
 
 
@@ -61,7 +62,6 @@ class Command(BaseCommand):
             extracted_guesses={"document title": "Complaint", "case title": "Checker v. Example"},
             selected_payment_account_id="a11y-payment-account",
             selected_payment_account_name="Accessibility payment account",
-            quoted_fee_total="0.00",
         )
         FilingDocument.objects.create(
             draft=draft,
@@ -95,6 +95,10 @@ class Command(BaseCommand):
             first_name="Jordan",
             last_name="Example",
         )
+
+        # A quote priced on this draft as it now stands, so Review shows it as
+        # current rather than asking the court again.
+        record_fee_quote(draft, "0.00", [])
 
         # Let Django's own test client construct the authenticated session. This
         # tracks framework changes to session-auth details without duplicating
