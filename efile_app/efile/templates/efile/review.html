@@ -294,6 +294,7 @@
     {{ upload_data|json_script:"upload-data" }}
     {{ draft.selected_payment_account_id|json_script:"payment-account-id" }}
     {{ fee_quote.state|json_script:"fee-quote-state" }}
+    {{ fee_inputs_token|json_script:"fee-inputs-token" }}
 {% endblock workflow_content %}
 {% block extra_js %}
     <script src="{% static 'js/filing-payload.js' %}"></script>

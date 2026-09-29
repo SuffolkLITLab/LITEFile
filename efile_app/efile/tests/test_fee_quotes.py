@@ -1,6 +1,7 @@
 """A fee quote is only current while the draft still matches what it priced (#193)."""
 
 import json
+import re
 from unittest.mock import patch
 
 import pytest
@@ -103,16 +104,39 @@ def draft(client, django_user_model):
     return draft
 
 
-def quote_fees(client, total="118.00", *fees):
-    """Ask the fee API, as Payment and Review do, with the EFSP answering `total`."""
+def page_token(client):
+    """The fee-inputs token Review hands its script, as a filer's browser has it."""
+
+    content = client.get(REVIEW_URL).content.decode()
+    return json.loads(
+        re.search(r'<script id="fee-inputs-token" type="application/json">(.*?)</script>', content).group(1)
+    )
+
+
+def quote_fees(client, total="118.00", *fees, token=None, during=None):
+    """Ask the fee API, as Payment and Review do, with the EFSP answering `total`.
+
+    `token` defaults to the one the Review page carries now; `during` runs while
+    the EFSP is being asked, as an edit in another tab would.
+    """
+
+    token = page_token(client) if token is None else token
+    answer = FakeResponse(200, efsp_fee_response(total, *fees))
+
+    def efsp(*args, **kwargs):
+        if during:
+            during()
+        return answer
 
     with (
         patch("efile.api.filing_views.prepare_efile_payload"),
-        patch("efile.api.filing_views.requests.post", return_value=FakeResponse(200, efsp_fee_response(total, *fees))),
+        patch("efile.api.filing_views.requests.post", side_effect=efsp),
     ):
         return client.post(
             FEES_URL,
-            data=json.dumps({"efile_data": {"al_court_bundle": []}, "payment_account_id": "pay-123"}),
+            data=json.dumps(
+                {"efile_data": {"al_court_bundle": []}, "payment_account_id": "pay-123", "fee_inputs_token": token}
+            ),
             content_type="application/json",
         )
 
@@ -255,6 +279,49 @@ def test_the_fee_api_records_the_quote_with_what_it_priced(client, draft):
 
 
 @pytest.mark.django_db
+def test_an_edit_while_the_efsp_is_pricing_keeps_the_old_answer_out(client, draft):
+    """The reviewer's case: another tab changes the filing mid-request."""
+
+    response = quote_fees(client, "118.00", during=lambda: _set(draft, case_type_code="tort"))
+
+    body = response.json()
+    assert body["quote_recorded"] is False
+    assert body["quote_superseded"] is True
+    draft.refresh_from_db()
+    assert draft.quoted_fee_total == ""
+    assert fee_quote_state(draft) == FeeQuoteState.MISSING
+
+
+@pytest.mark.django_db
+def test_a_request_built_from_an_older_page_is_not_recorded(client, draft):
+    token = page_token(client)
+    FilingDocument.objects.filter(draft=draft).update(requested_optional_services=[])
+
+    body = quote_fees(client, "128.00", token=token).json()
+
+    assert (body["quote_recorded"], body["quote_superseded"]) == (False, True)
+    draft.refresh_from_db()
+    assert fee_quote_state(draft) == FeeQuoteState.MISSING
+
+
+@pytest.mark.django_db
+def test_a_request_that_does_not_say_what_it_priced_is_not_recorded(client, draft):
+    body = quote_fees(client, "118.00", token="").json()
+
+    assert body["quote_recorded"] is False
+    draft.refresh_from_db()
+    assert fee_quote_state(draft) == FeeQuoteState.MISSING
+
+
+@pytest.mark.django_db
+def test_an_edit_after_recording_still_makes_the_quote_stale(client, draft):
+    quote_fees(client, "118.00")
+    _set(draft, court_code="cook:cvd1")
+
+    assert fee_quote_state(draft) == FeeQuoteState.STALE
+
+
+@pytest.mark.django_db
 def test_a_fee_answer_without_a_total_is_not_recorded(client, draft):
     with (
         patch("efile.api.filing_views.prepare_efile_payload"),
@@ -262,7 +329,13 @@ def test_a_fee_answer_without_a_total_is_not_recorded(client, draft):
     ):
         response = client.post(
             FEES_URL,
-            data=json.dumps({"efile_data": {"al_court_bundle": []}, "payment_account_id": "pay-123"}),
+            data=json.dumps(
+                {
+                    "efile_data": {"al_court_bundle": []},
+                    "payment_account_id": "pay-123",
+                    "fee_inputs_token": page_token(client),
+                }
+            ),
             content_type="application/json",
         )
 

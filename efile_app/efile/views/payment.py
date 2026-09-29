@@ -7,6 +7,7 @@ from efile.api.suffolk_api_views import get_tyler_token
 from efile.models import FilingDocument, FilingParty
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.drafts import draft_snapshot, read_case_data
+from efile.services.fee_quotes import fee_inputs_token
 from efile.services.people import filing_parties
 
 from ..workflow import WorkflowStepKey, get_step_url, get_workflow_context
@@ -68,6 +69,9 @@ def efile_payment(request, jurisdiction):
         "case_data": read_case_data(draft),
         "filing_draft": draft_snapshot(draft),
         "selected_payment_account_id": draft.selected_payment_account_id,
+        # Sent back with the fee request, so the quote is only kept if it
+        # priced the filing as this page shows it (see fee_inputs_token).
+        "fee_inputs_token": fee_inputs_token(draft),
     }
     context.update(get_workflow_context(WorkflowStepKey.PAYMENT, jurisdiction, draft))
     return render(request, "efile/payment.html", context)

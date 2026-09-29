@@ -63,6 +63,7 @@
     {{ case_data|json_script:"case-data" }}
     {{ new_toga_url|json_script:"new-toga-url" }}
     {{ selected_payment_account_id|json_script:"selected-payment-account-id" }}
+    {{ fee_inputs_token|json_script:"fee-inputs-token" }}
 {% endblock workflow_content %}
 {% block extra_js %}
     <script src="{% static 'js/filing-payload.js' %}"></script>

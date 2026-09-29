@@ -16,6 +16,8 @@ import json
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
+from django.db import transaction
+
 from efile.models import FilingDocument, FilingDraft, FilingParty
 
 WAIVER_ACCOUNT_TYPE = "WV"
@@ -73,6 +75,21 @@ def fee_inputs(draft: FilingDraft, *, payment_account_id: str | None = None) -> 
 def fee_fingerprint(draft: FilingDraft, *, payment_account_id: str | None = None) -> str:
     encoded = json.dumps(fee_inputs(draft, payment_account_id=payment_account_id), sort_keys=True, default=str)
     return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
+
+
+def fee_inputs_token(draft: FilingDraft) -> str:
+    """The draft's fee inputs as a page saw them, apart from the account.
+
+    Payment and Review build the fee request from the draft as it was when the
+    page was drawn, and send this back with it. A quote is only recorded while
+    the draft still gives the same token -- before the EFSP is asked, and again
+    once it answers -- so a total priced on an older version of the filing is
+    never stored as current. The account is left out because Payment asks for
+    an account the filer has not saved yet; it is bound when the quote is
+    recorded.
+    """
+
+    return fee_fingerprint(draft, payment_account_id="")
 
 
 def fee_quote_state(draft: FilingDraft) -> str:
@@ -138,7 +155,24 @@ def record_fee_quote(
     breakdown: list[dict[str, str]],
     *,
     payment_account_id: str | None = None,
-) -> None:
+    inputs_token: str | None = None,
+) -> bool:
+    """Store the quote with what it priced; False, storing nothing, if that is gone.
+
+    With `inputs_token`, the quote is only stored while the draft (read fresh,
+    under a row lock) still gives that token -- see fee_inputs_token.
+    """
+
+    with transaction.atomic():
+        FilingDraft.objects.select_for_update().filter(pk=draft.pk).first()
+        draft.refresh_from_db()
+        if inputs_token is not None and fee_inputs_token(draft) != inputs_token:
+            return False
+        _store_quote(draft, total, breakdown, payment_account_id)
+    return True
+
+
+def _store_quote(draft, total, breakdown, payment_account_id):
     draft.quoted_fee_total = total
     draft.quoted_fee_breakdown = breakdown
     draft.quoted_fee_fingerprint = fee_fingerprint(draft, payment_account_id=payment_account_id)

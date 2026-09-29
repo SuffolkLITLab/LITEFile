@@ -6,7 +6,7 @@ from efile.models import FilingDocument, FilingParty
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.drafts import draft_snapshot, read_case_data, read_upload_data
 from efile.services.extracted_parties import party_display_name
-from efile.services.fee_quotes import fee_quote_summary
+from efile.services.fee_quotes import fee_inputs_token, fee_quote_summary
 from efile.services.filing_plans import documents_missing_from_envelope
 from efile.services.people import get_case_questions
 
@@ -89,6 +89,7 @@ def case_review(request, jurisdiction):
         "filing_draft": draft_snapshot(draft),
         "draft": draft,
         "fee_quote": fee_quote_summary(draft),
+        "fee_inputs_token": fee_inputs_token(draft),
         "filer": filer,
         "parties": other_parties,
         # Who the filing is on behalf of, when that is not the filer. Worth

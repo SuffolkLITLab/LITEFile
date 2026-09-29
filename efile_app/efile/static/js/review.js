@@ -78,11 +78,17 @@ const FilingHandler = {
             const result = await apiUtils.post("/api/payment-fees/", {
                 efile_data: this.buildCurrentFilingData(),
                 confirm_submission: true,
-                payment_account_id: reviewJSON("payment-account-id")
+                payment_account_id: reviewJSON("payment-account-id"),
+                fee_inputs_token: reviewJSON("fee-inputs-token")
             }, {}, {
                 timeout: ApiUtils.FEE_TIMEOUT_MS
             });
             const quote = result?.quote;
+            if (result?.success && result.quote_superseded) {
+                // This page shows an older version of the filing than the
+                // one saved now, so its fees would be for the wrong filing.
+                throw new Error(gettext("This filing changed while we were calculating fees, perhaps in another window. Reload this page to see the current filing."));
+            }
             if (!result?.success || !result.quote_recorded || !quote || !USABLE_FEE_STATES.includes(quote.state)) {
                 throw new Error(gettext("The court did not return a fee total for this filing."));
             }

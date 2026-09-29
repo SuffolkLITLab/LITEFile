@@ -135,7 +135,8 @@ const PaymentPage = {
             const result = await apiUtils.post(PAYMENT_URLS.fees, {
                 efile_data: efileData,
                 confirm_submission: true,
-                payment_account_id: selected.value
+                payment_account_id: selected.value,
+                fee_inputs_token: paymentJSON("fee-inputs-token")
             }, {}, {
                 timeout: ApiUtils.FEE_TIMEOUT_MS
             });
@@ -144,7 +145,9 @@ const PaymentPage = {
             // from it; one it could not read is not a quote to go on with.
             this.feeQuoteReady = Boolean(result?.success && result.quote_recorded);
             this.handleFeesResponse(result);
-            if (result?.success && !result.quote_recorded) {
+            if (result?.success && result.quote_superseded) {
+                paymentMessages.showError(gettext("This filing changed while we were calculating fees, perhaps in another window. Reload this page to calculate them again."));
+            } else if (result?.success && !result.quote_recorded) {
                 paymentMessages.showError(gettext("The court did not return a fee total for this filing. Try again, or contact the court before you file."));
             }
         } catch (error) {
