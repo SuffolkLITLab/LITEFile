@@ -409,3 +409,20 @@ def test_filing_path_conflict_only_when_the_document_reads_as_the_other_kind(use
     conflict = filing_path_conflict(draft, {"filing phase": phase}, "Answer")
 
     assert (conflict or {}).get("suggested") == suggested
+
+
+@pytest.mark.django_db
+def test_new_or_existing_comes_before_the_case_fields_with_the_case_number_beside_it(signed_in):
+    """It decides which filing types are offered and whether there is a case number."""
+
+    draft = start_from_menu(signed_in, ExistingCase.EXISTING)
+    lead_with_evidence(draft, phase="subsequent")
+
+    content = signed_in.get(CONFIRM_URL).content.decode()
+
+    section = content.index('id="path-section"')
+    question = content.index('id="path-question"')
+    case_number = content.index('id="docket-number-field"')
+    fields = content.index('class="review-grid"')
+    category = content.index('id="case_category_code"')
+    assert section < question < case_number < fields < category

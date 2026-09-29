@@ -1983,3 +1983,16 @@
     color: var(--text-muted);
     margin: 0;
 }
+
+/* New or existing case, first among the filing details. */
+.path-section {
+    margin-bottom: 1.5rem;
+}
+
+.path-section> :first-child {
+    margin-top: 0;
+}
+
+.path-section>.form-field {
+    margin-top: 1rem;
+}
