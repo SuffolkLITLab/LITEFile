@@ -174,12 +174,19 @@ def estimate_fees(draft, *, first_use=None, exemption=None):
 
     notes = [config.get("note", "")] if used_range else []
     if documents:
+        policy = config.get("surcharges", {})
+        # This is the estimate before a waiver. A waiver account saved from an
+        # earlier visit to Review must not price it as already waived.
+        method = getattr(draft, "selected_payment_account_type", "")
+        if method in policy.get("waiver_account_types", []):
+            method = ""
         extra_rows, total_bounds, extra_notes = surcharge_estimate(
-            config.get("surcharges", {}),
+            policy,
             draft,
             None if unknown else (low, high),
             first_use=first_use,
             exemption=exemption,
+            method=method,
         )
         for label, bounds in extra_rows:
             rows.append(

@@ -29,17 +29,19 @@ def matching_exemption(policy, draft, exemption=None):
     return matched
 
 
-def surcharge_estimate(policy, draft, bounds, *, first_use=None, exemption=None):
+def surcharge_estimate(policy, draft, bounds, *, first_use=None, exemption=None, method=None):
     """Return rows, total bounds and notes, preserving unknowns.
 
     first_use means this filer/firm has not paid the per-case platform fee.
     exemption is an explicitly established configuration rule ID, never inferred
     from income. Callers without that information leave both arguments unset.
+    method overrides the draft's saved payment account type.
     """
     if not policy:
         return [], bounds, []
     notes = []
-    method = getattr(draft, "selected_payment_account_type", "")
+    if method is None:
+        method = getattr(draft, "selected_payment_account_type", "")
     waiver = method in policy.get("waiver_account_types", [])
     if waiver:
         notes.append("A waiver account requests an exemption. The court must confirm your fees.")

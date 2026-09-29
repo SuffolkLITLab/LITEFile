@@ -7,7 +7,7 @@ from django.urls import reverse
 
 from efile.models import FilingDocument
 from efile.services.fee_quotes import fee_inputs_token
-from efile.services.waiver_documents import WAIVER_TYPE, has_waiver_document
+from efile.services.waiver_documents import WAIVER_TYPE, has_waiver_document, waiver_filing_types
 from efile.tests.test_review_submit_flow import submission_draft as _submission_draft
 
 payment_draft = _submission_draft
@@ -43,10 +43,32 @@ def codes(_state, path, **params):
         "In forma pauperis",
         "Motion to waive fees",
         "Application to waive court fees",
+        "Application to Waive Filing and Service Fees",
+        "Application Waiver of Court Fees (Civil)",
+        "Indigency affidavit and request for waiver",
     ],
 )
 def test_recognizes_waiver_filing_types(name):
     assert WAIVER_TYPE.search(name)
+
+
+@pytest.mark.parametrize(
+    "name", ["Waiver of Service", "Waiver of Rights to Counsel", "Motion to Waive Final Hearing", "Waiver of feedback"]
+)
+def test_other_waivers_are_not_fee_waivers(name):
+    assert not WAIVER_TYPE.search(name)
+
+
+def test_general_fee_waiver_is_offered_before_program_specific_one(payment_draft):
+    # Vermont's live list order for small claims.
+    live = [
+        {"code": "7481", "name": "Waiver of Service"},
+        {"code": "7644", "name": "COPE - Application to Proceed In Forma Pauperis"},
+        {"code": "7702", "name": "Motion to Waive Final Hearing"},
+        {"code": "7764", "name": "Application to Waive Filing and Service Fees"},
+    ]
+    with patch("efile.services.waiver_documents._codes", return_value=live):
+        assert [item["code"] for item in waiver_filing_types(payment_draft)] == ["7764", "7644"]
 
 
 def test_filename_alone_does_not_hide_prompt(client, payment_draft):

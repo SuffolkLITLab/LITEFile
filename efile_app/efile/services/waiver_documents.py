@@ -5,7 +5,10 @@ import re
 from efile.services.filing_plans import _codes
 
 WAIVER_TYPE = re.compile(
-    r"fee[\s-]*waiv|waiv\w*\s+(?:of\s+)?(?:court\s+)?fees?|indigen|(?:in\s+)?forma\s+pauperis", re.I
+    # Up to three words may sit between "waive" and "fees", as in Vermont's
+    # "Application to Waive Filing and Service Fees".
+    r"fee[\s-]*waiv|waiv\w*\s+(?:[\w-]+\s+){0,3}?fees?\b|indigen|(?:in\s+)?forma\s+pauperis",
+    re.I,
 )
 
 
@@ -21,13 +24,16 @@ def waiver_filing_types(draft):
         category_id=draft.case_category_code,
         type_id=draft.case_type_code,
     )
-    return [
+    # The upload defaults to the first type. Put general fee waivers ahead of
+    # program-specific ones, such as Vermont's "COPE - ... In Forma Pauperis".
+    matches = [
         item
         for item in options
         if WAIVER_TYPE.search(item.get("name", ""))
         and item.get("iscourtuseonly") not in (True, "true")
         and not re.search(r"\b(order|denial|denied|objection)\b", item.get("name", ""), re.I)
     ]
+    return sorted(matches, key=lambda item: not re.search(r"\bfees?\b", item.get("name", ""), re.I))
 
 
 def waiver_document_choices(draft, code):

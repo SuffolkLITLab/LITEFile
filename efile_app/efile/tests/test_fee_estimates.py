@@ -402,3 +402,17 @@ def test_explicit_zero_service_price_is_known():
         result = estimate_fees(draft)
     assert result["total"] == "~$0.00"
     assert result["is_zero"] is True
+
+
+def test_saved_waiver_account_does_not_price_the_pre_waiver_estimate():
+    # A filer who chose the waiver, went to Review and came back.
+    draft, _document = make_draft()
+    draft.selected_payment_account_type = "WV"
+    with patch("efile.services.fee_estimates._codes", return_value=[{"code": "filing", "fee": "100", **NO_AMOUNTS}]):
+        result = estimate_fees(draft)
+    draft.selected_payment_account_type = ""
+    with patch("efile.services.fee_estimates._codes", return_value=[{"code": "filing", "fee": "100", **NO_AMOUNTS}]):
+        unsaved = estimate_fees(draft)
+    assert result == unsaved
+    assert result["total"]
+    assert "waiver account" not in result["note"]
