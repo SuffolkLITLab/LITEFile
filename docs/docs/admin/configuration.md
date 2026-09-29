@@ -32,6 +32,7 @@ LITEFile follows [Twelve-Factor App](https://12factor.net/) principles, configur
 | `AWS_ACCESS_KEY_ID` | Yes (Storage) | `""` | AWS IAM access key for document upload to S3. |
 | `AWS_SECRET_ACCESS_KEY` | Yes (Storage) | `""` | AWS IAM secret access key. |
 | `AWS_S3_BUCKET_NAME` | Yes (Storage) | `""` | S3 bucket name for court document storage. |
+| `AWS_SESSION_TOKEN` | No | `""` | AWS session token when using temporary credentials. |
 | `AWS_S3_REGION_NAME` | No | `us-east-1` | AWS region where the S3 bucket is hosted. |
 | `DJANGO_LOG_LEVEL` | No | `DEBUG` (Dev) / `INFO` (Prod) | Logging verbosity for the `efile` application logger. |
 

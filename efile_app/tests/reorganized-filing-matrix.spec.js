@@ -299,9 +299,32 @@ async function finishFiling(page, scenario, ordinal) {
     await expect(page).toHaveURL(/\/payment\//);
 
     console.log(`${scenario.label}: quoting fees`);
-    await expect(page.locator('input[name="paymentMethod"]')).not.toHaveCount(0, {
+    await page.waitForFunction('typeof PaymentPage !== "undefined" && Array.isArray(PaymentPage.accounts)', null, {
         timeout: 120000
     });
+    if (process.env.E2E_PAYMENT_MODE === 'waiver') {
+        await page.locator('input[name="paymentIntent"][value="waiver"]').check();
+        await page.locator('#add-waiver-document').click();
+        await expect(page.locator('#waiver-filing-type option')).not.toHaveCount(0, {
+            timeout: 120000
+        });
+        const confidentiality = page.locator('#waiver-document-type');
+        await expect(confidentiality.locator('option')).not.toHaveCount(0, {
+            timeout: 120000
+        });
+        const firstSetting = await confidentiality.locator('option:not([value=""])').first().getAttribute('value');
+        await confidentiality.selectOption(firstSetting);
+        await page.locator('#waiver-file').setInputFiles(SAMPLE_PDF);
+        await page.locator('#upload-waiver-document').click();
+        await expect(page.locator('#waiver-upload-confirmation')).toBeVisible({
+            timeout: 120000
+        });
+    } else {
+        await page.locator('input[name="paymentIntent"][value="pay"]').check();
+        await expect(page.locator('input[name="paymentMethod"]')).not.toHaveCount(0, {
+            timeout: 120000
+        });
+    }
     const quoteOutcome = await Promise.race([
         page.locator('#errorMessage:not([hidden])').waitFor({
             state: 'visible',

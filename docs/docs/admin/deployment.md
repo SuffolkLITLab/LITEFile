@@ -106,41 +106,30 @@ fly secrets set \
 
 ## 3. AWS S3 storage setup
 
-LITEFile stores uploaded PDFs in Amazon S3 and generates pre-signed URLs for Tyler EFSP document ingestion.
+LITEFile stores uploaded PDFs in a private S3 bucket and generates presigned URLs for e-file proxy document ingestion. Set `AWS_S3_REGION_NAME` to the bucket's actual region. Keep all four S3 Block Public Access settings enabled, use "Bucket owner enforced" object ownership, and do not add a public bucket policy or object ACLs. The proxy downloads each presigned URL with an HTTP GET; CORS is not needed for that server-to-server request.
 
-### S3 bucket policy:
-Apply this policy to allow document retrieval:
+### IAM policy
+
+Attach this policy to the application IAM principal, replacing `YOUR-BUCKET-NAME`:
 ```json
 {
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "PublicReadGetObject",
+      "Sid": "ListDocumentsForConnectionCheck",
       "Effect": "Allow",
-      "Principal": "*",
-      "Action": "s3:GetObject",
-      "Resource": "arn:aws:s3:::YOUR-BUCKET-NAME/*"
-    }
-  ]
-}
-```
-
-### IAM user policy:
-Create an IAM user with least-privilege access for the application:
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": ["s3:PutObject", "s3:PutObjectAcl", "s3:GetObject"],
-      "Resource": "arn:aws:s3:::YOUR-BUCKET-NAME/*"
+      "Action": "s3:ListBucket",
+      "Resource": "arn:aws:s3:::YOUR-BUCKET-NAME",
+      "Condition": {"StringLike": {"s3:prefix": "efile-documents/*"}}
     },
     {
+      "Sid": "ManageDocuments",
       "Effect": "Allow",
-      "Action": "s3:*",
-      "Resource": "arn:aws:s3:::YOUR-BUCKET-NAME"
+      "Action": ["s3:PutObject", "s3:GetObject", "s3:DeleteObject", "s3:AbortMultipartUpload"],
+      "Resource": "arn:aws:s3:::YOUR-BUCKET-NAME/efile-documents/*"
     }
   ]
 }
 ```
+
+For a bucket configured with an older `PublicReadGetObject` policy, remove that statement and verify all four public access blocks. If the bucket uses a customer-managed KMS key, grant the application principal the required `kms:GenerateDataKey` and `kms:Decrypt` permissions for that key as well. After deploying, upload a test PDF, verify that its unsigned object URL returns 403 and its fresh presigned URL downloads successfully, then delete the test object. Keep presigned URLs out of logs and issue reports because they grant temporary access.
