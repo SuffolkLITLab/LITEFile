@@ -132,9 +132,14 @@ EFILE_SUBMISSION_READ_TIMEOUT_SECONDS = int(os.getenv("EFILE_SUBMISSION_READ_TIM
 # AWS S3 Configuration
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID", "")
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY", "")
+AWS_SESSION_TOKEN = os.getenv("AWS_SESSION_TOKEN", "")
 AWS_S3_BUCKET_NAME = os.getenv("AWS_S3_BUCKET_NAME", "")
 AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME", "us-east-1")
 AWS_S3_ENDPOINT_URL = os.getenv("AWS_S3_ENDPOINT_URL", None)
+
+# The local crosswalk reviewer needs a separate PDF corpus. Keep its routes off
+# in deployed filing apps while that corpus is not provisioned outside the image.
+CROSSWALK_REVIEW_ENABLED = False
 
 # File Upload Settings
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB

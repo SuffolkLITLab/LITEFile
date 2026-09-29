@@ -88,67 +88,37 @@ The application uses AWS S3 for document storage and file uploads. Follow these 
 
 - Log into the AWS Console and navigate to S3
 - Create a new bucket (e.g., `litefile-your-suffix`)
-- Choose your preferred region (default: `us-east-1`)
-- Initially, turn off "Block all public access" in the S3 bucket settings. We will need this off initially so that the bucket policy can be applied. After we have created the bucket policy, we will block all public access by toggling back on "Block all public access".
+- Choose a region and set `AWS_S3_REGION_NAME` to that same region.
+- Keep all four "Block public access" settings enabled. Use "Bucket owner enforced" object ownership and do not grant object ACLs.
 - Tags can be created to help track ownership of resources and is useful for cost tracking, environment tracking, etc.
-- Default encryption settings should be fine
+- Use the default S3 managed encryption unless you also grant the app access to a customer-managed KMS key.
 
-### 2. Configure bucket permissions
+### 2. Create IAM user and permissions
 
-Apply this bucket policy to allow public read access for Tyler to download documents:
-
-```json
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Sid": "PublicReadGetObject",
-            "Effect": "Allow",
-            "Principal": "*",
-            "Action": "s3:GetObject",
-            "Resource": "arn:aws:s3:::YOUR-BUCKET-NAME/*"
-        }
-    ]
-}
-```
-
-Replace `YOUR-BUCKET-NAME` with your actual bucket name.
-
-### 3. Create IAM user and permissions
-
-Create an IAM user with the following policy for application access:
+Create an IAM principal for the application with this policy, replacing `YOUR-BUCKET-NAME`. The app uploads, downloads, and deletes documents under `efile-documents/`; its S3 connection check lists only that prefix. A public bucket policy is not needed for presigned URLs.
 
 ```json
 {
     "Version": "2012-10-17",
     "Statement": [
         {
+            "Sid": "ListDocumentsForConnectionCheck",
             "Effect": "Allow",
-            "Action": [
-                "s3:PutObject",
-                "s3:PutObjectAcl",
-                "s3:GetObject"
-            ],
-            "Resource": "arn:aws:s3:::YOUR-BUCKET-NAME/*"
+            "Action": "s3:ListBucket",
+            "Resource": "arn:aws:s3:::YOUR-BUCKET-NAME",
+            "Condition": {"StringLike": {"s3:prefix": "efile-documents/*"}}
         },
         {
-            "Sid": "VisualEditor1",
+            "Sid": "ManageDocuments",
             "Effect": "Allow",
-            "Action": "s3:*",
-            "Resource": "arn:aws:s3:::YOUR-BUCKET-NAME"
+            "Action": ["s3:PutObject", "s3:GetObject", "s3:DeleteObject", "s3:AbortMultipartUpload"],
+            "Resource": "arn:aws:s3:::YOUR-BUCKET-NAME/efile-documents/*"
         }
     ]
 }
 ```
 
-### 4. Disable public access to the S3 bucket
-
-You can now turn on "Block all public access" in the S3 bucket settings. Go to Permissions. Click on the Edit button in the "Block public access (bucket settings)" section. Toggle on "Block all public access". Click "Save Changes" and confirm the action.
-
-This will keep the existing policy, which we use to generate the pre-signed URLs to Tyler access, but restrict the files from being made publicly accessible in other ways.
-
-
-### 5. Configure environment variables
+### 3. Configure environment variables
 
 Copy the example environment file and update the S3 settings:
 
@@ -158,15 +128,18 @@ cp efile_app/.env.example efile_app/.env
 
 Edit `efile_app/.env` with your AWS credentials:
 
+Remove the `AWS_S3_ENDPOINT_URL` line from the copied example when using AWS; that endpoint is for LocalStack.
+
 ```bash
 # AWS S3 configuration
 AWS_ACCESS_KEY_ID = "your-aws-access-key-id-here"
 AWS_SECRET_ACCESS_KEY = "your-aws-secret-access-key-here"
+# Set AWS_SESSION_TOKEN too when using temporary credentials.
 AWS_S3_BUCKET_NAME = "your-bucket-name-here"
-AWS_S3_REGION_NAME = "us-east-1"
+AWS_S3_REGION_NAME = "your-bucket-region"
 ```
 
-**Note**: The application generates pre-signed URLs for secure document access, so there's no need to make your S3 bucket public. The bucket policy above allows Tyler's systems to download documents when needed.
+LITEFile generates time-limited presigned URLs that the e-file proxy can retrieve with an ordinary HTTP GET. The signing principal needs `s3:GetObject`, but the bucket does not need public access or CORS for this server-to-server download. For an existing bucket, remove any `PublicReadGetObject` statement and confirm all four public access blocks are enabled. Check that an unsigned object URL returns 403 while a fresh presigned URL downloads the file. Do not paste presigned URLs into issue reports or logs; they grant access until they expire.
 
 ## Development: dev dependencies and Ruff
 

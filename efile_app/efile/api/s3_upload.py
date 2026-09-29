@@ -24,7 +24,9 @@ def test_s3_connection(request):
             # Ensure the client is initialized for type checkers
             if s3_handler.s3_client is None:
                 return JsonResponse({"success": False, "error": "S3 client not initialized"}, status=500)
-            response = s3_handler.s3_client.list_objects_v2(Bucket=s3_handler.bucket_name, MaxKeys=1)
+            response = s3_handler.s3_client.list_objects_v2(
+                Bucket=s3_handler.bucket_name, Prefix="efile-documents/", MaxKeys=1
+            )
 
             return JsonResponse(
                 {

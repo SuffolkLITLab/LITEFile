@@ -8,6 +8,7 @@ import uuid
 from urllib.parse import quote
 
 import boto3
+from botocore.config import Config
 from botocore.exceptions import ClientError
 from django.conf import settings
 
@@ -30,6 +31,7 @@ class S3UploadHandler:
         # Get credentials from Django settings
         self.access_key_id = getattr(settings, "AWS_ACCESS_KEY_ID", "")
         self.secret_access_key = getattr(settings, "AWS_SECRET_ACCESS_KEY", "")
+        self.session_token = getattr(settings, "AWS_SESSION_TOKEN", "")
         self.bucket_name = getattr(settings, "AWS_S3_BUCKET_NAME", "")
         self.region_name = getattr(settings, "AWS_S3_REGION_NAME", "us-east-1")
         self.s3_endpoint_url = getattr(settings, "AWS_S3_ENDPOINT_URL", None)
@@ -57,13 +59,18 @@ class S3UploadHandler:
                 "s3",
                 aws_access_key_id=self.access_key_id,
                 aws_secret_access_key=self.secret_access_key,
+                aws_session_token=self.session_token or None,
                 region_name=self.region_name,
                 endpoint_url=self.s3_endpoint_url,
+                config=Config(
+                    signature_version="s3v4",
+                    s3={"addressing_style": "path" if self.s3_endpoint_url else "virtual"},
+                ),
             )
 
             # Test connection by attempting to list objects (limited test)
             try:
-                self.s3_client.list_objects_v2(Bucket=self.bucket_name, MaxKeys=1)
+                self.s3_client.list_objects_v2(Bucket=self.bucket_name, Prefix="efile-documents/", MaxKeys=1)
                 logger.info("S3 connection successful to bucket: %s", self.bucket_name)
             except ClientError as e:
                 error_code = e.response["Error"]["Code"]
@@ -177,30 +184,19 @@ class S3UploadHandler:
                 "get_object", Params={"Bucket": self.bucket_name, "Key": s3_key}, ExpiresIn=expiration
             )
 
-            logger.debug("Generated presigned URL: %s for key: %s", presigned_url, s3_key)
-
             return presigned_url
 
         except ClientError as e:
             logger.error(f"Failed to generate presigned URL: {e}")
-            # Fallback to public URL if needed
-            return f"https://{self.bucket_name}.s3.{self.region_name}.amazonaws.com/{s3_key}"
+            raise
 
     def get_public_url(self, s3_key, expiration=604800):  # 7 days default
-        """
-        Get a presigned URL for an S3 object (for efile submission)
-        Uses presigned URLs since bucket policy makes files private
-        """
-        if self.s3_client:
-            try:
-                return self.s3_client.generate_presigned_url(
-                    "get_object", Params={"Bucket": self.bucket_name, "Key": s3_key}, ExpiresIn=expiration
-                )
-            except ClientError as e:
-                logger.error(f"Failed to generate presigned URL for public access: {e}")
-
-        # Fallback to direct URL (will return 403 with current bucket policy)
-        return f"https://{self.bucket_name}.s3.{self.region_name}.amazonaws.com/{s3_key}"
+        """Get a time-limited URL for a private S3 object."""
+        if not self._ensure_initialized():
+            raise RuntimeError("S3 client not initialized - check AWS credentials")
+        return self.s3_client.generate_presigned_url(
+            "get_object", Params={"Bucket": self.bucket_name, "Key": s3_key}, ExpiresIn=expiration
+        )
 
     def delete_file(self, s3_key):
         """
@@ -212,6 +208,9 @@ class S3UploadHandler:
         Returns:
             dict: {'success': bool, 'error': str (if failed)}
         """
+        if not self._ensure_initialized():
+            return {"success": False, "error": "S3 client not initialized - check AWS credentials"}
+
         try:
             self.s3_client.delete_object(Bucket=self.bucket_name, Key=s3_key)
             logger.info(f"Successfully deleted file from S3: {s3_key}")

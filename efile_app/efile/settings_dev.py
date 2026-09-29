@@ -39,6 +39,8 @@ from efile.settings_base import DATABASES as BASE_DATABASES  # noqa: E402
 from efile.settings_base import INSTALLED_APPS as BASE_INSTALLED_APPS  # noqa: E402
 from efile.settings_base import MIDDLEWARE as BASE_MIDDLEWARE  # noqa: E402
 
+CROSSWALK_REVIEW_ENABLED = True
+
 # Bind DATABASES explicitly to avoid F405 and make linter aware of the symbol
 DATABASES = BASE_DATABASES
 

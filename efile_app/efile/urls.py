@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.shortcuts import redirect
 from django.urls import include, path
 from django.views.i18n import JavaScriptCatalog
@@ -70,7 +71,6 @@ urlpatterns = [
     path("handoff/drafts/<int:draft_id>/correct/", correct_filing, name="correct_filing"),
     path("handoff/drafts/<int:draft_id>/interview/", return_to_interview, name="return_to_interview"),
     path("jsi18n/", JavaScriptCatalog.as_view(), name="javascript-catalog"),
-    path("review/", include("crosswalk_review.urls")),
     path("", homepage, name="home"),
     path("choose-jurisdiction", choose_jurisdiction, name="efile_choose_jurisdiction"),
     path("about/", about_page, name="about"),
@@ -164,3 +164,6 @@ urlpatterns = [
     # path('api/get-counties/', views.efile_logout, name='get_counties_legacy'),
     # path('api/get-document-types/', views.efile_logout, name='get_document_types_legacy'),
 ]
+
+if settings.CROSSWALK_REVIEW_ENABLED:
+    urlpatterns.append(path("review/", include("crosswalk_review.urls")))
