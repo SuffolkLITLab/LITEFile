@@ -255,10 +255,6 @@ const PaymentPage = {
         if (!window.confirm(`${gettext("Remove this payment method from your court account?")}\n${button.dataset.accountLabel}`)) return;
         this.removingAccount = true;
         button.disabled = true;
-        this.quoteRequestId = (this.quoteRequestId || 0) + 1;
-        this.feeQuoteReady = false;
-        document.getElementById("selected-payment-account").value = "";
-        document.getElementById("paymentSection").hidden = true;
         this.setFeesState(false);
         paymentMessages.hide();
         try {
@@ -266,6 +262,11 @@ const PaymentPage = {
                 jurisdiction: apiUtils.getCurrentJurisdiction()
             });
             if (!result?.success) throw new Error("Account removal failed");
+            // Keep the usable selection and quote until removal succeeds.
+            this.quoteRequestId = (this.quoteRequestId || 0) + 1;
+            this.feeQuoteReady = false;
+            document.getElementById("selected-payment-account").value = "";
+            document.getElementById("paymentSection").hidden = true;
             // Do not let the initial saved selection choose the removed account.
             document.getElementById("selected-payment-account-id").textContent = '""';
             await this.chooseIntent();

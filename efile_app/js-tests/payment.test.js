@@ -302,13 +302,19 @@ test("cancelling removal keeps the payment selection", async () => {
     assert.equal(node("selected-payment-account").value, "card");
 });
 
-test("failed removal reports the error and permits retry", async () => {
+test("failed removal keeps the existing payment selection usable and permits retry", async () => {
     const {
         payment,
         apiUtils,
         node
     } = pageHarness();
+    node("selected-payment-account").value = "card";
+    node("selected-payment-account-name").value = "My card";
+    node("paymentSection").hidden = false;
+    payment.feeQuoteReady = true;
+    payment.quoteRequestId = 7;
     apiUtils.delete = async () => {
+        assert.equal(node("submitButton").disabled, true);
         throw new Error("offline");
     };
     const button = {
@@ -320,5 +326,10 @@ test("failed removal reports the error and permits retry", async () => {
     assert.equal(button.disabled, false);
     assert.equal(payment.removingAccount, false);
     assert.equal(node("errorMessage").hidden, false);
-    assert.equal(node("submitButton").disabled, true);
+    assert.equal(node("selected-payment-account").value, "card");
+    assert.equal(node("selected-payment-account-name").value, "My card");
+    assert.equal(node("paymentSection").hidden, false);
+    assert.equal(payment.feeQuoteReady, true);
+    assert.equal(payment.quoteRequestId, 7);
+    assert.equal(node("submitButton").disabled, false);
 });
