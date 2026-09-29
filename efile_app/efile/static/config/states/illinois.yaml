@@ -809,7 +809,19 @@ court_selector:
 
 # Account-free guidance; never a live quote. Reviewed 2026-09-29.
 fee_estimates:
+  surcharges:
+    reviewed: "2026-09-29"
+    waiver_account_types: [WV]
+    payment_methods:
+      BankAccount:
+        fixed: "0.25"
+        only_when_amount_due: true
+      CC:
+        percent: "2.89"
+        basis: court_and_platform
+        only_when_amount_due: true
   sources:
+    - https://efile.illinoiscourts.gov/faq-page/
     - https://www.ilga.gov/documents/legislation/ilcs/documents/070501050K27.1b.htm
     - https://github.com/SuffolkLITLab/LITEFile/issues/237
   note: >-
@@ -840,3 +852,16 @@ fee_estimates:
       initial_only: true
       bands:
         - {up_to: null, low: 321, high: 371}
+
+# Eligibility guidance, not an automatic eligibility determination.
+fee_waiver:
+  source_url: "https://www.illinoislegalaid.org/legal-information/court-fees-and-fee-waivers"
+  benefits: "Benefits that may qualify include SSI, SNAP, TANF, and other income-based benefits."
+  income_bands:
+    - max_fpl_percent: 125
+      waiver_percent: 100
+      description: "You may have all fees waived."
+    - min_fpl_percent_exclusive: 125
+      max_fpl_percent: 200
+      description: "You may get a partial reduction in fees above 125%. The court also looks at your assets."
+  document_guidance: "Include your waiver form or order. An Illinois waiver order usually lasts 12 months. If it is from another court, you may need to show a copy."

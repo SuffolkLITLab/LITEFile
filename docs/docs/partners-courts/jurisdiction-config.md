@@ -297,3 +297,98 @@ A cross-county ZIP, or two courts with overlapping jurisdiction, come back as a 
 :::tip Check your patterns against the live list
 The court names a pattern has to match are the ones the e-filing service returns, and they need no authentication to read: `curl "https://efile-test.suffolklitlab.org/jurisdictions/vermont/codes/courts?with_names=true"`.
 :::
+
+### Fee waiver guidance
+
+Each state can define a `fee_waiver` section with `benefits`,
+`document_guidance`, `source_url`, and `income_bands`. Each income band has a
+user-facing `description` and a `max_fpl_percent`; ranges may also specify
+`min_fpl_percent_exclusive`. An optional `waiver_percent` describes the
+percentage of fees waived. Keep thresholds as percentages of the federal
+poverty level (FPL), without converting them to dollar amounts. Descriptions
+should identify the income basis and whether relief is full or partial.
+
+These settings explain eligibility; they do not determine it or create waiver
+accounts. The filer must choose to request a waiver. Keep the source link and
+document guidance current, and leave unconfirmed requirements explicit.
+
+### Court code fee estimates
+
+The estimator reads the selected court's case-type and filing-code records in
+Illinois, Massachusetts, and Vermont. For a new case, it includes the published
+case opening fee once, then adds any separate document fees. Existing cases
+only include document fees. It does not identify free filings by court or case
+names.
+
+A matched filing-code record with a blank or zero fee indicates no separate
+fixed document fee only when all three monetary-input flags
+(`amountincontroversy`, `civilclaimamount`, and `probateestateamount`) are
+explicitly `Not Available`. Missing records, incomplete flags, and unreadable
+fees remain unknown. A required or optional monetary input prevents a zero
+placeholder from being treated as free, even if the user already entered an
+amount.
+
+State `fee_estimates.rules` remain available for supported amount-dependent
+fees. Initial-only rules estimate a case opening fee when it is missing or is
+a zero placeholder tied to a monetary input. The estimator does not use
+amount-in-controversy bands for estate-value or civil-claim inputs. Unsupported
+calculations remain unknown until the live quote.
+
+State `fee_estimates.surcharges` controls platform and processing fees:
+
+```yaml
+surcharges:
+  reviewed: "2026-09-29"
+  waiver_account_types: [WV]
+  payment_methods:
+    BankAccount:
+      fixed: "0.25"
+      only_when_amount_due: true
+    CC:
+      percent: "2.89"
+      basis: court_and_platform
+      only_when_amount_due: true
+  platform:
+    amount: "22.00"
+    timing: new_case
+```
+
+Each payment method key is Tyler's account type code. A rule may combine
+`fixed` and `percent`; percentages use either `court` or `court_and_platform`
+as their basis and round to cents. `only_when_amount_due` defaults to true;
+set it to false for a charge that applies even when the subtotal is zero.
+The estimator adds these charges once per filing, not once per document.
+With no recognized payment method, it estimates the range across configured
+ordinary methods. Waiver accounts are excluded from that range.
+
+`platform.timing` accepts `new_case` or `first_filing_per_filer`. Massachusetts
+uses the former ($22), Vermont the latter ($14). For an existing case, callers
+may supply `estimate_fees(..., first_use=True/False)` when prior payment by this
+filer/firm is known. Otherwise Vermont's platform fee remains a range. A free
+response in a paid case does not prove that the per-filer fee is exempt.
+
+Platform `exemptions` have stable `id` values and may have a state-wide
+`case_pattern` regular expression, `requires_waiver_account`, and a plain-language
+`note`. The pattern identifies the applicable exemption guidance; it does not
+silently create or select an account. Callers may supply `exemption="rule_id"`
+for established facts that cannot be inferred from case names, such as government
+or appointed filers. Vermont also has a `no_court_fee_case` exemption for an
+established case-wide exemption. `exempt_when_court_fees_zero` removes the
+platform fee for a known zero-fee new case, except where the matched exemption
+requires a waiver account. Unknown court fees remain unknown.
+
+A statutory exemption that requires a waiver account changes the payment choice
+label and help text, so users need not claim low income. Account creation still
+requires their explicit choice. Merely selecting a waiver account does not
+establish a confirmed $0 total; the live quote is required.
+
+Keep `reviewed` and `fee_estimates.sources` current when updating rates. Illinois
+has $0.25 bank processing and 2.89% card processing; Massachusetts uses those
+rates plus its platform fee; Vermont uses $1 bank processing and 2.89% card
+processing plus its platform fee. The old unconditional `convenience_fee` setting
+has been replaced. Other services may still apply. The live quote replaces the
+estimate; configured charges are never added to a live quote. Public code samples from all
+three states are saved in
+`efile_app/efile/tests/fixtures/fee_code_samples.json` for regression tests.
+State configuration changes refresh the cached state settings on the next
+request.

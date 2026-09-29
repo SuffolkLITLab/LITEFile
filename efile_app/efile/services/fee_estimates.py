@@ -3,6 +3,7 @@
 import re
 from decimal import Decimal, InvalidOperation
 
+from efile.services.fee_surcharges import matching_exemption, surcharge_estimate
 from efile.services.filing_plans import _codes
 from efile.utils.config_loader import config_loader
 
@@ -34,8 +35,30 @@ def contingent_fee(draft, document, rules):
     return None
 
 
-def estimate_fees(draft):
+AMOUNT_FIELDS = ("amountincontroversy", "civilclaimamount", "probateestateamount")
+
+
+def amount_dependent(document, option):
+    """A zero or blank code fee may be a placeholder for a calculated fee."""
+    return getattr(document, "filing_requires_amount_in_controversy", False) or any(
+        str(option.get(field, "")).strip().casefold() not in {"", "not available"} for field in AMOUNT_FIELDS
+    )
+
+
+def amount_range(draft, document, option, rules):
+    # Our configured bands price amount_in_controversy, not estate values or
+    # other monetary inputs. Do not apply the wrong schedule to those inputs.
+    if any(
+        str(option.get(field, "")).strip().casefold() not in {"", "not available"}
+        for field in ("civilclaimamount", "probateestateamount")
+    ):
+        return None
+    return contingent_fee(draft, document, rules)
+
+
+def estimate_fees(draft, *, first_use=None, exemption=None):
     config = (config_loader.load_jurisdiction_config(draft.jurisdiction) or {}).get("fee_estimates", {})
+    documents = list(draft.documents.all())
     options = _codes(
         draft.jurisdiction,
         f"{draft.court_code}/filing_types/",
@@ -47,27 +70,133 @@ def estimate_fees(draft):
     rows = []
     low = high = Decimal("0")
     unknown = False
-    for document in draft.documents.all():
-        option = by_code.get(document.filing_type_code, {})
-        fee = money(option.get("fee"))
-        # Tyler lists amount-in-controversy fees as "0.00"; a matching rule beats a false $0.
-        bounds = (fee, fee) if fee else contingent_fee(draft, document, config.get("rules", []))
-        if bounds is None and fee is not None:
-            bounds = (fee, fee)
-        label = document.filing_type_name or document.name or "Document"
+    used_range = False
+
+    def add_row(label, bounds, note=""):
+        nonlocal low, high, unknown
         if bounds is None:
             unknown = True
-            rows.append({"label": label, "amount": "Not available yet"})
+            rows.append({"label": label, "amount": "Not available yet", "note": note})
         else:
             minimum, maximum = bounds
             low += minimum
             high += maximum
-            rows.append({"label": label, "amount": display_range(minimum, maximum)})
+            rows.append({"label": label, "amount": display_range(minimum, maximum), "note": note})
+
+    # CaseType.fee is the entry fee, not a fee for every document. Read it once
+    # for a new case, including an explicitly published zero.
+    entry_priced_document = None
+    if draft.existing_case != "existing" and documents:
+        case_types = _codes(
+            draft.jurisdiction,
+            f"{draft.court_code}/case_types/",
+            category_id=draft.case_category_code,
+        )
+        case_type = next((item for item in case_types if str(item.get("code")) == str(draft.case_type_code)), {})
+        case_fee = money(case_type.get("fee")) if case_type.get("initial") in (True, "true") else None
+        lead = next((document for document in documents if document.role == "lead"), None)
+        lead_option = by_code.get(lead.filing_type_code, {}) if lead else {}
+        variable_entry = lead is not None and amount_dependent(lead, lead_option)
+        entry_bounds = (case_fee, case_fee) if case_fee is not None else None
+        if case_fee is None or (case_fee == 0 and variable_entry):
+            entry_bounds = None
+            if lead:
+                entry_bounds = amount_range(
+                    draft, lead, lead_option, [rule for rule in config.get("rules", []) if rule.get("initial_only")]
+                )
+                if entry_bounds is not None:
+                    used_range = True
+                    entry_priced_document = lead
+        add_row("Case opening fee", entry_bounds)
+
+    service_cache = {}
+    for document in documents:
+        option = by_code.get(document.filing_type_code, {})
+        fee = money(option.get("fee"))
+        variable = amount_dependent(document, option)
+        note = ""
+        bounds = None
+        if document is entry_priced_document and variable:
+            # The configured entry range already priced this document.
+            bounds = (Decimal("0"), Decimal("0"))
+            note = "Included in the case opening estimate."
+        elif variable:
+            bounds = amount_range(
+                draft, document, option, [rule for rule in config.get("rules", []) if not rule.get("initial_only")]
+            )
+            if bounds is not None:
+                used_range = True
+            else:
+                note = "This fee depends on an amount entered for the filing. We will calculate it before you file."
+        elif fee is not None and fee > 0:
+            bounds = (fee, fee)
+        elif (fee == 0 or option.get("fee") == "") and all(
+            str(option.get(field, "")).strip().casefold() == "not available" for field in AMOUNT_FIELDS
+        ):
+            # In a complete Tyler filing-code row, blank means no separate
+            # fixed document fee is listed. It says nothing about case entry.
+            bounds = (Decimal("0"), Decimal("0"))
+        add_row(document.filing_type_name or document.name or "Document", bounds, note)
+
+        # These are selected per document and submitted in that document's
+        # court bundle. Price them before percentage-based processing fees.
+        selected_services = getattr(document, "requested_optional_services", None) or []
+        if selected_services and document.filing_type_code not in service_cache:
+            services = _codes(
+                draft.jurisdiction,
+                f"{draft.court_code}/filing_types/{document.filing_type_code}/optional_services",
+            )
+            service_cache[document.filing_type_code] = {
+                str(item.get("code") or item.get("id") or ""): item for item in services
+            }
+        for selected in selected_services:
+            code = (
+                str(selected.get("code") or selected.get("id") or "") if isinstance(selected, dict) else str(selected)
+            )
+            service = service_cache[document.filing_type_code].get(code.strip(), {})
+            # Unlike the picker normalizer, do not replace missing prices with
+            # zero: an unavailable service price leaves the total unknown.
+            price = money(service.get("fee") if service.get("fee") not in (None, "") else service.get("cost"))
+            quantity = 1
+            if str(service.get("multiplier", "")).lower() == "true" and isinstance(selected, dict):
+                try:
+                    quantity = max(1, int(selected.get("multiplier", 1)))
+                except (ValueError, TypeError):
+                    quantity = 1  # Matches normalize_optional_services.
+            prompted = str(service.get("hasfeeprompt", "")).lower() == "true"
+            bounds = (price * quantity, price * quantity) if price is not None and not prompted else None
+            label = service.get("name") or service.get("label") or service.get("text") or "Optional service"
+            if quantity > 1:
+                label = f"{label} × {quantity}"
+            add_row(label, bounds)
+            if len(documents) > 1:
+                rows[-1]["document_name"] = document.name or document.filing_type_name
+
+    notes = [config.get("note", "")] if used_range else []
+    if documents:
+        extra_rows, total_bounds, extra_notes = surcharge_estimate(
+            config.get("surcharges", {}),
+            draft,
+            None if unknown else (low, high),
+            first_use=first_use,
+            exemption=exemption,
+        )
+        for label, bounds in extra_rows:
+            rows.append(
+                {"label": label, "amount": display_range(*bounds) if bounds else "Not available yet", "note": ""}
+            )
+        notes.extend(extra_notes)
+        unknown = total_bounds is None
+        if total_bounds is not None:
+            low, high = total_bounds
+
     return {
+        "waiver_exemption": matching_exemption(config.get("surcharges", {}), draft, exemption) or {},
         "rows": rows,
         "total": display_range(low, high) if rows and not unknown else "",
         "partial": unknown,
-        "note": config.get("note", ""),
+        "is_zero": bool(rows) and not unknown and high == 0,
+        "note": " ".join(note for note in notes if note),
     }
 
 

@@ -1,0 +1,440 @@
+{
+  "date": "2026-09-29",
+  "environment": "https://efile-test.suffolklitlab.org",
+  "operation": "quote only; no filings submitted or accounts created",
+  "results": [
+    {
+      "state": "vermont",
+      "court": "sc:chittendon",
+      "category": "210",
+      "case_type": "6177",
+      "filing_code": "9564",
+      "case": "Relief from Abuse",
+      "payment_type": "CC",
+      "status": 200,
+      "total": 14.4,
+      "charges": [
+        {
+          "label": "Case Initiation Fee",
+          "amount": 0.0,
+          "charge": false
+        },
+        {
+          "label": "Filing Fee",
+          "amount": 0.0,
+          "charge": false
+        },
+        {
+          "label": "Total Service Fees",
+          "amount": 14.0,
+          "charge": true
+        },
+        {
+          "label": "Total Service Tax Fees",
+          "amount": 0.0,
+          "charge": true
+        },
+        {
+          "label": "Convenience Fee",
+          "amount": 0.4,
+          "charge": true
+        },
+        {
+          "label": "Total Provider Service Fees",
+          "amount": 0.0,
+          "charge": false
+        },
+        {
+          "label": "Total Provider Tax Fees",
+          "amount": 0.0,
+          "charge": false
+        },
+        {
+          "label": "Total Court Service Fees",
+          "amount": 0.0,
+          "charge": false
+        },
+        {
+          "label": "Total Mail Service Fees",
+          "amount": 0.0,
+          "charge": false
+        },
+        {
+          "label": "Total Redaction Fees",
+          "amount": 0.0,
+          "charge": false
+        }
+      ]
+    },
+    {
+      "state": "vermont",
+      "court": "sc:chittendon",
+      "category": "210",
+      "case_type": "6106",
+      "filing_code": "9564",
+      "case": "Contested dissolution with minors",
+      "payment_type": "CC",
+      "status": 400,
+      "error": "{\n  \"type\": \"Server Error\",\n  \"description\": \"DEV ERROR: All required parties not covered by existing party types. ([5707, 5693]. Missing [5660]\"\n}\n"
+    },
+    {
+      "state": "illinois",
+      "court": "calhoun",
+      "category": "7062",
+      "case_type": "27894",
+      "filing_code": "142966",
+      "case": "Civil No Contact Order",
+      "payment_type": "WV",
+      "status": 200,
+      "total": 0.0,
+      "charges": [
+        {
+          "label": "Case Initiation Fee",
+          "amount": 0.0,
+          "charge": false
+        },
+        {
+          "label": "Filing Fee",
+          "amount": 0.0,
+          "charge": false
+        },
+        {
+          "label": "Total Service Fees",
+          "amount": 0.0,
+          "charge": false
+        },
+        {
+          "label": "Total Service Tax Fees",
+          "amount": 0.0,
+          "charge": false
+        },
+        {
+          "label": "Convenience Fee",
+          "amount": 0.0,
+          "charge": false
+        },
+        {
+          "label": "Total Provider Service Fees",
+          "amount": 0.0,
+          "charge": false
+        },
+        {
+          "label": "Total Provider Tax Fees",
+          "amount": 0.0,
+          "charge": false
+        },
+        {
+          "label": "Total Court Service Fees",
+          "amount": 0.0,
+          "charge": false
+        },
+        {
+          "label": "Total Mail Service Fees",
+          "amount": 0.0,
+          "charge": false
+        },
+        {
+          "label": "Total Redaction Fees",
+          "amount": 0.0,
+          "charge": false
+        }
+      ]
+    },
+    {
+      "state": "illinois",
+      "court": "calhoun",
+      "category": "7062",
+      "case_type": "27894",
+      "filing_code": "142966",
+      "case": "Civil No Contact Order",
+      "payment_type": "CC",
+      "status": 422,
+      "error": "Credit card is expired, please select another payment account."
+    },
+    {
+      "state": "illinois",
+      "court": "calhoun",
+      "category": "7062",
+      "case_type": "27894",
+      "filing_code": "142966",
+      "case": "Civil No Contact Order",
+      "payment_type": "BankAccount",
+      "status": 200,
+      "total": 0.0,
+      "charges": [
+        {
+          "label": "Case Initiation Fee",
+          "amount": 0.0,
+          "charge": false
+        },
+        {
+          "label": "Filing Fee",
+          "amount": 0.0,
+          "charge": false
+        },
+        {
+          "label": "Total Service Fees",
+          "amount": 0.0,
+          "charge": false
+        },
+        {
+          "label": "Total Service Tax Fees",
+          "amount": 0.0,
+          "charge": false
+        },
+        {
+          "label": "Convenience Fee",
+          "amount": 0.0,
+          "charge": false
+        },
+        {
+          "label": "Total Provider Service Fees",
+          "amount": 0.0,
+          "charge": false
+        },
+        {
+          "label": "Total Provider Tax Fees",
+          "amount": 0.0,
+          "charge": false
+        },
+        {
+          "label": "Total Court Service Fees",
+          "amount": 0.0,
+          "charge": false
+        },
+        {
+          "label": "Total Mail Service Fees",
+          "amount": 0.0,
+          "charge": false
+        },
+        {
+          "label": "Total Redaction Fees",
+          "amount": 0.0,
+          "charge": false
+        }
+      ]
+    },
+    {
+      "state": "illinois",
+      "court": "calhoun",
+      "category": "190921",
+      "case_type": "254115",
+      "filing_code": "292221",
+      "case": "Residential eviction",
+      "payment_type": "WV",
+      "status": 200,
+      "total": 0.0,
+      "charges": [
+        {
+          "label": "Case Initiation Fee",
+          "amount": 0.0,
+          "charge": false
+        },
+        {
+          "label": "Filing Fee",
+          "amount": 0.0,
+          "charge": false
+        },
+        {
+          "label": "Total Service Fees",
+          "amount": 0.0,
+          "charge": false
+        },
+        {
+          "label": "Total Service Tax Fees",
+          "amount": 0.0,
+          "charge": false
+        },
+        {
+          "label": "Convenience Fee",
+          "amount": 0.0,
+          "charge": false
+        },
+        {
+          "label": "Total Provider Service Fees",
+          "amount": 0.0,
+          "charge": false
+        },
+        {
+          "label": "Total Provider Tax Fees",
+          "amount": 0.0,
+          "charge": false
+        },
+        {
+          "label": "Total Court Service Fees",
+          "amount": 0.0,
+          "charge": false
+        },
+        {
+          "label": "Total Mail Service Fees",
+          "amount": 0.0,
+          "charge": false
+        },
+        {
+          "label": "Total Redaction Fees",
+          "amount": 0.0,
+          "charge": false
+        }
+      ]
+    },
+    {
+      "state": "illinois",
+      "court": "calhoun",
+      "category": "190921",
+      "case_type": "254115",
+      "filing_code": "292221",
+      "case": "Residential eviction",
+      "payment_type": "CC",
+      "status": 422,
+      "error": "Credit card is expired, please select another payment account."
+    },
+    {
+      "state": "illinois",
+      "court": "calhoun",
+      "category": "190921",
+      "case_type": "254115",
+      "filing_code": "292221",
+      "case": "Residential eviction",
+      "payment_type": "BankAccount",
+      "status": 200,
+      "total": 256.25,
+      "charges": [
+        {
+          "label": "Case Initiation Fee",
+          "amount": 256.0,
+          "charge": true
+        },
+        {
+          "label": "Filing Fee",
+          "amount": 0.0,
+          "charge": false
+        },
+        {
+          "label": "Total Service Fees",
+          "amount": 0.0,
+          "charge": false
+        },
+        {
+          "label": "Total Service Tax Fees",
+          "amount": 0.0,
+          "charge": false
+        },
+        {
+          "label": "Convenience Fee",
+          "amount": 0.25,
+          "charge": true
+        },
+        {
+          "label": "Total Provider Service Fees",
+          "amount": 0.0,
+          "charge": false
+        },
+        {
+          "label": "Total Provider Tax Fees",
+          "amount": 0.0,
+          "charge": false
+        },
+        {
+          "label": "Total Court Service Fees",
+          "amount": 0.0,
+          "charge": false
+        },
+        {
+          "label": "Total Mail Service Fees",
+          "amount": 0.0,
+          "charge": false
+        },
+        {
+          "label": "Total Redaction Fees",
+          "amount": 0.0,
+          "charge": false
+        }
+      ]
+    },
+    {
+      "state": "massachusetts",
+      "court": "435",
+      "category": "7",
+      "case_type": "1356",
+      "filing_code": "6535",
+      "case": "Money action",
+      "payment_type": "WV",
+      "status": 400,
+      "error": "{\"error\": {\n  \"type\": \"Malformed Interview\",\n  \"description\": \"An Initial filing can't be filed at District Court - Lowell or be of filing type Money Action - District Court\\/BMC Filing\"\n}\n}"
+    },
+    {
+      "state": "massachusetts",
+      "court": "435",
+      "category": "7",
+      "case_type": "99304",
+      "filing_code": "6535",
+      "case": "Superior refile no fee",
+      "payment_type": "WV",
+      "status": 400,
+      "error": "{\"error\": {\n  \"type\": \"Malformed Interview\",\n  \"description\": \"An Initial filing can't be filed at District Court - Lowell or be of filing type Superior Court refile after a Dismissal Nisi order MGL C212\\u00A7 3A(d)- No fee.\"\n}\n}"
+    },
+    {
+      "state": "vermont",
+      "court": "sc:chittendon",
+      "category": "210",
+      "case_type": "6106",
+      "filing_code": "9564",
+      "case": "Contested dissolution with minors",
+      "payment_type": "CC",
+      "status": 200,
+      "total": 317.93,
+      "charges": [
+        {
+          "label": "Case Initiation Fee",
+          "amount": 295.0,
+          "charge": true
+        },
+        {
+          "label": "Filing Fee",
+          "amount": 0.0,
+          "charge": false
+        },
+        {
+          "label": "Total Service Fees",
+          "amount": 14.0,
+          "charge": true
+        },
+        {
+          "label": "Total Service Tax Fees",
+          "amount": 0.0,
+          "charge": true
+        },
+        {
+          "label": "Convenience Fee",
+          "amount": 8.93,
+          "charge": true
+        },
+        {
+          "label": "Total Provider Service Fees",
+          "amount": 0.0,
+          "charge": false
+        },
+        {
+          "label": "Total Provider Tax Fees",
+          "amount": 0.0,
+          "charge": false
+        },
+        {
+          "label": "Total Court Service Fees",
+          "amount": 0.0,
+          "charge": false
+        },
+        {
+          "label": "Total Mail Service Fees",
+          "amount": 0.0,
+          "charge": false
+        },
+        {
+          "label": "Total Redaction Fees",
+          "amount": 0.0,
+          "charge": false
+        }
+      ]
+    }
+  ]
+}

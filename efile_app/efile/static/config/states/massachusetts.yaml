@@ -278,7 +278,22 @@ court_selector:
 # Statewide small-claims fees include the $10 statutory surcharge.
 # Reviewed 2026-09-29. Static Tyler fees take precedence.
 fee_estimates:
+  surcharges:
+    reviewed: "2026-09-29"
+    waiver_account_types: [WV]
+    payment_methods:
+      BankAccount:
+        fixed: "0.25"
+        only_when_amount_due: true
+      CC:
+        percent: "2.89"
+        basis: court_and_platform
+        only_when_amount_due: true
+    platform:
+      amount: "22.00"
+      timing: new_case
   sources:
+    - https://www.mass.gov/info-details/learn-about-efiling-in-the-trial-court
     - https://www.mass.gov/info-details/boston-municipal-court-and-district-court-filing-fees
     - https://www.mass.gov/info-details/small-claims-court
   note: >-
@@ -294,3 +309,12 @@ fee_estimates:
         - {up_to: 2000, low: 50, high: 50}
         - {up_to: 5000, low: 100, high: 100}
         - {up_to: null, low: 150, high: 150}
+
+fee_waiver:
+  source_url: "https://www.mass.gov/info-details/eligibility-requirements-for-indigency-waiver-of-fees"
+  benefits: "Benefits that may qualify include SSI, TAFDC, and EAEDC. See the court's rules for the full list."
+  income_bands:
+    - max_fpl_percent: 125
+      waiver_percent: 100
+      description: "Use your income after taxes. You may have fees waived."
+  document_guidance: "Include an Affidavit of Indigency each time you file with a fee waiver."

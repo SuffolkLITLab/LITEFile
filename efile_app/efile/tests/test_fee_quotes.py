@@ -270,6 +270,7 @@ def test_the_fee_api_records_the_quote_with_what_it_priced(client, draft):
     assert body["quote_recorded"] is True
     assert body["quote"] == {
         "state": "current",
+        "is_zero": False,
         "total": "118.00",
         "breakdown": [{"label": "Filing fee", "amount": "118.00"}],
     }
