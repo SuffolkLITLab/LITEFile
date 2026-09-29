@@ -85,40 +85,53 @@ function vermontSelector(answers) {
         available: true,
         lede: 'Start with the court shown on your paperwork.',
         steps: [{
-            id: 'level',
-            type: 'choice',
-            label: 'What Vermont court is this filing for?',
-            short_label: 'Court',
-            answer: 'superior',
-            options: [{
-                value: 'superior',
-                label: 'Superior Court'
-            }],
-        }, {
-            id: 'division',
-            type: 'select',
-            label: 'Which Superior Court division?',
-            short_label: 'Division',
-            answer: answers.division || 'civil',
-            options: [{
-                value: 'civil',
-                label: 'Civil Division'
+                id: 'level',
+                type: 'choice',
+                label: 'What Vermont court is this filing for?',
+                short_label: 'Court',
+                answer: 'superior',
+                options: [{
+                    value: 'superior',
+                    label: 'Superior Court'
+                }],
             }, {
-                value: 'family',
-                label: 'Family Division'
-            }],
-        }, {
-            id: 'unit',
-            type: 'select',
-            label: 'Which unit?',
-            short_label: 'Unit',
-            placeholder: 'Choose a unit…',
-            answer: unit,
-            options: Object.entries(UNITS).map(([value, label]) => ({
-                value,
-                label
-            })),
-        }, ],
+                id: 'division',
+                type: 'select',
+                label: 'Which Superior Court division?',
+                short_label: 'Division',
+                answer: answers.division || 'civil',
+                options: [{
+                    value: 'civil',
+                    label: 'Civil Division'
+                }, {
+                    value: 'family',
+                    label: 'Family Division'
+                }],
+            }, {
+                id: 'unit',
+                type: 'select',
+                label: 'Which unit?',
+                short_label: 'Unit',
+                placeholder: 'Choose a unit…',
+                answer: unit,
+                options: Object.entries(UNITS).map(([value, label]) => ({
+                    value,
+                    label
+                })),
+            },
+            // Vermont's other way in: a place lookup beside the unit list. The
+            // server leaves it unanswered once the unit is.
+            {
+                id: 'place',
+                type: 'location',
+                label: 'Or tell us the town',
+                short_label: 'Town',
+                alternative_to: 'unit',
+                answer: '',
+                examples: [],
+                options: [],
+            },
+        ],
         path: ['Superior Court', 'Civil Division', selected ? selected.text : ''].filter(Boolean),
         courts: selected ? [selected] : Object.entries(UNITS).map(([value, text]) => ({
             value,
@@ -403,6 +416,25 @@ test.describe('guided court questions (Vermont-shaped)', () => {
         await expect(page.locator('[data-change="division"]')).toContainText('Civil Division');
     });
 
+    test('the unused place lookup stays out of the way unless the unit is reopened', async ({
+        page
+    }) => {
+        await mockCourtLists(page);
+        await openSavedDraft(page);
+        const items = page.locator('.court-selector__item');
+
+        await page.locator('[data-change="division"]').click();
+        expect(await items.evaluateAll((els) => els.map((el) => el.dataset.item))).toEqual(['level', 'division', 'unit']);
+        await expect(page.locator('[data-location-step]')).toHaveCount(0);
+        await expect(page.locator('.court-selector__item[data-item="division"] [data-court-apply]')).toBeVisible();
+        await page.locator('[data-court-cancel]').click();
+
+        // Reopening the unit is when the other way of naming it is useful.
+        await page.locator('[data-change="unit"]').click();
+        expect(await items.evaluateAll((els) => els.map((el) => el.dataset.item))).toEqual(['level', 'division', 'unit', 'place']);
+        await expect(page.locator('[data-location-step="place"]')).toBeVisible();
+    });
+
     test('a long list stays a dropdown when its question is reopened', async ({
         page
     }) => {
@@ -413,7 +445,8 @@ test.describe('guided court questions (Vermont-shaped)', () => {
 
         await expect(page.locator('select#court-step-unit')).toBeFocused();
         await expect(page.locator('input[name="court-step-unit"]')).toHaveCount(0);
-        await expect(page.locator('.court-selector__item[data-item="unit"] [data-court-apply]')).toBeVisible();
+        // Its alternative, the place lookup, opens with it; Update follows both.
+        await expect(page.locator('.court-selector__item[data-item="place"] [data-court-apply]')).toBeVisible();
     });
 
     test('Change then Update without changing confirms the court and reloads nothing', async ({

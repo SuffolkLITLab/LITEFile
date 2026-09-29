@@ -281,6 +281,18 @@
             return false;
         }
 
+        function idleAlternative(step, data) {
+            // A second way of naming the same court (Vermont's place lookup,
+            // beside its unit list) is only offered while the question it is
+            // an alternative to is open. Once that one is answered, the unused
+            // alternative has nothing to say, and reopening some other
+            // question must not bring it back between that question and its
+            // Update button.
+            if (!step.alternative_to || step.answer || expanded === step.id) return false;
+            const partner = lastSteps.find((other) => other.id === step.alternative_to);
+            return Boolean(partner && partner.answer) && !open(partner, data);
+        }
+
         function focusKey(element) {
             // Enough to find "the same control" again once the questions are
             // redrawn, so answering one does not drop focus to the page.
@@ -318,7 +330,9 @@
             // opens where it is rather than moving below the ones still folded,
             // and what goes with the open questions -- the courts to choose
             // between, Update and Cancel -- sits right under the last of them.
-            const shown = settled ? lastSteps.filter((step) => step.answer) : lastSteps;
+            const shown = settled ?
+                lastSteps.filter((step) => step.answer) :
+                lastSteps.filter((step) => !idleAlternative(step, data));
             const openFlags = shown.map((step) => !settled && open(step, data));
             const lastOpen = openFlags.lastIndexOf(true);
             const followUp = `${settled ? "" : extraHtml(data, chosen)}${actionsHtml(data)}`;
