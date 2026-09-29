@@ -11,6 +11,7 @@ from efile.services.document_extractions import extraction_for_document
 from efile.services.drafts import draft_snapshot, write_case_data
 from efile.services.extracted_parties import review_rows, save_reviewed_parties
 from efile.services.extraction_fields import display_extracted_fields, document_summary_details
+from efile.services.filing_path import change_filing_path, describe_path_change, filing_path_conflict
 from efile.workflow import (
     RETURN_TO_REVIEW,
     ExistingCase,
@@ -156,6 +157,12 @@ def extraction_review(request, jurisdiction):
             if offered_roles and draft.filer_role != filer_role:
                 draft.filer_role = filer_role
                 draft.save(update_fields=["filer_role", "updated_at"])
+            # Before the rest is saved: switching kinds of filing clears the
+            # filing types chosen for the old kind, and the lead's new one is
+            # set from this form just below.
+            path_change = change_filing_path(draft, existing_case)
+            if path_change.changed and path_change.cleared:
+                messages.info(request, describe_path_change(path_change))
             write_case_data(
                 draft,
                 {
@@ -180,7 +187,16 @@ def extraction_review(request, jurisdiction):
             # side into this court's own party type once the case type it
             # depends on has been saved just above.
             save_reviewed_parties(draft, party_rows)
-            if request.POST.get("return_to") == RETURN_TO_REVIEW:
+            # A different kind of filing is not an edit Review can take back
+            # as-is: an existing case has to be found in the court's records,
+            # and the documents need their filing types again. Only an
+            # unchanged path, with any existing case already found, returns.
+            returns_to_review = (
+                request.POST.get("return_to") == RETURN_TO_REVIEW
+                and not path_change.switched
+                and not (existing_case == ExistingCase.EXISTING and not draft.previous_case_id)
+            )
+            if returns_to_review:
                 write_case_data(draft, {}, current_step=WorkflowStepKey.REVIEW)
                 return redirect(get_step_url(WorkflowStepKey.REVIEW, jurisdiction))
             next_step = get_next_step(WorkflowStepKey.EXTRACTION_REVIEW, draft)
@@ -226,6 +242,9 @@ def extraction_review(request, jurisdiction):
         else ""
     )
     chosen_existing_case = draft.existing_case or suggested_existing_case
+    # The answer already given, shown as an answer with Change rather than
+    # asked again. "Not sure" is not an answer to show, so it is still asked.
+    saved_path = draft.existing_case if draft.existing_case in {ExistingCase.NEW, ExistingCase.EXISTING} else ""
     docket_number = draft.docket_number or guesses.get("docket number")
     if request.method == "POST":
         # Sent back to fix something: show what the filer submitted, not what
@@ -245,6 +264,14 @@ def extraction_review(request, jurisdiction):
         chosen_existing_case = request.POST.get("existing_case", "")
         docket_number = request.POST.get("docket_number", "")
         extraction_context["existing_case"] = chosen_existing_case
+    # Against the answer on screen, which after a refused POST is the one
+    # submitted rather than the one saved.
+    path_conflict = filing_path_conflict(
+        draft,
+        extraction.evidence if extraction else {},
+        document_title=guesses.get("document title", ""),
+        chosen=chosen_existing_case,
+    )
     context = {
         "is_logged_in": True,
         "filing_draft": draft_snapshot(draft),
@@ -261,6 +288,11 @@ def extraction_review(request, jurisdiction):
         "extraction_total_pages": extraction.total_pages if extraction else None,
         "classification": classification,
         "chosen_existing_case": chosen_existing_case,
+        "saved_path": saved_path,
+        "path_conflict": path_conflict,
+        # Open when there is no saved answer to show, or when the filer was
+        # sent back with a different answer than the saved one.
+        "path_question_open": not saved_path or chosen_existing_case != saved_path,
         "docket_number": docket_number,
         "needs_acknowledgement": needs_acknowledgement,
         "acknowledgement_error": acknowledgement_error,

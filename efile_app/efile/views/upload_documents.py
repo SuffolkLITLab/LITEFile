@@ -12,7 +12,7 @@ from efile.services.document_extractions import extraction_for_document, queue_d
 from efile.services.document_uploads import upload_files
 from efile.services.drafts import draft_snapshot, read_upload_data
 from efile.utils.s3_upload_handler import S3UploadHandler
-from efile.workflow import WorkflowStepKey, get_step_url, get_workflow_context
+from efile.workflow import ExistingCase, WorkflowStepKey, get_step_url, get_workflow_context
 
 logger = logging.getLogger(__name__)
 
@@ -162,6 +162,7 @@ def upload_documents(request, jurisdiction):
     lead = next((document for document in documents if document.role == FilingDocument.Role.LEAD), None)
     extraction = extraction_for_document(lead) if lead else None
     context = {
+        "saved_path": draft.existing_case if draft.existing_case in {ExistingCase.NEW, ExistingCase.EXISTING} else "",
         "is_logged_in": True,
         "filing_draft": draft_snapshot(draft),
         "documents": documents,

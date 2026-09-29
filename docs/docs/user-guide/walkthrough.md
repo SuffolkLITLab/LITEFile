@@ -29,6 +29,8 @@ When you start a new filing, LITEFile asks you whether you are **starting a bran
 
 Click **Continue** to proceed.
 
+If you chose **Start a new case** or **File into an existing case** from the menu, LITEFile already has your answer and skips this question. **Back** from the upload screen then returns you to where you started, not to this question.
+
 ---
 
 ## Step 2: Upload your documents
@@ -73,6 +75,12 @@ LITEFile automatically inspects your lead document using secure, privacy-preserv
 :::info Human-in-the-loop verification
 The AI extraction provides recommendations to save you time, but **you remain in full control**. Always double-check that the detected court, case category, and case type accurately match your legal paperwork. If anything differs, you can select the correct option from the dropdown menu.
 :::
+
+### Changing new or existing case
+
+If you already said whether this is a new or existing case, the screen shows your answer with a **Change** button instead of asking again. If your document reads like the other kind of filing (for example, an answer when you chose to start a new case), LITEFile points this out. It never changes your answer for you.
+
+Changing the answer keeps the same filing and your uploaded documents. You will choose each document's filing type again, because courts list different filing types for new and existing cases. Fees are calculated again. A filing moved to an existing case goes through case lookup next.
 
 Click **Confirm and Continue**.
 
@@ -191,6 +199,8 @@ Review the list of all parties associated with the case.
 
 For a name change petition, you are typically the sole Petitioner. For other case types (such as civil lawsuits or divorces), you can verify both the Petitioner/Plaintiff and Respondent/Defendant entries.
 
+Choose your own role and click **Save role**. You stay on this screen so you can check the party list with your role in it. When the list is right, click **Continue** below it. The button tells you when it will ask next for details that are still missing.
+
 ---
 
 ## Step 10: Party details & addresses
@@ -259,6 +269,8 @@ Take a moment to verify:
 - All attached PDF documents
 - Party names and addresses
 - Selected payment account or fee waiver status
+
+If you changed anything that affects the court's fees after the Payment step, such as the court, a filing type or an optional service, Review calculates the fees again and shows the new total before you can submit.
 
 When you are ready, click **Submit Filing**.
 

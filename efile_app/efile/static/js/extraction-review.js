@@ -681,5 +681,31 @@
         if (!acknowledgementError.hidden) showAcknowledgementError();
     }
 
+    // The new-or-existing answer the filer already gave is shown as a
+    // summary. Change opens the question; the document-conflict note's button
+    // opens it with the other answer chosen, for the filer to confirm.
+    const pathQuestion = document.getElementById("path-question");
+    const changePath = document.getElementById("change-filing-path");
+    const applySuggestion = document.getElementById("apply-path-suggestion");
+
+    function openPathQuestion(value) {
+        if (!pathQuestion) return;
+        pathQuestion.hidden = false;
+        if (changePath) changePath.setAttribute("aria-expanded", "true");
+        const radio = value ?
+            pathQuestion.querySelector(`input[name="existing_case"][value="${CSS.escape(value)}"]`) :
+            pathQuestion.querySelector('input[name="existing_case"]:checked');
+        if (value && radio && !radio.checked) {
+            radio.checked = true;
+            radio.dispatchEvent(new Event("change", {
+                bubbles: true
+            }));
+        }
+        (radio || pathQuestion.querySelector('input[name="existing_case"]'))?.focus();
+    }
+
+    if (changePath) changePath.addEventListener("click", () => openPathQuestion(""));
+    if (applySuggestion) applySuggestion.addEventListener("click", () => openPathQuestion(applySuggestion.dataset.value));
+
     loadCourts();
 })();

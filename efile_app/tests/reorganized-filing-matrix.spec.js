@@ -8,6 +8,7 @@ const {
     loginViaLoginPage,
     continueFromExtractionReview,
     continueFromDocumentChecklist,
+    chooseFilingPath,
     selectGuidedCourt
 } = require('./test-utils');
 
@@ -375,7 +376,7 @@ async function runNewCase(page, scenario, ordinal) {
     await selectAfterLoad(page, '#case_category_code', scenario.category);
     await selectAfterLoad(page, '#case_type_code', scenario.caseType);
     await selectAfterLoad(page, '#filing_type_code', scenario.filingType);
-    await page.locator('input[type="radio"][name="existing_case"][value="new"]').check();
+    await chooseFilingPath(page, 'new');
     await continueFromExtractionReview(page, /\/document-checklist\//);
 
     await finishFiling(page, scenario, ordinal);
@@ -397,7 +398,7 @@ async function runExistingCase(page, scenario, ordinal) {
     ]);
 
     await selectGuidedCourt(page, 'illinois', scenario.court);
-    await page.locator('input[type="radio"][name="existing_case"][value="existing"]').check();
+    await chooseFilingPath(page, 'existing');
     await continueFromExtractionReview(page, /\/case-lookup\//);
     await selectAfterLoad(page, '#court', scenario.court);
     await page.locator('#case-number').fill(scenario.caseNumber);

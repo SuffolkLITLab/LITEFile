@@ -5,6 +5,10 @@
  * Import this in your test files instead of duplicating environment setup.
  */
 
+const {
+    expect
+} = require('@playwright/test');
+
 /**
  * Get test configuration from environment variables
  * @returns {Object} Test configuration object
@@ -153,6 +157,19 @@ async function continueFromDocumentChecklist(page) {
 }
 
 /**
+ * Answer new or existing case on Confirm case. A saved answer is shown as a
+ * summary with Change, and only opened when it has to change.
+ */
+async function chooseFilingPath(page, value) {
+    const radio = page.locator(`input[type="radio"][name="existing_case"][value="${value}"]`);
+    if (!(await radio.isVisible())) {
+        if (await radio.isChecked()) return;
+        await page.locator('#change-filing-path').click();
+    }
+    await radio.check();
+}
+
+/**
  * Choose a known court through the jurisdiction's visible guided questions.
  * Asking the selector endpoint for the route keeps state-specific court logic
  * out of the browser suite; the test still answers each rendered control.
@@ -171,27 +188,35 @@ async function selectGuidedCourt(page, jurisdiction, courtCode) {
         throw new Error(`No guided court selector is available for ${jurisdiction}`);
     }
 
+    const selector = page.locator('#court-selector');
+    const settledSelector = () => expect(selector).not.toHaveAttribute('aria-busy', 'true', {
+        timeout: 120000
+    });
     for (const step of data.steps || []) {
         if (!step.answer) continue;
         if (step.type === 'location') continue;
 
-        const choice = page.locator(`#court-selector input[data-step="${step.id}"][value="${step.answer}"]`);
-        const select = page.locator(`#court-selector select[data-step="${step.id}"]`);
-
-        if (step.type === 'choice') {
-            await choice.waitFor({
-                state: 'visible',
-                timeout: 120000
-            });
-            await choice.check();
-        } else {
-            await select.waitFor({
-                state: 'visible',
-                timeout: 120000
-            });
-            await select.selectOption(step.answer);
+        // A short list is radios and a long one a dropdown; a question already
+        // answered is folded to a line with Change.
+        const radio = selector.locator(`input[type="radio"][data-step="${step.id}"][value="${step.answer}"]`);
+        const select = selector.locator(`select[data-step="${step.id}"]`);
+        const folded = selector.locator(`[data-change="${step.id}"]`);
+        await settledSelector();
+        await expect(radio.or(select).or(folded).first()).toBeVisible({
+            timeout: 120000
+        });
+        if (!(await radio.isVisible()) && !(await select.isVisible())) {
+            await folded.click();
+            await expect(radio.or(select).first()).toBeVisible();
         }
+        if (await radio.isVisible()) await radio.check();
+        else await select.selectOption(step.answer);
     }
+
+    // Changing a court that was already settled waits for Update court.
+    await settledSelector();
+    const apply = selector.locator('[data-court-apply]');
+    if (await apply.isVisible()) await apply.click();
 
     await page.locator('#court_code').waitFor({
         state: 'attached'
@@ -211,5 +236,6 @@ module.exports = {
     loginViaLoginPage,
     continueFromExtractionReview,
     continueFromDocumentChecklist,
+    chooseFilingPath,
     selectGuidedCourt
 };

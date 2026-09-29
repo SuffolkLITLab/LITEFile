@@ -8,6 +8,7 @@ const {
     loginViaLoginPage,
     continueFromExtractionReview,
     continueFromDocumentChecklist,
+    chooseFilingPath,
     selectGuidedCourt
 } = require('./test-utils');
 
@@ -106,10 +107,7 @@ test('adding and removing optional services dynamically updates calculated fees 
     await selectAfterLoad(page, '#case_category_code', '6198'); // Small Claims
     await selectAfterLoad(page, '#case_type_code', '183541'); // Contract
     await selectAfterLoad(page, '#filing_type_code', '143132'); // Amended Complaint
-    const radioNew = page.locator('input[type="radio"][name="existing_case"][value="new"]');
-    if (await radioNew.count()) {
-        await radioNew.check();
-    }
+    await chooseFilingPath(page, 'new');
     await continueFromExtractionReview(page, /\/document-checklist\//);
 
     console.log('Step 5: Confirming checklist...');
