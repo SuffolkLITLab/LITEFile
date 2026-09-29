@@ -6,6 +6,7 @@ who the court will be told this case is about. Save now stays on People; only
 the Continue button after the list moves on.
 """
 
+import json
 import re
 from unittest.mock import patch
 
@@ -339,3 +340,71 @@ def test_enter_in_the_role_form_saves_and_continue_follows_the_roster(client, dr
     continue_button = re.search(r'<button[^>]*form="your-role"[^>]*value="continue"[^>]*>', page, re.S)
     assert continue_button is not None
     assert page.index('id="party-list"') < continue_button.start()
+
+
+# --- Continue says what it will do for the role being submitted ---------------
+
+
+def continue_previews(page):
+    return json.loads(
+        re.search(r'<script id="continue-previews" type="application/json">(.*?)</script>', page, re.S).group(1)
+    )
+
+
+def continue_label(page):
+    return re.search(r'<span id="continue-from-parties-label">([^<]*)</span>', page).group(1).strip()
+
+
+@pytest.mark.django_db
+def test_with_no_role_chosen_continue_promises_nothing(client, draft):
+    make_filer(draft)
+    make_party(draft, 0)
+
+    page = get(client).content.decode()
+
+    assert continue_label(page) == "Continue"
+    assert re.search(r'<p class="party-roster__hint"\s+id="party-list-next"\s+hidden>', page)
+
+
+@pytest.mark.django_db
+def test_continue_is_labelled_for_the_role_selected_not_the_one_saved(client, draft):
+    """A Plaintiff is on the list: Defendant goes straight on, Plaintiff needs a Defendant."""
+
+    make_filer(draft, party_type="defendant", party_type_name="Defendant")
+    make_party(draft, 0)
+
+    previews = continue_previews(get(client).content.decode())
+
+    assert previews["defendant"] == {"label": "Continue", "hint": ""}
+    assert previews["plaintiff"]["label"] == "Continue to missing party details"
+    assert "The court also needs a Defendant in this case." in previews["plaintiff"]["hint"]
+    assert previews[NOT_A_PARTY]["label"] == "Continue to missing party details"
+
+
+@pytest.mark.django_db
+def test_the_saved_role_selects_its_own_label_on_the_page(client, draft):
+    make_filer(draft, party_type="plaintiff", party_type_name="Plaintiff")
+    make_party(draft, 0)
+
+    page = get(client).content.decode()
+
+    assert continue_label(page) == "Continue to missing party details"
+    assert "The court also needs a Defendant in this case." in page
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("saved", ["", "defendant", "plaintiff"])
+@pytest.mark.parametrize("chosen", ["defendant", "plaintiff"])
+def test_the_label_for_each_role_matches_where_continue_goes(client, draft, saved, chosen):
+    """The reviewer's two cases, and the rest: Continue straight from a changed choice."""
+
+    make_filer(draft, party_type=saved, party_type_name=saved.title())
+    make_party(draft, 0)
+    label = continue_previews(get(client).content.decode())[chosen]["label"]
+
+    response = post(client, action="continue", filer_party_type=chosen)
+
+    goes_to_details = response.url.partition("?")[0] == PARTY_DETAILS_URL
+    assert goes_to_details == (label == "Continue to missing party details")
+    if not goes_to_details:
+        assert response.url.partition("?")[0] == PAYMENT_URL

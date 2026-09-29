@@ -273,14 +273,10 @@
                     {% endif %}
                 </article>
             {% endfor %}
-            {% if missing_required_types or incomplete_count %}
-                <p class="party-roster__hint" id="party-list-next">
-                    {% for party_type in missing_required_types %}
-                        {% blocktranslate with name=party_type.name %}The court also needs a {{ name }} in this case.{% endblocktranslate %}
-                    {% endfor %}
-                    {% translate "Continue will ask for the details that are still missing." %}
-                </p>
-            {% endif %}
+            {# Kept in step with the selected role by parties.js. #}
+            <p class="party-roster__hint"
+               id="party-list-next"
+               {% if not continue_preview.hint %}hidden{% endif %}>{{ continue_preview.hint }}</p>
         </div>
         <div class="workflow-actions">
             {% if return_to == "review" %}
@@ -299,19 +295,15 @@
                     form="your-role"
                     name="action"
                     value="continue"
-                    {% if missing_required_types or incomplete_count %}aria-describedby="party-list-next"{% endif %}
+                    id="continue-from-parties"
+                    {% if continue_preview.hint %}aria-describedby="party-list-next"{% endif %}
                     {% if not party_types %}disabled{% endif %}>
-                {% if missing_required_types or incomplete_count %}
-                    {% translate "Continue to missing party details" %}
-                {% elif return_to == "review" %}
-                    {% translate "Continue to review" %}
-                {% else %}
-                    {% translate "Continue" %}
-                {% endif %}
+                <span id="continue-from-parties-label">{{ continue_preview.label }}</span>
                 <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
             </button>
         </div>
     </section>
+    {{ continue_previews|json_script:"continue-previews" }}
     {% include "efile/components/claim_party_dialog.html" %}
 {% endblock workflow_content %}
 {% block extra_js %}
