@@ -96,15 +96,11 @@
         field.hint = root.querySelector(".review-field__hint");
         field.defaultHint = field.hint.textContent.trim();
         field.editButton = root.querySelector(".review-field__edit");
-        field.actions = root.querySelector(".review-field__actions");
-        field.applyButton = root.querySelector(".review-field__apply");
-        field.cancelButton = root.querySelector(".review-field__cancel");
         const heading = root.querySelector(":scope > label, :scope > span");
         field.label = (heading?.firstChild?.textContent || key).trim();
         field.mode = field.input.hidden ? "found" : "edit";
         field.loading = false;
         field.loaded = false;
-        field.snapshot = null;
         if (field.display) {
             field.checking = document.createElement("small");
             field.checking.className = "review-field__checking";
@@ -112,8 +108,6 @@
             field.display.querySelector(".review-field__found").appendChild(field.checking);
         }
         field.editButton?.addEventListener("click", () => beginEdit(key));
-        field.applyButton?.addEventListener("click", () => applyEdit(key));
-        field.cancelButton?.addEventListener("click", () => cancelEdit(key));
     });
 
     function setMode(key, mode) {
@@ -121,20 +115,6 @@
         field.mode = mode;
         if (field.display) field.display.hidden = mode !== "found";
         field.input.hidden = mode !== "edit";
-        syncActions(key);
-    }
-
-    function syncActions(key) {
-        // Update is offered once there is something to update to: a field the
-        // filer opened with Edit, or one they have just chosen a value in. A
-        // dropdown still waiting on the one above it has nothing to confirm.
-        // The guided court questions carry their own Update and Cancel.
-        const field = fields[key];
-        if (!field.actions) return;
-        const open = field.mode === "edit" && !field.guided && !field.select.disabled;
-        field.actions.hidden = !open || !(field.snapshot || field.select.value);
-        field.cancelButton.hidden = !field.snapshot;
-        field.actions.querySelector(".review-field__apply-note").hidden = !field.snapshot;
     }
 
     function optionValue(item) {
@@ -200,7 +180,6 @@
             text
         };
         field.nameInput.value = text;
-        syncActions(key);
         if (field.valueEl && code) {
             field.valueEl.textContent = text + (option.textContent.trim().endsWith("*") ? " *" : "");
         }
@@ -212,7 +191,6 @@
         field.select.disabled = true;
         field.select.innerHTML = `<option value="">${escapeHtml(message)}</option>`;
         field.root.setAttribute("aria-busy", "true");
-        syncActions(key);
         if (field.checking) {
             field.checking.textContent = gettext("Checking this is still offered…");
             field.checking.hidden = false;
@@ -340,7 +318,6 @@
         });
         field.select.disabled = options.length === 0;
         finishLoading(key);
-        syncActions(key);
 
         const all = Array.from(field.select.options);
         const wanted = field.current.code;
@@ -385,10 +362,9 @@
 
     // --- Editing one choice -------------------------------------------------
     //
-    // Edit opens a field and remembers the field and everything below it.
-    // Changing the dropdown reloads what depends on it, keeping what still
-    // fits. Update folds the field back to its summary; Cancel puts the
-    // remembered state back, lists and all, and drops any list still loading.
+    // Edit opens a field's dropdown, and a choice there applies at once: what
+    // depends on it reloads, keeping whatever still fits. The field stays
+    // open, so the filer can see what they chose beside the fields it changed.
 
     const roleField = document.getElementById("filer-role-field");
     const roleOptions = document.getElementById("filer-role-options");
@@ -399,118 +375,18 @@
         return roleOptions.querySelector('input[name="filer_role"]:checked')?.value || "";
     }
 
-    function takeSnapshot(key) {
-        return {
-            fields: [key, ...DOWNSTREAM[key]].map((name) => {
-                const field = fields[name];
-                return {
-                    name,
-                    html: field.select.innerHTML,
-                    value: field.select.value,
-                    disabled: field.select.disabled,
-                    nameValue: field.nameInput.value,
-                    current: {
-                        ...field.current
-                    },
-                    mode: field.mode,
-                    valueText: field.valueEl ? field.valueEl.textContent : "",
-                    hint: field.hint.textContent,
-                    loading: field.loading,
-                    snapshot: field.snapshot,
-                };
-            }),
-            roles: {
-                html: roleOptions.innerHTML,
-                hidden: roleField.hidden,
-                chosen: chosenRole(),
-                saved: savedRole,
-            },
-        };
-    }
-
-    function restoreSnapshot(snapshot) {
-        supersede(snapshot.fields[0].name);
-        roleGeneration += 1;
-        snapshot.fields.forEach((saved) => {
-            const field = fields[saved.name];
-            finishLoading(saved.name);
-            field.select.innerHTML = saved.html;
-            field.select.value = saved.value;
-            field.select.disabled = saved.disabled;
-            field.nameInput.value = saved.nameValue;
-            field.current = {
-                ...saved.current
-            };
-            if (field.valueEl) field.valueEl.textContent = saved.valueText;
-            field.hint.textContent = saved.hint;
-            field.snapshot = saved.snapshot;
-            setMode(saved.name, saved.mode);
-        });
-        roleOptions.innerHTML = snapshot.roles.html;
-        roleField.hidden = snapshot.roles.hidden;
-        savedRole = snapshot.roles.saved;
-        const role = roleOptions.querySelector(`input[name="filer_role"][value="${CSS.escape(snapshot.roles.chosen)}"]`);
-        if (role) role.checked = true;
-        // Edit was pressed while a list was still on its way: ask again.
-        const unfinished = snapshot.fields.find((saved) => saved.loading);
-        if (unfinished && LISTS[unfinished.name]) loadList(unfinished.name);
-    }
-
     function beginEdit(key) {
         const field = fields[key];
-        field.snapshot = takeSnapshot(key);
         setMode(key, "edit");
         // The Edit button lives inside the display panel that setMode just
         // hid, so without this the click would strand focus on <body>.
         field.select.focus();
     }
 
-    function applyEdit(key) {
-        const field = fields[key];
-        if (field.loading) {
-            field.hint.textContent = gettext("Wait for the list to finish loading, then choose Update.");
-            announce(field.hint.textContent);
-            return;
-        }
-        if (!field.select.value) {
-            field.hint.textContent = field.snapshot ?
-                interpolate(gettext("Choose a %(label)s, or Cancel to keep the one you had."), {
-                    label: field.label.toLowerCase()
-                }, true) :
-                interpolate(gettext("Choose a %(label)s first."), {
-                    label: field.label.toLowerCase()
-                }, true);
-            announce(field.hint.textContent);
-            field.select.focus();
-            return;
-        }
-        field.snapshot = null;
-        field.hint.textContent = field.defaultHint;
-        setMode(key, "found");
-        field.editButton.focus();
-        announce(interpolate(gettext("%(label)s updated: %(choice)s."), {
-            label: field.label,
-            choice: field.current.text
-        }, true));
-    }
-
-    function cancelEdit(key) {
-        const field = fields[key];
-        if (!field.snapshot) return;
-        restoreSnapshot(field.snapshot);
-        (field.mode === "found" ? field.editButton : field.select).focus();
-        announce(interpolate(gettext("Change cancelled. %(label)s is back to %(choice)s."), {
-            label: field.label,
-            choice: field.current.text || gettext("not chosen")
-        }, true));
-    }
-
     function pendingEdit() {
-        // A dropdown changed but not yet applied. Opening a field and leaving
-        // it as it was is confirming it, and holds nothing up.
-        if (courtSelector && courtSelector.isEditing()) return fields.court;
-        return ORDER.map((key) => fields[key]).find((field) => field.snapshot && field.mode === "edit" &&
-            field.select.value !== field.snapshot.fields[0].value);
+        // A court changed in the guided questions but not yet applied with
+        // Update court. The other fields apply as they are chosen.
+        return courtSelector && courtSelector.isEditing() ? fields.court : null;
     }
 
     // --- Loading -----------------------------------------------------------
@@ -736,7 +612,7 @@
             errorBox.textContent = interpolate(gettext("You changed the %(label)s but did not apply it. Choose Update to use it, or Cancel to keep what you had."), {
                 label: unapplied.label.toLowerCase()
             }, true);
-            target = unapplied.guided ? document.querySelector("[data-court-apply]") : unapplied.applyButton;
+            target = document.querySelector("[data-court-apply]") || errorBox;
         } else {
             errorBox.textContent = gettext("The court's lists are still loading. Wait a moment, then continue.");
         }

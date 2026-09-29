@@ -210,8 +210,6 @@ function field(page, name) {
         value: root.locator('.review-field__value'),
         edit: root.locator('.review-field__edit'),
         select: root.locator('select').last(),
-        update: root.locator('.review-field__apply'),
-        cancel: root.locator('.review-field__cancel'),
         hint: root.locator('.review-field__hint'),
     };
 }
@@ -508,7 +506,7 @@ test.describe('guided court questions (Vermont-shaped)', () => {
 });
 
 test.describe('category, type and filing type', () => {
-    test('Edit, change, Cancel restores the choice and the lists below it', async ({
+    test('Edit opens the dropdown and a choice applies at once, keeping what still fits', async ({
         page
     }) => {
         await mockCourtLists(page, {
@@ -520,23 +518,21 @@ test.describe('category, type and filing type', () => {
 
         await category.edit.click();
         await expect(category.select).toBeFocused();
-        await expect(category.cancel).toBeVisible();
+        // No Update or Cancel of their own: the choice is the edit.
+        await expect(category.root.locator('button:not(.review-field__edit)')).toHaveCount(0);
         await category.select.selectOption('7000');
+
+        await expect(page.locator('#case_category_code')).toHaveValue('7000');
+        await expect(page.locator('#case_category_name')).toHaveValue('Civil');
+        await expect(category.select).toBeVisible();
         // Contract is offered under Civil too, so it stays a summary.
         await expect(caseType.root.locator('.review-field__checking')).toBeHidden();
         await expect(caseType.summary).toBeVisible();
         expect(await optionTexts(caseType.select)).toEqual(['Choose a case type', 'Contract', 'Landlord tenant']);
-
-        await category.cancel.click();
-        await expect(category.summary).toBeVisible();
-        await expect(category.value).toHaveText('Small Claims');
-        await expect(category.edit).toBeFocused();
-        await expect(page.locator('#case_category_code')).toHaveValue('6198');
-        expect(await optionTexts(caseType.select)).toEqual(['Choose a case type', 'Contract', 'Tort']);
         await expect(page.locator('#case_type_code')).toHaveValue('183541');
     });
 
-    test('Cancel while a list is still loading drops the late response', async ({
+    test('changing back quickly: a late list for the earlier choice is dropped', async ({
         page
     }) => {
         const requests = await mockCourtLists(page, {
@@ -547,14 +543,15 @@ test.describe('category, type and filing type', () => {
 
         await category.edit.click();
         await category.select.selectOption('7000');
-        await category.cancel.click();
+        await category.select.selectOption('6198');
         await lateAnswerDelivered(requests, /case-types\/.*parent=7000/);
 
         expect(await optionTexts(field(page, 'case_type').select)).toEqual(['Choose a case type', 'Contract', 'Tort']);
         await expect(field(page, 'case_type').summary).toBeVisible();
+        await expect(page.locator('#case_type_code')).toHaveValue('183541');
     });
 
-    test('Edit then Update without changing confirms the current value', async ({
+    test('opening a field without changing it reloads nothing', async ({
         page
     }) => {
         const requests = await mockCourtLists(page);
@@ -563,13 +560,9 @@ test.describe('category, type and filing type', () => {
         const caseType = field(page, 'case_type');
 
         await caseType.edit.click();
-        await expect(caseType.update).toBeVisible();
-        await caseType.update.click();
 
-        await expect(caseType.summary).toBeVisible();
-        await expect(caseType.value).toHaveText('Contract');
-        await expect(caseType.edit).toBeFocused();
-        await expect(page.locator('#confirm-case-status')).toContainText('Case type updated: Contract.');
+        await expect(caseType.select).toBeFocused();
+        await expect(page.locator('#case_type_code')).toHaveValue('183541');
         expect(requests.slice(before)).toEqual([]);
     });
 
@@ -598,8 +591,7 @@ test.describe('category, type and filing type', () => {
         await caseType.select.selectOption('183542');
         await expect(filing.hint).toContainText('Complaint is not offered for the case type you chose');
         await expect(filing.select).toBeVisible();
-        await caseType.update.click();
-        await expect(caseType.value).toHaveText('Tort');
+        await expect(page.locator('#case_type_code')).toHaveValue('183542');
     });
 });
 
@@ -624,13 +616,11 @@ test.describe('flat court list (no guided questions)', () => {
         await lateAnswerDelivered(requests, /case-categories\/.*court=vt%3Awashington/);
 
         expect(await optionTexts(field(page, 'case_category').select)).toEqual(['Choose a case category', 'Civil']);
-        await court.update.click();
-        await expect(court.value).toHaveText('Orange Unit');
-        await expect(court.edit).toBeFocused();
+        await expect(page.locator('#court_code')).toHaveValue('vt:orange');
     });
 });
 
-test('from Review: the edit controls behave the same and Back returns to Review', async ({
+test('from Review: editing works the same and Back returns to Review', async ({
     page
 }) => {
     await mockCourtLists(page);
@@ -639,8 +629,7 @@ test('from Review: the edit controls behave the same and Back returns to Review'
 
     await category.edit.click();
     await category.select.selectOption('7000');
-    await category.update.click();
-    await expect(category.value).toHaveText('Civil');
+    await expect(page.locator('#case_category_code')).toHaveValue('7000');
     await expect(page.getByRole('link', {
         name: /Back to review/
     })).toBeVisible();
