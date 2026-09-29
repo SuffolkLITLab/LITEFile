@@ -25,10 +25,21 @@ function pageHarness(post) {
     const context = vm.createContext({
         document: {
             getElementById: node,
-            querySelector: (selector) => selector.includes("paymentIntent") ? intent : null,
+            createElement: () => ({
+                textContent: "",
+                get innerHTML() {
+                    return this.textContent;
+                }
+            }),
+            querySelector: (selector) => selector.includes("paymentIntent") ? (selector.includes(":checked") && intent.checked === false ? null : intent) : null,
             addEventListener() {}
         },
-        window: {},
+        window: {
+            location: {
+                search: ""
+            }
+        },
+        URLSearchParams,
         gettext: (text) => text,
         FilingPayload: {},
         apiUtils: {
@@ -46,6 +57,7 @@ function pageHarness(post) {
         "\nglobalThis.payment = PaymentPage;", context);
     return {
         payment: context.payment,
+        apiUtils: context.apiUtils,
         node,
         intent
     };
@@ -138,4 +150,106 @@ test("waiver failures leave review disabled and can be retried", async () => {
     await payment.chooseIntent();
     assert.equal(attempts, 2);
     assert.equal(node("submitButton").disabled, false);
+});
+test("free first filing without an account explains the next step without creating a waiver", async () => {
+    const calls = [];
+    const {
+        payment,
+        node,
+        intent
+    } = pageHarness(async (url) => calls.push(url));
+    intent.value = "pay";
+    await payment.chooseIntent();
+    assert.deepEqual(calls, []);
+    assert.match(node("paymentMethodsContainer").innerHTML, /Add a credit or bank account to continue/);
+    assert.match(node("paymentMethodsContainer").innerHTML, /Add credit or bank account/);
+    assert.equal(node("submitButton").disabled, true);
+});
+
+test("waiver setup explains the zero charge and court approval", async () => {
+    const {
+        payment,
+        node
+    } = pageHarness(async () => waiver);
+    await payment.chooseIntent();
+    assert.match(node("successText").textContent, /\$0 due now/);
+    assert.match(node("successText").textContent, /court may ask you to pay/);
+});
+
+test("the only active paid account is selected and quoted", async () => {
+    const {
+        payment,
+        node,
+        apiUtils
+    } = pageHarness();
+    apiUtils.fetchJSON = async () => ({
+        success: true,
+        data: [{
+            paymentAccountID: "card",
+            paymentAccountTypeCode: "CC"
+        }, {
+            paymentAccountID: "old",
+            paymentAccountTypeCode: "CC",
+            active: false
+        }, {
+            paymentAccountID: "wv",
+            paymentAccountTypeCode: "WV"
+        }]
+    });
+    payment.accountLabel = () => "My card";
+    let quotes = 0;
+    payment.selectAndQuote = async () => quotes++;
+    payment.quoteRequestId = 1;
+    await payment.choosePaidAccount(1);
+    assert.match(node("paymentMethodsContainer").innerHTML, /value="card"[^>]*checked/);
+    assert.doesNotMatch(node("paymentMethodsContainer").innerHTML, /value="wv"|value="old"/);
+    assert.equal(quotes, 1);
+});
+
+test("a zero estimate automatically opens paid accounts even with a saved waiver", async () => {
+    const {
+        payment,
+        node,
+        intent,
+        apiUtils
+    } = pageHarness();
+    intent.checked = false;
+    node("estimated-zero-fees").textContent = "true";
+    node("selected-payment-account-id").textContent = '"wv"';
+    apiUtils.fetchJSON = async () => ({
+        success: true,
+        data: [{
+            paymentAccountID: "wv",
+            paymentAccountTypeCode: "WV"
+        }]
+    });
+    let opened = false;
+    payment.chooseIntent = async () => {
+        opened = true;
+    };
+    await payment.loadAccounts();
+    assert.equal(intent.checked, true);
+    assert.equal(opened, true);
+});
+
+test("a saved waiver alone does not request another waiver automatically", async () => {
+    const {
+        payment,
+        node,
+        intent,
+        apiUtils
+    } = pageHarness();
+    intent.checked = false;
+    node("estimated-zero-fees").textContent = "false";
+    node("selected-payment-account-id").textContent = '"wv"';
+    apiUtils.fetchJSON = async () => ({
+        success: true,
+        data: [{
+            paymentAccountID: "wv",
+            paymentAccountTypeCode: "WV"
+        }]
+    });
+    payment.chooseIntent = async () => assert.fail("Waiver requires an explicit choice");
+    await payment.loadAccounts();
+    assert.equal(intent.checked, false);
 });

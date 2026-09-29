@@ -46,6 +46,7 @@ from .views.session_api import (
 )
 from .views.submission import submit_final_filing
 from .views.upload_documents import document_extraction_status, upload_documents
+from .views.waiver_documents import waiver_documents
 from .views.your_information import your_information
 
 
@@ -92,6 +93,7 @@ urlpatterns = [
     path("jurisdiction/<jurisdiction>/password_reset/", efile_password_reset, name="efile_password_reset"),
     path("jurisdiction/<jurisdiction>/options/", efile_options, name="efile_options"),
     path("jurisdiction/<jurisdiction>/filing-path/", filing_path, name="filing_path"),
+    path("jurisdiction/<jurisdiction>/waiver-documents/", waiver_documents, name="waiver_documents"),
     path("jurisdiction/<jurisdiction>/upload-documents/", upload_documents, name="upload_documents"),
     path(
         "jurisdiction/<jurisdiction>/document-extraction-status/",

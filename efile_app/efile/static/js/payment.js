@@ -57,7 +57,7 @@ const PaymentPage = {
 
     setFeesState(loading) {
         document.getElementById("loadingSpinner").style.display = loading ? "block" : "none";
-        document.getElementById("submitButton").disabled = loading || !this.feeQuoteReady || !document.getElementById("selected-payment-account").value;
+        document.getElementById("submitButton").disabled = loading || this.waiverUploading || !this.feeQuoteReady || !document.getElementById("selected-payment-account").value;
     },
 
     async loadAccountTypes() {
@@ -103,7 +103,9 @@ const PaymentPage = {
         const account = this.accounts.find((item) => String(item.paymentAccountID) === String(saved));
         if (document.querySelector('input[name="paymentIntent"]:checked')) return;
         let intent = account ? "pay" : "";
-        if (account?.paymentAccountTypeCode === "WV") intent = "waiver";
+        // A saved waiver is not a fresh statement that the person qualifies.
+        if (account?.paymentAccountTypeCode === "WV") intent = "";
+        if (paymentJSON("estimated-zero-fees") === true) intent = "pay";
         if (new URLSearchParams(window.location.search).get("payment_status") === "success") intent = "pay";
         if (intent) {
             document.querySelector(`input[name="paymentIntent"][value="${intent}"]`).checked = true;
@@ -121,6 +123,8 @@ const PaymentPage = {
         container.innerHTML = "";
         paymentMessages.hide();
         this.setFeesState(false);
+        document.getElementById("roughFeeSummary").hidden = false;
+        document.getElementById("freeFilingHelp").hidden = intent !== "pay" || paymentJSON("estimated-zero-fees") !== true;
         document.getElementById("waiverHelp").hidden = intent !== "waiver";
         if (intent === "waiver") return this.chooseWaiver(requestId);
         if (intent === "pay") return this.choosePaidAccount(requestId);
@@ -143,6 +147,7 @@ const PaymentPage = {
             document.getElementById("selected-payment-account-name").value = account.accountName;
             document.getElementById("selected-payment-account-type").value = "WV";
             this.feeQuoteReady = true;
+            paymentMessages.showSuccess(gettext("Fee waiver requested: $0 due now. The court may ask you to pay if it denies your request."));
         } catch {
             this.waiverRequest = null;
             if (requestId !== this.quoteRequestId) return;
@@ -169,7 +174,8 @@ const PaymentPage = {
                 const label = this.accountLabel(account, 0);
                 return `<label><input class="form-check-input" type="radio" name="paymentMethod" value="${escapeAttribute(account.paymentAccountID)}" data-name="${escapeAttribute(label)}" data-type="${escapeAttribute(account.paymentAccountTypeCode || "")}" ${String(selectedId) === String(account.paymentAccountID) ? "checked" : ""}/> <span><strong>${escapeHTML(label)}</strong></span></label>`;
             }).join("");
-            container.innerHTML = `<div class="compact-choice-list">${rows}</div>
+            const noAccountHelp = accounts.length ? "" : `<p>${gettext("Add a credit or bank account to continue.")}</p>`;
+            container.innerHTML = `${noAccountHelp}<div class="compact-choice-list">${rows}</div>
                 <button type="button" class="btn btn-outline-primary mt-2" id="add-payment-method">${gettext("Add credit or bank account")}</button>`;
             container.querySelectorAll('input[name="paymentMethod"]').forEach((input) => {
                 input.addEventListener("change", () => this.selectAndQuote());
@@ -200,6 +206,7 @@ const PaymentPage = {
         document.getElementById("selected-payment-account-type").value = selected.dataset.type || "";
         document.getElementById("paymentSection").hidden = true;
         this.feeQuoteReady = false;
+        document.getElementById("roughFeeSummary").hidden = false;
         paymentMessages.hide();
         this.setFeesState(true);
         try {
@@ -220,6 +227,13 @@ const PaymentPage = {
             // from it; one it could not read is not a quote to go on with.
             this.feeQuoteReady = Boolean(result?.success && result.quote_recorded);
             this.handleFeesResponse(result);
+            document.getElementById("paymentSection").hidden = !this.feeQuoteReady;
+            document.getElementById("roughFeeSummary").hidden = this.feeQuoteReady;
+            document.getElementById("freeFilingHelp").hidden = this.feeQuoteReady || paymentJSON("estimated-zero-fees") !== true;
+            const amount = result?.api_response?.feesCalculationAmount?.value;
+            if (this.feeQuoteReady && amount != null && String(amount).trim() !== "" && Number(amount) === 0) {
+                paymentMessages.showSuccess(gettext("You will not be charged."));
+            }
             if (result?.success && result.quote_superseded) {
                 paymentMessages.showError(gettext("This filing changed while we were calculating fees, perhaps in another window. Reload this page to calculate them again."));
             } else if (result?.success && !result.quote_recorded) {

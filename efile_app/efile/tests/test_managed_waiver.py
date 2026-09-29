@@ -159,3 +159,30 @@ def test_waiver_endpoint_rejects_other_jurisdiction(client, payment_draft):
         result = client.post(reverse("api:waiver_account") + "?jurisdiction=vermont")
     assert result.status_code == 401
     ensure.assert_not_called()
+
+
+def test_illinois_payment_displays_configured_poverty_range(client, payment_draft):
+    with patch("efile.services.fee_estimates._codes", return_value=[]):
+        result = client.get(reverse("payment", kwargs={"jurisdiction": "illinois"}))
+    body = result.content.decode()
+    accordion = body.split('<details class="fee-waiver-eligibility">')[1].split("</details>")[0]
+    assert "125%–200%" in accordion
+    assert "Up to" in accordion
+    assert "partial reduction" in accordion
+    assert "federal poverty level" in accordion
+
+
+def test_statutory_exemption_choice_does_not_claim_low_income(client, payment_draft):
+    from efile.services.fee_surcharges import matching_exemption
+    from efile.utils.config_loader import config_loader
+
+    payment_draft.case_type_name = "Relief from Abuse"
+    policy = config_loader.load_jurisdiction_config("vermont")["fee_estimates"]["surcharges"]
+    exemption = matching_exemption(policy, payment_draft)
+    with patch("efile.views.payment.estimate_fees", return_value={"waiver_exemption": exemption}):
+        result = client.get(reverse("payment", kwargs={"jurisdiction": "illinois"}))
+    body = result.content.decode()
+    assert "Claim the fee exemption for this case" in body
+    assert "I think I qualify for a fee waiver" not in body
+    assert "You do not need to qualify based on income" in body
+    assert "Add fee waiver documents" not in body

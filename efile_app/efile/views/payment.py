@@ -1,17 +1,21 @@
 from django.conf import settings
 from django.contrib import messages
 from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 from requests import RequestException
 
 from efile.api.suffolk_api_views import get_tyler_token
 from efile.models import FilingDocument, FilingParty
 from efile.services.current_drafts import ensure_current_draft
+from efile.services.draft_urls import draft_url
 from efile.services.drafts import draft_snapshot, read_case_data
 from efile.services.fee_estimates import estimate_fees
 from efile.services.fee_quotes import fee_inputs_token
 from efile.services.payment_accounts import payment_accounts
 from efile.services.people import filing_parties
+from efile.services.waiver_documents import has_waiver_document
+from efile.utils.config_loader import config_loader
 
 from ..workflow import WorkflowStepKey, get_step_url, get_workflow_context
 
@@ -71,6 +75,8 @@ def efile_payment(request, jurisdiction):
             return redirect(get_step_url(WorkflowStepKey.REVIEW, jurisdiction))
 
     context = {
+        "waiver_upload_url": draft_url(reverse("waiver_documents", kwargs={"jurisdiction": jurisdiction}), draft.pk),
+        "has_waiver_document": has_waiver_document(draft),
         "is_logged_in": True,
         "new_toga_url": f"{settings.EFSP_URL}/jurisdictions/{jurisdiction}/payments/new-toga-account",
         "case_data": read_case_data(draft),
@@ -80,6 +86,7 @@ def efile_payment(request, jurisdiction):
         # priced the filing as this page shows it (see fee_inputs_token).
         "fee_inputs_token": fee_inputs_token(draft),
         "fee_estimate": estimate_fees(draft),
+        "fee_waiver": config_loader.load_jurisdiction_config(jurisdiction).get("fee_waiver", {}),
     }
     context.update(get_workflow_context(WorkflowStepKey.PAYMENT, jurisdiction, draft))
     return render(request, "efile/payment.html", context)
