@@ -32,6 +32,7 @@
     if (notAParty && filingFor) {
         const syncFilingFor = () => {
             filingFor.hidden = !notAParty.checked;
+            filingFor.disabled = !notAParty.checked;
         };
         roleRadios.forEach((radio) => radio.addEventListener("change", syncFilingFor));
         syncFilingFor();
@@ -56,6 +57,16 @@
         };
         roleRadios.forEach((radio) => radio.addEventListener("change", syncContinue));
         syncContinue();
+    }
+
+    // Choosing a court role adds the filer immediately. Submit the same save
+    // action as the fallback button so the roster reflects persisted data.
+    const roleForm = document.getElementById("your-role");
+    const saveRole = roleForm?.querySelector('button[value="save_role"]');
+    if (roleForm && saveRole) {
+        roleRadios.forEach((radio) => radio.addEventListener("change", () => {
+            if (radio.checked && radio !== notAParty) roleForm.requestSubmit(saveRole);
+        }));
     }
 
     // The party list's "Add me as a party" shortcut: the filer is already on
