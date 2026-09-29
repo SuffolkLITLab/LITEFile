@@ -9,51 +9,111 @@
     const acknowledgement = document.getElementById("reviewed_extraction");
     const acknowledgementError = document.getElementById("reviewed-extraction-error");
 
+    const statusEl = document.getElementById("confirm-case-status");
+
     const fields = {
         court: {
             select: document.getElementById("court_code"),
             nameInput: document.getElementById("court_name"),
             guessKey: "court",
-            savedCode: context.court_code,
+            current: {
+                code: context.court_code || "",
+                text: context.court_name || ""
+            },
         },
         case_category: {
             select: document.getElementById("case_category_code"),
             nameInput: document.getElementById("case_category_name"),
             guessKey: "case category",
-            savedCode: context.case_category_code,
+            current: {
+                code: context.case_category_code || "",
+                text: context.case_category_name || ""
+            },
         },
         case_type: {
             select: document.getElementById("case_type_code"),
             nameInput: document.getElementById("case_type_name"),
             guessKey: "case type",
-            savedCode: context.case_type_code,
+            current: {
+                code: context.case_type_code || "",
+                text: context.case_type_name || ""
+            },
         },
         filing_type: {
             select: document.getElementById("filing_type_code"),
             nameInput: document.getElementById("filing_type_name"),
             guessKey: "filing type",
-            savedCode: context.filing_type_code,
+            current: {
+                code: context.filing_type_code || "",
+                text: context.filing_type_name || ""
+            },
         },
     };
 
+    const ORDER = ["court", "case_category", "case_type", "filing_type"];
+
+    const DOWNSTREAM = {
+        court: ["case_category", "case_type", "filing_type"],
+        case_category: ["case_type", "filing_type"],
+        case_type: ["filing_type"],
+        filing_type: [],
+    };
+
+    const PARENT = {
+        case_category: "court",
+        case_type: "case_category",
+        filing_type: "case_type",
+    };
+
+    const PLACEHOLDERS = {
+        court: "Choose a court",
+        case_category: "Choose a court first",
+        case_type: "Choose a case category first",
+        filing_type: "Choose a case type first",
+    };
+
+    function announce(message) {
+        if (!statusEl) return;
+        // Cleared first so saying the same thing twice is still said.
+        statusEl.textContent = "";
+        window.setTimeout(() => {
+            statusEl.textContent = message;
+        }, 50);
+    }
+
+    // Each field's state lives here, apart from which of its two panels is
+    // showing. `current` is the filer's choice, kept while its list reloads so
+    // a change further up keeps it wherever it is still offered. `mode` is
+    // "found" (a summary with Edit) or "edit" (the dropdown), and only the
+    // filer's own Edit, Update and Cancel -- or a choice that stopped being
+    // valid -- move it. Loading a list never does.
     Object.entries(fields).forEach(([key, field]) => {
         const root = field.select.closest(".review-field");
+        field.root = root;
         field.display = root.querySelector(".review-field__display");
         field.input = root.querySelector(".review-field__input");
         field.valueEl = root.querySelector(".review-field__value");
         field.hint = root.querySelector(".review-field__hint");
         field.defaultHint = field.hint.textContent.trim();
-        root.querySelector(".review-field__edit").addEventListener("click", () => {
-            setMode(key, "edit");
-            // The Edit button lives inside the display panel that setMode just
-            // hid, so without this the click would strand focus on <body>.
-            field.select.focus();
-        });
+        field.editButton = root.querySelector(".review-field__edit");
+        const heading = root.querySelector(":scope > label, :scope > span");
+        field.label = (heading?.firstChild?.textContent || key).trim();
+        field.mode = field.input.hidden ? "found" : "edit";
+        field.loading = false;
+        field.loaded = false;
+        if (field.display) {
+            field.checking = document.createElement("small");
+            field.checking.className = "review-field__checking";
+            field.checking.hidden = true;
+            field.display.querySelector(".review-field__found").appendChild(field.checking);
+        }
+        field.editButton?.addEventListener("click", () => beginEdit(key));
     });
 
     function setMode(key, mode) {
         const field = fields[key];
-        field.display.hidden = mode !== "found";
+        field.mode = mode;
+        if (field.display) field.display.hidden = mode !== "found";
         field.input.hidden = mode !== "edit";
     }
 
@@ -71,11 +131,12 @@
         return item.text || item.name || optionValue(item);
     }
 
-    async function getJson(url) {
+    async function getJson(url, signal) {
         const response = await fetch(url, {
             headers: {
                 "X-CSRFToken": apiUtils.getCSRFToken()
-            }
+            },
+            signal,
         });
         const result = await response.json();
         if (!response.ok || !result.success) {
@@ -84,31 +145,83 @@
         return result.data || [];
     }
 
-    const PLACEHOLDERS = {
-        court: "Choose a court",
-        case_category: "Choose a court first",
-        case_type: "Choose a case category first",
-        filing_type: "Choose a case type first",
+    // One number per field, raised whenever its list -- or any list above it
+    // -- is asked for again. A response that comes back carrying an old number
+    // is for a choice the filer has since moved away from, and is dropped
+    // rather than allowed to replace the list for the current one.
+    const generations = {
+        court: 0,
+        case_category: 0,
+        case_type: 0,
+        filing_type: 0
     };
+    const inFlight = {};
 
-    const DOWNSTREAM = {
-        court: ["case_category", "case_type", "filing_type"],
-        case_category: ["case_type", "filing_type"],
-        case_type: ["filing_type"],
-        filing_type: [],
-    };
+    function supersede(key) {
+        [key, ...DOWNSTREAM[key]].forEach((name) => {
+            generations[name] += 1;
+            if (inFlight[name]) inFlight[name].abort();
+            delete inFlight[name];
+        });
+        return generations[key];
+    }
 
-    function resetField(key, placeholder) {
+    function isCurrent(key, token) {
+        return generations[key] === token;
+    }
+
+    function remember(key) {
         const field = fields[key];
-        field.select.innerHTML = `<option value="">${placeholder}</option>`;
+        const option = field.select.selectedOptions[0];
+        const code = field.select.value;
+        const text = code ? apiUtils.cleanOptionText(option?.textContent) : "";
+        field.current = {
+            code,
+            text
+        };
+        field.nameInput.value = text;
+        if (field.valueEl && code) {
+            field.valueEl.textContent = text + (option.textContent.trim().endsWith("*") ? " *" : "");
+        }
+    }
+
+    function startLoading(key, message) {
+        const field = fields[key];
+        field.loading = true;
+        field.select.disabled = true;
+        field.select.innerHTML = `<option value="">${escapeHtml(message)}</option>`;
+        field.root.setAttribute("aria-busy", "true");
+        if (field.checking) {
+            field.checking.textContent = gettext("Checking this is still offered…");
+            field.checking.hidden = false;
+        }
+    }
+
+    function finishLoading(key) {
+        const field = fields[key];
+        field.loading = false;
+        field.root.removeAttribute("aria-busy");
+        if (field.checking) field.checking.hidden = true;
+    }
+
+    function clearField(key, placeholder) {
+        // Nothing above this field to choose from yet. Its own choice is kept
+        // in `current`, so putting the parent back puts it back too.
+        const field = fields[key];
+        finishLoading(key);
+        field.select.innerHTML = `<option value="">${escapeHtml(placeholder)}</option>`;
         field.select.disabled = true;
         field.nameInput.value = "";
         field.hint.textContent = field.defaultHint;
         setMode(key, "edit");
     }
 
-    function resetDownstream(key) {
-        DOWNSTREAM[key].forEach((child) => resetField(child, PLACEHOLDERS[child]));
+    function failField(key, message, placeholder) {
+        const field = fields[key];
+        clearField(key, placeholder);
+        field.select.disabled = false;
+        field.hint.textContent = message;
+        DOWNSTREAM[key].forEach((child) => clearField(child, PLACEHOLDERS[child]));
     }
 
     function existingCaseWire() {
@@ -116,37 +229,169 @@
         return checked && checked.value === "existing" ? "yes" : "no";
     }
 
-    async function populate(key, options, placeholder) {
+    const LISTS = {
+        case_category: {
+            url: "/api/dropdowns/case-categories/",
+            loading: "Loading case categories…",
+            placeholder: "Choose a case category",
+            params: () => ({
+                court: fields.court.select.value,
+                guessed_case_category: guesses["case category"] || "",
+            }),
+        },
+        case_type: {
+            url: "/api/dropdowns/case-types/",
+            loading: "Loading case types…",
+            placeholder: "Choose a case type",
+            params: () => ({
+                court: fields.court.select.value,
+                parent: fields.case_category.select.value,
+                guessed_case_type: guesses["case type"] || "",
+            }),
+        },
+        filing_type: {
+            url: "/api/dropdowns/filing-types/",
+            loading: "Loading filing types…",
+            placeholder: "Choose a filing type",
+            params: () => ({
+                court: fields.court.select.value,
+                case_category: fields.case_category.select.value,
+                case_type: fields.case_type.select.value,
+                existing_case: existingCaseWire(),
+                guessed_filing_type: guesses["filing type"] || "",
+            }),
+        },
+    };
+
+    async function loadList(key) {
         const field = fields[key];
-        field.select.innerHTML = `<option value="">${placeholder}</option>`;
+        const list = LISTS[key];
+        const token = supersede(key);
+        const ancestors = ORDER.slice(0, ORDER.indexOf(key));
+        if (ancestors.some((name) => !fields[name].select.value)) {
+            [key, ...DOWNSTREAM[key]].forEach((name) => clearField(name, PLACEHOLDERS[name]));
+            await loadFilerRoles();
+            return;
+        }
+        // Everything below waits on this list, and says so in place rather
+        // than folding open or closed while it does.
+        startLoading(key, list.loading);
+        DOWNSTREAM[key].forEach((child) => startLoading(child, gettext("Waiting for the choice above…")));
+        if (field.mode === "edit") announce(list.loading);
+        const controller = new AbortController();
+        inFlight[key] = controller;
+        let options;
+        try {
+            options = await getJson(`${list.url}?${new URLSearchParams({
+                jurisdiction: context.jurisdiction,
+                ...list.params(),
+            })}`, controller.signal);
+        } catch (error) {
+            if (!isCurrent(key, token)) return;
+            failField(key, error.message, list.placeholder);
+            await loadFilerRoles();
+            return;
+        }
+        if (!isCurrent(key, token)) return;
+        delete inFlight[key];
+        if (key === "case_category" && !options.length) {
+            // Some courts in the court list take no filings at all. Saying
+            // so beats leaving the filer with three dropdowns that will not
+            // open and no idea which choice caused it.
+            failField(key, gettext("This court does not accept filings through e-filing. Choose a different court above."), list.placeholder);
+            fields[key].select.disabled = true;
+            await loadFilerRoles();
+            return;
+        }
+        await populate(key, options, list.placeholder, token);
+    }
+
+    async function populate(key, options, placeholder, token) {
+        const field = fields[key];
+        const firstLoad = !field.loaded;
+        field.loaded = true;
+        field.select.innerHTML = `<option value="">${escapeHtml(placeholder)}</option>`;
         options.forEach((item) => {
             const opt = new Option(optionText(item), optionValue(item));
             if (item.recommended || item.selected || item.default) opt.dataset.recommended = "true";
             field.select.add(opt);
         });
         field.select.disabled = options.length === 0;
+        finishLoading(key);
 
-        const recommended = Array.from(field.select.options).find((o) => o.dataset.recommended);
-        const savedOption = field.savedCode ?
-            Array.from(field.select.options).find((o) => o.value === field.savedCode) :
-            null;
-        const chosen = savedOption || recommended;
+        const all = Array.from(field.select.options);
+        const wanted = field.current.code;
+        const kept = wanted ? all.find((o) => o.value === wanted) : null;
+        const recommended = all.find((o) => o.dataset.recommended);
 
-        if (chosen) {
-            field.select.value = chosen.value;
-            const chosenText = apiUtils.cleanOptionText(chosen.textContent);
-            field.nameInput.value = chosenText;
-            field.valueEl.textContent = chosenText + (chosen.textContent.trim().endsWith("*") ? " *" : "");
-            setMode(key, "found");
-            await ADVANCE[key]();
+        if (kept || (!wanted && recommended)) {
+            field.select.value = (kept || recommended).value;
+            remember(key);
+            field.hint.textContent = field.defaultHint;
+            // Only the page's first look folds a match into its summary. After
+            // that a field stays the way the filer left it.
+            if (firstLoad) setMode(key, "found");
+        } else if (wanted && !firstLoad) {
+            // The filer's choice is not on the new list. Said beside the field,
+            // naming what went, rather than left to look like it never existed.
+            const parent = fields[PARENT[key]];
+            const message = interpolate(gettext("%(choice)s is not offered for the %(parent)s you chose, so it was cleared. Choose again."), {
+                choice: field.current.text || wanted,
+                parent: parent ? parent.label.toLowerCase() : "",
+            }, true);
+            field.current = {
+                code: "",
+                text: ""
+            };
+            field.nameInput.value = "";
+            field.select.value = "";
+            field.hint.textContent = message;
+            setMode(key, "edit");
+            announce(message);
         } else {
             const extractionHint = guesses[field.guessKey] ?
                 "We found a hint in your document, but could not match it to a choice here." :
                 "Our system did not pull a match for this field. Choose an option to continue.";
             field.hint.textContent = [extractionHint, field.defaultHint].filter(Boolean).join(" ");
+            field.nameInput.value = "";
             setMode(key, "edit");
         }
+        if (token !== undefined && !isCurrent(key, token)) return;
+        await ADVANCE[key]();
     }
+
+    // --- Editing one choice -------------------------------------------------
+    //
+    // Edit opens a field's dropdown, and a choice there applies at once: what
+    // depends on it reloads, keeping whatever still fits. The field stays
+    // open, so the filer can see what they chose beside the fields it changed.
+
+    const roleField = document.getElementById("filer-role-field");
+    const roleOptions = document.getElementById("filer-role-options");
+    let savedRole = context.filer_role || "";
+    let roleGeneration = 0;
+
+    function chosenRole() {
+        return roleOptions.querySelector('input[name="filer_role"]:checked')?.value || "";
+    }
+
+    function beginEdit(key) {
+        const field = fields[key];
+        setMode(key, "edit");
+        // The Edit button lives inside the display panel that setMode just
+        // hid, so without this the click would strand focus on <body>.
+        field.select.focus();
+    }
+
+    function pendingEdit() {
+        // A court changed in the guided questions but not yet applied with
+        // Update court. The other fields apply as they are chosen.
+        return courtSelector && courtSelector.isEditing() ? fields.court : null;
+    }
+
+    // --- Loading -----------------------------------------------------------
+
+    let courtSelector = null;
 
     async function mountCourtSelector(field) {
         const container = document.getElementById("court-selector");
@@ -156,18 +401,31 @@
             jurisdiction: context.jurisdiction,
             select: field.select,
             nameInput: field.nameInput,
+            onStatus: announce,
+            labels: {
+                apply: gettext("Update court"),
+                cancel: gettext("Cancel"),
+                applyNote: gettext("Updates this page only. Nothing is saved until you confirm and continue."),
+                chooseFirst: gettext("Choose a court to update, or Cancel to keep the one you had."),
+                wait: gettext("Still finding courts for that answer. Try Update again in a moment."),
+                updated: gettext("Court updated:"),
+                cancelled: gettext("Change cancelled. The court is back to"),
+            },
         });
-        const started = await selector.start(field.savedCode || "", guesses.court || "");
+        const started = await selector.start(field.current.code || "", guesses.court || "");
         if (!started) {
             container.remove();
             return false;
         }
-        // The selector shows the court it settled on, and stays open so the
-        // filer can change it, so the field's own found/edit panels have
-        // nothing left to say.
+        courtSelector = selector;
+        // The selector shows the court it settled on, and folds and reopens
+        // its own questions with their own Update and Cancel, so the field's
+        // found/edit panels have nothing left to say.
+        field.guided = true;
         field.select.hidden = true;
         field.select.disabled = false; // a disabled select is never submitted
         field.display.remove();
+        field.display = null;
         setMode("court", "edit");
         return true;
     }
@@ -178,105 +436,18 @@
         // flat list: the filer answers their own state's routing questions and
         // the selector writes the court into the same <select> the form posts.
         if (await mountCourtSelector(field)) return;
-        field.select.disabled = true;
-        field.select.innerHTML = "<option value=\"\">Loading courts…</option>";
+        const token = supersede("court");
+        startLoading("court", "Loading courts…");
         try {
             const options = await getJson(`/api/dropdowns/courts/?${new URLSearchParams({
                 jurisdiction: context.jurisdiction,
                 guessed_court: guesses.court || "",
             })}`);
-            await populate("court", options, PLACEHOLDERS.court);
+            if (!isCurrent("court", token)) return;
+            await populate("court", options, PLACEHOLDERS.court, token);
         } catch (error) {
-            resetField("court", PLACEHOLDERS.court);
-            field.select.disabled = false;
-            field.hint.textContent = error.message;
-        }
-    }
-
-    async function loadCaseCategories() {
-        const courtCode = fields.court.select.value;
-        resetDownstream("case_category");
-        if (!courtCode) {
-            resetField("case_category", PLACEHOLDERS.case_category);
-            return;
-        }
-        const field = fields.case_category;
-        field.select.disabled = true;
-        field.select.innerHTML = "<option value=\"\">Loading case categories…</option>";
-        try {
-            const options = await getJson(`/api/dropdowns/case-categories/?${new URLSearchParams({
-                jurisdiction: context.jurisdiction,
-                court: courtCode,
-                guessed_case_category: guesses["case category"] || "",
-            })}`);
-            if (!options.length) {
-                // Some courts in the court list take no filings at all. Saying
-                // so beats leaving the filer with three dropdowns that will not
-                // open and no idea which choice caused it.
-                resetField("case_category", "Choose a case category");
-                field.hint.textContent = gettext("This court does not accept filings through e-filing. Choose a different court above.");
-                return;
-            }
-            await populate("case_category", options, "Choose a case category");
-        } catch (error) {
-            resetField("case_category", "Choose a case category");
-            field.select.disabled = false;
-            field.hint.textContent = error.message;
-        }
-    }
-
-    async function loadCaseTypes() {
-        const courtCode = fields.court.select.value;
-        const categoryCode = fields.case_category.select.value;
-        resetDownstream("case_type");
-        if (!courtCode || !categoryCode) {
-            resetField("case_type", PLACEHOLDERS.case_type);
-            return;
-        }
-        const field = fields.case_type;
-        field.select.disabled = true;
-        field.select.innerHTML = "<option value=\"\">Loading case types…</option>";
-        try {
-            const options = await getJson(`/api/dropdowns/case-types/?${new URLSearchParams({
-                jurisdiction: context.jurisdiction,
-                court: courtCode,
-                parent: categoryCode,
-                guessed_case_type: guesses["case type"] || "",
-            })}`);
-            await populate("case_type", options, "Choose a case type");
-        } catch (error) {
-            resetField("case_type", "Choose a case type");
-            field.select.disabled = false;
-            field.hint.textContent = error.message;
-        }
-    }
-
-    async function loadFilingTypes() {
-        const courtCode = fields.court.select.value;
-        const categoryCode = fields.case_category.select.value;
-        const typeCode = fields.case_type.select.value;
-        resetDownstream("filing_type");
-        if (!courtCode || !categoryCode || !typeCode) {
-            resetField("filing_type", PLACEHOLDERS.filing_type);
-            return;
-        }
-        const field = fields.filing_type;
-        field.select.disabled = true;
-        field.select.innerHTML = "<option value=\"\">Loading filing types…</option>";
-        try {
-            const options = await getJson(`/api/dropdowns/filing-types/?${new URLSearchParams({
-                jurisdiction: context.jurisdiction,
-                court: courtCode,
-                case_category: categoryCode,
-                case_type: typeCode,
-                existing_case: existingCaseWire(),
-                guessed_filing_type: guesses["filing type"] || "",
-            })}`);
-            await populate("filing_type", options, "Choose a filing type");
-        } catch (error) {
-            resetField("filing_type", "Choose a filing type");
-            field.select.disabled = false;
-            field.hint.textContent = error.message;
+            if (!isCurrent("court", token)) return;
+            failField("court", error.message, PLACEHOLDERS.court);
         }
     }
 
@@ -284,14 +455,6 @@
     // -- an eviction is two different filings depending on who is making it --
     // and which ones depends on the case type chosen above, so the question
     // appears and disappears with it.
-    const roleField = document.getElementById("filer-role-field");
-    const roleOptions = document.getElementById("filer-role-options");
-    let savedRole = context.filer_role || "";
-
-    function chosenRole() {
-        return roleOptions.querySelector('input[name="filer_role"]:checked')?.value || "";
-    }
-
     function roleOptionHtml(role) {
         const hint = role.suggested && !savedRole ?
             ` <em class="filer-role__hint">${gettext("probably you, from the document you uploaded")}</em>` :
@@ -305,6 +468,7 @@
     }
 
     async function loadFilerRoles() {
+        const token = ++roleGeneration;
         // Keep an answer the filer already gave while they edit other fields.
         savedRole = chosenRole() || savedRole;
         const caseTypeName = fields.case_type.nameInput.value;
@@ -329,42 +493,31 @@
             // question most cases never ask.
             console.warn("Could not load the sides of this case:", error);
         }
+        if (token !== roleGeneration) return;
         roleOptions.innerHTML = roles.map(roleOptionHtml).join("");
         roleField.hidden = roles.length === 0;
     }
 
-    async function loadFilingTypesAndRoles() {
-        await loadFilingTypes();
-        await loadFilerRoles();
-    }
-
     const ADVANCE = {
-        court: loadCaseCategories,
-        case_category: loadCaseTypes,
-        case_type: loadFilingTypesAndRoles,
-        filing_type: async () => {},
+        court: () => loadList("case_category"),
+        case_category: () => loadList("case_type"),
+        case_type: async () => {
+            await loadList("filing_type");
+        },
+        filing_type: loadFilerRoles,
     };
 
-    fields.court.select.addEventListener("change", () => {
-        fields.court.nameInput.value = apiUtils.cleanOptionText(fields.court.select.selectedOptions[0]?.textContent);
-        loadCaseCategories();
-    });
-    fields.case_category.select.addEventListener("change", () => {
-        fields.case_category.nameInput.value = apiUtils.cleanOptionText(fields.case_category.select.selectedOptions[0]?.textContent);
-        loadCaseTypes();
-    });
-    fields.case_type.select.addEventListener("change", () => {
-        fields.case_type.nameInput.value = apiUtils.cleanOptionText(fields.case_type.select.selectedOptions[0]?.textContent);
-        loadFilingTypesAndRoles();
-    });
-    fields.filing_type.select.addEventListener("change", () => {
-        fields.filing_type.nameInput.value = apiUtils.cleanOptionText(fields.filing_type.select.selectedOptions[0]?.textContent);
-        loadFilerRoles();
+    ORDER.forEach((key) => {
+        fields[key].select.addEventListener("change", () => {
+            remember(key);
+            fields[key].hint.textContent = fields[key].defaultHint;
+            ADVANCE[key]();
+        });
     });
 
     form.querySelectorAll('input[name="existing_case"]').forEach((radio) => {
         radio.addEventListener("change", () => {
-            if (fields.case_type.select.value) loadFilingTypesAndRoles();
+            if (fields.case_type.select.value) loadList("filing_type");
         });
     });
 
@@ -447,7 +600,35 @@
     });
     updateDocketNumberVisibility();
 
+    // A choice changed on the page but never applied, or a list still on its
+    // way, would reach the court as something the filer did not see.
+    function blockUnfinished(event) {
+        const unapplied = pendingEdit();
+        const loading = ORDER.some((key) => fields[key].loading);
+        if (!unapplied && !loading) return false;
+        event.preventDefault();
+        let target = errorBox;
+        if (unapplied) {
+            errorBox.textContent = interpolate(gettext("You changed the %(label)s but did not apply it. Choose Update to use it, or Cancel to keep what you had."), {
+                label: unapplied.label.toLowerCase()
+            }, true);
+            target = document.querySelector("[data-court-apply]") || errorBox;
+        } else {
+            errorBox.textContent = gettext("The court's lists are still loading. Wait a moment, then continue.");
+        }
+        errorBox.hidden = false;
+        target.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+        });
+        if (target !== errorBox) target.focus({
+            preventScroll: true
+        });
+        return true;
+    }
+
     form.addEventListener("submit", (event) => {
+        if (blockUnfinished(event)) return;
         const isNew = form.querySelector('input[name="existing_case"]:checked')?.value === "new";
         const missingCase = isNew && (!fields.court.select.value || !fields.case_category.select.value || !fields.case_type.select.value);
         const missingRole = !roleField.hidden && !chosenRole();
