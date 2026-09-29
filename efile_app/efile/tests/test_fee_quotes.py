@@ -108,9 +108,9 @@ def page_token(client):
     """The fee-inputs token Review hands its script, as a filer's browser has it."""
 
     content = client.get(REVIEW_URL).content.decode()
-    return json.loads(
-        re.search(r'<script id="fee-inputs-token" type="application/json">(.*?)</script>', content).group(1)
-    )
+    token = re.search(r'<script id="fee-inputs-token" type="application/json">(.*?)</script>', content)
+    assert token is not None, "Review carries no fee-inputs token"
+    return json.loads(token.group(1))
 
 
 def quote_fees(client, total="118.00", *fees, token=None, during=None):

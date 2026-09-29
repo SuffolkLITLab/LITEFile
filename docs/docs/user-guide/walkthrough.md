@@ -199,6 +199,8 @@ Review the list of all parties associated with the case.
 
 For a name change petition, you are typically the sole Petitioner. For other case types (such as civil lawsuits or divorces), you can verify both the Petitioner/Plaintiff and Respondent/Defendant entries.
 
+Choose your own role and click **Save role**. You stay on this screen so you can check the party list with your role in it. When the list is right, click **Continue** below it. The button tells you when it will ask next for details that are still missing.
+
 ---
 
 ## Step 10: Party details & addresses
@@ -267,6 +269,8 @@ Take a moment to verify:
 - All attached PDF documents
 - Party names and addresses
 - Selected payment account or fee waiver status
+
+If you changed anything that affects the court's fees after the Payment step, such as the court, a filing type or an optional service, Review calculates the fees again and shows the new total before you can submit.
 
 When you are ready, click **Submit Filing**.
 

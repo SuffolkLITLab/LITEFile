@@ -1388,6 +1388,12 @@
     margin-top: 2rem;
 }
 
+/* The list is where Save role lands (#party-list), not a control: it takes
+   focus so reading continues from it, without drawing a focus ring. */
+.party-roster:focus {
+    outline: none;
+}
+
 .party-roster__heading {
     align-items: center;
     display: flex;

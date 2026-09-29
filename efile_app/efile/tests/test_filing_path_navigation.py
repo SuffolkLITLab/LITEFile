@@ -12,6 +12,7 @@ from django.urls import reverse
 
 from efile.models import DocumentExtraction, FilingDocument, FilingDraft, FilingPlan
 from efile.services.current_drafts import CURRENT_DRAFT_SESSION_KEY
+from efile.services.fee_quotes import FeeQuoteState, fee_quote_state, record_fee_quote
 from efile.services.filing_path import (
     FILING_PATH_SOURCE_KEY,
     FilingPathSource,
@@ -207,6 +208,7 @@ def test_resuming_a_menu_started_draft_lands_on_its_step_with_the_same_back(sign
     draft = start_from_menu(signed_in, ExistingCase.NEW)
 
     url = get_resume_step_url(draft.current_step, "illinois", draft.pk)
+    assert url is not None
     assert url.partition("?")[0] == UPLOAD_URL
     assert back_link(signed_in.get(url).content.decode()) == OPTIONS_URL
 
@@ -264,7 +266,9 @@ def test_an_answer_filed_as_a_new_case_is_pointed_out_without_changing_anything(
 def test_correcting_the_mistaken_new_case_keeps_the_draft_and_goes_to_case_lookup(signed_in):
     draft = start_from_menu(signed_in, ExistingCase.NEW)
     lead = lead_with_evidence(draft, phase="subsequent", title="Small Claims Answer")
-    small_claims(draft, quoted_fee_total="95.00", quoted_fee_breakdown=[{"label": "Filing fee", "amount": "95.00"}])
+    small_claims(draft)
+    record_fee_quote(draft, "95.00", [{"label": "Filing fee", "amount": "95.00"}])
+    assert fee_quote_state(draft) == FeeQuoteState.CURRENT
 
     # Even from Review: an existing case has to be found before Review.
     response = confirm(signed_in, existing_case=ExistingCase.EXISTING, docket_number="24-SC-0012", return_to="review")
@@ -280,7 +284,8 @@ def test_correcting_the_mistaken_new_case_keeps_the_draft_and_goes_to_case_looku
     # Filing types chosen from the new-case list, and the quote that priced them, go.
     assert (lead.filing_type_code, lead.requested_optional_services) == ("", [])
     assert draft.filing_type_code == ""
-    assert (draft.quoted_fee_total, draft.quoted_fee_breakdown) == ("", [])
+    assert (draft.quoted_fee_total, draft.quoted_fee_breakdown, draft.quoted_fee_fingerprint) == ("", [], "")
+    assert fee_quote_state(draft) == FeeQuoteState.MISSING
 
     messages = [str(message) for message in signed_in.get(CASE_LOOKUP_URL).context["messages"]]
     assert any("Your uploaded documents are kept" in message and "filing type again" in message for message in messages)

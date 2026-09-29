@@ -23,6 +23,7 @@ from typing import Any
 from django.db import transaction
 
 from efile.models import FilingDocument, FilingDraft, sync_primary_filing_type
+from efile.services.fee_quotes import invalidate_fee_quote
 from efile.workflow import ExistingCase, normalize_existing_case
 
 FILING_PATH_SOURCE_KEY = "_filing_path_source"
@@ -119,10 +120,11 @@ def change_filing_path(draft: FilingDraft, new_path: str) -> FilingPathChange:
             sync_primary_filing_type(draft)
             change.cleared.append("filing_types")
 
-    if draft.quoted_fee_total or draft.quoted_fee_breakdown:
-        draft.quoted_fee_total = ""
-        draft.quoted_fee_breakdown = []
-        update_fields += ["quoted_fee_total", "quoted_fee_breakdown"]
+    if draft.quoted_fee_total or draft.quoted_fee_breakdown or draft.quoted_fee_fingerprint:
+        # The fingerprint would make it stale anyway; clearing it says outright
+        # that the quote priced a different kind of filing.
+        invalidate_fee_quote(draft, save=False)
+        update_fields += ["quoted_fee_total", "quoted_fee_breakdown", "quoted_fee_fingerprint"]
         change.cleared.append("fees")
 
     draft.save(update_fields=update_fields)

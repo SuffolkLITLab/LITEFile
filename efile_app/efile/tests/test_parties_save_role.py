@@ -86,6 +86,12 @@ def make_party(draft, sort_order, **overrides):
     return FilingParty.objects.create(draft=draft, role="other", sort_order=sort_order, **values)
 
 
+def found(pattern, text, flags=0):
+    match = re.search(pattern, text, flags)
+    assert match is not None, f"no match for {pattern!r}"
+    return match
+
+
 def post(client, **data):
     with patch("efile.views.parties.get_party_types", return_value=PARTY_TYPES):
         return client.post(PARTIES_URL, data)
@@ -332,8 +338,8 @@ def test_enter_in_the_role_form_saves_and_continue_follows_the_roster(client, dr
     make_party(draft, 0)
 
     page = get(client).content.decode()
-    role_form = re.search(r'<form[^>]*id="your-role"[^>]*>(.*?)</form>', page, re.S).group(1)
-    first_submit = re.search(r'<button[^>]*type="submit"[^>]*>', role_form).group()
+    role_form = found(r'<form[^>]*id="your-role"[^>]*>(.*?)</form>', page, re.S).group(1)
+    first_submit = found(r'<button[^>]*type="submit"[^>]*>', role_form).group()
     assert 'value="save_role"' in first_submit
     assert 'value="continue"' not in role_form
 
@@ -347,12 +353,12 @@ def test_enter_in_the_role_form_saves_and_continue_follows_the_roster(client, dr
 
 def continue_previews(page):
     return json.loads(
-        re.search(r'<script id="continue-previews" type="application/json">(.*?)</script>', page, re.S).group(1)
+        found(r'<script id="continue-previews" type="application/json">(.*?)</script>', page, re.S).group(1)
     )
 
 
 def continue_label(page):
-    return re.search(r'<span id="continue-from-parties-label">([^<]*)</span>', page).group(1).strip()
+    return found(r'<span id="continue-from-parties-label">([^<]*)</span>', page).group(1).strip()
 
 
 @pytest.mark.django_db
