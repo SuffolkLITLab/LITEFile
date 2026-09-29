@@ -13,7 +13,9 @@
  * screen listens to -- so nothing downstream has to know the selector exists.
  */
 (function() {
-    const SELECT_THRESHOLD = 8; // more courts than this read better as a dropdown
+    // More choices than this read better as a dropdown; this many or fewer are
+    // shown as radios, all of them visible at once.
+    const SELECT_THRESHOLD = 7;
 
     function escapeHtml(value) {
         const holder = document.createElement("span");
@@ -42,7 +44,7 @@
         const hint = (step.hint ? `<small class="court-selector__hint" id="${step.id}-hint">${escapeHtml(step.hint)}</small>` : "") + source;
         const describedBy = step.hint ? ` aria-describedby="${step.id}-hint"` : "";
 
-        if (step.type === "choice") {
+        if (step.type === "choice" || isShortList(step)) {
             const choices = step.options.map((option) => `
                 <label class="court-selector__choice">
                     <input type="radio" name="court-step-${escapeHtml(step.id)}" value="${escapeHtml(option.value)}"
@@ -87,6 +89,15 @@
             </div>`;
     }
 
+    function isShortList(step) {
+        // A handful of choices (Vermont's divisions) is easier to read as
+        // radios than behind a dropdown; a long list (its units, a county's
+        // courthouses) is not, and nor is one sorted under headings.
+        const options = step.options || [];
+        return step.type === "select" && options.length > 0 && options.length <= SELECT_THRESHOLD &&
+            !options.some((option) => option.group);
+    }
+
     function groupedOptionsHtml(step) {
         // Headings where the courts have them: Cook County's eighty-odd
         // locations are a division and then a courthouse, and reading them as
@@ -115,19 +126,17 @@
         return chosen.full_label || chosen.label;
     }
 
-    function trailHtml(steps) {
-        // An answered question folds down to one line. The filer works down a
-        // short list rather than scrolling back up past the questions they have
-        // already dealt with -- which matters most on the confirm-filing screen,
+    function answeredHtml(step) {
+        // An answered question folds down to one line, in its own place in the
+        // list, so the filer reads the route top to bottom whether a step is
+        // folded or open -- which matters most on the confirm-filing screen,
         // where the court sits beside three other fields.
-        if (!steps.length) return "";
-        const rows = steps.map((step) => `
+        return `
             <button type="button" class="court-selector__answered" data-change="${escapeHtml(step.id)}">
                 <span class="court-selector__answered-label">${escapeHtml(step.short_label || step.label)}</span>
                 <span class="court-selector__answered-value">${escapeHtml(answerLabel(step))}</span>
                 <span class="court-selector__change">Change</span>
-            </button>`).join("");
-        return `<div class="court-selector__trail">${rows}</div>`;
+            </button>`;
     }
 
     function candidatesHtml(matched, chosen) {
@@ -224,15 +233,34 @@
             jurisdiction,
             select,
             nameInput,
-            onSelect
+            onSelect,
+            onStatus
         } = options;
+        const labels = {
+            apply: "Update court",
+            cancel: "Cancel",
+            applyNote: "Updates this page only. Nothing is saved until you confirm and continue.",
+            chooseFirst: "Choose a court to update, or Cancel to keep the one you had.",
+            wait: "Still finding courts for that answer. Try Update again in a moment.",
+            updated: "Court updated:",
+            cancelled: "Change cancelled. The court is back to",
+            ...(options.labels || {}),
+        };
         const answers = {};
         let latest = 0;
+        // The newest request whose answer has been drawn (or failed). Anything
+        // below `latest` is still on its way, whatever order older ones return in.
+        let settledRequest = 0;
         let lastSteps = [];
         let expanded = ""; // the answered question the filer reopened
         let lastRender = {
             steps: []
         }; // redrawn as-is when only the folding changes
+        // Set while the filer is changing a court they had already settled on:
+        // the answers and drawing to go back to on Cancel, and which question
+        // they reopened. Nothing is published to the <select> until Update,
+        // so the fields below do not reload for every answer on the way.
+        let editing = null;
         // Mounting again over the same element retires the previous mount's
         // listeners, so two selectors can never both answer one click.
         if (container.courtSelectorListeners) container.courtSelectorListeners.abort();
@@ -246,30 +274,132 @@
             // A suggested answer is not one the filer gave, so it stays in
             // front of them rather than folding away as settled.
             if (expanded === step.id || !step.answer || step.defaulted) return true;
+            if (editing && editing.opened.has(step.id)) return true;
             if (step.type === "location" && data.location) {
                 return Boolean(data.location.searched) && !(data.location.matched || []).length;
             }
             return false;
         }
 
+        function idleAlternative(step, data) {
+            // A second way of naming the same court (Vermont's place lookup,
+            // beside its unit list) is only offered while the question it is
+            // an alternative to is open. Once that one is answered, the unused
+            // alternative has nothing to say, and reopening some other
+            // question must not bring it back between that question and its
+            // Update button.
+            if (!step.alternative_to || step.answer || expanded === step.id) return false;
+            const partner = lastSteps.find((other) => other.id === step.alternative_to);
+            return Boolean(partner && partner.answer) && !open(partner, data);
+        }
+
+        function focusKey(element) {
+            // Enough to find "the same control" again once the questions are
+            // redrawn, so answering one does not drop focus to the page.
+            if (!element || !container.contains(element)) return "";
+            if (element.id) return `#${CSS.escape(element.id)}`;
+            if (element.dataset.change) return `[data-change="${CSS.escape(element.dataset.change)}"]`;
+            if (element.dataset.courtList) return `[data-court-list="${CSS.escape(element.dataset.courtList)}"]`;
+            if (element.name) return `input[name="${CSS.escape(element.name)}"][value="${CSS.escape(element.value)}"]`;
+            if (element.hasAttribute("data-court-apply")) return "[data-court-apply]";
+            if (element.hasAttribute("data-court-cancel")) return "[data-court-cancel]";
+            return "";
+        }
+
+        function actionsHtml(data) {
+            if (!editing) return "";
+            const note = editing.note ? `<p class="court-selector__note court-selector__note--warn" id="court-selector-apply-note">${escapeHtml(editing.note)}</p>` : "";
+            return `
+                <div class="court-selector__actions">
+                    ${note}
+                    <button type="button" class="btn btn-sm btn-primary" data-court-apply${editing.note ? ' aria-describedby="court-selector-apply-note"' : ""}>${escapeHtml(labels.apply)}</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-court-cancel>${escapeHtml(labels.cancel)}</button>
+                    <small class="court-selector__apply-note">${escapeHtml(data.selected ? labels.applyNote : labels.chooseFirst)}</small>
+                </div>`;
+        }
+
         function render(data) {
             lastSteps = data.steps || [];
             const chosen = data.selected ? data.selected.value : "";
+            const refocus = focusKey(document.activeElement);
             // Once there is a court, the questions that produced it fold away
             // and so does everything that was there to choose between: the
             // answer is stated, and "Change" is how the filer goes back to it.
-            const settled = Boolean(data.selected) && !expanded && !lastSteps.some((step) => step.defaulted);
-            const steps = settled ? [] : lastSteps.filter((step) => open(step, data));
-            const answered = settled ?
+            const settled = Boolean(data.selected) && !expanded && !editing && !lastSteps.some((step) => step.defaulted);
+            // Every question keeps its place and its number. A reopened one
+            // opens where it is rather than moving below the ones still folded,
+            // and what goes with the open questions -- the courts to choose
+            // between, Update and Cancel -- sits right under the last of them.
+            const shown = settled ?
                 lastSteps.filter((step) => step.answer) :
-                lastSteps.filter((step) => !open(step, data));
+                lastSteps.filter((step) => !idleAlternative(step, data));
+            const openFlags = shown.map((step) => !settled && open(step, data));
+            const lastOpen = openFlags.lastIndexOf(true);
+            const followUp = `${settled ? "" : extraHtml(data, chosen)}${actionsHtml(data)}`;
+            const items = shown.map((step, index) => `
+                <li class="court-selector__item${openFlags[index] ? " court-selector__item--open" : ""}" data-item="${escapeHtml(step.id)}">
+                    <span class="court-selector__number" aria-hidden="true">${index + 1}</span>
+                    <div class="court-selector__item-body">
+                        ${openFlags[index] ? stepHtml(step) : answeredHtml(step)}
+                        ${index === lastOpen ? followUp : ""}
+                    </div>
+                </li>`).join("");
             container.innerHTML = `
-                ${steps.length && data.lede ? `<p class="court-selector__lede">${escapeHtml(data.lede)}</p>` : ""}
-                ${trailHtml(answered)}
-                <div class="court-selector__steps">${steps.map(stepHtml).join("")}</div>
-                ${settled ? "" : extraHtml(data, chosen)}
-                ${resultHtml(data)}`;
-            publish(data.selected, data.courts || []);
+                ${lastOpen >= 0 && data.lede ? `<p class="court-selector__lede">${escapeHtml(data.lede)}</p>` : ""}
+                ${resultHtml(data)}
+                <ol class="court-selector__steps">${items}</ol>
+                ${lastOpen < 0 ? followUp : ""}`;
+            if (refocus) {
+                const again = container.querySelector(refocus) || container.querySelector("[data-court-apply]");
+                if (again) again.focus();
+            }
+            if (!editing) publish(data.selected, data.courts || []);
+        }
+
+        function focusChange(stepId) {
+            const target = container.querySelector(`[data-change="${CSS.escape(stepId)}"]`) || container.querySelector("[data-change]");
+            if (target) target.focus();
+        }
+
+        function apply() {
+            if (!editing) return;
+            if (settledRequest !== latest) {
+                editing.note = labels.wait;
+                render(lastRender);
+                return;
+            }
+            if (!lastRender.selected) {
+                editing.note = labels.chooseFirst;
+                render(lastRender);
+                container.querySelector("[data-court-apply]")?.focus();
+                return;
+            }
+            const stepId = editing.step;
+            editing = null;
+            expanded = "";
+            render(lastRender);
+            focusChange(stepId);
+            if (onStatus) onStatus(`${labels.updated} ${lastRender.selected.text}.`);
+        }
+
+        function cancel() {
+            if (!editing) return;
+            const {
+                answers: before,
+                render: drawing,
+                step: stepId
+            } = editing;
+            latest += 1; // whatever is still loading is for the edit being dropped
+            settledRequest = latest;
+            Object.keys(answers).forEach((key) => delete answers[key]);
+            Object.assign(answers, before);
+            editing = null;
+            expanded = "";
+            lastRender = drawing;
+            render(drawing);
+            container.removeAttribute("aria-busy");
+            focusChange(stepId);
+            if (onStatus && drawing.selected) onStatus(`${labels.cancelled} ${drawing.selected.text}.`);
         }
 
         function publish(selected, courts) {
@@ -313,13 +443,27 @@
                     container.innerHTML = `<p class="court-selector__note court-selector__note--warn">${escapeHtml(error.message)}</p>`;
                 }
             } finally {
-                container.removeAttribute("aria-busy");
+                // Only the newest request settles the selector. An older one
+                // returning first must not make it look idle while the answer
+                // the filer is waiting for is still out.
+                if (request === latest) {
+                    settledRequest = request;
+                    container.removeAttribute("aria-busy");
+                }
             }
         }
 
         function answerStep(stepId, value) {
             answers[stepId] = value;
-            expanded = "";
+            // While editing, the question being changed stays open until
+            // Update: the filer is still deciding, and folding it away under
+            // them is the "jumping" this is here to stop.
+            if (editing) {
+                editing.opened.add(stepId);
+                editing.note = "";
+            } else {
+                expanded = "";
+            }
             // Two steps that are alternatives to each other are two ways of
             // naming one court, so answering either clears the other rather
             // than leaving a stale answer to disagree with it.
@@ -347,11 +491,41 @@
             signal: listeners.signal
         });
 
+        function reopenStep(stepId) {
+            if (!editing && lastRender.selected) {
+                editing = {
+                    answers: {
+                        ...answers
+                    },
+                    render: lastRender,
+                    step: stepId,
+                    opened: new Set([stepId]),
+                    note: "",
+                };
+            } else if (editing) {
+                editing.opened.add(stepId);
+            }
+            expanded = stepId;
+            render(lastRender);
+            // The Change button just went; the question it opened is where
+            // the filer is headed.
+            const step = container.querySelector(`.court-selector__step[data-step="${CSS.escape(stepId)}"]`);
+            const control = step && step.querySelector("select, input:checked, input");
+            if (control) control.focus();
+        }
+
         container.addEventListener("click", (event) => {
             const reopen = event.target.closest("[data-change]");
             if (reopen) {
-                expanded = reopen.dataset.change;
-                render(lastRender);
+                reopenStep(reopen.dataset.change);
+                return;
+            }
+            if (event.target.closest("[data-court-apply]")) {
+                apply();
+                return;
+            }
+            if (event.target.closest("[data-court-cancel]")) {
+                cancel();
                 return;
             }
             const findButton = event.target.closest("[data-find-courts]");
@@ -404,6 +578,10 @@
                 lastRender = result.data;
                 render(result.data);
                 return true;
+            },
+            /** True while a settled court is being changed and not yet applied. */
+            isEditing() {
+                return Boolean(editing);
             },
         };
     }

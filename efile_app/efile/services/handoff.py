@@ -596,6 +596,7 @@ def create_correction(draft, detail, fields):
         submission_response={},
         quoted_fee_total="",
         quoted_fee_breakdown=[],
+        quoted_fee_fingerprint="",
         selected_payment_account_id="",
         selected_payment_account_name="",
         selected_payment_account_type="",

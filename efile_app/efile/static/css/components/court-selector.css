@@ -15,10 +15,55 @@
 /* Questions already answered, folded to one line each. The whole point is
    height: the court field sits beside three others on the confirm-filing
    screen, and an open cascade pushed them off the screen. */
-.court-selector__trail {
+/* The questions, numbered and always in order: answered ones fold to a line,
+   open ones expand where they are. */
+.court-selector__steps {
     display: grid;
-    gap: 0.35rem;
-    margin-bottom: 0.9rem;
+    gap: 0.5rem;
+    list-style: none;
+    margin: 0 0 0.9rem;
+    padding: 0;
+}
+
+.court-selector__item {
+    align-items: start;
+    display: flex;
+    gap: 0.6rem;
+}
+
+.court-selector__number {
+    align-items: center;
+    background: var(--surface-subtle);
+    border: 1px solid var(--border-default);
+    border-radius: 50%;
+    color: var(--text-muted);
+    display: inline-flex;
+    flex: 0 0 auto;
+    font-size: 0.8rem;
+    font-weight: 700;
+    height: 1.75rem;
+    justify-content: center;
+    margin-top: 0.2rem;
+    width: 1.75rem;
+}
+
+.court-selector__item--open .court-selector__number {
+    background: var(--better-blue);
+    border-color: var(--better-blue);
+    color: white;
+}
+
+.court-selector__item-body {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.court-selector__item-body>.court-selector__answered {
+    width: 100%;
+}
+
+.court-selector__item--open .court-selector__step {
+    margin-bottom: 0.4rem;
 }
 
 .court-selector__answered {
@@ -200,7 +245,7 @@
     background: var(--success-surface);
     border: 1px solid var(--success-border);
     border-radius: 10px;
-    margin-top: 1rem;
+    margin-bottom: 0.9rem;
     padding: 0.85rem 1rem;
 }
 
@@ -226,4 +271,30 @@
 
 .court-selector__path {
     margin-top: 0.2rem;
+}
+
+/* Update and Cancel while a settled court is being changed. */
+.court-selector__actions {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.75rem;
+    margin-top: 0.8rem;
+}
+
+.court-selector__actions .court-selector__note {
+    flex-basis: 100%;
+    margin: 0;
+}
+
+.court-selector__apply-note {
+    color: var(--text-muted);
+    flex-basis: 100%;
+}
+
+/* On a phone, Update and Cancel are full-width targets, one above the other. */
+@media (width <=575.98px) {
+    .court-selector__actions .btn {
+        flex: 1 1 100%;
+    }
 }

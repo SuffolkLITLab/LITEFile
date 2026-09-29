@@ -37,6 +37,27 @@
         syncFilingFor();
     }
 
+    // Continue carries whichever role is selected, so what it says it will do
+    // next follows the selection rather than the role last saved.
+    const previewsEl = document.getElementById("continue-previews");
+    const continueLabel = document.getElementById("continue-from-parties-label");
+    const continueButton = document.getElementById("continue-from-parties");
+    const continueHint = document.getElementById("party-list-next");
+    if (previewsEl && continueLabel && continueButton && continueHint) {
+        const previews = JSON.parse(previewsEl.textContent);
+        const syncContinue = () => {
+            const selected = roleRadios.find((input) => input.checked);
+            const preview = previews[selected ? selected.value : ""] || previews[""];
+            continueLabel.textContent = preview.label;
+            continueHint.textContent = preview.hint;
+            continueHint.hidden = !preview.hint;
+            if (preview.hint) continueButton.setAttribute("aria-describedby", continueHint.id);
+            else continueButton.removeAttribute("aria-describedby");
+        };
+        roleRadios.forEach((radio) => radio.addEventListener("change", syncContinue));
+        syncContinue();
+    }
+
     // The party list's "Add me as a party" shortcut: the filer is already on
     // this draft with a name and address, so adding themselves is answering
     // the role question above, not typing themselves in again. It takes them
@@ -48,7 +69,13 @@
         addMe.addEventListener("click", () => {
             const firstPartyType = roleRadios.find((input) => input !== notAParty);
             if (!firstPartyType) return;
-            if (notAParty) notAParty.checked = false;
+            if (notAParty && notAParty.checked) {
+                notAParty.checked = false;
+                // Nothing is selected now, and what Continue says follows that.
+                notAParty.dispatchEvent(new Event("change", {
+                    bubbles: true
+                }));
+            }
             if (filingFor) filingFor.hidden = true;
             firstPartyType.scrollIntoView({
                 behavior: "smooth",

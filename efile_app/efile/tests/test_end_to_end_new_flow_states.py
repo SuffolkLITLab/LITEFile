@@ -388,6 +388,7 @@ def test_complete_new_filing_flow_by_jurisdiction(
         {
             "selected_payment_account": "waiver-account-1",
             "selected_payment_account_name": "Fee Waiver",
+            "selected_payment_account_type": "WV",
         },
     )
     assert pay_resp.status_code == 302

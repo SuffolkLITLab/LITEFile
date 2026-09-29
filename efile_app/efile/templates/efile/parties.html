@@ -51,7 +51,6 @@
         {% endif %}
         <form method="post" class="your-role-card" id="your-role">
             {% csrf_token %}
-            <input type="hidden" name="action" value="continue" />
             <input type="hidden" name="return_to" value="{{ return_to }}" />
             <div>
                 <span class="party-avatar"><i class="fa-solid fa-user" aria-hidden="true"></i></span>
@@ -150,13 +149,18 @@
                     {% translate "We could not load the court party roles. Refresh this page before you continue." %}
                 </p>
             {% endif %}
-            <button class="btn btn-primary"
+            {% comment %}
+            The first submit button of this form, so pressing Enter in it saves
+            the role and stays here. Only Continue, after the party list, moves on.
+            {% endcomment %}
+            <button class="btn btn-outline-primary"
                     type="submit"
-                    {% if not party_types %}disabled{% endif %}>
-                {% translate "Save role and check required parties" %}
-            </button>
+                    name="action"
+                    value="save_role"
+                    {% if not party_types %}disabled{% endif %}>{% translate "Save role" %}</button>
+            <small class="form-text">{% translate "Saving keeps you on this page so you can check the party list below." %}</small>
         </form>
-        <div class="party-roster">
+        <div class="party-roster" id="party-list" tabindex="-1">
             <div class="party-roster__heading">
                 <h2>{% translate "Party list" %}</h2>
                 {% if not filer.party_type %}
@@ -269,6 +273,10 @@
                     {% endif %}
                 </article>
             {% endfor %}
+            {# Kept in step with the selected role by parties.js. #}
+            <p class="party-roster__hint"
+               id="party-list-next"
+               {% if not continue_preview.hint %}hidden{% endif %}>{{ continue_preview.hint }}</p>
         </div>
         <div class="workflow-actions">
             {% if return_to == "review" %}
@@ -278,8 +286,24 @@
                 <a class="btn btn-outline-secondary"
                    href="{% url 'your_information' jurisdiction %}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {% translate "Back" %}</a>
             {% endif %}
+            {% comment %}
+            Carries the role form's answer, so a filer who chose a role and went
+            straight on does not lose it; the server saves it before moving on.
+            {% endcomment %}
+            <button class="btn btn-primary"
+                    type="submit"
+                    form="your-role"
+                    name="action"
+                    value="continue"
+                    id="continue-from-parties"
+                    {% if continue_preview.hint %}aria-describedby="party-list-next"{% endif %}
+                    {% if not party_types %}disabled{% endif %}>
+                <span id="continue-from-parties-label">{{ continue_preview.label }}</span>
+                <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+            </button>
         </div>
     </section>
+    {{ continue_previews|json_script:"continue-previews" }}
     {% include "efile/components/claim_party_dialog.html" %}
 {% endblock workflow_content %}
 {% block extra_js %}

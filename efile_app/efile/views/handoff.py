@@ -18,6 +18,7 @@ from efile.api.suffolk_api_views import get_tyler_token
 from efile.models import FilingDraft, HandoffDocumentUpdate, InterviewHandoff
 from efile.services.current_drafts import attach_current_draft
 from efile.services.draft_urls import draft_url
+from efile.services.fee_quotes import invalidate_fee_quote
 from efile.services.filings import describe_filing_detail, fetch_filing_detail
 from efile.services.handoff import (
     HandoffError,
@@ -397,14 +398,14 @@ def replace_documents(request):
                         {"sha256": doc["sha256"], "source": source},
                     )
                 draft.correction_fields = [path for path in draft.correction_fields if path != "documents"]
-                draft.quoted_fee_total = ""
-                draft.quoted_fee_breakdown = []
+                invalidate_fee_quote(draft, save=False)
                 draft.selected_payment_account_id = ""
                 draft.save(
                     update_fields=[
                         "correction_fields",
                         "quoted_fee_total",
                         "quoted_fee_breakdown",
+                        "quoted_fee_fingerprint",
                         "selected_payment_account_id",
                         "updated_at",
                     ]

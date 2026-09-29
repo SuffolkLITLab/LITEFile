@@ -3,6 +3,7 @@ from django.urls import reverse
 
 from efile.models import FilingDocument, FilingDraft, FilingParty
 from efile.services.current_drafts import CURRENT_DRAFT_SESSION_KEY
+from efile.services.fee_quotes import record_fee_quote
 from efile.workflow import WorkflowStepKey
 
 
@@ -173,26 +174,24 @@ def test_payment_account_types_proxies_the_courts_type_list(client, submission_d
 
 
 @pytest.mark.django_db
-def test_payment_persists_account_type_and_quoted_fees(client, submission_draft):
+def test_payment_persists_account_type_but_not_a_posted_fee_total(client, submission_draft):
+    """The quote comes from the fee API, which recorded what it priced; a form field cannot set it."""
+
     response = client.post(
         reverse("payment", kwargs={"jurisdiction": "illinois"}),
         {
             "selected_payment_account": "pay-123",
             "selected_payment_account_name": "Card ending in 4242",
             "selected_payment_account_type": "CC",
-            "quoted_fee_total": "125.00",
-            "quoted_fee_breakdown": '[{"label": "Filing fee", "amount": "100.00"}, {"label": "Technology fee", "amount": "25.00"}]',
+            "quoted_fee_total": "1.00",
+            "quoted_fee_breakdown": '[{"label": "Filing fee", "amount": "1.00"}]',
         },
     )
 
     assert response.status_code == 302
     submission_draft.refresh_from_db()
     assert submission_draft.selected_payment_account_type == "CC"
-    assert submission_draft.quoted_fee_total == "125.00"
-    assert submission_draft.quoted_fee_breakdown == [
-        {"label": "Filing fee", "amount": "100.00"},
-        {"label": "Technology fee", "amount": "25.00"},
-    ]
+    assert submission_draft.quoted_fee_total == ""
 
 
 @pytest.mark.django_db
@@ -234,17 +233,10 @@ def test_review_shows_previously_calculated_fee_total(client, submission_draft):
     submission_draft.selected_payment_account_id = "pay-123"
     submission_draft.selected_payment_account_name = "Card ending in 4242"
     submission_draft.selected_payment_account_type = "CC"
-    submission_draft.quoted_fee_total = "125.00"
-    submission_draft.quoted_fee_breakdown = [{"label": "Filing fee", "amount": "125.00"}]
     submission_draft.save(
-        update_fields=[
-            "selected_payment_account_id",
-            "selected_payment_account_name",
-            "selected_payment_account_type",
-            "quoted_fee_total",
-            "quoted_fee_breakdown",
-        ]
+        update_fields=["selected_payment_account_id", "selected_payment_account_name", "selected_payment_account_type"]
     )
+    record_fee_quote(submission_draft, "125.00", [{"label": "Filing fee", "amount": "125.00"}])
 
     response = client.get(reverse("case_review", kwargs={"jurisdiction": "illinois"}))
 

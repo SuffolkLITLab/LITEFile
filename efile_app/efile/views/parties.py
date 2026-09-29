@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils.translation import gettext
 from django.views.decorators.http import require_http_methods
 
 from efile.api.suffolk_api_views import get_tyler_token
@@ -86,6 +87,92 @@ def _continue_from_parties(request, jurisdiction, draft, party_types, return_to)
     return redirect(get_step_url(draft.current_step, jurisdiction))
 
 
+def _continue_previews(draft, filer, party_types, return_to):
+    """What Continue will do for each answer to the role question.
+
+    Continue carries whichever role is selected when it is pressed, which need
+    not be the saved one, so its label is worked out for every choice and the
+    page shows the one matching the selected radio. The filer's own row counts
+    as whatever role they pick; everyone else is as saved.
+    """
+
+    others = list(FilingParty.objects.filter(draft=draft, role="other"))
+    others_incomplete = any(not party_is_complete(party, party_types=party_types) for party in others)
+    held_by_others = {party.party_type for party in others if party.party_type}
+    saved_type = filer.party_type
+
+    def preview(role_code):
+        filer.party_type = role_code
+        try:
+            filer_incomplete = not party_is_complete(filer, party_types=party_types)
+        finally:
+            filer.party_type = saved_type
+        missing = [
+            item["name"]
+            for item in party_types
+            if item["required"] and item["code"] not in held_by_others and item["code"] != role_code
+        ]
+        hints = [gettext("The court also needs a %(name)s in this case.") % {"name": name} for name in missing]
+        if missing or others_incomplete or filer_incomplete:
+            hints.append(gettext("Continue will ask for the details that are still missing."))
+            label = gettext("Continue to missing party details")
+        elif return_to == RETURN_TO_REVIEW:
+            label = gettext("Continue to review")
+        else:
+            label = gettext("Continue")
+        return {"label": label, "hint": " ".join(hints)}
+
+    previews = {item["code"]: preview(item["code"]) for item in party_types}
+    previews[NOT_A_PARTY] = preview("")
+    # Nothing chosen yet: Continue will only ask for a role, so it promises
+    # nothing about where it goes next.
+    previews[""] = {"label": gettext("Continue"), "hint": ""}
+    return previews
+
+
+def _save_filer_role(request, draft, filer, party_types):
+    """Record the filer's answer to the role question, or say what is missing.
+
+    Shared by Save, which stays on this screen, and Continue, which moves on:
+    the answer is the same answer whichever button carried it.
+    """
+
+    party_type_names = {item["code"]: item["name"] for item in party_types}
+    filer_type = request.POST.get("filer_party_type", "").strip()
+    if filer_type == NOT_A_PARTY:
+        # Filing for someone else. Tyler still needs a party to file on
+        # behalf of, so the filer names one instead of becoming one.
+        chosen = _chosen_filing_parties(request, draft)
+        notice_email = request.POST.get("notice_email", "").strip()
+        if not chosen:
+            messages.error(request, "Choose who you are filing for.")
+            return False
+        if not _is_email(notice_email):
+            messages.error(request, "Give an email address for notices about this case.")
+            return False
+        filer.party_type = ""
+        filer.party_type_name = ""
+        filer.save(update_fields=["party_type", "party_type_name", "updated_at"])
+        set_filing_parties(draft, chosen)
+        draft.notice_email = notice_email
+        draft.save(update_fields=["notice_email", "updated_at"])
+        return True
+    if filer_type in party_type_names:
+        filer.party_type = filer_type
+        filer.party_type_name = party_type_names[filer_type]
+        filer.save(update_fields=["party_type", "party_type_name", "updated_at"])
+        set_filing_parties(draft, [filer])
+        if draft.notice_email:
+            # A party in their own case is reached at their own address,
+            # and the review screen should stop naming one that no longer
+            # applies to anything.
+            draft.notice_email = ""
+            draft.save(update_fields=["notice_email", "updated_at"])
+        return True
+    messages.error(request, "Choose your role in this case, or tell us you are filing for someone else.")
+    return False
+
+
 @require_http_methods(["GET", "POST"])
 def parties(request, jurisdiction):
     if not request.user.is_authenticated or not get_tyler_token(request, jurisdiction):
@@ -101,7 +188,6 @@ def parties(request, jurisdiction):
     if filer is None:
         return redirect("your_information", jurisdiction=jurisdiction)
     party_types = get_party_types(draft)
-    party_type_names = {item["code"]: item["name"] for item in party_types}
     # A person the filer started adding and never named is not a party they
     # meant to add, and reaches this list as an entry they cannot tell apart
     # from one they did. Only ever cleared on the way in: a POST is somebody
@@ -180,38 +266,15 @@ def parties(request, jurisdiction):
             messages.success(request, "Party removed.")
             return redirect(_parties_url(jurisdiction, return_to))
 
-        filer_type = request.POST.get("filer_party_type", "").strip()
-        if filer_type == NOT_A_PARTY:
-            # Filing for someone else. Tyler still needs a party to file on
-            # behalf of, so the filer names one instead of becoming one.
-            chosen = _chosen_filing_parties(request, draft)
-            notice_email = request.POST.get("notice_email", "").strip()
-            if not chosen:
-                messages.error(request, "Choose who you are filing for.")
-            elif not _is_email(notice_email):
-                messages.error(request, "Give an email address for notices about this case.")
-            else:
-                filer.party_type = ""
-                filer.party_type_name = ""
-                filer.save(update_fields=["party_type", "party_type_name", "updated_at"])
-                set_filing_parties(draft, chosen)
-                draft.notice_email = notice_email
-                draft.save(update_fields=["notice_email", "updated_at"])
+        if action in {"save_role", "continue"} and _save_filer_role(request, draft, filer, party_types):
+            if action == "continue":
                 return _continue_from_parties(request, jurisdiction, draft, party_types, return_to)
-        elif filer_type in party_type_names:
-            filer.party_type = filer_type
-            filer.party_type_name = party_type_names.get(filer_type, filer.party_type_name)
-            filer.save(update_fields=["party_type", "party_type_name", "updated_at"])
-            set_filing_parties(draft, [filer])
-            if draft.notice_email:
-                # A party in their own case is reached at their own address,
-                # and the review screen should stop naming one that no longer
-                # applies to anything.
-                draft.notice_email = ""
-                draft.save(update_fields=["notice_email", "updated_at"])
-            return _continue_from_parties(request, jurisdiction, draft, party_types, return_to)
-        else:
-            messages.error(request, "Choose your role in this case, or tell us you are filing for someone else.")
+            # Saving the role is not the end of this screen. The party list
+            # below it is who the court will be told this case is about, and
+            # the filer gets to read it -- with their own row now in it --
+            # before anything moves them on.
+            messages.success(request, "Your role is saved. Check the party list, then continue.")
+            return redirect(f"{_parties_url(jurisdiction, return_to)}#party-list")
 
     roster = [
         {
@@ -253,11 +316,19 @@ def parties(request, jurisdiction):
     attempted = request.POST.get("filer_party_type", "").strip() if request.method == "POST" else ""
     attempted_filing_for = {int(value) for value in request.POST.getlist("filing_for") if str(value).isdigit()}
     filing_for = attempted_filing_for or saved_filing_for
+    filing_for_someone_else = attempted == NOT_A_PARTY or (bool(saved_filing_for) and not filer.party_type)
+    return_to = request.GET.get("return_to") or request.POST.get("return_to", "")
+    # What Continue will do next, said before it does it -- for the role that
+    # is selected, which parties.js keeps in step as the selection changes.
+    continue_previews = _continue_previews(draft, filer, party_types, return_to)
+    selected_role = attempted or (NOT_A_PARTY if filing_for_someone_else else filer.party_type)
     context = {
         "is_logged_in": True,
         "filing_draft": draft_snapshot(draft),
         "filer": filer,
-        "return_to": request.GET.get("return_to", ""),
+        "return_to": return_to,
+        "continue_previews": continue_previews,
+        "continue_preview": continue_previews.get(selected_role, continue_previews[""]),
         "party_types": party_types,
         "roster": roster,
         "guessed_party_type": guessed_party_type,
@@ -280,7 +351,7 @@ def parties(request, jurisdiction):
             if named_in_document
             else ""
         ),
-        "filing_for_someone_else": attempted == NOT_A_PARTY or (bool(saved_filing_for) and not filer.party_type),
+        "filing_for_someone_else": filing_for_someone_else,
         "filing_for_candidates": [
             {"party": party, "selected": party.pk in filing_for} for party in filing_party_candidates(draft)
         ],

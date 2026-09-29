@@ -12,7 +12,8 @@
     "format:js": "prettier --write eslint.config.mjs",
     "format:js:check": "prettier --check eslint.config.mjs",
     "lint:css": "stylelint 'efile/**/*.css'",
-    "test:a11y": "playwright test --config=playwright.a11y.config.js"
+    "test:a11y": "playwright test --config=playwright.a11y.config.js",
+    "test:confirm-case": "playwright test --config=playwright.confirm-case.config.js"
   },
   "keywords": [],
   "author": "",

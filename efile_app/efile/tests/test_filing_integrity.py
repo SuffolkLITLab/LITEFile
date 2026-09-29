@@ -16,6 +16,7 @@ from efile.services.extraction_fields import (
     normalize_document_evidence,
     normalize_extracted_fields,
 )
+from efile.services.fee_quotes import record_fee_quote
 
 
 @pytest.mark.parametrize(
@@ -236,6 +237,7 @@ def test_organization_and_submission_preserve_primary_type_and_confirmation_iden
     draft.refresh_from_db()
     assert (draft.filing_type_code, draft.filing_type_name) == ("27959", "Complaint")
 
+    record_fee_quote(draft, "0.00", [])
     # Starting another filing in the shared session cannot redirect submission.
     other = FilingDraft.objects.create(user=draft.user, jurisdiction="illinois")
     session = client.session
