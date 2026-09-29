@@ -13,7 +13,9 @@
  * screen listens to -- so nothing downstream has to know the selector exists.
  */
 (function() {
-    const SELECT_THRESHOLD = 8; // more courts than this read better as a dropdown
+    // More choices than this read better as a dropdown; this many or fewer are
+    // shown as radios, all of them visible at once.
+    const SELECT_THRESHOLD = 7;
 
     function escapeHtml(value) {
         const holder = document.createElement("span");
@@ -42,7 +44,7 @@
         const hint = (step.hint ? `<small class="court-selector__hint" id="${step.id}-hint">${escapeHtml(step.hint)}</small>` : "") + source;
         const describedBy = step.hint ? ` aria-describedby="${step.id}-hint"` : "";
 
-        if (step.type === "choice") {
+        if (step.type === "choice" || isShortList(step)) {
             const choices = step.options.map((option) => `
                 <label class="court-selector__choice">
                     <input type="radio" name="court-step-${escapeHtml(step.id)}" value="${escapeHtml(option.value)}"
@@ -87,6 +89,15 @@
             </div>`;
     }
 
+    function isShortList(step) {
+        // A handful of choices (Vermont's divisions) is easier to read as
+        // radios than behind a dropdown; a long list (its units, a county's
+        // courthouses) is not, and nor is one sorted under headings.
+        const options = step.options || [];
+        return step.type === "select" && options.length > 0 && options.length <= SELECT_THRESHOLD &&
+            !options.some((option) => option.group);
+    }
+
     function groupedOptionsHtml(step) {
         // Headings where the courts have them: Cook County's eighty-odd
         // locations are a division and then a courthouse, and reading them as
@@ -115,19 +126,17 @@
         return chosen.full_label || chosen.label;
     }
 
-    function trailHtml(steps) {
-        // An answered question folds down to one line. The filer works down a
-        // short list rather than scrolling back up past the questions they have
-        // already dealt with -- which matters most on the confirm-filing screen,
+    function answeredHtml(step) {
+        // An answered question folds down to one line, in its own place in the
+        // list, so the filer reads the route top to bottom whether a step is
+        // folded or open -- which matters most on the confirm-filing screen,
         // where the court sits beside three other fields.
-        if (!steps.length) return "";
-        const rows = steps.map((step) => `
+        return `
             <button type="button" class="court-selector__answered" data-change="${escapeHtml(step.id)}">
                 <span class="court-selector__answered-label">${escapeHtml(step.short_label || step.label)}</span>
                 <span class="court-selector__answered-value">${escapeHtml(answerLabel(step))}</span>
                 <span class="court-selector__change">Change</span>
-            </button>`).join("");
-        return `<div class="court-selector__trail">${rows}</div>`;
+            </button>`;
     }
 
     function candidatesHtml(matched, chosen) {
@@ -305,17 +314,27 @@
             // and so does everything that was there to choose between: the
             // answer is stated, and "Change" is how the filer goes back to it.
             const settled = Boolean(data.selected) && !expanded && !editing && !lastSteps.some((step) => step.defaulted);
-            const steps = settled ? [] : lastSteps.filter((step) => open(step, data));
-            const answered = settled ?
-                lastSteps.filter((step) => step.answer) :
-                lastSteps.filter((step) => !open(step, data));
+            // Every question keeps its place and its number. A reopened one
+            // opens where it is rather than moving below the ones still folded,
+            // and what goes with the open questions -- the courts to choose
+            // between, Update and Cancel -- sits right under the last of them.
+            const shown = settled ? lastSteps.filter((step) => step.answer) : lastSteps;
+            const openFlags = shown.map((step) => !settled && open(step, data));
+            const lastOpen = openFlags.lastIndexOf(true);
+            const followUp = `${settled ? "" : extraHtml(data, chosen)}${actionsHtml(data)}`;
+            const items = shown.map((step, index) => `
+                <li class="court-selector__item${openFlags[index] ? " court-selector__item--open" : ""}" data-item="${escapeHtml(step.id)}">
+                    <span class="court-selector__number" aria-hidden="true">${index + 1}</span>
+                    <div class="court-selector__item-body">
+                        ${openFlags[index] ? stepHtml(step) : answeredHtml(step)}
+                        ${index === lastOpen ? followUp : ""}
+                    </div>
+                </li>`).join("");
             container.innerHTML = `
-                ${steps.length && data.lede ? `<p class="court-selector__lede">${escapeHtml(data.lede)}</p>` : ""}
-                ${trailHtml(answered)}
-                <div class="court-selector__steps">${steps.map(stepHtml).join("")}</div>
-                ${settled ? "" : extraHtml(data, chosen)}
+                ${lastOpen >= 0 && data.lede ? `<p class="court-selector__lede">${escapeHtml(data.lede)}</p>` : ""}
                 ${resultHtml(data)}
-                ${actionsHtml(data)}`;
+                <ol class="court-selector__steps">${items}</ol>
+                ${lastOpen < 0 ? followUp : ""}`;
             if (refocus) {
                 const again = container.querySelector(refocus) || container.querySelector("[data-court-apply]");
                 if (again) again.focus();

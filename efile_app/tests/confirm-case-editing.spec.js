@@ -19,10 +19,17 @@ const PAGE = '/jurisdiction/illinois/extraction-review/';
 
 // The seeded draft is filed in "cook:cvd1", Small Claims (6198), Contract
 // (183541), Complaint (143132); here that court is Vermont's Chittenden Unit.
+// More units than the selector shows as radios, as in Vermont (14), so the
+// unit question stays a dropdown; the division question is a short list.
 const UNITS = {
     'cook:cvd1': 'Chittenden Unit',
     'vt:washington': 'Washington Unit',
     'vt:orange': 'Orange Unit',
+    'vt:addison': 'Addison Unit',
+    'vt:bennington': 'Bennington Unit',
+    'vt:caledonia': 'Caledonia Unit',
+    'vt:franklin': 'Franklin Unit',
+    'vt:rutland': 'Rutland Unit',
 };
 const CATEGORIES = {
     'cook:cvd1': [{
@@ -361,6 +368,52 @@ test.describe('guided court questions (Vermont-shaped)', () => {
             name: 'Update court'
         }).click();
         await expect(page.locator('#court_code')).toHaveValue('vt:orange');
+    });
+
+    test('a reopened question opens in its own place, numbered, with Update under it', async ({
+        page
+    }) => {
+        await mockCourtLists(page);
+        await openSavedDraft(page);
+        const items = page.locator('.court-selector__item');
+
+        // Settled: the court is stated first, then the route, in order.
+        await expect(page.locator('.court-selector__result + .court-selector__steps')).toHaveCount(1);
+        expect(await items.evaluateAll((els) => els.map((el) => el.dataset.item))).toEqual(['level', 'division', 'unit']);
+        await expect(page.locator('.court-selector__number')).toHaveText(['1', '2', '3']);
+
+        await page.locator('[data-change="division"]').click();
+
+        expect(await items.evaluateAll((els) => els.map((el) => el.dataset.item))).toEqual(['level', 'division', 'unit']);
+        const division = page.locator('.court-selector__item[data-item="division"]');
+        await expect(division).toHaveClass(/court-selector__item--open/);
+        await expect(page.locator('.court-selector__item[data-item="unit"] [data-change="unit"]')).toBeVisible();
+        // A short list is radios, and the selected one has focus.
+        await expect(division.locator('input[type="radio"][name="court-step-division"]')).toHaveCount(2);
+        await expect(division.locator('input[value="civil"]')).toBeFocused();
+        await expect(division.locator('[data-court-apply]')).toBeVisible();
+        await expect(division.locator('[data-court-cancel]')).toBeVisible();
+
+        await division.locator('input[value="family"]').check();
+        await expect(division.locator('input[value="family"]')).toBeFocused();
+        await expect(division.locator('[data-court-apply]')).toBeVisible();
+        expect(await items.evaluateAll((els) => els.map((el) => el.dataset.item))).toEqual(['level', 'division', 'unit']);
+        await division.locator('[data-court-cancel]').click();
+        await expect(page.locator('[data-change="division"]')).toBeFocused();
+        await expect(page.locator('[data-change="division"]')).toContainText('Civil Division');
+    });
+
+    test('a long list stays a dropdown when its question is reopened', async ({
+        page
+    }) => {
+        await mockCourtLists(page);
+        await openSavedDraft(page);
+
+        await page.locator('[data-change="unit"]').click();
+
+        await expect(page.locator('select#court-step-unit')).toBeFocused();
+        await expect(page.locator('input[name="court-step-unit"]')).toHaveCount(0);
+        await expect(page.locator('.court-selector__item[data-item="unit"] [data-court-apply]')).toBeVisible();
     });
 
     test('Change then Update without changing confirms the court and reloads nothing', async ({
