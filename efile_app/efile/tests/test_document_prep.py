@@ -100,6 +100,7 @@ def test_document_checklist_shows_configured_guidance(client, planned_draft):
     page = response.content.decode()
     assert response.status_code == 200
     assert "Your document plan" in page
+    assert "This list is a guide" in page
     assert "Commonly included" in page
     assert "Always needed" not in page
     assert "Depending on your situation, other documents may be needed" in page
@@ -109,13 +110,14 @@ def test_document_checklist_shows_configured_guidance(client, planned_draft):
 
 
 @pytest.mark.django_db
-def test_document_checklist_keeps_its_disclaimer_without_configured_guidance(client, document_draft):
+def test_document_checklist_hides_its_disclaimer_without_configured_guidance(client, document_draft):
     response = client.get(reverse("document_checklist", kwargs={"jurisdiction": "illinois"}))
 
     document_draft.refresh_from_db()
     page = response.content.decode()
     assert "Your document plan" not in page
-    assert "cannot tell you which legal forms your case needs" in page
+    assert "This list is a guide" not in page
+    assert "cannot tell you which legal forms your case needs" not in page
     assert document_draft.plan_id is None
 
 
