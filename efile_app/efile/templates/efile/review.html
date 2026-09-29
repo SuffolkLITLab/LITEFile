@@ -203,21 +203,38 @@
                 {% endcomment %}
                 <div id="fee-quote" data-state="{{ fee_quote.state }}" aria-live="polite">
                     {% if fee_quote.state == "waived" %}
-                        <small class="text-muted">{% translate "This filing has an approved fee waiver. No payment will be charged." %}</small>
+                        <small class="text-muted">{% translate "Fee waiver requested: $0 due now. The court may ask you to pay if it denies your request." %}</small>
                     {% else %}
-                        <dl class="review-fee-total"
+                        <dl class="fee-receipt" id="fee-quote-breakdown">
+                            {% if not fee_quote.is_zero %}
+                                {% for fee in fee_quote.breakdown %}
+                                    <div class="fee-receipt-row">
+                                        <dt>{{ fee.label }}</dt>
+                                        <dd>
+                                            ${{ fee.amount|floatformat:"2u" }}
+                                        </dd>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        </dl>
+                        <dl class="fee-receipt"
                             id="fee-quote-total"
                             {% if fee_quote.state != "current" %}hidden{% endif %}>
-                            <div>
+                            <div class="fee-receipt-total">
                                 <dt>{% translate "Total" %}</dt>
                                 <dd id="fee-quote-amount">
-                                    {% if fee_quote.total %}${{ fee_quote.total }}{% endif %}
+                                    {% if fee_quote.total %}${{ fee_quote.total|floatformat:"2u" }}{% endif %}
                                 </dd>
                             </div>
                         </dl>
-                        <ul class="review-fee-breakdown" id="fee-quote-breakdown">
-                            {% for fee in fee_quote.breakdown %}<li>{{ fee.label }}: ${{ fee.amount }}</li>{% endfor %}
-                        </ul>
+                        <div id="free-filing-help" {% if not fee_quote.is_zero %}hidden{% endif %}>
+                            <button type="button" class="info-explainer" id="free-filing-explainer">
+                                {% translate "Why is a payment account needed?" %}
+                            </button>
+                            <div id="free-filing-explainer-content" hidden>
+                                <p>{% translate "The court requires a payment method, even for a free filing. Your confirmed total is $0, so you will not be charged." %}</p>
+                            </div>
+                        </div>
                         <p class="text-muted"
                            id="fee-quote-pending"
                            {% if fee_quote.state == "current" %}hidden{% endif %}>
@@ -286,7 +303,14 @@
         <div class="workflow-actions">
             <a class="btn btn-outline-secondary" href="{{ workflow_previous_url }}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {% translate "Back" %}</a>
             <button class="btn btn-primary" id="submitButton" type="button" disabled>
-                {% translate "Submit filing" %} <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
+                <span id="submit-button-label">
+                    {% if fee_quote.state == "current" and not fee_quote.is_zero %}
+                        {% translate "Submit and pay" %}
+                    {% else %}
+                        {% translate "Submit filing" %}
+                    {% endif %}
+                </span>
+                <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
             </button>
         </div>
     </section>

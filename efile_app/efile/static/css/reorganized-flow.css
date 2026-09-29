@@ -1282,7 +1282,8 @@
     margin-bottom: 0;
 }
 
-.address-explainer {
+.address-explainer,
+.info-explainer {
     background: none;
     border: 0;
     border-bottom: 1px dotted var(--better-blue);
@@ -1292,15 +1293,19 @@
 }
 
 .address-explainer:hover,
-.address-explainer:focus-visible {
+.address-explainer:focus-visible,
+.info-explainer:hover,
+.info-explainer:focus-visible {
     border-bottom-style: solid;
 }
 
-.address-explainer-popover {
+.address-explainer-popover,
+.info-explainer-popover {
     max-width: 23rem;
 }
 
-.address-explainer-popover .popover-body p:last-child {
+.address-explainer-popover .popover-body p:last-child,
+.info-explainer-popover .popover-body p:last-child {
     margin-bottom: 0;
 }
 

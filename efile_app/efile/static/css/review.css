@@ -10,6 +10,13 @@
     padding: 0;
 }
 
+#paymentMethodsContainer:not(:empty),
+#waiverHelp,
+.fee-waiver-eligibility,
+#payment-form {
+    margin-top: 1.25rem;
+}
+
 .payment-choice-field>legend,
 .fee-summary h2 {
     color: var(--text-heading);
@@ -26,10 +33,6 @@
     border-radius: 12px;
     margin-top: 1.25rem;
     padding: 1.1rem;
-}
-
-.fee-summary ul {
-    margin: 0.75rem 0 0;
 }
 
 .review-workflow-card {
@@ -141,20 +144,6 @@
     padding: 0.15rem 0.55rem;
 }
 
-.review-fee-breakdown {
-    color: var(--text-muted);
-    font-size: 0.85rem;
-    list-style: none;
-    margin: 0.3rem 0 0;
-    padding: 0;
-}
-
-.review-fee-breakdown li {
-    display: flex;
-    justify-content: space-between;
-    padding: 0.15rem 0;
-}
-
 .review-summary-card address {
     color: var(--text-body);
     line-height: 1.55;
@@ -190,4 +179,58 @@
     .review-summary-card--wide {
         grid-column: auto;
     }
+}
+
+.fee-receipt,
+.review-summary-card .fee-receipt {
+    margin: 0 0 0.75rem;
+}
+
+.fee-receipt .fee-receipt-row,
+.review-summary-card .fee-receipt .fee-receipt-row {
+    display: grid;
+    gap: 0 1rem;
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: 0;
+}
+
+.fee-receipt dt,
+.fee-receipt dd {
+    font-size: inherit;
+    font-weight: 400;
+    margin: 0;
+}
+
+.fee-receipt dd {
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+
+.fee-receipt .fee-receipt-total,
+.review-summary-card .fee-receipt .fee-receipt-total {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    padding: 0.75rem 0 0;
+    text-align: right;
+}
+
+.fee-receipt-total dt,
+.fee-receipt-total dd {
+    font-weight: 700;
+}
+
+.fee-receipt-note {
+    display: block;
+    font-weight: 400;
+}
+
+.fee-receipt-document {
+    padding-inline-start: 1rem;
+    overflow-wrap: anywhere;
+    color: #595959;
+}
+
+#fee-quote-breakdown {
+    margin-bottom: 0;
 }

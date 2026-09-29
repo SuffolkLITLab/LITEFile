@@ -1,22 +1,11 @@
 (function() {
-    function fileKey(file) {
-        return [file.name, file.size, file.lastModified, file.type].join("::");
-    }
-
-    function mergeUniqueFiles(existingFiles, incomingFiles) {
-        const merged = new Map();
-        Array.from(existingFiles).forEach((file) => merged.set(fileKey(file), file));
-        Array.from(incomingFiles).forEach((file) => {
-            const key = fileKey(file);
-            if (!merged.has(key)) merged.set(key, file);
-        });
-        return Array.from(merged.values());
+    function mergeFiles(existingFiles, incomingFiles) {
+        return [...existingFiles, ...incomingFiles];
     }
 
     if (typeof module !== "undefined" && module.exports) {
         module.exports = {
-            fileKey,
-            mergeUniqueFiles
+            mergeFiles
         };
     }
     if (typeof document === "undefined") return;
@@ -43,6 +32,7 @@
     const aiRemember = document.getElementById("ai-remember");
     const aiRememberChoice = document.getElementById("ai-remember-choice");
     const selectedFiles = new Map();
+    let nextSelectionId = 0;
     // The "remember this" row is offered only after the filer changes the
     // setting, and only for the rest of this page load. Until then the account
     // preference is not this request's business, so it is left out of the post.
@@ -148,9 +138,11 @@
     }
 
     function addFiles(files) {
-        const merged = mergeUniqueFiles(selectedFiles.values(), files);
+        // Each selection is a separate filing document, even if it refers to
+        // the same PDF. Removal uses its selection ID, never its filename.
+        const merged = mergeFiles(selectedFiles.values(), files);
         selectedFiles.clear();
-        merged.forEach((file) => selectedFiles.set(fileKey(file), file));
+        merged.forEach((file) => selectedFiles.set(String(++nextSelectionId), file));
         syncFiles();
     }
 
