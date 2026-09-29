@@ -340,8 +340,26 @@ def test_a_different_answer_sent_back_with_an_error_keeps_the_question_open(sign
     content = response.content.decode()
     assert response.status_code == 200
     assert re.search(r'<fieldset class="path-confirmation"\s+id="path-question"\s*>', content)
+    assert re.search(r'name="existing_case"\s+value="existing"\s+checked', content)
+    # Existing is what the document suggests, so there is nothing to point out;
+    # the note must not describe the saved answer the filer just replaced.
+    assert 'id="path-conflict"' not in content
+    assert "You chose to start a new case" not in content
     draft.refresh_from_db()
     assert draft.existing_case == ExistingCase.NEW
+
+
+@pytest.mark.django_db
+def test_the_conflict_note_on_a_resent_form_describes_the_answer_submitted(signed_in):
+    draft = start_from_menu(signed_in, ExistingCase.EXISTING)
+    lead_with_evidence(draft, phase="subsequent")
+    assert 'id="path-conflict"' not in signed_in.get(CONFIRM_URL).content.decode()
+
+    content = signed_in.post(CONFIRM_URL, {"existing_case": ExistingCase.NEW}).content.decode()
+
+    assert 'id="path-conflict"' in content
+    assert "You chose to start a new case" in content
+    assert 'data-value="existing"' in content
 
 
 # --- The service on its own ---------------------------------------------------

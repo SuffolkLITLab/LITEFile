@@ -159,15 +159,25 @@ def describe_path_change(change: FilingPathChange) -> str:
 _PHASE_SUGGESTS = {"initial": ExistingCase.NEW, "subsequent": ExistingCase.EXISTING}
 
 
-def filing_path_conflict(draft: FilingDraft, evidence: dict[str, Any] | None, document_title: str = "") -> dict | None:
+def filing_path_conflict(
+    draft: FilingDraft,
+    evidence: dict[str, Any] | None,
+    document_title: str = "",
+    *,
+    chosen: str | None = None,
+) -> dict | None:
     """When the uploaded document reads as the other kind of filing, say which.
 
     Only a suggestion: the extraction reads one document and can be wrong, so
     this never changes the filer's answer. Returns None when there is nothing
     to point out -- no answer yet, no evidence, or the two agree.
+
+    `chosen` is the answer the screen is showing, when that is not the saved
+    one: a form sent back with an error shows what the filer submitted, and
+    the note has to be about that answer, not the one it replaces.
     """
 
-    chosen = normalize_existing_case(draft.existing_case)
+    chosen = normalize_existing_case(draft.existing_case if chosen is None else chosen)
     if chosen not in {ExistingCase.NEW, ExistingCase.EXISTING}:
         return None
     phase = str((evidence or {}).get("filing phase") or "").strip().casefold()

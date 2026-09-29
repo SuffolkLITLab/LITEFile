@@ -245,11 +245,6 @@ def extraction_review(request, jurisdiction):
     # The answer already given, shown as an answer with Change rather than
     # asked again. "Not sure" is not an answer to show, so it is still asked.
     saved_path = draft.existing_case if draft.existing_case in {ExistingCase.NEW, ExistingCase.EXISTING} else ""
-    path_conflict = filing_path_conflict(
-        draft,
-        extraction.evidence if extraction else {},
-        document_title=guesses.get("document title", ""),
-    )
     docket_number = draft.docket_number or guesses.get("docket number")
     if request.method == "POST":
         # Sent back to fix something: show what the filer submitted, not what
@@ -269,6 +264,14 @@ def extraction_review(request, jurisdiction):
         chosen_existing_case = request.POST.get("existing_case", "")
         docket_number = request.POST.get("docket_number", "")
         extraction_context["existing_case"] = chosen_existing_case
+    # Against the answer on screen, which after a refused POST is the one
+    # submitted rather than the one saved.
+    path_conflict = filing_path_conflict(
+        draft,
+        extraction.evidence if extraction else {},
+        document_title=guesses.get("document title", ""),
+        chosen=chosen_existing_case,
+    )
     context = {
         "is_logged_in": True,
         "filing_draft": draft_snapshot(draft),
