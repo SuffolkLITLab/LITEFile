@@ -239,6 +239,9 @@
         };
         const answers = {};
         let latest = 0;
+        // The newest request whose answer has been drawn (or failed). Anything
+        // below `latest` is still on its way, whatever order older ones return in.
+        let settledRequest = 0;
         let lastSteps = [];
         let expanded = ""; // the answered question the filer reopened
         let lastRender = {
@@ -327,7 +330,7 @@
 
         function apply() {
             if (!editing) return;
-            if (container.getAttribute("aria-busy") === "true") {
+            if (settledRequest !== latest) {
                 editing.note = labels.wait;
                 render(lastRender);
                 return;
@@ -354,6 +357,7 @@
                 step: stepId
             } = editing;
             latest += 1; // whatever is still loading is for the edit being dropped
+            settledRequest = latest;
             Object.keys(answers).forEach((key) => delete answers[key]);
             Object.assign(answers, before);
             editing = null;
@@ -406,7 +410,13 @@
                     container.innerHTML = `<p class="court-selector__note court-selector__note--warn">${escapeHtml(error.message)}</p>`;
                 }
             } finally {
-                container.removeAttribute("aria-busy");
+                // Only the newest request settles the selector. An older one
+                // returning first must not make it look idle while the answer
+                // the filer is waiting for is still out.
+                if (request === latest) {
+                    settledRequest = request;
+                    container.removeAttribute("aria-busy");
+                }
             }
         }
 

@@ -329,6 +329,40 @@ test.describe('guided court questions (Vermont-shaped)', () => {
         await expect(page.locator('#court_code')).toHaveValue('vt:orange');
     });
 
+    test('an older answer returning first does not let Update apply before the newest one lands', async ({
+        page
+    }) => {
+        // Washington's questions come back quickly; Orange's, asked after, are slow.
+        const requests = await mockCourtLists(page, {
+            delay: (url) => {
+                if (!url.pathname.includes('court-selector') || !url.searchParams.get('answers')) return 0;
+                return url.searchParams.get('answers').includes('vt:orange') ? 1500 : 100;
+            },
+        });
+        await openSavedDraft(page);
+
+        await page.locator('[data-change="unit"]').click();
+        const unit = page.locator('#court-step-unit');
+        await unit.selectOption('vt:washington');
+        await unit.selectOption('vt:orange');
+        await lateAnswerDelivered(requests, /court-selector\/.*washington/);
+
+        await page.getByRole('button', {
+            name: 'Update court'
+        }).click();
+        await expect(page.locator('.court-selector__actions')).toContainText('Still finding courts');
+        await expect(page.locator('#court_code')).toHaveValue('cook:cvd1');
+
+        // When Orange's answer does land, it waits for Update like any other.
+        await lateAnswerDelivered(requests, /court-selector\/.*orange/);
+        await expect(page.locator('.court-selector__result')).toContainText('Orange Unit');
+        await expect(page.locator('#court_code')).toHaveValue('cook:cvd1');
+        await page.getByRole('button', {
+            name: 'Update court'
+        }).click();
+        await expect(page.locator('#court_code')).toHaveValue('vt:orange');
+    });
+
     test('Change then Update without changing confirms the court and reloads nothing', async ({
         page
     }) => {
