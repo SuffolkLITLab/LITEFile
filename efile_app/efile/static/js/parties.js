@@ -23,6 +23,7 @@
             const hint = document.getElementById("party-type-hint");
             if (hint) hint.hidden = true;
             selectRole(guessButton.dataset.value);
+            if (roleForm && saveRole) roleForm.requestSubmit(saveRole);
         });
     }
 
@@ -32,6 +33,7 @@
     if (notAParty && filingFor) {
         const syncFilingFor = () => {
             filingFor.hidden = !notAParty.checked;
+            filingFor.disabled = !notAParty.checked;
         };
         roleRadios.forEach((radio) => radio.addEventListener("change", syncFilingFor));
         syncFilingFor();
@@ -56,6 +58,17 @@
         };
         roleRadios.forEach((radio) => radio.addEventListener("change", syncContinue));
         syncContinue();
+    }
+
+    // Pointer selection saves immediately. Native radio arrow keys also fire
+    // change (and keyboard clicks have detail 0), so keep keyboard selection
+    // on this page until the person chooses Save role or Continue.
+    const roleForm = document.getElementById("your-role");
+    const saveRole = roleForm?.querySelector('button[value="save_role"]');
+    if (roleForm && saveRole) {
+        roleRadios.forEach((radio) => radio.addEventListener("click", (event) => {
+            if (event.detail > 0 && radio.checked && radio !== notAParty) roleForm.requestSubmit(saveRole);
+        }));
     }
 
     // The party list's "Add me as a party" shortcut: the filer is already on
