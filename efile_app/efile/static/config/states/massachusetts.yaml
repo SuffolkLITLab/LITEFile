@@ -274,3 +274,23 @@ court_selector:
       no_match_hint: >-
         We could not match that place to a court. Try adding a street address,
         or choose your court from the list below.
+
+# Statewide small-claims fees include the $10 statutory surcharge.
+# Reviewed 2026-09-29. Static Tyler fees take precedence.
+fee_estimates:
+  sources:
+    - https://www.mass.gov/info-details/boston-municipal-court-and-district-court-filing-fees
+    - https://www.mass.gov/info-details/small-claims-court
+  note: >-
+    Massachusetts small-claims estimates include the court surcharge.
+    Claims above $7,000 use the motor-vehicle property-damage exception;
+    this estimate does not determine whether your claim qualifies.
+  rules:
+    - case_pattern: 'small\s*claims?'
+      filing_pattern: '^(complaint|initial|small\s*claims?|statement of (small )?claim)'
+      initial_only: true
+      bands:
+        - {up_to: 500, low: 40, high: 40}
+        - {up_to: 2000, low: 50, high: 50}
+        - {up_to: 5000, low: 100, high: 100}
+        - {up_to: null, low: 150, high: 150}

@@ -930,3 +930,37 @@ keywords: ["name change", "name petition", "change of name"]
 
 ### To-Do's
 - **Changing sections to array data structure**: Consider making changes to how we injest sections and instead of using keys can possibly use arrays for more flexible dyanmic sections.
+
+## Rough fee estimates
+
+Each state's `fee_estimates` section provides account-free guidance on Payment.
+A numeric `fee` from the current court's filing-type codes takes precedence,
+including an explicit zero. Missing, invalid, or negative fees are unknown, not
+free. The estimator never writes a live quote or authorizes submission.
+
+`rules` are ordered. Each has case-insensitive `case_pattern` and
+`filing_pattern` regular expressions, an optional `initial_only` restriction
+(new case, lead document only), and ordered `bands`. Each band has an inclusive
+`up_to` claim amount (`null` means no upper limit) and dollar amounts `low` and
+`high`. Equal bounds mean one approximate amount. The claim amount comes from
+the draft's existing amount-in-controversy question. With no amount, guidance
+spans all bands in the matching rule. Nonmatching filings remain unknown; a
+partial estimate is never presented as a full total. Optional services and
+payment processing charges are excluded.
+
+Illinois uses the non-Cook and Cook statutory limits as a rough range, not a
+promise about actual county charges. Massachusetts uses statewide small-claims
+fees including the surcharge. Vermont uses separate small-claims complaint and
+counterclaim bands. Estate values and family stipulations are different facts
+from a claim amount: do not reuse `amount_in_controversy` for those fees. Use the
+static code-table fee where available and leave the estimate unknown otherwise.
+Source links and review dates live with the state tables; update them and the
+boundary tests in `test_fee_estimates.py` when schedules change.
+
+Selecting a waiver calls the authenticated, CSRF-protected `POST
+/api/waiver-account/` endpoint. It reuses an active waiver or creates a non-global
+account named `LITEFile  managed waiver account` using the proxy's plain-text
+creation API. User-row locking serializes concurrent creation requests. A failed
+account lookup never triggers creation. The payment form rechecks the selected
+account with Tyler before saving its ID, name, and type. Waiver selection does
+not grant a court waiver; the filer must provide the appropriate documents.

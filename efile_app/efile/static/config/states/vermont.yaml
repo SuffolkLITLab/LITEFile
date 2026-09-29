@@ -175,3 +175,25 @@ handoff:
           filing_type_name_aliases: [Relief from Abuse Litigant Address Form]
         RFAserviceinfo:
           filing_type_name_aliases: ["Protection Order Service Information DPS #132"]
+
+# Statewide claim-dependent entry fees, reviewed 2026-09-29.
+# Estate-value and stipulated-family fees require facts beyond claim amount;
+# use Tyler's static fee when available, otherwise leave them unknown.
+fee_estimates:
+  sources:
+    - https://legislature.vermont.gov/statutes/section/32/017/01431
+  note: >-
+    Vermont small-claims entry fees depend on the claim amount.
+    Counterclaims have a separate, lower fee schedule.
+  rules:
+    - case_pattern: 'small\s*claims?'
+      filing_pattern: '^counter\s*claim'
+      bands:
+        - {up_to: 500, low: 25, high: 25}
+        - {up_to: null, low: 35, high: 35}
+    - case_pattern: 'small\s*claims?'
+      filing_pattern: '^(complaint|initial|small\s*claims?|statement of claim)'
+      initial_only: true
+      bands:
+        - {up_to: 1000, low: 65, high: 65}
+        - {up_to: null, low: 90, high: 90}

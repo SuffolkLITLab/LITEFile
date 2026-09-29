@@ -11,9 +11,20 @@
     <section class="workflow-card workflow-card--narrow">
         <div class="workflow-eyebrow">{% translate "Fees" %}</div>
         <h1>{% translate "Choose how to pay court fees" %}</h1>
-        <p class="workflow-lede">
-            {% translate "Choose a saved payment method. We will calculate the court's fees before you continue." %}
-        </p>
+        <p class="workflow-lede">{% translate "You can request a fee waiver or pay by credit or bank account." %}</p>
+        <section class="fee-summary" aria-labelledby="rough-fee-heading">
+            <h2 id="rough-fee-heading">{% translate "Estimated court fees before a waiver" %}</h2>
+            {% for item in fee_estimate.rows %}
+                <p>{{ item.label }}: <strong>{{ item.amount }}</strong></p>
+            {% endfor %}
+            {% if fee_estimate.total %}
+                <p>{% translate "Estimated total" %}: <strong>{{ fee_estimate.total }}</strong></p>
+            {% else %}
+                <p>{% translate "We cannot estimate the full total yet. Missing fees are not $0." %}</p>
+            {% endif %}
+            <p>{% translate "This is a rough estimate. Additional services and payment processing fees may apply. We will calculate the exact fee after you select a credit or bank account." %}</p>
+            {% if fee_estimate.note %}<p>{{ fee_estimate.note }}</p>{% endif %}
+        </section>
         <form method="post" id="payment-form">
             {% csrf_token %}
             <input type="hidden"
@@ -27,12 +38,27 @@
                    id="selected-payment-account-type" />
             <fieldset class="payment-choice-field">
                 <legend>{% translate "Payment method" %}</legend>
-                <div id="paymentMethodsContainer" aria-live="polite">
-                    <div class="lookup-state">
-                        <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
-                        <span>{% translate "Loading payment methods…" %}</span>
-                    </div>
+                <div class="compact-choice-list">
+                    <label>
+                        <input class="form-check-input"
+                               type="radio"
+                               name="paymentIntent"
+                               value="waiver" />
+                        <span>{% translate "I want to request fees to be waived" %}</span>
+                    </label>
+                    <label>
+                        <input class="form-check-input"
+                               type="radio"
+                               name="paymentIntent"
+                               value="pay" />
+                        <span>{% translate "I want to pay by credit/bank account" %}</span>
+                    </label>
                 </div>
+                <div id="waiverHelp" hidden>
+                    <p>{% translate "The court decides whether to waive your fees. Include your fee waiver application or an applicable waiver order with your filing. Choosing this option does not grant a waiver." %}</p>
+                    <a href="{% url 'upload_documents' jurisdiction=jurisdiction %}">{% translate "Add fee waiver documents" %}</a>
+                </div>
+                <div id="paymentMethodsContainer" aria-live="polite"></div>
             </fieldset>
             <section class="fee-summary" id="paymentSection" hidden>
                 <h2>{% translate "Estimated court fees" %}</h2>
@@ -48,7 +74,7 @@
                 <div class="spinner-border text-primary" role="status">
                     <span class="visually-hidden">{% translate "Loading" %}</span>
                 </div>
-                <p class="mt-2">{% translate "Calculating court fees…" %}</p>
+                <p class="mt-2">{% translate "Preparing your payment choice…" %}</p>
             </div>
             <div class="workflow-actions">
                 <a class="btn btn-outline-secondary" href="{{ workflow_previous_url }}">

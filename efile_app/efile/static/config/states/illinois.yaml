@@ -806,3 +806,37 @@ court_selector:
             - "Wayne"
             - "White"
             - "Williamson"
+
+# Account-free guidance; never a live quote. Reviewed 2026-09-29.
+fee_estimates:
+  sources:
+    - https://www.ilga.gov/documents/legislation/ilcs/documents/070501050K27.1b.htm
+    - https://github.com/SuffolkLITLab/LITEFile/issues/237
+  note: >-
+    Illinois ranges use the non-Cook and Cook statutory fee limits as a guide,
+    not minimum and maximum actual charges. County fees may be lower, and local
+    charges may increase the total.
+  rules:
+    - case_pattern: 'small\s*claims?'
+      filing_pattern: '^(complaint|petition|initial|small\s*claims?|statement of claim)'
+      initial_only: true
+      bands:
+        - {up_to: 2500, low: 114, high: 270} # Schedule 3
+        - {up_to: 10000, low: 266, high: 362} # Schedule 2
+    - case_pattern: 'arbitration'
+      filing_pattern: '^(complaint|petition|initial)'
+      initial_only: true
+      bands:
+        - {up_to: 15000, low: 266, high: 362} # Schedule 2
+        - {up_to: null, low: 321, high: 371} # Schedule 1
+    - case_pattern: 'eviction|forcible entry'
+      filing_pattern: '^(complaint|petition|initial)'
+      initial_only: true
+      bands:
+        - {up_to: 0, low: 114, high: 270} # Possession only
+        - {up_to: null, low: 266, high: 362} # With a money claim
+    - case_pattern: 'chancery|dissolution|divorce|family|^law\b'
+      filing_pattern: '^(complaint|petition|initial)'
+      initial_only: true
+      bands:
+        - {up_to: null, low: 321, high: 371}

@@ -60,7 +60,11 @@ def submission_draft(client, django_user_model):
 
 
 @pytest.mark.django_db
-def test_payment_saves_account_and_advances_durable_step(client, submission_draft):
+def test_payment_saves_account_and_advances_durable_step(client, submission_draft, monkeypatch):
+    monkeypatch.setattr(
+        "efile.views.payment.payment_accounts",
+        lambda *args: [{"paymentAccountID": "pay-123", "accountName": "Saved account", "paymentAccountTypeCode": "CC"}],
+    )
     response = client.post(
         reverse("payment", kwargs={"jurisdiction": "illinois"}),
         {"selected_payment_account": "pay-123", "selected_payment_account_name": "Card ending in 4242"},
@@ -174,9 +178,12 @@ def test_payment_account_types_proxies_the_courts_type_list(client, submission_d
 
 
 @pytest.mark.django_db
-def test_payment_persists_account_type_but_not_a_posted_fee_total(client, submission_draft):
+def test_payment_persists_account_type_but_not_a_posted_fee_total(client, submission_draft, monkeypatch):
     """The quote comes from the fee API, which recorded what it priced; a form field cannot set it."""
-
+    monkeypatch.setattr(
+        "efile.views.payment.payment_accounts",
+        lambda *args: [{"paymentAccountID": "pay-123", "accountName": "Saved account", "paymentAccountTypeCode": "CC"}],
+    )
     response = client.post(
         reverse("payment", kwargs={"jurisdiction": "illinois"}),
         {
@@ -195,7 +202,11 @@ def test_payment_persists_account_type_but_not_a_posted_fee_total(client, submis
 
 
 @pytest.mark.django_db
-def test_payment_tolerates_malformed_fee_breakdown(client, submission_draft):
+def test_payment_tolerates_malformed_fee_breakdown(client, submission_draft, monkeypatch):
+    monkeypatch.setattr(
+        "efile.views.payment.payment_accounts",
+        lambda *args: [{"paymentAccountID": "pay-123", "accountName": "Saved account", "paymentAccountTypeCode": "WV"}],
+    )
     response = client.post(
         reverse("payment", kwargs={"jurisdiction": "illinois"}),
         {

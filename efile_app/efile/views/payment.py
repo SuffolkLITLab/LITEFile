@@ -2,12 +2,15 @@ from django.conf import settings
 from django.contrib import messages
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
+from requests import RequestException
 
 from efile.api.suffolk_api_views import get_tyler_token
 from efile.models import FilingDocument, FilingParty
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.drafts import draft_snapshot, read_case_data
+from efile.services.fee_estimates import estimate_fees
 from efile.services.fee_quotes import fee_inputs_token
+from efile.services.payment_accounts import payment_accounts
 from efile.services.people import filing_parties
 
 from ..workflow import WorkflowStepKey, get_step_url, get_workflow_context
@@ -41,13 +44,17 @@ def efile_payment(request, jurisdiction):
 
     if request.method == "POST":
         account_id = request.POST.get("selected_payment_account", "").strip()
-        account_name = request.POST.get("selected_payment_account_name", "").strip()
-        if not account_id:
+        try:
+            accounts = payment_accounts(jurisdiction, get_tyler_token(request, jurisdiction)) if account_id else []
+            account = next((a for a in accounts if str(a["paymentAccountID"]) == account_id), None)
+        except (RequestException, ValueError):
+            account = None
+        if not account:
             messages.error(request, "Choose a payment method to continue.")
         else:
             draft.selected_payment_account_id = account_id
-            draft.selected_payment_account_name = account_name or "Selected payment method"
-            draft.selected_payment_account_type = request.POST.get("selected_payment_account_type", "").strip()
+            draft.selected_payment_account_name = account.get("accountName") or "Selected payment method"
+            draft.selected_payment_account_type = account.get("paymentAccountTypeCode", "")
             # The fee quote itself is not read from this form: the fee API
             # recorded it on the draft, with what it was priced on, when it
             # answered (see efile.services.fee_quotes).
@@ -72,6 +79,7 @@ def efile_payment(request, jurisdiction):
         # Sent back with the fee request, so the quote is only kept if it
         # priced the filing as this page shows it (see fee_inputs_token).
         "fee_inputs_token": fee_inputs_token(draft),
+        "fee_estimate": estimate_fees(draft),
     }
     context.update(get_workflow_context(WorkflowStepKey.PAYMENT, jurisdiction, draft))
     return render(request, "efile/payment.html", context)
