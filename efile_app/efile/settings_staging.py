@@ -34,7 +34,10 @@ SECURE_HSTS_PRELOAD = False
 # Static files (WhiteNoise)
 # Collect static into a dedicated directory and serve with WhiteNoise
 STATIC_ROOT = BASE_SETTINGS_DIR / "staticfiles"
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
+}
 
 # Build MIDDLEWARE from base and insert WhiteNoise right after SecurityMiddleware
 MIDDLEWARE = list(BASE_MIDDLEWARE)
@@ -82,13 +85,13 @@ LOGGING = {
 # }
 # LOGGING["root"]["handlers"].append("papertrail")
 
-# Database: require DATABASE_URL and configure Postgres with pooling and SSL
+# ASGI requires short-lived connections. Configure any bounded pool separately.
 DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
 if not DATABASE_URL:
     raise RuntimeError("DATABASE_URL must be set for staging environment")
 
 DATABASES["default"] = dj_database_url.config(
     default=DATABASE_URL,
-    conn_max_age=600,
+    conn_max_age=0,
     ssl_require=True,
 )
