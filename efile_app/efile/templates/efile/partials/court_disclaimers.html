@@ -1,0 +1,7 @@
+{% load disclaimer_text %}
+{% for requirement in court_disclaimers %}
+    <div class="mb-3">
+        {% if requirement.name %}<h3 class="h6">{{ requirement.name }}</h3>{% endif %}
+        <div>{{ requirement.text|disclaimer_html }}</div>
+    </div>
+{% endfor %}

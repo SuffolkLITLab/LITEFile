@@ -31,6 +31,7 @@ const FilingHandler = {
         // button waits until the quote on the page is the current one.
         document.getElementById("submitButton").disabled = submitting ||
             !document.getElementById("confirm-filing").checked ||
+            document.getElementById("confirm-filing").disabled ||
             !USABLE_FEE_STATES.includes(this.feeQuoteState);
     },
 
@@ -136,7 +137,7 @@ const FilingHandler = {
     },
 
     async submitFiling() {
-        if (!document.getElementById("confirm-filing").checked) {
+        if (!document.getElementById("confirm-filing").checked || document.getElementById("confirm-filing").disabled) {
             Messages.showError(gettext("Confirm that you reviewed the filing before you submit."));
             return;
         }
@@ -146,6 +147,7 @@ const FilingHandler = {
             const efileData = this.buildCurrentFilingData();
             const result = await apiUtils.post("/api/submit-final-filing/", {
                 efile_data: efileData,
+                disclaimer_token: reviewJSON("disclaimer-token"),
                 confirm_submission: true,
                 payment_account_id: reviewJSON("payment-account-id")
             }, {}, {

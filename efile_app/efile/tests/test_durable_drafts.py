@@ -5,6 +5,7 @@ from django.urls import reverse
 
 from efile.models import FilingDocument, FilingDraft, FilingParty, FilingPlan
 from efile.services.current_drafts import CURRENT_DRAFT_SESSION_KEY, get_current_draft
+from efile.services.disclaimers import disclaimer_context
 from efile.services.drafts import (
     draft_snapshot,
     read_case_data,
@@ -15,6 +16,11 @@ from efile.services.drafts import (
 from efile.services.efsp_payload import PayloadValidationError
 from efile.services.fee_quotes import record_fee_quote
 from efile.workflow import WorkflowStepKey, get_workflow_step_choices
+
+
+@pytest.fixture(autouse=True)
+def court_requirements(monkeypatch):
+    monkeypatch.setattr("efile.services.disclaimers.court_disclaimers", lambda draft: [])
 
 
 class FakeApiResponse:
@@ -493,7 +499,11 @@ def test_final_submission_marks_current_draft_submitted(client, django_user_mode
 
     response = client.post(
         reverse("submit_final_filing"),
-        data={"confirm_submission": True, "efile_data": {"al_court_bundle": {}}},
+        data={
+            "disclaimer_token": disclaimer_context(draft)["disclaimer_token"],
+            "confirm_submission": True,
+            "efile_data": {"al_court_bundle": {}},
+        },
         content_type="application/json",
     )
 
@@ -536,7 +546,11 @@ def test_final_submission_marks_attached_plan_documents_as_filed(client, django_
 
     response = client.post(
         reverse("submit_final_filing"),
-        data={"confirm_submission": True, "efile_data": {"al_court_bundle": {}}},
+        data={
+            "disclaimer_token": disclaimer_context(draft)["disclaimer_token"],
+            "confirm_submission": True,
+            "efile_data": {"al_court_bundle": {}},
+        },
         content_type="application/json",
     )
 
@@ -558,7 +572,11 @@ def test_confirmed_api_rejection_releases_draft_for_retry(client, django_user_mo
 
     response = client.post(
         reverse("submit_final_filing"),
-        data={"confirm_submission": True, "efile_data": {"al_court_bundle": {}}},
+        data={
+            "disclaimer_token": disclaimer_context(draft)["disclaimer_token"],
+            "confirm_submission": True,
+            "efile_data": {"al_court_bundle": {}},
+        },
         content_type="application/json",
     )
 
@@ -617,7 +635,10 @@ def test_precondition_failure_releases_claim_to_draft(client, django_user_model)
 
     response = client.post(
         reverse("submit_final_filing"),
-        data={"confirm_submission": True},  # no efile_data -> pre-call validation failure
+        data={
+            "disclaimer_token": disclaimer_context(draft)["disclaimer_token"],
+            "confirm_submission": True,
+        },  # no efile_data -> pre-call validation failure
         content_type="application/json",
     )
 
@@ -645,7 +666,11 @@ def test_ambiguous_failure_does_not_release_to_draft(client, django_user_model, 
 
     response = client.post(
         reverse("submit_final_filing"),
-        data={"confirm_submission": True, "efile_data": {"al_court_bundle": {}}},
+        data={
+            "disclaimer_token": disclaimer_context(draft)["disclaimer_token"],
+            "confirm_submission": True,
+            "efile_data": {"al_court_bundle": {}},
+        },
         content_type="application/json",
     )
 
@@ -655,7 +680,11 @@ def test_ambiguous_failure_does_not_release_to_draft(client, django_user_model, 
 
     retry = client.post(
         reverse("submit_final_filing"),
-        data={"confirm_submission": True, "efile_data": {"al_court_bundle": {}}},
+        data={
+            "disclaimer_token": disclaimer_context(draft)["disclaimer_token"],
+            "confirm_submission": True,
+            "efile_data": {"al_court_bundle": {}},
+        },
         content_type="application/json",
     )
 
@@ -734,7 +763,11 @@ def test_payload_validation_failure_releases_draft_for_a_corrected_retry(client,
 
     response = client.post(
         reverse("submit_final_filing"),
-        data={"confirm_submission": True, "efile_data": {"al_court_bundle": {}}},
+        data={
+            "disclaimer_token": disclaimer_context(draft)["disclaimer_token"],
+            "confirm_submission": True,
+            "efile_data": {"al_court_bundle": {}},
+        },
         content_type="application/json",
     )
 

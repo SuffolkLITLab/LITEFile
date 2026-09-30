@@ -964,3 +964,27 @@ creation API. User-row locking serializes concurrent creation requests. A failed
 account lookup never triggers creation. The payment form rechecks the selected
 account with Tyler before saving its ID, name, and type. Waiver selection does
 not grant a court waiver; the filer must provide the appropriate documents.
+
+
+## Notices before upload
+
+Set `upload_disclaimers` at the top level of a state YAML file to show standard
+state notices in the “Before you upload your documents” accordion. Each item
+has a `name` and `text`; items appear in the configured order. Text supports sanitized paragraphs, emphasis, lists, and links,
+with line breaks preserved. Other tags and unsafe attributes are removed. Omit the setting or use `[]` to hide the accordion.
+
+```yaml
+upload_disclaimers:
+  - name: Personal identifying information
+    text: |
+      Add the state's standard notice here.
+```
+
+These notices are available before court selection and do not call the court API,
+even when a filing already has a court. Record the source and retrieval date in
+YAML comments when updating the text. Illinois, Massachusetts, and Vermont initially use
+notices retrieved from the proxy code tables on September 29, 2026.
+
+The upload screen does not record acceptance. Review and submission fetch the
+selected court's current requirements and require acceptance of that text.
+State notices do not replace or provide a fallback for those requirements.

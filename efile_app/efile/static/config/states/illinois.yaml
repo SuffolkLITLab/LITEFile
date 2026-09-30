@@ -865,3 +865,16 @@ fee_waiver:
       max_fpl_percent: 200
       description: "You may get a partial reduction in fees above 125%. The court also looks at your assets."
   document_guidance: "Include your waiver form or order. An Illinois waiver order usually lasts 12 months. If it is from another court, you may need to show a copy."
+
+# Standard statewide notices shown before court selection.
+# Source: https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/adams/disclaimer_requirements
+# Retrieved 2026-09-29; also matched Cook, DuPage, Lake, and Will.
+# HTML formatting removed from the source text. Local notices remain on Review.
+upload_disclaimers:
+  - name: Supreme Court Rule 15
+    text: |-
+      By submitting this acknowledgement, you represent that the document(s) you are filing comply with the following requirements:
+      For all cases, Supreme Court Rule 15 requires you to redact Social Security Numbers (except the last 4 digits) in all documents and attachments or file them in conjunction with a “Notice of Confidential Information Within Court Filing” Form.
+  - name: Supreme Court Rule 138
+    text: |-
+      For civil cases, Supreme Court Rule 138 requires you to redact Personal Identity Information (except the last 4 digits) in all documents and attachments or file them in conjunction with a "Notice of Confidential Information Within Court Filing" Form. Personal Identity Information includes Taxpayer Identification Numbers, Driver’s License Numbers, Financial Account Numbers, Debit/Credit Card Numbers, and any other information as provided by court order or local rule.

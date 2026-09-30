@@ -7,6 +7,11 @@ from efile.services.fee_quotes import record_fee_quote
 from efile.workflow import WorkflowStepKey
 
 
+@pytest.fixture(autouse=True)
+def court_requirements(monkeypatch):
+    monkeypatch.setattr("efile.services.disclaimers.court_disclaimers", lambda draft: [])
+
+
 @pytest.fixture
 def submission_draft(client, django_user_model):
     user = django_user_model.objects.create_user(username="review-user", tyler_jurisdiction="illinois")

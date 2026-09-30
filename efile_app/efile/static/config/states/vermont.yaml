@@ -235,3 +235,14 @@ fee_waiver:
       description: "Use your income before taxes. You may have fees waived."
   # Repeat-filing and prior-order requirements have not yet been confirmed.
   document_guidance: "Include your waiver form or order. Ask the court if an earlier order covers this filing."
+
+# Standard notices shown before upload, before a court is selected.
+# Source: https://efile-test.suffolklitlab.org/jurisdictions/vermont/codes/courts/sc:addison/disclaimer_requirements
+# Retrieved 2026-09-29. Review still uses the selected court’s live requirements.
+upload_disclaimers:
+  - name: Certification agreement
+    text: |-
+      I certify that I have reviewed the contents of this filing, and that the filing specifies any nonpublic record or contents, and protects those records from disclosure to the public consistent with the Rules for Public Access to Court Records. If any record or content was separated or redacted and filed as confidential, the actions taken to comply with the rules are stated in the “Comments to Court” field.
+  - name: Service agreement
+    text: |-
+      I certify that I am complying with service requirements in V.R.E.F. 11(g) and V.R.C.P. 5(b). (1) I am serving all persons on whom service is required through File and Serve, or (2) I am serving the persons on whom service is required through File and Serve and submitting a certificate of service that describes service on all other persons required to be served by other means, or (3) I am not required to serve my filing on any person.

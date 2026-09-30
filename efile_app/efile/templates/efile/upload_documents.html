@@ -25,6 +25,15 @@
                    aria-label="{% translate "Change whether this is a new or existing case" %}">{% translate "Change" %}</a>
             </p>
         {% endif %}
+        {% if upload_disclaimers %}
+            <details class="border rounded p-3 mb-3">
+                <summary>{% translate "Before you upload your documents" %}</summary>
+                <div class="mt-3">
+                    {% include "efile/partials/court_disclaimers.html" with court_disclaimers=upload_disclaimers only %}
+                    <p>{% translate "These are standard notices for filing in this state. Before you submit, you will review and accept the requirements for your court." %}</p>
+                </div>
+            </details>
+        {% endif %}
         <div class="requirements-strip">
             <span><i class="fa-solid fa-file-pdf" aria-hidden="true"></i> {% translate "PDF only" %}</span>
             <span><i class="fa-solid fa-weight-hanging" aria-hidden="true"></i> {% translate "10 MB per file" %}</span>

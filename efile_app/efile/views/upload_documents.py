@@ -11,6 +11,7 @@ from efile.services.current_drafts import ensure_current_draft
 from efile.services.document_extractions import extraction_for_document, queue_document_extraction
 from efile.services.document_uploads import upload_files
 from efile.services.drafts import draft_snapshot, read_upload_data
+from efile.utils.config_loader import config_loader
 from efile.utils.s3_upload_handler import S3UploadHandler
 from efile.workflow import ExistingCase, WorkflowStepKey, get_step_url, get_workflow_context
 
@@ -175,6 +176,7 @@ def upload_documents(request, jurisdiction):
         "ai_opted_out": draft.ai_assistance_opted_out,
         "account_ai_opted_out": request.user.ai_assistance_opted_out,
     }
+    context["upload_disclaimers"] = config_loader.get_upload_disclaimers(jurisdiction)
     context.update(get_workflow_context(WorkflowStepKey.UPLOAD_DOCUMENTS, jurisdiction, draft))
     return render(request, "efile/upload_documents.html", context)
 
