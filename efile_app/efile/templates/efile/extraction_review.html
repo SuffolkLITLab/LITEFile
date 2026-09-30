@@ -96,6 +96,9 @@
                 <a href="{% url 'upload_documents' jurisdiction %}">{% translate "go back and try a different document" %}</a>.
             </div>
         {% endif %}
+        {% if lead_document %}
+            {% include "efile/components/document_preview.html" with document=lead_document %}
+        {% endif %}
         <form method="post" id="extraction-review-form">
             {% csrf_token %}
             <input type="hidden" name="return_to" value="{{ return_to }}" />

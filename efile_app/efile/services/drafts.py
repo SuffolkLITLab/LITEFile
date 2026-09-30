@@ -494,12 +494,23 @@ def write_upload_data(
         # Handoff provenance and pending corrections are keyed by row id, so
         # they follow the file to its rebuilt row the same way.
         previous_ids = {document.s3_key: document.pk for document in previous}
+        preparation_metadata = {
+            document.s3_key: {
+                field: getattr(document, field)
+                for field in ("original_filename", "original_s3_key", "preparation", "preparation_reviewed_at")
+            }
+            for document in previous
+        }
         FilingDocument.objects.filter(draft=draft, role=FilingDocument.Role.SUPPORTING).delete()
         for index, file_obj in enumerate(supporting_files):
             config = supporting_configs[index] if index < len(supporting_configs) else {}
             _upsert_document(draft, FilingDocument.Role.SUPPORTING, index, file_obj or {}, config or {})
         moved = {}
         for document in FilingDocument.objects.filter(draft=draft, role=FilingDocument.Role.SUPPORTING):
+            if metadata := preparation_metadata.get(document.s3_key):
+                for field, value in metadata.items():
+                    setattr(document, field, value)
+                document.save(update_fields=[*metadata, "updated_at"])
             item_id = claimed_items.get(document.s3_key, "")
             if item_id:
                 document.checklist_item_id = item_id

@@ -7,6 +7,7 @@ from django.urls import reverse
 
 from efile.models import DocumentExtraction, FilingDocument, FilingDraft
 from efile.services.current_drafts import CURRENT_DRAFT_SESSION_KEY
+from efile.tests.pdf_helpers import pdf_bytes
 from efile.workflow import ExistingCase, WorkflowStepKey
 
 
@@ -51,8 +52,8 @@ def test_upload_documents_persists_files_and_queues_analysis(client, reorganized
         {"success": True, "key": "supporting.pdf"},
     ]
     handler.get_public_url.side_effect = ["https://example.com/lead.pdf", "https://example.com/supporting.pdf"]
-    lead = SimpleUploadedFile("petition.pdf", b"%PDF lead", content_type="application/pdf")
-    supporting = SimpleUploadedFile("exhibit.pdf", b"%PDF exhibit", content_type="application/pdf")
+    lead = SimpleUploadedFile("petition.pdf", pdf_bytes(), content_type="application/pdf")
+    supporting = SimpleUploadedFile("exhibit.pdf", pdf_bytes(), content_type="application/pdf")
 
     with patch("efile.services.document_uploads.S3UploadHandler", return_value=handler):
         response = client.post(

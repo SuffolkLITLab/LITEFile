@@ -146,6 +146,12 @@ DOCUMENT_EXTRACTION_TIMEOUT_SECONDS = int(os.getenv("DOCUMENT_EXTRACTION_TIMEOUT
 DOCUMENT_EXTRACTION_MEMORY_MB = int(os.getenv("DOCUMENT_EXTRACTION_MEMORY_MB", "768"))
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
 ALLOWED_FILE_TYPES = [".pdf", ".doc", ".docx"]
+
+# Gotenberg document conversion service
+GOTENBERG_URL = os.getenv("GOTENBERG_URL", "")
+GOTENBERG_USERNAME = os.getenv("GOTENBERG_USERNAME", "")
+GOTENBERG_PASSWORD = os.getenv("GOTENBERG_PASSWORD", "")
+DOCUMENT_PREPARATION_TIMEOUT_SECONDS = int(os.getenv("DOCUMENT_PREPARATION_TIMEOUT_SECONDS", "45"))
 # Analyze only the front of a filing. Exhibits and discovery can make a PDF
 # hundreds of pages long, while the caption and filing details normally appear
 # near the beginning.

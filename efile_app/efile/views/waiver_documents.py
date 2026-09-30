@@ -6,10 +6,12 @@ from django.views.decorators.http import require_http_methods
 from efile.api.suffolk_api_views import get_tyler_token
 from efile.models import FilingDocument, FilingDraft
 from efile.services.current_drafts import explicit_draft_id, get_current_draft
+from efile.services.document_preparation import cleanup_uploads, store_prepared_document
 from efile.services.drafts import ACTIVE_DRAFT_STATUSES
 from efile.services.fee_quotes import fee_inputs_token, invalidate_fee_quote
 from efile.services.waiver_documents import waiver_document_choices, waiver_filing_types
 from efile.utils.s3_upload_handler import S3UploadHandler
+from efile.workflow import WorkflowStepKey, get_step_url
 
 
 @require_http_methods(["GET", "POST"])
@@ -21,6 +23,8 @@ def waiver_documents(request, jurisdiction):
     draft = get_current_draft(request, jurisdiction=jurisdiction)
     if draft is None or draft.status not in ACTIVE_DRAFT_STATUSES or not draft.court_code:
         return JsonResponse({"error": "This filing is not available to edit."}, status=409)
+    keys = []
+    handler = S3UploadHandler()
     try:
         options = waiver_filing_types(draft)
         data = request.POST if request.method == "POST" else request.GET
@@ -38,10 +42,9 @@ def waiver_documents(request, jurisdiction):
             raise ValueError("Choose a confidentiality setting for this document.")
         files = request.FILES.getlist("document")
         if len(files) != 1:
-            raise ValueError("Choose one PDF to upload.")
+            raise ValueError("Choose one PDF or Word document to upload.")
         file = files[0]
-        handler = S3UploadHandler()
-        validation = handler.validate_file(file, max_size_mb=10, allowed_types=[".pdf"])
+        validation = handler.validate_file(file, max_size_mb=10, allowed_types=[".pdf", ".doc", ".docx"])
         if not validation["valid"]:
             raise ValueError(validation["error"])
         if not handler._ensure_initialized():
@@ -54,10 +57,7 @@ def waiver_documents(request, jurisdiction):
                 )
             if not draft.documents.filter(role=FilingDocument.Role.LEAD).exists():
                 raise ValueError("Add your main document before adding a fee waiver.")
-            file.seek(0)
-            uploaded = handler.upload_file(file, file_type=FilingDocument.Role.SUPPORTING)
-            if not uploaded.get("success"):
-                raise ValueError("The upload failed. Try again.")
+            prepared = store_prepared_document(handler, file, jurisdiction, FilingDocument.Role.SUPPORTING, keys=keys)
             highest = draft.documents.filter(role=FilingDocument.Role.SUPPORTING).aggregate(order=Max("sort_order"))[
                 "order"
             ]
@@ -65,12 +65,7 @@ def waiver_documents(request, jurisdiction):
                 draft=draft,
                 role=FilingDocument.Role.SUPPORTING,
                 sort_order=0 if highest is None else highest + 1,
-                name=file.name[:255],
-                original_filename=file.name[:255],
-                size=file.size,
-                content_type=file.content_type,
-                s3_key=uploaded["key"],
-                public_url=handler.get_public_url(uploaded["key"]),
+                **prepared,
                 filing_type_code=code,
                 filing_type_name=selected["name"],
                 filing_requires_amount_in_controversy=str(selected.get("amountincontroversy", "")).casefold()
@@ -81,6 +76,13 @@ def waiver_documents(request, jurisdiction):
                 filing_component_name=component["name"],
             )
             invalidate_fee_quote(draft)
-            return JsonResponse({"success": True, "fee_inputs_token": fee_inputs_token(draft)})
+            return JsonResponse(
+                {
+                    "success": True,
+                    "fee_inputs_token": fee_inputs_token(draft),
+                    "preview_url": get_step_url(WorkflowStepKey.PREVIEW_DOCUMENTS, jurisdiction) + "?return_to=payment",
+                }
+            )
     except ValueError as error:
+        cleanup_uploads(handler, keys)
         return JsonResponse({"error": str(error)}, status=400)

@@ -119,7 +119,7 @@
                                                 <input class="form-control form-control-sm"
                                                        type="file"
                                                        name="document"
-                                                       accept=".pdf,application/pdf"
+                                                       accept=".pdf,.doc,.docx"
                                                        form="attach-form-{{ item.id }}" />
                                             </label>
                                             {% if documents %}
@@ -194,6 +194,7 @@
                     </span>
                     <span class="status-pill status-pill--ready">{% translate "Added" %}</span>
                 </article>
+                {% include "efile/components/document_preview.html" %}
             {% endfor %}
         </div>
         <button class="add-missing-toggle"
@@ -214,7 +215,7 @@
                        id="checklist-documents"
                        type="file"
                        name="documents"
-                       accept=".pdf,application/pdf"
+                       accept=".pdf,.doc,.docx"
                        multiple
                        required />
                 <div class="upload-state"

@@ -13,6 +13,7 @@ from .views.case_questions import case_questions
 from .views.choose_jurisdiction import change_jurisdiction, choose_jurisdiction
 from .views.confirmation import filing_confirmation
 from .views.document_checklist import document_checklist
+from .views.document_previews import document_content, preview_documents
 from .views.draft_views import get_current_draft_view, start_filing, start_filing_from_plan
 from .views.extraction_review import extraction_review
 from .views.filing_path import filing_path
@@ -94,6 +95,8 @@ urlpatterns = [
     path("jurisdiction/<jurisdiction>/filing-path/", filing_path, name="filing_path"),
     path("jurisdiction/<jurisdiction>/waiver-documents/", waiver_documents, name="waiver_documents"),
     path("jurisdiction/<jurisdiction>/upload-documents/", upload_documents, name="upload_documents"),
+    path("jurisdiction/<jurisdiction>/preview-documents/", preview_documents, name="preview_documents"),
+    path("jurisdiction/<jurisdiction>/documents/<int:document_id>/content/", document_content, name="document_content"),
     path(
         "jurisdiction/<jurisdiction>/document-extraction-status/",
         document_extraction_status,

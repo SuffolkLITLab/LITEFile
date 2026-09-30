@@ -1,4 +1,5 @@
 export default {
+    ignoreFiles: ['efile/static/vendor/**'],
     plugins: ['stylelint-plugin-defensive-css'],
     rules: {
         // Keep this deliberately small at first: these rules cover failures

@@ -1,4 +1,5 @@
 {% extends "efile/site_base.html" %}
+{% load static %}
 {% block title %}Continue your filing{% endblock title %}
 {% block public_content %}
     {# Only the court's own record, once the case lookup has found it. #}
@@ -31,7 +32,7 @@
         <ul>{% for party in parties %}<li>{{ party }} — {{ party.party_role_hint }} {{ party.party_type_name }}</li>{% endfor %}</ul>
         <a href="{{ parties_url }}">Edit people and party types</a>
         <h2>Documents</h2>
-        <ul>{% for document in documents %}<li>{{ document.name }} — {{ document.filing_type_name }}</li>{% endfor %}</ul>
+        <ul>{% for document in documents %}<li>{{ document.name }} — {{ document.filing_type_name }}{% include "efile/components/document_preview.html" with jurisdiction=draft.jurisdiction %}</li>{% endfor %}</ul>
         <a href="{{ documents_url }}">Edit documents and filing types</a>
         {% if can_return %}
             <form method="post" action="{% url 'return_to_interview' draft.pk %}">{% csrf_token %}<button type="submit" class="btn btn-secondary">Return to my interview to correct a PDF</button></form>
@@ -39,3 +40,15 @@
         <p><a href="{{ review_url }}" class="btn btn-primary">Review and submit</a></p>
     {% endif %}
 {% endblock public_content %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'vendor/pdfjs/pdf_viewer.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/document-preview.css' %}" />
+{% endblock extra_css %}
+{% block extra_js %}
+    <script src="{% url 'javascript-catalog' %}"></script>
+    <script src="{% static 'js/document-preview.js' %}"
+            data-pdf-library="{% static 'vendor/pdfjs/pdf.min.mjs' %}"
+            data-pdf-worker="{% static 'vendor/pdfjs/pdf.worker.min.mjs' %}"
+            data-pdf-viewer="{% static 'vendor/pdfjs/pdf_viewer.mjs' %}"
+            data-pdf-resources="{% static 'vendor/pdfjs/' %}"></script>
+{% endblock extra_js %}

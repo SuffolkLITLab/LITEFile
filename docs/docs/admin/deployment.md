@@ -99,7 +99,10 @@ fly secrets set \
   AWS_SECRET_ACCESS_KEY="..." \
   AWS_S3_BUCKET_NAME="litefile-production-documents" \
   AWS_S3_REGION_NAME="us-east-1" \
-  OPENAI_API_KEY="sk-..."
+  OPENAI_API_KEY="sk-..." \
+  GOTENBERG_URL="https://..." \
+  GOTENBERG_USERNAME="..." \
+  GOTENBERG_PASSWORD="..."
 ```
 
 ---

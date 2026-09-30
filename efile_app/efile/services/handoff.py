@@ -326,6 +326,8 @@ def populate(draft, payload, uploads):
             content_type="application/pdf",
             s3_key=uploaded["key"],
             public_url=uploaded["url"],
+            original_s3_key=uploaded.get("original_s3_key", ""),
+            preparation=uploaded.get("preparation", ""),
         )
         order[document["role"]] += 1
         record(draft, f"documents.{row.pk}", "source_suggestion", document)

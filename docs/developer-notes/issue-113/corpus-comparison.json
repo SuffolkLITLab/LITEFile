@@ -1,0 +1,318 @@
+[
+  {
+    "source": "docassemble-ALDashboard/docassemble/ALDashboard/test/civil_docketing_statement_polished_repaired.pdf",
+    "sha256": "110986860fb8016e2ac5f6d83ad7f421cd21eccf75f79184838eff93704e5f38",
+    "input_pages": 3,
+    "input_fields": 59,
+    "filled_fields": 3,
+    "multiline_fields": 4,
+    "raw-gotenberg": {
+      "accepted": true,
+      "pages": 3,
+      "remaining_fields": 0,
+      "text_characters": 3611,
+      "tagged": false
+    },
+    "litefile": {
+      "accepted": true,
+      "pages": 3,
+      "remaining_fields": 0,
+      "text_characters": 3611,
+      "tagged": false
+    },
+    "pdftk": {
+      "accepted": true,
+      "pages": 3,
+      "remaining_fields": 0,
+      "text_characters": 3611,
+      "tagged": false
+    }
+  },
+  {
+    "source": "docassemble-ALWeaver/build/lib/docassemble/ALWeaver/data/sources/test_civil_docketing_statement.pdf",
+    "sha256": "74751dadb930ed97d66243596108d54207ce249c83a309467500b23f541e58c3",
+    "input_pages": 3,
+    "input_fields": 60,
+    "filled_fields": 3,
+    "multiline_fields": 6,
+    "raw-gotenberg": {
+      "accepted": true,
+      "pages": 3,
+      "remaining_fields": 0,
+      "text_characters": 3607,
+      "tagged": false
+    },
+    "litefile": {
+      "accepted": true,
+      "pages": 3,
+      "remaining_fields": 0,
+      "text_characters": 3607,
+      "tagged": false
+    },
+    "pdftk": {
+      "accepted": true,
+      "pages": 3,
+      "remaining_fields": 0,
+      "text_characters": 3607,
+      "tagged": false
+    }
+  },
+  {
+    "source": "docassemble-ALWeaver/docassemble/ALWeaver/test/test_option_groups.pdf",
+    "sha256": "498a9feccb3d135385b4fbb59755075c99cc280e014e22eb077746d3ae5956dc",
+    "input_pages": 1,
+    "input_fields": 6,
+    "filled_fields": 5,
+    "multiline_fields": 0,
+    "raw-gotenberg": {
+      "accepted": true,
+      "pages": 1,
+      "remaining_fields": 0,
+      "text_characters": 0,
+      "tagged": false
+    },
+    "litefile": {
+      "accepted": true,
+      "pages": 1,
+      "remaining_fields": 0,
+      "text_characters": 0,
+      "tagged": false
+    },
+    "pdftk": {
+      "accepted": false,
+      "error_type": "CalledProcessError"
+    }
+  },
+  {
+    "source": "docassemble-ALWeaver/docassemble/ALWeaver/test/test_push_button.pdf",
+    "sha256": "4e5d1b4fbc42099ea12b37c6956a80208ae79a5d4ce599a928b54c16fdba4d69",
+    "input_pages": 1,
+    "input_fields": 2,
+    "filled_fields": 1,
+    "multiline_fields": 0,
+    "raw-gotenberg": {
+      "accepted": true,
+      "pages": 1,
+      "remaining_fields": 0,
+      "text_characters": 0,
+      "tagged": false
+    },
+    "litefile": {
+      "accepted": true,
+      "pages": 1,
+      "remaining_fields": 0,
+      "text_characters": 0,
+      "tagged": false
+    },
+    "pdftk": {
+      "accepted": true,
+      "pages": 1,
+      "remaining_fields": 0,
+      "text_characters": 0,
+      "tagged": false
+    }
+  },
+  {
+    "source": "docassemble-AppearanceEfile/docassemble/AppearanceEfile/data/templates/appearance_acrobat_pro_edited.pdf",
+    "sha256": "8b98f685ae4a5c2ebb35cfa673ae6520e3945fc0471915e515ee3fbb8ac61d5c",
+    "input_pages": 3,
+    "input_fields": 70,
+    "filled_fields": 2,
+    "multiline_fields": 2,
+    "raw-gotenberg": {
+      "accepted": true,
+      "pages": 3,
+      "remaining_fields": 0,
+      "text_characters": 6132,
+      "tagged": true
+    },
+    "litefile": {
+      "accepted": true,
+      "pages": 3,
+      "remaining_fields": 0,
+      "text_characters": 6132,
+      "tagged": true
+    },
+    "pdftk": {
+      "accepted": true,
+      "pages": 3,
+      "remaining_fields": 0,
+      "text_characters": 6131,
+      "tagged": true
+    }
+  },
+  {
+    "source": "docassemble-AppearanceEfile/docassemble/AppearanceEfile/data/templates/appearance_edited.pdf",
+    "sha256": "4a75bda4130a6f941ea96b1fd7d329ce820cac09d4f13d4d75b4cff94b93c5c7",
+    "input_pages": 3,
+    "input_fields": 46,
+    "filled_fields": 3,
+    "multiline_fields": 2,
+    "raw-gotenberg": {
+      "accepted": true,
+      "pages": 3,
+      "remaining_fields": 0,
+      "text_characters": 7616,
+      "tagged": true
+    },
+    "litefile": {
+      "accepted": true,
+      "pages": 3,
+      "remaining_fields": 0,
+      "text_characters": 7618,
+      "tagged": true
+    },
+    "pdftk": {
+      "accepted": true,
+      "pages": 3,
+      "remaining_fields": 0,
+      "text_characters": 7616,
+      "tagged": true
+    }
+  },
+  {
+    "source": "docassemble-CLAGuardianship/docassemble/CLAGuardianship/data/templates/affidavit_disclosing_care_or_custody_old.pdf",
+    "sha256": "88cd00883b53724eac7b562ddc1ccabcef96a54785fdafd74dfb39f526e6cf27",
+    "input_pages": 2,
+    "input_fields": 76,
+    "filled_fields": 1,
+    "multiline_fields": 0,
+    "raw-gotenberg": {
+      "accepted": true,
+      "pages": 2,
+      "remaining_fields": 0,
+      "text_characters": 5902,
+      "tagged": false
+    },
+    "litefile": {
+      "accepted": true,
+      "pages": 2,
+      "remaining_fields": 0,
+      "text_characters": 5902,
+      "tagged": false
+    },
+    "pdftk": {
+      "accepted": true,
+      "pages": 2,
+      "remaining_fields": 0,
+      "text_characters": 5902,
+      "tagged": false
+    }
+  },
+  {
+    "source": "docassemble-MLHDivorceAndCustody/docassemble/MLHDivorceAndCustody/data/templates/child_support_services_dhs1201d.pdf",
+    "sha256": "2c9b742e183e955f5ddcf095abce5d442880fc1cba14c1b0a3257523e31406f2",
+    "input_pages": 1,
+    "input_fields": 44,
+    "filled_fields": 3,
+    "multiline_fields": 0,
+    "raw-gotenberg": {
+      "accepted": true,
+      "pages": 1,
+      "remaining_fields": 0,
+      "text_characters": 3790,
+      "tagged": true
+    },
+    "litefile": {
+      "accepted": true,
+      "pages": 1,
+      "remaining_fields": 0,
+      "text_characters": 3790,
+      "tagged": true
+    },
+    "pdftk": {
+      "accepted": true,
+      "pages": 1,
+      "remaining_fields": 0,
+      "text_characters": 3790,
+      "tagged": true
+    }
+  },
+  {
+    "source": "docassemble-MLHDivorceAndCustody/docassemble/MLHDivorceAndCustody/data/templates/confidential_case_inventory_mc21.pdf",
+    "sha256": "2f02a121e63c11c1406399b57cb7b9060c1a3b17a8cbfe8adf4db3f7e9be8748",
+    "input_pages": 1,
+    "input_fields": 48,
+    "filled_fields": 10,
+    "multiline_fields": 0,
+    "raw-gotenberg": {
+      "accepted": true,
+      "pages": 1,
+      "remaining_fields": 0,
+      "text_characters": 1954,
+      "tagged": true
+    },
+    "litefile": {
+      "accepted": true,
+      "pages": 1,
+      "remaining_fields": 0,
+      "text_characters": 1955,
+      "tagged": true
+    },
+    "pdftk": {
+      "accepted": true,
+      "pages": 1,
+      "remaining_fields": 0,
+      "text_characters": 1954,
+      "tagged": true
+    }
+  },
+  {
+    "source": "docassemble-MLHDivorceAndCustody/docassemble/MLHDivorceAndCustody/data/templates/uniform_spousal_support_order_foc10b.pdf",
+    "sha256": "4540a473fcfbf179cffd3ec144bf428be3a87afc0252c1fceee78cc4a27f0cbd",
+    "input_pages": 2,
+    "input_fields": 61,
+    "filled_fields": 1,
+    "multiline_fields": 7,
+    "raw-gotenberg": {
+      "accepted": true,
+      "pages": 2,
+      "remaining_fields": 0,
+      "text_characters": 4320,
+      "tagged": true
+    },
+    "litefile": {
+      "accepted": true,
+      "pages": 2,
+      "remaining_fields": 0,
+      "text_characters": 4322,
+      "tagged": true
+    },
+    "pdftk": {
+      "accepted": true,
+      "pages": 2,
+      "remaining_fields": 0,
+      "text_characters": 4320,
+      "tagged": true
+    }
+  },
+  {
+    "source": "docassemble-USCISApplications/docassemble/USCISApplications/data/templates/eoir-33_coa.pdf",
+    "sha256": "ae5bfc58ed65e4e1bc9826bbd841ec3c7224972a6bb560108f878f06253863c0",
+    "input_pages": 2,
+    "input_fields": 26,
+    "filled_fields": 1,
+    "multiline_fields": 1,
+    "raw-gotenberg": {
+      "accepted": true,
+      "pages": 2,
+      "remaining_fields": 0,
+      "text_characters": 6959,
+      "tagged": true
+    },
+    "litefile": {
+      "accepted": true,
+      "pages": 2,
+      "remaining_fields": 0,
+      "text_characters": 6957,
+      "tagged": true
+    },
+    "pdftk": {
+      "accepted": true,
+      "pages": 2,
+      "remaining_fields": 0,
+      "text_characters": 6960,
+      "tagged": true
+    }
+  }
+]

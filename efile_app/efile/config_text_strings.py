@@ -50,4 +50,9 @@ CONFIG_STRINGS = [
         "terms.starting_document_example",
         "complaint",
     ),
+    # Translators: Preparation guidance when flatten_pdf_forms is enabled. May link to state-specific requirements.
+    pgettext_lazy(
+        "upload_documents.preparation_help",
+        "Vermont requires filled-in PDF forms to have their answers locked in place (sometimes called flattening). LITEFile prepares that filing copy for you, so you do not need to flatten it yourself. We also convert Word documents to PDF. Check every page of the filing PDFs before continuing. [Vermont's PDF preparation instructions](https://www.vtcourts.gov/about-vermont-judiciary/electronic-access/electronic-filing/faqs).",
+    ),
 ]

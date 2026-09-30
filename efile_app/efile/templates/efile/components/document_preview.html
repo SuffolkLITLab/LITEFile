@@ -1,0 +1,50 @@
+{% load i18n %}
+<details class="document-preview" data-pdf-preview>
+    <summary>{% translate "View PDF:" %} {{ document.name|default:document.original_filename }}</summary>
+    <div class="document-preview__body">
+        <p>
+            <a data-pdf-download
+               href="{% url 'document_content' jurisdiction document.pk %}?draft={{ document.draft_id }}&amp;download=1">{% translate "Download filing PDF" %}</a>
+            {% if document.original_s3_key %}
+                · <a href="{% url 'document_content' jurisdiction document.pk %}?draft={{ document.draft_id }}&amp;original=1">{% translate "Download original upload" %}</a>
+            {% endif %}
+        </p>
+        <div class="document-preview__toolbar" hidden>
+            <button type="button"
+                    class="btn btn-outline-secondary btn-sm"
+                    data-pdf-previous
+                    aria-label="{% translate 'Previous page' %}">←</button>
+            <label>
+                {% translate "Page" %}
+                <input type="number"
+                       min="1"
+                       value="1"
+                       data-pdf-page
+                       aria-label="{% translate 'Page number' %}" />
+            </label>
+            <span data-pdf-page-count></span>
+            <button type="button"
+                    class="btn btn-outline-secondary btn-sm"
+                    data-pdf-next
+                    aria-label="{% translate 'Next page' %}">→</button>
+            <button type="button"
+                    class="btn btn-outline-secondary btn-sm"
+                    data-pdf-zoom-out
+                    aria-label="{% translate 'Zoom out' %}">−</button>
+            <button type="button"
+                    class="btn btn-outline-secondary btn-sm"
+                    data-pdf-zoom-in
+                    aria-label="{% translate 'Zoom in' %}">+</button>
+        </div>
+        <p data-pdf-status role="status" aria-live="polite"></p>
+        <div class="document-preview__frame">
+            <div class="document-preview__viewport"
+                 tabindex="0"
+                 role="region"
+                 aria-label="{% blocktranslate with name=document.name number=forloop.counter|default:1 %}PDF pages for {{ name }}, document {{ number }}{% endblocktranslate %}"
+                 data-pdf-url="{% url 'document_content' jurisdiction document.pk %}?draft={{ document.draft_id }}">
+                <div class="pdfViewer"></div>
+            </div>
+        </div>
+    </div>
+</details>

@@ -8,6 +8,7 @@ from efile.party_sides import PARTY_SIDE_HELP, PARTY_SIDE_LABELS, PartySide
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.document_checklists import resolve_filer_roles
 from efile.services.document_extractions import extraction_for_document
+from efile.services.document_previews import unreviewed_documents
 from efile.services.drafts import draft_snapshot, write_case_data
 from efile.services.extracted_parties import review_rows, save_reviewed_parties
 from efile.services.extraction_fields import display_extracted_fields, document_summary_details
@@ -107,6 +108,9 @@ def extraction_review(request, jurisdiction):
     if not FilingDocument.objects.filter(draft=draft).exists():
         messages.error(request, "Upload at least one document before reviewing the filing.")
         return redirect("upload_documents", jurisdiction=jurisdiction)
+
+    if unreviewed_documents(draft).exists():
+        return redirect("preview_documents", jurisdiction=jurisdiction)
 
     lead = FilingDocument.objects.filter(draft=draft, role=FilingDocument.Role.LEAD).first()
     extraction = extraction_for_document(lead) if lead else None
@@ -274,6 +278,7 @@ def extraction_review(request, jurisdiction):
     )
     context = {
         "is_logged_in": True,
+        "lead_document": lead,
         "filing_draft": draft_snapshot(draft),
         "has_guesses": needs_acknowledgement,
         "document_summary_details": summary_details,

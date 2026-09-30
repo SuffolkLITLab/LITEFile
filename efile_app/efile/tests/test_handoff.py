@@ -8,9 +8,10 @@ from django.urls import reverse
 
 from efile.models import FilingDraft, InterviewHandoff
 from efile.services.handoff import HandoffError, create_correction, effective_hints, resolve_metadata, unique_match
+from efile.tests.pdf_helpers import pdf_bytes
 
 pytestmark = pytest.mark.django_db
-PDF = b"%PDF-1.4\nsynthetic test document"
+PDF = pdf_bytes()
 
 
 @pytest.fixture
@@ -75,6 +76,7 @@ def storage():
             "filename": "complaint.pdf",
             "size": len(PDF),
         }
+        mocked.return_value.get_public_url.return_value = "https://s3.example/signed"
         yield mocked.return_value
 
 

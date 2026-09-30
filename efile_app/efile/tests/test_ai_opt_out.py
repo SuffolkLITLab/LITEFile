@@ -24,6 +24,7 @@ from efile.services.document_extractions import (
 )
 from efile.services.drafts import create_draft
 from efile.services.taxonomy_classification import HierarchicalDocumentClassifier
+from efile.tests.pdf_helpers import pdf_bytes
 
 SYNTHETIC_PDFS = Path(__file__).resolve().parents[3] / "benchmarking/synthetic/filled_pdfs/flattened"
 
@@ -156,7 +157,7 @@ def test_uploading_saves_the_choice_before_analysis_is_queued(client, opted_out_
     handler.validate_file.return_value = {"valid": True}
     handler.upload_file.return_value = {"success": True, "key": "lead.pdf"}
     handler.get_public_url.return_value = "https://example.com/lead.pdf"
-    lead = SimpleUploadedFile("complaint.pdf", b"%PDF lead", content_type="application/pdf")
+    lead = SimpleUploadedFile("complaint.pdf", pdf_bytes(), content_type="application/pdf")
 
     with patch("efile.services.document_uploads.S3UploadHandler", return_value=handler):
         response = client.post(upload_url(), {"documents": [lead], "ai_opt_out": "yes"})

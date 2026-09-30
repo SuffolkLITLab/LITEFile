@@ -13,7 +13,8 @@
     "format:js:check": "prettier --check eslint.config.mjs",
     "lint:css": "stylelint 'efile/**/*.css'",
     "test:a11y": "playwright test --config=playwright.a11y.config.js",
-    "test:confirm-case": "playwright test --config=playwright.confirm-case.config.js"
+    "test:confirm-case": "playwright test --config=playwright.confirm-case.config.js",
+    "postinstall": "node scripts/copy-pdfjs.mjs"
   },
   "keywords": [],
   "author": "",
@@ -21,7 +22,8 @@
   "description": "",
   "dependencies": {
     "@playwright/test": "^1.55.0",
-    "dotenv": "^17.2.1"
+    "dotenv": "^17.2.1",
+    "pdfjs-dist": "6.3.289"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",

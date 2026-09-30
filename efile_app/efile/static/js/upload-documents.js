@@ -134,7 +134,7 @@
         const fileCountLabel = selectedFiles.size === 1 ? "file" : "files";
         dropZone.querySelector("strong").textContent = selectedFiles.size ?
             `${selectedFiles.size} ${fileCountLabel} selected` :
-            "Choose PDFs or drag them here";
+            "Choose PDFs or Word documents, or drag them here";
     }
 
     function addFiles(files) {
@@ -172,8 +172,8 @@
         errorBox.hidden = true;
         state.hidden = false;
         uploadButton.disabled = true;
-        stateTitle.textContent = "Uploading your documents…";
-        stateDetail.textContent = "Keep this page open while the files upload.";
+        stateTitle.textContent = "Uploading and preparing your documents…";
+        stateDetail.textContent = "Keep this page open while we prepare the filing PDFs.";
 
         try {
             const response = await fetch(window.location.href, {

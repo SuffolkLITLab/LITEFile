@@ -91,6 +91,16 @@ class UIString:
 
 
 UI_STRINGS: dict[str, UIString] = {
+    "upload_documents.preparation_help": UIString(
+        default="You do not need to lock PDF form fields yourself. LITEFile makes a filing copy with the filled-in answers locked in place (sometimes called flattening), and converts Word documents to PDF. Check the filing PDFs on the next page before continuing.",
+        description="Preparation guidance when flatten_pdf_forms is enabled. May link to state-specific requirements.",
+        links=True,
+    ),
+    "upload_documents.preparation_help_unflattened": UIString(
+        default="LITEFile converts Word documents to PDF. For this jurisdiction, PDF form fields are kept as uploaded. Check the filing PDFs on the next page before continuing.",
+        description="Preparation guidance when flatten_pdf_forms is disabled.",
+        links=True,
+    ),
     # -- Terms ---------------------------------------------------------------
     # Short nouns. Keep them lowercase and in the middle of a sentence: they are
     # interpolated into the passages below, which capitalize for themselves.

@@ -232,7 +232,7 @@ def test_status_endpoint_reports_when_review_is_ready(client, extraction_draft):
         "ready": True,
         "pages_analyzed": 20,
         "total_pages": 30,
-        "review_url": reverse("extraction_review", kwargs={"jurisdiction": "illinois"}),
+        "review_url": reverse("preview_documents", kwargs={"jurisdiction": "illinois"}),
     }
 
 

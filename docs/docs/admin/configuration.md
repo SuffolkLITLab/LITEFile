@@ -35,6 +35,10 @@ LITEFile follows [Twelve-Factor App](https://12factor.net/) principles, configur
 | `AWS_SESSION_TOKEN` | No | `""` | AWS session token when using temporary credentials. |
 | `AWS_S3_REGION_NAME` | No | `us-east-1` | AWS region where the S3 bucket is hosted. |
 | `DJANGO_LOG_LEVEL` | No | `DEBUG` (Dev) / `INFO` (Prod) | Logging verbosity for the `efile` application logger. |
+| `GOTENBERG_URL` | Optional | `""` | Base URL for the Gotenberg document conversion API (e.g. `https://gotenberg-dev.fly.dev`). |
+| `GOTENBERG_USERNAME` | Optional | `""` | HTTP basic auth username for the Gotenberg service. |
+| `GOTENBERG_PASSWORD` | Optional | `""` | HTTP basic auth password for the Gotenberg service. |
+| `DOCUMENT_PREPARATION_TIMEOUT_SECONDS` | No | `45` | Timeout for a conversion or flattening request. |
 
 ---
 
@@ -56,3 +60,49 @@ AWS_S3_REGION_NAME="us-east-1"
 # AI Extraction (Optional)
 OPENAI_API_KEY="sk-..."
 ```
+
+
+## Document preparation and previews
+
+Configure Gotenberg 8.16 or newer for Word conversion and PDF form flattening.
+The service must support `/forms/libreoffice/convert` and `/forms/pdfengines/flatten`.
+Use HTTPS and service credentials when connecting to a remote instance. Install
+fonts used by your forms in Gotenberg: missing fonts can change pagination or layout.
+
+LITEFile keeps an unchanged PDF byte for byte. When form fields need locking, it
+preserves existing appearance streams and repairs missing or stale text appearances
+with `pypdf` before Gotenberg flattens the fields. It rejects unreadable, encrypted,
+XFA, digitally certificate-signed PDFs that would need flattening, and results with
+missing pages, remaining fields, or lost filled-in text. Filers can upload a printed
+PDF copy instead. These checks do not guarantee visual fidelity; every new filing
+copy must be previewed and confirmed before submission.
+
+Word conversion requests tagged PDF output and lossless images. It does not
+rasterize the document or certify accessibility conformance. Flattening can change
+accessibility tags, links, or annotations. The private original is retained separately
+from the filing PDF and is available for download. Only the filing copy reaches the
+court. Removing a document or expiring an unclaimed handoff cleans up both private
+copies when another draft does not reference them.
+
+State YAML can override the default policy:
+
+```yaml
+document_preparation:
+  flatten_pdf_forms: false
+text:
+  upload_documents:
+    preparation_help_unflattened: >-
+      LITEFile converts Word documents to PDF. PDF form fields are kept as uploaded.
+      Check the filing PDFs before continuing.
+```
+
+The default is to lock interactive fields. Vermont explicitly enables this policy
+and links to the court's preparation instructions. PDFs without form widgets are
+left unchanged, including already flattened and remediated documents.
+
+PDF.js is pinned in `efile_app/package-lock.json` and served from the application,
+including its worker, fonts, and character maps. Run `npm ci` in `efile_app` before
+local previews; its install script copies these assets. The Docker build generates
+the same assets in a separate Node stage. Document bytes come from an authenticated,
+draft-scoped endpoint with `Cache-Control: private, no-store`, so previewing does
+not require public storage URLs or S3 CORS configuration.

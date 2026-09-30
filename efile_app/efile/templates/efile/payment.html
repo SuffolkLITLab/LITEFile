@@ -11,6 +11,9 @@
     <section class="workflow-card workflow-card--narrow">
         <div class="workflow-eyebrow">{% translate "Fees" %}</div>
         <h1>{% translate "Choose how to pay court fees" %}</h1>
+        {% for document in documents %}
+            {% include "efile/components/document_preview.html" with document=document %}
+        {% endfor %}
         <section class="fee-summary"
                  id="roughFeeSummary"
                  aria-labelledby="rough-fee-heading">
@@ -116,10 +119,10 @@
                                         <select id="waiver-filing-type" class="form-select mb-2"></select>
                                         <label for="waiver-document-type">{% translate "Who can see this document?" %}</label>
                                         <select id="waiver-document-type" class="form-select mb-2"></select>
-                                        <label for="waiver-file">{% translate "Fee waiver PDF (up to 10 MB)" %}</label>
+                                        <label for="waiver-file">{% translate "Fee waiver document (PDF or Word, up to 10 MB)" %}</label>
                                         <input type="file"
                                                id="waiver-file"
-                                               accept=".pdf,application/pdf"
+                                               accept=".pdf,.doc,.docx"
                                                class="form-control mb-2" />
                                         <button type="button"
                                                 id="upload-waiver-document"

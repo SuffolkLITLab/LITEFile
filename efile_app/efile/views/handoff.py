@@ -17,6 +17,7 @@ from django.views.decorators.http import require_http_methods
 from efile.api.suffolk_api_views import get_tyler_token
 from efile.models import FilingDraft, HandoffDocumentUpdate, InterviewHandoff
 from efile.services.current_drafts import attach_current_draft
+from efile.services.document_preparation import store_prepared_document
 from efile.services.draft_urls import draft_url
 from efile.services.fee_quotes import invalidate_fee_quote
 from efile.services.filings import describe_filing_detail, fetch_filing_detail
@@ -78,12 +79,23 @@ def _response(request, receipt, *, created=False):
 def _upload(payload, files, handler, keys):
     uploads = {}
     for document in payload.get("documents", []):
-        result = handler.upload_file(
-            files[document["id"]], file_type=document["role"], metadata={"sha256": document["sha256"]}
-        )
-        if not result.get("success"):
-            raise HandoffError("Document storage is unavailable. Retry the same handoff.", status=503)
-        keys.append(result["key"])
+        try:
+            prepared = store_prepared_document(
+                handler,
+                files[document["id"]],
+                payload["jurisdiction"],
+                document["role"],
+                keys=keys,
+                metadata={"sha256": document["sha256"]},
+            )
+        except ValueError as error:
+            raise HandoffError(str(error), status=503) from error
+        result = {
+            **prepared,
+            "key": prepared["s3_key"],
+            "url": prepared["public_url"],
+            "filename": prepared["original_filename"],
+        }
         uploads[document["id"]] = result
     return uploads
 
@@ -390,7 +402,21 @@ def replace_documents(request):
                     row.public_url = uploaded["url"]
                     row.original_filename = uploaded["filename"]
                     row.size = uploaded["size"]
-                    row.save(update_fields=["s3_key", "public_url", "original_filename", "size", "updated_at"])
+                    row.original_s3_key = uploaded["original_s3_key"]
+                    row.preparation = uploaded["preparation"]
+                    row.preparation_reviewed_at = None
+                    row.save(
+                        update_fields=[
+                            "s3_key",
+                            "public_url",
+                            "original_filename",
+                            "size",
+                            "original_s3_key",
+                            "preparation",
+                            "preparation_reviewed_at",
+                            "updated_at",
+                        ]
+                    )
                     record(
                         draft,
                         f"documents.{row.pk}",

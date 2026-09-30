@@ -1,6 +1,7 @@
 {% extends "efile/workflow_base.html" %}
 {% load static %}
 {% load i18n %}
+{% load ui_text %}
 {% block title %}
     {% translate "Upload your documents" %}
 {% endblock title %}
@@ -35,10 +36,17 @@
             </details>
         {% endif %}
         <div class="requirements-strip">
-            <span><i class="fa-solid fa-file-pdf" aria-hidden="true"></i> {% translate "PDF only" %}</span>
+            <span><i class="fa-solid fa-file-pdf" aria-hidden="true"></i> {% translate "PDF or Word" %}</span>
             <span><i class="fa-solid fa-weight-hanging" aria-hidden="true"></i> {% translate "10 MB per file" %}</span>
             <span><i class="fa-solid fa-eye" aria-hidden="true"></i> {% translate "Text must be readable" %}</span>
         </div>
+        <p class="mt-3">
+            {% if flatten_pdf_forms %}
+                {% ui_text "upload_documents.preparation_help" %}
+            {% else %}
+                {% ui_text "upload_documents.preparation_help_unflattened" %}
+            {% endif %}
+        </p>
         <form id="document-upload-form"
               enctype="multipart/form-data"
               data-extraction-status-url="{% url 'document_extraction_status' jurisdiction %}">
@@ -47,10 +55,10 @@
                 <input id="documents-input"
                        type="file"
                        name="documents"
-                       accept=".pdf,application/pdf"
+                       accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                        multiple />
                 <span class="drop-zone__icon"><i class="fa-solid fa-cloud-arrow-up" aria-hidden="true"></i></span>
-                <strong>{% translate "Choose PDFs or drag them here" %}</strong>
+                <strong>{% translate "Choose PDFs or Word documents, or drag them here" %}</strong>
                 <span>{% translate "You can select more than one file." %}</span>
             </label>
             <section class="pending-files"
@@ -195,6 +203,7 @@
                             <span>{% translate "Remove" %}</span>
                         </button>
                     </article>
+                    {% include "efile/components/document_preview.html" %}
                 {% endfor %}
             {% else %}
                 <div class="document-list__empty">
@@ -210,10 +219,10 @@
             goes. See efile.workflow.get_visible_workflow.
             {% endcomment %}
             <a class="btn btn-outline-secondary" href="{{ workflow_previous_url }}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {% translate "Back" %}</a>
-            <a class="btn btn-primary {% if not has_lead_document or extraction_pending %}disabled{% endif %}"
+            <a class="btn btn-primary {% if not has_lead_document %}disabled{% endif %}"
                id="continue-to-analysis"
-               href="{% url 'extraction_review' jurisdiction %}"
-               {% if not has_lead_document or extraction_pending %}aria-disabled="true" tabindex="-1"{% endif %}>{% translate "Review what we found" %} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+               href="{% url 'preview_documents' jurisdiction %}"
+               {% if not has_lead_document %}aria-disabled="true" tabindex="-1"{% endif %}>{% translate "Preview your PDFs" %} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
         </div>
     </section>
 {% endblock workflow_content %}
