@@ -31,7 +31,6 @@ def get_tyler_token(request, jurisdiction=None):
 
     # Fallback to session
     auth_tokens = request.session.get("auth_tokens", {})
-    logger.debug(f"Auth tokens in session: {auth_tokens}")
 
     # Try different Tyler token key formats
     tyler_token = (
@@ -228,8 +227,7 @@ class FilingAPIViews(APIResponseMixin):
                     }
                 )
             else:
-                # Debug, not info: fee responses echo party names and case details.
-                logger.debug("EFSP fee response body: %s", response.text[:2000])
+                logger.warning("EFSP fee request failed status=%s", response.status_code)
                 error_message = describe_efsp_error(response)
 
                 return JsonResponse(

@@ -1,6 +1,6 @@
 from django.http import JsonResponse
 
-from ..utils.config_loader import JurisdictionConfigLoader, config_loader
+from ..utils.config_loader import InvalidJurisdiction, JurisdictionConfigLoader, config_loader
 
 
 def get_case_type_config(request):
@@ -11,7 +11,9 @@ def get_case_type_config(request):
         jurisdiction = request.GET.get("jurisdiction") or request.session.get("jurisdiction")
 
         # Use the new jurisdiction-aware configuration loader
-        config_data = config_loader.load_jurisdiction_config(jurisdiction)
+        config_data = (
+            config_loader.base_config if jurisdiction is None else config_loader.load_jurisdiction_config(jurisdiction)
+        )
 
         # Process case types to ensure proper inheritance from base_case_types
         processed_case_types = {}
@@ -49,5 +51,7 @@ def get_case_type_config(request):
 
         return JsonResponse({"success": True, "config": response_data})
 
+    except InvalidJurisdiction as e:
+        return JsonResponse({"success": False, "error": str(e)}, status=400)
     except Exception as e:
         return JsonResponse({"success": False, "error": f"Configuration loading error: {str(e)}"}, status=500)

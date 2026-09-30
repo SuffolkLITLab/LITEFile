@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        check: [ruff, type, tests, bandit]
+        check: [ruff, type, tests, bandit, dependencies]
     name: "${{ matrix.check }}"
     steps:
       # Common setup
@@ -39,7 +39,7 @@ jobs:
         working-directory: efile_app
         run: |
           uv python install 3.12
-          uv sync --group dev
+          uv sync --locked --group dev
 
       # No per-check installs needed; everything is managed by uv
 
@@ -85,6 +85,11 @@ jobs:
         if: matrix.check == 'bandit'
         working-directory: efile_app
         run: uv run bandit -r efile --exclude efile/tests
+
+      - name: Audit resolved dependencies
+        if: matrix.check == 'dependencies'
+        working-directory: efile_app
+        run: uv run pip-audit --local --skip-editable
 
   javascript:
     name: javascript

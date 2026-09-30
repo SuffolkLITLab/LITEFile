@@ -53,7 +53,7 @@ class S3UploadHandler:
             return self.s3_client is not None
 
     def _initialize_s3_client(self):
-        """Initialize the S3 client and verify bucket access."""
+        """Initialize locally; the requested operation verifies its own access."""
         try:
             self.s3_client = boto3.client(
                 "s3",
@@ -64,26 +64,13 @@ class S3UploadHandler:
                 endpoint_url=self.s3_endpoint_url,
                 config=Config(
                     signature_version="s3v4",
+                    connect_timeout=5,
+                    read_timeout=60,
+                    max_pool_connections=10,
+                    retries={"mode": "standard", "total_max_attempts": 3},
                     s3={"addressing_style": "path" if self.s3_endpoint_url else "virtual"},
                 ),
             )
-
-            # Test connection by attempting to list objects (limited test)
-            try:
-                self.s3_client.list_objects_v2(Bucket=self.bucket_name, Prefix="efile-documents/", MaxKeys=1)
-                logger.info("S3 connection successful to bucket: %s", self.bucket_name)
-            except ClientError as e:
-                error_code = e.response["Error"]["Code"]
-                if error_code == "403":
-                    logger.warning(
-                        "Access denied to S3 bucket %s. Check credentials and permissions.", self.bucket_name
-                    )
-                elif error_code == "404":
-                    logger.warning("S3 bucket %s not found.", self.bucket_name)
-                else:
-                    logger.warning("S3 bucket access test failed on %s: %s", self.bucket_name, e)
-                # Don't raise exception here, allow the client to be initialized
-                # so we can test credentials later with proper error handling
 
         except Exception as e:
             logger.error("Failed to initialize S3 client: %s", e)

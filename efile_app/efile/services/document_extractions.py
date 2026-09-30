@@ -2,6 +2,7 @@
 
 import logging
 import re
+import uuid
 from contextlib import contextmanager
 from datetime import timedelta
 from pathlib import Path
@@ -10,12 +11,12 @@ from time import perf_counter
 
 from django.conf import settings
 from django.db import connection, transaction
-from django.db.models import Q
+from django.db.models import F, Q
 from django.utils import timezone
 from markitdown import MarkItDown
 from pypdf import PdfReader, PdfWriter
 
-from efile.models import DocumentExtraction, FilingDocument
+from efile.models import DocumentExtraction, FilingDocument, FilingDraft
 from efile.services.extraction_fields import (
     EXTRACTION_FIELDS,
     EXTRACTION_HINTS,
@@ -37,6 +38,10 @@ from efile.utils.s3_upload_handler import S3UploadHandler
 logger = logging.getLogger(__name__)
 
 
+class ExtractionSuperseded(Exception):
+    """The requested analysis changed; this is not a processing failure."""
+
+
 def queue_document_extraction(document):
     """Create or reset the one background extraction job for a lead PDF."""
     if document.role != FilingDocument.Role.LEAD:
@@ -46,6 +51,9 @@ def queue_document_extraction(document):
         defaults={
             "status": DocumentExtraction.Status.PENDING,
             "attempts": 0,
+            "claim_token": None,  # nosec B105: clear a concurrency claim, not a credential
+            "lease_expires_at": None,
+            "available_at": timezone.now(),
             "total_pages": None,
             "pages_analyzed": None,
             "evidence": {},
@@ -223,7 +231,7 @@ def keyword_document_analysis(file_path, jurisdiction):
     }
 
 
-def analyze_document(file_path, jurisdiction, *, use_ai=True):
+def analyze_document(file_path, jurisdiction, *, use_ai=True, before_outbound=None):
     """Run vision evidence extraction, source-text conversion, and live classification.
 
     ``use_ai=False`` is the filer's opt-out (issue #104): it takes the keyword
@@ -243,6 +251,8 @@ def analyze_document(file_path, jurisdiction, *, use_ai=True):
         evidence_config.get("preferred_model_tier", "small")
     )
     evidence_diagnostics = {}
+    if before_outbound is not None:
+        before_outbound()
     evidence = normalize_document_evidence(
         extract_fields_from_file(
             file_path,
@@ -260,6 +270,8 @@ def analyze_document(file_path, jurisdiction, *, use_ai=True):
         # AI transcription of the same field. Keep the AI value in metadata for
         # review and diagnostics, but classify from the deterministic value.
         evidence["form identifier"] = form_identifier_scan["deterministic_match"]["form_id"]
+    if before_outbound is not None:
+        before_outbound()
     classification = HierarchicalDocumentClassifier().classify(jurisdiction, evidence, source_text)
     guesses = display_extracted_fields(evidence)
     for level, selection in classification.selections.items():
@@ -286,9 +298,11 @@ def analyze_document(file_path, jurisdiction, *, use_ai=True):
     }
 
 
-def process_document_extraction(job_id):
+def process_document_extraction(job_id, claim_token):
     """Download, page-limit, and analyze one job already claimed by a worker."""
-    job = DocumentExtraction.objects.select_related("document__draft").get(pk=job_id)
+    job = _current_claim(job_id, claim_token).select_related("document__draft").first()
+    if job is None:
+        return None
     document = job.document
     handler = S3UploadHandler()
 
@@ -300,11 +314,34 @@ def process_document_extraction(job_id):
 
         max_pages = max(1, settings.DOCUMENT_EXTRACTION_MAX_PAGES)
         with limited_pdf(source_path, max_pages) as (analysis_path, total_pages, pages_analyzed):
-            analysis = analyze_document(
-                analysis_path,
-                document.draft.jurisdiction,
-                use_ai=not document.draft.ai_assistance_opted_out,
-            )
+            # Download/parsing may take time. Recheck the claim and preference
+            # before starting analysis that can send the document upstream.
+            if not _current_claim(job_id, claim_token).exists():
+                return None
+            document.draft.refresh_from_db()
+            opted_out = document.draft.ai_assistance_opted_out
+
+            def check_outbound_permission():
+                if (
+                    not _current_claim(job_id, claim_token)
+                    .filter(
+                        document__draft__ai_assistance_opted_out=False,
+                        document__role=FilingDocument.Role.LEAD,
+                    )
+                    .exists()
+                ):
+                    raise ExtractionSuperseded
+
+            try:
+                analysis = analyze_document(
+                    analysis_path,
+                    document.draft.jurisdiction,
+                    use_ai=not opted_out,
+                    before_outbound=check_outbound_permission,
+                )
+            except ExtractionSuperseded:
+                _requeue_changed_preference(job_id, claim_token, opted_out)
+                return None
 
     # Keep compatibility with extensions that still return the old flat shape.
     if "guesses" in analysis and isinstance(analysis.get("guesses"), dict):
@@ -319,8 +356,15 @@ def process_document_extraction(job_id):
         metadata = {"pipeline": "legacy-flat-result"}
 
     with transaction.atomic():
-        job = DocumentExtraction.objects.select_for_update().select_related("document__draft").filter(pk=job_id).first()
+        # Match the preference update's lock order: draft, then job.
+        draft = FilingDraft.objects.select_for_update().filter(pk=document.draft_id).first()
+        job = _current_claim(job_id, claim_token).select_for_update().first()
         if job is None:
+            return None
+        if draft is None:
+            return None
+        if draft.ai_assistance_opted_out != opted_out:
+            _requeue_changed_preference(job_id, claim_token, opted_out)
             return None
         document = job.document
         # A filer can remove or replace the lead while this worker is running.
@@ -331,7 +375,6 @@ def process_document_extraction(job_id):
             role=FilingDocument.Role.LEAD,
         ).exists()
         if is_current_lead:
-            draft = document.draft
             draft.extracted_guesses = guesses
             update_fields = ["extracted_guesses", "updated_at"]
             amount = primary_amount_in_controversy(evidence)
@@ -347,6 +390,7 @@ def process_document_extraction(job_id):
         job.analysis_metadata = metadata
         job.error = ""
         job.completed_at = timezone.now()
+        job.lease_expires_at = None
         job.save(
             update_fields=[
                 "status",
@@ -357,6 +401,7 @@ def process_document_extraction(job_id):
                 "analysis_metadata",
                 "error",
                 "completed_at",
+                "lease_expires_at",
                 "updated_at",
             ]
         )
@@ -366,10 +411,24 @@ def process_document_extraction(job_id):
 def claim_next_extraction(stale_after_minutes=15):
     """Atomically claim one pending or interrupted job for this worker."""
     max_attempts = settings.DOCUMENT_EXTRACTION_MAX_ATTEMPTS
-    stale_before = timezone.now() - timedelta(minutes=stale_after_minutes)
+    now = timezone.now()
+    expired = Q(status=DocumentExtraction.Status.PROCESSING) & (
+        Q(lease_expires_at__lte=now)
+        | Q(lease_expires_at__isnull=True, started_at__lt=now - timedelta(minutes=stale_after_minutes))
+        | Q(lease_expires_at__isnull=True, started_at__isnull=True)
+    )
+    # A process can die during its final attempt. Such jobs must not remain
+    # PROCESSING forever simply because they are excluded from claim candidates.
+    DocumentExtraction.objects.filter(expired, attempts__gte=max_attempts).update(
+        status=DocumentExtraction.Status.FAILED,
+        error="Extraction worker lease expired after the final attempt",
+        claim_token=None,
+        lease_expires_at=None,
+        completed_at=now,
+        updated_at=now,
+    )
     candidates = DocumentExtraction.objects.filter(attempts__lt=max_attempts).filter(
-        Q(status=DocumentExtraction.Status.PENDING)
-        | Q(status=DocumentExtraction.Status.PROCESSING, started_at__lt=stale_before)
+        Q(status=DocumentExtraction.Status.PENDING, available_at__lte=now) | expired
     )
     with transaction.atomic():
         if connection.features.has_select_for_update_skip_locked:
@@ -382,20 +441,78 @@ def claim_next_extraction(stale_after_minutes=15):
         job.status = DocumentExtraction.Status.PROCESSING
         job.attempts += 1
         job.started_at = timezone.now()
+        job.claim_token = uuid.uuid4()
+        job.lease_expires_at = job.started_at + timedelta(minutes=stale_after_minutes)
         job.error = ""
-        job.save(update_fields=["status", "attempts", "started_at", "error", "updated_at"])
+        job.save(
+            update_fields=["status", "attempts", "started_at", "claim_token", "lease_expires_at", "error", "updated_at"]
+        )
         return job
 
 
-def record_extraction_failure(job_id, error):
+def _current_claim(job_id, claim_token):
+    if claim_token is None:
+        return DocumentExtraction.objects.none()
+    return DocumentExtraction.objects.filter(
+        pk=job_id,
+        claim_token=claim_token,
+        status=DocumentExtraction.Status.PROCESSING,
+        lease_expires_at__gt=timezone.now(),
+    )
+
+
+def renew_extraction_lease(job_id, claim_token):
+    """An expired or superseded worker cannot revive its own claim."""
+    return bool(_current_claim(job_id, claim_token).update(lease_expires_at=timezone.now() + timedelta(minutes=15)))
+
+
+def _requeue_changed_preference(job_id, claim_token, opted_out):
+    """Refund a superseded attempt without resetting earlier real failures."""
+    now = timezone.now()
+    changed_documents = FilingDocument.objects.filter(draft__ai_assistance_opted_out=not opted_out).values("pk")
+    # Keep the claim predicates on the UPDATE itself, rather than inside a
+    # joined-query subselect, so a concurrent new claim remains protected.
+    return (
+        _current_claim(job_id, claim_token)
+        .filter(document_id__in=changed_documents)
+        .update(
+            status=DocumentExtraction.Status.PENDING,
+            attempts=F("attempts") - 1,
+            claim_token=None,
+            lease_expires_at=None,
+            available_at=now,
+            started_at=None,
+            completed_at=None,
+            error="",
+            updated_at=now,
+        )
+    )
+
+
+def record_extraction_failure(job_id, claim_token, error):
     """Retry transient failures, then expose a manual-entry fallback."""
     with transaction.atomic():
-        job = DocumentExtraction.objects.select_for_update().filter(pk=job_id).first()
+        job = _current_claim(job_id, claim_token).select_for_update().first()
         if job is None:
             return None
         retry = job.attempts < settings.DOCUMENT_EXTRACTION_MAX_ATTEMPTS
         job.status = DocumentExtraction.Status.PENDING if retry else DocumentExtraction.Status.FAILED
-        job.error = str(error)[:2000]
+        # Exceptions from PDF/model clients can contain document text, URLs,
+        # or credentials. Persist a fixed category, never the exception body.
+        job.error = "Document analysis failed. Please retry or enter the information manually."
         job.completed_at = None if retry else timezone.now()
-        job.save(update_fields=["status", "error", "completed_at", "updated_at"])
+        job.available_at = timezone.now() + timedelta(seconds=min(300, 10 * 2 ** min(job.attempts, 5)))
+        job.claim_token = None
+        job.lease_expires_at = None
+        job.save(
+            update_fields=[
+                "status",
+                "error",
+                "completed_at",
+                "available_at",
+                "claim_token",
+                "lease_expires_at",
+                "updated_at",
+            ]
+        )
     return job

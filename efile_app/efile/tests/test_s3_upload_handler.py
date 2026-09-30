@@ -27,9 +27,7 @@ def test_presigned_url_uses_configured_region_and_sigv4():
     assert query["X-Amz-Algorithm"] == ["AWS4-HMAC-SHA256"]
     assert query["X-Amz-Security-Token"] == ["test-session-token"]
     assert "/us-west-2/s3/aws4_request" in query["X-Amz-Credential"][0]
-    request.assert_called_once_with(
-        "ListObjectsV2", {"Bucket": "test-documents", "Prefix": "efile-documents/", "MaxKeys": 1}
-    )
+    request.assert_not_called()
 
 
 @override_settings(AWS_ACCESS_KEY_ID="", AWS_SECRET_ACCESS_KEY="", AWS_S3_BUCKET_NAME="test-documents")

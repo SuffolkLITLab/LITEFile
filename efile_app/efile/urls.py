@@ -40,7 +40,6 @@ from .views.review import case_review
 from .views.session_api import (
     api_save_case_data,
     clear_session_data,
-    debug_session_data,
     fetch_and_save_party_type,
     get_upload_data_from_session,
     save_party_type_to_session,
@@ -154,7 +153,6 @@ urlpatterns = [
     path("api/save-party-type/", save_party_type_to_session, name="save_party_type"),
     path("api/submit-final-filing/", submit_final_filing, name="submit_final_filing"),
     path("api/clear-session/", clear_session_data, name="clear_session_data"),
-    path("api/debug-session/", debug_session_data, name="debug_session_data"),
     # API endpoints for dropdowns
     path("api/", include("efile.api.urls")),
     # Legacy endpoints for backward compatibility (can be removed later)

@@ -94,7 +94,7 @@ def test_worker_caps_pages_and_persists_the_complete_payload(extraction_draft):
 
     handler.download_file.side_effect = create_download
 
-    def inspect_limited_pdf(file_path, _jurisdiction, *, use_ai=True):
+    def inspect_limited_pdf(file_path, _jurisdiction, *, use_ai=True, before_outbound=None):
         assert len(PdfReader(file_path).pages) == 2
         assert use_ai is True
         return {
@@ -108,7 +108,7 @@ def test_worker_caps_pages_and_persists_the_complete_payload(extraction_draft):
         patch("efile.services.document_extractions.S3UploadHandler", return_value=handler),
         patch("efile.services.document_extractions.analyze_document", side_effect=inspect_limited_pdf),
     ):
-        process_document_extraction(job.pk)
+        process_document_extraction(job.pk, claimed.claim_token)
 
     job.refresh_from_db()
     extraction_draft.refresh_from_db()
@@ -176,7 +176,8 @@ def test_worker_reads_a_real_uploaded_pdf_before_classification(extraction_draft
         patch.object(HierarchicalDocumentClassifier, "classify", classify_source),
         patch.object(HierarchicalDocumentClassifier, "__init__", return_value=None),
     ):
-        process_document_extraction(job.pk)
+        claimed = claim_next_extraction()
+        process_document_extraction(job.pk, claimed.claim_token)
 
     job.refresh_from_db()
     extraction_draft.refresh_from_db()
@@ -425,11 +426,14 @@ def test_management_command_processes_and_retries_failures(extraction_draft):
     )
     job = queue_document_extraction(document)
 
+    # A child killed by a signal exits without recording a Python exception.
+    child = MagicMock()
+    child.is_alive.return_value = False
     with (
         override_settings(DOCUMENT_EXTRACTION_MAX_ATTEMPTS=2),
         patch(
-            "efile.management.commands.process_document_extractions.process_document_extraction",
-            side_effect=ValueError("S3 network error"),
+            "efile.management.commands.process_document_extractions.multiprocessing.get_context",
+            return_value=MagicMock(Process=MagicMock(return_value=child)),
         ),
     ):
         # 1st attempt: should fail and reset to PENDING for retry
@@ -437,11 +441,14 @@ def test_management_command_processes_and_retries_failures(extraction_draft):
         job.refresh_from_db()
         assert job.status == DocumentExtraction.Status.PENDING
         assert job.attempts == 1
-        assert "S3 network error" in job.error
+        assert "Document analysis failed" in job.error
 
         # 2nd attempt: reaches max_attempts (2) -> status becomes FAILED
+        from django.utils import timezone
+
+        DocumentExtraction.objects.filter(pk=job.pk).update(available_at=timezone.now())
         call_command("process_document_extractions", once=True)
         job.refresh_from_db()
         assert job.status == DocumentExtraction.Status.FAILED
         assert job.attempts == 2
-        assert "S3 network error" in job.error
+        assert "Document analysis failed" in job.error

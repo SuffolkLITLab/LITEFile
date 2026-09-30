@@ -1,12 +1,13 @@
 import logging
 
 from django.conf import settings
+from django.db import transaction
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
 
 from efile.api.suffolk_api_views import get_tyler_token
-from efile.models import DocumentExtraction, FilingDocument
+from efile.models import DocumentExtraction, FilingDocument, FilingDraft
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.document_extractions import extraction_for_document, queue_document_extraction
 from efile.services.document_uploads import upload_files
@@ -80,14 +81,16 @@ def upload_documents(request, jurisdiction):
             # read, so an answer from the old mode is never left on the screen.
             opted_out = _opted_out(request)
             remembered = _apply_remembered_choice(request, opted_out)
-            changed = draft.ai_assistance_opted_out != opted_out
-            lead = FilingDocument.objects.filter(draft=draft, role=FilingDocument.Role.LEAD).first()
-            if changed:
-                draft.ai_assistance_opted_out = opted_out
-                draft.extracted_guesses = {}
-                draft.save(update_fields=["ai_assistance_opted_out", "extracted_guesses", "updated_at"])
-                if lead is not None:
-                    queue_document_extraction(lead)
+            with transaction.atomic():
+                draft = FilingDraft.objects.select_for_update().get(pk=draft.pk)
+                changed = draft.ai_assistance_opted_out != opted_out
+                lead = FilingDocument.objects.filter(draft=draft, role=FilingDocument.Role.LEAD).first()
+                if changed:
+                    draft.ai_assistance_opted_out = opted_out
+                    draft.extracted_guesses = {}
+                    draft.save(update_fields=["ai_assistance_opted_out", "extracted_guesses", "updated_at"])
+                    if lead is not None:
+                        queue_document_extraction(lead)
             return JsonResponse(
                 {
                     "success": True,

@@ -120,7 +120,10 @@ def test_worker_reads_an_opted_out_document_with_keywords_only(opted_out_draft):
         patch("efile.services.document_extractions.extract_fields_from_file", side_effect=no_model_calls),
         patch.object(HierarchicalDocumentClassifier, "classify", no_model_calls),
     ):
-        process_document_extraction(job.pk)
+        from efile.services.document_extractions import claim_next_extraction
+
+        claimed = claim_next_extraction()
+        process_document_extraction(job.pk, claimed.claim_token)
 
     job.refresh_from_db()
     opted_out_draft.refresh_from_db()

@@ -332,7 +332,6 @@ def get_party_types_from_suffolk_api(request):
                 return JsonResponse({"success": False, "error": "No party types returned from Suffolk API"}, status=400)
         else:
             logger.warning(f"Suffolk API request failed with status: {response.status_code}")
-            logger.warning(f"Response: {response.text}")
             return JsonResponse(
                 {"success": False, "error": f"Suffolk API returned status {response.status_code}"},
                 status=response.status_code,

@@ -102,12 +102,6 @@ def forward_final_filing(request, data):
         case_data = get_case_data(request)
         jurisdiction_id = request.session.get("jurisdiction") or case_data.get("jurisdiction")
         upload_data = get_upload_data(request)
-        auth_tokens = request.session.get("auth_tokens", {})
-
-        logger.debug("Session data contents:")
-        logger.debug(f"  - case_data keys: {list(case_data.keys()) if case_data else 'Empty'}")
-        logger.debug(f"  - upload_data keys: {list(upload_data.keys()) if upload_data else 'Empty'}")
-        logger.debug(f"  - auth_tokens keys: {list(auth_tokens.keys()) if auth_tokens else 'Empty'}")
 
         if not case_data:
             return JsonResponse(
@@ -142,12 +136,6 @@ def forward_final_filing(request, data):
                 },
                 status=400,
             )
-
-        # Log the complete request data for debugging
-        logger.debug("Complete request data received")
-        logger.debug(
-            f"  - efile_data keys: {list(efile_data.keys()) if isinstance(efile_data, dict) else 'Not a dict'}"
-        )
 
         # Validate required fields in efile_data
         required_fields = ["al_court_bundle"]  # Based on typical Suffolk API requirements
@@ -221,10 +209,6 @@ def forward_final_filing(request, data):
                 logger.warning(f"No Tyler token found for jurisdiction '{jurisdiction_id}' in filing submission")
 
             logger.info(f"Submitting to Suffolk LIT Lab API at: {api_url}")
-            logger.debug(f"Headers: {headers}")
-            logger.debug(f"API Key present: {bool(api_key)}")
-            logger.debug(f"Tyler Token present: {bool(tyler_token)}")
-            logger.debug(f"Request payload: {json.dumps(efile_data, indent=2)}")
 
             response = requests.post(
                 api_url,
@@ -236,9 +220,7 @@ def forward_final_filing(request, data):
                 ),
             )
 
-            logger.debug(f"Response status code: {response.status_code}")
-            logger.debug(f"Response headers: {dict(response.headers)}")
-            logger.debug(f"Response content: {response.text}")
+            logger.info("Filing submission response status=%s", response.status_code)
 
             if response.status_code == 200 or response.status_code == 201:
                 response_data = response.json()
@@ -256,7 +238,6 @@ def forward_final_filing(request, data):
             else:
                 # Handle API error responses
                 logger.error(f"API Error - Status: {response.status_code}")
-                logger.error(f"API Error - Response: {response.text}")
 
                 error_message = describe_efsp_error(response)
 
@@ -285,20 +266,6 @@ def clear_session_data(request):
     """Clear all session data for testing purposes."""
     request.session.flush()
     return JsonResponse({"success": True, "message": "Session data cleared"})
-
-
-@require_http_methods(["GET"])
-def debug_session_data(request):
-    """Debug endpoint to view session contents."""
-    logger.debug("Session data dump:")
-    logger.debug(json.dumps(dict(request.session), indent=2, default=str))
-    session_data = {
-        "case_data": request.session.get("case_data", {}),
-        "upload_data": request.session.get("upload_data", {}),
-        "session_key": request.session.session_key,
-        "session_items": dict(request.session.items()),
-    }
-    return JsonResponse(session_data, safe=False)
 
 
 @csrf_exempt
