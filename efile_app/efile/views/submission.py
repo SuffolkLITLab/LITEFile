@@ -15,7 +15,7 @@ from efile.services.filing_plans import mark_attached_items_filed
 from efile.services.submission_errors import PRE_SUBMIT_ERROR_CODES, SubmissionErrorCode
 
 from .confirmation import LAST_SUBMITTED_DRAFT_SESSION_KEY
-from .session_api import submit_final_filing as legacy_submit_final_filing
+from .session_api import forward_final_filing
 
 logger = logging.getLogger(__name__)
 
@@ -26,8 +26,8 @@ logger = logging.getLogger(__name__)
 _CLAIMABLE_STATUSES = (FilingDraft.Status.DRAFT,)
 
 
-def _claim_for_submission(draft: FilingDraft) -> bool:
-    """Atomically move a DRAFT into SUBMITTING.
+def _claim_for_submission(draft: FilingDraft, acceptance: dict) -> bool:
+    """Atomically move a DRAFT into SUBMITTING, recording the accepted court requirements.
 
     Only one request can win this transition, so concurrent double-clicks cannot
     each forward to the external API. A draft already SUBMITTING or ERROR is not
@@ -35,10 +35,12 @@ def _claim_for_submission(draft: FilingDraft) -> bool:
     """
     claimed = FilingDraft.objects.filter(pk=draft.pk, status__in=_CLAIMABLE_STATUSES).update(
         status=FilingDraft.Status.SUBMITTING,
+        disclaimer_acceptance=acceptance,
         updated_at=timezone.now(),
     )
     if claimed:
         draft.status = FilingDraft.Status.SUBMITTING
+        draft.disclaimer_acceptance = acceptance
     return bool(claimed)
 
 
@@ -98,7 +100,7 @@ def submit_final_filing(request):
     # The filer agreed to a total on Review. If anything that prices the filing
     # changed since, that total is not the one they would be charged, so the
     # page has to show the new one before anything reaches the court.
-    if draft is not None and not fee_quote_is_usable(draft):
+    if not fee_quote_is_usable(draft):
         return JsonResponse(
             {
                 "success": False,
@@ -109,25 +111,19 @@ def submit_final_filing(request):
             status=412,
         )
 
-    acceptance = None
-    if draft is not None:
-        try:
-            acceptance = validate_acceptance(draft, submission_data)
-        except (ValueError, TypeError, AttributeError) as error:
-            return JsonResponse({"success": False, "error": str(error)}, status=400)
+    try:
+        acceptance = validate_acceptance(draft, submission_data)
+    except ValueError as error:
+        return JsonResponse({"success": False, "error": str(error)}, status=400)
 
     # Claim the draft before forwarding so a concurrent request can't file twice.
-    if draft is not None and not _claim_for_submission(draft):
+    if not _claim_for_submission(draft, acceptance):
         return JsonResponse(
             {"success": False, "error": "This filing can't be submitted again automatically."},
             status=409,
         )
 
-    if draft is not None and acceptance is not None:
-        draft.supplemental_fields = {**(draft.supplemental_fields or {}), "_disclaimer_acceptance": acceptance}
-        draft.save(update_fields=["supplemental_fields", "updated_at"])
-
-    response = legacy_submit_final_filing(request)
+    response = forward_final_filing(request, submission_data)
     payload = _json_payload(response)
 
     if response.status_code < 400 and payload.get("success") is True:

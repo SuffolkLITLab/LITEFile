@@ -3,6 +3,7 @@ from unittest.mock import Mock
 
 import pytest
 import requests
+from django.core.cache import cache
 from django.http import JsonResponse
 from django.urls import reverse
 
@@ -10,6 +11,17 @@ from efile.services import disclaimers
 from efile.tests import test_review_submit_flow
 
 submission_draft = test_review_submit_flow.submission_draft
+
+
+@pytest.fixture
+def court_requirements():
+    """Use the real court lookup here instead of the suite-wide stand-in, with nothing cached."""
+    cache.clear()
+
+
+def _assert_no_court_lookup():
+    calls = cast(Mock, disclaimers.requests.get).call_args_list
+    assert not any("/disclaimer_requirements" in call.args[0] for call in calls)
 
 
 @pytest.fixture
@@ -68,7 +80,7 @@ def test_outage_disables_review(client, submission_draft, requirements):
 def test_submission_requires_and_records_acceptance(client, submission_draft, requirements, monkeypatch):
     monkeypatch.setattr("efile.views.submission.fee_quote_is_usable", lambda draft: True)
     upstream = Mock(return_value=JsonResponse({"success": True, "api_response": {}}))
-    monkeypatch.setattr("efile.views.submission.legacy_submit_final_filing", upstream)
+    monkeypatch.setattr("efile.views.submission.forward_final_filing", upstream)
     url = "/api/submit-final-filing/"
     response = client.post(url, {"confirm_submission": True}, content_type="application/json")
     assert response.status_code == 400
@@ -79,7 +91,7 @@ def test_submission_requires_and_records_acceptance(client, submission_draft, re
     )
     assert response.status_code == 200
     submission_draft.refresh_from_db()
-    acceptance = submission_draft.supplemental_fields["_disclaimer_acceptance"]
+    acceptance = submission_draft.disclaimer_acceptance
     assert acceptance["requirements"][0]["text"] == "Redact <private> data."
     assert acceptance["accepted_at"]
 
@@ -110,9 +122,7 @@ def test_upload_uses_state_notices_without_court_lookup(client, submission_draft
     assert "Before you upload your documents" in content
     assert "Protect  information." in content
     assert "State notice" in content
-    assert not any(
-        "/disclaimer_requirements" in call.args[0] for call in cast(Mock, disclaimers.requests.get).call_args_list
-    )
+    _assert_no_court_lookup()
 
 
 @pytest.mark.django_db
@@ -121,9 +131,7 @@ def test_upload_hides_unconfigured_notices(client, submission_draft, requirement
     content = client.get(reverse("upload_documents", kwargs={"jurisdiction": "illinois"})).content.decode()
     assert "Before you upload your documents" not in content
     assert "Choose a court" not in content
-    assert not any(
-        "/disclaimer_requirements" in call.args[0] for call in cast(Mock, disclaimers.requests.get).call_args_list
-    )
+    _assert_no_court_lookup()
 
 
 def test_state_notices_are_configured_and_independent():
@@ -149,9 +157,7 @@ def test_illinois_upload_displays_standard_notices_before_court_selection(client
     assert "Supreme Court Rule 138" in content
     assert "Social Security Numbers" in content
     assert "&lt;p&gt;" not in content
-    assert not any(
-        "/disclaimer_requirements" in call.args[0] for call in cast(Mock, disclaimers.requests.get).call_args_list
-    )
+    _assert_no_court_lookup()
 
 
 def test_disclaimer_html_preserves_formatting_and_removes_unsafe_markup():
@@ -169,19 +175,40 @@ def test_disclaimer_html_preserves_formatting_and_removes_unsafe_markup():
         assert unsafe not in rendered
 
 
-def test_disclaimer_html_handles_proxy_escapes_and_plain_text():
+@pytest.mark.django_db
+def test_proxy_escapes_are_removed_before_display_and_acceptance(submission_draft, requirements):
+    requirements[0]["requirementText"] = r"<p>Read <a href=\"https://example.com\">the rule</a>.</p>\nNext"
+    text = disclaimers.court_disclaimers(submission_draft)[0]["text"]
+    assert text == '<p>Read <a href="https://example.com">the rule</a>.</p>\nNext'
+
+
+def test_disclaimer_html_handles_plain_text():
     from efile.templatetags.disclaimer_text import disclaimer_html
 
-    assert disclaimer_html(r"<p>Read <a href=\"https://example.com\">the rule</a>.</p>\nNext") == (
+    assert disclaimer_html('<p>Read <a href="https://example.com">the rule</a>.</p>\nNext') == (
         '<p>Read <a href="https://example.com">the rule</a>.</p>Next'
     )
     assert disclaimer_html("First line\nSecond line") == "First line<br>Second line"
 
 
+@pytest.mark.django_db
+def test_review_reuses_the_lookup_but_submit_rechecks_the_court(submission_draft, requirements):
+    get = cast(Mock, disclaimers.requests.get)
+    token = disclaimers.disclaimer_context(submission_draft)["disclaimer_token"]
+    disclaimers.disclaimer_context(submission_draft)
+    assert get.call_count == 1
+    requirements[0]["requirementText"] = "Updated requirement"
+    with pytest.raises(ValueError, match="Review and accept"):
+        disclaimers.validate_acceptance(submission_draft, {"confirm_submission": True, "disclaimer_token": token})
+    assert get.call_count == 2
+    # The recheck refreshed the cache, so reloading Review shows the new text.
+    assert disclaimers.court_disclaimers(submission_draft)[0]["text"] == "Updated requirement"
+
+
 def test_disclaimer_spacing_is_not_controlled_by_empty_court_paragraphs():
     from efile.templatetags.disclaimer_text import disclaimer_html
 
-    assert disclaimer_html(r"<p>&nbsp;</p>\n<p>&nbsp;</p>\n<p>Notice</p>\n<p>&nbsp;</p>\n<p>Next</p>") == (
+    assert disclaimer_html("<p>&nbsp;</p>\n<p>&nbsp;</p>\n<p>Notice</p>\n<p>&nbsp;</p>\n<p>Next</p>") == (
         "<p>Notice</p><p>Next</p>"
     )
     assert disclaimer_html("First\n\n\nSecond") == "First<br>Second"
@@ -190,7 +217,7 @@ def test_disclaimer_spacing_is_not_controlled_by_empty_court_paragraphs():
 @pytest.mark.django_db
 def test_submission_without_draft_does_not_reach_tyler(client, monkeypatch):
     upstream = Mock()
-    monkeypatch.setattr("efile.views.submission.legacy_submit_final_filing", upstream)
+    monkeypatch.setattr("efile.views.submission.forward_final_filing", upstream)
     response = client.post("/api/submit-final-filing/", {"confirm_submission": True}, content_type="application/json")
     assert response.status_code == 400
     assert "Open your filing" in response.json()["error"]
@@ -201,7 +228,7 @@ def test_submission_without_draft_does_not_reach_tyler(client, monkeypatch):
 @pytest.mark.parametrize("body", ["", "{broken", "[]", "null"])
 def test_malformed_submission_has_friendly_error(client, submission_draft, monkeypatch, body):
     upstream = Mock()
-    monkeypatch.setattr("efile.views.submission.legacy_submit_final_filing", upstream)
+    monkeypatch.setattr("efile.views.submission.forward_final_filing", upstream)
     response = client.post("/api/submit-final-filing/", body, content_type="application/json")
     assert response.status_code == 400
     assert response.json()["error"] == "We could not read your submission. Reload the review page and try again."

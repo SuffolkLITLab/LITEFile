@@ -9,7 +9,6 @@ from django.urls import reverse
 
 from efile.models import FilingDocument, FilingDraft, FilingParty
 from efile.services.current_drafts import CURRENT_DRAFT_SESSION_KEY
-from efile.services.disclaimers import disclaimer_context
 from efile.services.fee_quotes import (
     FeeQuoteState,
     fee_fingerprint,
@@ -18,16 +17,12 @@ from efile.services.fee_quotes import (
     quote_from_efsp_response,
     record_fee_quote,
 )
+from efile.tests.helpers import accepted_submission
 from efile.workflow import WorkflowStepKey
 
 REVIEW_URL = reverse("case_review", kwargs={"jurisdiction": "illinois"})
 SUBMIT_URL = reverse("submit_final_filing")
 FEES_URL = reverse("api:payment_fees")
-
-
-@pytest.fixture(autouse=True)
-def court_requirements(monkeypatch):
-    monkeypatch.setattr("efile.services.disclaimers.court_disclaimers", lambda draft: [])
 
 
 def efsp_fee_response(total, *fees):
@@ -155,13 +150,7 @@ def submit(client):
     ):
         response = client.post(
             SUBMIT_URL,
-            data=json.dumps(
-                {
-                    "disclaimer_token": disclaimer_context(draft)["disclaimer_token"],
-                    "confirm_submission": True,
-                    "efile_data": {"al_court_bundle": {}},
-                }
-            ),
+            data=json.dumps(accepted_submission(draft, efile_data={"al_court_bundle": {}})),
             content_type="application/json",
         )
     return response, post

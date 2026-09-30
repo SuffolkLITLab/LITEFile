@@ -20,3 +20,12 @@ def stand_in_document_disabled_by_default():
     """
     with override_settings(EFSP_TEST_DOCUMENT_URL=""):
         yield
+
+
+@pytest.fixture(autouse=True)
+def court_requirements(monkeypatch):
+    """Stand in for the court's disclaimer lookup so no test calls the live EFSP.
+
+    Tests of the lookup itself override this fixture with one of the same name.
+    """
+    monkeypatch.setattr("efile.services.disclaimers.court_disclaimers", lambda draft, fresh=False: [])

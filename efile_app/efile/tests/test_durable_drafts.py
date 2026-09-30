@@ -5,7 +5,6 @@ from django.urls import reverse
 
 from efile.models import FilingDocument, FilingDraft, FilingParty, FilingPlan
 from efile.services.current_drafts import CURRENT_DRAFT_SESSION_KEY, get_current_draft
-from efile.services.disclaimers import disclaimer_context
 from efile.services.drafts import (
     draft_snapshot,
     read_case_data,
@@ -15,12 +14,8 @@ from efile.services.drafts import (
 )
 from efile.services.efsp_payload import PayloadValidationError
 from efile.services.fee_quotes import record_fee_quote
+from efile.tests.helpers import accepted_submission
 from efile.workflow import WorkflowStepKey, get_workflow_step_choices
-
-
-@pytest.fixture(autouse=True)
-def court_requirements(monkeypatch):
-    monkeypatch.setattr("efile.services.disclaimers.court_disclaimers", lambda draft: [])
 
 
 class FakeApiResponse:
@@ -499,11 +494,7 @@ def test_final_submission_marks_current_draft_submitted(client, django_user_mode
 
     response = client.post(
         reverse("submit_final_filing"),
-        data={
-            "disclaimer_token": disclaimer_context(draft)["disclaimer_token"],
-            "confirm_submission": True,
-            "efile_data": {"al_court_bundle": {}},
-        },
+        data=accepted_submission(draft, efile_data={"al_court_bundle": {}}),
         content_type="application/json",
     )
 
@@ -546,11 +537,7 @@ def test_final_submission_marks_attached_plan_documents_as_filed(client, django_
 
     response = client.post(
         reverse("submit_final_filing"),
-        data={
-            "disclaimer_token": disclaimer_context(draft)["disclaimer_token"],
-            "confirm_submission": True,
-            "efile_data": {"al_court_bundle": {}},
-        },
+        data=accepted_submission(draft, efile_data={"al_court_bundle": {}}),
         content_type="application/json",
     )
 
@@ -572,11 +559,7 @@ def test_confirmed_api_rejection_releases_draft_for_retry(client, django_user_mo
 
     response = client.post(
         reverse("submit_final_filing"),
-        data={
-            "disclaimer_token": disclaimer_context(draft)["disclaimer_token"],
-            "confirm_submission": True,
-            "efile_data": {"al_court_bundle": {}},
-        },
+        data=accepted_submission(draft, efile_data={"al_court_bundle": {}}),
         content_type="application/json",
     )
 
@@ -603,11 +586,11 @@ def test_submission_claim_prevents_duplicate_filing(django_user_model):
     user = django_user_model.objects.create_user(username="claim-user", tyler_jurisdiction="illinois")
     draft = FilingDraft.objects.create(user=user, jurisdiction="illinois")
 
-    assert _claim_for_submission(draft) is True
+    assert _claim_for_submission(draft, {}) is True
     draft.refresh_from_db()
     assert draft.status == FilingDraft.Status.SUBMITTING
     # A second attempt on the same draft is refused.
-    assert _claim_for_submission(draft) is False
+    assert _claim_for_submission(draft, {}) is False
 
 
 @pytest.mark.django_db
@@ -618,11 +601,11 @@ def test_ambiguous_submission_states_are_not_automatically_reclaimed(django_user
     user = django_user_model.objects.create_user(username="ambiguous-state-user", tyler_jurisdiction="illinois")
     draft = FilingDraft.objects.create(user=user, jurisdiction="illinois")
 
-    assert _claim_for_submission(draft) is True
-    assert _claim_for_submission(draft) is False
+    assert _claim_for_submission(draft, {}) is True
+    assert _claim_for_submission(draft, {}) is False
 
     draft.mark_error({"error": "outcome unknown"})
-    assert _claim_for_submission(draft) is False
+    assert _claim_for_submission(draft, {}) is False
 
 
 @pytest.mark.django_db
@@ -635,10 +618,7 @@ def test_precondition_failure_releases_claim_to_draft(client, django_user_model)
 
     response = client.post(
         reverse("submit_final_filing"),
-        data={
-            "disclaimer_token": disclaimer_context(draft)["disclaimer_token"],
-            "confirm_submission": True,
-        },  # no efile_data -> pre-call validation failure
+        data=accepted_submission(draft),  # no efile_data -> pre-call validation failure
         content_type="application/json",
     )
 
@@ -666,11 +646,7 @@ def test_ambiguous_failure_does_not_release_to_draft(client, django_user_model, 
 
     response = client.post(
         reverse("submit_final_filing"),
-        data={
-            "disclaimer_token": disclaimer_context(draft)["disclaimer_token"],
-            "confirm_submission": True,
-            "efile_data": {"al_court_bundle": {}},
-        },
+        data=accepted_submission(draft, efile_data={"al_court_bundle": {}}),
         content_type="application/json",
     )
 
@@ -680,11 +656,7 @@ def test_ambiguous_failure_does_not_release_to_draft(client, django_user_model, 
 
     retry = client.post(
         reverse("submit_final_filing"),
-        data={
-            "disclaimer_token": disclaimer_context(draft)["disclaimer_token"],
-            "confirm_submission": True,
-            "efile_data": {"al_court_bundle": {}},
-        },
+        data=accepted_submission(draft, efile_data={"al_court_bundle": {}}),
         content_type="application/json",
     )
 
@@ -763,11 +735,7 @@ def test_payload_validation_failure_releases_draft_for_a_corrected_retry(client,
 
     response = client.post(
         reverse("submit_final_filing"),
-        data={
-            "disclaimer_token": disclaimer_context(draft)["disclaimer_token"],
-            "confirm_submission": True,
-            "efile_data": {"al_court_bundle": {}},
-        },
+        data=accepted_submission(draft, efile_data={"al_court_bundle": {}}),
         content_type="application/json",
     )
 
