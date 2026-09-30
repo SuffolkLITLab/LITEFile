@@ -9,6 +9,7 @@ from efile.services.current_drafts import CURRENT_DRAFT_SESSION_KEY
 from efile.services.drafts import read_case_data
 from efile.services.party_requirements import AddressRequirement
 from efile.services.people import guess_filer_party_type
+from efile.tests.helpers import reviewed_document
 from efile.workflow import ExistingCase, WorkflowStepKey
 
 PARTY_TYPES = [
@@ -112,7 +113,7 @@ def test_guess_filer_party_type_suggests_the_initiator_for_a_new_case(people_dra
 def test_guess_filer_party_type_suggests_the_respondent_for_an_answer(people_draft):
     people_draft.existing_case = ExistingCase.EXISTING
     people_draft.save(update_fields=["existing_case", "updated_at"])
-    FilingDocument.objects.create(
+    reviewed_document(
         draft=people_draft,
         role=FilingDocument.Role.LEAD,
         name="answer.pdf",
@@ -510,7 +511,7 @@ def test_case_questions_asks_for_amount_in_controversy_with_no_other_questions(c
     """The early "nothing to ask, skip ahead" exit used to fire even when a
     document's filing type required an amount in controversy, since it only
     checked the config-driven questions list."""
-    FilingDocument.objects.create(
+    reviewed_document(
         draft=people_draft,
         role=FilingDocument.Role.LEAD,
         name="petition.pdf",
@@ -527,7 +528,7 @@ def test_case_questions_asks_for_amount_in_controversy_with_no_other_questions(c
 
 @pytest.mark.django_db
 def test_case_questions_saves_a_valid_amount_in_controversy(client, people_draft):
-    FilingDocument.objects.create(
+    reviewed_document(
         draft=people_draft,
         role=FilingDocument.Role.LEAD,
         name="petition.pdf",
@@ -549,7 +550,7 @@ def test_case_questions_saves_a_valid_amount_in_controversy(client, people_draft
 
 @pytest.mark.django_db
 def test_case_questions_rejects_a_missing_or_invalid_amount(client, people_draft):
-    FilingDocument.objects.create(
+    reviewed_document(
         draft=people_draft,
         role=FilingDocument.Role.LEAD,
         name="petition.pdf",
@@ -599,7 +600,7 @@ def test_parties_routes_to_case_questions_when_amount_in_controversy_is_needed(c
         state="IL",
         zip_code="60602",
     )
-    FilingDocument.objects.create(
+    reviewed_document(
         draft=people_draft,
         role=FilingDocument.Role.LEAD,
         name="petition.pdf",

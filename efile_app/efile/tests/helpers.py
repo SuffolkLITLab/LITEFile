@@ -10,3 +10,14 @@ def accepted_submission(draft, **fields):
         "confirm_submission": True,
         **fields,
     }
+
+
+def reviewed_document(**fields):
+    """A previously prepared and acknowledged document for downstream flow tests."""
+    from django.utils import timezone
+
+    from efile.models import FilingDocument
+
+    fields.setdefault("preparation", "unchanged")
+    fields.setdefault("preparation_reviewed_at", timezone.now())
+    return FilingDocument.objects.create(**fields)

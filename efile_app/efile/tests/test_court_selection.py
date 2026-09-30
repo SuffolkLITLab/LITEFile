@@ -21,6 +21,7 @@ from efile.services.court_selection import (
     is_non_filing_court,
     selector_config,
 )
+from efile.tests.helpers import reviewed_document
 
 ILLINOIS_COURTS = [
     {"value": "TSUPCRT", "text": "Supreme Court of Illinois"},
@@ -435,7 +436,7 @@ class TestTheScreensThatAskForACourt:
 
         user = django_user_model.objects.create_user(username="court-user", tyler_jurisdiction="illinois")
         draft = FilingDraft.objects.create(user=user, jurisdiction="illinois", workflow_version=2)
-        FilingDocument.objects.create(draft=draft, role=FilingDocument.Role.LEAD, name="petition.pdf")
+        reviewed_document(draft=draft, role=FilingDocument.Role.LEAD, name="petition.pdf")
         client.force_login(user)
         session = client.session
         session[CURRENT_DRAFT_SESSION_KEY] = draft.pk

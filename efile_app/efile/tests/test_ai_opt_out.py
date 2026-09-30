@@ -24,6 +24,7 @@ from efile.services.document_extractions import (
 )
 from efile.services.drafts import create_draft
 from efile.services.taxonomy_classification import HierarchicalDocumentClassifier
+from efile.tests.helpers import reviewed_document
 from efile.tests.pdf_helpers import pdf_bytes
 
 SYNTHETIC_PDFS = Path(__file__).resolve().parents[3] / "benchmarking/synthetic/filled_pdfs/flattened"
@@ -103,7 +104,7 @@ def test_keyword_analysis_identifies_a_form_without_calling_a_model():
 
 @pytest.mark.django_db
 def test_worker_reads_an_opted_out_document_with_keywords_only(opted_out_draft):
-    document = FilingDocument.objects.create(
+    document = reviewed_document(
         draft=opted_out_draft,
         role=FilingDocument.Role.LEAD,
         name="MA-03.pdf",
@@ -148,7 +149,7 @@ def test_upload_page_offers_the_choice_and_says_what_still_happens(client, opted
     assert "AI is off for this filing." in page
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(transaction=True)
 def test_uploading_saves_the_choice_before_analysis_is_queued(client, opted_out_draft):
     opted_out_draft.ai_assistance_opted_out = False
     opted_out_draft.save(update_fields=["ai_assistance_opted_out", "updated_at"])
@@ -172,7 +173,7 @@ def test_uploading_saves_the_choice_before_analysis_is_queued(client, opted_out_
 
 @pytest.mark.django_db
 def test_changing_the_choice_after_upload_drops_the_old_reading_and_re_runs(client, opted_out_draft):
-    document = FilingDocument.objects.create(
+    document = reviewed_document(
         draft=opted_out_draft,
         role=FilingDocument.Role.LEAD,
         name="complaint.pdf",
@@ -222,7 +223,7 @@ def test_choosing_before_any_upload_saves_without_queueing_anything(client, opte
 
 @pytest.mark.django_db
 def test_review_screen_credits_the_keyword_search_rather_than_a_reading(client, opted_out_draft):
-    FilingDocument.objects.create(
+    reviewed_document(
         draft=opted_out_draft,
         role=FilingDocument.Role.LEAD,
         name="complaint.pdf",

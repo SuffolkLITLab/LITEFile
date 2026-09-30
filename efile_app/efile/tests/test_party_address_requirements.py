@@ -5,6 +5,7 @@ import pytest
 from efile.models import FilingDocument, FilingDraft, FilingParty
 from efile.services.party_requirements import party_address_requirement
 from efile.services.people import party_is_complete
+from efile.tests.helpers import reviewed_document
 
 
 @pytest.fixture
@@ -71,7 +72,7 @@ def test_layered_config_can_require_address_by_party_filing_or_service(draft, ru
         last_name="Lee",
     )
     if document_values:
-        FilingDocument.objects.create(draft=draft, role=FilingDocument.Role.LEAD, **document_values)
+        reviewed_document(draft=draft, role=FilingDocument.Role.LEAD, **document_values)
 
     with (
         patch(

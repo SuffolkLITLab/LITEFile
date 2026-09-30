@@ -13,7 +13,7 @@ import requests
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from pypdf import PdfReader, PdfWriter
-from pypdf.generic import DictionaryObject
+from pypdf.generic import ArrayObject, DictionaryObject
 
 from efile.utils.config_loader import config_loader
 
@@ -21,7 +21,11 @@ logger = logging.getLogger(__name__)
 
 
 class PreparationError(ValueError):
-    """An actionable preparation failure safe to show to the filer."""
+    """An actionable document failure safe to show to the filer."""
+
+
+class PreparationUnavailable(PreparationError):
+    """A temporary service/storage failure for which retry is appropriate."""
 
 
 @dataclass(frozen=True)
@@ -52,12 +56,19 @@ def inspect_pdf(content):
                 "This PDF uses an unsupported form format. Save a printed PDF copy and upload it again."
             )
         # Force page and annotation parsing before accepting a filing copy.
-        widgets = [
-            ref.get_object()
-            for page in reader.pages
-            for ref in page.get("/Annots", [])
-            if ref.get_object().get("/Subtype") == "/Widget"
-        ]
+        widgets = []
+        for page in reader.pages:
+            if "/Annots" not in page:
+                continue
+            annotations = page["/Annots"].get_object()
+            if not isinstance(annotations, ArrayObject):
+                raise ValueError("Invalid annotation array")
+            for ref in annotations:
+                annotation = ref.get_object()
+                if not isinstance(annotation, DictionaryObject):
+                    raise ValueError("Invalid annotation")
+                if annotation.get("/Subtype") == "/Widget":
+                    widgets.append(annotation)
         return reader, widgets
     except PreparationError:
         raise
@@ -86,7 +97,7 @@ def _word_format(content, suffix):
 def _gotenberg(content, suffix, route, data=None):
     base_url = settings.GOTENBERG_URL.rstrip("/")
     if not base_url:
-        raise PreparationError(
+        raise PreparationUnavailable(
             "Document preparation is unavailable. Upload a PDF with the form fields already locked, or try again later."
         )
     limit = settings.MAX_FILE_SIZE
@@ -102,6 +113,8 @@ def _gotenberg(content, suffix, route, data=None):
             allow_redirects=False,
             stream=True,
         ) as response:
+            if response.status_code >= 500 or response.status_code in {401, 403, 429}:
+                raise PreparationUnavailable("Document preparation is unavailable. Please try again later.")
             if response.status_code != 200:
                 raise PreparationError("We could not prepare this document. Upload a PDF copy or try uploading again.")
             result = bytearray()
@@ -116,7 +129,7 @@ def _gotenberg(content, suffix, route, data=None):
             return bytes(result)
     except requests.RequestException as error:
         logger.warning("Document preparation service unavailable (%s)", type(error).__name__)
-        raise PreparationError(
+        raise PreparationUnavailable(
             "Document preparation timed out or is unavailable. Try again, or upload a PDF copy with its form fields locked."
         ) from error
 
@@ -172,8 +185,26 @@ def _flatten(content):
     # Engines can return 200 while dropping filled text. This is a conservative
     # check, not a guarantee of visual fidelity; the filer still previews it.
     visible_text = " ".join(" ".join(page.extract_text() or "" for page in output.pages).split())
-    for field in fields.values():
-        if field.get("/FT") == "/Tx":
+    checked_fields = set()
+    for widget in widgets:
+        field = widget.get("/Parent", widget).get_object()
+        name = field.get("/T")
+        flags = int(field.get("/Ff", 0))
+        annotation_flags = int(widget.get("/F", 0))
+        rect = widget.get("/Rect", [0, 0, 0, 0])
+        # Hidden/no-view widgets, passwords, combs, rich/formatted fields can
+        # legitimately have a different appearance from their stored /V.
+        plain_visible = (
+            field.get("/FT") == "/Tx"
+            and not (flags & ((1 << 13) | (1 << 24) | (1 << 25)))
+            and not (annotation_flags & (1 | 2 | 32))
+            and not field.get("/AA")
+            and not widget.get("/AA")
+            and rect[0] != rect[2]
+            and rect[1] != rect[3]
+        )
+        if plain_visible and name not in checked_fields:
+            checked_fields.add(name)
             value = str(field.get("/V") or "")
             if any(" ".join(line.split()) not in visible_text for line in value.splitlines() if line.strip()):
                 raise PreparationError(
@@ -219,13 +250,13 @@ def store_prepared_document(handler, uploaded_file, jurisdiction, role, *, keys,
         uploaded_file.seek(0)
         original = handler.upload_file(uploaded_file, file_type="original", metadata=metadata)
         if not original.get("success"):
-            raise PreparationError("The original could not be saved. Try uploading again.")
+            raise PreparationUnavailable("The original could not be saved. Try uploading again.")
         original_key = original["key"]
         keys.append(original_key)
     filing = SimpleUploadedFile(prepared.filename, prepared.content, content_type="application/pdf")
     result = handler.upload_file(filing, file_type=role, metadata=metadata)
     if not result.get("success"):
-        raise PreparationError("The filing copy could not be saved. Try uploading again.")
+        raise PreparationUnavailable("The filing copy could not be saved. Try uploading again.")
     keys.append(result["key"])
     return {
         "name": prepared.filename[:255],
@@ -248,3 +279,22 @@ def cleanup_uploads(handler, keys):
                 logger.warning("Could not remove an uncommitted document upload")
         except Exception:
             logger.exception("Could not remove an uncommitted document upload")
+
+
+def cleanup_unreferenced_uploads(keys, handler=None):
+    """Remove superseded copies after commit, preserving cross-draft references."""
+    from django.db.models import Q
+
+    from efile.models import FilingDocument
+    from efile.utils.s3_upload_handler import S3UploadHandler
+
+    unused = [
+        key
+        for key in dict.fromkeys(keys)
+        if key and not FilingDocument.objects.filter(Q(s3_key=key) | Q(original_s3_key=key)).exists()
+    ]
+    if not unused:
+        return
+    handler = handler or S3UploadHandler()
+    if handler._ensure_initialized():
+        cleanup_uploads(handler, unused)

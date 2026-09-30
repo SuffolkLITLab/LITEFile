@@ -8,6 +8,7 @@ from django.urls import reverse
 
 from efile.models import FilingDraft, InterviewHandoff
 from efile.services.handoff import HandoffError, create_correction, effective_hints, resolve_metadata, unique_match
+from efile.tests.helpers import reviewed_document
 from efile.tests.pdf_helpers import pdf_bytes
 
 pytestmark = pytest.mark.django_db
@@ -696,3 +697,71 @@ def test_handoff_review_shows_case_identity_only_once_the_case_is_found(
 
     assert ("Doe v. Doe" in content) is shown
     assert ("24-FA-00123" in content) is shown
+
+
+def test_invalid_pdf_requires_replacement_instead_of_retry(client, source, payload, storage):
+    invalid = b"%PDF- broken"
+    payload["documents"][0]["sha256"] = hashlib.sha256(invalid).hexdigest()
+    response = send(client, source, payload, invalid)
+    assert response.status_code == 422
+    assert not FilingDraft.objects.exists()
+    storage.upload_file.assert_not_called()
+
+
+def test_replacement_cleans_old_copies_and_preserves_shared_filing(
+    client, source, payload, storage, django_user_model, django_capture_on_commit_callbacks
+):
+    from urllib.parse import parse_qs, urlsplit
+
+    from django.utils import timezone
+
+    send(client, source, payload)
+    draft = FilingDraft.objects.get()
+    draft.user = login(client, django_user_model)
+    draft.save()
+    document = draft.documents.get()
+    document.original_s3_key = "old-original.docx"
+    document.preparation_reviewed_at = timezone.now()
+    document.save()
+    other = FilingDraft.objects.create(user=draft.user, jurisdiction="vermont")
+    reviewed_document(draft=other, role="lead", s3_key=document.s3_key)
+    token = parse_qs(urlsplit(client.post(reverse("return_to_interview", args=[draft.pk])).url).query)[
+        "litefile_correction"
+    ][0]
+    payload["idempotency_key"] = "replace-cleanup"
+    storage.upload_file.return_value = {"success": True, "key": "replacement.pdf"}
+    with django_capture_on_commit_callbacks(execute=True):
+        response = client.post(
+            reverse("handoff_replace_documents"),
+            {"payload": json.dumps(payload), "complaint": SimpleUploadedFile("complaint.pdf", PDF)},
+            **source,
+            HTTP_X_LITEFILE_CORRECTION=token,
+        )
+    assert response.status_code == 200
+    document.refresh_from_db()
+    assert document.s3_key == "replacement.pdf"
+    assert document.preparation_reviewed_at is None
+    storage.delete_file.assert_called_once_with("old-original.docx")
+
+
+@pytest.mark.parametrize("status,expected", [(400, 422), (503, 503)])
+def test_handoff_distinguishes_conversion_rejection_from_service_outage(
+    client, source, payload, storage, status, expected
+):
+    from efile.tests.pdf_helpers import docx_bytes
+    from efile.tests.test_document_preparation import service_response
+
+    data = docx_bytes()
+    payload["documents"][0]["sha256"] = hashlib.sha256(data).hexdigest()
+    with (
+        patch("efile.services.document_preparation.settings.GOTENBERG_URL", "https://synthetic.invalid"),
+        patch("efile.services.document_preparation.requests.post", return_value=service_response(b"", status=status)),
+    ):
+        response = client.post(
+            reverse("external_handoff"),
+            {"payload": json.dumps(payload), "complaint": SimpleUploadedFile("complaint.docx", data)},
+            **source,
+        )
+    assert response.status_code == expected
+    assert not FilingDraft.objects.exists()
+    storage.upload_file.assert_not_called()

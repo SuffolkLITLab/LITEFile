@@ -2,6 +2,7 @@ import json
 
 import pytest
 from django.urls import reverse
+from django.utils import timezone
 
 from efile.models import FilingDocument, FilingDraft, FilingParty, FilingPlan
 from efile.services.current_drafts import CURRENT_DRAFT_SESSION_KEY, get_current_draft
@@ -14,7 +15,7 @@ from efile.services.drafts import (
 )
 from efile.services.efsp_payload import PayloadValidationError
 from efile.services.fee_quotes import record_fee_quote
-from efile.tests.helpers import accepted_submission
+from efile.tests.helpers import accepted_submission, reviewed_document
 from efile.workflow import WorkflowStepKey, get_workflow_step_choices
 
 
@@ -40,6 +41,7 @@ def _prepare_submission(client, draft, jurisdiction="illinois"):
     """Populate the draft (the source of truth) and session so submit can run."""
     write_case_data(draft, {"court": "cook:cd"})
     write_upload_data(draft, {"files": {"lead": {"url": "https://example.com/petition.pdf"}}})
+    draft.documents.update(preparation="unchanged", preparation_reviewed_at=timezone.now())
     # Submission is only offered against a quote that still prices the filing.
     record_fee_quote(draft, "0.00", [])
     session = client.session
@@ -526,7 +528,7 @@ def test_final_submission_marks_attached_plan_documents_as_filed(client, django_
         jurisdiction="illinois",
         current_step=WorkflowStepKey.REVIEW,
     )
-    FilingDocument.objects.create(
+    reviewed_document(
         draft=draft,
         role=FilingDocument.Role.LEAD,
         sort_order=0,

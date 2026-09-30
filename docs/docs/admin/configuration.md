@@ -81,7 +81,9 @@ Word conversion requests tagged PDF output and lossless images. It does not
 rasterize the document or certify accessibility conformance. Flattening can change
 accessibility tags, links, or annotations. The private original is retained separately
 from the filing PDF and is available for download. Only the filing copy reaches the
-court. Removing a document or expiring an unclaimed handoff cleans up both private
+court. Existing editable drafts without preparation metadata are prepared when
+the filer opens the preview step. Missing stored uploads must be replaced; legacy
+clients cannot bypass preparation or preview approval. Removing a document or expiring an unclaimed handoff cleans up both private
 copies when another draft does not reference them.
 
 State YAML can override the default policy:

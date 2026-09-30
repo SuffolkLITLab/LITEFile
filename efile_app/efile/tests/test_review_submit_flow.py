@@ -4,6 +4,7 @@ from django.urls import reverse
 from efile.models import FilingDocument, FilingDraft, FilingParty
 from efile.services.current_drafts import CURRENT_DRAFT_SESSION_KEY
 from efile.services.fee_quotes import record_fee_quote
+from efile.tests.helpers import reviewed_document
 from efile.workflow import WorkflowStepKey
 
 
@@ -24,7 +25,7 @@ def submission_draft(client, django_user_model):
         case_type_name="Contract",
         document_checklist_acknowledged=True,
     )
-    FilingDocument.objects.create(
+    reviewed_document(
         draft=draft,
         role=FilingDocument.Role.LEAD,
         sort_order=0,

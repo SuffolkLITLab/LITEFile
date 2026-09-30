@@ -12,7 +12,9 @@ from django.views.decorators.http import require_http_methods
 from efile.api.suffolk_api_views import get_tyler_token
 from efile.models import FilingDocument, FilingDraft
 from efile.services.current_drafts import ensure_current_draft, get_current_draft
+from efile.services.document_preparation import PreparationError, PreparationUnavailable
 from efile.services.document_previews import preview_fingerprint
+from efile.services.document_uploads import prepare_stored_documents
 from efile.utils.s3_upload_handler import S3UploadHandler
 from efile.workflow import WorkflowStepKey, get_workflow_context
 
@@ -31,6 +33,16 @@ def preview_documents(request, jurisdiction):
     destinations = {"review": "case_review", "payment": "payment", "document_checklist": "document_checklist"}
     return_to = request.POST.get("return_to") or request.GET.get("return_to", "")
     error = ""
+    status = 200
+    if request.method == "GET":
+        try:
+            prepare_stored_documents(draft, S3UploadHandler())
+        except PreparationUnavailable as exc:
+            error, status = str(exc), 503
+        except PreparationError as exc:
+            error, status = str(exc), 422
+        except (BotoCoreError, ClientError):
+            error, status = "Document storage is unavailable. Please try again later.", 503
     if request.method == "POST":
         with transaction.atomic():
             draft = FilingDraft.objects.select_for_update().get(pk=draft.pk)
@@ -38,7 +50,11 @@ def preview_documents(request, jurisdiction):
             acknowledged = set(request.POST.getlist("reviewed_document"))
             if draft.status not in {FilingDraft.Status.DRAFT, FilingDraft.Status.ERROR}:
                 return HttpResponse("This filing is no longer available to edit.", status=409)
-            if request.POST.get("preview_fingerprint") != preview_fingerprint(documents):
+            if any(not doc.preparation for doc in documents):
+                error = (
+                    "These uploads still need preparation. Reload this page or replace the documents before continuing."
+                )
+            elif request.POST.get("preview_fingerprint") != preview_fingerprint(documents):
                 error = "Your documents changed. Preview the current copies before continuing."
             elif any(str(doc.pk) not in acknowledged for doc in documents):
                 error = "Confirm that you checked each PDF before continuing."
@@ -50,11 +66,12 @@ def preview_documents(request, jurisdiction):
         "documents": documents,
         "preview_fingerprint": preview_fingerprint(documents),
         "preview_error": error,
+        "preparation_pending": any(not doc.preparation for doc in documents),
         "return_to": return_to,
         "is_logged_in": True,
     }
     context.update(get_workflow_context(WorkflowStepKey.PREVIEW_DOCUMENTS, jurisdiction, draft))
-    return render(request, "efile/preview_documents.html", context)
+    return render(request, "efile/preview_documents.html", context, status=status)
 
 
 @require_http_methods(["GET"])
@@ -89,6 +106,8 @@ def document_content(request, jurisdiction, document_id) -> HttpResponseBase:
     is_pdf = content.startswith(b"%PDF-")
     if not original and not is_pdf:
         return HttpResponse("This document is not a readable PDF. Replace it before continuing.", status=422)
+    if is_pdf and not original and not filename.lower().endswith(".pdf"):
+        filename += ".pdf"
     response = FileResponse(
         io.BytesIO(content),
         as_attachment=original or request.GET.get("download") == "1",

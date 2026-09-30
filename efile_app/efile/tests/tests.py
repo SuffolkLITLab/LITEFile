@@ -987,16 +987,14 @@ class TestEdgeCasesAndErrorHandling:
             )
             results.append(response.status_code)
 
-        # Create multiple threads to make simultaneous calls
-        threads = []
-        for _ in range(5):
-            thread = threading.Thread(target=make_api_call)
-            threads.append(thread)
-            thread.start()
-
-        # Wait for all threads to complete
-        for thread in threads:
-            thread.join()
+        response = Mock(status_code=200)
+        response.json.return_value = [{"code": "civil", "name": "Civil"}]
+        with patch("efile.api.dropdown_views.requests.get", return_value=response):
+            threads = [threading.Thread(target=make_api_call) for _ in range(5)]
+            for thread in threads:
+                thread.start()
+            for thread in threads:
+                thread.join()
 
         # All calls should succeed
         assert len(results) == 5

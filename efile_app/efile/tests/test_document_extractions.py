@@ -17,6 +17,7 @@ from efile.services.document_extractions import (
 )
 from efile.services.extraction_fields import normalize_document_evidence, normalize_extracted_fields
 from efile.services.taxonomy_classification import ClassificationRun, HierarchicalDocumentClassifier
+from efile.tests.helpers import reviewed_document
 from efile.workflow import ExistingCase
 
 
@@ -72,7 +73,7 @@ def test_normalization_canonicalizes_common_party_name_keys(normalizer):
 
 @pytest.mark.django_db
 def test_worker_caps_pages_and_persists_the_complete_payload(extraction_draft):
-    document = FilingDocument.objects.create(
+    document = reviewed_document(
         draft=extraction_draft,
         role=FilingDocument.Role.LEAD,
         name="petition.pdf",
@@ -124,7 +125,7 @@ def test_worker_reads_a_real_uploaded_pdf_before_classification(extraction_draft
     """Do not let the standard worker test regress to a fully mocked document."""
     source_pdf = Path(__file__).resolve().parents[3] / "benchmarking/synthetic/filled_pdfs/flattened/MA-01.pdf"
     assert source_pdf.is_file()
-    document = FilingDocument.objects.create(
+    document = reviewed_document(
         draft=extraction_draft,
         role=FilingDocument.Role.LEAD,
         name="MA-01.pdf",
@@ -195,7 +196,7 @@ def test_worker_reads_a_real_uploaded_pdf_before_classification(extraction_draft
 @pytest.mark.django_db
 def test_review_waits_for_background_analysis(client, extraction_draft):
     authorize(client, extraction_draft)
-    document = FilingDocument.objects.create(
+    document = reviewed_document(
         draft=extraction_draft,
         role=FilingDocument.Role.LEAD,
         name="petition.pdf",
@@ -211,7 +212,7 @@ def test_review_waits_for_background_analysis(client, extraction_draft):
 @pytest.mark.django_db
 def test_status_endpoint_reports_when_review_is_ready(client, extraction_draft):
     authorize(client, extraction_draft)
-    document = FilingDocument.objects.create(
+    document = reviewed_document(
         draft=extraction_draft,
         role=FilingDocument.Role.LEAD,
         name="petition.pdf",
@@ -243,7 +244,7 @@ def test_review_shows_only_the_document_summary_and_fields_the_filer_can_edit(cl
     values it does not use (like amounts) are not shown at all."""
 
     authorize(client, extraction_draft)
-    FilingDocument.objects.create(
+    reviewed_document(
         draft=extraction_draft,
         role=FilingDocument.Role.LEAD,
         name="petition.pdf",
@@ -305,7 +306,7 @@ def _post_review(client, jurisdiction="illinois", **fields):
 @pytest.mark.django_db
 def test_missing_acknowledgement_shows_an_error_beside_the_checkbox_and_keeps_edits(client, extraction_draft):
     authorize(client, extraction_draft)
-    FilingDocument.objects.create(draft=extraction_draft, role=FilingDocument.Role.LEAD, name="petition.pdf")
+    reviewed_document(draft=extraction_draft, role=FilingDocument.Role.LEAD, name="petition.pdf")
     extraction_draft.extracted_guesses = {"document title": "Complaint", "case title": "Old title"}
     extraction_draft.save(update_fields=["extracted_guesses", "updated_at"])
 
@@ -333,7 +334,7 @@ def test_missing_acknowledgement_shows_an_error_beside_the_checkbox_and_keeps_ed
 @pytest.mark.django_db
 def test_acknowledging_after_the_error_lets_the_filer_continue(client, extraction_draft):
     authorize(client, extraction_draft)
-    FilingDocument.objects.create(draft=extraction_draft, role=FilingDocument.Role.LEAD, name="petition.pdf")
+    reviewed_document(draft=extraction_draft, role=FilingDocument.Role.LEAD, name="petition.pdf")
     extraction_draft.extracted_guesses = {"document title": "Complaint"}
     extraction_draft.save(update_fields=["extracted_guesses", "updated_at"])
 
@@ -358,7 +359,7 @@ def test_acknowledging_after_the_error_lets_the_filer_continue(client, extractio
 )
 def test_no_acknowledgement_is_demanded_when_none_is_shown(client, extraction_draft, extracted_guesses):
     authorize(client, extraction_draft)
-    FilingDocument.objects.create(draft=extraction_draft, role=FilingDocument.Role.LEAD, name="petition.pdf")
+    reviewed_document(draft=extraction_draft, role=FilingDocument.Role.LEAD, name="petition.pdf")
     extraction_draft.extracted_guesses = extracted_guesses
     extraction_draft.save(update_fields=["extracted_guesses", "updated_at"])
 
@@ -373,7 +374,7 @@ def test_no_acknowledgement_is_demanded_when_none_is_shown(client, extraction_dr
 def test_vermont_review_uses_court_form_terms_and_neutral_copy(client, django_user_model):
     user = django_user_model.objects.create_user(username="vermont-reviewer", tyler_jurisdiction="vermont")
     draft = FilingDraft.objects.create(user=user, jurisdiction="vermont", workflow_version=2)
-    FilingDocument.objects.create(draft=draft, role=FilingDocument.Role.LEAD, name="complaint.pdf")
+    reviewed_document(draft=draft, role=FilingDocument.Role.LEAD, name="complaint.pdf")
     authorize(client, draft)
 
     content = client.get(reverse("extraction_review", kwargs={"jurisdiction": "vermont"})).content.decode()
@@ -389,7 +390,7 @@ def test_vermont_review_uses_court_form_terms_and_neutral_copy(client, django_us
 @pytest.mark.django_db
 def test_failed_extraction_allows_review_with_neutral_failure_copy(client, extraction_draft):
     authorize(client, extraction_draft)
-    document = FilingDocument.objects.create(
+    document = reviewed_document(
         draft=extraction_draft,
         role=FilingDocument.Role.LEAD,
         name="petition.pdf",
@@ -418,7 +419,7 @@ def test_management_command_runs_once_with_no_jobs():
 def test_management_command_processes_and_retries_failures(extraction_draft):
     from django.core.management import call_command
 
-    document = FilingDocument.objects.create(
+    document = reviewed_document(
         draft=extraction_draft,
         role=FilingDocument.Role.LEAD,
         name="petition.pdf",

@@ -20,7 +20,9 @@
                 <article class="prepared-document mb-4">
                     <h2 class="h5">{{ document.name|default:document.original_filename }}</h2>
                     <p>
-                        {% if document.preparation == "converted" %}{% translate "Converted from Word to PDF. Original:" %} {{ document.original_filename }}
+                        {% if not document.preparation %}
+                            {% translate "This upload still needs preparation. Reload this page to try again, or replace the document." %}
+                        {% elif document.preparation == "converted" %}{% translate "Converted from Word to PDF. Original:" %} {{ document.original_filename }}
                         {% elif document.preparation == "flattened" %}
                             {% translate "PDF form fields locked for filing." %}
                         {% elif document.preparation == "converted_flattened" %}
@@ -35,7 +37,8 @@
                                type="checkbox"
                                name="reviewed_document"
                                value="{{ document.pk }}"
-                               required />
+                               required
+                               {% if not document.preparation %}disabled{% endif %} />
                         <span class="form-check-label">{% blocktranslate with name=document.name %}I checked every page of {{ name }} and the document is correct.{% endblocktranslate %}</span>
                     </label>
                 </article>
@@ -43,7 +46,9 @@
             <div class="workflow-actions">
                 <a class="btn btn-outline-secondary"
                    href="{% url 'upload_documents' jurisdiction %}">{% translate "Replace or remove documents" %}</a>
-                <button class="btn btn-primary" type="submit">{% translate "Continue" %}</button>
+                <button class="btn btn-primary"
+                        type="submit"
+                        {% if preparation_pending %}disabled{% endif %}>{% translate "Continue" %}</button>
             </div>
         </form>
     </section>

@@ -17,7 +17,7 @@ from efile.services.fee_quotes import (
     quote_from_efsp_response,
     record_fee_quote,
 )
-from efile.tests.helpers import accepted_submission
+from efile.tests.helpers import accepted_submission, reviewed_document
 from efile.workflow import WorkflowStepKey
 
 REVIEW_URL = reverse("case_review", kwargs={"jurisdiction": "illinois"})
@@ -70,7 +70,7 @@ def draft(client, django_user_model):
         selected_payment_account_name="Card ending in 4242",
         selected_payment_account_type="CC",
     )
-    FilingDocument.objects.create(
+    reviewed_document(
         draft=draft,
         role=FilingDocument.Role.LEAD,
         sort_order=0,
@@ -186,7 +186,7 @@ FEE_AFFECTING_EDITS = {
     "optional service added": lambda draft: FilingDocument.objects.filter(pk=_lead(draft).pk).update(
         requested_optional_services=["certified-copy", "service-by-mail"]
     ),
-    "document added": lambda draft: FilingDocument.objects.create(
+    "document added": lambda draft: reviewed_document(
         draft=draft, role=FilingDocument.Role.SUPPORTING, sort_order=0, filing_type_code="exhibit"
     ),
     "party added": lambda draft: FilingParty.objects.create(

@@ -42,7 +42,7 @@ def make_dummy_pdf():
     return buf.getvalue()
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(transaction=True)
 @pytest.mark.parametrize(
     (
         "jurisdiction",

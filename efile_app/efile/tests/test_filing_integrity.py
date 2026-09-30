@@ -7,7 +7,7 @@ import pytest
 from django.test import Client
 from django.urls import reverse
 
-from efile.models import FilingDocument, FilingDraft, FilingParty
+from efile.models import FilingDraft, FilingParty
 from efile.services.current_drafts import CURRENT_DRAFT_SESSION_KEY
 from efile.services.drafts import read_case_data, write_case_data
 from efile.services.extracted_parties import review_rows, save_reviewed_parties
@@ -17,7 +17,7 @@ from efile.services.extraction_fields import (
     normalize_extracted_fields,
 )
 from efile.services.fee_quotes import record_fee_quote
-from efile.tests.helpers import accepted_submission
+from efile.tests.helpers import accepted_submission, reviewed_document
 
 
 @pytest.mark.parametrize(
@@ -87,7 +87,7 @@ def test_family_form_children_remain_evidence_until_explicitly_added(draft):
 def test_old_extraction_placeholders_are_not_prefilled_or_displayed(draft):
     draft.extracted_guesses = {"case title": "unknown", "docket number": "N/A", "form revision": "Not provided"}
     draft.save()
-    FilingDocument.objects.create(draft=draft, role="lead", name="petition.pdf")
+    reviewed_document(draft=draft, role="lead", name="petition.pdf")
     response = signed_in(draft.user).get(route("extraction_review", draft))
     assert response.status_code == 200
     assert response.context["document_summary_details"] == []
@@ -181,7 +181,7 @@ def test_backfill_repairs_existing_submitted_draft_summary(draft):
     from django.apps import apps
     from django.db import connection
 
-    FilingDocument.objects.create(draft=draft, role="lead", filing_type_code="27959", filing_type_name="Complaint")
+    reviewed_document(draft=draft, role="lead", filing_type_code="27959", filing_type_name="Complaint")
     FilingDraft.objects.filter(pk=draft.pk).update(
         status=FilingDraft.Status.SUBMITTED, filing_type_code="", filing_type_name=""
     )
@@ -192,9 +192,7 @@ def test_backfill_repairs_existing_submitted_draft_summary(draft):
 
 
 def test_primary_type_tracks_edits_clearing_and_lead_deletion(draft):
-    lead = FilingDocument.objects.create(
-        draft=draft, role="lead", filing_type_code="27959", filing_type_name="Complaint"
-    )
+    lead = reviewed_document(draft=draft, role="lead", filing_type_code="27959", filing_type_name="Complaint")
     stale_draft = FilingDraft.objects.get(pk=draft.pk)
     lead.filing_type_code = "123"
     lead.filing_type_name = "Petition"

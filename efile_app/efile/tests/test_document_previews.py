@@ -158,3 +158,142 @@ def test_preview_return_destinations_are_restricted(client, preview_draft):
     assert "attacker" not in response.url
     response = approve(client, preview_draft, return_to="payment")
     assert "/payment/" in response.url
+
+
+def test_lead_key_swap_resets_approval_and_cleans_only_unused_copies(preview_draft, django_capture_on_commit_callbacks):
+    lead = preview_draft.documents.get()
+    lead.preparation_reviewed_at = timezone.now()
+    lead.save()
+    old_key, original_key = lead.s3_key, lead.original_s3_key
+    shared = FilingDraft.objects.create(user=preview_draft.user, jurisdiction="vermont")
+    FilingDocument.objects.create(draft=shared, role="lead", s3_key=old_key)
+    handler = MagicMock()
+    with (
+        patch("efile.utils.s3_upload_handler.S3UploadHandler", return_value=handler),
+        django_capture_on_commit_callbacks(execute=True),
+    ):
+        write_upload_data(preview_draft, {"files": {"lead": {"s3_key": "replacement.pdf", "name": "new.pdf"}}})
+    lead.refresh_from_db()
+    assert lead.preparation_reviewed_at is None
+    assert lead.preparation == ""
+    assert lead.original_s3_key == ""
+    assert lead.original_filename == "new.pdf"
+    handler.delete_file.assert_called_once_with(original_key)
+
+
+def test_legacy_word_support_is_prepared_before_it_can_be_approved(client, preview_draft):
+    from efile.tests.pdf_helpers import docx_bytes
+    from efile.tests.test_document_preparation import service_response
+
+    write_upload_data(preview_draft, {"files": {"supporting": [{"s3_key": "legacy.docx", "name": "legacy.docx"}]}})
+    supporting = preview_draft.documents.get(role="supporting")
+    assert approve(client, preview_draft).status_code == 200
+    supporting.refresh_from_db()
+    assert supporting.preparation_reviewed_at is None
+    handler = MagicMock()
+    handler.bucket_name = "private"
+    handler.get_public_url.return_value = "https://synthetic.invalid/prepared.pdf"
+    handler.s3_client.get_object.return_value = {"Body": io.BytesIO(docx_bytes())}
+    handler.upload_file.side_effect = [
+        {"success": True, "key": "retained.docx"},
+        {"success": True, "key": "prepared.pdf"},
+    ]
+    with (
+        patch("efile.views.document_previews.S3UploadHandler", return_value=handler),
+        patch("efile.services.document_preparation.requests.post", return_value=service_response(pdf_bytes())),
+        patch("efile.services.document_preparation.settings.GOTENBERG_URL", "https://synthetic.invalid"),
+    ):
+        assert client.get(url("preview_documents", preview_draft)).status_code == 200
+    supporting.refresh_from_db()
+    assert supporting.preparation == "converted"
+    assert supporting.s3_key == "prepared.pdf"
+    assert supporting.original_s3_key == "retained.docx"
+    assert supporting.preparation_reviewed_at is None
+    assert approve(client, preview_draft).status_code == 302
+
+
+def test_legacy_rows_and_changed_preparation_cannot_bypass_submission(client, preview_draft):
+    doc = preview_draft.documents.get()
+    doc.preparation_reviewed_at = timezone.now()
+    doc.save()
+    fingerprint = preview_fingerprint([doc])
+    doc.original_s3_key = "new-original"
+    doc.save()
+    assert preview_fingerprint([doc]) != fingerprint
+    assert approve(client, preview_draft, preview_fingerprint=fingerprint).status_code == 200
+    doc.preparation = ""
+    doc.save()
+    with patch("efile.views.submission.forward_final_filing") as forward:
+        assert (
+            client.post(reverse("submit_final_filing"), data="{}", content_type="application/json").status_code == 412
+        )
+    forward.assert_not_called()
+
+
+def test_extraction_callback_is_discarded_when_outer_transaction_rolls_back(preview_draft):
+    from django.db import transaction
+
+    preview_draft.documents.all().delete()
+    handler = MagicMock()
+    handler.upload_file.return_value = {"success": True, "key": "new.pdf"}
+    handler.get_public_url.return_value = "https://synthetic.invalid/new.pdf"
+    with (
+        patch("efile.services.document_uploads.S3UploadHandler", return_value=handler),
+        patch("efile.services.document_uploads.queue_document_extraction") as queue,
+    ):
+        with pytest.raises(RuntimeError):
+            with transaction.atomic():
+                upload_files(preview_draft, [SimpleUploadedFile("new.pdf", pdf_bytes())], "vermont")
+                queue.assert_not_called()
+                raise RuntimeError("Rollback")
+    queue.assert_not_called()
+    assert not preview_draft.documents.exists()
+
+
+def test_legacy_pdf_is_flattened_and_cannot_be_acknowledged_after_preparation_failure(client, preview_draft):
+    from efile.tests.test_document_preparation import service_response
+
+    doc = preview_draft.documents.get()
+    doc.preparation = ""
+    doc.original_s3_key = ""
+    doc.save()
+    source = pdf_bytes(form_value="Stored answer")
+    handler = MagicMock()
+    handler.bucket_name = "private"
+    handler.get_public_url.return_value = "https://synthetic.invalid/prepared.pdf"
+    handler.s3_client.get_object.side_effect = lambda **kwargs: {"Body": io.BytesIO(source)}
+    handler.upload_file.side_effect = [{"success": True, "key": "retained.pdf"}, {"success": True, "key": "flat.pdf"}]
+    doc.original_filename = "source.pdf"
+    doc.save()
+    with (
+        patch("efile.views.document_previews.S3UploadHandler", return_value=handler),
+        patch("efile.services.document_preparation.settings.GOTENBERG_URL", "https://synthetic.invalid"),
+        patch(
+            "efile.services.document_preparation.requests.post",
+            return_value=service_response(pdf_bytes("Stored answer")),
+        ),
+    ):
+        assert client.get(url("preview_documents", preview_draft)).status_code == 200
+    doc.refresh_from_db()
+    assert doc.preparation == "flattened"
+    assert doc.s3_key == "flat.pdf"
+    assert doc.original_s3_key == "retained.pdf"
+    assert doc.preparation_reviewed_at is None
+    # A structurally valid response that drops text remains blocked.
+    doc.preparation = ""
+    doc.preparation_reviewed_at = None
+    doc.save()
+    with (
+        patch("efile.views.document_previews.S3UploadHandler", return_value=handler),
+        patch("efile.services.document_preparation.settings.GOTENBERG_URL", "https://synthetic.invalid"),
+        patch(
+            "efile.services.document_preparation.requests.post",
+            return_value=service_response(pdf_bytes("Dropped answer")),
+        ),
+    ):
+        response = client.get(url("preview_documents", preview_draft))
+    assert response.status_code == 422
+    assert b"filled-in text could not be preserved" in response.content
+    assert approve(client, preview_draft).status_code == 200
+    doc.refresh_from_db()
+    assert doc.preparation_reviewed_at is None

@@ -116,8 +116,10 @@ and final packet exhibit.
 
 | Check | Result |
 | --- | --- |
-| `uv run pytest -q` | 1,215 passed; 1 opt-in browser test skipped |
+| `uv run pytest -q` | 1,230 passed; 1 opt-in browser test skipped |
 | Opt-in real Gotenberg and Chromium test | 1 passed |
+| Conversion and preview tests with Gotenberg environment variables cleared | Passed; final full suite also runs with these variables cleared |
+| GitHub accessibility workflow | Passed |
 | `npm run test:unit` | 64 passed |
 | `uv run ruff check .` and formatting | Passed |
 | `uv run ty check` | Passed |
@@ -149,6 +151,35 @@ The first GitHub dependency audit found four advisories in the pre-existing
 21.7.13 and its required dependencies, then verified the audit passes and that
 it creates a working virtual environment. The relevant fixes are documented in
 [virtualenv's release history](https://virtualenv.pypa.io/en/latest/changelog.html#v21-7-13-2026-09-18).
+
+CI also exposed mocked conversion tests that depended on a locally configured
+Gotenberg URL. The test fixture now sets a synthetic service URL explicitly;
+The conversion and preview tests pass with all Gotenberg environment variables
+cleared. The opt-in integration test still uses the real configured service.
+
+## Regression review
+
+Addressed the follow-up review with tests that start from unprepared or stale
+server state rather than relying on already reviewed fixtures:
+
+| Concern | Behavior checked |
+| --- | --- |
+| Lead storage-key replacement | Clears preparation, original metadata and approval; deletes superseded copies after commit while keeping shared references |
+| Legacy supporting uploads | Prepares stored DOCX/PDF bytes on preview, rejects acknowledgement before preparation, and blocks direct submission |
+| Stale preview fingerprint | Includes preparation, original key, size and document update time in addition to row and filing key |
+| Indirect annotation arrays | Resolves and validates the array before iterating; accepts the indirect-array regression specimen |
+| Handoff preparation errors | Permanent input/conversion rejection returns 422; storage and conversion-service outages return 503 |
+| Extraction timing | Registers the job creation with `transaction.on_commit`; a rolled-back transaction does not queue extraction |
+| Waiver write failure | Database errors after storing original and filing copies remove both staged objects |
+| Handoff replacement cleanup | Deletes old objects after commit, preserving objects referenced by another draft |
+| Special text-field appearances | Skips literal-value matching for comb, password, formatted, rich-text and hidden/no-view fields; retains structural and ordinary visible-text checks |
+
+The existing extraction queue is a database record, so creating it inside the
+original atomic transaction was already isolated from worker reads and rollback.
+The callback now makes the commit boundary explicit. Downstream-flow fixtures
+explicitly represent prepared and acknowledged documents; the new bypass tests
+keep their documents unprepared. A concurrency unit test also now mocks court
+choices instead of intermittently depending on a live court response.
 
 ## Reproduction
 

@@ -12,6 +12,14 @@ from efile.services.document_preparation import PreparationError, prepare_docume
 from efile.tests.pdf_helpers import docx_bytes, pdf_bytes
 
 
+@pytest.fixture(autouse=True)
+def configured_conversion_service(settings):
+    # Mocked HTTP tests must not depend on the developer's .env.
+    settings.GOTENBERG_URL = "https://conversion.example.invalid"
+    settings.GOTENBERG_USERNAME = ""
+    settings.GOTENBERG_PASSWORD = ""
+
+
 def upload(data, name="form.pdf"):
     return SimpleUploadedFile(name, data)
 
@@ -143,3 +151,46 @@ def test_oversize_prepared_output_is_rejected():
     ):
         with pytest.raises(PreparationError, match="exceeds"):
             prepare_document(upload(docx_bytes(), "brief.docx"), "vermont")
+
+
+def test_indirect_annotations_are_resolved_before_inspection():
+    from pypdf import PdfWriter
+    from pypdf.generic import NameObject
+
+    writer = PdfWriter(clone_from=PdfReader(io.BytesIO(pdf_bytes(form_value="Filled answer"))))
+    writer.pages[0][NameObject("/Annots")] = writer._add_object(writer.pages[0]["/Annots"])
+    output = io.BytesIO()
+    writer.write(output)
+    with patch(
+        "efile.services.document_preparation.requests.post", return_value=service_response(pdf_bytes("Filled answer"))
+    ):
+        assert prepare_document(upload(output.getvalue()), "vermont").operation == "flattened"
+
+
+@pytest.mark.parametrize("kind", ["comb", "password", "hidden", "formatted"])
+def test_special_field_appearances_do_not_require_literal_value_text(kind):
+    from pypdf import PdfWriter
+    from pypdf.generic import DictionaryObject, NameObject, NumberObject, TextStringObject
+
+    writer = PdfWriter(clone_from=PdfReader(io.BytesIO(pdf_bytes(form_value="123456"))))
+    widget = cast(Any, writer.pages[0]["/Annots"])[0].get_object()
+    if kind == "comb":
+        widget[NameObject("/Ff")] = NumberObject(1 << 24)
+    elif kind == "password":
+        widget[NameObject("/Ff")] = NumberObject(1 << 13)
+    elif kind == "hidden":
+        widget[NameObject("/F")] = NumberObject(2)
+    else:
+        widget[NameObject("/AA")] = DictionaryObject(
+            {
+                NameObject("/F"): DictionaryObject(
+                    {NameObject("/S"): NameObject("/JavaScript"), NameObject("/JS"): TextStringObject("formatNumber()")}
+                )
+            }
+        )
+    output = io.BytesIO()
+    writer.write(output)
+    with patch(
+        "efile.services.document_preparation.requests.post", return_value=service_response(pdf_bytes("12/34/56"))
+    ):
+        assert prepare_document(upload(output.getvalue()), "vermont").operation == "flattened"

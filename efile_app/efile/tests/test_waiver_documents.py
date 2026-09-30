@@ -283,3 +283,28 @@ def test_general_upload_preserves_identical_names_and_separate_storage_keys(paym
     }
     assert list(payment_draft.documents.values_list("name", flat=True)) == ["appearance.pdf"] * 3
     assert len(read_upload_data(payment_draft)["files"]["supporting"]) == 2
+
+
+def test_database_failure_cleans_uploaded_original_and_filing(client, payment_draft, storage):
+    from django.db import DatabaseError
+
+    from efile.tests.pdf_helpers import docx_bytes
+    from efile.tests.test_document_preparation import service_response
+
+    storage.upload_file.side_effect = [
+        {"success": True, "key": "original.docx"},
+        {"success": True, "key": "filing.pdf"},
+    ]
+    with (
+        patch("efile.services.waiver_documents._codes", side_effect=codes),
+        patch("efile.services.document_preparation.settings.GOTENBERG_URL", "https://synthetic.invalid"),
+        patch("efile.services.document_preparation.requests.post", return_value=service_response(pdf_bytes())),
+        patch("efile.views.waiver_documents.FilingDocument.objects.create", side_effect=DatabaseError("Write failed")),
+        pytest.raises(DatabaseError),
+    ):
+        client.post(
+            endpoint(payment_draft),
+            upload_data(payment_draft, document=SimpleUploadedFile("waiver.docx", docx_bytes())),
+        )
+    assert {call.args[0] for call in storage.delete_file.call_args_list} == {"original.docx", "filing.pdf"}
+    assert payment_draft.documents.count() == 1

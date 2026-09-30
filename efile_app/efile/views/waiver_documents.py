@@ -86,3 +86,6 @@ def waiver_documents(request, jurisdiction):
     except ValueError as error:
         cleanup_uploads(handler, keys)
         return JsonResponse({"error": str(error)}, status=400)
+    except Exception:
+        cleanup_uploads(handler, keys)
+        raise

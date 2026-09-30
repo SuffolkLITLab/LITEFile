@@ -5,6 +5,7 @@ import secrets
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 import requests
+from botocore.exceptions import BotoCoreError, ClientError
 from django.conf import settings
 from django.core import signing
 from django.db import IntegrityError, transaction
@@ -17,7 +18,12 @@ from django.views.decorators.http import require_http_methods
 from efile.api.suffolk_api_views import get_tyler_token
 from efile.models import FilingDraft, HandoffDocumentUpdate, InterviewHandoff
 from efile.services.current_drafts import attach_current_draft
-from efile.services.document_preparation import store_prepared_document
+from efile.services.document_preparation import (
+    PreparationError,
+    PreparationUnavailable,
+    cleanup_unreferenced_uploads,
+    store_prepared_document,
+)
 from efile.services.draft_urls import draft_url
 from efile.services.fee_quotes import invalidate_fee_quote
 from efile.services.filings import describe_filing_detail, fetch_filing_detail
@@ -88,8 +94,12 @@ def _upload(payload, files, handler, keys):
                 keys=keys,
                 metadata={"sha256": document["sha256"]},
             )
-        except ValueError as error:
+        except (BotoCoreError, ClientError) as error:
+            raise HandoffError("Document storage is unavailable. Please try again later.", status=503) from error
+        except PreparationUnavailable as error:
             raise HandoffError(str(error), status=503) from error
+        except PreparationError as error:
+            raise HandoffError(str(error), status=422) from error
         result = {
             **prepared,
             "key": prepared["s3_key"],
@@ -145,9 +155,11 @@ def external_handoff(request):
         # also runs when the filer opens the draft, after choosing a court.
         return _response(request, receipt, created=True)
     except HandoffError as exc:
-        for key in keys:
-            handler.delete_file(key)
+        cleanup_unreferenced_uploads(keys, handler)
         return JsonResponse({"error": str(exc)}, status=exc.status)
+    except Exception:
+        cleanup_unreferenced_uploads(keys, handler)
+        raise
 
 
 def _private(response):
@@ -398,6 +410,12 @@ def replace_documents(request):
                 uploads = _upload(payload, request.FILES, handler, keys)
                 for row, doc in updates:
                     uploaded = uploads[doc["id"]]
+                    old_keys = [row.s3_key, row.original_s3_key]
+                    transaction.on_commit(
+                        lambda old_keys=old_keys: cleanup_unreferenced_uploads(old_keys, handler), robust=True
+                    )
+                    row.name = uploaded["name"]
+                    row.content_type = uploaded["content_type"]
                     row.s3_key = uploaded["key"]
                     row.public_url = uploaded["url"]
                     row.original_filename = uploaded["filename"]
@@ -407,6 +425,8 @@ def replace_documents(request):
                     row.preparation_reviewed_at = None
                     row.save(
                         update_fields=[
+                            "name",
+                            "content_type",
                             "s3_key",
                             "public_url",
                             "original_filename",
@@ -445,6 +465,8 @@ def replace_documents(request):
             }
         )
     except HandoffError as exc:
-        for key in keys:
-            handler.delete_file(key)
+        cleanup_unreferenced_uploads(keys, handler)
         return JsonResponse({"error": str(exc)}, status=exc.status)
+    except Exception:
+        cleanup_unreferenced_uploads(keys, handler)
+        raise
