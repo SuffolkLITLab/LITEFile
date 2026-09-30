@@ -1,6 +1,5 @@
 import logging
 
-from django.conf import settings
 from django.db import transaction
 from django.db.models import Q
 from django.http import JsonResponse
@@ -182,7 +181,6 @@ def upload_documents(request, jurisdiction):
         "extraction": extraction,
         "extraction_pending": extraction is not None
         and extraction.status in {DocumentExtraction.Status.PENDING, DocumentExtraction.Status.PROCESSING},
-        "max_extraction_pages": settings.DOCUMENT_EXTRACTION_MAX_PAGES,
         "flatten_pdf_forms": requires_flattening(jurisdiction),
         "upload_data": upload_data,
         "ai_opted_out": draft.ai_assistance_opted_out,

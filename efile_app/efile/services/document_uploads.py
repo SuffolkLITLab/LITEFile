@@ -14,7 +14,7 @@ from efile.services.document_preparation import (
     cleanup_uploads,
     store_prepared_document,
 )
-from efile.services.drafts import read_upload_data
+from efile.services.drafts import ACTIVE_DRAFT_STATUSES, read_upload_data
 from efile.services.fee_quotes import invalidate_fee_quote
 from efile.utils.s3_upload_handler import S3UploadHandler
 from efile.workflow import WorkflowStepKey
@@ -36,7 +36,7 @@ def upload_files(draft, uploaded_files, jurisdiction, *, current_step=WorkflowSt
                 raise ValueError(f"{file.name}: {error}") from error
         with transaction.atomic():
             draft = FilingDraft.objects.select_for_update().get(pk=draft.pk)
-            if draft.status not in {FilingDraft.Status.DRAFT, FilingDraft.Status.ERROR}:
+            if draft.status not in ACTIVE_DRAFT_STATUSES:
                 raise ValueError("This filing is no longer available to edit.")
             has_lead = draft.documents.filter(role=FilingDocument.Role.LEAD).exists()
             highest = draft.documents.filter(role=FilingDocument.Role.SUPPORTING).aggregate(order=Max("sort_order"))[
@@ -75,7 +75,7 @@ def prepare_stored_documents(draft, handler):
             documents = list(locked.documents.filter(preparation=""))
             if not documents:
                 return
-            if locked.status not in {FilingDraft.Status.DRAFT, FilingDraft.Status.ERROR}:
+            if locked.status not in ACTIVE_DRAFT_STATUSES:
                 raise PreparationError("This filing is no longer available to edit.")
             if not handler._ensure_initialized() or handler.s3_client is None:
                 raise PreparationUnavailable("Document storage is unavailable. Please try again later.")

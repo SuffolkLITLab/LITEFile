@@ -15,6 +15,7 @@ from efile.services.current_drafts import ensure_current_draft, get_current_draf
 from efile.services.document_preparation import PreparationError, PreparationUnavailable
 from efile.services.document_previews import preview_fingerprint
 from efile.services.document_uploads import prepare_stored_documents
+from efile.services.drafts import ACTIVE_DRAFT_STATUSES
 from efile.utils.s3_upload_handler import S3UploadHandler
 from efile.workflow import WorkflowStepKey, get_workflow_context
 
@@ -47,7 +48,7 @@ def preview_documents(request, jurisdiction):
         with transaction.atomic():
             draft = FilingDraft.objects.select_for_update().get(pk=draft.pk)
             documents = list(FilingDocument.objects.filter(draft=draft).order_by("role", "sort_order", "pk"))
-            if draft.status not in {FilingDraft.Status.DRAFT, FilingDraft.Status.ERROR}:
+            if draft.status not in ACTIVE_DRAFT_STATUSES:
                 return HttpResponse("This filing is no longer available to edit.", status=409)
             if any(not doc.preparation for doc in documents):
                 error = "Your files are not ready. Reload this page or replace them."

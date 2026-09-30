@@ -224,11 +224,12 @@ def prepare_document(uploaded_file, jurisdiction):
         )
         filename = f"{Path(filename).stem}.pdf"
         operation = "converted"
-    inspect_pdf(content)
     if requires_flattening(jurisdiction):
         content, flattened = _flatten(content)
         if flattened:
             operation = "converted_flattened" if operation == "converted" else "flattened"
+    else:
+        inspect_pdf(content)
     return PreparedDocument(content, filename, operation)
 
 
