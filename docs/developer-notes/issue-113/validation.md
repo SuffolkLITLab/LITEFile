@@ -116,7 +116,7 @@ and final packet exhibit.
 
 | Check | Result |
 | --- | --- |
-| `uv run pytest -q` | 1,230 passed; 1 opt-in browser test skipped |
+| `uv run pytest -q` | 1,231 passed; 1 opt-in browser test skipped |
 | Opt-in real Gotenberg and Chromium test | 1 passed |
 | Conversion and preview tests with Gotenberg environment variables cleared | Passed; final full suite also runs with these variables cleared |
 | GitHub accessibility workflow | Passed |
@@ -178,7 +178,9 @@ The existing extraction queue is a database record, so creating it inside the
 original atomic transaction was already isolated from worker reads and rollback.
 The callback now makes the commit boundary explicit. Downstream-flow fixtures
 explicitly represent prepared and acknowledged documents; the new bypass tests
-keep their documents unprepared. A concurrency unit test also now mocks court
+keep their documents unprepared. The accessibility seed command also marks its
+downstream fixture as prepared and confirmed, with a regression test for this
+state. A concurrency unit test also now mocks court
 choices instead of intermittently depending on a live court response.
 
 ## Reproduction

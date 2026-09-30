@@ -297,3 +297,14 @@ def test_legacy_pdf_is_flattened_and_cannot_be_acknowledged_after_preparation_fa
     assert approve(client, preview_draft).status_code == 200
     doc.refresh_from_db()
     assert doc.preparation_reviewed_at is None
+
+
+def test_accessibility_seed_starts_with_a_prepared_acknowledged_document(tmp_path):
+    from django.core.management import call_command
+
+    from efile.services.document_previews import require_document_previews
+
+    call_command("seed_accessibility_session", output=str(tmp_path / "browser-state.json"))
+    draft = FilingDraft.objects.get(user__username="accessibility-checker")
+    require_document_previews(draft)
+    assert (tmp_path / "browser-state.json").exists()
