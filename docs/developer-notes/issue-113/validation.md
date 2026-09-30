@@ -125,6 +125,7 @@ and final packet exhibit.
 | New Django template lint and format | Passed |
 | Stylelint | 0 errors; 19 existing warnings in other stylesheets |
 | Bandit | Passed after removing a production assertion |
+| `uv run pip-audit --local --skip-editable` | No known vulnerabilities found |
 | `manage.py makemigrations --check --dry-run` | No changes detected |
 | `docker build -t litefile:issue-113 .` | Passed; generated and collected PDF.js assets |
 | Docusaurus `npm run build` | Passed |
@@ -142,6 +143,12 @@ dependencies. No finding names the new PDF.js package. Those existing dependenci
 were left at their locked versions to keep this feature's dependency changes
 focused. Accessibility testing checks the preview controls and generated tagged
 Word PDF structure; it does not certify every filing PDF as PDF/UA compliant.
+
+The first GitHub dependency audit found four advisories in the pre-existing
+`virtualenv` 20.36.1 development dependency. Updated the lockfile to virtualenv
+21.7.13 and its required dependencies, then verified the audit passes and that
+it creates a working virtual environment. The relevant fixes are documented in
+[virtualenv's release history](https://virtualenv.pypa.io/en/latest/changelog.html#v21-7-13-2026-09-18).
 
 ## Reproduction
 
