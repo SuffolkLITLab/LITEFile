@@ -4,6 +4,7 @@ from django.shortcuts import redirect, render
 from efile.api.suffolk_api_views import get_tyler_token
 from efile.models import FilingDocument, FilingParty
 from efile.services.current_drafts import ensure_current_draft
+from efile.services.disclaimers import disclaimer_context
 from efile.services.drafts import draft_snapshot, read_case_data, read_upload_data
 from efile.services.extracted_parties import party_display_name
 from efile.services.fee_quotes import fee_inputs_token, fee_quote_summary
@@ -108,5 +109,6 @@ def case_review(request, jurisdiction):
         # what the filer's own plan expects and this envelope does not have.
         "plan_missing_documents": documents_missing_from_envelope(draft.plan, draft),
     }
+    context.update(disclaimer_context(draft))
     context.update(get_workflow_context(WorkflowStepKey.REVIEW, jurisdiction, draft))
     return render(request, "efile/review.html", context)

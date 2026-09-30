@@ -9,7 +9,13 @@ from pypdf import PdfWriter
 
 from efile.models import DocumentExtraction, FilingDocument, FilingDraft
 from efile.services.current_drafts import CURRENT_DRAFT_SESSION_KEY
+from efile.services.disclaimers import disclaimer_context
 from efile.workflow import ExistingCase, WorkflowStepKey
+
+
+@pytest.fixture(autouse=True)
+def court_requirements(monkeypatch):
+    monkeypatch.setattr("efile.services.disclaimers.court_disclaimers", lambda draft: [])
 
 
 class FakeApiResponse:
@@ -428,7 +434,13 @@ def test_complete_new_filing_flow_by_jurisdiction(
     ):
         submit_resp = client.post(
             reverse("submit_final_filing"),
-            data=json.dumps({"confirm_submission": True, "efile_data": {"al_court_bundle": {}}}),
+            data=json.dumps(
+                {
+                    "disclaimer_token": disclaimer_context(draft)["disclaimer_token"],
+                    "confirm_submission": True,
+                    "efile_data": {"al_court_bundle": {}},
+                }
+            ),
             content_type="application/json",
         )
 

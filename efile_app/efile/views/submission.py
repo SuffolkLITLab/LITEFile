@@ -9,6 +9,7 @@ from django.views.decorators.http import require_http_methods
 
 from efile.models import FilingDraft
 from efile.services.current_drafts import clear_current_draft, get_current_draft
+from efile.services.disclaimers import validate_acceptance
 from efile.services.fee_quotes import fee_quote_is_usable
 from efile.services.filing_plans import mark_attached_items_filed
 from efile.services.submission_errors import PRE_SUBMIT_ERROR_CODES, SubmissionErrorCode
@@ -79,6 +80,21 @@ def submit_final_filing(request):
     jurisdiction = request.session.get("jurisdiction")
     draft = get_current_draft(request, jurisdiction=jurisdiction, resume_latest=False)
 
+    if draft is None:
+        return JsonResponse(
+            {"success": False, "error": "Open your filing and review it before submitting."}, status=400
+        )
+
+    try:
+        submission_data = json.loads(request.body)
+    except (ValueError, UnicodeDecodeError):
+        submission_data = None
+    if not isinstance(submission_data, dict):
+        return JsonResponse(
+            {"success": False, "error": "We could not read your submission. Reload the review page and try again."},
+            status=400,
+        )
+
     # The filer agreed to a total on Review. If anything that prices the filing
     # changed since, that total is not the one they would be charged, so the
     # page has to show the new one before anything reaches the court.
@@ -93,6 +109,13 @@ def submit_final_filing(request):
             status=412,
         )
 
+    acceptance = None
+    if draft is not None:
+        try:
+            acceptance = validate_acceptance(draft, submission_data)
+        except (ValueError, TypeError, AttributeError) as error:
+            return JsonResponse({"success": False, "error": str(error)}, status=400)
+
     # Claim the draft before forwarding so a concurrent request can't file twice.
     if draft is not None and not _claim_for_submission(draft):
         return JsonResponse(
@@ -100,11 +123,12 @@ def submit_final_filing(request):
             status=409,
         )
 
+    if draft is not None and acceptance is not None:
+        draft.supplemental_fields = {**(draft.supplemental_fields or {}), "_disclaimer_acceptance": acceptance}
+        draft.save(update_fields=["supplemental_fields", "updated_at"])
+
     response = legacy_submit_final_filing(request)
     payload = _json_payload(response)
-
-    if draft is None:
-        return response
 
     if response.status_code < 400 and payload.get("success") is True:
         with transaction.atomic():

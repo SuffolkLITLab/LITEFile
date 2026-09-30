@@ -9,6 +9,7 @@ from django.urls import reverse
 
 from efile.models import FilingDocument, FilingDraft, FilingParty
 from efile.services.current_drafts import CURRENT_DRAFT_SESSION_KEY
+from efile.services.disclaimers import disclaimer_context
 from efile.services.drafts import read_case_data, write_case_data
 from efile.services.extracted_parties import review_rows, save_reviewed_parties
 from efile.services.extraction_fields import (
@@ -17,6 +18,11 @@ from efile.services.extraction_fields import (
     normalize_extracted_fields,
 )
 from efile.services.fee_quotes import record_fee_quote
+
+
+@pytest.fixture(autouse=True)
+def court_requirements(monkeypatch):
+    monkeypatch.setattr("efile.services.disclaimers.court_disclaimers", lambda draft: [])
 
 
 @pytest.mark.parametrize(
@@ -246,7 +252,11 @@ def test_organization_and_submission_preserve_primary_type_and_confirmation_iden
     with patch("requests.post", return_value=FakeApiResponse(201, {"filing_id": "adoption-123"})):
         response = client.post(
             reverse("submit_final_filing") + f"?draft={draft.pk}",
-            {"confirm_submission": True, "efile_data": {"al_court_bundle": {}}},
+            {
+                "disclaimer_token": disclaimer_context(draft)["disclaimer_token"],
+                "confirm_submission": True,
+                "efile_data": {"al_court_bundle": {}},
+            },
             content_type="application/json",
         )
     assert response.status_code == 200

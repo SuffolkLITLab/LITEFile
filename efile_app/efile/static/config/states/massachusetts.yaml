@@ -318,3 +318,15 @@ fee_waiver:
       waiver_percent: 100
       description: "Use your income after taxes. You may have fees waived."
   document_guidance: "Include an Affidavit of Indigency each time you file with a fee waiver."
+
+# Standard notices shown before upload, before a court is selected.
+# Source: https://efile-test.suffolklitlab.org/jurisdictions/massachusetts/codes/courts/665/disclaimer_requirements
+# Retrieved 2026-09-29. Review still uses the selected court’s live requirements.
+upload_disclaimers:
+  - name: Personal identifying information
+    text: |-
+      When filing a document in court, the filer must redact personal identifying information, under Supreme Judicial Court Rule 1:24, unless an exception in the rule applies. Unless restricted by a law, standing order, court rule or court order, most documents filed in and accepted by the court are public records and may be viewed or accessed by the public.
+      For example, if a document requires a social security number, taxpayer identification number, driver’s license number, state-issued identification card number, passport number, financial account number, or credit or debit card number, the filer must omit, black out, or otherwise make unreadable all the numbers except the last four digits. Also, if the filer is required to include a parent’s birth surname, the filer must omit, black out, or otherwise make unreadable all the letters except the first letter. The court will not review filed documents to check that the filer redacted personal identifying information.
+  - name: Service
+    text: |-
+      NOTE: Filers are advised that if they use E-File and Serve for initial case filings on opposing counsel’s agreement to accept service or otherwise, Filer still must perfect personal service on a defendant/respondent in the regular manner where such service is required by statute or rule.

@@ -78,3 +78,37 @@ test("free filing help follows the current quote and closes on errors", () => {
     });
     assert.equal(node("free-filing-help").hidden, true);
 });
+
+test("submission waits for acceptance and available court requirements", () => {
+    const confirmation = {
+        checked: false,
+        disabled: false
+    };
+    const button = {};
+    const nodes = {
+        "confirm-filing": confirmation,
+        submitButton: button,
+        loadingSpinner: {
+            style: {}
+        }
+    };
+    const context = vm.createContext({
+        document: {
+            getElementById: (id) => nodes[id],
+            addEventListener() {}
+        },
+        FilingPayload: {}
+    });
+    // eslint-disable-next-line sonarjs/code-eval
+    vm.runInContext(fs.readFileSync(path.join(__dirname, "../efile/static/js/review.js"), "utf8") +
+        " globalThis.handler = FilingHandler;", context);
+    context.handler.feeQuoteState = "current";
+    context.handler.setSubmissionState(false);
+    assert.equal(button.disabled, true);
+    confirmation.checked = true;
+    context.handler.setSubmissionState(false);
+    assert.equal(button.disabled, false);
+    confirmation.disabled = true;
+    context.handler.setSubmissionState(false);
+    assert.equal(button.disabled, true);
+});
