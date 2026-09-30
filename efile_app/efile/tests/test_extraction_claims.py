@@ -99,14 +99,16 @@ def test_requeue_during_download_prevents_outbound_analysis(lead):
     analyze.assert_not_called()
 
 
-def test_preference_change_during_local_conversion_stops_model_request(lead):
+@pytest.mark.parametrize("requeue", [True, False])
+def test_preference_change_during_local_conversion_stops_model_request(lead, requeue):
     queue_document_extraction(lead)
     job = claim_next_extraction()
 
     def convert(*args):
         lead.draft.ai_assistance_opted_out = True
         lead.draft.save()
-        queue_document_extraction(lead)
+        if requeue:
+            queue_document_extraction(lead)
         return "local text", 1
 
     with (
@@ -120,9 +122,53 @@ def test_preference_change_during_local_conversion_stops_model_request(lead):
         patch("efile.services.document_extractions.get_default_model", return_value="test-model"),
         patch("efile.services.document_extractions.extract_fields_from_file") as extract,
     ):
-        with pytest.raises(RuntimeError, match="superseded"):
-            process_document_extraction(job.pk, job.claim_token)
+        assert process_document_extraction(job.pk, job.claim_token) is None
     extract.assert_not_called()
+    assert record_extraction_failure(job.pk, job.claim_token, "Worker exited") is None
+    job.refresh_from_db()
+    assert job.status == DocumentExtraction.Status.PENDING
+    assert job.attempts == 0
+    assert job.error == ""
+    assert claim_next_extraction() is not None
+
+
+@pytest.mark.parametrize("attempts_before", [0, 2])
+@pytest.mark.parametrize("initial_opted_out", [True, False])
+@override_settings(DOCUMENT_EXTRACTION_MAX_ATTEMPTS=3)
+def test_preference_change_at_completion_refunds_only_obsolete_attempt(lead, attempts_before, initial_opted_out):
+    FilingDraft.objects.filter(pk=lead.draft_id).update(ai_assistance_opted_out=initial_opted_out)
+    job = queue_document_extraction(lead)
+    DocumentExtraction.objects.filter(pk=job.pk).update(attempts=attempts_before)
+    claimed = claim_next_extraction()
+
+    def analyze(*args, **kwargs):
+        # Simulate an update that does not use the normal requeue endpoint.
+        FilingDraft.objects.filter(pk=lead.draft_id).update(ai_assistance_opted_out=not initial_opted_out)
+        return {"document title": "obsolete result"}
+
+    with (
+        patch(
+            "efile.services.document_extractions.S3UploadHandler",
+            return_value=Mock(download_file=Mock(return_value={"success": True})),
+        ),
+        patch("efile.services.document_extractions.limited_pdf", fake_pdf),
+        patch("efile.services.document_extractions.analyze_document", side_effect=analyze),
+    ):
+        assert process_document_extraction(job.pk, claimed.claim_token) is None
+    # The supervisor must treat the child's normal exit as a no-op.
+    assert record_extraction_failure(job.pk, claimed.claim_token, "Worker exited") is None
+    job.refresh_from_db()
+    assert job.status == DocumentExtraction.Status.PENDING
+    assert job.attempts == attempts_before
+    assert job.claim_token is None
+    assert job.lease_expires_at is None
+    assert job.error == ""
+    lead.draft.refresh_from_db()
+    assert lead.draft.extracted_guesses == {}
+    new_claim = claim_next_extraction()
+    assert new_claim is not None
+    assert new_claim.attempts == attempts_before + 1
+    assert new_claim.claim_token != claimed.claim_token
 
 
 @override_settings(DOCUMENT_EXTRACTION_MAX_ATTEMPTS=1)

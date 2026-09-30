@@ -11,7 +11,7 @@ from time import perf_counter
 
 from django.conf import settings
 from django.db import connection, transaction
-from django.db.models import Q
+from django.db.models import F, Q
 from django.utils import timezone
 from markitdown import MarkItDown
 from pypdf import PdfReader, PdfWriter
@@ -36,6 +36,10 @@ from efile.utils.prompt_config import prompt_version
 from efile.utils.s3_upload_handler import S3UploadHandler
 
 logger = logging.getLogger(__name__)
+
+
+class ExtractionSuperseded(Exception):
+    """The requested analysis changed; this is not a processing failure."""
 
 
 def queue_document_extraction(document):
@@ -326,14 +330,18 @@ def process_document_extraction(job_id, claim_token):
                     )
                     .exists()
                 ):
-                    raise RuntimeError("Extraction claim superseded")
+                    raise ExtractionSuperseded
 
-            analysis = analyze_document(
-                analysis_path,
-                document.draft.jurisdiction,
-                use_ai=not opted_out,
-                before_outbound=check_outbound_permission,
-            )
+            try:
+                analysis = analyze_document(
+                    analysis_path,
+                    document.draft.jurisdiction,
+                    use_ai=not opted_out,
+                    before_outbound=check_outbound_permission,
+                )
+            except ExtractionSuperseded:
+                _requeue_changed_preference(job_id, claim_token, opted_out)
+                return None
 
     # Keep compatibility with extensions that still return the old flat shape.
     if "guesses" in analysis and isinstance(analysis.get("guesses"), dict):
@@ -353,7 +361,10 @@ def process_document_extraction(job_id, claim_token):
         job = _current_claim(job_id, claim_token).select_for_update().first()
         if job is None:
             return None
-        if draft is None or draft.ai_assistance_opted_out != opted_out:
+        if draft is None:
+            return None
+        if draft.ai_assistance_opted_out != opted_out:
+            _requeue_changed_preference(job_id, claim_token, opted_out)
             return None
         document = job.document
         # A filer can remove or replace the lead while this worker is running.
@@ -453,6 +464,29 @@ def _current_claim(job_id, claim_token):
 def renew_extraction_lease(job_id, claim_token):
     """An expired or superseded worker cannot revive its own claim."""
     return bool(_current_claim(job_id, claim_token).update(lease_expires_at=timezone.now() + timedelta(minutes=15)))
+
+
+def _requeue_changed_preference(job_id, claim_token, opted_out):
+    """Refund a superseded attempt without resetting earlier real failures."""
+    now = timezone.now()
+    changed_documents = FilingDocument.objects.filter(draft__ai_assistance_opted_out=not opted_out).values("pk")
+    # Keep the claim predicates on the UPDATE itself, rather than inside a
+    # joined-query subselect, so a concurrent new claim remains protected.
+    return (
+        _current_claim(job_id, claim_token)
+        .filter(document_id__in=changed_documents)
+        .update(
+            status=DocumentExtraction.Status.PENDING,
+            attempts=F("attempts") - 1,
+            claim_token=None,
+            lease_expires_at=None,
+            available_at=now,
+            started_at=None,
+            completed_at=None,
+            error="",
+            updated_at=now,
+        )
+    )
 
 
 def record_extraction_failure(job_id, claim_token, error):

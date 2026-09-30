@@ -2,7 +2,7 @@
 Context processors for jurisdiction-aware templates
 """
 
-from .utils.config_loader import config_loader
+from .utils.config_loader import InvalidJurisdiction, config_loader
 
 
 def jurisdiction_context(request):
@@ -21,7 +21,12 @@ def jurisdiction_context(request):
 
     # Generic pages have no selected state. Do not pass absence through the
     # strict request-to-configuration boundary as a jurisdiction identifier.
-    config = config_loader.load_jurisdiction_config(current_jurisdiction) if current_jurisdiction else {}
+    try:
+        config = config_loader.load_jurisdiction_config(current_jurisdiction) if current_jurisdiction else {}
+    except InvalidJurisdiction:
+        # Error templates also run context processors. Invalid request input
+        # must not prevent Django from rendering the original error response.
+        config = {}
 
     return {
         "jurisdiction": current_jurisdiction,

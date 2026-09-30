@@ -11,7 +11,9 @@ def get_case_type_config(request):
         jurisdiction = request.GET.get("jurisdiction") or request.session.get("jurisdiction")
 
         # Use the new jurisdiction-aware configuration loader
-        config_data = config_loader.load_jurisdiction_config(jurisdiction)
+        config_data = (
+            config_loader.base_config if jurisdiction is None else config_loader.load_jurisdiction_config(jurisdiction)
+        )
 
         # Process case types to ensure proper inheritance from base_case_types
         processed_case_types = {}
