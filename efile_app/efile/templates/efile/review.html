@@ -171,7 +171,7 @@
                     <p class="text-muted">{% translate "No additional people are listed." %}</p>
                 {% endfor %}
             </section>
-            {% if question_answers %}
+            {% if question_answers or draft.amount_in_controversy %}
                 <section class="review-summary-card">
                     <header>
                         <h2>{% translate "Case questions" %}</h2>
@@ -179,6 +179,14 @@
                            aria-label="{% translate "Edit case questions" %}">{% translate "Edit" %}</a>
                     </header>
                     <dl>
+                        {% if draft.amount_in_controversy %}
+                            <div>
+                                <dt>{% translate "Amount in controversy" %}</dt>
+                                <dd>
+                                    ${{ draft.amount_in_controversy|floatformat:"2u" }}
+                                </dd>
+                            </div>
+                        {% endif %}
                         {% for answer in question_answers %}
                             <div>
                                 <dt>{{ answer.label }}</dt>
