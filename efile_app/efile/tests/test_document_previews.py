@@ -43,20 +43,24 @@ def approve(client, draft, **overrides):
         url("preview_documents", draft),
         {
             "preview_fingerprint": preview_fingerprint(documents),
-            "reviewed_document": [str(doc.pk) for doc in documents],
             **overrides,
         },
     )
 
 
-def test_review_is_required_and_requires_each_current_document(client, preview_draft):
+def test_continue_records_preview_without_checkboxes_for_current_documents(client, preview_draft):
     doc = preview_draft.documents.get()
     redirect = client.get(url("extraction_review", preview_draft))
     assert redirect.status_code == 302 and "preview-documents" in redirect.url
-    assert approve(client, preview_draft, reviewed_document=[]).status_code == 200
+    with patch("efile.views.document_previews.prepare_stored_documents"):
+        page = client.get(url("preview_documents", preview_draft))
+    assert b'type="checkbox"' not in page.content
+    assert b"check every page before you continue" in page.content
     doc.refresh_from_db()
     assert doc.preparation_reviewed_at is None
     assert approve(client, preview_draft, preview_fingerprint="stale").status_code == 200
+    doc.refresh_from_db()
+    assert doc.preparation_reviewed_at is None
     assert approve(client, preview_draft).status_code == 302
     doc.refresh_from_db()
     assert doc.preparation_reviewed_at is not None
@@ -105,7 +109,7 @@ def test_submission_cannot_bypass_preview(client, preview_draft):
     with patch("efile.views.submission.forward_final_filing") as forward:
         response = client.post(reverse("submit_final_filing"), data="{}", content_type="application/json")
     assert response.status_code == 412
-    assert "Preview" in response.json()["error"]
+    assert "Review your PDFs" in response.json()["error"]
     forward.assert_not_called()
     preview_draft.refresh_from_db()
     assert preview_draft.status == FilingDraft.Status.DRAFT
@@ -293,7 +297,7 @@ def test_legacy_pdf_is_flattened_and_cannot_be_acknowledged_after_preparation_fa
     ):
         response = client.get(url("preview_documents", preview_draft))
     assert response.status_code == 422
-    assert b"filled-in text could not be preserved" in response.content
+    assert b"Some answers are missing" in response.content
     assert approve(client, preview_draft).status_code == 200
     doc.refresh_from_db()
     assert doc.preparation_reviewed_at is None

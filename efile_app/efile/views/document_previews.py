@@ -42,22 +42,17 @@ def preview_documents(request, jurisdiction):
         except PreparationError as exc:
             error, status = str(exc), 422
         except (BotoCoreError, ClientError):
-            error, status = "Document storage is unavailable. Please try again later.", 503
+            error, status = "We could not load your files. Try again later.", 503
     if request.method == "POST":
         with transaction.atomic():
             draft = FilingDraft.objects.select_for_update().get(pk=draft.pk)
             documents = list(FilingDocument.objects.filter(draft=draft).order_by("role", "sort_order", "pk"))
-            acknowledged = set(request.POST.getlist("reviewed_document"))
             if draft.status not in {FilingDraft.Status.DRAFT, FilingDraft.Status.ERROR}:
                 return HttpResponse("This filing is no longer available to edit.", status=409)
             if any(not doc.preparation for doc in documents):
-                error = (
-                    "These uploads still need preparation. Reload this page or replace the documents before continuing."
-                )
+                error = "Your files are not ready. Reload this page or replace them."
             elif request.POST.get("preview_fingerprint") != preview_fingerprint(documents):
-                error = "Your documents changed. Preview the current copies before continuing."
-            elif any(str(doc.pk) not in acknowledged for doc in documents):
-                error = "Confirm that you checked each PDF before continuing."
+                error = "Your files changed. Review these copies before you continue."
             else:
                 FilingDocument.objects.filter(draft=draft).update(preparation_reviewed_at=timezone.now())
                 return redirect(destinations.get(return_to, "extraction_review"), jurisdiction=jurisdiction)
@@ -89,7 +84,7 @@ def document_content(request, jurisdiction, document_id) -> HttpResponseBase:
         raise Http404
     handler = S3UploadHandler()
     if not handler._ensure_initialized() or handler.s3_client is None:
-        return HttpResponse("Document storage is unavailable. Please try again.", status=503)
+        return HttpResponse("We could not load this file. Try again.", status=503)
     try:
         result = handler.s3_client.get_object(Bucket=handler.bucket_name, Key=key)
         body = result["Body"]
@@ -101,11 +96,11 @@ def document_content(request, jurisdiction, document_id) -> HttpResponseBase:
             return HttpResponse("This document is too large to preview.", status=413)
     except (BotoCoreError, ClientError):
         logger.warning("Could not load document %s for preview", document.pk)
-        return HttpResponse("We could not load this document. Please try again.", status=503)
+        return HttpResponse("We could not load this file. Try again.", status=503)
     filename = document.original_filename if original else (document.name or document.original_filename)
     is_pdf = content.startswith(b"%PDF-")
     if not original and not is_pdf:
-        return HttpResponse("This document is not a readable PDF. Replace it before continuing.", status=422)
+        return HttpResponse("We could not read this PDF. Upload a new copy.", status=422)
     if is_pdf and not original and not filename.lower().endswith(".pdf"):
         filename += ".pdf"
     response = FileResponse(

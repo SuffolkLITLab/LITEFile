@@ -45,7 +45,7 @@ An EOIR missing-appearance stress case containing accented names demonstrated
 another engine limitation. The prepared result retained form fields, so LITEFile
 rejected it with a printed-PDF recovery instruction. The automated checks also
 reject lost filled text, changed page counts and unreadable responses. Preview
-and filer confirmation remain necessary for layout, fonts, clipping, checkbox
+and filer review remain necessary for layout, fonts, clipping, checkbox
 and signature fidelity. This work does not establish universal PDF compatibility.
 
 ## Court forms and packet checks
@@ -82,7 +82,7 @@ Checked the following:
 - Loading actual filing bytes through the authenticated preview endpoint.
 - Rendering both PDFs, moving to page two, zooming and retaining selectable text layers.
 - Keeping the originals separately and providing original and filing-copy download links.
-- Requiring a confirmation checkbox for every document before continuing.
+- Continuing from PDF preview without checkboxes; the server records the current files as reviewed when Continue is pressed.
 - Rendering expandable PDFs in the organize and fees screens, with assertions that each expected page loaded.
 - A 390-pixel mobile viewport with no horizontal page overflow.
 - Invalid-PDF upload guidance with the existing files retained.
@@ -137,7 +137,7 @@ Massachusetts; later fee-waiver uploads; interview handoffs and replacement
 PDFs; private preview ownership and draft isolation; original downloads;
 unchanged PDFs; damaged and unsupported inputs; service timeout; oversized
 output; conservative loss checks; batch rollback and orphan cleanup; server-side
-approval; stale preview fingerprints; and original/review metadata preservation
+completion of the preview step; stale preview fingerprints; and original/review metadata preservation
 when legacy clients rebuild supporting rows.
 
 The existing npm dependency tree reports four audit findings in development/test
@@ -165,7 +165,7 @@ server state rather than relying on already reviewed fixtures:
 | Concern | Behavior checked |
 | --- | --- |
 | Lead storage-key replacement | Clears preparation, original metadata and approval; deletes superseded copies after commit while keeping shared references |
-| Legacy supporting uploads | Prepares stored DOCX/PDF bytes on preview, rejects acknowledgement before preparation, and blocks direct submission |
+| Legacy supporting uploads | Prepares stored DOCX/PDF bytes on preview, blocks Continue before preparation, and blocks direct submission |
 | Stale preview fingerprint | Includes preparation, original key, size and document update time in addition to row and filing key |
 | Indirect annotation arrays | Resolves and validates the array before iterating; accepts the indirect-array regression specimen |
 | Handoff preparation errors | Permanent input/conversion rejection returns 422; storage and conversion-service outages return 503 |
@@ -177,9 +177,9 @@ server state rather than relying on already reviewed fixtures:
 The existing extraction queue is a database record, so creating it inside the
 original atomic transaction was already isolated from worker reads and rollback.
 The callback now makes the commit boundary explicit. Downstream-flow fixtures
-explicitly represent prepared and acknowledged documents; the new bypass tests
+explicitly represent prepared documents that completed the preview step; the new bypass tests
 keep their documents unprepared. The accessibility seed command also marks its
-downstream fixture as prepared and confirmed, with a regression test for this
+downstream fixture as prepared with the preview step complete, with a regression test for this
 state. A concurrency unit test also now mocks court
 choices instead of intermittently depending on a live court response.
 
@@ -220,6 +220,24 @@ Validation of this change:
 
 The [docx2python documentation](https://github.com/ShayHill/docx2python)
 describes its extraction of body text, tables, headers, footers and notes.
+
+## Preview and copy follow-up
+
+PDF preview has no confirmation checkboxes. The screen asks filers to check each
+PDF before continuing. Continue records completion of the preview step for the
+current document list. Stale fingerprints and unprepared files still block it;
+replacing a file requires another preview step. The existing checkbox on
+“Review what we found” is unchanged.
+
+Shortened the upload guidance, download labels, preview instructions and error
+messages. Removed duplicate filenames, per-file conversion explanations and the
+technical upload introduction. Updated the state override and its translation
+source together.
+
+The 89 focused preparation, preview, AI opt-out and configurable-copy tests
+passed. The real Gotenberg/Chromium browser test passed in 14.20 seconds, verifies
+Continue works without preview checkboxes, and reports zero Axe violations and
+zero browser page errors. Refreshed the desktop and mobile screenshots.
 
 ## Reproduction
 

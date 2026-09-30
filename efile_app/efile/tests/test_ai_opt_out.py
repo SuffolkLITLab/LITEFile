@@ -143,10 +143,10 @@ def test_upload_page_offers_the_choice_and_says_what_still_happens(client, opted
     assert response.status_code == 200
     assert 'name="ai_opt_out"' in page
     assert "How do we use AI?" in page
-    assert "never used to train AI models" in page
+    assert "never used to train AI" in page
     # The saved choice comes back checked, with the keyword warning showing.
     assert 'id="ai-opt-out"' in page
-    assert "AI is off for this filing." in page
+    assert "AI is off." in page
 
 
 @pytest.mark.django_db(transaction=True)
@@ -312,4 +312,4 @@ def test_the_upload_page_says_when_a_standing_preference_is_in_force(client, opt
 
     page = client.get(upload_url()).content.decode()
 
-    assert "Saved to your account" in page
+    assert "Saved: new filings start with AI off" in page

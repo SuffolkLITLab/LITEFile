@@ -69,7 +69,7 @@
                 }
             });
             eventBus.on("pagerendered", (event) => {
-                status.textContent = event.error ? gettext("This page could not be rendered. Download the PDF to check it.") : "";
+                status.textContent = event.error ? gettext("This page did not load. Download the PDF to view it.") : "";
                 if (!event.error) details.dataset.rendered = "true";
             });
             eventBus.on("pagechanging", (event) => {
@@ -92,7 +92,7 @@
             if (task) await task.destroy();
             modules = undefined;
             delete details.dataset.loaded;
-            status.textContent = gettext("The PDF preview could not load. Download the filing PDF to check it, or close this panel and open it to retry.");
+            status.textContent = gettext("The PDF did not load. Download it or close and reopen this view.");
         }
     }
     document.querySelectorAll("[data-pdf-preview]").forEach((details) => {

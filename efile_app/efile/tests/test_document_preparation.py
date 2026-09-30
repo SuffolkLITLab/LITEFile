@@ -149,7 +149,7 @@ def test_oversize_prepared_output_is_rejected():
         override_settings(MAX_FILE_SIZE=4096),
         patch("efile.services.document_preparation.requests.post", return_value=service_response(b"x" * 4097)),
     ):
-        with pytest.raises(PreparationError, match="exceeds"):
+        with pytest.raises(PreparationError, match="over 10 MB"):
             prepare_document(upload(docx_bytes(), "brief.docx"), "vermont")
 
 

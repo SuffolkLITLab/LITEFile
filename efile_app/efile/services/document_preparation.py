@@ -52,9 +52,7 @@ def inspect_pdf(content):
             raise ValueError("Invalid PDF catalog")
         form = root.get("/AcroForm")
         if form and form.get_object().get("/XFA"):
-            raise PreparationError(
-                "This PDF uses an unsupported form format. Save a printed PDF copy and upload it again."
-            )
+            raise PreparationError("We cannot use this PDF form. Print it to PDF and upload that copy.")
         # Force page and annotation parsing before accepting a filing copy.
         widgets = []
         for page in reader.pages:
@@ -73,13 +71,13 @@ def inspect_pdf(content):
     except PreparationError:
         raise
     except Exception as error:
-        raise PreparationError("This PDF could not be read. Upload an unlocked, readable PDF and try again.") from error
+        raise PreparationError("This PDF could not be read. Upload a new copy without a password.") from error
 
 
 def _word_format(content, suffix):
     if suffix == ".doc":
         if not content.startswith(b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1"):
-            raise PreparationError("This file is not a Word document. Save it as DOCX or PDF and upload it again.")
+            raise PreparationError("Choose a Word file or save this file as a PDF.")
         return
     try:
         with zipfile.ZipFile(io.BytesIO(content)) as archive:
@@ -90,7 +88,7 @@ def _word_format(content, suffix):
                 raise ValueError("Not DOCX")
     except (ValueError, zipfile.BadZipFile) as error:
         raise PreparationError(
-            "This DOCX could not be read. Save a new Word or PDF copy and upload it again."
+            "This Word file could not be read. Save a new copy as Word or PDF and upload it."
         ) from error
 
 
@@ -98,7 +96,7 @@ def _gotenberg(content, suffix, route, data=None):
     base_url = settings.GOTENBERG_URL.rstrip("/")
     if not base_url:
         raise PreparationUnavailable(
-            "Document preparation is unavailable. Upload a PDF with the form fields already locked, or try again later."
+            "We could not prepare your file. Try again later, or print it to PDF and upload that copy."
         )
     limit = settings.MAX_FILE_SIZE
     deadline = time.monotonic() + settings.DOCUMENT_PREPARATION_TIMEOUT_SECONDS
@@ -114,23 +112,21 @@ def _gotenberg(content, suffix, route, data=None):
             stream=True,
         ) as response:
             if response.status_code >= 500 or response.status_code in {401, 403, 429}:
-                raise PreparationUnavailable("Document preparation is unavailable. Please try again later.")
+                raise PreparationUnavailable("We could not prepare your file. Try again later.")
             if response.status_code != 200:
-                raise PreparationError("We could not prepare this document. Upload a PDF copy or try uploading again.")
+                raise PreparationError("We could not make a PDF. Save your file as a PDF and upload it.")
             result = bytearray()
             for chunk in response.iter_content(64 * 1024):
                 result.extend(chunk)
                 if len(result) > limit:
-                    raise PreparationError(
-                        "The prepared PDF exceeds 10 MB. Split or reduce the document and upload it again."
-                    )
+                    raise PreparationError("This PDF is over 10 MB. Split it into smaller files and upload them.")
                 if time.monotonic() > deadline:
                     raise requests.Timeout()
             return bytes(result)
     except requests.RequestException as error:
         logger.warning("Document preparation service unavailable (%s)", type(error).__name__)
         raise PreparationUnavailable(
-            "Document preparation timed out or is unavailable. Try again, or upload a PDF copy with its form fields locked."
+            "We could not prepare your file. Try again later, or print it to PDF and upload that copy."
         ) from error
 
 
@@ -172,16 +168,12 @@ def _flatten(content):
         return content, False
     fields = source.get_fields() or {}
     if any(field.get("/FT") == "/Sig" and field.get("/V") for field in fields.values()):
-        raise PreparationError(
-            "This PDF has a digital certificate signature. Upload a filing copy with a visible signature instead; locking its fields would invalidate the certificate."
-        )
+        raise PreparationError("We cannot prepare this signed PDF. Print it to PDF and upload that copy.")
     content = _repair_text_appearances(content, source, widgets)
     result = _gotenberg(content, ".pdf", "/forms/pdfengines/flatten")
     output, remaining = inspect_pdf(result)
     if remaining or output.get_fields() or len(output.pages) != len(source.pages):
-        raise PreparationError(
-            "We could not safely lock this PDF's form fields. Save a printed PDF copy and upload it again."
-        )
+        raise PreparationError("We could not prepare this form. Print it to PDF and upload that copy.")
     # Engines can return 200 while dropping filled text. This is a conservative
     # check, not a guarantee of visual fidelity; the filer still previews it.
     visible_text = " ".join(" ".join(page.extract_text() or "" for page in output.pages).split())
@@ -207,21 +199,19 @@ def _flatten(content):
             checked_fields.add(name)
             value = str(field.get("/V") or "")
             if any(" ".join(line.split()) not in visible_text for line in value.splitlines() if line.strip()):
-                raise PreparationError(
-                    "Some filled-in text could not be preserved. Save a printed PDF copy and upload it again."
-                )
+                raise PreparationError("Some answers are missing. Print your file to PDF and upload that copy.")
     return result, True
 
 
 def prepare_document(uploaded_file, jurisdiction):
     suffix = Path(uploaded_file.name).suffix.lower()
     if suffix not in settings.ALLOWED_FILE_TYPES:
-        raise PreparationError("Choose a PDF, DOCX, or Word document.")
+        raise PreparationError("Choose a PDF or Word file.")
     uploaded_file.seek(0)
     content = uploaded_file.read(settings.MAX_FILE_SIZE + 1)
     uploaded_file.seek(0)
     if not content or len(content) > settings.MAX_FILE_SIZE:
-        raise PreparationError("Choose a nonempty document no larger than 10 MB.")
+        raise PreparationError("Choose a file that is not empty and is up to 10 MB.")
     operation = "unchanged"
     filename = uploaded_file.name
     if suffix in {".doc", ".docx"}:

@@ -172,8 +172,8 @@
         errorBox.hidden = true;
         state.hidden = false;
         uploadButton.disabled = true;
-        stateTitle.textContent = "Uploading and preparing your documents…";
-        stateDetail.textContent = "Keep this page open while we prepare the filing PDFs.";
+        stateTitle.textContent = "Uploading your files…";
+        stateDetail.textContent = "Keep this page open while we make your PDFs.";
 
         try {
             const response = await fetch(window.location.href, {
@@ -190,8 +190,8 @@
             const result = await response.json();
             if (!response.ok || !result.success) throw new Error(result.error || "Upload failed.");
             stateTitle.textContent = result.extraction_pending ? "Your documents are uploaded" : "Your documents are ready";
-            let pendingDetail = "Analysis will continue in the background.";
-            if (aiIsOff()) pendingDetail = "We are checking your document's text for a form number, without AI.";
+            let pendingDetail = "You can review your PDFs while we read your first file.";
+            if (aiIsOff()) pendingDetail = "AI is off. We are looking for form and case numbers.";
             stateDetail.textContent = result.extraction_pending ?
                 pendingDetail :
                 "Review what we found before you continue.";

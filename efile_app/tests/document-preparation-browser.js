@@ -100,18 +100,7 @@ async function main() {
                 }))
             )
         );
-        await page
-            .getByRole("button", {
-                name: "Continue",
-                exact: true
-            })
-            .click();
-        assert.match(page.url(), /preview-documents/);
-        await page.locator('input[name="reviewed_document"]').evaluateAll((nodes) =>
-            nodes.forEach((node) => {
-                node.checked = true;
-            })
-        );
+        assert.equal(await page.locator('input[type="checkbox"]').count(), 0);
         await page
             .getByRole("button", {
                 name: "Continue",
@@ -164,7 +153,7 @@ async function main() {
         await page.goto(config.baseUrl + config.previewUrl);
         await page.locator("[data-pdf-preview]").first().locator("summary").click();
         await page
-            .getByText("The PDF preview could not load.", {
+            .getByText("The PDF did not load.", {
                 exact: false
             })
             .waitFor();
@@ -175,7 +164,7 @@ async function main() {
         await page.waitForFunction(() => document.querySelector("[data-pdf-preview]").dataset.rendered === "true");
         assert.deepEqual(errors, []);
         console.log(
-            "Browser validation passed: upload, real PDF.js pages, navigation, zoom, Word preview, acknowledgement, organize, fees, mobile, errors/retry, and Axe."
+            "Browser validation passed: upload, real PDF.js pages, navigation, zoom, Word preview, Continue without checkboxes, organize, fees, mobile, errors/retry, and Axe."
         );
     } catch (error) {
         await screenshot("browser-failure.png");

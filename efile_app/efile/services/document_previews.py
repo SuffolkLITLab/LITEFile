@@ -1,4 +1,4 @@
-"""Server-owned preview acknowledgements tied to the current filing bytes."""
+"""Track the preview step for the current filing bytes."""
 
 import hashlib
 import json
@@ -21,9 +21,7 @@ def preview_fingerprint(documents):
 
 def require_document_previews(draft):
     if draft.documents.filter(preparation="").exists() or unreviewed_documents(draft).exists():
-        raise ValueError(
-            "Preview your uploaded PDFs and confirm that their pages and signatures are correct before submitting."
-        )
+        raise ValueError("Review your PDFs before you submit.")
 
 
 def document_storage_keys(document):

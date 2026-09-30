@@ -76,7 +76,8 @@ with `pypdf` before Gotenberg flattens the fields. It rejects unreadable, encryp
 XFA, digitally certificate-signed PDFs that would need flattening, and results with
 missing pages, remaining fields, or lost filled-in text. Filers can upload a printed
 PDF copy instead. These checks do not guarantee visual fidelity; every new filing
-copy must be previewed and confirmed before submission.
+copy has a preview step before submission. Filers are asked to check every page;
+Continue records that step without requiring a checkbox.
 
 Word conversion requests tagged PDF output and lossless images. It does not
 rasterize the document or certify accessibility conformance. Flattening can change
@@ -87,7 +88,7 @@ locally from the original DOCX with `docx2python`. Older binary DOC files use th
 converted PDF for analysis. The AI opt-out applies to every format.
 Existing editable drafts without preparation metadata are prepared when
 the filer opens the preview step. Missing stored uploads must be replaced; legacy
-clients cannot bypass preparation or preview approval. Removing a document or expiring an unclaimed handoff cleans up both private
+clients cannot bypass preparation or the preview step. Removing a document or expiring an unclaimed handoff cleans up both private
 copies when another draft does not reference them.
 
 State YAML can override the default policy:

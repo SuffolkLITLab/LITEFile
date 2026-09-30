@@ -4,9 +4,9 @@
     <div class="document-preview__body">
         <p>
             <a data-pdf-download
-               href="{% url 'document_content' jurisdiction document.pk %}?draft={{ document.draft_id }}&amp;download=1">{% translate "Download filing PDF" %}</a>
+               href="{% url 'document_content' jurisdiction document.pk %}?draft={{ document.draft_id }}&amp;download=1">{% translate "Download PDF" %}</a>
             {% if document.original_s3_key or not document.preparation %}
-                · <a href="{% url 'document_content' jurisdiction document.pk %}?draft={{ document.draft_id }}&amp;original=1">{% translate "Download original upload" %}</a>
+                · <a href="{% url 'document_content' jurisdiction document.pk %}?draft={{ document.draft_id }}&amp;original=1">{% translate "Download original" %}</a>
             {% endif %}
         </p>
         <div class="document-preview__toolbar" hidden>
