@@ -274,6 +274,9 @@ class FilingDraft(models.Model):
     # structured JSON field rather than a column each. Only config-defined keys are
     # stored here -- it is not a catch-all for arbitrary case data.
     supplemental_fields = models.JSONField(default=dict, blank=True)
+    # The court requirements the filer accepted at submit, with who and when
+    # (see efile.services.disclaimers). Written with the submission claim.
+    disclaimer_acceptance = models.JSONField(default=dict, blank=True)
     submission_response = models.JSONField(default=dict, blank=True)
 
     submitted_at = models.DateTimeField(blank=True, null=True)

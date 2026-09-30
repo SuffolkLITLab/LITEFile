@@ -585,7 +585,15 @@ def create_correction(draft, detail, fields):
     if not original.submission_snapshot:
         FilingDraft.objects.filter(pk=original.pk).update(submission_snapshot=full_snapshot(original))
     values = model_to_dict(
-        original, exclude=["id", "correction_of", "submission_snapshot", "clerk_return", "correction_fields"]
+        original,
+        exclude=[
+            "id",
+            "correction_of",
+            "submission_snapshot",
+            "clerk_return",
+            "correction_fields",
+            "disclaimer_acceptance",
+        ],
     )
     values["user_id"] = values.pop("user")
     values["plan_id"] = values.pop("plan")

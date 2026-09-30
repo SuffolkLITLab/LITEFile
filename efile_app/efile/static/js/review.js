@@ -25,13 +25,18 @@ const USABLE_FEE_STATES = ["current", "waived"];
 const FilingHandler = {
     feeQuoteState: "missing",
 
+    // A disabled checkbox means the court requirements could not be loaded.
+    filingConfirmed() {
+        const checkbox = document.getElementById("confirm-filing");
+        return checkbox.checked && !checkbox.disabled;
+    },
+
     setSubmissionState(submitting) {
         document.getElementById("loadingSpinner").style.display = submitting ? "block" : "none";
         // Never against a total the filer has not seen for this filing: the
         // button waits until the quote on the page is the current one.
         document.getElementById("submitButton").disabled = submitting ||
-            !document.getElementById("confirm-filing").checked ||
-            document.getElementById("confirm-filing").disabled ||
+            !this.filingConfirmed() ||
             !USABLE_FEE_STATES.includes(this.feeQuoteState);
     },
 
@@ -137,7 +142,7 @@ const FilingHandler = {
     },
 
     async submitFiling() {
-        if (!document.getElementById("confirm-filing").checked || document.getElementById("confirm-filing").disabled) {
+        if (!this.filingConfirmed()) {
             Messages.showError(gettext("Confirm that you reviewed the filing before you submit."));
             return;
         }

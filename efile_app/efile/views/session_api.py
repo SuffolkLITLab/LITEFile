@@ -91,23 +91,13 @@ def get_upload_data_from_session(request):
     return JsonResponse(get_upload_data(request), safe=False)
 
 
-@csrf_exempt
-@require_http_methods(["POST"])
-def submit_final_filing(request):
-    """Handle final filing submission after user has reviewed all information."""
+def forward_final_filing(request, data):
+    """Send a confirmed filing to the court.
+
+    Only views/submission.py calls this, after it has parsed the body and
+    checked the filer's confirmation and acceptance of the court requirements.
+    """
     try:
-        data = json.loads(request.body)
-
-        if not data.get("confirm_submission"):
-            return JsonResponse(
-                {
-                    "success": False,
-                    "error_code": SubmissionErrorCode.CONFIRMATION_REQUIRED,
-                    "error": "Submission confirmation is required",
-                },
-                status=400,
-            )
-
         # Read the filing state from the current durable draft
         case_data = get_case_data(request)
         jurisdiction_id = request.session.get("jurisdiction") or case_data.get("jurisdiction")
@@ -155,7 +145,6 @@ def submit_final_filing(request):
 
         # Log the complete request data for debugging
         logger.debug("Complete request data received")
-        logger.debug(f"  - confirm_submission: {data.get('confirm_submission')}")
         logger.debug(
             f"  - efile_data keys: {list(efile_data.keys()) if isinstance(efile_data, dict) else 'Not a dict'}"
         )
@@ -286,7 +275,7 @@ def submit_final_filing(request):
                 {"success": False, "error": f"Network error during filing submission: {str(e)}"}, status=500
             )
 
-    except (json.JSONDecodeError, Exception) as e:
+    except Exception as e:
         return JsonResponse({"success": False, "error": f"An error occurred during submission: {str(e)}"}, status=500)
 
 
