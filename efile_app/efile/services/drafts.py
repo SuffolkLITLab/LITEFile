@@ -13,6 +13,7 @@ from django.db import transaction
 from django.db.models import QuerySet
 
 from efile.models import FilingDocument, FilingDraft, FilingParty
+from efile.services.document_preparation import cleanup_unreferenced_uploads
 from efile.workflow import WorkflowStepKey, legacy_existing_case_value, normalize_existing_case
 
 ACTIVE_DRAFT_STATUSES = (FilingDraft.Status.DRAFT, FilingDraft.Status.ERROR)
@@ -388,6 +389,11 @@ def _positive_int(value: Any) -> int | None:
 
 
 def _apply_document(doc: FilingDocument, file_obj: dict[str, Any], config: dict[str, Any]) -> None:
+    if "s3_key" in file_obj and _as_str(file_obj.get("s3_key")) != doc.s3_key:
+        doc.original_filename = ""
+        doc.original_s3_key = ""
+        doc.preparation = ""
+        doc.preparation_reviewed_at = None
     if "name" in file_obj:
         doc.name = _as_str(file_obj.get("name"))
         if not doc.original_filename:
@@ -445,8 +451,11 @@ def _upsert_document(
     config: dict[str, Any],
 ) -> None:
     doc, _created = FilingDocument.objects.get_or_create(draft=draft, role=role, sort_order=sort_order)
+    old_keys = [doc.s3_key, doc.original_s3_key]
     _apply_document(doc, file_obj, config)
     doc.save()
+    if old_keys[0] != doc.s3_key:
+        transaction.on_commit(lambda: cleanup_unreferenced_uploads(old_keys), robust=True)
 
 
 @transaction.atomic
@@ -458,6 +467,9 @@ def write_upload_data(
 ) -> FilingDraft:
     """Persist a (possibly partial) upload_data blob into FilingDocument rows."""
 
+    locked = FilingDraft.objects.select_for_update().get(pk=draft.pk)
+    if locked.status not in ACTIVE_DRAFT_STATUSES:
+        raise ValueError("This filing is no longer available to edit.")
     data = dict(upload_data or {})
     update_fields: list[str] = []
 
@@ -494,18 +506,31 @@ def write_upload_data(
         # Handoff provenance and pending corrections are keyed by row id, so
         # they follow the file to its rebuilt row the same way.
         previous_ids = {document.s3_key: document.pk for document in previous}
+        preparation_metadata = {
+            document.s3_key: {
+                field: getattr(document, field)
+                for field in ("original_filename", "original_s3_key", "preparation", "preparation_reviewed_at")
+            }
+            for document in previous
+        }
         FilingDocument.objects.filter(draft=draft, role=FilingDocument.Role.SUPPORTING).delete()
         for index, file_obj in enumerate(supporting_files):
             config = supporting_configs[index] if index < len(supporting_configs) else {}
             _upsert_document(draft, FilingDocument.Role.SUPPORTING, index, file_obj or {}, config or {})
         moved = {}
         for document in FilingDocument.objects.filter(draft=draft, role=FilingDocument.Role.SUPPORTING):
+            if metadata := preparation_metadata.get(document.s3_key):
+                for field, value in metadata.items():
+                    setattr(document, field, value)
+                document.save(update_fields=[*metadata, "updated_at"])
             item_id = claimed_items.get(document.s3_key, "")
             if item_id:
                 document.checklist_item_id = item_id
                 document.save(update_fields=["checklist_item_id", "updated_at"])
             if document.s3_key in previous_ids:
                 moved[previous_ids[document.s3_key]] = document.pk
+        old_keys = [key for document in previous for key in (document.s3_key, document.original_s3_key)]
+        transaction.on_commit(lambda: cleanup_unreferenced_uploads(old_keys), robust=True)
         if moved:
             from efile.services.handoff import carry_document_paths
 

@@ -19,6 +19,7 @@ from efile.services.filing_path import (
     change_filing_path,
     filing_path_conflict,
 )
+from efile.tests.helpers import reviewed_document
 from efile.workflow import ExistingCase, WorkflowStepKey, get_resume_step_url, get_visible_workflow
 
 J = {"jurisdiction": "illinois"}
@@ -69,7 +70,7 @@ def back_link(content):
 
 
 def lead_with_evidence(draft, *, phase, title="Answer", filing_type="answer-code"):
-    lead = FilingDocument.objects.create(
+    lead = reviewed_document(
         draft=draft,
         role=FilingDocument.Role.LEAD,
         name="answer.pdf",
@@ -373,7 +374,7 @@ def test_the_conflict_note_on_a_resent_form_describes_the_answer_submitted(signe
 @pytest.mark.django_db
 def test_change_filing_path_leaves_a_first_answer_and_a_same_answer_alone(user):
     draft = FilingDraft.objects.create(user=user, jurisdiction="illinois", quoted_fee_total="10.00")
-    FilingDocument.objects.create(draft=draft, role=FilingDocument.Role.LEAD, filing_type_code="x")
+    reviewed_document(draft=draft, role=FilingDocument.Role.LEAD, filing_type_code="x")
 
     first = change_filing_path(draft, ExistingCase.NEW)
     assert first.changed and not first.switched
@@ -386,7 +387,7 @@ def test_change_filing_path_leaves_a_first_answer_and_a_same_answer_alone(user):
 @pytest.mark.django_db
 def test_unsure_to_new_keeps_filing_types_since_the_court_lists_are_the_same(user):
     draft = FilingDraft.objects.create(user=user, jurisdiction="illinois", existing_case=ExistingCase.UNSURE)
-    FilingDocument.objects.create(draft=draft, role=FilingDocument.Role.LEAD, filing_type_code="complaint")
+    reviewed_document(draft=draft, role=FilingDocument.Role.LEAD, filing_type_code="complaint")
 
     change = change_filing_path(draft, ExistingCase.NEW)
 

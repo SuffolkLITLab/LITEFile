@@ -1,4 +1,10 @@
 # syntax=docker/dockerfile:1.7
+FROM node:22-slim AS pdfjs-assets
+WORKDIR /assets
+COPY efile_app/package.json efile_app/package-lock.json ./
+COPY efile_app/scripts/copy-pdfjs.mjs ./scripts/copy-pdfjs.mjs
+RUN npm ci --omit=dev
+
 FROM python:3.12-slim AS base
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -24,6 +30,7 @@ RUN uv sync --frozen --no-install-project
 
 # Copy the rest of the source code into /app
 COPY . /app
+COPY --from=pdfjs-assets /assets/efile/static/vendor/pdfjs /app/efile_app/efile/static/vendor/pdfjs
 
 # Install the project itself (editable-like install)
 RUN uv sync --frozen

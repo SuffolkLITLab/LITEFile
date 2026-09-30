@@ -356,6 +356,19 @@ class FilingDocument(models.Model):
     content_type = models.CharField(max_length=255, blank=True)
     s3_key = models.CharField(max_length=1024, blank=True)
     public_url = models.URLField(max_length=2048, blank=True)
+    # Originals are private recovery copies; only s3_key is sent to the court.
+    original_s3_key = models.CharField(max_length=1024, blank=True)
+    preparation = models.CharField(
+        max_length=30,
+        blank=True,
+        choices=[
+            ("unchanged", "Original PDF"),
+            ("converted", "Converted from Word"),
+            ("flattened", "Form fields locked"),
+            ("converted_flattened", "Converted and fields locked"),
+        ],
+    )
+    preparation_reviewed_at = models.DateTimeField(null=True, blank=True)
 
     filing_type_code = models.CharField(max_length=100, blank=True)
     filing_type_name = models.CharField(max_length=255, blank=True)

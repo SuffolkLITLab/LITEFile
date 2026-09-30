@@ -24,6 +24,8 @@ from efile.services.document_extractions import (
 )
 from efile.services.drafts import create_draft
 from efile.services.taxonomy_classification import HierarchicalDocumentClassifier
+from efile.tests.helpers import reviewed_document
+from efile.tests.pdf_helpers import pdf_bytes
 
 SYNTHETIC_PDFS = Path(__file__).resolve().parents[3] / "benchmarking/synthetic/filled_pdfs/flattened"
 
@@ -102,7 +104,7 @@ def test_keyword_analysis_identifies_a_form_without_calling_a_model():
 
 @pytest.mark.django_db
 def test_worker_reads_an_opted_out_document_with_keywords_only(opted_out_draft):
-    document = FilingDocument.objects.create(
+    document = reviewed_document(
         draft=opted_out_draft,
         role=FilingDocument.Role.LEAD,
         name="MA-03.pdf",
@@ -141,13 +143,13 @@ def test_upload_page_offers_the_choice_and_says_what_still_happens(client, opted
     assert response.status_code == 200
     assert 'name="ai_opt_out"' in page
     assert "How do we use AI?" in page
-    assert "never used to train AI models" in page
+    assert "never used to train AI" in page
     # The saved choice comes back checked, with the keyword warning showing.
     assert 'id="ai-opt-out"' in page
-    assert "AI is off for this filing." in page
+    assert "AI is off." in page
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(transaction=True)
 def test_uploading_saves_the_choice_before_analysis_is_queued(client, opted_out_draft):
     opted_out_draft.ai_assistance_opted_out = False
     opted_out_draft.save(update_fields=["ai_assistance_opted_out", "updated_at"])
@@ -156,7 +158,7 @@ def test_uploading_saves_the_choice_before_analysis_is_queued(client, opted_out_
     handler.validate_file.return_value = {"valid": True}
     handler.upload_file.return_value = {"success": True, "key": "lead.pdf"}
     handler.get_public_url.return_value = "https://example.com/lead.pdf"
-    lead = SimpleUploadedFile("complaint.pdf", b"%PDF lead", content_type="application/pdf")
+    lead = SimpleUploadedFile("complaint.pdf", pdf_bytes(), content_type="application/pdf")
 
     with patch("efile.services.document_uploads.S3UploadHandler", return_value=handler):
         response = client.post(upload_url(), {"documents": [lead], "ai_opt_out": "yes"})
@@ -171,7 +173,7 @@ def test_uploading_saves_the_choice_before_analysis_is_queued(client, opted_out_
 
 @pytest.mark.django_db
 def test_changing_the_choice_after_upload_drops_the_old_reading_and_re_runs(client, opted_out_draft):
-    document = FilingDocument.objects.create(
+    document = reviewed_document(
         draft=opted_out_draft,
         role=FilingDocument.Role.LEAD,
         name="complaint.pdf",
@@ -221,7 +223,7 @@ def test_choosing_before_any_upload_saves_without_queueing_anything(client, opte
 
 @pytest.mark.django_db
 def test_review_screen_credits_the_keyword_search_rather_than_a_reading(client, opted_out_draft):
-    FilingDocument.objects.create(
+    reviewed_document(
         draft=opted_out_draft,
         role=FilingDocument.Role.LEAD,
         name="complaint.pdf",
@@ -310,4 +312,4 @@ def test_the_upload_page_says_when_a_standing_preference_is_in_force(client, opt
 
     page = client.get(upload_url()).content.decode()
 
-    assert "Saved to your account" in page
+    assert "Saved: new filings start with AI off" in page

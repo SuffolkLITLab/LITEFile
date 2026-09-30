@@ -4,9 +4,11 @@ from datetime import timedelta
 
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone
 
 from efile.models import FilingDocument, FilingDraft, InterviewHandoff
+from efile.services.document_previews import document_storage_keys
 from efile.utils.s3_upload_handler import S3UploadHandler
 
 
@@ -36,8 +38,13 @@ class Command(BaseCommand):
                 draft = FilingDraft.objects.select_for_update().filter(pk=draft_id, user__isnull=True).first()
                 if draft is None:
                     continue
-                for key in draft.documents.exclude(s3_key="").values_list("s3_key", flat=True):
-                    if not FilingDocument.objects.filter(s3_key=key).exclude(draft=draft).exists():
+                keys = {key for doc in draft.documents.all() for key in document_storage_keys(doc)}
+                for key in keys:
+                    if (
+                        not FilingDocument.objects.filter(Q(s3_key=key) | Q(original_s3_key=key))
+                        .exclude(draft=draft)
+                        .exists()
+                    ):
                         result = handler.delete_file(key)
                         if not result.get("success"):
                             raise CommandError(

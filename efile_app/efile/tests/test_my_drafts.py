@@ -10,6 +10,7 @@ from django.urls import reverse
 
 from efile.models import FilingDocument, FilingDraft, FilingPlan
 from efile.services.current_drafts import CURRENT_DRAFT_SESSION_KEY
+from efile.tests.helpers import reviewed_document
 from efile.workflow import ExistingCase, WorkflowStepKey
 
 DRAFTS_URL = reverse("my_drafts", kwargs={"jurisdiction": "illinois"})
@@ -81,7 +82,7 @@ def test_resuming_from_the_list_opens_that_draft_and_not_the_newest(client, user
 def test_throwing_a_draft_away_takes_it_out_of_every_list(client, user):
     sign_in(client, user)
     draft = make_draft(user, case_title="Started by mistake")
-    FilingDocument.objects.create(draft=draft, role=FilingDocument.Role.LEAD, sort_order=0, name="petition.pdf")
+    reviewed_document(draft=draft, role=FilingDocument.Role.LEAD, sort_order=0, name="petition.pdf")
     session = client.session
     session[CURRENT_DRAFT_SESSION_KEY] = draft.pk
     session.save()

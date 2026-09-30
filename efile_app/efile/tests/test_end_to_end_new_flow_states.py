@@ -42,7 +42,7 @@ def make_dummy_pdf():
     return buf.getvalue()
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(transaction=True)
 @pytest.mark.parametrize(
     (
         "jurisdiction",
@@ -229,6 +229,19 @@ def test_complete_new_filing_flow_by_jurisdiction(
     assert status_resp2.status_code == 200
     assert status_resp2.json()["ready"] is True
     assert status_resp2.json()["status"] == "complete"
+
+    # The uploaded filing copies must be checked before extracted case details.
+    preview_url = reverse("preview_documents", kwargs={"jurisdiction": jurisdiction})
+    preview = client.get(preview_url)
+    assert preview.status_code == 200
+    approved = client.post(
+        preview_url,
+        {
+            "preview_fingerprint": preview.context["preview_fingerprint"],
+            "reviewed_document": [str(doc.pk) for doc in draft.documents.all()],
+        },
+    )
+    assert approved.status_code == 302
 
     # 3. Step: extraction-review
     review_page = client.get(reverse("extraction_review", kwargs={"jurisdiction": jurisdiction}))

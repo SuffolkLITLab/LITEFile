@@ -84,6 +84,7 @@ class WorkflowStepKey(StrEnum):
     OPTIONS = "options"
     FILING_PATH = "filing_path"
     UPLOAD_DOCUMENTS = "upload_documents"
+    PREVIEW_DOCUMENTS = "preview_documents"
     EXTRACTION_REVIEW = "extraction_review"
     CASE_LOOKUP = "case_lookup"
     CASE_CONFIRMATION = "case_confirmation"
@@ -118,6 +119,7 @@ FILING_WORKFLOW: tuple[WorkflowStep, ...] = (
         WorkflowStepKey.FILING_PATH, pgettext_lazy("workflow stage", "Start"), "filing_path", WorkflowStage.FILING
     ),
     WorkflowStep(WorkflowStepKey.UPLOAD_DOCUMENTS, _("Upload documents"), "upload_documents", WorkflowStage.UPLOAD),
+    WorkflowStep(WorkflowStepKey.PREVIEW_DOCUMENTS, _("Preview documents"), "preview_documents", WorkflowStage.UPLOAD),
     WorkflowStep(
         WorkflowStepKey.EXTRACTION_REVIEW,
         _("Confirm filing"),

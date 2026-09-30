@@ -8,6 +8,7 @@ from django.urls import reverse
 from efile.models import FilingDocument
 from efile.services.fee_quotes import fee_inputs_token
 from efile.services.waiver_documents import WAIVER_TYPE, has_waiver_document, waiver_filing_types
+from efile.tests.pdf_helpers import pdf_bytes
 from efile.tests.test_review_submit_flow import submission_draft as _submission_draft
 
 payment_draft = _submission_draft
@@ -101,7 +102,7 @@ def upload_data(draft, **changes):
         "filing_type": "waiver",
         "document_type": "private",
         "fee_inputs_token": fee_inputs_token(draft),
-        "document": SimpleUploadedFile("waiver.pdf", b"%PDF-test", content_type="application/pdf"),
+        "document": SimpleUploadedFile("waiver.pdf", pdf_bytes(), content_type="application/pdf"),
         **changes,
     }
 
@@ -229,6 +230,17 @@ def test_payment_upload_stays_with_displayed_draft_through_review(client, paymen
         result = client.post(payment_url, {"selected_payment_account": "wv"})
     assert result.status_code == 302
     assert f"draft={payment_draft.pk}" in result.url
+    preview = client.get(uploaded.json()["preview_url"] + f"&draft={payment_draft.pk}")
+    assert preview.status_code == 200
+    approved = client.post(
+        uploaded.json()["preview_url"] + f"&draft={payment_draft.pk}",
+        {
+            "preview_fingerprint": preview.context["preview_fingerprint"],
+            "reviewed_document": [str(doc.pk) for doc in payment_draft.documents.all()],
+            "return_to": "review",
+        },
+    )
+    assert approved.status_code == 302
     with patch("efile.views.review.get_case_questions", return_value=[]):
         review = client.get(result.url)
     assert review.status_code == 200
@@ -260,7 +272,7 @@ def test_general_upload_preserves_identical_names_and_separate_storage_keys(paym
         {"success": True, "key": "first-copy.pdf"},
         {"success": True, "key": "second-copy.pdf"},
     ]
-    files = [SimpleUploadedFile("appearance.pdf", b"%PDF-test", content_type="application/pdf") for _ in range(2)]
+    files = [SimpleUploadedFile("appearance.pdf", pdf_bytes(), content_type="application/pdf") for _ in range(2)]
     with patch("efile.services.document_uploads.S3UploadHandler", return_value=storage):
         upload_files(payment_draft, files, "illinois")
     assert payment_draft.documents.count() == 3
@@ -271,3 +283,28 @@ def test_general_upload_preserves_identical_names_and_separate_storage_keys(paym
     }
     assert list(payment_draft.documents.values_list("name", flat=True)) == ["appearance.pdf"] * 3
     assert len(read_upload_data(payment_draft)["files"]["supporting"]) == 2
+
+
+def test_database_failure_cleans_uploaded_original_and_filing(client, payment_draft, storage):
+    from django.db import DatabaseError
+
+    from efile.tests.pdf_helpers import docx_bytes
+    from efile.tests.test_document_preparation import service_response
+
+    storage.upload_file.side_effect = [
+        {"success": True, "key": "original.docx"},
+        {"success": True, "key": "filing.pdf"},
+    ]
+    with (
+        patch("efile.services.waiver_documents._codes", side_effect=codes),
+        patch("efile.services.document_preparation.settings.GOTENBERG_URL", "https://synthetic.invalid"),
+        patch("efile.services.document_preparation.requests.post", return_value=service_response(pdf_bytes())),
+        patch("efile.views.waiver_documents.FilingDocument.objects.create", side_effect=DatabaseError("Write failed")),
+        pytest.raises(DatabaseError),
+    ):
+        client.post(
+            endpoint(payment_draft),
+            upload_data(payment_draft, document=SimpleUploadedFile("waiver.docx", docx_bytes())),
+        )
+    assert {call.args[0] for call in storage.delete_file.call_args_list} == {"original.docx", "filing.pdf"}
+    assert payment_draft.documents.count() == 1

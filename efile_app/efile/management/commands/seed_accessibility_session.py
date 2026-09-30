@@ -6,6 +6,7 @@ from pathlib import Path
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.test import Client
+from django.utils import timezone
 
 from efile.models import FilingDocument, FilingDraft, FilingParty, FilingPlan
 from efile.services.current_drafts import CURRENT_DRAFT_SESSION_KEY
@@ -68,6 +69,9 @@ class Command(BaseCommand):
             role=FilingDocument.Role.LEAD,
             name="Accessibility complaint.pdf",
             original_filename="Accessibility complaint.pdf",
+            # This fixture starts downstream of preparation and confirmation.
+            preparation="unchanged",
+            preparation_reviewed_at=timezone.now(),
             filing_type_code="143132",
             filing_type_name="Complaint",
             document_type_code="public",

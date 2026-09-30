@@ -8,6 +8,7 @@ from django.urls import reverse
 from efile.checks import configured_ui_text_keys_are_known
 from efile.models import FilingDocument, FilingDraft
 from efile.services.current_drafts import CURRENT_DRAFT_SESSION_KEY
+from efile.tests.helpers import reviewed_document
 from efile.utils.ui_text import UI_STRINGS, config_overrides, get_html, get_text, get_texts
 from efile.workflow import ExistingCase, WorkflowStepKey
 
@@ -228,8 +229,8 @@ def organize_draft(client, django_user_model, jurisdiction):
         current_step=WorkflowStepKey.ORGANIZE_DOCUMENTS,
         document_checklist_acknowledged=True,
     )
-    FilingDocument.objects.create(draft=draft, role=FilingDocument.Role.LEAD, sort_order=0, name="filing.pdf")
-    FilingDocument.objects.create(draft=draft, role=FilingDocument.Role.SUPPORTING, sort_order=0, name="exhibit.pdf")
+    reviewed_document(draft=draft, role=FilingDocument.Role.LEAD, sort_order=0, name="filing.pdf")
+    reviewed_document(draft=draft, role=FilingDocument.Role.SUPPORTING, sort_order=0, name="exhibit.pdf")
     client.force_login(user)
     session = client.session
     session[CURRENT_DRAFT_SESSION_KEY] = draft.pk

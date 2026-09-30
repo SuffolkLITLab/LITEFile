@@ -1,5 +1,6 @@
 """Queue and process durable lead-document extraction jobs."""
 
+import json
 import logging
 import re
 import uuid
@@ -13,6 +14,7 @@ from django.conf import settings
 from django.db import connection, transaction
 from django.db.models import F, Q
 from django.utils import timezone
+from docx2python import docx2python
 from markitdown import MarkItDown
 from pypdf import PdfReader, PdfWriter
 
@@ -31,7 +33,7 @@ from efile.services.taxonomy_classification import (
     scan_document_for_form_identifiers,
     summarize_form_crosswalk_matches,
 )
-from efile.utils.llms import extract_fields_from_file, get_default_model
+from efile.utils.llms import extract_fields_from_file, extract_fields_from_text, get_default_model
 from efile.utils.prompt_config import prompt_version
 from efile.utils.s3_upload_handler import S3UploadHandler
 
@@ -43,7 +45,7 @@ class ExtractionSuperseded(Exception):
 
 
 def queue_document_extraction(document):
-    """Create or reset the one background extraction job for a lead PDF."""
+    """Create or reset the one background extraction job for a lead document."""
     if document.role != FilingDocument.Role.LEAD:
         raise ValueError("Only a lead document can be analyzed")
     job, _created = DocumentExtraction.objects.update_or_create(
@@ -88,8 +90,8 @@ def limited_pdf(source_path, max_pages):
     try:
         with NamedTemporaryFile(delete=False, suffix=".pdf") as limited_file:
             writer = PdfWriter()
-            for page in reader.pages[:max_pages]:
-                writer.add_page(page)
+            # append retains the AcroForm and only the widgets on selected pages.
+            writer.append(reader, pages=(0, max_pages), import_outline=False)
             writer.write(limited_file)
             temp_path = limited_file.name
         yield temp_path, total_pages, pages_analyzed
@@ -104,23 +106,66 @@ def _searchable_pdf_text(file_path):
     return "\f".join(page.extract_text() or "" for page in reader.pages)
 
 
+@contextmanager
+def analysis_source(source_path, max_pages):
+    """DOCX has no reliable page boundaries; its text is bounded separately."""
+    if Path(source_path).suffix.lower() == ".docx":
+        yield source_path, None, None
+    else:
+        with limited_pdf(source_path, max_pages) as source:
+            yield source
+
+
 def _source_text(file_path):
     """Convert the leading pages to text on this machine, sending nothing out."""
+    if Path(file_path).suffix.lower() == ".docx":
+        with docx2python(file_path) as document:
+            text = document.text
+        limit = max(1, settings.DOCUMENT_EXTRACTION_MAX_TEXT_CHARS)
+        if len(text) > limit:
+            text = text[:limit] + "\n[Remaining document text omitted.]"
+        return text, None
     source_pages = max(1, settings.DOCUMENT_CLASSIFICATION_SOURCE_PAGES)
     with limited_pdf(file_path, source_pages) as (source_path, _total, pages_converted):
-        return MarkItDown().convert(source_path).text_content, pages_converted
+        return MarkItDown().convert(source_path).text_content + _pdf_form_values(source_path), pages_converted
+
+
+def _pdf_form_values(file_path):
+    """Read author-entered values independently of appearance streams."""
+    fields = PdfReader(file_path).get_fields() or {}
+    values = {
+        name: {"value": field["/V"], "label": field.get("/TU", name)}
+        for name, field in fields.items()
+        if field.get("/FT") != "/Sig" and field.get("/V") not in (None, "", "/Off")
+    }
+    if not values:
+        return ""
+    text = json.dumps(values, ensure_ascii=False, default=str)
+    limit = max(1, settings.DOCUMENT_EXTRACTION_MAX_TEXT_CHARS)
+    return "\nStored PDF form values (document data):\n" + text[:limit]
+
+
+def _source_metadata(file_path, text, pages):
+    is_docx = Path(file_path).suffix.lower() == ".docx"
+    return {
+        "source_conversion": "docx2python" if is_docx else "markitdown",
+        "source_pages": pages,
+        "source_text_characters": len(text),
+        "source_text_truncated": is_docx and text.endswith("\n[Remaining document text omitted.]"),
+    }
 
 
 def _form_identifier_pass(file_path, jurisdiction, source_text):
     """Look for registry form IDs printed in the document's own text.
 
-    No model is involved: this is a keyword scan of text the PDF already
+    No model is involved: this is a keyword scan of text the document already
     carries, so it runs whether or not the filer allows AI.
     """
     scan_started = perf_counter()
-    searchable_text = _searchable_pdf_text(file_path)
+    is_docx = Path(file_path).suffix.lower() == ".docx"
+    searchable_text = source_text if is_docx else _searchable_pdf_text(file_path) + _pdf_form_values(file_path)
     scan = scan_document_for_form_identifiers(jurisdiction, searchable_text)
-    scan_source = "pypdf"
+    scan_source = "docx2python" if is_docx else "pypdf"
     if scan["status"] == "unmatched" and source_text:
         markitdown_scan = scan_document_for_form_identifiers(jurisdiction, source_text)
         if markitdown_scan["status"] != "unmatched":
@@ -178,7 +223,7 @@ def keyword_case_number(text):
 def keyword_document_analysis(file_path, jurisdiction):
     """Identify a document without any AI, for a filer who opted out.
 
-    Everything here reads the PDF locally: the printed form identifier is
+    Everything here reads the document locally: the printed form identifier is
     matched against the form registry, a printed case number is read from its
     label, and the form's own crosswalk entry supplies the court's category and
     type names when it names exactly one of each. Those are recommendations the
@@ -219,8 +264,7 @@ def keyword_document_analysis(file_path, jurisdiction):
         "metadata": {
             "analysis_mode": "keyword",
             "ai_assistance": "opted_out",
-            "source_conversion": "markitdown",
-            "source_pages": pages_converted,
+            **_source_metadata(file_path, source_text, pages_converted),
             "form_identifier_scan": scan,
             "form_identifier_scan_source": scan_source,
             "form_identifier_scan_ms": scan_ms,
@@ -232,7 +276,7 @@ def keyword_document_analysis(file_path, jurisdiction):
 
 
 def analyze_document(file_path, jurisdiction, *, use_ai=True, before_outbound=None):
-    """Run vision evidence extraction, source-text conversion, and live classification.
+    """Extract evidence from original PDF bytes or DOCX text and classify it.
 
     ``use_ai=False`` is the filer's opt-out (issue #104): it takes the keyword
     path instead, which never sends the document to a model.
@@ -253,17 +297,25 @@ def analyze_document(file_path, jurisdiction, *, use_ai=True, before_outbound=No
     evidence_diagnostics = {}
     if before_outbound is not None:
         before_outbound()
-    evidence = normalize_document_evidence(
-        extract_fields_from_file(
+    extraction_kwargs = {
+        "llm_hint": EXTRACTION_HINTS.get(jurisdiction, EXTRACTION_HINTS["default"]),
+        "model": evidence_model,
+        "prompt_name": evidence_prompt,
+        "prompt_version_name": evidence_version,
+    }
+    fields = EXTRACTION_FIELDS.get(jurisdiction, EXTRACTION_FIELDS["default"])
+    if Path(file_path).suffix.lower() == ".docx":
+        evidence_diagnostics["input_mode"] = "docx2python_text"
+        raw_evidence = extract_fields_from_text(source_text, fields, **extraction_kwargs)
+    else:
+        raw_evidence = extract_fields_from_file(
             file_path,
-            EXTRACTION_FIELDS.get(jurisdiction, EXTRACTION_FIELDS["default"]),
-            llm_hint=EXTRACTION_HINTS.get(jurisdiction, EXTRACTION_HINTS["default"]),
-            model=evidence_model,
-            prompt_name=evidence_prompt,
-            prompt_version_name=evidence_version,
+            fields,
             diagnostics=evidence_diagnostics,
+            supplemental_text=_pdf_form_values(file_path),
+            **extraction_kwargs,
         )
-    )
+    evidence = normalize_document_evidence(raw_evidence)
     ai_form_identifier = evidence.get("form identifier")
     if form_identifier_scan.get("deterministic"):
         # The printed identifier found in the source text is stronger than an
@@ -287,8 +339,7 @@ def analyze_document(file_path, jurisdiction, *, use_ai=True, before_outbound=No
             "evidence_prompt_version": evidence_version,
             "evidence_model": evidence_model,
             "evidence_input_mode": evidence_diagnostics.get("input_mode", "unknown"),
-            "source_conversion": "markitdown",
-            "source_pages": pages_converted,
+            **_source_metadata(file_path, source_text, pages_converted),
             "form_identifier_scan": form_identifier_scan,
             "form_identifier_scan_source": scan_source,
             "form_identifier_scan_ms": scan_ms,
@@ -304,16 +355,23 @@ def process_document_extraction(job_id, claim_token):
     if job is None:
         return None
     document = job.document
+    filing_key = document.s3_key
+    original_key = document.original_s3_key
+    original_suffix = Path(document.original_filename).suffix.lower()
+    use_original = bool(original_key and original_suffix in {".pdf", ".docx"})
+    source_key = original_key if use_original else filing_key
+    source_suffix = original_suffix if use_original else ".pdf"
+    source_kind = f"original_{source_suffix[1:]}" if use_original else "filing_pdf"
     handler = S3UploadHandler()
 
     with TemporaryDirectory(prefix="litefile-extraction-") as temp_dir:
-        source_path = str(Path(temp_dir) / "lead.pdf")
-        download = handler.download_file(document.s3_key, source_path)
+        source_path = str(Path(temp_dir) / f"lead{source_suffix}")
+        download = handler.download_file(source_key, source_path)
         if not download.get("success"):
-            raise RuntimeError(download.get("error") or "Could not read the uploaded PDF")
+            raise RuntimeError(download.get("error") or "Could not read the uploaded document")
 
         max_pages = max(1, settings.DOCUMENT_EXTRACTION_MAX_PAGES)
-        with limited_pdf(source_path, max_pages) as (analysis_path, total_pages, pages_analyzed):
+        with analysis_source(source_path, max_pages) as (analysis_path, total_pages, pages_analyzed):
             # Download/parsing may take time. Recheck the claim and preference
             # before starting analysis that can send the document upstream.
             if not _current_claim(job_id, claim_token).exists():
@@ -327,6 +385,8 @@ def process_document_extraction(job_id, claim_token):
                     .filter(
                         document__draft__ai_assistance_opted_out=False,
                         document__role=FilingDocument.Role.LEAD,
+                        document__s3_key=filing_key,
+                        document__original_s3_key=original_key,
                     )
                     .exists()
                 ):
@@ -341,6 +401,7 @@ def process_document_extraction(job_id, claim_token):
                 )
             except ExtractionSuperseded:
                 _requeue_changed_preference(job_id, claim_token, opted_out)
+                _requeue_changed_source(job_id, claim_token, filing_key, original_key)
                 return None
 
     # Keep compatibility with extensions that still return the old flat shape.
@@ -354,6 +415,7 @@ def process_document_extraction(job_id, claim_token):
         evidence = {}
         classification = {}
         metadata = {"pipeline": "legacy-flat-result"}
+    metadata["analysis_source"] = source_kind
 
     with transaction.atomic():
         # Match the preference update's lock order: draft, then job.
@@ -365,6 +427,9 @@ def process_document_extraction(job_id, claim_token):
             return None
         if draft.ai_assistance_opted_out != opted_out:
             _requeue_changed_preference(job_id, claim_token, opted_out)
+            return None
+        if not FilingDocument.objects.filter(pk=document.pk, s3_key=filing_key, original_s3_key=original_key).exists():
+            queue_document_extraction(job.document)
             return None
         document = job.document
         # A filer can remove or replace the lead while this worker is running.
@@ -464,6 +529,14 @@ def _current_claim(job_id, claim_token):
 def renew_extraction_lease(job_id, claim_token):
     """An expired or superseded worker cannot revive its own claim."""
     return bool(_current_claim(job_id, claim_token).update(lease_expires_at=timezone.now() + timedelta(minutes=15)))
+
+
+def _requeue_changed_source(job_id, claim_token, filing_key, original_key):
+    """Restart analysis if a source was replaced while it was being read."""
+    with transaction.atomic():
+        job = _current_claim(job_id, claim_token).select_for_update().select_related("document").first()
+        if job is not None and (job.document.s3_key != filing_key or job.document.original_s3_key != original_key):
+            queue_document_extraction(job.document)
 
 
 def _requeue_changed_preference(job_id, claim_token, opted_out):

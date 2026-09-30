@@ -12,6 +12,7 @@ from django.urls import reverse
 from efile.models import FilingDocument, FilingDraft
 from efile.services.current_drafts import CURRENT_DRAFT_SESSION_KEY
 from efile.services.filing_plans import ensure_plan_for_draft
+from efile.tests.helpers import reviewed_document
 from efile.workflow import ExistingCase, WorkflowStepKey
 
 OPTIONS_URL = reverse("efile_options", kwargs={"jurisdiction": "illinois"})
@@ -39,7 +40,7 @@ def last_months_filing(user):
         case_category_name="Miscellaneous",
         case_type_name="Name Change",
     )
-    FilingDocument.objects.create(
+    reviewed_document(
         draft=draft,
         role=FilingDocument.Role.LEAD,
         sort_order=0,

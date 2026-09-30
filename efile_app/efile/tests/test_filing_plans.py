@@ -16,6 +16,7 @@ from efile.services.filing_plans import (
     set_checklist_answers,
     set_checklist_progress,
 )
+from efile.tests.helpers import reviewed_document
 from efile.workflow import ExistingCase, WorkflowStepKey
 
 
@@ -39,7 +40,7 @@ def make_draft(user, **overrides):
     }
     fields.update(overrides)
     draft = FilingDraft.objects.create(user=user, **fields)
-    FilingDocument.objects.create(
+    reviewed_document(
         draft=draft,
         role=FilingDocument.Role.LEAD,
         sort_order=0,

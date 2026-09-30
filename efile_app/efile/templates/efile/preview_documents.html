@@ -1,0 +1,36 @@
+{% extends "efile/workflow_base.html" %}
+{% load i18n %}
+{% block title %}
+    {% translate "Preview your documents" %}
+{% endblock title %}
+{% block workflow_content %}
+    <section class="workflow-card">
+        <div class="workflow-eyebrow">{% translate "Upload" %}</div>
+        <h1>{% translate "Check your documents" %}</h1>
+        <p class="workflow-lede">{% translate "The court will get these copies. Open each PDF and check every page before you continue." %}</p>
+        <p>{% translate "If a file looks wrong, go back and replace it." %}</p>
+        {% if preview_error %}<p class="alert alert-danger" role="alert">{{ preview_error }}</p>{% endif %}
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden"
+                   name="preview_fingerprint"
+                   value="{{ preview_fingerprint }}" />
+            <input type="hidden" name="return_to" value="{{ return_to }}" />
+            {% for document in documents %}
+                <article class="prepared-document mb-4">
+                    {% if not document.preparation %}
+                        <p>{% translate "Not ready. Reload this page or replace this file." %}</p>
+                    {% endif %}
+                    {% include "efile/components/document_preview.html" %}
+                </article>
+            {% endfor %}
+            <div class="workflow-actions">
+                <a class="btn btn-outline-secondary"
+                   href="{% url 'upload_documents' jurisdiction %}">{% translate "Change files" %}</a>
+                <button class="btn btn-primary"
+                        type="submit"
+                        {% if preparation_pending %}disabled{% endif %}>{% translate "Continue" %}</button>
+            </div>
+        </form>
+    </section>
+{% endblock workflow_content %}

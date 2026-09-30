@@ -12,6 +12,7 @@ from efile.models import FilingDocument, FilingDraft
 from efile.services.current_drafts import CURRENT_DRAFT_SESSION_KEY
 from efile.services.filing_plans import create_draft_from_plan, ensure_plan_for_draft, set_checklist_progress
 from efile.services.people import guess_filer_party_type
+from efile.tests.helpers import reviewed_document
 from efile.workflow import ExistingCase, WorkflowStepKey
 
 CHECKLIST_URL = reverse("document_checklist", kwargs={"jurisdiction": "illinois"})
@@ -45,7 +46,7 @@ def draft(user):
         current_step=WorkflowStepKey.DOCUMENT_CHECKLIST,
         **EVICTION_CASE,
     )
-    FilingDocument.objects.create(
+    reviewed_document(
         draft=draft,
         role=FilingDocument.Role.LEAD,
         sort_order=0,

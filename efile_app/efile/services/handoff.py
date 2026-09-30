@@ -200,7 +200,7 @@ def validate_payload(payload, source_config, files, *, require_lead=True):
             raise HandoffError("return_url must use an allowed HTTPS origin.")
     documents = payload.get("documents", [])
     if not isinstance(documents, list) or len(documents) > 20:
-        raise HandoffError("documents must be a list of up to 20 PDFs.")
+        raise HandoffError("documents must be a list of up to 20 documents.")
     ids = set()
     leads = 0
     for document in documents:
@@ -216,21 +216,19 @@ def validate_payload(payload, source_config, files, *, require_lead=True):
         _hints(document, "document")
         uploaded = files.get(key)
         if uploaded is None:
-            raise HandoffError(f"Upload the PDF for document {key}.")
+            raise HandoffError(f"Upload the PDF or Word file for document {key}.")
         if uploaded.size > MAX_DOCUMENT_BYTES:
-            raise HandoffError("Each PDF must be at most 10 MB.")
+            raise HandoffError("Each document must be at most 10 MB.")
         digest = hashlib.sha256()
-        prefix = uploaded.read(5)
-        uploaded.seek(0)
-        if prefix != b"%PDF-":
-            raise HandoffError("Only PDF documents are accepted.")
+        # Content validation and PDF/Word preparation share the app upload
+        # pipeline, which distinguishes unfixable input from service outages.
         for chunk in uploaded.chunks():
             digest.update(chunk)
         uploaded.seek(0)
         if digest.hexdigest() != document.get("sha256"):
             raise HandoffError(f"Document hash mismatch: {key}.")
     if leads > 1 or (require_lead and documents and leads != 1):
-        raise HandoffError("A document bundle needs exactly one lead PDF.")
+        raise HandoffError("A document bundle needs exactly one lead document.")
     if set(files) != ids or any(len(files.getlist(key)) != 1 for key in files):
         raise HandoffError("Upload each declared document exactly once.")
     _validate_filing_hint_overrides(payload, ids)
@@ -320,12 +318,14 @@ def populate(draft, payload, uploads):
             draft=draft,
             role=document["role"],
             sort_order=order[document["role"]],
-            name=document.get("form_name") or uploaded["filename"],
+            name=document.get("form_name") or uploaded.get("name", uploaded["filename"]),
             original_filename=uploaded["filename"],
             size=uploaded["size"],
             content_type="application/pdf",
             s3_key=uploaded["key"],
             public_url=uploaded["url"],
+            original_s3_key=uploaded.get("original_s3_key", ""),
+            preparation=uploaded.get("preparation", ""),
         )
         order[document["role"]] += 1
         record(draft, f"documents.{row.pk}", "source_suggestion", document)

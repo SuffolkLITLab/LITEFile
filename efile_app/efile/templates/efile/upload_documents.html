@@ -1,6 +1,7 @@
 {% extends "efile/workflow_base.html" %}
 {% load static %}
 {% load i18n %}
+{% load ui_text %}
 {% block title %}
     {% translate "Upload your documents" %}
 {% endblock title %}
@@ -8,9 +9,6 @@
     <section class="workflow-card">
         <div class="workflow-eyebrow">{% translate "Upload" %}</div>
         <h1>{% translate "Upload your court documents" %}</h1>
-        <p class="workflow-lede">
-            {% blocktranslate with page_count=max_extraction_pages %}Add the forms and other documents you want to file. We will analyze up to the first {{ page_count }} pages of the first PDF, and you can choose the main document later.{% endblocktranslate %}
-        </p>
         {% if saved_path %}
             <p class="path-summary path-summary--inline">
                 <span class="path-summary__label">{% translate "New or existing case" %}</span>
@@ -35,10 +33,17 @@
             </details>
         {% endif %}
         <div class="requirements-strip">
-            <span><i class="fa-solid fa-file-pdf" aria-hidden="true"></i> {% translate "PDF only" %}</span>
+            <span><i class="fa-solid fa-file-pdf" aria-hidden="true"></i> {% translate "PDF or Word" %}</span>
             <span><i class="fa-solid fa-weight-hanging" aria-hidden="true"></i> {% translate "10 MB per file" %}</span>
             <span><i class="fa-solid fa-eye" aria-hidden="true"></i> {% translate "Text must be readable" %}</span>
         </div>
+        <p class="mt-3">
+            {% if flatten_pdf_forms %}
+                {% ui_text "upload_documents.preparation_help" %}
+            {% else %}
+                {% ui_text "upload_documents.preparation_help_unflattened" %}
+            {% endif %}
+        </p>
         <form id="document-upload-form"
               enctype="multipart/form-data"
               data-extraction-status-url="{% url 'document_extraction_status' jurisdiction %}">
@@ -47,11 +52,10 @@
                 <input id="documents-input"
                        type="file"
                        name="documents"
-                       accept=".pdf,application/pdf"
+                       accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                        multiple />
                 <span class="drop-zone__icon"><i class="fa-solid fa-cloud-arrow-up" aria-hidden="true"></i></span>
-                <strong>{% translate "Choose PDFs or drag them here" %}</strong>
-                <span>{% translate "You can select more than one file." %}</span>
+                <strong>{% translate "Choose files or drag them here" %}</strong>
             </label>
             <section class="pending-files"
                      id="pending-files"
@@ -70,7 +74,7 @@
                 <div class="spinner-border spinner-border-sm" aria-hidden="true"></div>
                 <strong id="upload-state-title">
                     {% if extraction_pending %}
-                        {% translate "Analyzing your first PDF…" %}
+                        {% translate "Reading your first file…" %}
                     {% else %}
                         {% translate "Uploading your documents…" %}
                     {% endif %}
@@ -133,13 +137,13 @@
                id="ai-note-on"
                {% if ai_opted_out %}hidden{% endif %}>
                 <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>
-                {% translate "AI will read your first PDF so you have less to type. Your documents are never used to train AI models." %}
+                {% translate "AI helps fill in answers. Your files are not used to train AI." %}
             </p>
             <p class="ai-choice__note ai-choice__note--off"
                id="ai-note-off"
                {% if not ai_opted_out %}hidden{% endif %}>
                 <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
-                {% translate "AI is off for this filing. We will still search the text of your PDF for a form number or case number, the way a word search does, so you may still see details we picked up. You can correct or clear anything we get wrong, and you can fill in every answer yourself." %}
+                {% translate "AI is off. We will look for form and case numbers. You can change any answer." %}
             </p>
             {% comment %}
             The account-wide answer has no other screen, so the page it is set
@@ -148,20 +152,14 @@
             {% if account_ai_opted_out %}
                 <p class="ai-choice__saved">
                     <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
-                    {% translate "Saved to your account: every new filing starts with AI off. You can still change it here for one filing." %}
+                    {% translate "Saved: new filings start with AI off. You can change this for each filing." %}
                 </p>
             {% endif %}
         </form>
         <template id="ai-explainer-content">
-            <p>
-                {% translate "We can use an enterprise AI service for two things: reading your uploaded document so you have less to type, and matching your form to the right court codes. This can help stop common errors and make your filing faster." %}
-            </p>
-            <p>
-                {% translate "If you opt in to using AI, your documents are covered by an enterprise agreement. They are stored only as long as necessary to complete your filing. They are never used to train AI models." %}
-            </p>
-            <p>
-                {% translate "You can turn AI off and still complete your filing. We will still search your PDF's text for a printed form number or case number, which is an ordinary word search rather than AI, so we may still recognize your document." %}
-            </p>
+            <p>{% translate "AI reads your file and suggests court filing choices. Check the answers before you file." %}</p>
+            <p>{% translate "Your files are kept only as long as needed for your filing. They are never used to train AI." %}</p>
+            <p>{% translate "You can file without AI. We will still look for form and case numbers." %}</p>
         </template>
         <section class="document-list" aria-labelledby="uploaded-heading">
             <div class="document-list__heading">
@@ -195,6 +193,7 @@
                             <span>{% translate "Remove" %}</span>
                         </button>
                     </article>
+                    {% include "efile/components/document_preview.html" %}
                 {% endfor %}
             {% else %}
                 <div class="document-list__empty">
@@ -210,10 +209,10 @@
             goes. See efile.workflow.get_visible_workflow.
             {% endcomment %}
             <a class="btn btn-outline-secondary" href="{{ workflow_previous_url }}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {% translate "Back" %}</a>
-            <a class="btn btn-primary {% if not has_lead_document or extraction_pending %}disabled{% endif %}"
+            <a class="btn btn-primary {% if not has_lead_document %}disabled{% endif %}"
                id="continue-to-analysis"
-               href="{% url 'extraction_review' jurisdiction %}"
-               {% if not has_lead_document or extraction_pending %}aria-disabled="true" tabindex="-1"{% endif %}>{% translate "Review what we found" %} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+               href="{% url 'preview_documents' jurisdiction %}"
+               {% if not has_lead_document %}aria-disabled="true" tabindex="-1"{% endif %}>{% translate "Preview your PDFs" %} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
         </div>
     </section>
 {% endblock workflow_content %}

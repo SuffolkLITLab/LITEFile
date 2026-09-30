@@ -8,6 +8,7 @@ WORKFLOW_VIEWS = frozenset(
     {
         "filing_path",
         "upload_documents",
+        "preview_documents",
         "document_extraction_status",
         "extraction_review",
         "case_lookup",

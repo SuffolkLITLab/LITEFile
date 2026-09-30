@@ -20,6 +20,7 @@ from efile.services.filing_plans import (
     set_checklist_answers,
     set_checklist_progress,
 )
+from efile.tests.helpers import reviewed_document
 from efile.workflow import ExistingCase, WorkflowStepKey
 
 CHECKLIST_URL = reverse("document_checklist", kwargs={"jurisdiction": "illinois"})
@@ -58,7 +59,7 @@ def draft(user):
         case_type_code="78346",
         case_type_name="Name Change",
     )
-    FilingDocument.objects.create(
+    reviewed_document(
         draft=draft,
         role=FilingDocument.Role.LEAD,
         sort_order=0,
@@ -77,7 +78,7 @@ def signed_in(client, user, draft):
 
 
 def a_supporting_document(draft, name="fee-waiver.pdf"):
-    return FilingDocument.objects.create(
+    return reviewed_document(
         draft=draft,
         role=FilingDocument.Role.SUPPORTING,
         sort_order=FilingDocument.objects.filter(draft=draft, role=FilingDocument.Role.SUPPORTING).count(),

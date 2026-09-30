@@ -19,13 +19,14 @@ from efile.services.document_extractions import (
     record_extraction_failure,
     renew_extraction_lease,
 )
+from efile.tests.helpers import reviewed_document
 
 
 @pytest.fixture
 def lead(db, django_user_model):
     user = django_user_model.objects.create_user(username="claim-test")
     draft = FilingDraft.objects.create(user=user, jurisdiction="illinois")
-    return FilingDocument.objects.create(draft=draft, role=FilingDocument.Role.LEAD, name="lead.pdf", s3_key="lead.pdf")
+    return reviewed_document(draft=draft, role=FilingDocument.Role.LEAD, name="lead.pdf", s3_key="lead.pdf")
 
 
 def expire(job):

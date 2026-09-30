@@ -7,6 +7,7 @@ from django.urls import reverse
 from efile.models import FilingDocument, FilingDraft
 from efile.services.current_drafts import CURRENT_DRAFT_SESSION_KEY
 from efile.services.drafts import read_upload_data
+from efile.tests.helpers import reviewed_document
 from efile.workflow import ExistingCase, WorkflowStepKey
 
 
@@ -31,7 +32,7 @@ def document_draft(client, django_user_model):
         case_type_code="200",
         current_step=WorkflowStepKey.DOCUMENT_CHECKLIST,
     )
-    FilingDocument.objects.create(
+    reviewed_document(
         draft=draft,
         role=FilingDocument.Role.LEAD,
         sort_order=0,
@@ -231,7 +232,7 @@ def test_organize_shows_no_radio_choice_for_a_single_document(client, document_d
 def test_organize_shows_radio_choice_for_multiple_documents(client, document_draft):
     document_draft.document_checklist_acknowledged = True
     document_draft.save(update_fields=["document_checklist_acknowledged", "updated_at"])
-    FilingDocument.objects.create(
+    reviewed_document(
         draft=document_draft,
         role=FilingDocument.Role.SUPPORTING,
         sort_order=0,
@@ -248,13 +249,13 @@ def test_organize_shows_radio_choice_for_multiple_documents(client, document_dra
 
 @pytest.mark.django_db
 def test_organize_saves_details_and_supporting_order(client, document_draft):
-    first = FilingDocument.objects.create(
+    first = reviewed_document(
         draft=document_draft,
         role=FilingDocument.Role.SUPPORTING,
         sort_order=0,
         name="first.pdf",
     )
-    second = FilingDocument.objects.create(
+    second = reviewed_document(
         draft=document_draft,
         role=FilingDocument.Role.SUPPORTING,
         sort_order=1,

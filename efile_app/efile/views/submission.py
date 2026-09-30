@@ -10,6 +10,7 @@ from django.views.decorators.http import require_http_methods
 from efile.models import FilingDraft
 from efile.services.current_drafts import clear_current_draft, get_current_draft
 from efile.services.disclaimers import validate_acceptance
+from efile.services.document_previews import require_document_previews
 from efile.services.fee_quotes import fee_quote_is_usable
 from efile.services.filing_plans import mark_attached_items_filed
 from efile.services.submission_errors import PRE_SUBMIT_ERROR_CODES, SubmissionErrorCode
@@ -26,6 +27,7 @@ logger = logging.getLogger(__name__)
 _CLAIMABLE_STATUSES = (FilingDraft.Status.DRAFT,)
 
 
+@transaction.atomic
 def _claim_for_submission(draft: FilingDraft, acceptance: dict) -> bool:
     """Atomically move a DRAFT into SUBMITTING, recording the accepted court requirements.
 
@@ -33,6 +35,10 @@ def _claim_for_submission(draft: FilingDraft, acceptance: dict) -> bool:
     each forward to the external API. A draft already SUBMITTING or ERROR is not
     reclaimed here -- those are not safe to retry automatically.
     """
+    locked = FilingDraft.objects.select_for_update().get(pk=draft.pk)
+    if locked.status not in _CLAIMABLE_STATUSES:
+        return False
+    require_document_previews(locked)
     claimed = FilingDraft.objects.filter(pk=draft.pk, status__in=_CLAIMABLE_STATUSES).update(
         status=FilingDraft.Status.SUBMITTING,
         disclaimer_acceptance=acceptance,
@@ -97,6 +103,11 @@ def submit_final_filing(request):
             status=400,
         )
 
+    try:
+        require_document_previews(draft)
+    except ValueError as error:
+        return JsonResponse({"success": False, "error": str(error)}, status=412)
+
     # The filer agreed to a total on Review. If anything that prices the filing
     # changed since, that total is not the one they would be charged, so the
     # page has to show the new one before anything reaches the court.
@@ -117,7 +128,11 @@ def submit_final_filing(request):
         return JsonResponse({"success": False, "error": str(error)}, status=400)
 
     # Claim the draft before forwarding so a concurrent request can't file twice.
-    if not _claim_for_submission(draft, acceptance):
+    try:
+        claimed = _claim_for_submission(draft, acceptance)
+    except ValueError as error:
+        return JsonResponse({"success": False, "error": str(error)}, status=412)
+    if not claimed:
         return JsonResponse(
             {"success": False, "error": "This filing can't be submitted again automatically."},
             status=409,

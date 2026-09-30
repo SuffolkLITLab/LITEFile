@@ -16,9 +16,9 @@
             <h1>{% translate "Check what we read from your document" %}</h1>
             <p class="workflow-lede">
                 {% if ai_opted_out %}
-                    {% translate "You turned AI off, so we searched the text of your PDF for a form number and a case number instead. These are clues from the document, not answers you gave us, and the search can be wrong. Correct anything that is." %}
+                    {% translate "You turned AI off, so we searched the text of your document for a form number and a case number instead. These are clues from the document, not answers you gave us, and the search can be wrong. Correct anything that is." %}
                 {% else %}
-                    {% translate "These are clues from the PDF, not answers you gave us, and the system can make mistakes. Correct anything that is wrong." %}
+                    {% translate "These are clues from the document, not answers you gave us, and the system can make mistakes. Correct anything that is wrong." %}
                 {% endif %}
             </p>
             <section class="extracted-details" aria-labelledby="extracted-details-heading">
@@ -45,6 +45,11 @@
                 {% if extraction_total_pages > extraction_pages_analyzed %}
                     <p class="extracted-details__note">
                         {% blocktranslate %}This PDF has {{ extraction_total_pages }} pages. We analyzed only the first {{ extraction_pages_analyzed }} pages.{% endblocktranslate %}
+                    </p>
+                {% endif %}
+                {% if extraction_text_truncated %}
+                    <p class="extracted-details__note">
+                        {% translate "We read only part of this Word file. Add any missing details below." %}
                     </p>
                 {% endif %}
                 <div class="extraction-acknowledgment{% if acknowledgement_error %} extraction-acknowledgment--invalid{% endif %}"
@@ -95,6 +100,9 @@
                 {% endif %}
                 <a href="{% url 'upload_documents' jurisdiction %}">{% translate "go back and try a different document" %}</a>.
             </div>
+        {% endif %}
+        {% if lead_document %}
+            {% include "efile/components/document_preview.html" with document=lead_document %}
         {% endif %}
         <form method="post" id="extraction-review-form">
             {% csrf_token %}

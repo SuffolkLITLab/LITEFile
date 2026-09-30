@@ -75,6 +75,7 @@ def efile_payment(request, jurisdiction):
             return redirect(get_step_url(WorkflowStepKey.REVIEW, jurisdiction))
 
     context = {
+        "documents": FilingDocument.objects.filter(draft=draft).order_by("role", "sort_order", "pk"),
         "waiver_upload_url": draft_url(reverse("waiver_documents", kwargs={"jurisdiction": jurisdiction}), draft.pk),
         "has_waiver_document": has_waiver_document(draft),
         "is_logged_in": True,

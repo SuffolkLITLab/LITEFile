@@ -91,6 +91,16 @@ class UIString:
 
 
 UI_STRINGS: dict[str, UIString] = {
+    "upload_documents.preparation_help": UIString(
+        default="Upload your files as they are. We make PDF copies for court.",
+        description="Preparation guidance when flatten_pdf_forms is enabled. May link to state-specific requirements.",
+        links=True,
+    ),
+    "upload_documents.preparation_help_unflattened": UIString(
+        default="We turn Word files into PDFs. You can check them next.",
+        description="Preparation guidance when flatten_pdf_forms is disabled.",
+        links=True,
+    ),
     # -- Terms ---------------------------------------------------------------
     # Short nouns. Keep them lowercase and in the middle of a sentence: they are
     # interpolated into the passages below, which capitalize for themselves.

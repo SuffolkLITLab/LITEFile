@@ -15,7 +15,7 @@ const sharedGlobals = {
 
 export default [
     {
-        ignores: [".venv/**", "node_modules/**", "playwright-report/**", "test-results/**"]
+        ignores: [".venv/**", "node_modules/**", "efile/static/vendor/**", "playwright-report/**", "test-results/**"]
     },
     eslint.configs.recommended,
     {

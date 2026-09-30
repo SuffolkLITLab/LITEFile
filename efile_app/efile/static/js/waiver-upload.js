@@ -60,7 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
     upload.addEventListener("click", async () => {
         if (uploading) return;
         if (!file.files.length || !confidentiality.value) {
-            status.textContent = gettext("Choose a PDF and a confidentiality setting.");
+            status.textContent = gettext("Choose a PDF or Word document and a confidentiality setting.");
             (!file.files.length ? file : confidentiality).focus();
             return;
         }
@@ -83,6 +83,10 @@ document.addEventListener("DOMContentLoaded", () => {
             });
             const data = await response.json();
             if (!response.ok || !data.success) throw new Error(data.error || gettext("The upload failed. Try again."));
+            if (data.preview_url) {
+                window.location.assign(window.withFilingDraft(data.preview_url));
+                return;
+            }
             document.getElementById("fee-inputs-token").textContent = JSON.stringify(data.fee_inputs_token);
             document.getElementById("waiver-upload-required").hidden = true;
             const confirmation = document.getElementById("waiver-upload-confirmation");

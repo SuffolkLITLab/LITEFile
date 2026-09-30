@@ -7,6 +7,8 @@ from django.urls import reverse
 
 from efile.models import DocumentExtraction, FilingDocument, FilingDraft
 from efile.services.current_drafts import CURRENT_DRAFT_SESSION_KEY
+from efile.tests.helpers import reviewed_document
+from efile.tests.pdf_helpers import pdf_bytes
 from efile.workflow import ExistingCase, WorkflowStepKey
 
 
@@ -41,7 +43,7 @@ def test_filing_path_saves_normalized_branch(client, reorganized_draft):
     assert reorganized_draft.current_step == WorkflowStepKey.UPLOAD_DOCUMENTS
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(transaction=True)
 def test_upload_documents_persists_files_and_queues_analysis(client, reorganized_draft):
     handler = MagicMock()
     handler._ensure_initialized.return_value = True
@@ -51,8 +53,8 @@ def test_upload_documents_persists_files_and_queues_analysis(client, reorganized
         {"success": True, "key": "supporting.pdf"},
     ]
     handler.get_public_url.side_effect = ["https://example.com/lead.pdf", "https://example.com/supporting.pdf"]
-    lead = SimpleUploadedFile("petition.pdf", b"%PDF lead", content_type="application/pdf")
-    supporting = SimpleUploadedFile("exhibit.pdf", b"%PDF exhibit", content_type="application/pdf")
+    lead = SimpleUploadedFile("petition.pdf", pdf_bytes(), content_type="application/pdf")
+    supporting = SimpleUploadedFile("exhibit.pdf", pdf_bytes(), content_type="application/pdf")
 
     with patch("efile.services.document_uploads.S3UploadHandler", return_value=handler):
         response = client.post(
@@ -73,14 +75,14 @@ def test_upload_documents_persists_files_and_queues_analysis(client, reorganized
 
 @pytest.mark.django_db
 def test_removing_analyzed_document_cleans_storage_and_stale_guesses(client, reorganized_draft):
-    lead = FilingDocument.objects.create(
+    lead = reviewed_document(
         draft=reorganized_draft,
         role=FilingDocument.Role.LEAD,
         sort_order=0,
         name="petition.pdf",
         s3_key="lead/petition.pdf",
     )
-    supporting = FilingDocument.objects.create(
+    supporting = reviewed_document(
         draft=reorganized_draft,
         role=FilingDocument.Role.SUPPORTING,
         sort_order=0,
@@ -110,7 +112,7 @@ def test_removing_analyzed_document_cleans_storage_and_stale_guesses(client, reo
 
 @pytest.mark.django_db
 def test_extraction_review_branches_new_case_to_checklist(client, reorganized_draft):
-    FilingDocument.objects.create(
+    reviewed_document(
         draft=reorganized_draft,
         role=FilingDocument.Role.LEAD,
         name="petition.pdf",
@@ -141,7 +143,7 @@ def test_extraction_review_branches_new_case_to_checklist(client, reorganized_dr
 
 @pytest.mark.django_db
 def test_extraction_review_returns_to_review_when_edited_from_there(client, reorganized_draft):
-    FilingDocument.objects.create(
+    reviewed_document(
         draft=reorganized_draft,
         role=FilingDocument.Role.LEAD,
         name="petition.pdf",
@@ -169,7 +171,7 @@ def test_extraction_review_returns_to_review_when_edited_from_there(client, reor
 
 @pytest.mark.django_db
 def test_extraction_review_new_case_requires_matched_court_and_type(client, reorganized_draft):
-    FilingDocument.objects.create(
+    reviewed_document(
         draft=reorganized_draft,
         role=FilingDocument.Role.LEAD,
         name="petition.pdf",
@@ -194,7 +196,7 @@ def test_extraction_review_new_case_requires_matched_court_and_type(client, reor
 
 @pytest.mark.django_db
 def test_extraction_review_requires_a_case_path(client, reorganized_draft):
-    FilingDocument.objects.create(
+    reviewed_document(
         draft=reorganized_draft,
         role=FilingDocument.Role.LEAD,
         name="petition.pdf",
@@ -216,7 +218,7 @@ def test_extraction_review_does_not_offer_case_number_or_title_for_a_new_case(cl
     reorganized_draft.existing_case = ExistingCase.NEW
     reorganized_draft.extracted_guesses = {"case title": "Rivera v. Example", "docket number": "2024-L-1"}
     reorganized_draft.save(update_fields=["existing_case", "extracted_guesses"])
-    FilingDocument.objects.create(
+    reviewed_document(
         draft=reorganized_draft,
         role=FilingDocument.Role.LEAD,
         name="petition.pdf",
@@ -236,7 +238,7 @@ def test_extraction_review_does_not_offer_case_number_or_title_for_a_new_case(cl
 def test_extraction_review_asks_existing_case_for_its_number_only(client, reorganized_draft):
     reorganized_draft.existing_case = ExistingCase.EXISTING
     reorganized_draft.save(update_fields=["existing_case"])
-    FilingDocument.objects.create(draft=reorganized_draft, role=FilingDocument.Role.LEAD, name="motion.pdf")
+    reviewed_document(draft=reorganized_draft, role=FilingDocument.Role.LEAD, name="motion.pdf")
 
     content = client.get(reverse("extraction_review", kwargs={"jurisdiction": "illinois"})).content.decode()
 
@@ -261,7 +263,7 @@ def test_extraction_review_saves_case_identity_only_for_existing_cases(
     reorganized_draft.case_title = "Court's own title"
     reorganized_draft.docket_number = "stale"
     reorganized_draft.save(update_fields=["case_title", "docket_number"])
-    FilingDocument.objects.create(draft=reorganized_draft, role=FilingDocument.Role.LEAD, name="petition.pdf")
+    reviewed_document(draft=reorganized_draft, role=FilingDocument.Role.LEAD, name="petition.pdf")
 
     response = client.post(
         reverse("extraction_review", kwargs={"jurisdiction": "illinois"}),

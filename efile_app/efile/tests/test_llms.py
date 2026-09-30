@@ -89,10 +89,11 @@ def test_pdf_extraction_prefers_inline_responses_file_input(tmp_path: Path):
     openai_client.files.create.assert_not_called()
 
 
+@pytest.mark.parametrize("supplemental_text", ["", 'Stored form values: {"answers": "Author answer"}'])
 @patch("efile.utils.llms.extract_fields_from_text")
 @patch("efile.utils.llms.MarkItDown")
 def test_pdf_extraction_falls_back_when_gateway_cannot_read_uploaded_file(
-    mock_markitdown_cls, mock_extract_text, tmp_path: Path
+    mock_markitdown_cls, mock_extract_text, tmp_path: Path, supplemental_text
 ):
     pdf_path = tmp_path / "filing.pdf"
     pdf_path.write_bytes(b"%PDF-1.4 test")
@@ -111,11 +112,12 @@ def test_pdf_extraction_falls_back_when_gateway_cannot_read_uploaded_file(
         {"court name": "Court name"},
         openai_client=openai_client,
         model="gpt-test",
+        supplemental_text=supplemental_text,
     )
 
     assert result == {"court name": "Lake County"}
     mock_extract_text.assert_called_once_with(
-        "Court: Lake County",
+        "Court: Lake County" + ("\n" + supplemental_text if supplemental_text else ""),
         {"court name": "Court name"},
         openai_client=openai_client,
         model="gpt-test",

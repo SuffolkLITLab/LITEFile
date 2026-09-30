@@ -1,7 +1,7 @@
 import logging
 
-from django.conf import settings
 from django.db import transaction
+from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
@@ -10,6 +10,8 @@ from efile.api.suffolk_api_views import get_tyler_token
 from efile.models import DocumentExtraction, FilingDocument, FilingDraft
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.document_extractions import extraction_for_document, queue_document_extraction
+from efile.services.document_preparation import requires_flattening
+from efile.services.document_previews import document_storage_keys
 from efile.services.document_uploads import upload_files
 from efile.services.drafts import draft_snapshot, read_upload_data
 from efile.utils.config_loader import config_loader
@@ -105,7 +107,7 @@ def upload_documents(request, jurisdiction):
             if document is None:
                 return JsonResponse({"success": False, "error": "Document not found."}, status=404)
             removed_lead = document.role == FilingDocument.Role.LEAD
-            s3_key = document.s3_key
+            storage_keys = document_storage_keys(document)
             promote_document = None
             other_documents = FilingDocument.objects.filter(draft=draft).exclude(pk=document.pk)
             if document.role == FilingDocument.Role.LEAD:
@@ -122,17 +124,22 @@ def upload_documents(request, jurisdiction):
             if removed_lead and draft.extracted_guesses:
                 draft.extracted_guesses = {}
                 draft.save(update_fields=["extracted_guesses", "updated_at"])
-            if s3_key:
+            if storage_keys:
                 handler = S3UploadHandler()
                 if handler._ensure_initialized():
-                    deletion = handler.delete_file(s3_key)
-                    if not deletion.get("success"):
-                        logger.warning("Could not delete removed draft document %s from storage", s3_key)
+                    for key in storage_keys:
+                        if FilingDocument.objects.filter(Q(s3_key=key) | Q(original_s3_key=key)).exists():
+                            continue
+                        deletion = handler.delete_file(key)
+                        if not deletion.get("success"):
+                            logger.warning("Could not delete removed draft document from storage")
             return JsonResponse({"success": True})
 
         uploaded_files = request.FILES.getlist("documents")
         if not uploaded_files:
-            return JsonResponse({"success": False, "error": "Choose at least one PDF to upload."}, status=400)
+            return JsonResponse(
+                {"success": False, "error": "Choose at least one PDF or Word document to upload."}, status=400
+            )
         # Saved before the upload, because uploading the lead queues the
         # analysis that this choice decides the shape of.
         opted_out = _opted_out(request)
@@ -148,7 +155,7 @@ def upload_documents(request, jurisdiction):
         return JsonResponse(
             {
                 "success": True,
-                "redirect_url": get_step_url(WorkflowStepKey.EXTRACTION_REVIEW, jurisdiction),
+                "redirect_url": get_step_url(WorkflowStepKey.PREVIEW_DOCUMENTS, jurisdiction),
                 "document_count": FilingDocument.objects.filter(draft=draft).count(),
                 "extraction_pending": FilingDocument.objects.filter(
                     draft=draft,
@@ -174,7 +181,7 @@ def upload_documents(request, jurisdiction):
         "extraction": extraction,
         "extraction_pending": extraction is not None
         and extraction.status in {DocumentExtraction.Status.PENDING, DocumentExtraction.Status.PROCESSING},
-        "max_extraction_pages": settings.DOCUMENT_EXTRACTION_MAX_PAGES,
+        "flatten_pdf_forms": requires_flattening(jurisdiction),
         "upload_data": upload_data,
         "ai_opted_out": draft.ai_assistance_opted_out,
         "account_ai_opted_out": request.user.ai_assistance_opted_out,
@@ -211,6 +218,6 @@ def document_extraction_status(request, jurisdiction):
             "ready": extraction.status in {DocumentExtraction.Status.COMPLETE, DocumentExtraction.Status.FAILED},
             "pages_analyzed": extraction.pages_analyzed,
             "total_pages": extraction.total_pages,
-            "review_url": get_step_url(WorkflowStepKey.EXTRACTION_REVIEW, jurisdiction),
+            "review_url": get_step_url(WorkflowStepKey.PREVIEW_DOCUMENTS, jurisdiction),
         }
     )

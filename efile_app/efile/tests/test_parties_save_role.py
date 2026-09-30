@@ -16,6 +16,7 @@ from django.urls import reverse
 from efile.models import FilingDocument, FilingDraft, FilingParty
 from efile.services.current_drafts import CURRENT_DRAFT_SESSION_KEY
 from efile.services.people import NOT_A_PARTY
+from efile.tests.helpers import reviewed_document
 from efile.workflow import ExistingCase, WorkflowStepKey
 
 PARTIES_URL = reverse("parties", kwargs={"jurisdiction": "illinois"})
@@ -50,7 +51,7 @@ def draft(client, django_user_model):
         current_step=WorkflowStepKey.PARTIES,
         document_checklist_acknowledged=True,
     )
-    FilingDocument.objects.create(
+    reviewed_document(
         draft=draft,
         role=FilingDocument.Role.LEAD,
         sort_order=0,

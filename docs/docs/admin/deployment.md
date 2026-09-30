@@ -86,9 +86,9 @@ primary_region = 'lax'
 
 ### Document extraction worker
 
-PDF analysis runs outside the web request in the `extraction_worker` process group. The web process stores the upload and queues a durable database job; the worker downloads the lead PDF from S3 and records the extracted details on the filing draft. Keep at least one worker Machine running so queued documents are analyzed.
+Document analysis runs outside the web request in the `extraction_worker` process group. The web process stores the upload and queues a durable database job; the worker downloads the original lead document from S3 and records the extracted details on the filing draft. PDFs retain their stored form values for extraction. DOCX files are read locally with `docx2python`, and their text is supplied to analysis. Older binary DOC files use the converted PDF. Keep at least one worker Machine running so queued documents are analyzed.
 
-By default, LITEFile sends only the first 20 PDF pages for analysis. Set `DOCUMENT_EXTRACTION_MAX_PAGES` to a positive integer to change that cap. `DOCUMENT_EXTRACTION_MAX_ATTEMPTS` controls how many times a failed job is tried before the filer is sent to manual review.
+By default, LITEFile sends only the first 20 PDF pages for analysis. Set `DOCUMENT_EXTRACTION_MAX_PAGES` to a positive integer to change that cap. DOCX text is limited to the first 100,000 characters with `DOCUMENT_EXTRACTION_MAX_TEXT_CHARS`; Word files have no reliable page boundaries. Review identifies when either limit omitted part of a document. `DOCUMENT_EXTRACTION_MAX_ATTEMPTS` controls how many times a failed job is tried before the filer is sent to manual review.
 
 ### Setting Fly.io production secrets:
 ```bash
@@ -99,7 +99,10 @@ fly secrets set \
   AWS_SECRET_ACCESS_KEY="..." \
   AWS_S3_BUCKET_NAME="litefile-production-documents" \
   AWS_S3_REGION_NAME="us-east-1" \
-  OPENAI_API_KEY="sk-..."
+  OPENAI_API_KEY="sk-..." \
+  GOTENBERG_URL="https://..." \
+  GOTENBERG_USERNAME="..." \
+  GOTENBERG_PASSWORD="..."
 ```
 
 ---

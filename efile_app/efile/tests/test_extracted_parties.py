@@ -22,6 +22,7 @@ from efile.services.people import (
     guess_filer_party_type,
     match_party_type,
 )
+from efile.tests.helpers import reviewed_document
 from efile.workflow import ExistingCase, WorkflowStepKey
 
 PARTY_TYPES = [
@@ -58,7 +59,7 @@ def review_draft(db, django_user_model):
         current_step=WorkflowStepKey.EXTRACTION_REVIEW,
         extracted_guesses=dict(GUESSES),
     )
-    FilingDocument.objects.create(draft=draft, role=FilingDocument.Role.LEAD, name="complaint.pdf")
+    reviewed_document(draft=draft, role=FilingDocument.Role.LEAD, name="complaint.pdf")
     return draft
 
 
