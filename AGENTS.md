@@ -19,6 +19,7 @@ This document provides conventions and context for AI coding assistants working 
 - **Docusaurus v3**: The documentation site is located in `docs/` targeting `@docusaurus/core` v3.
 - **GitHub Pages deployment**: Documentation builds and deploys via GitHub Actions (`.github/workflows/deploy-docs.yml`) to `https://litefile-docs.suffolklitlab.org`.
 - **CNAME**: Custom domain is defined in `docs/static/CNAME` (`litefile-docs.suffolklitlab.org`).
+- **Validation screenshots**: Store screenshots in a gist and link to them from notes and PRs. Capture temporary images under `/tmp`. Do not commit validation screenshots or place them in `docs/developer-notes/`.
 - **Internal notes**: Internal developer notes, MVP vision briefs, and evaluation notes live in `docs/developer-notes/` and must not be published to the public Docusaurus docs tree (`docs/docs/`).
 - **Docker isolation**: `docs/`, `node_modules/`, and `.docusaurus/` are excluded in `.dockerignore` so they are never copied into backend container images.
 

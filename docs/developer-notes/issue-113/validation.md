@@ -37,9 +37,9 @@ generation. LITEFile creates the text appearance with `pypdf`, clears
 `NeedAppearances`, then lets Gotenberg flatten that appearance. Existing usable
 appearances remain intact. The synthetic reproducer shows the difference:
 
-![Raw Gotenberg joins the three lines](https://raw.githubusercontent.com/SuffolkLITLab/LITEFile/feature/document-preparation-preview/docs/developer-notes/issue-113/screenshots/12-raw-gotenberg-multiline.png)
+![Raw Gotenberg joins the three lines](https://gist.githubusercontent.com/nonprofittechy/54857d2ed0b841a486dbf7a30b1ad915/raw/12-raw-gotenberg-multiline.png)
 
-![LITEFile preserves three separate lines](https://raw.githubusercontent.com/SuffolkLITLab/LITEFile/feature/document-preparation-preview/docs/developer-notes/issue-113/screenshots/13-repaired-multiline.png)
+![LITEFile preserves three separate lines](https://gist.githubusercontent.com/nonprofittechy/54857d2ed0b841a486dbf7a30b1ad915/raw/13-repaired-multiline.png)
 
 An EOIR missing-appearance stress case containing accented names demonstrated
 another engine limitation. The prepared result retained form fields, so LITEFile
@@ -64,9 +64,9 @@ visible. Appended two synthetic exhibit pages and verified the prepared packet
 has four pages, no form fields, preserved signature text and an intact last
 exhibit page. No court filing or fee request was made for these documents.
 
-![Vermont answer retains the checkbox and multiline response](https://raw.githubusercontent.com/SuffolkLITLab/LITEFile/feature/document-preparation-preview/docs/developer-notes/issue-113/screenshots/09-vt-small-claims-answer.png)
+![Vermont answer retains the checkbox and multiline response](https://gist.githubusercontent.com/nonprofittechy/54857d2ed0b841a486dbf7a30b1ad915/raw/09-vt-small-claims-answer.png)
 
-![Vermont answer retains its typed signature](https://raw.githubusercontent.com/SuffolkLITLab/LITEFile/feature/document-preparation-preview/docs/developer-notes/issue-113/screenshots/10-vt-signature.png)
+![Vermont answer retains its typed signature](https://gist.githubusercontent.com/nonprofittechy/54857d2ed0b841a486dbf7a30b1ad915/raw/10-vt-signature.png)
 
 ## Browser validation
 
@@ -98,17 +98,17 @@ page; the fixture now supplies synthetic case data and asserts the page URL and
 heading before capturing that screenshot. Court choices and payment accounts
 are stubbed, and the backend fee estimate is stubbed.
 
-![Preview step with the actual multiline PDF](https://raw.githubusercontent.com/SuffolkLITLab/LITEFile/feature/document-preparation-preview/docs/developer-notes/issue-113/screenshots/02-multiline-preview.png)
+![Preview step with the actual multiline PDF](https://gist.githubusercontent.com/nonprofittechy/54857d2ed0b841a486dbf7a30b1ad915/raw/02-multiline-preview.png)
 
-![Word filing copy rendered in the preview](https://raw.githubusercontent.com/SuffolkLITLab/LITEFile/feature/document-preparation-preview/docs/developer-notes/issue-113/screenshots/04-word-preview.png)
+![Word filing copy rendered in the preview](https://gist.githubusercontent.com/nonprofittechy/54857d2ed0b841a486dbf7a30b1ad915/raw/04-word-preview.png)
 
-![Expandable preview while organizing documents](https://raw.githubusercontent.com/SuffolkLITLab/LITEFile/feature/document-preparation-preview/docs/developer-notes/issue-113/screenshots/05-organize-preview.png)
+![Expandable preview while organizing documents](https://gist.githubusercontent.com/nonprofittechy/54857d2ed0b841a486dbf7a30b1ad915/raw/05-organize-preview.png)
 
-![Expandable preview while choosing payment](https://raw.githubusercontent.com/SuffolkLITLab/LITEFile/feature/document-preparation-preview/docs/developer-notes/issue-113/screenshots/14-fees-preview.png)
+![Expandable preview while choosing payment](https://gist.githubusercontent.com/nonprofittechy/54857d2ed0b841a486dbf7a30b1ad915/raw/14-fees-preview.png)
 
-![Mobile preview](https://raw.githubusercontent.com/SuffolkLITLab/LITEFile/feature/document-preparation-preview/docs/developer-notes/issue-113/screenshots/06-mobile-preview.png)
+![Mobile preview](https://gist.githubusercontent.com/nonprofittechy/54857d2ed0b841a486dbf7a30b1ad915/raw/06-mobile-preview.png)
 
-[All screenshots and the Axe result](https://github.com/SuffolkLITLab/LITEFile/tree/feature/document-preparation-preview/docs/developer-notes/issue-113/screenshots)
+[All screenshots and the Axe result](https://gist.github.com/nonprofittechy/54857d2ed0b841a486dbf7a30b1ad915)
 include the second-page view, selection screen, invalid upload, preview failure
 and final packet exhibit.
 
@@ -238,6 +238,14 @@ The 89 focused preparation, preview, AI opt-out and configurable-copy tests
 passed. The real Gotenberg/Chromium browser test passed in 14.20 seconds, verifies
 Continue works without preview checkboxes, and reports zero Axe violations and
 zero browser page errors. Refreshed the desktop and mobile screenshots.
+
+## Screenshot storage
+
+All 14 screenshots and the Axe result are stored in the validation gist.
+Screenshot files are removed from the feature branch and its commit history.
+Capture new screenshots in `/tmp`, upload them to the gist, and link to them
+from validation notes and PR descriptions. Do not put screenshots in developer
+notes or commit them to the application repository.
 
 ## Reproduction
 
