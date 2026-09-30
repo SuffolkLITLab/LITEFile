@@ -191,7 +191,7 @@
             if (!response.ok || !result.success) throw new Error(result.error || "Upload failed.");
             stateTitle.textContent = result.extraction_pending ? "Your documents are uploaded" : "Your documents are ready";
             let pendingDetail = "Analysis will continue in the background.";
-            if (aiIsOff()) pendingDetail = "We are checking your PDF's text for a form number, without AI.";
+            if (aiIsOff()) pendingDetail = "We are checking your document's text for a form number, without AI.";
             stateDetail.textContent = result.extraction_pending ?
                 pendingDetail :
                 "Review what we found before you continue.";

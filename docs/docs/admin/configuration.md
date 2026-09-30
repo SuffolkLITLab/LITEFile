@@ -26,7 +26,8 @@ LITEFile follows [Twelve-Factor App](https://12factor.net/) principles, configur
 | `LITEFILE_PROMPTS_DIR` | Optional | Bundled `efile/prompts/` directory | Override path for the versioned LLM prompt catalog. |
 | `DOCUMENT_EVIDENCE_MODEL` | Optional | First available small model | Exact deployed model used for direct document evidence extraction. |
 | `DOCUMENT_CLASSIFICATION_MODEL` | Optional | First available medium model | Exact deployed model used for live taxonomy selection. |
-| `DOCUMENT_EXTRACTION_MAX_PAGES` | No | `20` | Maximum lead-document pages supplied to the evidence pass. |
+| `DOCUMENT_EXTRACTION_MAX_PAGES` | No | `20` | Maximum original PDF pages supplied to the evidence pass; stored form values are preserved. |
+| `DOCUMENT_EXTRACTION_MAX_TEXT_CHARS` | No | `100000` | Maximum locally extracted DOCX text characters supplied to analysis. Word files have no reliable page boundaries. |
 | `DOCUMENT_CLASSIFICATION_SOURCE_PAGES` | No | `3` | Maximum pages converted with MarkItDown and retained as source evidence during taxonomy selection. |
 | `FORM_CODE_CROSSWALK_PATH` | Optional | Bundled `efile/data/form_code_crosswalk.json` | Override path for exact official-form retrieval hints. |
 | `AWS_ACCESS_KEY_ID` | Yes (Storage) | `""` | AWS IAM access key for document upload to S3. |
@@ -81,7 +82,10 @@ Word conversion requests tagged PDF output and lossless images. It does not
 rasterize the document or certify accessibility conformance. Flattening can change
 accessibility tags, links, or annotations. The private original is retained separately
 from the filing PDF and is available for download. Only the filing copy reaches the
-court. Existing editable drafts without preparation metadata are prepared when
+court. Analysis reads the original PDF and its stored form values, or text extracted
+locally from the original DOCX with `docx2python`. Older binary DOC files use the
+converted PDF for analysis. The AI opt-out applies to every format.
+Existing editable drafts without preparation metadata are prepared when
 the filer opens the preview step. Missing stored uploads must be replaced; legacy
 clients cannot bypass preparation or preview approval. Removing a document or expiring an unclaimed handoff cleans up both private
 copies when another draft does not reference them.

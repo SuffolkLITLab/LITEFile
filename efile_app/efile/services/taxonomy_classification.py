@@ -829,7 +829,7 @@ class HierarchicalDocumentClassifier:
                 "extracted_evidence": evidence,
                 "crosswalk_matches": crosswalk,
                 "crosswalk_constraints": crosswalk_summary,
-                "source_scope": f"MarkItDown text from the first {settings.DOCUMENT_CLASSIFICATION_SOURCE_PAGES} pages",
+                "source_scope": "Locally extracted document text, including stored PDF form values when present",
             },
         )
         inference = version_config.get("inference", {})

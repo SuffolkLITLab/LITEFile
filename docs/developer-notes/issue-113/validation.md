@@ -116,7 +116,7 @@ and final packet exhibit.
 
 | Check | Result |
 | --- | --- |
-| `uv run pytest -q` | 1,231 passed; 1 opt-in browser test skipped |
+| `uv run pytest -q` | 1,240 passed; 1 opt-in browser test skipped |
 | Opt-in real Gotenberg and Chromium test | 1 passed |
 | Conversion and preview tests with Gotenberg environment variables cleared | Passed; final full suite also runs with these variables cleared |
 | GitHub accessibility workflow | Passed |
@@ -182,6 +182,44 @@ keep their documents unprepared. The accessibility seed command also marks its
 downstream fixture as prepared and confirmed, with a regression test for this
 state. A concurrency unit test also now mocks court
 choices instead of intermittently depending on a live court response.
+
+## Analysis uses the original document
+
+The filing PDF is used for preview and court submission. Analysis downloads the
+preserved original PDF or DOCX. PDFs retain the stored `/V` answers, including
+multiline values whose appearance streams are absent. Those values are supplied
+alongside the original PDF to the evidence pass and included in locally extracted
+classification text. Page limiting preserves the AcroForm and excludes fields
+from omitted pages. DOCX text is extracted locally with `docx2python`, including
+Unicode, tables, headers and footnotes; the evidence pass receives that text
+instead of the converted PDF. Older binary DOC files use the converted PDF.
+
+DOCX has no reliable page boundaries. `DOCUMENT_EXTRACTION_MAX_TEXT_CHARS`
+limits its analysis text to 100,000 characters by default; review flags truncated
+text. AI opt-out still runs entirely locally. A storage-key change during analysis
+invalidates the outbound permission check and prevents stale results from being
+saved; the current source is requeued.
+
+Validation of this change:
+
+- 76 focused extraction, worker-claim, AI opt-out and preview tests passed.
+- Nine new regression cases cover original DOCX/PDF selection, absent appearance
+  streams, selected-page form preservation, Word text truncation, binary DOC
+  fallback, stored values reaching the native model request and surviving a
+  gateway text fallback, and source replacement during or after analysis.
+- A synthetic DOCX containing Unicode, a table, header and footnote was extracted
+  locally 20 times: median 2.85 ms, maximum 4.38 ms, 148 text characters.
+- A separate synthetic Vermont motion passed through the real configured AI and
+  live taxonomy analysis service in 15.52 seconds. Its docket number was extracted
+  correctly, with `evidence_input_mode=docx2python_text` and
+  `source_conversion=docx2python`. This is a smoke measurement, not a speed
+  comparison against the same document as a PDF. No real filer data was used.
+- The real Gotenberg/Chromium browser test passed again in 21.17 seconds and
+  refreshed the upload screenshots. The Python dependency audit and both the
+  Docker and documentation builds passed with the new dependency.
+
+The [docx2python documentation](https://github.com/ShayHill/docx2python)
+describes its extraction of body text, tables, headers, footers and notes.
 
 ## Reproduction
 

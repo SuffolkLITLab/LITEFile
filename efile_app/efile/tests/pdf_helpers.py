@@ -80,6 +80,6 @@ def docx_bytes(text="Synthetic Word filing"):
         )
         archive.writestr(
             "word/document.xml",
-            f'<?xml version="1.0"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:p><w:r><w:t>{escape(text)}</w:t></w:r></w:p><w:p><w:r><w:t>/s/ Alex Example</w:t></w:r></w:p><w:p><w:r><w:br w:type="page"/></w:r></w:p><w:p><w:r><w:t>Second page exhibit. José García.</w:t></w:r></w:p></w:body></w:document>',
+            f'<?xml version="1.0"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><w:body><w:p><w:r><w:t>{escape(text)}</w:t></w:r></w:p><w:p><w:r><w:t>/s/ Alex Example</w:t></w:r></w:p><w:p><w:r><w:br w:type="page"/></w:r></w:p><w:p><w:r><w:t>Second page exhibit. José García.</w:t></w:r></w:p></w:body></w:document>',
         )
     return output.getvalue()

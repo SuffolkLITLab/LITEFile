@@ -291,6 +291,7 @@ def extraction_review(request, jurisdiction):
         "ai_opted_out": draft.ai_assistance_opted_out,
         "extraction_pages_analyzed": extraction.pages_analyzed if extraction else None,
         "extraction_total_pages": extraction.total_pages if extraction else None,
+        "extraction_text_truncated": bool(extraction and extraction.analysis_metadata.get("source_text_truncated")),
         "classification": classification,
         "chosen_existing_case": chosen_existing_case,
         "saved_path": saved_path,
