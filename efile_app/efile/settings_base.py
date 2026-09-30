@@ -142,6 +142,8 @@ AWS_S3_ENDPOINT_URL = os.getenv("AWS_S3_ENDPOINT_URL", None)
 CROSSWALK_REVIEW_ENABLED = False
 
 # File Upload Settings
+DOCUMENT_EXTRACTION_TIMEOUT_SECONDS = int(os.getenv("DOCUMENT_EXTRACTION_TIMEOUT_SECONDS", "600"))
+DOCUMENT_EXTRACTION_MEMORY_MB = int(os.getenv("DOCUMENT_EXTRACTION_MEMORY_MB", "768"))
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
 ALLOWED_FILE_TYPES = [".pdf", ".doc", ".docx"]
 # Analyze only the front of a filing. Exhibits and discovery can make a PDF

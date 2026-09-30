@@ -3,7 +3,6 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.core.management import call_command
 from django.urls import reverse
 from pypdf import PdfWriter
 
@@ -212,7 +211,12 @@ def test_complete_new_filing_flow_by_jurisdiction(
             },
         ),
     ):
-        call_command("process_document_extractions", once=True)
+        # Exercise processing in this test's transaction; spawned production
+        # workers use a separate connection and cannot see uncommitted fixtures.
+        from efile.services.document_extractions import claim_next_extraction, process_document_extraction
+
+        claimed = claim_next_extraction()
+        process_document_extraction(claimed.pk, claimed.claim_token)
 
     # Extraction completed
     lead_doc.extraction.refresh_from_db()

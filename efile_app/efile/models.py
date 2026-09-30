@@ -433,6 +433,9 @@ class DocumentExtraction(models.Model):
     )
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING, db_index=True)
     attempts = models.PositiveSmallIntegerField(default=0)
+    claim_token = models.UUIDField(null=True, blank=True, editable=False)
+    lease_expires_at = models.DateTimeField(null=True, blank=True)
+    available_at = models.DateTimeField(default=timezone.now)
     total_pages = models.PositiveIntegerField(blank=True, null=True)
     pages_analyzed = models.PositiveIntegerField(blank=True, null=True)
     # Structured direct evidence is separate from the flattened review copy so

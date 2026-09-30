@@ -1,15 +1,40 @@
 import logging
+import multiprocessing
 import time
 
+from django.conf import settings
 from django.core.management.base import BaseCommand
-
-from efile.services.document_extractions import (
-    claim_next_extraction,
-    process_document_extraction,
-    record_extraction_failure,
-)
+from django.db import close_old_connections
 
 logger = logging.getLogger(__name__)
+
+
+def _run_claim(job_id, claim_token, memory_mb, timeout_seconds):
+    """Isolate PDF parsing and model clients from the queue supervisor."""
+    import os
+    import resource
+    import signal
+
+    import django
+
+    # One job per child: numerical libraries must not reserve a thread pool
+    # proportional to the host CPU count before PDF processing even starts.
+    os.environ["OPENBLAS_NUM_THREADS"] = "1"
+    os.environ["OMP_NUM_THREADS"] = "1"
+    # The deployed worker is Linux. Enforce bounds before loading the PDF;
+    # the alarm also bounds an orphaned child if its supervisor is killed.
+    memory_bytes = memory_mb * 1024 * 1024
+    resource.setrlimit(resource.RLIMIT_AS, (memory_bytes, memory_bytes))
+    signal.alarm(timeout_seconds)
+    django.setup()
+
+    from efile.services.document_extractions import process_document_extraction, record_extraction_failure
+
+    try:
+        process_document_extraction(job_id, claim_token)
+    except Exception as error:
+        logger.error("Document extraction job %s failed (%s)", job_id, type(error).__name__)
+        record_extraction_failure(job_id, claim_token, error)
 
 
 class Command(BaseCommand):
@@ -20,7 +45,14 @@ class Command(BaseCommand):
         parser.add_argument("--poll-interval", type=float, default=2.0)
 
     def handle(self, *args, **options):
+        from efile.services.document_extractions import (
+            claim_next_extraction,
+            record_extraction_failure,
+            renew_extraction_lease,
+        )
+
         while True:
+            close_old_connections()
             job = claim_next_extraction()
             if job is None:
                 if options["once"]:
@@ -28,11 +60,33 @@ class Command(BaseCommand):
                 time.sleep(max(0.1, options["poll_interval"]))
                 continue
 
+            timeout = max(1, settings.DOCUMENT_EXTRACTION_TIMEOUT_SECONDS)
+            child = multiprocessing.get_context("spawn").Process(
+                target=_run_claim,
+                args=(job.pk, job.claim_token, settings.DOCUMENT_EXTRACTION_MEMORY_MB, timeout),
+            )
+            deadline = time.monotonic() + timeout
             try:
-                process_document_extraction(job.pk)
-            except Exception as error:
-                logger.exception("Document extraction job %s failed", job.pk)
-                record_extraction_failure(job.pk, error)
+                child.start()
+                while child.is_alive():
+                    child.join(timeout=min(30, max(0, deadline - time.monotonic())))
+                    if not child.is_alive():
+                        break
+                    close_old_connections()
+                    if time.monotonic() >= deadline or not renew_extraction_lease(job.pk, job.claim_token):
+                        child.terminate()
+                        break
+            finally:
+                if child.pid is not None:
+                    child.join(timeout=5)
+                    if child.is_alive():
+                        child.kill()
+                        child.join(timeout=5)
+                    child.close()
+                # No-op for completed, failed, or superseded claims. Handles
+                # OOM, a signal, and other exits without a Python exception.
+                close_old_connections()
+                record_extraction_failure(job.pk, job.claim_token, "Worker exited")
 
             if options["once"]:
                 return
