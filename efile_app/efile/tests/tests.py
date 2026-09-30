@@ -6,7 +6,7 @@ import pytest
 from django.contrib.auth import get_user_model
 from django.test import Client
 
-from efile.utils.config_loader import config_loader
+from efile.utils.config_loader import InvalidJurisdiction, config_loader
 
 User = get_user_model()
 
@@ -527,7 +527,7 @@ class TestFormConfigurationAPIs:
         """Test form configuration API returns court-specific modifications."""
         response = api_client.get(
             "/api/form-config/",
-            {"case_type": "name_change", "court": "cook:cd1"},
+            {"case_type": "name_change", "court": "cook:cd1", "jurisdiction": "illinois"},
             HTTP_X_REQUESTED_WITH="XMLHttpRequest",
         )
 
@@ -542,7 +542,7 @@ class TestFormConfigurationAPIs:
         """Test form configuration API applies bond court specific hiding rules."""
         response = api_client.get(
             "/api/form-config/",
-            {"case_type": "name_change", "court": "bond"},
+            {"case_type": "name_change", "court": "bond", "jurisdiction": "illinois"},
             HTTP_X_REQUESTED_WITH="XMLHttpRequest",
         )
 
@@ -915,7 +915,7 @@ class TestEdgeCasesAndErrorHandling:
         """Test form configuration with non-existent case type."""
         response = api_client.get(
             "/api/form-config/",
-            {"case_type": "nonexistent_case_type", "court": "cook:cd1"},
+            {"case_type": "nonexistent_case_type", "court": "cook:cd1", "jurisdiction": "illinois"},
             HTTP_X_REQUESTED_WITH="XMLHttpRequest",
         )
 
@@ -1025,13 +1025,8 @@ class TestEdgeCasesAndErrorHandling:
 
     def test_yaml_configuration_file_missing(self):
         """Test behavior when YAML configuration files are missing."""
-        # Test with non-existent jurisdiction - the implementation may fall back to base config
-        config = config_loader.load_jurisdiction_config("nonexistent")
-
-        # The implementation may return base config as fallback rather than None
-        assert config is not None
-        # Should at least have base_case_types from fallback
-        assert "base_case_types" in config
+        with pytest.raises(InvalidJurisdiction):
+            config_loader.load_jurisdiction_config("nonexistent")
 
     def test_court_prioritization_with_empty_input(self):
         """Test court prioritization with edge case inputs."""

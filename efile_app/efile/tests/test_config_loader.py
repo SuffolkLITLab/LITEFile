@@ -1,4 +1,8 @@
-from efile.utils.config_loader import JurisdictionConfigLoader
+from unittest.mock import patch
+
+import pytest
+
+from efile.utils.config_loader import InvalidJurisdiction, JurisdictionConfigLoader
 
 
 class TestJurisdictionConfigLoader:
@@ -51,3 +55,36 @@ def test_state_changes_refresh_cached_configuration(tmp_path):
     assert loader.load_jurisdiction_config("illinois")["fee_waiver"]["income_bands"] == []
     state.write_text("fee_waiver: {income_bands: [{max_fpl_percent: 200}]}")
     assert loader.load_jurisdiction_config("illinois")["fee_waiver"]["income_bands"][0]["max_fpl_percent"] == 200
+
+
+@pytest.mark.parametrize(
+    "jurisdiction",
+    [
+        None,
+        [],
+        "",
+        "unknown",
+        "Illinois",
+        "./illinois",
+        "../states/illinois",
+        "/tmp/illinois",
+        "illinois\x00",
+        "illinois/../illinois",
+    ],
+)
+def test_invalid_jurisdictions_never_open_files_or_populate_cache(jurisdiction):
+    loader = JurisdictionConfigLoader()
+    with patch("builtins.open") as open_file:
+        with pytest.raises(InvalidJurisdiction):
+            loader.load_jurisdiction_config(jurisdiction)
+    open_file.assert_not_called()
+    assert loader._jurisdiction_cache == {}
+
+
+def test_symlinks_cannot_install_outside_configuration(tmp_path):
+    (tmp_path / "base-case-types.yaml").write_text("{}")
+    states = tmp_path / "states"
+    states.mkdir()
+    (states / "outside.yaml").symlink_to(tmp_path / "base-case-types.yaml")
+    loader = JurisdictionConfigLoader(tmp_path)
+    assert loader.get_available_jurisdictions() == []

@@ -19,7 +19,9 @@ def jurisdiction_context(request):
         if len(segments) >= 3 and segments[1] == "jurisdiction":
             current_jurisdiction = segments[2].lower()
 
-    config = config_loader.load_jurisdiction_config(current_jurisdiction)
+    # Generic pages have no selected state. Do not pass absence through the
+    # strict request-to-configuration boundary as a jurisdiction identifier.
+    config = config_loader.load_jurisdiction_config(current_jurisdiction) if current_jurisdiction else {}
 
     return {
         "jurisdiction": current_jurisdiction,

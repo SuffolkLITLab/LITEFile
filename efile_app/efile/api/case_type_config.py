@@ -1,6 +1,6 @@
 from django.http import JsonResponse
 
-from ..utils.config_loader import JurisdictionConfigLoader, config_loader
+from ..utils.config_loader import InvalidJurisdiction, JurisdictionConfigLoader, config_loader
 
 
 def get_case_type_config(request):
@@ -49,5 +49,7 @@ def get_case_type_config(request):
 
         return JsonResponse({"success": True, "config": response_data})
 
+    except InvalidJurisdiction as e:
+        return JsonResponse({"success": False, "error": str(e)}, status=400)
     except Exception as e:
         return JsonResponse({"success": False, "error": f"Configuration loading error: {str(e)}"}, status=500)

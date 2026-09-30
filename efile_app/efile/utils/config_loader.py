@@ -3,13 +3,19 @@ Jurisdiction-aware configuration loader for case types and form structures
 """
 
 import logging
+import re
 from copy import deepcopy
 from pathlib import Path
 
 import yaml
 from django.conf import settings
+from django.core.exceptions import SuspiciousOperation
 
 logger = logging.getLogger(__name__)
+
+
+class InvalidJurisdiction(SuspiciousOperation, ValueError):
+    """Request input must select an installed configuration."""
 
 
 class JurisdictionConfigLoader:
@@ -29,6 +35,13 @@ class JurisdictionConfigLoader:
 
         # Make sure directories exist
         self.states_dir.mkdir(parents=True, exist_ok=True)
+        # Deployment-owned files define the finite lookup space. Request values
+        # must never construct paths or create aliases in the configuration cache.
+        self._jurisdiction_paths = {
+            path.stem: path
+            for path in self.states_dir.glob("*.yaml")
+            if re.fullmatch(r"[a-z][a-z0-9_-]*", path.stem) and path.is_file() and not path.is_symlink()
+        }
 
         self.base_config = self._load_base_config()
         # Using in object cache because `@lru_cache` can cause
@@ -53,15 +66,7 @@ class JurisdictionConfigLoader:
         Returns:
             list: List of available codes
         """
-        if not self.states_dir.exists():
-            return []
-
-        states = []
-        for state_file in self.states_dir.glob("*.yaml"):
-            state_code = state_file.stem
-            states.append(state_code)
-
-        return sorted(states)
+        return sorted(self._jurisdiction_paths)
 
     def load_jurisdiction_config(self, jurisdiction):
         """
@@ -73,7 +78,9 @@ class JurisdictionConfigLoader:
         Returns:
             dict: Merged configuration
         """
-        jurisdiction_path = self.states_dir / f"{jurisdiction}.yaml"
+        if not isinstance(jurisdiction, str) or jurisdiction not in self._jurisdiction_paths:
+            raise InvalidJurisdiction("Unknown jurisdiction")
+        jurisdiction_path = self._jurisdiction_paths[jurisdiction]
         try:
             stat = jurisdiction_path.stat()
             version = (stat.st_mtime_ns, stat.st_size)
@@ -105,9 +112,7 @@ class JurisdictionConfigLoader:
             return merged
 
         except FileNotFoundError:
-            # If jurisdiction file not found, return base config with warning
-            logger.warning(f"Configuration file not found for {jurisdiction}, using base config")
-            return self.base_config
+            raise InvalidJurisdiction("Jurisdiction configuration is unavailable") from None
 
     @staticmethod
     def _deep_merge(base, overlay):

@@ -81,7 +81,7 @@ class GetFilingComponentsView(View):
                 filing_data = response.json()
                 return JsonResponse({"success": True, "data": filing_data})
             else:
-                logger.error(f"Suffolk API error: {response.status_code} - {response.text}")
+                logger.error("Suffolk API error status=%s", response.status_code)
                 return JsonResponse(
                     {"success": False, "error": f"Failed to fetch filing components: {response.status_code}"},
                     status=response.status_code,
