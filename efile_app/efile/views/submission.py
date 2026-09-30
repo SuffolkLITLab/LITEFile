@@ -80,6 +80,21 @@ def submit_final_filing(request):
     jurisdiction = request.session.get("jurisdiction")
     draft = get_current_draft(request, jurisdiction=jurisdiction, resume_latest=False)
 
+    if draft is None:
+        return JsonResponse(
+            {"success": False, "error": "Open your filing and review it before submitting."}, status=400
+        )
+
+    try:
+        submission_data = json.loads(request.body)
+    except (ValueError, UnicodeDecodeError):
+        submission_data = None
+    if not isinstance(submission_data, dict):
+        return JsonResponse(
+            {"success": False, "error": "We could not read your submission. Reload the review page and try again."},
+            status=400,
+        )
+
     # The filer agreed to a total on Review. If anything that prices the filing
     # changed since, that total is not the one they would be charged, so the
     # page has to show the new one before anything reaches the court.
@@ -97,7 +112,7 @@ def submit_final_filing(request):
     acceptance = None
     if draft is not None:
         try:
-            acceptance = validate_acceptance(draft, json.loads(request.body))
+            acceptance = validate_acceptance(draft, submission_data)
         except (ValueError, TypeError, AttributeError) as error:
             return JsonResponse({"success": False, "error": str(error)}, status=400)
 
@@ -114,9 +129,6 @@ def submit_final_filing(request):
 
     response = legacy_submit_final_filing(request)
     payload = _json_payload(response)
-
-    if draft is None:
-        return response
 
     if response.status_code < 400 and payload.get("success") is True:
         with transaction.atomic():

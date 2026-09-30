@@ -185,3 +185,24 @@ def test_disclaimer_spacing_is_not_controlled_by_empty_court_paragraphs():
         "<p>Notice</p><p>Next</p>"
     )
     assert disclaimer_html("First\n\n\nSecond") == "First<br>Second"
+
+
+@pytest.mark.django_db
+def test_submission_without_draft_does_not_reach_tyler(client, monkeypatch):
+    upstream = Mock()
+    monkeypatch.setattr("efile.views.submission.legacy_submit_final_filing", upstream)
+    response = client.post("/api/submit-final-filing/", {"confirm_submission": True}, content_type="application/json")
+    assert response.status_code == 400
+    assert "Open your filing" in response.json()["error"]
+    upstream.assert_not_called()
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("body", ["", "{broken", "[]", "null"])
+def test_malformed_submission_has_friendly_error(client, submission_draft, monkeypatch, body):
+    upstream = Mock()
+    monkeypatch.setattr("efile.views.submission.legacy_submit_final_filing", upstream)
+    response = client.post("/api/submit-final-filing/", body, content_type="application/json")
+    assert response.status_code == 400
+    assert response.json()["error"] == "We could not read your submission. Reload the review page and try again."
+    upstream.assert_not_called()
