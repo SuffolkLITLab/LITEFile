@@ -1,3 +1,4 @@
+import re
 from unittest.mock import patch
 
 import pytest
@@ -84,7 +85,7 @@ def test_filename_alone_does_not_hide_prompt(client, payment_draft):
     lead.save()
     with patch("efile.views.payment.estimate_fees", return_value={}):
         page = client.get(reverse("payment", kwargs={"jurisdiction": "illinois"}))
-    assert b'id="add-waiver-document"' not in page.content
+    assert re.search(r'id="waiver-upload-required"\s+hidden', page.content.decode())
     assert b"Add fee waiver documents</a>" not in page.content
 
 
@@ -105,6 +106,13 @@ def upload_data(draft, **changes):
         "document": SimpleUploadedFile("waiver.pdf", pdf_bytes(), content_type="application/pdf"),
         **changes,
     }
+
+
+def confirm_data(document):
+    from efile.services.document_previews import preview_fingerprint
+
+    document.refresh_from_db()
+    return {"action": "confirm", "document_id": document.pk, "preview_fingerprint": preview_fingerprint([document])}
 
 
 @pytest.fixture
@@ -228,19 +236,20 @@ def test_payment_upload_stays_with_displayed_draft_through_review(client, paymen
         return_value=[{"paymentAccountID": "wv", "paymentAccountTypeCode": "WV", "accountName": "Waiver"}],
     ):
         result = client.post(payment_url, {"selected_payment_account": "wv"})
+    # The new copy is checked on Fees itself; Continue waits for that.
+    assert result.status_code == 302
+    assert "/payment/" in result.url
+    added = payment_draft.documents.get(role=FilingDocument.Role.SUPPORTING)
+    assert f'data-document-id="{added.pk}"' in uploaded.json()["check_html"]
+    approved = client.post(upload_url, confirm_data(added))
+    assert approved.status_code == 200
+    with patch(
+        "efile.views.payment.payment_accounts",
+        return_value=[{"paymentAccountID": "wv", "paymentAccountTypeCode": "WV", "accountName": "Waiver"}],
+    ):
+        result = client.post(payment_url, {"selected_payment_account": "wv"})
     assert result.status_code == 302
     assert f"draft={payment_draft.pk}" in result.url
-    preview = client.get(uploaded.json()["preview_url"] + f"&draft={payment_draft.pk}")
-    assert preview.status_code == 200
-    approved = client.post(
-        uploaded.json()["preview_url"] + f"&draft={payment_draft.pk}",
-        {
-            "preview_fingerprint": preview.context["preview_fingerprint"],
-            "reviewed_document": [str(doc.pk) for doc in payment_draft.documents.all()],
-            "return_to": "review",
-        },
-    )
-    assert approved.status_code == 302
     with patch("efile.views.review.get_case_questions", return_value=[]):
         review = client.get(result.url)
     assert review.status_code == 200
@@ -308,3 +317,101 @@ def test_database_failure_cleans_uploaded_original_and_filing(client, payment_dr
         )
     assert {call.args[0] for call in storage.delete_file.call_args_list} == {"original.docx", "filing.pdf"}
     assert payment_draft.documents.count() == 1
+
+
+def upload_waiver(client, draft):
+    with patch("efile.services.waiver_documents._codes", side_effect=codes):
+        response = client.post(endpoint(draft), upload_data(draft))
+    assert response.status_code == 200
+    return response, draft.documents.get(role=FilingDocument.Role.SUPPORTING)
+
+
+def test_upload_is_checked_on_fees_without_leaving_it(client, payment_draft, storage):
+    response, added = upload_waiver(client, payment_draft)
+    body = response.json()
+    assert "preview_url" not in body
+    assert "data-document-confirm" in body["check_html"]
+    assert "data-document-remove" in body["check_html"]
+    assert added.preparation_reviewed_at is None
+    with patch("efile.views.payment.estimate_fees", return_value={}):
+        page = client.get(reverse("payment", kwargs={"jurisdiction": "illinois"}) + f"?draft={payment_draft.pk}")
+    # A reload before confirming still shows the check on Fees, open.
+    assert page.context["document_checks"][0]["document"].pk == added.pk
+    assert f'data-document-id="{added.pk}"'.encode() in page.content
+    assert client.post(endpoint(payment_draft), confirm_data(added)).status_code == 200
+    added.refresh_from_db()
+    assert added.preparation_reviewed_at is not None
+    assert payment_draft.documents.get(role=FilingDocument.Role.LEAD).preparation_reviewed_at is not None
+
+
+def test_confirm_rejects_a_changed_copy_and_foreign_documents(client, payment_draft, storage):
+    from efile.models import FilingDraft
+
+    _, added = upload_waiver(client, payment_draft)
+    stale = confirm_data(added) | {"preview_fingerprint": "old"}
+    assert client.post(endpoint(payment_draft), stale).status_code == 409
+    other = FilingDraft.objects.create(user=payment_draft.user, jurisdiction="illinois")
+    foreign = FilingDocument.objects.create(draft=other, role="lead", name="x.pdf", preparation="unchanged")
+    assert client.post(endpoint(payment_draft), confirm_data(foreign)).status_code == 409
+    added.refresh_from_db()
+    foreign.refresh_from_db()
+    assert added.preparation_reviewed_at is None
+    assert foreign.preparation_reviewed_at is None
+
+
+def test_remove_only_takes_out_a_waiver_and_reprices(
+    client, payment_draft, storage, django_capture_on_commit_callbacks
+):
+    _, added = upload_waiver(client, payment_draft)
+    lead = payment_draft.documents.get(role=FilingDocument.Role.LEAD)
+    payment_draft.refresh_from_db()
+    remove = {"action": "remove", "fee_inputs_token": fee_inputs_token(payment_draft)}
+    assert client.post(endpoint(payment_draft), remove | {"document_id": lead.pk}).status_code == 400
+    assert (
+        client.post(endpoint(payment_draft), remove | {"document_id": added.pk, "fee_inputs_token": "x"}).status_code
+        == 409
+    )
+    with (
+        patch("efile.utils.s3_upload_handler.S3UploadHandler", return_value=storage),
+        django_capture_on_commit_callbacks(execute=True),
+    ):
+        response = client.post(endpoint(payment_draft), remove | {"document_id": added.pk})
+    assert response.status_code == 200
+    assert list(payment_draft.documents.all()) == [lead]
+    payment_draft.refresh_from_db()
+    assert response.json()["fee_inputs_token"] == fee_inputs_token(payment_draft)
+    storage.delete_file.assert_called_with("waivers/test.pdf")
+
+
+def test_payment_waits_for_unchecked_documents(client, payment_draft, storage):
+    upload_waiver(client, payment_draft)
+    payment_url = reverse("payment", kwargs={"jurisdiction": "illinois"}) + f"?draft={payment_draft.pk}"
+    with patch(
+        "efile.views.payment.payment_accounts",
+        return_value=[{"paymentAccountID": "wv", "paymentAccountTypeCode": "WV", "accountName": "Waiver"}],
+    ) as accounts:
+        result = client.post(payment_url, {"selected_payment_account": "wv"})
+    assert result.status_code == 302
+    assert "/payment/" in result.url
+    accounts.assert_not_called()
+    payment_draft.refresh_from_db()
+    assert payment_draft.selected_payment_account_id != "wv"
+
+
+def test_review_sends_an_unchecked_copy_to_preview_and_back(client, payment_draft, storage):
+    from efile.services.document_previews import preview_fingerprint
+
+    upload_waiver(client, payment_draft)
+    payment_draft.selected_payment_account_id = "wv"
+    payment_draft.save()
+    review_url = reverse("case_review", kwargs={"jurisdiction": "illinois"}) + f"?draft={payment_draft.pk}"
+    bounced = client.get(review_url)
+    assert bounced.status_code == 302
+    assert "preview-documents" in bounced.url and "return_to=review" in bounced.url
+    preview_url = reverse("preview_documents", kwargs={"jurisdiction": "illinois"}) + f"?draft={payment_draft.pk}"
+    approved = client.post(
+        preview_url,
+        {"preview_fingerprint": preview_fingerprint(list(payment_draft.documents.all())), "return_to": "review"},
+    )
+    assert approved.status_code == 302
+    assert "/review/" in approved.url

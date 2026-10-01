@@ -36,6 +36,9 @@ function harness(fetch) {
     };
     const payment = {
         setFeesState() {},
+        addDocumentCheck(html) {
+            this.addedCheck = html;
+        },
         async chooseIntent() {
             this.refreshed = true;
         }
@@ -117,7 +120,8 @@ test("upload stays on payment and replaces the stale fee token", async () => {
             ok: true,
             json: async () => ({
                 success: true,
-                fee_inputs_token: "new-token"
+                fee_inputs_token: "new-token",
+                check_html: "<div data-document-check></div>"
             })
         };
     });
@@ -132,6 +136,8 @@ test("upload stays on payment and replaces the stale fee token", async () => {
     assert.equal(node("waiver-upload-confirmation").hidden, false);
     assert.equal(payment.refreshed, true);
     assert.equal(payment.waiverUploading, false);
+    // The new copy is checked right here instead of on another page.
+    assert.equal(payment.addedCheck, "<div data-document-check></div>");
 });
 
 test("failed uploads keep the picker and file available for retry", async () => {

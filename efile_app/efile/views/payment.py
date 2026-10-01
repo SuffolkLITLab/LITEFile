@@ -9,6 +9,7 @@ from efile.api.suffolk_api_views import get_tyler_token
 from efile.models import FilingDocument, FilingParty
 from efile.services.appeals import appeal_answers_complete
 from efile.services.current_drafts import ensure_current_draft
+from efile.services.document_previews import preview_fingerprint
 from efile.services.draft_urls import draft_url
 from efile.services.drafts import draft_snapshot, read_case_data
 from efile.services.fee_estimates import estimate_fees
@@ -17,6 +18,7 @@ from efile.services.payment_accounts import payment_accounts
 from efile.services.people import filing_parties
 from efile.services.waiver_documents import has_waiver_document
 from efile.utils.config_loader import config_loader
+from efile.views.waiver_documents import is_removable_waiver
 
 from ..workflow import WorkflowStepKey, get_step_url, get_workflow_context
 
@@ -51,6 +53,14 @@ def efile_payment(request, jurisdiction):
         messages.error(request, "Complete the lower court information before checking fees.")
         return redirect("case_questions", jurisdiction=jurisdiction)
 
+    documents = list(FilingDocument.objects.filter(draft=draft).order_by("role", "sort_order", "pk"))
+    unchecked = [document for document in documents if document.preparation_reviewed_at is None]
+    if request.method == "POST" and unchecked:
+        # The page keeps Continue off until these are confirmed; this covers
+        # a stale tab, so Review never sends the filer to another screen.
+        messages.error(request, "Check your documents before you continue.")
+        return redirect("payment", jurisdiction=jurisdiction)
+
     if request.method == "POST":
         account_id = request.POST.get("selected_payment_account", "").strip()
         try:
@@ -80,7 +90,15 @@ def efile_payment(request, jurisdiction):
             return redirect(get_step_url(WorkflowStepKey.REVIEW, jurisdiction))
 
     context = {
-        "documents": FilingDocument.objects.filter(draft=draft).order_by("role", "sort_order", "pk"),
+        "documents": [document for document in documents if document.preparation_reviewed_at is not None],
+        "document_checks": [
+            {
+                "document": document,
+                "fingerprint": preview_fingerprint([document]),
+                "removable": is_removable_waiver(document),
+            }
+            for document in unchecked
+        ],
         "waiver_upload_url": draft_url(reverse("waiver_documents", kwargs={"jurisdiction": jurisdiction}), draft.pk),
         "has_waiver_document": has_waiver_document(draft),
         "is_logged_in": True,
