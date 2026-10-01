@@ -1,12 +1,15 @@
 from django.contrib import messages
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
 from efile.api.suffolk_api_views import get_tyler_token
 from efile.models import FilingDocument
 from efile.services.current_drafts import ensure_current_draft
+from efile.services.document_previews import unreviewed_documents
 from efile.services.document_uploads import upload_files
+from efile.services.draft_urls import draft_url
 from efile.services.drafts import draft_snapshot
 from efile.services.filing_availability import draft_unavailable_message, unavailable_response
 from efile.services.filing_plans import (
@@ -26,6 +29,7 @@ from efile.services.filing_plans import (
     set_filer_role,
     status_choices,
 )
+from efile.views.document_checks import unchecked_documents
 from efile.workflow import (
     WorkflowStepKey,
     continue_step,
@@ -81,7 +85,9 @@ def _attach_to_item(request, draft, plan, jurisdiction):
             messages.error(request, str(error))
             return redirect(_this_page(request, jurisdiction))
         document = _newest_document(draft)
+        uploaded = True
     else:
+        uploaded = False
         document = FilingDocument.objects.filter(draft=draft, pk=document_id).first() if document_id else None
 
     if document is None:
@@ -101,7 +107,8 @@ def _attach_to_item(request, draft, plan, jurisdiction):
             document.save(update_fields=["filing_type_code", "filing_type_name", "updated_at"])
 
     messages.success(request, f"{label} is in this filing.")
-    return redirect(_this_page(request, jurisdiction))
+    # A new file is checked right here, before the filer moves on.
+    return redirect(_this_page(request, jurisdiction) + ("#document-checks" if uploaded else ""))
 
 
 @require_http_methods(["GET", "POST"])
@@ -168,6 +175,12 @@ def document_checklist(request, jurisdiction):
         if action == "save_progress":
             messages.success(request, "We saved your document list.")
             return redirect(_this_page(request, jurisdiction))
+        # Files added here are checked here. The page keeps Continue off until
+        # they are; this covers a stale tab, so no later screen sends the filer
+        # to a preview and back.
+        if unreviewed_documents(draft).exists():
+            messages.error(request, "Check each new file before you continue.")
+            return redirect(_this_page(request, jurisdiction) + "#document-checks")
         # The checklist is a guide, not a gate: the filer can continue with any
         # item unticked, and is never asked to say the list is complete. It
         # cannot know which forms a filer's situation actually needs.
@@ -186,6 +199,9 @@ def document_checklist(request, jurisdiction):
         "is_logged_in": True,
         "filing_draft": draft_snapshot(draft),
         "documents": documents,
+        "checked_documents": [document for document in documents if document.preparation_reviewed_at is not None],
+        "document_checks": unchecked_documents(documents),
+        "document_checks_url": draft_url(reverse("document_checks", kwargs={"jurisdiction": jurisdiction}), draft.pk),
         "plan": plan,
         "filer_roles": filer_roles,
         "filer_role": draft.filer_role,

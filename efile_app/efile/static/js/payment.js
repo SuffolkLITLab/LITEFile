@@ -1,3 +1,4 @@
+/* global DocumentChecks */
 const PAYMENT_URLS = {
     accounts: "/api/payment-accounts/",
     accountTypes: "/api/payment-account-types/",
@@ -57,69 +58,30 @@ const PaymentPage = {
 
     setFeesState(loading) {
         document.getElementById("loadingSpinner").style.display = loading ? "block" : "none";
-        document.getElementById("submitButton").disabled = loading || this.removingAccount || this.waiverUploading || this.pendingDocumentChecks() || !this.feeQuoteReady || !document.getElementById("selected-payment-account").value;
+        document.getElementById("submitButton").disabled = loading || this.removingAccount || this.waiverUploading || DocumentChecks.pending() || !this.feeQuoteReady || !document.getElementById("selected-payment-account").value;
     },
 
-    pendingDocumentChecks() {
-        return Boolean(document.querySelector("[data-document-check]"));
-    },
-
-    addDocumentCheck(html) {
-        const container = document.getElementById("document-checks");
-        const template = document.createElement("template");
-        template.innerHTML = html.trim();
-        const check = template.content.firstElementChild;
-        container.appendChild(check);
-        check.querySelectorAll("[data-pdf-preview]").forEach((details) => window.attachPdfPreview?.(details));
-        this.setFeesState(false);
-    },
-
-    async checkDocument(button) {
-        const check = button.closest("[data-document-check]");
-        const remove = button.hasAttribute("data-document-remove");
-        const status = check.querySelector("[data-document-check-status]");
-        const body = new FormData();
-        body.append("action", remove ? "remove" : "confirm");
-        body.append("document_id", check.dataset.documentId);
-        body.append("preview_fingerprint", check.dataset.fingerprint);
-        body.append("fee_inputs_token", paymentJSON("fee-inputs-token"));
-        body.append("csrfmiddlewaretoken", apiUtils.getCSRFToken());
-        check.querySelectorAll("button").forEach((element) => {
-            element.disabled = true;
-        });
-        status.textContent = remove ? gettext("Removing document…") : gettext("Saving…");
-        try {
-            const response = await fetch(window.withFilingDraft(document.getElementById("document-checks").dataset.url), {
-                method: "POST",
-                body,
-                credentials: "same-origin"
-            });
-            const data = await response.json();
-            if (!response.ok || !data.success) throw new Error(data.error || gettext("That did not work. Try again."));
-            document.getElementById("fee-inputs-token").textContent = JSON.stringify(data.fee_inputs_token);
-            check.remove();
-            const confirmation = document.getElementById("waiver-upload-confirmation");
-            if (remove) {
-                if (confirmation) confirmation.hidden = true;
-                const upload = document.getElementById("waiver-upload-required");
-                if (upload) upload.hidden = false;
-                document.getElementById("add-waiver-document")?.focus();
-                paymentMessages.showSuccess(gettext("Document removed. You can upload a different file."));
-                // The removed document no longer counts toward fees.
-                await this.chooseIntent();
-            } else {
-                if (confirmation && !confirmation.hidden) confirmation.textContent = gettext("Fee waiver document added and checked.");
-                const next = document.querySelector("[data-document-check]") || document.querySelector('input[name="paymentIntent"]:checked') || document.getElementById("submitButton");
-                next.focus();
-            }
-        } catch (error) {
-            status.textContent = error.message;
-            check.querySelectorAll("button").forEach((element) => {
-                element.disabled = false;
-            });
-        } finally {
-            this.setFeesState(false);
+    // A copy added on this page is confirmed here before Review.
+    async onDocumentCheck({
+        action,
+        data
+    }) {
+        document.getElementById("fee-inputs-token").textContent = JSON.stringify(data.fee_inputs_token);
+        const confirmation = document.getElementById("waiver-upload-confirmation");
+        if (action === "remove") {
+            if (confirmation) confirmation.hidden = true;
+            const upload = document.getElementById("waiver-upload-required");
+            if (upload) upload.hidden = false;
+            document.getElementById("add-waiver-document")?.focus();
+            paymentMessages.showSuccess(gettext("Document removed. You can upload a different file."));
+            // The removed document no longer counts toward fees.
+            await this.chooseIntent();
+        } else {
+            if (confirmation && !confirmation.hidden) confirmation.textContent = gettext("Fee waiver document added and checked.");
+            const next = document.querySelector("[data-document-check]") || document.querySelector('input[name="paymentIntent"]:checked') || document.getElementById("submitButton");
+            next.focus();
         }
+        this.setFeesState(false);
     },
 
     async loadAccountTypes() {
@@ -380,10 +342,7 @@ const PaymentPage = {
         document.querySelectorAll('input[name="paymentIntent"]').forEach((input) => {
             input.addEventListener("change", () => this.chooseIntent());
         });
-        document.getElementById("document-checks").addEventListener("click", (event) => {
-            const button = event.target.closest("[data-document-confirm], [data-document-remove]");
-            if (button) this.checkDocument(button);
-        });
+        document.getElementById("document-checks").addEventListener("document-checks:change", (event) => this.onDocumentCheck(event.detail));
         await this.loadAccountTypes();
         this.loadAccounts().catch(() => paymentMessages.showError(gettext("We could not load payment methods.")));
     }

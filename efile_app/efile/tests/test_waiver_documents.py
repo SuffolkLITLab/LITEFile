@@ -17,6 +17,10 @@ payment_draft = _submission_draft
 pytestmark = pytest.mark.django_db
 
 
+def checks(draft):
+    return reverse("document_checks", kwargs={"jurisdiction": draft.jurisdiction}) + f"?draft={draft.pk}"
+
+
 def endpoint(draft):
     return reverse("waiver_documents", kwargs={"jurisdiction": draft.jurisdiction}) + f"?draft={draft.pk}"
 
@@ -241,7 +245,8 @@ def test_payment_upload_stays_with_displayed_draft_through_review(client, paymen
     assert "/payment/" in result.url
     added = payment_draft.documents.get(role=FilingDocument.Role.SUPPORTING)
     assert f'data-document-id="{added.pk}"' in uploaded.json()["check_html"]
-    approved = client.post(upload_url, confirm_data(added))
+    assert reverse("document_checks", kwargs={"jurisdiction": "illinois"}) in page.context["draft_scope"]["paths"]
+    approved = client.post(checks(payment_draft), confirm_data(added))
     assert approved.status_code == 200
     with patch(
         "efile.views.payment.payment_accounts",
@@ -338,49 +343,10 @@ def test_upload_is_checked_on_fees_without_leaving_it(client, payment_draft, sto
     # A reload before confirming still shows the check on Fees, open.
     assert page.context["document_checks"][0]["document"].pk == added.pk
     assert f'data-document-id="{added.pk}"'.encode() in page.content
-    assert client.post(endpoint(payment_draft), confirm_data(added)).status_code == 200
+    assert client.post(checks(payment_draft), confirm_data(added)).status_code == 200
     added.refresh_from_db()
     assert added.preparation_reviewed_at is not None
     assert payment_draft.documents.get(role=FilingDocument.Role.LEAD).preparation_reviewed_at is not None
-
-
-def test_confirm_rejects_a_changed_copy_and_foreign_documents(client, payment_draft, storage):
-    from efile.models import FilingDraft
-
-    _, added = upload_waiver(client, payment_draft)
-    stale = confirm_data(added) | {"preview_fingerprint": "old"}
-    assert client.post(endpoint(payment_draft), stale).status_code == 409
-    other = FilingDraft.objects.create(user=payment_draft.user, jurisdiction="illinois")
-    foreign = FilingDocument.objects.create(draft=other, role="lead", name="x.pdf", preparation="unchanged")
-    assert client.post(endpoint(payment_draft), confirm_data(foreign)).status_code == 409
-    added.refresh_from_db()
-    foreign.refresh_from_db()
-    assert added.preparation_reviewed_at is None
-    assert foreign.preparation_reviewed_at is None
-
-
-def test_remove_only_takes_out_a_waiver_and_reprices(
-    client, payment_draft, storage, django_capture_on_commit_callbacks
-):
-    _, added = upload_waiver(client, payment_draft)
-    lead = payment_draft.documents.get(role=FilingDocument.Role.LEAD)
-    payment_draft.refresh_from_db()
-    remove = {"action": "remove", "fee_inputs_token": fee_inputs_token(payment_draft)}
-    assert client.post(endpoint(payment_draft), remove | {"document_id": lead.pk}).status_code == 400
-    assert (
-        client.post(endpoint(payment_draft), remove | {"document_id": added.pk, "fee_inputs_token": "x"}).status_code
-        == 409
-    )
-    with (
-        patch("efile.utils.s3_upload_handler.S3UploadHandler", return_value=storage),
-        django_capture_on_commit_callbacks(execute=True),
-    ):
-        response = client.post(endpoint(payment_draft), remove | {"document_id": added.pk})
-    assert response.status_code == 200
-    assert list(payment_draft.documents.all()) == [lead]
-    payment_draft.refresh_from_db()
-    assert response.json()["fee_inputs_token"] == fee_inputs_token(payment_draft)
-    storage.delete_file.assert_called_with("waivers/test.pdf")
 
 
 def test_payment_waits_for_unchecked_documents(client, payment_draft, storage):

@@ -183,8 +183,15 @@
             {% endfor %}
         {% endif %}
         <h2 class="checklist-files__heading">{% translate "Files you have added" %}</h2>
+        <div id="document-checks"
+             data-document-checks
+             data-url="{{ document_checks_url }}">
+            {% for check in document_checks %}
+                {% include "efile/components/document_check.html" with document=check.document fingerprint=check.fingerprint removable=check.removable %}
+            {% endfor %}
+        </div>
         <div class="checklist-files">
-            {% for document in documents %}
+            {% for document in checked_documents %}
                 <article class="checklist-file">
                     <span class="checklist-file__check"><i class="fa-solid fa-check" aria-hidden="true"></i></span>
                     <span class="checklist-file__icon"><i class="fa-solid fa-file-pdf" aria-hidden="true"></i></span>
@@ -236,10 +243,17 @@
         <form method="post" id="checklist-confirm-form">
             {% csrf_token %}
             <input type="hidden" name="return_to" value="{{ return_to }}" />
+            {% if document_checks %}
+                <p id="checks-pending" class="checklist-checks-pending">
+                    {% translate "Check each new file above before you continue." %}
+                </p>
+            {% endif %}
             <div class="workflow-actions">
                 <a class="btn btn-outline-secondary"
                    href="{% url 'extraction_review' jurisdiction %}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {% translate "Back" %}</a>
-                <button class="btn btn-primary" type="submit">
+                <button class="btn btn-primary"
+                        type="submit"
+                        {% if document_checks %}disabled aria-describedby="checks-pending"{% endif %}>
                     {% if return_to == "review" %}
                         {% translate "Back to review" %}
                     {% else %}
@@ -259,5 +273,6 @@
 {% endblock workflow_content %}
 {% block extra_js %}
     <script src="{% static 'js/checklist-status.js' %}"></script>
+    <script src="{% static 'js/document-checks.js' %}"></script>
     <script src="{% static 'js/document-checklist.js' %}"></script>
 {% endblock extra_js %}

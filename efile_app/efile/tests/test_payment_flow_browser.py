@@ -83,6 +83,7 @@ def test_fees_screen_flows_in_browser(live_server, client, django_user_model, tm
     objects = {}
     first = payment_ready_draft(user, objects)
     second = payment_ready_draft(user, objects)
+    third = payment_ready_draft(user, objects)
     authorize(client, first)
     handler = MagicMock()
     handler.bucket_name = "synthetic"
@@ -127,6 +128,8 @@ def test_fees_screen_flows_in_browser(live_server, client, django_user_model, tm
                 "secondPaymentUrl": f"{payment}?draft={second.pk}",
                 "previewUrl": reverse("preview_documents", kwargs={"jurisdiction": "illinois"}) + f"?draft={first.pk}",
                 "uploadUrl": reverse("upload_documents", kwargs={"jurisdiction": "illinois"}) + f"?draft={first.pk}",
+                "checklistUrl": reverse("document_checklist", kwargs={"jurisdiction": "illinois"})
+                + f"?draft={third.pk}",
                 **paths,
             }
         )
@@ -141,6 +144,7 @@ def test_fees_screen_flows_in_browser(live_server, client, django_user_model, tm
         patch("efile.views.payment.estimate_fees", return_value={}),
         patch("efile.views.payment.payment_accounts", return_value=ACCOUNTS),
         patch("efile.views.review.get_case_questions", return_value=[]),
+        patch("efile.views.document_checklist.draft_unavailable_message", return_value=""),
     ):
         result = subprocess.run(
             ["node", "tests/payment-flow-browser.js", str(config)],
@@ -157,4 +161,14 @@ def test_fees_screen_flows_in_browser(live_server, client, django_user_model, tm
     assert not first.documents.filter(preparation_reviewed_at__isnull=True).exists()
     # The wrong file and the copy removed from another tab are gone, with their bytes.
     assert [doc.name for doc in second.documents.order_by("role", "sort_order")] == ["Petition.pdf", "waiver.pdf"]
-    assert sorted(key.split("/")[0] for key in objects) == ["lead", "lead", "supporting", "supporting"]
+    # The checklist kept the file it checked and dropped the one it removed.
+    assert [doc.name for doc in third.documents.order_by("role", "sort_order")] == ["Petition.pdf", "waiver.pdf"]
+    assert not third.documents.filter(preparation_reviewed_at__isnull=True).exists()
+    assert sorted(key.split("/")[0] for key in objects) == [
+        "document",
+        "lead",
+        "lead",
+        "lead",
+        "supporting",
+        "supporting",
+    ]

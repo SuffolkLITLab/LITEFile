@@ -9,7 +9,6 @@ from efile.api.suffolk_api_views import get_tyler_token
 from efile.models import FilingDocument, FilingParty
 from efile.services.appeals import appeal_answers_complete
 from efile.services.current_drafts import ensure_current_draft
-from efile.services.document_previews import preview_fingerprint
 from efile.services.draft_urls import draft_url
 from efile.services.drafts import draft_snapshot, read_case_data
 from efile.services.fee_estimates import estimate_fees
@@ -18,7 +17,7 @@ from efile.services.payment_accounts import payment_accounts
 from efile.services.people import filing_parties
 from efile.services.waiver_documents import has_waiver_document
 from efile.utils.config_loader import config_loader
-from efile.views.waiver_documents import is_removable_waiver
+from efile.views.document_checks import unchecked_documents
 
 from ..workflow import (
     WorkflowStepKey,
@@ -100,14 +99,8 @@ def efile_payment(request, jurisdiction):
 
     context = {
         "documents": [document for document in documents if document.preparation_reviewed_at is not None],
-        "document_checks": [
-            {
-                "document": document,
-                "fingerprint": preview_fingerprint([document]),
-                "removable": is_removable_waiver(document),
-            }
-            for document in unchecked
-        ],
+        "document_checks": unchecked_documents(documents),
+        "document_checks_url": draft_url(reverse("document_checks", kwargs={"jurisdiction": jurisdiction}), draft.pk),
         "waiver_upload_url": draft_url(reverse("waiver_documents", kwargs={"jurisdiction": jurisdiction}), draft.pk),
         "has_waiver_document": has_waiver_document(draft),
         "is_logged_in": True,

@@ -1,4 +1,4 @@
-/* global PaymentPage, paymentJSON */
+/* global DocumentChecks, PaymentPage, paymentJSON */
 /* Add a supporting waiver PDF without leaving payment or changing the lead. */
 document.addEventListener("DOMContentLoaded", () => {
     const open = document.getElementById("add-waiver-document");
@@ -90,7 +90,8 @@ document.addEventListener("DOMContentLoaded", () => {
             const confirmation = document.getElementById("waiver-upload-confirmation");
             confirmation.hidden = false;
             // The filer checks the prepared copy here, without leaving Fees.
-            PaymentPage.addDocumentCheck(data.check_html);
+            DocumentChecks.add(document.getElementById("document-checks"), data.check_html);
+            PaymentPage.setFeesState(false);
             confirmation.focus();
             // Old requests and quotes described a different set of documents.
             await PaymentPage.chooseIntent();

@@ -278,6 +278,37 @@ async function main() {
         await screenshot("browser-failure-3.png");
         throw error;
     }
+    try {
+        // 9. A missing document added on the checklist is checked there.
+        const checklist = config.baseUrl + config.checklistUrl;
+        const addMissing = async (file) => {
+            await page.goto(checklist);
+            await page.locator(".add-missing-toggle").click();
+            await page.locator("#checklist-documents").setInputFiles(file);
+            await Promise.all([page.waitForEvent("load"), page.locator("#checklist-upload-form button[type=submit]").click()]);
+            await checks.first().waitFor();
+        };
+        const proceed = page.locator("#checklist-confirm-form button[type=submit]");
+        visited.length = 0;
+        await addMissing(config.wrongFile);
+        assert.ok(page.url().endsWith("#document-checks"), page.url());
+        assert.equal(await proceed.isDisabled(), true, "Continue must wait for the new file's check");
+        await waitRendered(checks.first());
+        await screenshot("07-checklist-check.png");
+        await Promise.all([page.waitForEvent("load"), checks.first().locator("[data-document-remove]").click()]);
+        assert.equal(await checks.count(), 0);
+        assert.equal(await proceed.isEnabled(), true);
+        await addMissing(config.waiverFile);
+        await Promise.all([page.waitForEvent("load"), checks.first().locator("[data-document-confirm]").click()]);
+        assert.equal(await checks.count(), 0);
+        assert.match(await page.locator(".checklist-files").innerText(), /waiver\.pdf/);
+        await Promise.all([page.waitForURL(/organize-documents/), proceed.click()]);
+        assert.ok(!visited.some((url) => url.includes("preview-documents")), `visited ${visited}`);
+        console.log("Scenario 9 passed");
+    } catch (error) {
+        await screenshot("browser-failure-4.png");
+        throw error;
+    }
     assert.deepEqual(errors, []);
     console.log("Fees browser validation passed.");
     await browser.close();

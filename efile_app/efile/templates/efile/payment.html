@@ -136,7 +136,9 @@
                         <p id="waiver-upload-confirmation" hidden tabindex="-1" role="status">{% translate "Fee waiver document added. Check it below." %}</p>
                     {% endif %}
                 </div>
-                <div id="document-checks" data-url="{{ waiver_upload_url }}">
+                <div id="document-checks"
+                     data-document-checks
+                     data-url="{{ document_checks_url }}">
                     {% for check in document_checks %}
                         {% include "efile/components/document_check.html" with document=check.document fingerprint=check.fingerprint removable=check.removable %}
                     {% endfor %}
@@ -178,6 +180,7 @@
 {% endblock workflow_content %}
 {% block extra_js %}
     <script src="{% static 'js/filing-payload.js' %}"></script>
+    <script src="{% static 'js/document-checks.js' %}"></script>
     <script src="{% static 'js/payment.js' %}"></script>
     <script src="{% static 'js/waiver-upload.js' %}"></script>
 {% endblock extra_js %}

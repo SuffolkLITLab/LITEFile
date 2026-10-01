@@ -1,70 +1,17 @@
 from django.db import transaction
 from django.db.models import Max
 from django.http import JsonResponse
-from django.template.loader import render_to_string
-from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
 from efile.api.suffolk_api_views import get_tyler_token
 from efile.models import FilingDocument, FilingDraft
 from efile.services.current_drafts import explicit_draft_id, get_current_draft
-from efile.services.document_preparation import cleanup_unreferenced_uploads, cleanup_uploads, store_prepared_document
-from efile.services.document_previews import document_storage_keys, preview_fingerprint
+from efile.services.document_preparation import cleanup_uploads, store_prepared_document
 from efile.services.drafts import ACTIVE_DRAFT_STATUSES
 from efile.services.fee_quotes import fee_inputs_token, invalidate_fee_quote
-from efile.services.waiver_documents import WAIVER_TYPE, waiver_document_choices, waiver_filing_types
+from efile.services.waiver_documents import waiver_document_choices, waiver_filing_types
 from efile.utils.s3_upload_handler import S3UploadHandler
-
-
-def document_check_html(request, document):
-    """The fees page checks a newly added copy in place, not on another screen."""
-    return render_to_string(
-        "efile/components/document_check.html",
-        {
-            "document": document,
-            "jurisdiction": document.draft.jurisdiction,
-            "fingerprint": preview_fingerprint([document]),
-            "removable": is_removable_waiver(document),
-        },
-        request=request,
-    )
-
-
-def is_removable_waiver(document):
-    return document.role == FilingDocument.Role.SUPPORTING and bool(WAIVER_TYPE.search(document.filing_type_name))
-
-
-def _check_document(request, draft, action):
-    """Confirm or remove one copy shown on the fees page."""
-    data = request.POST
-    with transaction.atomic():
-        draft = FilingDraft.objects.select_for_update().get(pk=draft.pk)
-        if draft.status not in ACTIVE_DRAFT_STATUSES:
-            return JsonResponse({"error": "This filing is not available to edit."}, status=409)
-        document = draft.documents.filter(pk=data.get("document_id") or None).first()
-        if document is None:
-            return JsonResponse(
-                {"error": "This document is no longer part of your filing. Reload this page."}, status=409
-            )
-        if action == "confirm":
-            if not document.preparation:
-                return JsonResponse({"error": "This file is not ready. Remove it and upload it again."}, status=409)
-            if data.get("preview_fingerprint") != preview_fingerprint([document]):
-                return JsonResponse({"error": "This file changed. Reload this page and check it again."}, status=409)
-            document.preparation_reviewed_at = timezone.now()
-            document.save(update_fields=["preparation_reviewed_at", "updated_at"])
-            return JsonResponse({"success": True, "fee_inputs_token": fee_inputs_token(draft)})
-        if not is_removable_waiver(document):
-            return JsonResponse({"error": "Change this document from the upload step."}, status=400)
-        if data.get("fee_inputs_token") != fee_inputs_token(draft):
-            return JsonResponse(
-                {"error": "This filing changed. Reload this page before removing a document."}, status=409
-            )
-        keys = document_storage_keys(document)
-        document.delete()
-        invalidate_fee_quote(draft)
-        transaction.on_commit(lambda: cleanup_unreferenced_uploads(keys))
-        return JsonResponse({"success": True, "fee_inputs_token": fee_inputs_token(draft)})
+from efile.views.document_checks import document_check_html
 
 
 @require_http_methods(["GET", "POST"])
@@ -76,9 +23,6 @@ def waiver_documents(request, jurisdiction):
     draft = get_current_draft(request, jurisdiction=jurisdiction)
     if draft is None or draft.status not in ACTIVE_DRAFT_STATUSES or not draft.court_code:
         return JsonResponse({"error": "This filing is not available to edit."}, status=409)
-    action = request.POST.get("action", "") if request.method == "POST" else ""
-    if action in ("confirm", "remove"):
-        return _check_document(request, draft, action)
     keys = []
     handler = S3UploadHandler()
     try:
