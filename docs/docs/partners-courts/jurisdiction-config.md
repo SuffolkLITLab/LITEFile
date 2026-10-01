@@ -392,3 +392,16 @@ three states are saved in
 `efile_app/efile/tests/fixtures/fee_code_samples.json` for regression tests.
 State configuration changes refresh the cached state settings on the next
 request.
+
+## Temporarily disable filing
+
+Add `filing_availability` under a court's `court_specific_requirements` entry to
+block the whole court or selected categories, case types, and filing types.
+Filing is enabled by default. Type selectors match human-readable names exactly
+or with explicit regexes, independent of Tyler's numeric type IDs. Filers see
+restrictions immediately after choosing an affected court or type.
+
+See [Control filing availability](./filing-availability.md) for the complete
+field reference, Cook County hearing-scheduling example, county-prefix rules,
+message precedence, deployment and re-enabling instructions, troubleshooting,
+and live-check API.

@@ -12,6 +12,7 @@ from efile.services.document_previews import unreviewed_documents
 from efile.services.drafts import draft_snapshot, write_case_data
 from efile.services.extracted_parties import review_rows, save_reviewed_parties
 from efile.services.extraction_fields import display_extracted_fields, document_summary_details
+from efile.services.filing_availability import filing_unavailable_message
 from efile.services.filing_path import change_filing_path, describe_path_change, filing_path_conflict
 from efile.workflow import (
     RETURN_TO_REVIEW,
@@ -131,6 +132,7 @@ def extraction_review(request, jurisdiction):
     guesses = display_extracted_fields(draft.extracted_guesses or {})
     needs_acknowledgement = bool(guesses)
     acknowledgement_error = False
+    availability_message = ""
 
     if request.method == "POST":
         existing_case = request.POST.get("existing_case", draft.existing_case)
@@ -138,10 +140,20 @@ def extraction_review(request, jurisdiction):
         case_category_code = request.POST.get("case_category_code", "")
         case_type_code = request.POST.get("case_type_code", "")
 
+        availability_message = filing_unavailable_message(
+            jurisdiction,
+            court_code,
+            case_category=request.POST.get("case_category_name", ""),
+            case_type=request.POST.get("case_type_name", ""),
+            filing_types=[request.POST.get("filing_type_name", "")],
+        )
+
         offered_roles = {role["id"] for role in _offered_filer_roles(request, jurisdiction)}
         filer_role = request.POST.get("filer_role", "")
 
-        if needs_acknowledgement and request.POST.get("reviewed_extraction") != "yes":
+        if availability_message:
+            pass  # Show the persistent notice alongside the editable choices.
+        elif needs_acknowledgement and request.POST.get("reviewed_extraction") != "yes":
             # Shown beside the checkbox rather than as a toast, so it stays put
             # and is tied to the control that needs attention.
             acknowledgement_error = True
@@ -278,6 +290,7 @@ def extraction_review(request, jurisdiction):
     )
     context = {
         "is_logged_in": True,
+        "availability_message": availability_message,
         "lead_document": lead,
         "filing_draft": draft_snapshot(draft),
         "has_guesses": needs_acknowledgement,

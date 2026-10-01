@@ -50,6 +50,18 @@
         },
     };
 
+    const availability = window.filingAvailability.mount({
+        form,
+        notice: document.getElementById("filing-availability-notice"),
+        selection: () => ({
+            jurisdiction: context.jurisdiction,
+            court: fields.court.select.value,
+            case_category_name: apiUtils.selectedOptionText(fields.case_category.select),
+            case_type_name: apiUtils.selectedOptionText(fields.case_type.select),
+            filing_type_names: [apiUtils.selectedOptionText(fields.filing_type.select)],
+        }),
+    });
+
     const ORDER = ["court", "case_category", "case_type", "filing_type"];
 
     const DOWNSTREAM = {
@@ -174,7 +186,7 @@
         const field = fields[key];
         const option = field.select.selectedOptions[0];
         const code = field.select.value;
-        const text = code ? apiUtils.cleanOptionText(option?.textContent) : "";
+        const text = apiUtils.selectedOptionText(field.select);
         field.current = {
             code,
             text
@@ -191,6 +203,7 @@
         field.select.disabled = true;
         field.select.innerHTML = `<option value="">${escapeHtml(message)}</option>`;
         field.root.setAttribute("aria-busy", "true");
+        availability.check();
         if (field.checking) {
             field.checking.textContent = gettext("Checking this is still offered…");
             field.checking.hidden = false;
@@ -214,6 +227,7 @@
         field.nameInput.value = "";
         field.hint.textContent = field.defaultHint;
         setMode(key, "edit");
+        availability.check();
     }
 
     function failField(key, message, placeholder) {
@@ -357,6 +371,7 @@
             setMode(key, "edit");
         }
         if (token !== undefined && !isCurrent(key, token)) return;
+        availability.check();
         await ADVANCE[key]();
     }
 
@@ -510,6 +525,7 @@
     ORDER.forEach((key) => {
         fields[key].select.addEventListener("change", () => {
             remember(key);
+            availability.check(fields[key].root);
             fields[key].hint.textContent = fields[key].defaultHint;
             ADVANCE[key]();
         });
@@ -707,5 +723,7 @@
     if (changePath) changePath.addEventListener("click", () => openPathQuestion(""));
     if (applySuggestion) applySuggestion.addEventListener("click", () => openPathQuestion(applySuggestion.dataset.value));
 
-    loadCourts();
+    // The guard blocks until a check runs. A guided selector with no court
+    // chosen yet fires no change, so check once the courts are in place.
+    loadCourts().finally(() => availability.check());
 })();

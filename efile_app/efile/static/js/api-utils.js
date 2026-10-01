@@ -43,6 +43,11 @@ class ApiUtils {
         return String(value || "").replace(/ \(Recommended\)$/, "").replace(/ \*$/, "");
     }
 
+    // The court's name for a select's choice, or "" when nothing is chosen.
+    selectedOptionText(select) {
+        return select.value ? this.cleanOptionText(select.selectedOptions[0]?.textContent) : "";
+    }
+
     getCache() {
         try {
             const cached = localStorage.getItem('apiResponseCache');

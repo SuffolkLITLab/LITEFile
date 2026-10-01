@@ -9,6 +9,7 @@ from efile.models import FilingDocument
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.document_uploads import upload_files
 from efile.services.drafts import draft_snapshot
+from efile.services.filing_availability import draft_unavailable_message, unavailable_response
 from efile.services.filing_plans import (
     attach_document_to_item,
     attach_lead_document,
@@ -113,6 +114,8 @@ def document_checklist(request, jurisdiction):
         current_step=WorkflowStepKey.DOCUMENT_CHECKLIST,
         workflow_version=2,
     )
+    if message := draft_unavailable_message(draft):
+        return unavailable_response(request, draft, message)
     documents = FilingDocument.objects.filter(draft=draft).order_by("role", "sort_order", "created_at")
     if not documents.exists():
         messages.error(request, "Upload at least one document before checking your filing.")

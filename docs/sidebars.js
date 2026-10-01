@@ -25,6 +25,7 @@ const sidebars = {
       items: [
         'partners-courts/index',
         'partners-courts/jurisdiction-config',
+        'partners-courts/filing-availability',
         'partners-courts/document-checklists',
         'partners-courts/ai-customization',
         'partners-courts/interview-integration',

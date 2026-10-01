@@ -106,6 +106,7 @@
         {% endif %}
         <form method="post" id="extraction-review-form">
             {% csrf_token %}
+            {% include "efile/components/filing_availability_notice.html" %}
             <input type="hidden" name="return_to" value="{{ return_to }}" />
             {% comment %}
             First, because the rest depends on it: the court lists different
@@ -519,6 +520,7 @@
     {{ extraction_context|json_script:"extraction-context" }}
 {% endblock workflow_content %}
 {% block extra_js %}
+    <script src="{% static 'js/filing-availability.js' %}"></script>
     <script src="{% static 'js/court-selector.js' %}"></script>
     <script src="{% static 'js/extraction-review.js' %}"></script>
 {% endblock extra_js %}

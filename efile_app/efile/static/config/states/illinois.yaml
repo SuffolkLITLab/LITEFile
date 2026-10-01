@@ -527,6 +527,15 @@ court_specific_requirements:
             requirement: always
 
   "cook:cvd1":  # Cook County Circuit Court - Municipal Civil Division
+    # Optional availability hook. Leave commented until affected names and
+    # hearing-scheduling requirements are confirmed against the target EFSP.
+    # filing_availability:
+    #   rules:
+    #     - case_types: ["Contract"] # Illustrative, not a live restriction.
+    #       message: >-
+    #         LITEFile cannot file this case type in Cook County yet because it
+    #         requires scheduling a hearing. Our e-filing service does not support
+    #         hearing scheduling yet. Contact the court clerk to ask how to file.
     case_types:
       eviction:
         documents:

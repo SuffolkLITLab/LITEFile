@@ -21,6 +21,7 @@
         <div class="alert alert-danger" id="organize-error" role="alert" hidden></div>
         <form id="organize-documents-form">
             {% csrf_token %}
+            {% include "efile/components/filing_availability_notice.html" %}
             <fieldset class="main-document-choice">
                 <legend>{% ui_text "organize_documents.main_document_question" %}</legend>
                 {% if documents|length == 1 %}
@@ -55,6 +56,7 @@
                              data-document-id="{{ document.id }}"
                              data-role="{{ document.role }}"
                              data-filing-type="{{ document.filing_type_code }}"
+                             data-filing-type-name="{{ document.filing_type_name }}"
                              data-document-type="{{ document.document_type_code }}"
                              data-filing-component="{{ document.filing_component_code }}"
                              data-optional-services="{{ document.requested_optional_services|join:',' }}">
@@ -164,5 +166,6 @@
     {{ organize_context|json_script:"organize-context" }}
 {% endblock workflow_content %}
 {% block extra_js %}
+    <script src="{% static 'js/filing-availability.js' %}"></script>
     <script src="{% static 'js/organize-documents.js' %}"></script>
 {% endblock extra_js %}

@@ -32,6 +32,23 @@
     // it -- see efile/utils/ui_text.py.
     const text = context.text || {};
     let filingTypes = null;
+    const availability = window.filingAvailability.mount({
+        form,
+        notice: document.getElementById("filing-availability-notice"),
+        selection: () => ({
+            jurisdiction: context.jurisdiction,
+            court: context.court,
+            case_category_name: context.case_category_name,
+            case_type_name: context.case_type_name,
+            filing_type_names: cards().map((card) => {
+                const select = card.querySelector(".filing-type");
+                // Until the court's list loads, the saved name is the selection.
+                if (!card.dataset.filingTypesLoaded) return card.dataset.filingTypeName || "";
+                return apiUtils.selectedOptionText(select);
+            }),
+        }),
+    });
+    availability.check();
 
     function optionValue(item) {
         return String(item.value || item.code || item.id || "");
@@ -360,7 +377,9 @@
     async function initializeCard(card) {
         const filingType = card.querySelector(".filing-type");
         setOptions(filingType, await loadFilingTypes(), card.dataset.filingType, "Choose a filing type");
+        card.dataset.filingTypesLoaded = "true";
         filingType.addEventListener("change", async () => {
+            availability.check(filingType.closest(".form-field") || filingType.parentElement);
             card.dataset.documentType = "";
             card.dataset.filingComponent = "";
             try {
@@ -485,5 +504,10 @@
         }
     });
 
-    Promise.all(cards().map(initializeCard)).then(updatePositions).catch((error) => showError(error.message));
+    Promise.all(cards().map(initializeCard))
+        .then(() => {
+            updatePositions();
+            availability.check();
+        })
+        .catch((error) => showError(error.message));
 })();

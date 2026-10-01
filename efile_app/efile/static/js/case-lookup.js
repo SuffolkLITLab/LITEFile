@@ -11,6 +11,16 @@
     const extractionHelp = document.getElementById("court-extraction-help");
     const selectedCourtCode = JSON.parse(document.getElementById("selected-court-code").textContent || '""');
 
+    const availability = window.filingAvailability.mount({
+        form,
+        notice: document.getElementById("filing-availability-notice"),
+        selection: () => ({
+            jurisdiction: apiUtils.getCurrentJurisdiction(),
+            court: courtSelect.value
+        }),
+    });
+    courtSelect.addEventListener("change", () => availability.check(courtSelect.closest(".form-field")));
+
     async function mountCourtSelector() {
         const container = document.getElementById("court-selector");
         if (!container || !window.courtSelector) return false;
@@ -112,5 +122,5 @@
         }
     });
 
-    loadCourts();
+    loadCourts().then(() => availability.check(courtSelect.closest(".form-field")));
 })();

@@ -9,6 +9,7 @@ from efile.services.document_previews import unreviewed_documents
 from efile.services.drafts import draft_snapshot, read_case_data, read_upload_data
 from efile.services.extracted_parties import party_display_name
 from efile.services.fee_quotes import fee_inputs_token, fee_quote_summary
+from efile.services.filing_availability import draft_unavailable_message, unavailable_response
 from efile.services.filing_plans import documents_missing_from_envelope
 from efile.services.people import get_case_questions
 
@@ -46,6 +47,8 @@ def case_review(request, jurisdiction):
         current_step=WorkflowStepKey.REVIEW,
         workflow_version=2,
     )
+    if message := draft_unavailable_message(draft):
+        return unavailable_response(request, draft, message)
     if unreviewed_documents(draft).exists():
         return redirect(get_step_url(WorkflowStepKey.PREVIEW_DOCUMENTS, jurisdiction) + "?return_to=review")
 

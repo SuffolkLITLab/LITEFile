@@ -12,6 +12,7 @@ from efile.services.current_drafts import clear_current_draft, get_current_draft
 from efile.services.disclaimers import validate_acceptance
 from efile.services.document_previews import require_document_previews
 from efile.services.fee_quotes import fee_quote_is_usable
+from efile.services.filing_availability import draft_unavailable_message
 from efile.services.filing_plans import mark_attached_items_filed
 from efile.services.submission_errors import PRE_SUBMIT_ERROR_CODES, SubmissionErrorCode
 
@@ -38,6 +39,8 @@ def _claim_for_submission(draft: FilingDraft, acceptance: dict) -> bool:
     locked = FilingDraft.objects.select_for_update().get(pk=draft.pk)
     if locked.status not in _CLAIMABLE_STATUSES:
         return False
+    if message := draft_unavailable_message(locked):
+        raise ValueError(message)
     require_document_previews(locked)
     claimed = FilingDraft.objects.filter(pk=draft.pk, status__in=_CLAIMABLE_STATUSES).update(
         status=FilingDraft.Status.SUBMITTING,
@@ -101,6 +104,11 @@ def submit_final_filing(request):
         return JsonResponse(
             {"success": False, "error": "We could not read your submission. Reload the review page and try again."},
             status=400,
+        )
+
+    if message := draft_unavailable_message(draft):
+        return JsonResponse(
+            {"success": False, "error_code": SubmissionErrorCode.FILING_UNAVAILABLE, "error": message}, status=403
         )
 
     try:

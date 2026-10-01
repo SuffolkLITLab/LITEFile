@@ -9,6 +9,7 @@ from django.views.decorators.http import require_http_methods
 from ..services.efsp_errors import describe_efsp_error
 from ..services.efsp_payload import PayloadValidationError, prepare_efile_payload
 from ..services.extraction_fields import EXTRACTION_FIELDS, EXTRACTION_HINTS
+from ..services.filing_availability import outgoing_unavailable_message
 from ..services.submission_errors import SubmissionErrorCode
 from ..utils.case_data_utils import get_case_data, get_upload_data, update_case_data
 from ..utils.proxy_connection import get_party_type_code_from_api
@@ -161,6 +162,17 @@ def forward_final_filing(request, data):
                     "error": "Court ID is required for filing submission",
                 },
                 status=400,
+            )
+
+        # Resolve the outgoing IDs to authoritative names before applying rules.
+        try:
+            message, status = outgoing_unavailable_message(jurisdiction_id, court_id, case_data, efile_data), 403
+        except ValueError as error:
+            message, status = str(error), 412
+        if message:
+            return JsonResponse(
+                {"success": False, "error_code": SubmissionErrorCode.FILING_UNAVAILABLE, "error": message},
+                status=status,
             )
 
         # Same fixups the fee quote applied, so the filing matches the quote.

@@ -63,6 +63,17 @@ OPENAI_API_KEY="sk-..."
 ```
 
 
+## Court filing availability
+
+Court restrictions live in the jurisdiction YAML, not in environment variables.
+Use `court_specific_requirements.<court>.filing_availability` to block a whole
+court or selected human-readable category, case-type, and filing-type names.
+The default is enabled; exact-name and explicit regex matching are supported.
+
+The [filing availability guide](../partners-courts/filing-availability.md) covers
+the complete schema, examples, immediate filer warnings, server enforcement,
+deployment, re-enabling, and troubleshooting.
+
 ## Document preparation and previews
 
 Configure Gotenberg 8.16 or newer for Word conversion and PDF form flattening.
