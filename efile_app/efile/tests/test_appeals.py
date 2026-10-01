@@ -3,10 +3,12 @@
 from types import SimpleNamespace
 
 import pytest
+from django.core.cache import cache
 from django.urls import reverse
 
 from efile.models import FilingDraft
 from efile.services import appeals
+from efile.services.appeals import code_list as live_code_list
 from efile.services.current_drafts import CURRENT_DRAFT_SESSION_KEY
 from efile.services.drafts import read_case_data
 from efile.services.efsp_payload import PayloadValidationError, _clean_case_identifiers, validate_lower_court
@@ -16,7 +18,7 @@ from efile.tests.helpers import reviewed_document
 
 @pytest.fixture
 def catalog(monkeypatch):
-    def lookup(jurisdiction, path):
+    def lookup(jurisdiction, path, lookups=None):
         if path.endswith("/categories"):
             return [{"code": "appeal", "ecfcasetype": "AppellateCase"}, {"code": "civil", "ecfcasetype": "CivilCase"}]
         return [
@@ -99,6 +101,66 @@ def test_payload_rejects_missing_or_invalid_lower_court(catalog):
             "illinois",
             "TAC1",
         )
+
+
+class FakeLookups:
+    def __init__(self, response):
+        self.response = response
+        self.urls = []
+
+    def get(self, url):
+        self.urls.append(url)
+        return self.response
+
+
+@pytest.fixture
+def live_code_lists(monkeypatch):
+    """Undo the autouse stub so lookups reach the given ``FakeLookups``."""
+    monkeypatch.setattr(appeals, "code_list", live_code_list)
+    cache.clear()
+    yield
+    cache.clear()
+
+
+def test_payload_passes_lower_court_through_when_efsp_list_is_unavailable(live_code_lists):
+    payload = {
+        "efile_case_category": "appeal",
+        "lower_court_case": {"title": "Caption", "docket_number": "24-1"},
+        "trial_court": {"tyler_lower_court_code": "cook:law1", "name": "Cook County Law Division"},
+    }
+    validate_lower_court(payload, "illinois", "TAC1", lookups=FakeLookups(None))
+    assert payload["trial_court"] == {
+        "name": "Cook County Law Division",
+        "tyler_lower_court_code": "cook:law1",
+        "tyler_prod_lower_court_code": "cook:law1",
+    }
+    with pytest.raises(PayloadValidationError):
+        validate_lower_court(
+            {"efile_case_category": "appeal", "lower_court_case": {"title": "Caption", "docket_number": "24-1"}},
+            "illinois",
+            "TAC1",
+            lookups=FakeLookups(None),
+        )
+
+
+def test_payload_lookups_use_the_request_budget_and_do_not_cache_its_failures(live_code_lists, monkeypatch):
+    def unbudgeted(*args, **kwargs):
+        raise AssertionError("lower-court lookups must go through the payload's lookups")
+
+    monkeypatch.setattr(appeals.requests, "get", unbudgeted)
+    lookups = FakeLookups(None)
+    payload = {
+        "efile_case_category": "appeal",
+        "lower_court_case": {"title": "Caption", "docket_number": "24-1"},
+        "trial_court": {"tyler_lower_court_code": "cook:law1"},
+    }
+    validate_lower_court(payload, "illinois", "TAC1", lookups=lookups)
+    assert [url.rpartition("/codes/")[2] for url in lookups.urls] == [
+        "courts/TAC1/categories",
+        "courts/?fileable_only=false&with_names=true",
+    ]
+    courts = [{"code": "cook:law1", "name": "Cook County Law Division"}]
+    assert appeals.code_list("illinois", "courts/TAC1/categories", lookups=FakeLookups(courts)) == courts
 
 
 @pytest.mark.parametrize("extra", [{"previous_case_id": "123"}, {"efile_case_category": "civil"}])

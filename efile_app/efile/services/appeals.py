@@ -26,12 +26,24 @@ LOWER_COURT_FIELDS = (
 )
 
 
-def code_list(jurisdiction, path):
+def code_list(jurisdiction, path, lookups=None):
+    """Return an EFSP code list, or None when it could not be loaded.
+
+    Pass the payload's ``lookups`` to fetch a cache miss within that request's
+    time budget. Its failures are not remembered: a spent budget belongs to one
+    request, not to the EFSP.
+    """
     url = f"{settings.EFSP_URL}/jurisdictions/{jurisdiction}/codes/{path}"
     key = "appeal-codes:" + hashlib.sha256(url.encode()).hexdigest()
     result = cache.get(key)
     if result is not None:
         return result if isinstance(result, list) else None
+    if lookups is not None:
+        result = lookups.get(url)
+        if not isinstance(result, list):
+            return None
+        cache.set(key, result, 300)
+        return result
     try:
         response = requests.get(url, timeout=10)
         response.raise_for_status()
@@ -59,7 +71,8 @@ def is_new_appeal(draft):
     return any(word in description for word in ("appeal", "appellate", "supreme", "single justice"))
 
 
-def lower_court_options(jurisdiction):
+def lower_court_options(jurisdiction, lookups=None):
+    """Return the lower-court choices, or None when the EFSP's list is unavailable."""
     if jurisdiction == "massachusetts":
         source = Path(__file__).resolve().parent.parent / "data" / "massachusetts_lower_courts.json"
         rows = json.loads(source.read_text())["courts"]
@@ -71,11 +84,13 @@ def lower_court_options(jurisdiction):
             }
             for row in rows
         ]
-    rows = code_list(jurisdiction, "courts/?fileable_only=false&with_names=true")
+    rows = code_list(jurisdiction, "courts/?fileable_only=false&with_names=true", lookups=lookups)
+    if rows is None:
+        return None
     return sorted(
         [
             {"value": str(row["code"]), "label": row["name"], "prod_code": str(row["code"])}
-            for row in rows or []
+            for row in rows
             if isinstance(row, dict)
             and row.get("code")
             and row.get("name")
@@ -95,7 +110,7 @@ def appeal_questions(draft):
             "label": "Lower court",
             "type": "select",
             "required": True,
-            "options": lower_court_options(draft.jurisdiction),
+            "options": lower_court_options(draft.jurisdiction) or [],
         },
         {"name": "lower_court_docket_number", "label": "Lower court case number", "type": "text", "required": True},
         {"name": "lower_court_title", "label": "Lower court case caption", "type": "text", "required": True},

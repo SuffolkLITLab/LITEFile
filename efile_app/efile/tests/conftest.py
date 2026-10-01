@@ -34,4 +34,4 @@ def court_requirements(monkeypatch):
 @pytest.fixture(autouse=True)
 def appellate_code_lists(monkeypatch):
     """Appellate tests opt into specific catalogs; other tests never call EFSP."""
-    monkeypatch.setattr("efile.services.appeals.code_list", lambda jurisdiction, path: None)
+    monkeypatch.setattr("efile.services.appeals.code_list", lambda jurisdiction, path, lookups=None: None)
