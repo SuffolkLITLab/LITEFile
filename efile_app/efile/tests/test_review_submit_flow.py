@@ -117,6 +117,65 @@ def _case_card(content):
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize("supplemental_fields", [{}, {"has_children": False, "_case_questions_required": True}])
+def test_final_review_shows_amount_with_a_case_questions_edit_link(client, submission_draft, supplemental_fields):
+    submission_draft.amount_in_controversy = "1234.50"
+    submission_draft.supplemental_fields = supplemental_fields
+    submission_draft.selected_payment_account_id = "pay-123"
+    submission_draft.save()
+
+    response = client.get(reverse("case_review", kwargs={"jurisdiction": "illinois"}))
+    content = response.content.decode()
+    questions_card = content.partition("<h2>Case questions</h2>")[2].partition("</section>")[0]
+
+    assert response.status_code == 200
+    assert "Amount in controversy" in questions_card
+    assert "$1234.50" in questions_card
+    assert reverse("case_questions", kwargs={"jurisdiction": "illinois"}) + "?return_to=review" in questions_card
+    if supplemental_fields:
+        assert "Has Children" in questions_card
+        assert "No" in questions_card
+        assert "_case_questions_required" not in questions_card
+
+
+@pytest.mark.django_db
+def test_final_review_omits_empty_case_questions(client, submission_draft):
+    submission_draft.selected_payment_account_id = "pay-123"
+    submission_draft.supplemental_fields = {"_case_questions_required": True}
+    submission_draft.save()
+
+    response = client.get(reverse("case_review", kwargs={"jurisdiction": "illinois"}))
+
+    assert response.status_code == 200
+    assert b"Amount in controversy" not in response.content
+    assert b"<h2>Case questions</h2>" not in response.content
+
+
+@pytest.mark.django_db
+def test_amount_edit_returns_to_review_with_the_saved_value(client, submission_draft):
+    submission_draft.amount_in_controversy = "1234.50"
+    submission_draft.selected_payment_account_id = "pay-123"
+    submission_draft.save()
+    submission_draft.documents.update(filing_requires_amount_in_controversy=True)
+    edit_url = reverse("case_questions", kwargs={"jurisdiction": "illinois"}) + "?return_to=review"
+
+    edit_response = client.get(edit_url)
+    assert edit_response.status_code == 200
+    assert b'value="1234.50"' in edit_response.content
+
+    response = client.post(edit_url, {"amount_in_controversy": "$2,345.67", "return_to": "review"})
+
+    assert response.status_code == 302
+    assert response.url.partition("?")[0] == reverse("case_review", kwargs={"jurisdiction": "illinois"})
+    response = client.get(response.url)
+    assert response.status_code == 200
+    assert b"$2345.67" in response.content
+    assert b"$1234.50" not in response.content
+    submission_draft.refresh_from_db()
+    assert submission_draft.amount_in_controversy == "2345.67"
+
+
+@pytest.mark.django_db
 def test_final_review_hides_case_title_and_number_for_a_new_case(client, submission_draft):
     # Saved by an older version of the confirm-case screen.
     submission_draft.case_title = "Jordan Taylor v. Acme"
