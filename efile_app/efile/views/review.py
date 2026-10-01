@@ -3,6 +3,7 @@ from django.shortcuts import redirect, render
 
 from efile.api.suffolk_api_views import get_tyler_token
 from efile.models import FilingDocument, FilingParty
+from efile.services.appeals import LOWER_COURT_FIELDS, appeal_answers_complete
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.disclaimers import disclaimer_context
 from efile.services.document_previews import unreviewed_documents
@@ -52,6 +53,10 @@ def case_review(request, jurisdiction):
     if unreviewed_documents(draft).exists():
         return redirect(get_step_url(WorkflowStepKey.PREVIEW_DOCUMENTS, jurisdiction) + "?return_to=review")
 
+    if not appeal_answers_complete(draft):
+        messages.error(request, "Complete the lower court information before reviewing your filing.")
+        return redirect(get_step_url(WorkflowStepKey.CASE_QUESTIONS, jurisdiction) + "?return_to=review")
+
     if not draft.selected_payment_account_id:
         messages.error(request, "Choose a payment method before reviewing your filing.")
         return redirect("payment", jurisdiction=jurisdiction)
@@ -60,10 +65,18 @@ def case_review(request, jurisdiction):
     question_answers = [
         {
             "label": question_labels.get(key, key.replace("_", " ").title()),
-            "value": "Yes" if value is True else "No" if value is False else value,
+            "value": ((draft.supplemental_fields or {}).get("lower_court_name") or value)
+            if key == "lower_court_code"
+            else "Yes"
+            if value is True
+            else "No"
+            if value is False
+            else value,
         }
         for key, value in (draft.supplemental_fields or {}).items()
-        if not key.startswith("_") and value not in (None, "")
+        if not key.startswith("_")
+        and value not in (None, "")
+        and (key not in LOWER_COURT_FIELDS or key in question_labels)
     ]
     parties = list(FilingParty.objects.filter(draft=draft).order_by("sort_order", "created_at"))
     filer = next((party for party in parties if party.role == "filer"), None)

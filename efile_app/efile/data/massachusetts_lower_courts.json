@@ -1,0 +1,1497 @@
+{
+  "source": {
+    "repository": "https://github.com/SuffolkLITLab/docassemble-MACourts",
+    "commit": "ce671c33db2a98e1169dc300f8f685e8c93685ff",
+    "directory": "docassemble/MACourts/data/sources",
+    "files": [
+      "bmc.json",
+      "district_courts.json",
+      "housing_courts.json",
+      "juvenile_courts.json",
+      "land_court.json",
+      "probate_and_family_courts.json",
+      "superior_courts.json"
+    ],
+    "note": "Records are grouped by identical stage and production lower-court codes. `source_names` and `cities` preserve the upstream court/session distinctions; displayed names clarify when a single Tyler code covers multiple locations. Rows without both codes are omitted."
+  },
+  "courts": [
+    {
+      "name": "Attleboro District Court",
+      "tyler_lower_court_code": "1764",
+      "tyler_prod_lower_court_code": "6993",
+      "source_names": [
+        "Attleboro District Court"
+      ],
+      "cities": [
+        "Attleboro"
+      ]
+    },
+    {
+      "name": "Attleboro Juvenile Court",
+      "tyler_lower_court_code": "1839",
+      "tyler_prod_lower_court_code": "7068",
+      "source_names": [
+        "Attleboro Juvenile Court"
+      ],
+      "cities": [
+        "Attleboro"
+      ]
+    },
+    {
+      "name": "Ayer District Court",
+      "tyler_lower_court_code": "1765",
+      "tyler_prod_lower_court_code": "6994",
+      "source_names": [
+        "Ayer District Court"
+      ],
+      "cities": [
+        "Ayer"
+      ]
+    },
+    {
+      "name": "Barnstable County Superior Court",
+      "tyler_lower_court_code": "1870",
+      "tyler_prod_lower_court_code": "7099",
+      "source_names": [
+        "Barnstable County Superior Court"
+      ],
+      "cities": [
+        "Barnstable"
+      ]
+    },
+    {
+      "name": "Barnstable District Court",
+      "tyler_lower_court_code": "1766",
+      "tyler_prod_lower_court_code": "6995",
+      "source_names": [
+        "Barnstable District Court"
+      ],
+      "cities": [
+        "Barnstable"
+      ]
+    },
+    {
+      "name": "Barnstable Juvenile Court",
+      "tyler_lower_court_code": "1832",
+      "tyler_prod_lower_court_code": "7061",
+      "source_names": [
+        "Barnstable Juvenile Court"
+      ],
+      "cities": [
+        "Barnstable"
+      ]
+    },
+    {
+      "name": "Barnstable Probate and Family Court",
+      "tyler_lower_court_code": "1855",
+      "tyler_prod_lower_court_code": "7084",
+      "source_names": [
+        "Barnstable Probate and Family Court"
+      ],
+      "cities": [
+        "Barnstable"
+      ]
+    },
+    {
+      "name": "Berkshire County Superior Court",
+      "tyler_lower_court_code": "1871",
+      "tyler_prod_lower_court_code": "7100",
+      "source_names": [
+        "Berkshire County Superior Court"
+      ],
+      "cities": [
+        "Pittsfield"
+      ]
+    },
+    {
+      "name": "Berkshire Probate and Family Court",
+      "tyler_lower_court_code": "1856",
+      "tyler_prod_lower_court_code": "7085",
+      "source_names": [
+        "Berkshire Probate and Family Court"
+      ],
+      "cities": [
+        "Pittsfield"
+      ]
+    },
+    {
+      "name": "Brighton Division, Boston Municipal Court",
+      "tyler_lower_court_code": "1753",
+      "tyler_prod_lower_court_code": "6982",
+      "source_names": [
+        "Brighton Division, Boston Municipal Court"
+      ],
+      "cities": [
+        "Brighton"
+      ]
+    },
+    {
+      "name": "Bristol County Superior Court (Fall River, New Bedford, Taunton)",
+      "tyler_lower_court_code": "1872",
+      "tyler_prod_lower_court_code": "7101",
+      "source_names": [
+        "Bristol County Superior Court"
+      ],
+      "cities": [
+        "Fall River",
+        "New Bedford",
+        "Taunton"
+      ]
+    },
+    {
+      "name": "Brockton District Court",
+      "tyler_lower_court_code": "1767",
+      "tyler_prod_lower_court_code": "6996",
+      "source_names": [
+        "Brockton District Court"
+      ],
+      "cities": [
+        "Brockton"
+      ]
+    },
+    {
+      "name": "Brockton Juvenile Court",
+      "tyler_lower_court_code": "1849",
+      "tyler_prod_lower_court_code": "7078",
+      "source_names": [
+        "Brockton Juvenile Court"
+      ],
+      "cities": [
+        "Brockton"
+      ]
+    },
+    {
+      "name": "Brookline District Court",
+      "tyler_lower_court_code": "1768",
+      "tyler_prod_lower_court_code": "6997",
+      "source_names": [
+        "Brookline District Court"
+      ],
+      "cities": [
+        "Brookline"
+      ]
+    },
+    {
+      "name": "Cambridge District Court",
+      "tyler_lower_court_code": "1769",
+      "tyler_prod_lower_court_code": "6998",
+      "source_names": [
+        "Cambridge District Court"
+      ],
+      "cities": [
+        "Medford"
+      ]
+    },
+    {
+      "name": "Central Division, Boston Municipal Court",
+      "tyler_lower_court_code": "1754",
+      "tyler_prod_lower_court_code": "6983",
+      "source_names": [
+        "Central Division, Boston Municipal Court"
+      ],
+      "cities": [
+        "Edward W. Brooke Courthouse, Boston"
+      ]
+    },
+    {
+      "name": "Central Housing Court (Dudley, Leominster, Marlborough, Worcester sessions)",
+      "tyler_lower_court_code": "1831",
+      "tyler_prod_lower_court_code": "7060",
+      "source_names": [
+        "Central Housing Court - Dudley Session",
+        "Central Housing Court - Leominster Session",
+        "Central Housing Court - Marlborough Session",
+        "Central Housing Court - Worcester Session"
+      ],
+      "cities": [
+        "Dudley District Court, Dudley",
+        "Leominster District Court, Leominster",
+        "Marlborough District Court, Marlborough",
+        "Worcester"
+      ]
+    },
+    {
+      "name": "Charlestown Division, Boston Municipal Court",
+      "tyler_lower_court_code": "1755",
+      "tyler_prod_lower_court_code": "6984",
+      "source_names": [
+        "Charlestown Division, Boston Municipal Court"
+      ],
+      "cities": [
+        "Charlestown"
+      ]
+    },
+    {
+      "name": "Chelsea District Court",
+      "tyler_lower_court_code": "1770",
+      "tyler_prod_lower_court_code": "6999",
+      "source_names": [
+        "Chelsea District Court"
+      ],
+      "cities": [
+        "Chelsea"
+      ]
+    },
+    {
+      "name": "Chicopee District Court",
+      "tyler_lower_court_code": "1771",
+      "tyler_prod_lower_court_code": "7000",
+      "source_names": [
+        "Chicopee District Court"
+      ],
+      "cities": [
+        "Chicopee"
+      ]
+    },
+    {
+      "name": "Clinton District Court",
+      "tyler_lower_court_code": "1772",
+      "tyler_prod_lower_court_code": "7001",
+      "source_names": [
+        "Clinton District Court"
+      ],
+      "cities": [
+        "Clinton"
+      ]
+    },
+    {
+      "name": "Concord District Court",
+      "tyler_lower_court_code": "1773",
+      "tyler_prod_lower_court_code": "7002",
+      "source_names": [
+        "Concord District Court"
+      ],
+      "cities": [
+        "Concord"
+      ]
+    },
+    {
+      "name": "Dedham District Court",
+      "tyler_lower_court_code": "1774",
+      "tyler_prod_lower_court_code": "7003",
+      "source_names": [
+        "Dedham District Court"
+      ],
+      "cities": [
+        "Dedham"
+      ]
+    },
+    {
+      "name": "Dorchester Division, Boston Municipal Court",
+      "tyler_lower_court_code": "1756",
+      "tyler_prod_lower_court_code": "6985",
+      "source_names": [
+        "Dorchester Division, Boston Municipal Court"
+      ],
+      "cities": [
+        "Dorchester"
+      ]
+    },
+    {
+      "name": "Dudley District Court",
+      "tyler_lower_court_code": "1775",
+      "tyler_prod_lower_court_code": "7004",
+      "source_names": [
+        "Dudley District Court"
+      ],
+      "cities": [
+        "Dudley"
+      ]
+    },
+    {
+      "name": "Dukes County Superior Court",
+      "tyler_lower_court_code": "1873",
+      "tyler_prod_lower_court_code": "7102",
+      "source_names": [
+        "Dukes County Superior Court"
+      ],
+      "cities": [
+        "Edgartown"
+      ]
+    },
+    {
+      "name": "Dukes Probate and Family Court",
+      "tyler_lower_court_code": "1858",
+      "tyler_prod_lower_court_code": "7087",
+      "source_names": [
+        "Dukes Probate and Family Court"
+      ],
+      "cities": [
+        "Edgartown"
+      ]
+    },
+    {
+      "name": "East Boston Division, Boston Municipal Court",
+      "tyler_lower_court_code": "1757",
+      "tyler_prod_lower_court_code": "6986",
+      "source_names": [
+        "East Boston Division, Boston Municipal Court"
+      ],
+      "cities": [
+        "East Boston"
+      ]
+    },
+    {
+      "name": "East Brookfield District Court",
+      "tyler_lower_court_code": "1776",
+      "tyler_prod_lower_court_code": "7005",
+      "source_names": [
+        "East Brookfield District Court"
+      ],
+      "cities": [
+        "East Brookfield"
+      ]
+    },
+    {
+      "name": "Eastern Hampshire District Court",
+      "tyler_lower_court_code": "1777",
+      "tyler_prod_lower_court_code": "7006",
+      "source_names": [
+        "Eastern Hampshire District Court"
+      ],
+      "cities": [
+        "Belchertown"
+      ]
+    },
+    {
+      "name": "Eastern Housing Court (including Chelsea and Middlesex sessions)",
+      "tyler_lower_court_code": "1827",
+      "tyler_prod_lower_court_code": "7056",
+      "source_names": [
+        "Eastern Housing Court",
+        "Eastern Housing Court - Chelsea Session",
+        "Eastern Housing Court - Middlesex Session"
+      ],
+      "cities": [
+        "Boston",
+        "Chelsea",
+        "Somerville"
+      ]
+    },
+    {
+      "name": "Edgartown District Court",
+      "tyler_lower_court_code": "1778",
+      "tyler_prod_lower_court_code": "7007",
+      "source_names": [
+        "Edgartown District Court"
+      ],
+      "cities": [
+        "Edgartown"
+      ]
+    },
+    {
+      "name": "Edgartown Juvenile Court",
+      "tyler_lower_court_code": "1833",
+      "tyler_prod_lower_court_code": "7062",
+      "source_names": [
+        "Edgartown Juvenile Court"
+      ],
+      "cities": [
+        "Edgartown"
+      ]
+    },
+    {
+      "name": "Essex County Superior Court (Lawrence, Newburyport, Salem)",
+      "tyler_lower_court_code": "1874",
+      "tyler_prod_lower_court_code": "7103",
+      "source_names": [
+        "Essex County Superior Court"
+      ],
+      "cities": [
+        "Lawrence",
+        "Newburyport",
+        "Salem"
+      ]
+    },
+    {
+      "name": "Fall River District Court",
+      "tyler_lower_court_code": "1779",
+      "tyler_prod_lower_court_code": "7008",
+      "source_names": [
+        "Fall River District Court"
+      ],
+      "cities": [
+        "Fall River"
+      ]
+    },
+    {
+      "name": "Fall River Juvenile Court",
+      "tyler_lower_court_code": "1840",
+      "tyler_prod_lower_court_code": "7069",
+      "source_names": [
+        "Fall River Juvenile Court"
+      ],
+      "cities": [
+        "Fall River"
+      ]
+    },
+    {
+      "name": "Falmouth District Court",
+      "tyler_lower_court_code": "1780",
+      "tyler_prod_lower_court_code": "7009",
+      "source_names": [
+        "Falmouth District Court"
+      ],
+      "cities": [
+        "Falmouth"
+      ]
+    },
+    {
+      "name": "Falmouth Juvenile Court",
+      "tyler_lower_court_code": "1834",
+      "tyler_prod_lower_court_code": "7063",
+      "source_names": [
+        "Falmouth Juvenile Court"
+      ],
+      "cities": [
+        "Falmouth"
+      ]
+    },
+    {
+      "name": "Fitchburg District Court",
+      "tyler_lower_court_code": "1781",
+      "tyler_prod_lower_court_code": "7010",
+      "source_names": [
+        "Fitchburg District Court"
+      ],
+      "cities": [
+        "Fitchburg"
+      ]
+    },
+    {
+      "name": "Framingham District Court",
+      "tyler_lower_court_code": "1782",
+      "tyler_prod_lower_court_code": "7011",
+      "source_names": [
+        "Framingham District Court"
+      ],
+      "cities": [
+        "Framingham"
+      ]
+    },
+    {
+      "name": "Franklin County Superior Court",
+      "tyler_lower_court_code": "1875",
+      "tyler_prod_lower_court_code": "7104",
+      "source_names": [
+        "Franklin County Superior Court"
+      ],
+      "cities": [
+        "Greenfield"
+      ]
+    },
+    {
+      "name": "Franklin Probate and Family Court",
+      "tyler_lower_court_code": "1860",
+      "tyler_prod_lower_court_code": "7089",
+      "source_names": [
+        "Franklin Probate and Family Court"
+      ],
+      "cities": [
+        "Greenfield"
+      ]
+    },
+    {
+      "name": "Gardner District Court",
+      "tyler_lower_court_code": "1783",
+      "tyler_prod_lower_court_code": "7012",
+      "source_names": [
+        "Gardner District Court"
+      ],
+      "cities": [
+        "Gardner"
+      ]
+    },
+    {
+      "name": "Gloucester District Court",
+      "tyler_lower_court_code": "1784",
+      "tyler_prod_lower_court_code": "7013",
+      "source_names": [
+        "Gloucester District Court"
+      ],
+      "cities": [
+        "Gloucester"
+      ]
+    },
+    {
+      "name": "Greenfield District Court",
+      "tyler_lower_court_code": "1785",
+      "tyler_prod_lower_court_code": "7014",
+      "source_names": [
+        "Greenfield District Court"
+      ],
+      "cities": [
+        "Greenfield"
+      ]
+    },
+    {
+      "name": "Hampden County Superior Court",
+      "tyler_lower_court_code": "1869",
+      "tyler_prod_lower_court_code": "7098",
+      "source_names": [
+        "Hampden County Superior Court"
+      ],
+      "cities": [
+        "Springfield"
+      ]
+    },
+    {
+      "name": "Hampden Probate and Family Court",
+      "tyler_lower_court_code": "1861",
+      "tyler_prod_lower_court_code": "7090",
+      "source_names": [
+        "Hampden Probate and Family Court"
+      ],
+      "cities": [
+        "Springfield"
+      ]
+    },
+    {
+      "name": "Hampshire County Superior Court",
+      "tyler_lower_court_code": "1876",
+      "tyler_prod_lower_court_code": "7105",
+      "source_names": [
+        "Hampshire County Superior Court"
+      ],
+      "cities": [
+        "Northampton"
+      ]
+    },
+    {
+      "name": "Hampshire Probate and Family Court",
+      "tyler_lower_court_code": "1862",
+      "tyler_prod_lower_court_code": "7091",
+      "source_names": [
+        "Hampshire Probate and Family Court"
+      ],
+      "cities": [
+        "Northampton"
+      ]
+    },
+    {
+      "name": "Haverhill District Court",
+      "tyler_lower_court_code": "1786",
+      "tyler_prod_lower_court_code": "7015",
+      "source_names": [
+        "Haverhill District Court"
+      ],
+      "cities": [
+        "Haverhill"
+      ]
+    },
+    {
+      "name": "Hingham District Court",
+      "tyler_lower_court_code": "1787",
+      "tyler_prod_lower_court_code": "7016",
+      "source_names": [
+        "Hingham District Court"
+      ],
+      "cities": [
+        "Hingham"
+      ]
+    },
+    {
+      "name": "Hingham Juvenile Court",
+      "tyler_lower_court_code": "1850",
+      "tyler_prod_lower_court_code": "7079",
+      "source_names": [
+        "Hingham Juvenile Court"
+      ],
+      "cities": [
+        "Hingham"
+      ]
+    },
+    {
+      "name": "Holyoke District Court",
+      "tyler_lower_court_code": "1788",
+      "tyler_prod_lower_court_code": "7017",
+      "source_names": [
+        "Holyoke District Court"
+      ],
+      "cities": [
+        "Holyoke"
+      ]
+    },
+    {
+      "name": "Ipswich District Court",
+      "tyler_lower_court_code": "1789",
+      "tyler_prod_lower_court_code": "7018",
+      "source_names": [
+        "Ipswich District Court"
+      ],
+      "cities": [
+        "Newburyport"
+      ]
+    },
+    {
+      "name": "Juvenile Court — Belchertown, Greenfield, Hadley, Orange",
+      "tyler_lower_court_code": "1845",
+      "tyler_prod_lower_court_code": "7074",
+      "source_names": [
+        "Belchertown Juvenile Court",
+        "Greenfield Juvenile Court",
+        "Hadley Juvenile Court",
+        "Orange Juvenile Court"
+      ],
+      "cities": [
+        "Belchertown",
+        "Greenfield",
+        "Hadley",
+        "Orange"
+      ]
+    },
+    {
+      "name": "Juvenile Court — Boston, Chelsea, Dorchester, West Roxbury",
+      "tyler_lower_court_code": "1852",
+      "tyler_prod_lower_court_code": "7081",
+      "source_names": [
+        "Boston Juvenile Court",
+        "Chelsea Juvenile Court",
+        "Dorchester Juvenile Court",
+        "West Roxbury Juvenile Court"
+      ],
+      "cities": [
+        "Boston",
+        "Chelsea",
+        "Dorchester",
+        "Jamaica Plain"
+      ]
+    },
+    {
+      "name": "Juvenile Court — Cambridge, Framingham, Lowell, Waltham",
+      "tyler_lower_court_code": "1847",
+      "tyler_prod_lower_court_code": "7076",
+      "source_names": [
+        "Cambridge Juvenile Court",
+        "Framingham Juvenile Court",
+        "Lowell Juvenile Court",
+        "Waltham Juvenile Court"
+      ],
+      "cities": [
+        "Cambridge",
+        "Framingham",
+        "Lowell",
+        "Waltham"
+      ]
+    },
+    {
+      "name": "Juvenile Court — Dedham, Quincy, Stoughton",
+      "tyler_lower_court_code": "1848",
+      "tyler_prod_lower_court_code": "7077",
+      "source_names": [
+        "Dedham Juvenile Court",
+        "Quincy Juvenile Court",
+        "Stoughton Juvenile Court"
+      ],
+      "cities": [
+        "Dedham",
+        "Quincy",
+        "Stoughton"
+      ]
+    },
+    {
+      "name": "Juvenile Court — Dudley, Fitchburg, Milford, Worcester",
+      "tyler_lower_court_code": "1853",
+      "tyler_prod_lower_court_code": "7082",
+      "source_names": [
+        "Dudley Juvenile Court",
+        "Fitchburg Juvenile Court",
+        "Milford Juvenile Court",
+        "Worcester Juvenile Court"
+      ],
+      "cities": [
+        "Dudley",
+        "Fitchburg",
+        "Milford",
+        "Worcester"
+      ]
+    },
+    {
+      "name": "Juvenile Court — Great Barrington, North Adams, Pittsfield",
+      "tyler_lower_court_code": "1838",
+      "tyler_prod_lower_court_code": "7067",
+      "source_names": [
+        "Great Barrington Juvenile Court",
+        "North Adams Juvenile Court",
+        "Pittsfield Juvenile Court"
+      ],
+      "cities": [
+        "Great Barrington",
+        "North Adams",
+        "Pittsfield"
+      ]
+    },
+    {
+      "name": "Juvenile Court — Holyoke, Palmer, Springfield",
+      "tyler_lower_court_code": "1846",
+      "tyler_prod_lower_court_code": "7075",
+      "source_names": [
+        "Holyoke Juvenile Court",
+        "Palmer Juvenile Court",
+        "Springfield Juvenile Court"
+      ],
+      "cities": [
+        "Holyoke",
+        "Palmer",
+        "Springfield"
+      ]
+    },
+    {
+      "name": "Juvenile Court — Lawrence, Lynn, Newburyport, Salem",
+      "tyler_lower_court_code": "1844",
+      "tyler_prod_lower_court_code": "7073",
+      "source_names": [
+        "Lawrence Juvenile Court",
+        "Lynn Juvenile Court",
+        "Newburyport Juvenile Court",
+        "Salem Juvenile Court"
+      ],
+      "cities": [
+        "Lawrence",
+        "Lynn",
+        "Newburyport",
+        "Salem"
+      ]
+    },
+    {
+      "name": "Land Court",
+      "tyler_lower_court_code": "1854",
+      "tyler_prod_lower_court_code": "7083",
+      "source_names": [
+        "Land Court"
+      ],
+      "cities": [
+        "Boston"
+      ]
+    },
+    {
+      "name": "Lawrence District Court",
+      "tyler_lower_court_code": "1790",
+      "tyler_prod_lower_court_code": "7019",
+      "source_names": [
+        "Lawrence District Court"
+      ],
+      "cities": [
+        "Lawrence"
+      ]
+    },
+    {
+      "name": "Leominster District Court",
+      "tyler_lower_court_code": "1791",
+      "tyler_prod_lower_court_code": "7020",
+      "source_names": [
+        "Leominster District Court"
+      ],
+      "cities": [
+        "Leominster"
+      ]
+    },
+    {
+      "name": "Lowell District Court",
+      "tyler_lower_court_code": "1792",
+      "tyler_prod_lower_court_code": "7021",
+      "source_names": [
+        "Lowell District Court"
+      ],
+      "cities": [
+        "Lowell"
+      ]
+    },
+    {
+      "name": "Lynn District Court",
+      "tyler_lower_court_code": "1793",
+      "tyler_prod_lower_court_code": "7022",
+      "source_names": [
+        "Lynn District Court"
+      ],
+      "cities": [
+        "Lynn"
+      ]
+    },
+    {
+      "name": "Malden District Court",
+      "tyler_lower_court_code": "1794",
+      "tyler_prod_lower_court_code": "7023",
+      "source_names": [
+        "Malden District Court"
+      ],
+      "cities": [
+        "Medford"
+      ]
+    },
+    {
+      "name": "Marlborough District Court",
+      "tyler_lower_court_code": "1795",
+      "tyler_prod_lower_court_code": "7024",
+      "source_names": [
+        "Marlborough District Court"
+      ],
+      "cities": [
+        "Marlborough"
+      ]
+    },
+    {
+      "name": "Metro South / Southeast Housing Court — Barnstable, Brockton, Canton, Fall River, New Bedford, Plymouth, Taunton",
+      "tyler_lower_court_code": "1829",
+      "tyler_prod_lower_court_code": "7058",
+      "source_names": [
+        "Metro South Housing Court - Brockton Session",
+        "Metro South Housing Court - Canton Session",
+        "Southeast Housing Court - Barnstable session",
+        "Southeast Housing Court - Fall River Session",
+        "Southeast Housing Court - New Bedford Session",
+        "Southeast Housing Court - Plymouth Session",
+        "Southeast Housing Court - Taunton Session"
+      ],
+      "cities": [
+        "Barnstable",
+        "Brockton",
+        "Canton",
+        "Fall River",
+        "New Bedford",
+        "Plymouth",
+        "Taunton"
+      ]
+    },
+    {
+      "name": "Middlesex County Superior Court (Lowell, Woburn)",
+      "tyler_lower_court_code": "1877",
+      "tyler_prod_lower_court_code": "7106",
+      "source_names": [
+        "Middlesex County Superior Court"
+      ],
+      "cities": [
+        "Lowell",
+        "Woburn"
+      ]
+    },
+    {
+      "name": "Middlesex Probate and Family Court - North / Middlesex Probate and Family Court - South",
+      "tyler_lower_court_code": "1863",
+      "tyler_prod_lower_court_code": "7092",
+      "source_names": [
+        "Middlesex Probate and Family Court - North",
+        "Middlesex Probate and Family Court - South"
+      ],
+      "cities": [
+        "Lowell",
+        "Woburn"
+      ]
+    },
+    {
+      "name": "Milford District Court",
+      "tyler_lower_court_code": "1796",
+      "tyler_prod_lower_court_code": "7025",
+      "source_names": [
+        "Milford District Court"
+      ],
+      "cities": [
+        "Milford"
+      ]
+    },
+    {
+      "name": "Nantucket County Superior Court",
+      "tyler_lower_court_code": "1878",
+      "tyler_prod_lower_court_code": "7107",
+      "source_names": [
+        "Nantucket County Superior Court"
+      ],
+      "cities": [
+        "Nantucket"
+      ]
+    },
+    {
+      "name": "Nantucket District Court",
+      "tyler_lower_court_code": "1797",
+      "tyler_prod_lower_court_code": "7026",
+      "source_names": [
+        "Nantucket District Court"
+      ],
+      "cities": [
+        "Nantucket"
+      ]
+    },
+    {
+      "name": "Nantucket Juvenile Court",
+      "tyler_lower_court_code": "1835",
+      "tyler_prod_lower_court_code": "7064",
+      "source_names": [
+        "Nantucket Juvenile Court"
+      ],
+      "cities": [
+        "Nantucket"
+      ]
+    },
+    {
+      "name": "Nantucket Probate and Family Court",
+      "tyler_lower_court_code": "1864",
+      "tyler_prod_lower_court_code": "7093",
+      "source_names": [
+        "Nantucket Probate and Family Court"
+      ],
+      "cities": [
+        "Nantucket"
+      ]
+    },
+    {
+      "name": "Natick District Court",
+      "tyler_lower_court_code": "1798",
+      "tyler_prod_lower_court_code": "7027",
+      "source_names": [
+        "Natick District Court"
+      ],
+      "cities": [
+        "Framingham"
+      ]
+    },
+    {
+      "name": "New Bedford District Court",
+      "tyler_lower_court_code": "1799",
+      "tyler_prod_lower_court_code": "7028",
+      "source_names": [
+        "New Bedford District Court"
+      ],
+      "cities": [
+        "New Bedford"
+      ]
+    },
+    {
+      "name": "New Bedford Juvenile Court",
+      "tyler_lower_court_code": "1841",
+      "tyler_prod_lower_court_code": "7070",
+      "source_names": [
+        "New Bedford Juvenile Court"
+      ],
+      "cities": [
+        "New Bedford"
+      ]
+    },
+    {
+      "name": "Newburyport District Court",
+      "tyler_lower_court_code": "1800",
+      "tyler_prod_lower_court_code": "7029",
+      "source_names": [
+        "Newburyport District Court"
+      ],
+      "cities": [
+        "Newburyport"
+      ]
+    },
+    {
+      "name": "Newton District Court",
+      "tyler_lower_court_code": "1801",
+      "tyler_prod_lower_court_code": "7030",
+      "source_names": [
+        "Newton District Court"
+      ],
+      "cities": [
+        "West Newton"
+      ]
+    },
+    {
+      "name": "Norfolk County Superior Court",
+      "tyler_lower_court_code": "1879",
+      "tyler_prod_lower_court_code": "7108",
+      "source_names": [
+        "Norfolk County Superior Court"
+      ],
+      "cities": [
+        "Dedham"
+      ]
+    },
+    {
+      "name": "Norfolk Probate and Family Court",
+      "tyler_lower_court_code": "1865",
+      "tyler_prod_lower_court_code": "7094",
+      "source_names": [
+        "Norfolk Probate and Family Court"
+      ],
+      "cities": [
+        "Canton"
+      ]
+    },
+    {
+      "name": "Northampton District Court",
+      "tyler_lower_court_code": "1802",
+      "tyler_prod_lower_court_code": "7031",
+      "source_names": [
+        "Northampton District Court"
+      ],
+      "cities": [
+        "Northampton"
+      ]
+    },
+    {
+      "name": "Northeast Housing Court (Lawrence, Lowell, Lynn, Salem, Woburn sessions)",
+      "tyler_lower_court_code": "1828",
+      "tyler_prod_lower_court_code": "7057",
+      "source_names": [
+        "Northeast Housing Court - Lawrence Session",
+        "Northeast Housing Court - Lowell Session",
+        "Northeast Housing Court - Lynn Session",
+        "Northeast Housing Court - Salem Session",
+        "Northeast Housing Court - Woburn Session"
+      ],
+      "cities": [
+        "Lawrence",
+        "Lowell",
+        "St. Salem",
+        "Woburn"
+      ]
+    },
+    {
+      "name": "Northern Berkshire District Court",
+      "tyler_lower_court_code": "1803",
+      "tyler_prod_lower_court_code": "7032",
+      "source_names": [
+        "Northern Berkshire District Court"
+      ],
+      "cities": [
+        "North Adams"
+      ]
+    },
+    {
+      "name": "Orange District Court",
+      "tyler_lower_court_code": "1804",
+      "tyler_prod_lower_court_code": "7033",
+      "source_names": [
+        "Orange District Court"
+      ],
+      "cities": [
+        "Orange"
+      ]
+    },
+    {
+      "name": "Orleans District Court",
+      "tyler_lower_court_code": "1805",
+      "tyler_prod_lower_court_code": "7034",
+      "source_names": [
+        "Orleans District Court"
+      ],
+      "cities": [
+        "Orleans"
+      ]
+    },
+    {
+      "name": "Orleans Juvenile Court",
+      "tyler_lower_court_code": "1836",
+      "tyler_prod_lower_court_code": "7065",
+      "source_names": [
+        "Orleans Juvenile Court"
+      ],
+      "cities": [
+        "Orleans"
+      ]
+    },
+    {
+      "name": "Palmer District Court",
+      "tyler_lower_court_code": "1806",
+      "tyler_prod_lower_court_code": "7035",
+      "source_names": [
+        "Palmer District Court"
+      ],
+      "cities": [
+        "Palmer"
+      ]
+    },
+    {
+      "name": "Peabody District Court",
+      "tyler_lower_court_code": "1807",
+      "tyler_prod_lower_court_code": "7036",
+      "source_names": [
+        "Peabody District Court"
+      ],
+      "cities": [
+        "Peabody"
+      ]
+    },
+    {
+      "name": "Pittsfield District Court",
+      "tyler_lower_court_code": "1808",
+      "tyler_prod_lower_court_code": "7037",
+      "source_names": [
+        "Pittsfield District Court"
+      ],
+      "cities": [
+        "Pittsfield"
+      ]
+    },
+    {
+      "name": "Plymouth County Superior Court (Brockton)",
+      "tyler_lower_court_code": "1880",
+      "tyler_prod_lower_court_code": "7109",
+      "source_names": [
+        "Plymouth County Superior Court"
+      ],
+      "cities": [
+        "Brockton"
+      ]
+    },
+    {
+      "name": "Plymouth County Superior Court (Plymouth)",
+      "tyler_lower_court_code": "1881",
+      "tyler_prod_lower_court_code": "7110",
+      "source_names": [
+        "Plymouth County Superior Court"
+      ],
+      "cities": [
+        "Plymouth"
+      ]
+    },
+    {
+      "name": "Plymouth District Court",
+      "tyler_lower_court_code": "1809",
+      "tyler_prod_lower_court_code": "7038",
+      "source_names": [
+        "Plymouth District Court"
+      ],
+      "cities": [
+        "Plymouth"
+      ]
+    },
+    {
+      "name": "Plymouth Juvenile Court",
+      "tyler_lower_court_code": "1837",
+      "tyler_prod_lower_court_code": "7066",
+      "source_names": [
+        "Plymouth Juvenile Court"
+      ],
+      "cities": [
+        "Plymouth"
+      ]
+    },
+    {
+      "name": "Probate and Family Court — Bristol, Fall River, New Bedford",
+      "tyler_lower_court_code": "1857",
+      "tyler_prod_lower_court_code": "7086",
+      "source_names": [
+        "Bristol Probate and Family Court",
+        "Fall River Probate and Family Court",
+        "New Bedford Probate and Family Court"
+      ],
+      "cities": [
+        "Fall River",
+        "New Bedford",
+        "Taunton"
+      ]
+    },
+    {
+      "name": "Probate and Family Court — Brockton, Plymouth",
+      "tyler_lower_court_code": "1866",
+      "tyler_prod_lower_court_code": "7095",
+      "source_names": [
+        "Brockton Probate and Family Court",
+        "Plymouth Probate and Family Court"
+      ],
+      "cities": [
+        "Brockton",
+        "Plymouth"
+      ]
+    },
+    {
+      "name": "Probate and Family Court — Essex, Lawrence",
+      "tyler_lower_court_code": "1859",
+      "tyler_prod_lower_court_code": "7088",
+      "source_names": [
+        "Essex Probate and Family Court",
+        "Lawrence Probate and Family Court"
+      ],
+      "cities": [
+        "Lawrence",
+        "Salem"
+      ]
+    },
+    {
+      "name": "Quincy District Court",
+      "tyler_lower_court_code": "1810",
+      "tyler_prod_lower_court_code": "7039",
+      "source_names": [
+        "Quincy District Court"
+      ],
+      "cities": [
+        "Quincy"
+      ]
+    },
+    {
+      "name": "Roxbury Division, Boston Municipal Court",
+      "tyler_lower_court_code": "1758",
+      "tyler_prod_lower_court_code": "6987",
+      "source_names": [
+        "Roxbury Division, Boston Municipal Court"
+      ],
+      "cities": [
+        "Roxbury"
+      ]
+    },
+    {
+      "name": "Salem District Court",
+      "tyler_lower_court_code": "1811",
+      "tyler_prod_lower_court_code": "7040",
+      "source_names": [
+        "Salem District Court"
+      ],
+      "cities": [
+        "Salem"
+      ]
+    },
+    {
+      "name": "Somerville District Court",
+      "tyler_lower_court_code": "1812",
+      "tyler_prod_lower_court_code": "7041",
+      "source_names": [
+        "Somerville District Court"
+      ],
+      "cities": [
+        "Somerville"
+      ]
+    },
+    {
+      "name": "South Boston Division, Boston Municipal Court",
+      "tyler_lower_court_code": "1759",
+      "tyler_prod_lower_court_code": "6988",
+      "source_names": [
+        "South Boston Division, Boston Municipal Court"
+      ],
+      "cities": [
+        "South Boston"
+      ]
+    },
+    {
+      "name": "Southern Berkshire District Court",
+      "tyler_lower_court_code": "1813",
+      "tyler_prod_lower_court_code": "7042",
+      "source_names": [
+        "Southern Berkshire District Court"
+      ],
+      "cities": [
+        "Great Barrington"
+      ]
+    },
+    {
+      "name": "Springfield District Court",
+      "tyler_lower_court_code": "1814",
+      "tyler_prod_lower_court_code": "7043",
+      "source_names": [
+        "Springfield District Court"
+      ],
+      "cities": [
+        "Springfield"
+      ]
+    },
+    {
+      "name": "Stoughton District Court",
+      "tyler_lower_court_code": "1815",
+      "tyler_prod_lower_court_code": "7044",
+      "source_names": [
+        "Stoughton District Court"
+      ],
+      "cities": [
+        "Stoughton"
+      ]
+    },
+    {
+      "name": "Suffolk County Superior Court",
+      "tyler_lower_court_code": "1882",
+      "tyler_prod_lower_court_code": "7111",
+      "source_names": [
+        "Suffolk County Superior Court"
+      ],
+      "cities": [
+        "Boston"
+      ]
+    },
+    {
+      "name": "Suffolk Probate and Family Court",
+      "tyler_lower_court_code": "1867",
+      "tyler_prod_lower_court_code": "7096",
+      "source_names": [
+        "Suffolk Probate and Family Court"
+      ],
+      "cities": [
+        "Boston"
+      ]
+    },
+    {
+      "name": "Taunton District Court",
+      "tyler_lower_court_code": "1816",
+      "tyler_prod_lower_court_code": "7045",
+      "source_names": [
+        "Taunton District Court"
+      ],
+      "cities": [
+        "Taunton"
+      ]
+    },
+    {
+      "name": "Taunton Juvenile Court",
+      "tyler_lower_court_code": "1842",
+      "tyler_prod_lower_court_code": "7071",
+      "source_names": [
+        "Taunton Juvenile Court"
+      ],
+      "cities": [
+        "Taunton"
+      ]
+    },
+    {
+      "name": "Uxbridge District Court",
+      "tyler_lower_court_code": "1817",
+      "tyler_prod_lower_court_code": "7046",
+      "source_names": [
+        "Uxbridge District Court"
+      ],
+      "cities": [
+        "Uxbridge"
+      ]
+    },
+    {
+      "name": "Waltham District Court",
+      "tyler_lower_court_code": "1818",
+      "tyler_prod_lower_court_code": "7047",
+      "source_names": [
+        "Waltham District Court"
+      ],
+      "cities": [
+        "Waltham"
+      ]
+    },
+    {
+      "name": "Wareham District Court",
+      "tyler_lower_court_code": "1819",
+      "tyler_prod_lower_court_code": "7048",
+      "source_names": [
+        "Wareham District Court"
+      ],
+      "cities": [
+        "Wareham"
+      ]
+    },
+    {
+      "name": "Wareham Juvenile Court",
+      "tyler_lower_court_code": "1851",
+      "tyler_prod_lower_court_code": "7080",
+      "source_names": [
+        "Wareham Juvenile Court"
+      ],
+      "cities": [
+        "West Wareham"
+      ]
+    },
+    {
+      "name": "West Roxbury Division, Boston Municipal Court",
+      "tyler_lower_court_code": "1760",
+      "tyler_prod_lower_court_code": "6989",
+      "source_names": [
+        "West Roxbury Division, Boston Municipal Court"
+      ],
+      "cities": [
+        "Jamaica Plain"
+      ]
+    },
+    {
+      "name": "Westborough District Court",
+      "tyler_lower_court_code": "1820",
+      "tyler_prod_lower_court_code": "7049",
+      "source_names": [
+        "Westborough District Court"
+      ],
+      "cities": [
+        "Westborough"
+      ]
+    },
+    {
+      "name": "Western Housing Court (Greenfield, Hadley, Pittsfield, Springfield sessions)",
+      "tyler_lower_court_code": "1830",
+      "tyler_prod_lower_court_code": "7059",
+      "source_names": [
+        "Western Housing Court - Greenfield Session",
+        "Western Housing Court - Hadley Session",
+        "Western Housing Court - Pittsfield Session",
+        "Western Housing Court - Springfield Session"
+      ],
+      "cities": [
+        "Greenfield",
+        "Hadley",
+        "Pittsfield",
+        "Springfield"
+      ]
+    },
+    {
+      "name": "Westfield District Court",
+      "tyler_lower_court_code": "1821",
+      "tyler_prod_lower_court_code": "7050",
+      "source_names": [
+        "Westfield District Court"
+      ],
+      "cities": [
+        "Westfield"
+      ]
+    },
+    {
+      "name": "Winchendon District Court",
+      "tyler_lower_court_code": "1822",
+      "tyler_prod_lower_court_code": "7051",
+      "source_names": [
+        "Winchendon District Court"
+      ],
+      "cities": [
+        "Gardner District Court, Gardner"
+      ]
+    },
+    {
+      "name": "Woburn District Court",
+      "tyler_lower_court_code": "1823",
+      "tyler_prod_lower_court_code": "7052",
+      "source_names": [
+        "Woburn District Court"
+      ],
+      "cities": [
+        "Woburn"
+      ]
+    },
+    {
+      "name": "Worcester County Superior Court",
+      "tyler_lower_court_code": "1883",
+      "tyler_prod_lower_court_code": "7112",
+      "source_names": [
+        "Worcester County Superior Court"
+      ],
+      "cities": [
+        "Worcester"
+      ]
+    },
+    {
+      "name": "Worcester District Court",
+      "tyler_lower_court_code": "1824",
+      "tyler_prod_lower_court_code": "7053",
+      "source_names": [
+        "Worcester District Court"
+      ],
+      "cities": [
+        "Worcester"
+      ]
+    },
+    {
+      "name": "Worcester Probate and Family Court",
+      "tyler_lower_court_code": "1868",
+      "tyler_prod_lower_court_code": "7097",
+      "source_names": [
+        "Worcester Probate and Family Court"
+      ],
+      "cities": [
+        "Worcester"
+      ]
+    },
+    {
+      "name": "Wrentham District Court",
+      "tyler_lower_court_code": "1825",
+      "tyler_prod_lower_court_code": "7054",
+      "source_names": [
+        "Wrentham District Court"
+      ],
+      "cities": [
+        "Wrentham"
+      ]
+    }
+  ]
+}

@@ -9,6 +9,7 @@ from django.conf import settings
 
 from efile.models import FilingDocument, FilingDraft, FilingParty
 from efile.party_sides import PARTY_SIDE_KEYWORDS, PartySide, side_for_party_type_name
+from efile.services.appeals import appeal_questions
 from efile.services.document_checklists import party_type_keywords_for_role
 from efile.services.extracted_parties import extracted_party_suggestions, party_display_name
 from efile.services.party_requirements import address_is_blank, address_is_complete, party_address_requirement
@@ -548,7 +549,7 @@ def get_case_questions(draft: FilingDraft) -> list[dict[str, Any]]:
         case_type,
         court=draft.court_code,
     )
-    questions: list[dict[str, Any]] = []
+    questions: list[dict[str, Any]] = appeal_questions(draft)
     for section in (config or {}).get("sections", {}).values():
         for group in section.get("fields", []):
             for field in group.get("fields", []):
@@ -571,6 +572,8 @@ def get_case_questions(draft: FilingDraft) -> list[dict[str, Any]]:
 
 
 def parse_question_answer(question: dict[str, Any], value: Any) -> Any:
+    if question["type"] == "select" and value not in {option["value"] for option in question["options"]}:
+        raise ValueError("Choose a court from the list.")
     if question["type"] == "radio":
         if str(value).lower() == "true":
             return True

@@ -353,6 +353,11 @@ def read_case_data(draft: FilingDraft | None) -> dict[str, Any]:
     for key, value in (draft.supplemental_fields or {}).items():
         data[key] = value
 
+    from efile.services.appeals import LOWER_COURT_FIELDS, is_new_appeal
+
+    if any(key in data for key in LOWER_COURT_FIELDS) and not is_new_appeal(draft):
+        for key in LOWER_COURT_FIELDS:
+            data.pop(key, None)
     return data
 
 

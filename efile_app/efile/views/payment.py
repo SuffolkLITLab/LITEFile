@@ -7,6 +7,7 @@ from requests import RequestException
 
 from efile.api.suffolk_api_views import get_tyler_token
 from efile.models import FilingDocument, FilingParty
+from efile.services.appeals import appeal_answers_complete
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.draft_urls import draft_url
 from efile.services.drafts import draft_snapshot, read_case_data
@@ -45,6 +46,10 @@ def efile_payment(request, jurisdiction):
     if filer is None or not filing_parties(draft):
         messages.error(request, "Complete the people in this filing before choosing payment.")
         return redirect("parties", jurisdiction=jurisdiction)
+
+    if not appeal_answers_complete(draft):
+        messages.error(request, "Complete the lower court information before checking fees.")
+        return redirect("case_questions", jurisdiction=jurisdiction)
 
     if request.method == "POST":
         account_id = request.POST.get("selected_payment_account", "").strip()

@@ -35,6 +35,21 @@
                                     </label>
                                 {% endfor %}
                             </div>
+                        {% elif question.type == "select" %}
+                            <label for="{{ question.name }}">{% translate "Choose the court the case came from" %}</label>
+                            <select class="form-select"
+                                    id="{{ question.name }}"
+                                    name="{{ question.name }}"
+                                    required>
+                                <option value="">{% translate "Choose a lower court" %}</option>
+                                {% for option in question.options %}
+                                    <option value="{{ option.value }}"
+                                            {% if question.value == option.value %}selected{% endif %}>{{ option.label }}</option>
+                                {% endfor %}
+                            </select>
+                            {% if not question.options %}
+                                <p role="alert">{% translate "We could not load the lower courts. Reload this page to try again." %}</p>
+                            {% endif %}
                         {% elif question.type == "number" %}
                             <input class="form-control"
                                    type="number"
