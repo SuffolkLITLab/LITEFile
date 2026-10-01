@@ -692,6 +692,10 @@
     margin-top: 0.3rem;
 }
 
+.review-field {
+    min-width: 0;
+}
+
 .review-field>span {
     color: var(--text-heading);
     display: block;

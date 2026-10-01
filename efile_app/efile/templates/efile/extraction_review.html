@@ -6,7 +6,6 @@
     {% translate "Review what we found" %}
 {% endblock title %}
 {% block workflow_content %}
-    {% if availability_message %}<div class="alert alert-warning" role="alert">{{ availability_message }}</div>{% endif %}
     <section class="workflow-card">
         <div class="workflow-eyebrow">{% translate "Confirm case" %}</div>
         {% ui_text "extraction_review.court_label" as court_label %}
@@ -107,6 +106,12 @@
         {% endif %}
         <form method="post" id="extraction-review-form">
             {% csrf_token %}
+            <div id="filing-availability-notice"
+                 class="alert alert-warning mt-3"
+                 role="status"
+                 aria-live="polite"
+                 tabindex="-1"
+                 {% if not availability_message %}hidden{% endif %}>{{ availability_message }}</div>
             <input type="hidden" name="return_to" value="{{ return_to }}" />
             {% comment %}
             First, because the rest depends on it: the court lists different
@@ -520,6 +525,7 @@
     {{ extraction_context|json_script:"extraction-context" }}
 {% endblock workflow_content %}
 {% block extra_js %}
+    <script src="{% static 'js/filing-availability.js' %}"></script>
     <script src="{% static 'js/court-selector.js' %}"></script>
     <script src="{% static 'js/extraction-review.js' %}"></script>
 {% endblock extra_js %}

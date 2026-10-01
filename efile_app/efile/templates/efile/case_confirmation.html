@@ -61,6 +61,7 @@
                 </dd>
             </div>
         </dl>
+        {% if availability_message %}<div class="alert alert-warning" role="alert">{{ availability_message }}</div>{% endif %}
         <form method="post">
             {% csrf_token %}
             <div class="confirmation-question">
@@ -74,7 +75,11 @@
                         value="no">
                     <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {% translate "No, search again" %}
                 </button>
-                <button class="btn btn-primary" type="submit" name="confirmed" value="yes">
+                <button class="btn btn-primary"
+                        type="submit"
+                        name="confirmed"
+                        value="yes"
+                        {% if availability_message %}disabled{% endif %}>
                     {% translate "Yes, this is my case" %} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
                 </button>
             </div>

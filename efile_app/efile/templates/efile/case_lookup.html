@@ -20,6 +20,12 @@
         {% endif %}
         <form id="case-lookup-form">
             {% csrf_token %}
+            <div id="filing-availability-notice"
+                 class="alert alert-warning mt-3"
+                 role="status"
+                 aria-live="polite"
+                 tabindex="-1"
+                 hidden></div>
             <div class="lookup-fields">
                 <div class="form-field">
                     <span>{% translate "Court" %}</span>
@@ -68,6 +74,7 @@
     {{ selected_court_code|json_script:"selected-court-code" }}
 {% endblock workflow_content %}
 {% block extra_js %}
+    <script src="{% static 'js/filing-availability.js' %}"></script>
     <script src="{% static 'js/court-selector.js' %}"></script>
     <script src="{% static 'js/case-lookup.js' %}"></script>
 {% endblock extra_js %}

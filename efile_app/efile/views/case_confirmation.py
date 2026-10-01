@@ -63,6 +63,7 @@ def case_confirmation(request, jurisdiction):
         "is_logged_in": True,
         "filing_draft": draft_snapshot(draft),
         "case": draft,
+        "availability_message": draft_unavailable_message(draft),
     }
     context.update(get_workflow_context(WorkflowStepKey.CASE_CONFIRMATION, jurisdiction, draft))
     return render(request, "efile/case_confirmation.html", context)

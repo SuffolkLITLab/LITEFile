@@ -653,3 +653,127 @@ test('small screens: editing fits without sideways scrolling', async ({
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(0);
 });
+// Availability is checked as a choice changes, before the form is submitted.
+test.describe('live filing availability', () => {
+    const warning = 'Hearing scheduling is not supported for this selection.';
+    const choices = [
+        ['court', 'court', 'vt:washington', 'cook:cvd1'],
+        ['case_category', 'case_category', '7000', '6198'],
+        ['case_type', 'case_type', '183542', '183541'],
+        ['filing_type', 'filing_type', '143133', '143132'],
+    ];
+    for (const [name, parameter, blocked, allowed] of choices) {
+        test(`warns immediately for ${name} and clears after correction`, async ({
+            page
+        }) => {
+            await mockCourtLists(page, {
+                flat: true
+            });
+            await page.route('**/api/filing-availability/**', (route) => {
+                const unavailable = new URL(route.request().url()).searchParams.getAll(parameter).includes(blocked);
+                return route.fulfill({
+                    json: {
+                        success: true,
+                        available: !unavailable,
+                        message: unavailable ? warning : ''
+                    }
+                });
+            });
+            await openSavedDraft(page);
+            const notice = page.locator('#filing-availability-notice');
+            const next = page.getByRole('button', {
+                name: 'Confirm and continue'
+            });
+            await expect(notice).toBeHidden();
+            await field(page, name).edit.click();
+            await field(page, name).select.selectOption(blocked);
+            await expect(notice).toHaveText(warning);
+            await expect(next).toBeDisabled();
+            await field(page, name).select.selectOption(allowed);
+            await expect(notice).toBeHidden();
+            await expect(next).toBeEnabled();
+        });
+    }
+
+    test('a late allowed response cannot clear the current restriction', async ({
+        page
+    }) => {
+        await mockCourtLists(page, {
+            flat: true
+        });
+        let delayAllowed = false;
+        let lateDelivered = false;
+        await page.route('**/api/filing-availability/**', async (route) => {
+            const blocked = new URL(route.request().url()).searchParams.get('filing_type') === '143133';
+            const delayed = delayAllowed && !blocked;
+            if (delayed) await new Promise((resolve) => setTimeout(resolve, 500));
+            await route.fulfill({
+                json: {
+                    success: true,
+                    available: !blocked,
+                    message: blocked ? warning : ''
+                }
+            }).catch(() => {});
+            if (delayed) lateDelivered = true;
+        });
+        await openSavedDraft(page);
+        await expect(page.locator('#filing-availability-notice')).toBeHidden();
+        await field(page, 'filing_type').edit.click();
+        delayAllowed = true;
+        const requested = page.waitForRequest('**/api/filing-availability/**');
+        await field(page, 'filing_type').select.selectOption('143132');
+        await requested;
+        await field(page, 'filing_type').select.selectOption('143133');
+        await expect(page.locator('#filing-availability-notice')).toHaveText(warning);
+        await expect.poll(() => lateDelivered).toBe(true);
+        await expect(page.locator('#filing-availability-notice')).toHaveText(warning);
+        await expect(page.getByRole('button', {
+            name: 'Confirm and continue'
+        })).toBeDisabled();
+    });
+
+    test('organizing warns on a filing-type change before saving', async ({
+        page
+    }) => {
+        await mockCourtLists(page, {
+            flat: true
+        });
+        await page.route('**/api/dropdowns/document-types/**', (route) => route.fulfill({
+            json: {
+                success: true,
+                data: []
+            }
+        }));
+        await page.route('**/api/get-filing-components/**', (route) => route.fulfill({
+            json: {
+                success: true,
+                data: []
+            }
+        }));
+        await page.route('**/api/dropdowns/optional-services/**', (route) => route.fulfill({
+            json: {
+                success: true,
+                data: []
+            }
+        }));
+        await page.route('**/api/filing-availability/**', (route) => {
+            const blocked = new URL(route.request().url()).searchParams.getAll('filing_type').includes('143133');
+            return route.fulfill({
+                json: {
+                    success: true,
+                    available: !blocked,
+                    message: blocked ? warning : ''
+                }
+            });
+        });
+        await page.goto('/jurisdiction/illinois/organize-documents/');
+        const choice = page.locator('.filing-type').first();
+        await expect(choice).toBeEnabled();
+        await choice.selectOption('143133');
+        await expect(page.locator('#filing-availability-notice')).toHaveText(warning);
+        await expect(page.locator('#save-document-details')).toBeDisabled();
+        await choice.selectOption('143132');
+        await expect(page.locator('#filing-availability-notice')).toBeHidden();
+        await expect(page.locator('#save-document-details')).toBeEnabled();
+    });
+});

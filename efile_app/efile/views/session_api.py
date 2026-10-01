@@ -168,8 +168,8 @@ def forward_final_filing(request, data):
         if message := filing_unavailable_message(
             jurisdiction_id,
             court_id,
-            case_category=efile_data.get("efile_case_category", ""),
-            case_type=efile_data.get("efile_case_type", ""),
+            case_category=efile_data.get("efile_case_category") or case_data.get("case_category", ""),
+            case_type=efile_data.get("efile_case_type") or case_data.get("case_type", ""),
             filing_types=[item.get("filing_type", "") for item in efile_data["al_court_bundle"].get("elements", [])],
         ):
             return JsonResponse(

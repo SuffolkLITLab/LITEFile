@@ -26,6 +26,7 @@ from .dropdown_views import (
     get_optional_services,
     get_party_types,
 )
+from .filing_availability import get_filing_availability
 from .filing_views import get_filings, payment_fees
 from .payment_views import delete_payment_account, waiver_account
 from .suffolk_api_views import get_party_types_from_suffolk_api, lookup_case
@@ -44,6 +45,7 @@ urlpatterns = [
     path("dropdowns/optional-services/", get_optional_services, name="optional_services"),
     path("dropdowns/party-types/", get_party_types, name="party_types"),
     path("dropdowns/name-suffixes/", get_name_suffixes, name="name_suffixes"),
+    path("filing-availability/", get_filing_availability, name="filing_availability"),
     # Form configuration endpoints
     path("form-config/", get_form_config, name="form_config"),
     path("case-type-config/", get_case_type_config, name="case_type_config"),

@@ -86,7 +86,9 @@ def test_submission_logs_exclude_secrets_and_contents(caplog, status):
         patch("efile.views.session_api.describe_efsp_error", return_value="Upstream error"),
         patch("requests.post", return_value=response),
     ):
-        result = forward_final_filing(request, {"efile_data": {"al_court_bundle": "private-payload-marker"}})
+        result = forward_final_filing(
+            request, {"efile_data": {"al_court_bundle": {"elements": [{"filing_type": "private-payload-marker"}]}}}
+        )
     assert result.status_code == (200 if status == 201 else status)
     assert "Filing submission response status=" in caplog.text
     for marker in (

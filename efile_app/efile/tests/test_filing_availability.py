@@ -158,7 +158,7 @@ def test_outgoing_payload_codes_are_also_checked(configure, client, submission_d
 
     from efile.views.session_api import forward_final_filing
 
-    configure({"rules": [{"filing_types": ["blocked"]}]})
+    configure({"rules": [{"case_types": ["contract"], "filing_types": ["blocked"]}]})
     request = RequestFactory().post("/")
     request.user = submission_draft.user
     request.session = client.session
@@ -201,6 +201,9 @@ def test_existing_case_confirmation_is_blocked_but_search_again_works(configure,
     submission_draft.docket_number = "2026-CV-123"
     submission_draft.save()
     url = reverse("case_confirmation", kwargs={"jurisdiction": "illinois"})
+    response = client.get(url)
+    assert response.context["availability_message"]
+    assert b'value="yes"' in response.content
     assert client.post(url, {"confirmed": "yes"}).status_code == 403
     assert client.post(url, {"confirmed": "no"}).status_code == 302
 
@@ -229,3 +232,22 @@ def test_claim_rechecks_availability(configure, submission_draft):
         _claim_for_submission(submission_draft, {})
     submission_draft.refresh_from_db()
     assert submission_draft.status == FilingDraft.Status.DRAFT
+
+
+@pytest.mark.django_db
+def test_live_api_checks_partial_choices_and_multiple_filing_types(configure, client):
+    configure({"enabled": False, "message": "Court disabled"})
+    url = reverse("api:filing_availability")
+    params = {"jurisdiction": "illinois", "court": "cook:law1"}
+    response = client.get(url, params)
+    assert response.json() == {"success": True, "available": False, "message": "Court disabled"}
+    assert "no-store" in response.headers["Cache-Control"]
+    configure({"rules": [{"filing_types": ["motion"], "message": "Scheduling unavailable"}]})
+    assert client.get(url, params).json()["available"]
+    params["filing_type"] = ["petition", "motion"]
+    assert not client.get(url, params).json()["available"]
+
+
+@pytest.mark.django_db
+def test_live_api_rejects_unknown_jurisdiction(client):
+    assert client.get(reverse("api:filing_availability"), {"jurisdiction": "unknown"}).status_code == 400

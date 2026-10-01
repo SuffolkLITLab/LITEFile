@@ -453,8 +453,12 @@ county-prefix settings. Restrictions are additive: `enabled: true` or an empty
 rule list on one court does not cancel a county-prefix restriction. A rule with
 no selectors does not match; use `enabled: false` to disable a whole court.
 
-Filers see the restriction when confirming their choices or continuing with
-selected filing types. LITEFile also checks saved drafts on the checklist and
+Filers see a warning beside their selection as soon as they choose a restricted
+court, category, case type, or filing type. Continue is disabled until the check
+finishes and the selection is allowed. Changing to an allowed selection clears
+the warning. The same checks run on document filing-type changes and court
+selection during an existing-case lookup; a restricted case type is shown as
+soon as the lookup resolves the case. LITEFile also checks saved drafts on the checklist and
 review pages, and rechecks both the saved draft and outgoing codes before
 submission. Drafts and documents remain available for correction. Removing the
 matching restriction restores filing; already-open pages are checked again on

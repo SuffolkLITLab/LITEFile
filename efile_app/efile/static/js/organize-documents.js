@@ -32,6 +32,18 @@
     // it -- see efile/utils/ui_text.py.
     const text = context.text || {};
     let filingTypes = null;
+    const availability = window.filingAvailability.mount({
+        form,
+        notice: document.getElementById("filing-availability-notice"),
+        selection: () => ({
+            jurisdiction: context.jurisdiction,
+            court: context.court,
+            case_category: context.case_category,
+            case_type: context.case_type,
+            filing_types: cards().map((card) => card.querySelector(".filing-type").value || card.dataset.filingType || ""),
+        }),
+    });
+    availability.check();
 
     function optionValue(item) {
         return String(item.value || item.code || item.id || "");
@@ -360,7 +372,10 @@
     async function initializeCard(card) {
         const filingType = card.querySelector(".filing-type");
         setOptions(filingType, await loadFilingTypes(), card.dataset.filingType, "Choose a filing type");
+        availability.check();
         filingType.addEventListener("change", async () => {
+            card.dataset.filingType = filingType.value;
+            availability.check(filingType.closest(".form-field") || filingType.parentElement);
             card.dataset.documentType = "";
             card.dataset.filingComponent = "";
             try {

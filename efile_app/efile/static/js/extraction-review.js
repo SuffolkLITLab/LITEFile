@@ -50,6 +50,18 @@
         },
     };
 
+    const availability = window.filingAvailability.mount({
+        form,
+        notice: document.getElementById("filing-availability-notice"),
+        selection: () => ({
+            jurisdiction: context.jurisdiction,
+            court: fields.court.select.value,
+            case_category: fields.case_category.select.value,
+            case_type: fields.case_type.select.value,
+            filing_types: [fields.filing_type.select.value],
+        }),
+    });
+
     const ORDER = ["court", "case_category", "case_type", "filing_type"];
 
     const DOWNSTREAM = {
@@ -180,6 +192,7 @@
             text
         };
         field.nameInput.value = text;
+        availability.check();
         if (field.valueEl && code) {
             field.valueEl.textContent = text + (option.textContent.trim().endsWith("*") ? " *" : "");
         }
@@ -191,6 +204,7 @@
         field.select.disabled = true;
         field.select.innerHTML = `<option value="">${escapeHtml(message)}</option>`;
         field.root.setAttribute("aria-busy", "true");
+        availability.check();
         if (field.checking) {
             field.checking.textContent = gettext("Checking this is still offered…");
             field.checking.hidden = false;
@@ -214,6 +228,7 @@
         field.nameInput.value = "";
         field.hint.textContent = field.defaultHint;
         setMode(key, "edit");
+        availability.check();
     }
 
     function failField(key, message, placeholder) {
@@ -357,6 +372,7 @@
             setMode(key, "edit");
         }
         if (token !== undefined && !isCurrent(key, token)) return;
+        availability.check();
         await ADVANCE[key]();
     }
 
@@ -510,6 +526,7 @@
     ORDER.forEach((key) => {
         fields[key].select.addEventListener("change", () => {
             remember(key);
+            availability.check(fields[key].root);
             fields[key].hint.textContent = fields[key].defaultHint;
             ADVANCE[key]();
         });
