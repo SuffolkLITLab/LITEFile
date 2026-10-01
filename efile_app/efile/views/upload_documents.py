@@ -16,7 +16,14 @@ from efile.services.document_uploads import upload_files
 from efile.services.drafts import draft_snapshot, read_upload_data
 from efile.utils.config_loader import config_loader
 from efile.utils.s3_upload_handler import S3UploadHandler
-from efile.workflow import ExistingCase, WorkflowStepKey, get_step_url, get_workflow_context
+from efile.workflow import (
+    ExistingCase,
+    WorkflowStepKey,
+    get_step_url,
+    get_workflow_context,
+    return_target,
+    with_return_to,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -155,7 +162,9 @@ def upload_documents(request, jurisdiction):
         return JsonResponse(
             {
                 "success": True,
-                "redirect_url": get_step_url(WorkflowStepKey.PREVIEW_DOCUMENTS, jurisdiction),
+                "redirect_url": with_return_to(
+                    get_step_url(WorkflowStepKey.PREVIEW_DOCUMENTS, jurisdiction), return_target(request)
+                ),
                 "document_count": FilingDocument.objects.filter(draft=draft).count(),
                 "extraction_pending": FilingDocument.objects.filter(
                     draft=draft,
@@ -185,6 +194,9 @@ def upload_documents(request, jurisdiction):
         "upload_data": upload_data,
         "ai_opted_out": draft.ai_assistance_opted_out,
         "account_ai_opted_out": request.user.ai_assistance_opted_out,
+        # Set when the filer came to change files from a later screen; the
+        # way on goes back there instead of through every step again.
+        "return_to": return_target(request),
     }
     context["upload_disclaimers"] = config_loader.get_upload_disclaimers(jurisdiction)
     context.update(get_workflow_context(WorkflowStepKey.UPLOAD_DOCUMENTS, jurisdiction, draft))
@@ -218,6 +230,8 @@ def document_extraction_status(request, jurisdiction):
             "ready": extraction.status in {DocumentExtraction.Status.COMPLETE, DocumentExtraction.Status.FAILED},
             "pages_analyzed": extraction.pages_analyzed,
             "total_pages": extraction.total_pages,
-            "review_url": get_step_url(WorkflowStepKey.PREVIEW_DOCUMENTS, jurisdiction),
+            "review_url": with_return_to(
+                get_step_url(WorkflowStepKey.PREVIEW_DOCUMENTS, jurisdiction), return_target(request)
+            ),
         }
     )

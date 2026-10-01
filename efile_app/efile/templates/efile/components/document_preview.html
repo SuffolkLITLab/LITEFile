@@ -1,5 +1,7 @@
 {% load i18n %}
-<details class="document-preview" data-pdf-preview>
+<details class="document-preview"
+         data-pdf-preview
+         {% if open_preview %}open{% endif %}>
     <summary>{% translate "View PDF:" %} {{ document.name|default:document.original_filename }}</summary>
     <div class="document-preview__body">
         <p>

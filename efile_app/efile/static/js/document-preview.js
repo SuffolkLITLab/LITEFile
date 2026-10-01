@@ -95,7 +95,12 @@
             status.textContent = gettext("The PDF did not load. Download it or close and reopen this view.");
         }
     }
-    document.querySelectorAll("[data-pdf-preview]").forEach((details) => {
+
+    function attach(details) {
         details.addEventListener("toggle", () => openPreview(details));
-    });
+        // Previews added after load, already open, may never fire a toggle.
+        if (details.open) openPreview(details);
+    }
+    window.attachPdfPreview = attach;
+    document.querySelectorAll("[data-pdf-preview]").forEach(attach);
 })();

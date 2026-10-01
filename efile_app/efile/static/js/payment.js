@@ -1,3 +1,4 @@
+/* global DocumentChecks */
 const PAYMENT_URLS = {
     accounts: "/api/payment-accounts/",
     accountTypes: "/api/payment-account-types/",
@@ -57,7 +58,30 @@ const PaymentPage = {
 
     setFeesState(loading) {
         document.getElementById("loadingSpinner").style.display = loading ? "block" : "none";
-        document.getElementById("submitButton").disabled = loading || this.removingAccount || this.waiverUploading || !this.feeQuoteReady || !document.getElementById("selected-payment-account").value;
+        document.getElementById("submitButton").disabled = loading || this.removingAccount || this.waiverUploading || DocumentChecks.pending() || !this.feeQuoteReady || !document.getElementById("selected-payment-account").value;
+    },
+
+    // A copy added on this page is confirmed here before Review.
+    async onDocumentCheck({
+        action,
+        data
+    }) {
+        document.getElementById("fee-inputs-token").textContent = JSON.stringify(data.fee_inputs_token);
+        const confirmation = document.getElementById("waiver-upload-confirmation");
+        if (action === "remove") {
+            if (confirmation) confirmation.hidden = true;
+            const upload = document.getElementById("waiver-upload-required");
+            if (upload) upload.hidden = false;
+            document.getElementById("add-waiver-document")?.focus();
+            paymentMessages.showSuccess(gettext("Document removed. You can upload a different file."));
+            // The removed document no longer counts toward fees.
+            await this.chooseIntent();
+        } else {
+            if (confirmation && !confirmation.hidden) confirmation.textContent = gettext("Fee waiver document added and checked.");
+            const next = document.querySelector("[data-document-check]") || document.querySelector('input[name="paymentIntent"]:checked') || document.getElementById("submitButton");
+            next.focus();
+        }
+        this.setFeesState(false);
     },
 
     async loadAccountTypes() {
@@ -318,6 +342,7 @@ const PaymentPage = {
         document.querySelectorAll('input[name="paymentIntent"]').forEach((input) => {
             input.addEventListener("change", () => this.chooseIntent());
         });
+        document.getElementById("document-checks").addEventListener("document-checks:change", (event) => this.onDocumentCheck(event.detail));
         await this.loadAccountTypes();
         this.loadAccounts().catch(() => paymentMessages.showError(gettext("We could not load payment methods.")));
     }

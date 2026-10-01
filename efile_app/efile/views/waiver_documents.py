@@ -11,7 +11,7 @@ from efile.services.drafts import ACTIVE_DRAFT_STATUSES
 from efile.services.fee_quotes import fee_inputs_token, invalidate_fee_quote
 from efile.services.waiver_documents import waiver_document_choices, waiver_filing_types
 from efile.utils.s3_upload_handler import S3UploadHandler
-from efile.workflow import WorkflowStepKey, get_step_url
+from efile.views.document_checks import document_check_html
 
 
 @require_http_methods(["GET", "POST"])
@@ -61,7 +61,7 @@ def waiver_documents(request, jurisdiction):
             highest = draft.documents.filter(role=FilingDocument.Role.SUPPORTING).aggregate(order=Max("sort_order"))[
                 "order"
             ]
-            FilingDocument.objects.create(
+            document = FilingDocument.objects.create(
                 draft=draft,
                 role=FilingDocument.Role.SUPPORTING,
                 sort_order=0 if highest is None else highest + 1,
@@ -80,7 +80,7 @@ def waiver_documents(request, jurisdiction):
                 {
                     "success": True,
                     "fee_inputs_token": fee_inputs_token(draft),
-                    "preview_url": get_step_url(WorkflowStepKey.PREVIEW_DOCUMENTS, jurisdiction) + "?return_to=payment",
+                    "check_html": document_check_html(request, document),
                 }
             )
     except ValueError as error:

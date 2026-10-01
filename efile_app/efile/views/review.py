@@ -14,7 +14,7 @@ from efile.services.filing_availability import draft_unavailable_message, unavai
 from efile.services.filing_plans import documents_missing_from_envelope
 from efile.services.people import get_case_questions
 
-from ..workflow import WorkflowStepKey, get_step_url, get_workflow_context
+from ..workflow import RETURN_TO_REVIEW, WorkflowStepKey, get_step_url, get_workflow_context, with_return_to
 
 
 def _matches_extracted_value(current, extracted, exact=False):
@@ -51,11 +51,11 @@ def case_review(request, jurisdiction):
     if message := draft_unavailable_message(draft):
         return unavailable_response(request, draft, message)
     if unreviewed_documents(draft).exists():
-        return redirect(get_step_url(WorkflowStepKey.PREVIEW_DOCUMENTS, jurisdiction) + "?return_to=review")
+        return redirect(with_return_to(get_step_url(WorkflowStepKey.PREVIEW_DOCUMENTS, jurisdiction), RETURN_TO_REVIEW))
 
     if not appeal_answers_complete(draft):
         messages.error(request, "Complete the lower court information before reviewing your filing.")
-        return redirect(get_step_url(WorkflowStepKey.CASE_QUESTIONS, jurisdiction) + "?return_to=review")
+        return redirect(with_return_to(get_step_url(WorkflowStepKey.CASE_QUESTIONS, jurisdiction), RETURN_TO_REVIEW))
 
     if not draft.selected_payment_account_id:
         messages.error(request, "Choose a payment method before reviewing your filing.")

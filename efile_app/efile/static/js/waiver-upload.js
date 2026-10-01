@@ -1,4 +1,4 @@
-/* global PaymentPage, paymentJSON */
+/* global DocumentChecks, PaymentPage, paymentJSON */
 /* Add a supporting waiver PDF without leaving payment or changing the lead. */
 document.addEventListener("DOMContentLoaded", () => {
     const open = document.getElementById("add-waiver-document");
@@ -83,14 +83,15 @@ document.addEventListener("DOMContentLoaded", () => {
             });
             const data = await response.json();
             if (!response.ok || !data.success) throw new Error(data.error || gettext("The upload failed. Try again."));
-            if (data.preview_url) {
-                window.location.assign(window.withFilingDraft(data.preview_url));
-                return;
-            }
             document.getElementById("fee-inputs-token").textContent = JSON.stringify(data.fee_inputs_token);
             document.getElementById("waiver-upload-required").hidden = true;
+            file.value = "";
+            status.textContent = "";
             const confirmation = document.getElementById("waiver-upload-confirmation");
             confirmation.hidden = false;
+            // The filer checks the prepared copy here, without leaving Fees.
+            DocumentChecks.add(document.getElementById("document-checks"), data.check_html);
+            PaymentPage.setFeesState(false);
             confirmation.focus();
             // Old requests and quotes described a different set of documents.
             await PaymentPage.chooseIntent();

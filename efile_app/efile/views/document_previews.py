@@ -17,7 +17,7 @@ from efile.services.document_previews import preview_fingerprint
 from efile.services.document_uploads import prepare_stored_documents
 from efile.services.drafts import ACTIVE_DRAFT_STATUSES
 from efile.utils.s3_upload_handler import S3UploadHandler
-from efile.workflow import WorkflowStepKey, get_workflow_context
+from efile.workflow import WorkflowStepKey, continue_url, get_workflow_context, return_target
 
 logger = logging.getLogger(__name__)
 
@@ -29,10 +29,7 @@ def preview_documents(request, jurisdiction):
     draft = ensure_current_draft(request, jurisdiction, current_step=WorkflowStepKey.PREVIEW_DOCUMENTS)
     if not FilingDocument.objects.filter(draft=draft).exists():
         return redirect("upload_documents", jurisdiction=jurisdiction)
-    # These destinations are server-defined, including documents added later
-    # from the checklist or fees screen. Never use an arbitrary return URL.
-    destinations = {"review": "case_review", "payment": "payment", "document_checklist": "document_checklist"}
-    return_to = request.POST.get("return_to") or request.GET.get("return_to", "")
+    return_to = return_target(request)
     error = ""
     status = 200
     if request.method == "GET":
@@ -56,7 +53,7 @@ def preview_documents(request, jurisdiction):
                 error = "Your files changed. Review these copies before you continue."
             else:
                 FilingDocument.objects.filter(draft=draft).update(preparation_reviewed_at=timezone.now())
-                return redirect(destinations.get(return_to, "extraction_review"), jurisdiction=jurisdiction)
+                return redirect(continue_url(draft, jurisdiction, return_to, WorkflowStepKey.EXTRACTION_REVIEW))
     documents = list(FilingDocument.objects.filter(draft=draft).order_by("role", "sort_order", "pk"))
     context = {
         "documents": documents,

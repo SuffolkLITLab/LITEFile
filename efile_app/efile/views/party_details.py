@@ -19,7 +19,14 @@ from efile.services.people import (
     needs_amount_in_controversy,
     party_can_be_the_filer,
 )
-from efile.workflow import RETURN_TO_REVIEW, WorkflowStepKey, get_step_url, get_workflow_context, with_return_to
+from efile.workflow import (
+    WorkflowStepKey,
+    continue_step,
+    continue_url,
+    get_workflow_context,
+    return_target,
+    with_return_to,
+)
 
 
 @require_http_methods(["GET", "POST"])
@@ -118,7 +125,7 @@ def party_details(request, jurisdiction):
             party.phone = request.POST.get("phone", "").strip()
             party.save()
 
-            return_to = request.POST.get("return_to")
+            return_to = return_target(request)
             remaining = [item for item in incomplete_parties(draft, party_types=party_types) if item.pk != party.pk]
             if remaining:
                 url = reverse("party_details", kwargs={"jurisdiction": jurisdiction})
@@ -129,12 +136,10 @@ def party_details(request, jurisdiction):
                 **(draft.supplemental_fields or {}),
                 "_case_questions_required": has_questions,
             }
-            if return_to == RETURN_TO_REVIEW:
-                draft.current_step = WorkflowStepKey.REVIEW
-            else:
-                draft.current_step = WorkflowStepKey.CASE_QUESTIONS if has_questions else WorkflowStepKey.PAYMENT
+            default_step = WorkflowStepKey.CASE_QUESTIONS if has_questions else WorkflowStepKey.PAYMENT
+            draft.current_step = continue_step(draft, return_to, default_step)
             draft.save(update_fields=["supplemental_fields", "current_step", "updated_at"])
-            return redirect(get_step_url(draft.current_step, jurisdiction))
+            return redirect(continue_url(draft, jurisdiction, return_to, default_step))
 
     address_requirement = party_address_requirement(draft, party, party_types=party_types)
     context = {
@@ -152,7 +157,7 @@ def party_details(request, jurisdiction):
         "replaces_a_name": claim_replaces_a_name(filer_row, party),
         "party_types": party_types,
         "party_kind": "organization" if party.organization_name else "person",
-        "return_to": request.GET.get("return_to", ""),
+        "return_to": return_target(request),
         "court_code": draft.court_code,
         "address_required": address_requirement.required,
         "address_reason": address_requirement.reason,

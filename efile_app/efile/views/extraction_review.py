@@ -15,12 +15,15 @@ from efile.services.extraction_fields import display_extracted_fields, document_
 from efile.services.filing_availability import filing_unavailable_message
 from efile.services.filing_path import change_filing_path, describe_path_change, filing_path_conflict
 from efile.workflow import (
-    RETURN_TO_REVIEW,
     ExistingCase,
     WorkflowStepKey,
+    continue_step,
+    continue_url,
     get_next_step,
     get_step_url,
     get_workflow_context,
+    return_target,
+    with_return_to,
 )
 
 
@@ -111,7 +114,11 @@ def extraction_review(request, jurisdiction):
         return redirect("upload_documents", jurisdiction=jurisdiction)
 
     if unreviewed_documents(draft).exists():
-        return redirect("preview_documents", jurisdiction=jurisdiction)
+        # Checking files is a detour too: come back here, still on the way
+        # to wherever this screen was opened from.
+        return redirect(
+            with_return_to(get_step_url(WorkflowStepKey.PREVIEW_DOCUMENTS, jurisdiction), return_target(request))
+        )
 
     lead = FilingDocument.objects.filter(draft=draft, role=FilingDocument.Role.LEAD).first()
     extraction = extraction_for_document(lead) if lead else None
@@ -120,7 +127,9 @@ def extraction_review(request, jurisdiction):
         DocumentExtraction.Status.PROCESSING,
     }:
         messages.info(request, "We are still analyzing your first PDF. You can leave this page and come back.")
-        return redirect("upload_documents", jurisdiction=jurisdiction)
+        return redirect(
+            with_return_to(get_step_url(WorkflowStepKey.UPLOAD_DOCUMENTS, jurisdiction), return_target(request))
+        )
 
     # What the party editor should show: what was just submitted, so a filer
     # sent back to fix a validation error keeps the names they typed, and
@@ -205,16 +214,17 @@ def extraction_review(request, jurisdiction):
             save_reviewed_parties(draft, party_rows)
             # A different kind of filing is not an edit Review can take back
             # as-is: an existing case has to be found in the court's records,
-            # and the documents need their filing types again. Only an
-            # unchanged path, with any existing case already found, returns.
-            returns_to_review = (
-                request.POST.get("return_to") == RETURN_TO_REVIEW
-                and not path_change.switched
-                and not (existing_case == ExistingCase.EXISTING and not draft.previous_case_id)
-            )
-            if returns_to_review:
-                write_case_data(draft, {}, current_step=WorkflowStepKey.REVIEW)
-                return redirect(get_step_url(WorkflowStepKey.REVIEW, jurisdiction))
+            # and a switched path clears the documents' filing types. The
+            # filer goes through exactly those steps, still on the detour.
+            return_to = return_target(request)
+            if return_to:
+                if existing_case == ExistingCase.EXISTING and not draft.previous_case_id:
+                    write_case_data(draft, {}, current_step=WorkflowStepKey.CASE_LOOKUP)
+                    return redirect(with_return_to(get_step_url(WorkflowStepKey.CASE_LOOKUP, jurisdiction), return_to))
+                linear = get_next_step(WorkflowStepKey.EXTRACTION_REVIEW, draft)
+                default_step = linear.key if linear else WorkflowStepKey.REVIEW
+                write_case_data(draft, {}, current_step=continue_step(draft, return_to, default_step))
+                return redirect(continue_url(draft, jurisdiction, return_to, default_step))
             next_step = get_next_step(WorkflowStepKey.EXTRACTION_REVIEW, draft)
             if next_step:
                 write_case_data(draft, {}, current_step=next_step.key)
@@ -317,7 +327,7 @@ def extraction_review(request, jurisdiction):
         "acknowledgement_error": acknowledgement_error,
         "reviewed_extraction": request.method == "POST" and request.POST.get("reviewed_extraction") == "yes",
         "extraction_context": extraction_context,
-        "return_to": request.GET.get("return_to", ""),
+        "return_to": return_target(request),
     }
     context.update(get_workflow_context(WorkflowStepKey.EXTRACTION_REVIEW, jurisdiction, draft))
     return render(request, "efile/extraction_review.html", context)

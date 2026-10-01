@@ -4,7 +4,9 @@ const fs = require("node:fs");
 const vm = require("node:vm");
 const path = require("node:path");
 
-function pageHarness(post) {
+function pageHarness(post, checks = {
+    pending: () => false
+}) {
     const nodes = new Map();
     const node = (id) => {
         if (!nodes.has(id)) nodes.set(id, {
@@ -43,6 +45,7 @@ function pageHarness(post) {
         URLSearchParams,
         gettext: (text) => text,
         FilingPayload: {},
+        DocumentChecks: checks,
         apiUtils: {
             post,
             getCurrentJurisdiction: () => "illinois",
@@ -331,5 +334,20 @@ test("failed removal keeps the existing payment selection usable and permits ret
     assert.equal(node("paymentSection").hidden, false);
     assert.equal(payment.feeQuoteReady, true);
     assert.equal(payment.quoteRequestId, 7);
+    assert.equal(node("submitButton").disabled, false);
+});
+test("a copy still waiting to be checked keeps review disabled", async () => {
+    let pending = true;
+    const {
+        payment,
+        node
+    } = pageHarness(async () => waiver, {
+        pending: () => pending
+    });
+    await payment.chooseIntent();
+    assert.equal(node("selected-payment-account").value, "waiver-1");
+    assert.equal(node("submitButton").disabled, true);
+    pending = false;
+    payment.setFeesState(false);
     assert.equal(node("submitButton").disabled, false);
 });

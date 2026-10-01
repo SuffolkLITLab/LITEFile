@@ -66,6 +66,7 @@
         </details>
         <form method="post" id="payment-form">
             {% csrf_token %}
+            <input type="hidden" name="return_to" value="{{ return_to }}" />
             <input type="hidden"
                    name="selected_payment_account"
                    id="selected-payment-account" />
@@ -103,38 +104,44 @@
                     {% if fee_estimate.waiver_exemption.requires_waiver_account %}
                         <p>{{ fee_estimate.waiver_exemption.note }}</p>
                     {% else %}
-                        {% if not has_waiver_document %}
-                            <div id="waiver-upload-required">
-                                <p>{% translate "The court may reject your waiver request if you do not include the required forms." %}</p>
-                                <p>{% if fee_waiver.document_guidance %}{{ fee_waiver.document_guidance }}{% else %}{% translate "Include your fee waiver form or a court order that waives your fees." %}{% endif %}</p>
-                                <div id="waiver-upload-prompt">
+                        <div id="waiver-upload-required"
+                             {% if has_waiver_document %}hidden{% endif %}>
+                            <p>{% translate "The court may reject your waiver request if you do not include the required forms." %}</p>
+                            <p>{% if fee_waiver.document_guidance %}{{ fee_waiver.document_guidance }}{% else %}{% translate "Include your fee waiver form or a court order that waives your fees." %}{% endif %}</p>
+                            <div id="waiver-upload-prompt">
+                                <button type="button"
+                                        class="btn btn-outline-primary"
+                                        id="add-waiver-document"
+                                        aria-expanded="false"
+                                        aria-controls="waiver-upload-panel"
+                                        data-url="{{ waiver_upload_url }}">{% translate "Add fee waiver document" %}</button>
+                                <div id="waiver-upload-panel" hidden class="mt-3">
+                                    <label for="waiver-filing-type">{% translate "Filing type" %}</label>
+                                    <select id="waiver-filing-type" class="form-select mb-2"></select>
+                                    <label for="waiver-document-type">{% translate "Who can see this document?" %}</label>
+                                    <select id="waiver-document-type" class="form-select mb-2"></select>
+                                    <label for="waiver-file">{% translate "Fee waiver document (PDF or Word, up to 10 MB)" %}</label>
+                                    <input type="file"
+                                           id="waiver-file"
+                                           accept=".pdf,.doc,.docx"
+                                           class="form-control mb-2" />
                                     <button type="button"
-                                            class="btn btn-outline-primary"
-                                            id="add-waiver-document"
-                                            aria-expanded="false"
-                                            aria-controls="waiver-upload-panel"
-                                            data-url="{{ waiver_upload_url }}">{% translate "Add fee waiver document" %}</button>
-                                    <div id="waiver-upload-panel" hidden class="mt-3">
-                                        <label for="waiver-filing-type">{% translate "Filing type" %}</label>
-                                        <select id="waiver-filing-type" class="form-select mb-2"></select>
-                                        <label for="waiver-document-type">{% translate "Who can see this document?" %}</label>
-                                        <select id="waiver-document-type" class="form-select mb-2"></select>
-                                        <label for="waiver-file">{% translate "Fee waiver document (PDF or Word, up to 10 MB)" %}</label>
-                                        <input type="file"
-                                               id="waiver-file"
-                                               accept=".pdf,.doc,.docx"
-                                               class="form-control mb-2" />
-                                        <button type="button"
-                                                id="upload-waiver-document"
-                                                class="btn btn-primary"
-                                                disabled>{% translate "Upload document" %}</button>
-                                    </div>
-                                    <p id="waiver-upload-status" role="status" aria-live="polite"></p>
+                                            id="upload-waiver-document"
+                                            class="btn btn-primary"
+                                            disabled>{% translate "Upload document" %}</button>
                                 </div>
+                                <p id="waiver-upload-status" role="status" aria-live="polite"></p>
                             </div>
-                            <p id="waiver-upload-confirmation" hidden tabindex="-1" role="status">{% translate "Fee waiver document added." %}</p>
-                        {% endif %}
+                        </div>
+                        <p id="waiver-upload-confirmation" hidden tabindex="-1" role="status">{% translate "Fee waiver document added. Check it below." %}</p>
                     {% endif %}
+                </div>
+                <div id="document-checks"
+                     data-document-checks
+                     data-url="{{ document_checks_url }}">
+                    {% for check in document_checks %}
+                        {% include "efile/components/document_check.html" with document=check.document fingerprint=check.fingerprint removable=check.removable %}
+                    {% endfor %}
                 </div>
                 <p id="freeFilingHelp" hidden>{% translate "The court requires an account even for a free filing. If the confirmed total is $0, you will not be charged. No fee waiver is needed." %}</p>
                 <div id="paymentMethodsContainer" aria-live="polite"></div>
@@ -173,6 +180,7 @@
 {% endblock workflow_content %}
 {% block extra_js %}
     <script src="{% static 'js/filing-payload.js' %}"></script>
+    <script src="{% static 'js/document-checks.js' %}"></script>
     <script src="{% static 'js/payment.js' %}"></script>
     <script src="{% static 'js/waiver-upload.js' %}"></script>
 {% endblock extra_js %}

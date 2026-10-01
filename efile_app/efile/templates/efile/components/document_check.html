@@ -1,0 +1,27 @@
+{% load i18n %}
+<div class="document-check mb-3"
+     data-document-check
+     data-document-id="{{ document.pk }}"
+     data-fingerprint="{{ fingerprint }}"
+     tabindex="-1">
+    <p>
+        <strong>{% translate "Check this copy before you continue." %}</strong>
+        {% translate "The court will get this PDF. Open it and check every page." %}
+    </p>
+    {% if not document.preparation %}
+        <p>{% translate "Not ready. Remove this file and upload it again." %}</p>
+    {% endif %}
+    {% include "efile/components/document_preview.html" with document=document open_preview=True %}
+    <div class="d-flex flex-wrap gap-2">
+        <button type="button"
+                class="btn btn-primary"
+                data-document-confirm
+                {% if not document.preparation %}disabled{% endif %}>{% translate "This copy looks right" %}</button>
+        {% if removable %}
+            <button type="button" class="btn btn-outline-secondary" data-document-remove>
+                {% translate "Remove and upload a different file" %}
+            </button>
+        {% endif %}
+    </div>
+    <p data-document-check-status role="status" aria-live="polite"></p>
+</div>
