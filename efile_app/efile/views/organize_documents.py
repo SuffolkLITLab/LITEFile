@@ -14,6 +14,7 @@ from efile.api.suffolk_api_views import get_tyler_token
 from efile.models import FilingDocument
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.drafts import draft_snapshot
+from efile.services.filing_availability import draft_unavailable_message
 from efile.utils.config_loader import config_loader
 from efile.utils.ui_text import get_texts
 from efile.workflow import RETURN_TO_REVIEW, ExistingCase, WorkflowStepKey, get_step_url, get_workflow_context
@@ -165,6 +166,9 @@ def organize_documents(request, jurisdiction):
         except (json.JSONDecodeError, ValueError) as error:
             return JsonResponse({"success": False, "error": str(error)}, status=400)
 
+        if message := draft_unavailable_message(draft):
+            return JsonResponse({"success": False, "error": message}, status=403)
+
         return_to_review = data.get("return_to") == RETURN_TO_REVIEW
         next_step = WorkflowStepKey.REVIEW if return_to_review else WorkflowStepKey.YOUR_INFORMATION
         draft.current_step = next_step
@@ -180,6 +184,7 @@ def organize_documents(request, jurisdiction):
     confidentiality_config = jurisdiction_config.get("document_confidentiality") or {}
     context = {
         "is_logged_in": True,
+        "availability_message": draft_unavailable_message(draft),
         "filing_draft": draft_snapshot(draft),
         "documents": documents,
         "return_to": request.GET.get("return_to", ""),

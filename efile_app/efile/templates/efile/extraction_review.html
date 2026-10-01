@@ -6,6 +6,7 @@
     {% translate "Review what we found" %}
 {% endblock title %}
 {% block workflow_content %}
+    {% if availability_message %}<div class="alert alert-warning" role="alert">{{ availability_message }}</div>{% endif %}
     <section class="workflow-card">
         <div class="workflow-eyebrow">{% translate "Confirm case" %}</div>
         {% ui_text "extraction_review.court_label" as court_label %}

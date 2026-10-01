@@ -5,6 +5,7 @@ from django.views.decorators.http import require_http_methods
 from efile.api.suffolk_api_views import get_tyler_token
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.drafts import draft_snapshot, write_case_data
+from efile.services.filing_availability import draft_unavailable_message, unavailable_response
 from efile.services.filing_plans import link_case_to_plan, remember_case_for_plan
 from efile.workflow import ExistingCase, WorkflowStepKey, get_step_url, get_workflow_context
 
@@ -28,6 +29,8 @@ def case_confirmation(request, jurisdiction):
 
     if request.method == "POST":
         if request.POST.get("confirmed") == "yes":
+            if message := draft_unavailable_message(draft):
+                return unavailable_response(request, draft, message)
             # The filer has just told us which court case this matter is. Keep
             # it on the plan so their next filing goes into the same case
             # without searching for it again.

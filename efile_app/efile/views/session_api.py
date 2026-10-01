@@ -9,6 +9,7 @@ from django.views.decorators.http import require_http_methods
 from ..services.efsp_errors import describe_efsp_error
 from ..services.efsp_payload import PayloadValidationError, prepare_efile_payload
 from ..services.extraction_fields import EXTRACTION_FIELDS, EXTRACTION_HINTS
+from ..services.filing_availability import filing_unavailable_message
 from ..services.submission_errors import SubmissionErrorCode
 from ..utils.case_data_utils import get_case_data, get_upload_data, update_case_data
 from ..utils.proxy_connection import get_party_type_code_from_api
@@ -161,6 +162,18 @@ def forward_final_filing(request, data):
                     "error": "Court ID is required for filing submission",
                 },
                 status=400,
+            )
+
+        # Check the actual outgoing codes too: the JSON payload is client supplied.
+        if message := filing_unavailable_message(
+            jurisdiction_id,
+            court_id,
+            case_category=efile_data.get("efile_case_category", ""),
+            case_type=efile_data.get("efile_case_type", ""),
+            filing_types=[item.get("filing_type", "") for item in efile_data["al_court_bundle"].get("elements", [])],
+        ):
+            return JsonResponse(
+                {"success": False, "error_code": SubmissionErrorCode.FILING_UNAVAILABLE, "error": message}, status=403
             )
 
         # Same fixups the fee quote applied, so the filing matches the quote.

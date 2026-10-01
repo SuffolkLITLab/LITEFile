@@ -392,3 +392,71 @@ three states are saved in
 `efile_app/efile/tests/fixtures/fee_code_samples.json` for regression tests.
 State configuration changes refresh the cached state settings on the next
 request.
+
+## Temporarily disable filing
+
+Filing through LITEFile is enabled unless a rule below matches. Put
+`filing_availability` under a court in `court_specific_requirements` in
+`efile_app/efile/static/config/states/<jurisdiction>.yaml`. This controls LITEFile,
+not whether the court accepts filings through other providers.
+
+To disable a whole court, set `enabled: false`. An optional `message` explains
+why. Without a message, LITEFile says it cannot submit this filing to this court
+right now and suggests contacting the clerk about how to file.
+
+```yaml
+court_specific_requirements:
+  "court-api-code":
+    filing_availability:
+      enabled: false
+      message: "LITEFile cannot file in this court yet. Contact the clerk about how to file."
+```
+
+To disable only selected types, add `rules`. Each rule can list `case_categories`,
+`case_types`, or `filing_types`. Use the court API's **codes**, quoted as strings,
+not display names or the semantic keys used by document checklists. Values in a
+list are alternatives. If a rule has more than one selector, all selectors must
+match. Separate rules are alternatives. A filing-type restriction checks every
+document in the envelope, including supporting documents.
+
+For example, this Cook County configuration demonstrates blocking the Contract
+case type in the Municipal Civil Division when hearing scheduling is required
+but unsupported by the EFSP:
+
+```yaml
+court_specific_requirements:
+  "cook:cvd1":
+    filing_availability:
+      rules:
+        - case_types: ["183541"] # Contract in the local browser fixture; verify against the target API.
+          message: >-
+            LITEFile cannot file this case type in Cook County yet because it
+            requires scheduling a hearing. Our e-filing service does not support
+            hearing scheduling yet. Contact the court clerk to ask how to file.
+```
+
+This is an example, **not an active restriction or a claim that all Contract
+filings require scheduling**. Confirm the affected case-type codes and scheduling
+requirements before enabling it. To block only particular filing types within
+that case type, add `filing_types: ["verified-filing-type-code"]` to the same rule.
+To block a category, use `case_categories: ["verified-category-code"]` instead.
+
+A `"cook:*"` court entry applies to every court code starting with `cook:`.
+This prefix form is only for availability rules; existing checklist overrides
+still use exact court keys. Other jurisdictions may use the same `prefix:*`
+form if their court codes share a county prefix. Otherwise, repeat the rule for
+each affected court code. Codes are always scoped to their jurisdiction.
+
+The first matching rule supplies its message, falling back to the court's
+`message`, then to the built-in text. Exact court settings are checked before
+county-prefix settings. Restrictions are additive: `enabled: true` or an empty
+rule list on one court does not cancel a county-prefix restriction. A rule with
+no selectors does not match; use `enabled: false` to disable a whole court.
+
+Filers see the restriction when confirming their choices or continuing with
+selected filing types. LITEFile also checks saved drafts on the checklist and
+review pages, and rechecks both the saved draft and outgoing codes before
+submission. Drafts and documents remain available for correction. Removing the
+matching restriction restores filing; already-open pages are checked again on
+the next request. Restart application workers when deploying configuration
+changes, as with other jurisdiction configuration updates.
