@@ -630,3 +630,42 @@ test("identical PDF names and URLs remain separate filings with separate codes",
     assert.deepStrictEqual(bundles.map(bundle => bundle.filename), ["appearance.pdf", "appearance.pdf"]);
     assert.deepStrictEqual(bundles.map(bundle => bundle.filing_type), ["appearance", "jury-demand"]);
 });
+test("new appeal payload keeps the originating case separate from the appellate case", () => {
+    const handler = makeHandler();
+    const caseData = {
+        existing_case: "new",
+        previous_case_id: "",
+        filing_parties: [{
+            role: "filer",
+            party_type: "appellant",
+            first_name: "Example",
+            last_name: "Filer"
+        }],
+        lower_court_code: "1753",
+        lower_court_prod_code: "6982",
+        lower_court_name: "Brighton Division, Boston Municipal Court",
+        lower_court_title: "Example v. Test",
+        lower_court_docket_number: "24-CV-001",
+        lower_court_judge: "Judge Example"
+    };
+    const userData = handler.userDataFromCaseData(caseData);
+    const result = handler.buildEFilingData(userData, caseData, {}, "pay-1");
+    assert.deepStrictEqual(result.lower_court_case, {
+        title: "Example v. Test",
+        docket_number: "24-CV-001",
+        judge: "Judge Example"
+    });
+    assert.deepStrictEqual(result.trial_court, {
+        name: caseData.lower_court_name,
+        tyler_lower_court_code: "1753",
+        tyler_prod_lower_court_code: "6982"
+    });
+    assert.strictEqual(result.docket_number, undefined);
+    assert.strictEqual(result.user_started_case, true);
+
+    caseData.existing_case = "existing";
+    caseData.previous_case_id = "court-case-id";
+    const existing = handler.buildEFilingData(userData, caseData, {}, "pay-1");
+    assert.strictEqual(existing.lower_court_case, undefined);
+    assert.strictEqual(existing.trial_court, undefined);
+});

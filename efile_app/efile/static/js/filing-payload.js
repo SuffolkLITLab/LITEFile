@@ -301,10 +301,27 @@ const FilingPayload = {
             return_date: ""
         };
 
+        this.addLowerCourt(efilingData, caseData);
+
         // Add court bundles for documents
         this.addCourtBundles(efilingData, uploadData, caseData, users);
 
         return efilingData;
+    },
+
+    addLowerCourt(efilingData, caseData) {
+        if (!caseData.previous_case_id && caseData.existing_case !== "existing" && caseData.lower_court_code) {
+            efilingData.lower_court_case = {
+                title: caseData.lower_court_title || "",
+                docket_number: caseData.lower_court_docket_number || "",
+                judge: caseData.lower_court_judge || ""
+            };
+            efilingData.trial_court = {
+                name: caseData.lower_court_name,
+                tyler_lower_court_code: caseData.lower_court_code,
+                tyler_prod_lower_court_code: caseData.lower_court_prod_code
+            };
+        }
     },
 
     addCourtBundles(efilingData, uploadData, caseData, users) {

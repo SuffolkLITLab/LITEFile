@@ -5,6 +5,7 @@ from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
 
 from efile.api.suffolk_api_views import get_tyler_token
+from efile.services.appeals import LOWER_COURT_FIELDS
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.drafts import draft_snapshot
 from efile.services.people import get_case_questions, needs_amount_in_controversy, parse_question_answer
@@ -41,7 +42,11 @@ def case_questions(request, jurisdiction):
         return redirect(get_step_url(next_step, jurisdiction))
 
     for question in questions:
-        raw_value = (draft.supplemental_fields or {}).get(question["name"], "")
+        raw_value = (
+            request.POST.get(question["name"], "")
+            if request.method == "POST"
+            else (draft.supplemental_fields or {}).get(question["name"], "")
+        )
         if question["type"] == "radio":
             raw_value = "" if raw_value in (None, "") else str(raw_value).lower()
         elif raw_value is None:
@@ -52,7 +57,7 @@ def case_questions(request, jurisdiction):
         answers = {}
         errors = []
         for question in questions:
-            value = request.POST.get(question["name"], "")
+            value = request.POST.get(question["name"], "").strip()
             if question["name"] == "child_count" and request.POST.get("has_children") == "false":
                 value = ""
             if question["required"] and value == "" and question["name"] != "child_count":
@@ -74,6 +79,15 @@ def case_questions(request, jurisdiction):
         if errors:
             messages.error(request, f"Answer these questions: {', '.join(dict.fromkeys(errors))}.")
         else:
+            lower_question = next((q for q in questions if q["name"] == "lower_court_code"), None)
+            if lower_question:
+                selected = next(o for o in lower_question["options"] if o["value"] == answers["lower_court_code"])
+                answers["lower_court_name"] = selected["label"]
+                answers["lower_court_prod_code"] = selected["prod_code"]
+            else:
+                draft.supplemental_fields = {
+                    k: v for k, v in (draft.supplemental_fields or {}).items() if k not in LOWER_COURT_FIELDS
+                }
             draft.supplemental_fields = {
                 **(draft.supplemental_fields or {}),
                 **answers,
@@ -95,7 +109,7 @@ def case_questions(request, jurisdiction):
         "filing_draft": draft_snapshot(draft),
         "questions": questions,
         "answers": draft.supplemental_fields or {},
-        "return_to": request.GET.get("return_to", ""),
+        "return_to": request.POST.get("return_to") or request.GET.get("return_to", ""),
         "show_amount_field": show_amount_field,
         "amount_in_controversy": draft.amount_in_controversy,
     }

@@ -65,6 +65,9 @@ def fee_inputs(draft: FilingDraft, *, payment_account_id: str | None = None) -> 
         "existing_case": draft.existing_case,
         "previous_case_id": draft.previous_case_id,
         "amount_in_controversy": draft.amount_in_controversy,
+        "lower_court": {
+            key: value for key, value in (draft.supplemental_fields or {}).items() if key.startswith("lower_court_")
+        },
         "optional_services": json.dumps(draft.optional_services or [], sort_keys=True, default=str),
         "payment_account": draft.selected_payment_account_id if payment_account_id is None else payment_account_id,
         "documents": documents,

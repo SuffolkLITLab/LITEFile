@@ -29,3 +29,9 @@ def court_requirements(monkeypatch):
     Tests of the lookup itself override this fixture with one of the same name.
     """
     monkeypatch.setattr("efile.services.disclaimers.court_disclaimers", lambda draft, fresh=False: [])
+
+
+@pytest.fixture(autouse=True)
+def appellate_code_lists(monkeypatch):
+    """Appellate tests opt into specific catalogs; other tests never call EFSP."""
+    monkeypatch.setattr("efile.services.appeals.code_list", lambda jurisdiction, path, lookups=None: None)

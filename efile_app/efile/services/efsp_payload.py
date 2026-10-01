@@ -126,6 +126,7 @@ def prepare_efile_payload(efile_data, jurisdiction_id, court_id):
     """
     lookups = _EfspLookups()
     _clean_case_identifiers(efile_data)
+    validate_lower_court(efile_data, jurisdiction_id, court_id, lookups=lookups)
     _drop_empty_cross_references(efile_data)
     substitute_test_document_urls(efile_data)
     validate_document_selections(efile_data)
@@ -136,8 +137,9 @@ def prepare_efile_payload(efile_data, jurisdiction_id, court_id):
 
 
 def _clean_case_identifiers(efile_data):
-    """Ensure docket_number is omitted for new cases where there is no previous_case_id."""
-    if not efile_data.get("previous_case_id") or efile_data.get("user_started_case") is True:
+    """New cases have neither a previous case ID nor a court-assigned docket number."""
+    if not str(efile_data.get("previous_case_id") or "").strip() or efile_data.get("user_started_case") is True:
+        efile_data.pop("previous_case_id", None)
         efile_data.pop("docket_number", None)
 
 
@@ -430,3 +432,54 @@ def _lookup_optional_services_meta(jurisdiction_id, court_id, filing_type, looku
     if not isinstance(services, list):
         return None
     return {service["code"]: service for service in parse_optional_services(services)}
+
+
+def validate_lower_court(efile_data, jurisdiction_id, court_id, lookups=None):
+    """Use the same court options for fee quotes and submission as the form.
+
+    When the EFSP's court list is unavailable, the filer's choice is passed
+    through rather than rejected; the EFSP stays the authority.
+    """
+    from efile.services.appeals import code_list, lower_court_options
+
+    lookups = lookups or _EfspLookups()
+
+    if efile_data.get("previous_case_id"):
+        efile_data.pop("lower_court_case", None)
+        efile_data.pop("trial_court", None)
+        return
+    category_code = efile_data.get("efile_case_category")
+    categories = code_list(jurisdiction_id, f"courts/{court_id}/categories", lookups=lookups) if category_code else []
+    category = next(
+        (row for row in categories or [] if isinstance(row, dict) and str(row.get("code")) == str(category_code)), None
+    )
+    if category is not None and category.get("ecfcasetype") != "AppellateCase":
+        efile_data.pop("lower_court_case", None)
+        efile_data.pop("trial_court", None)
+        return
+    lower = efile_data.get("lower_court_case")
+    if category is None and not lower:
+        return
+    if not isinstance(lower, dict) or not all(str(lower.get(key) or "").strip() for key in ("title", "docket_number")):
+        raise PayloadValidationError(
+            "Enter the lower court case number and caption before checking fees or submitting."
+        )
+    court = efile_data.get("trial_court") or {}
+    code = court.get("tyler_lower_court_code") if isinstance(court, dict) else None
+    options = lower_court_options(jurisdiction_id, lookups=lookups)
+    if options is None and code:
+        logger.warning("Lower courts for %s are unavailable; passing %s through unchecked", jurisdiction_id, code)
+        # Only Massachusetts has separate production codes, and its list is local.
+        selected = {"value": code, "label": court.get("name") or code, "prod_code": code}
+    else:
+        selected = next((option for option in options or [] if option["value"] == code), None)
+    if selected is None:
+        raise PayloadValidationError("Choose a valid lower court from the list before checking fees or submitting.")
+    efile_data["trial_court"] = {
+        "name": selected["label"],
+        "tyler_lower_court_code": selected["value"],
+        "tyler_prod_lower_court_code": selected["prod_code"],
+    }
+    efile_data["lower_court_case"] = {
+        key: str(lower.get(key) or "").strip() for key in ("title", "docket_number", "judge")
+    }
