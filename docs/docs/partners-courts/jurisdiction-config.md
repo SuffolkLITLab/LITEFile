@@ -395,92 +395,13 @@ request.
 
 ## Temporarily disable filing
 
-Filing through LITEFile is enabled unless a rule below matches. Put
-`filing_availability` under a court in `court_specific_requirements` in
-`efile_app/efile/static/config/states/<jurisdiction>.yaml`. This controls LITEFile,
-not whether the court accepts filings through other providers.
+Add `filing_availability` under a court's `court_specific_requirements` entry to
+block the whole court or selected categories, case types, and filing types.
+Filing is enabled by default. Type selectors match human-readable names exactly
+or with explicit regexes, independent of Tyler's numeric type IDs. Filers see
+restrictions immediately after choosing an affected court or type.
 
-To disable a whole court, set `enabled: false`. An optional `message` explains
-why. Without a message, LITEFile says it cannot submit this filing to this court
-right now and suggests contacting the clerk about how to file.
-
-```yaml
-court_specific_requirements:
-  "court-api-code":
-    filing_availability:
-      enabled: false
-      message: "LITEFile cannot file in this court yet. Contact the clerk about how to file."
-```
-
-To disable only selected types, add `rules`. Each rule can list `case_categories`,
-`case_types`, or `filing_types`. Use the court API's **human-readable names**,
-not Tyler numeric IDs or the semantic keys used by document checklists. Strings match the full name exactly
-(case-sensitive, with surrounding whitespace removed from the selected name).
-Names remain usable when Tyler changes the numeric IDs. Values in a
-list are alternatives. If a rule has more than one selector, all selectors must
-match. Separate rules are alternatives. A filing-type restriction checks every
-document in the envelope, including supporting documents.
-
-For example, this Cook County configuration demonstrates blocking the Contract
-case type in the Municipal Civil Division when hearing scheduling is required
-but unsupported by the EFSP:
-
-```yaml
-court_specific_requirements:
-  "cook:cvd1":
-    filing_availability:
-      rules:
-        - case_types: ["Contract"]
-          message: >-
-            LITEFile cannot file this case type in Cook County yet because it
-            requires scheduling a hearing. Our e-filing service does not support
-            hearing scheduling yet. Contact the court clerk to ask how to file.
-```
-
-This is an example, **not an active restriction or a claim that all Contract
-filings require scheduling**. Confirm the affected case-type names and scheduling
-requirements before enabling it. To block only particular filing types within
-that case type, add `filing_types: ["Motion"]` to the same rule.
-To block a category, use `case_categories: ["Small Claims"]` instead.
-
-For variable names, use an explicit regex entry. Regexes match the **whole name**
-using Python `re.fullmatch`; use `.*` for a partial match and `(?i)` for
-case-insensitive matching. Plain strings are literal, even if they contain
-punctuation such as parentheses. Strings and regex entries can share a list:
-
-```yaml
-rules:
-  - case_types: ["Contract"]
-    filing_types:
-      - "Motion"
-      - regex: '(?i)motion to .+'
-    message: "LITEFile does not support hearing scheduling for this filing yet."
-```
-
-A `"cook:*"` court entry applies to every court code starting with `cook:`.
-This prefix form is only for availability rules; existing checklist overrides
-still use exact court keys. Other jurisdictions may use the same `prefix:*`
-form if their court codes share a county prefix. Otherwise, repeat the rule for
-each affected court code. Codes are always scoped to their jurisdiction.
-
-The first matching rule supplies its message, falling back to the court's
-`message`, then to the built-in text. Exact court settings are checked before
-county-prefix settings. Restrictions are additive: `enabled: true` or an empty
-rule list on one court does not cancel a county-prefix restriction. A rule with
-no selectors does not match; use `enabled: false` to disable a whole court.
-
-Filers see a warning beside their selection as soon as they choose a restricted
-court, category, case type, or filing type. Continue is disabled until the check
-finishes and the selection is allowed. Changing to an allowed selection clears
-the warning. The same checks run on document filing-type changes and court
-selection during an existing-case lookup; a restricted case type is shown as
-soon as the lookup resolves the case. LITEFile also checks saved drafts on the
-checklist and review pages, and rechecks the saved draft before submission.
-At submission, it resolves
-the outgoing IDs to current names from the court API and applies the same
-name rules; browser-provided labels cannot bypass this check. If required
-names cannot be resolved, submission stops with a retry message. Drafts and
-documents remain available for correction. Removing the
-matching restriction restores filing; already-open pages are checked again on
-the next request. Restart application workers when deploying configuration
-changes, as with other jurisdiction configuration updates.
+See [Control filing availability](./filing-availability.md) for the complete
+field reference, Cook County hearing-scheduling example, county-prefix rules,
+message precedence, deployment and re-enabling instructions, troubleshooting,
+and live-check API.

@@ -39,7 +39,7 @@ efile_app/efile/static/config/
 
 ## Guides in this section
 
-1. [**Jurisdiction & court configuration**](./jurisdiction-config.md): Setting up state metadata, logos, court codes, and clerk contact numbers.
+1. [**Jurisdiction & court configuration**](./jurisdiction-config.md): Setting up state metadata, logos, court codes, and clerk contact numbers. See [Filing availability](./filing-availability.md) to disable filing for courts or selected category, case-type, and filing-type names, with immediate explanations for filers.
 2. [**Document checklists & filing plans**](./document-checklists.md): Authoring plain-language document checklists with requirement levels and role-based conditions.
 3. [**Customizing AI extraction & prompts**](./ai-customization.md): Fine-tuning LLM extraction prompts and field dictionaries for court documents.
 4. [**Docassemble & AssemblyLine integration**](./interview-integration.md): Connecting automated interview workflows to e-file directly.
