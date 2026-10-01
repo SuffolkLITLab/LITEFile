@@ -166,15 +166,13 @@ def forward_final_filing(request, data):
 
         # Resolve the outgoing IDs to authoritative names before applying rules.
         try:
-            message = outgoing_unavailable_message(jurisdiction_id, court_id, case_data, efile_data)
+            message, status = outgoing_unavailable_message(jurisdiction_id, court_id, case_data, efile_data), 403
         except ValueError as error:
-            return JsonResponse(
-                {"success": False, "error_code": SubmissionErrorCode.FILING_UNAVAILABLE, "error": str(error)},
-                status=412,
-            )
+            message, status = str(error), 412
         if message:
             return JsonResponse(
-                {"success": False, "error_code": SubmissionErrorCode.FILING_UNAVAILABLE, "error": message}, status=403
+                {"success": False, "error_code": SubmissionErrorCode.FILING_UNAVAILABLE, "error": message},
+                status=status,
             )
 
         # Same fixups the fee quote applied, so the filing matches the quote.

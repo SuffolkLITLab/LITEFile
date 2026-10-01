@@ -106,12 +106,7 @@
         {% endif %}
         <form method="post" id="extraction-review-form">
             {% csrf_token %}
-            <div id="filing-availability-notice"
-                 class="alert alert-warning mt-3"
-                 role="status"
-                 aria-live="polite"
-                 tabindex="-1"
-                 {% if not availability_message %}hidden{% endif %}>{{ availability_message }}</div>
+            {% include "efile/components/filing_availability_notice.html" %}
             <input type="hidden" name="return_to" value="{{ return_to }}" />
             {% comment %}
             First, because the rest depends on it: the court lists different

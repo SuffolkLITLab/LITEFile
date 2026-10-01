@@ -21,12 +21,7 @@
         <div class="alert alert-danger" id="organize-error" role="alert" hidden></div>
         <form id="organize-documents-form">
             {% csrf_token %}
-            <div id="filing-availability-notice"
-                 class="alert alert-warning mt-3"
-                 role="status"
-                 aria-live="polite"
-                 tabindex="-1"
-                 {% if not availability_message %}hidden{% endif %}>{{ availability_message }}</div>
+            {% include "efile/components/filing_availability_notice.html" %}
             <fieldset class="main-document-choice">
                 <legend>{% ui_text "organize_documents.main_document_question" %}</legend>
                 {% if documents|length == 1 %}

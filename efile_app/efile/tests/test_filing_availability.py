@@ -1,12 +1,20 @@
 from unittest.mock import Mock
 
 import pytest
+from django.core.exceptions import ImproperlyConfigured
+from django.test import RequestFactory
 from django.urls import reverse
 
 from efile.models import FilingDocument, FilingDraft
 from efile.services.current_drafts import CURRENT_DRAFT_SESSION_KEY
-from efile.services.filing_availability import draft_unavailable_message, filing_unavailable_message
+from efile.services.filing_availability import (
+    draft_unavailable_message,
+    filing_unavailable_message,
+    outgoing_unavailable_message,
+)
 from efile.tests.helpers import reviewed_document
+from efile.views.session_api import forward_final_filing
+from efile.views.submission import _claim_for_submission
 
 
 @pytest.fixture
@@ -156,10 +164,6 @@ def test_direct_submit_cannot_bypass_new_restriction(configure, client, submissi
 
 @pytest.mark.django_db
 def test_outgoing_ids_are_resolved_to_names_before_checking(configure, client, submission_draft, monkeypatch):
-    from django.test import RequestFactory
-
-    from efile.views.session_api import forward_final_filing
-
     configure({"rules": [{"case_types": ["Contract"], "filing_types": ["Blocked filing"]}]})
     request = RequestFactory().post("/")
     request.user = submission_draft.user
@@ -243,8 +247,6 @@ def test_organize_blocks_supporting_type_but_allows_correction(configure, client
 
 @pytest.mark.django_db
 def test_claim_rechecks_availability(configure, submission_draft):
-    from efile.views.submission import _claim_for_submission
-
     configure({"enabled": False, "message": "Disabled since review"})
     with pytest.raises(ValueError, match="Disabled since review"):
         _claim_for_submission(submission_draft, {})
@@ -283,26 +285,26 @@ def test_exact_name_matching_is_not_substring_or_id_matching(configure, name, bl
     "selector,argument",
     [("case_categories", "case_category"), ("case_types", "case_type"), ("filing_types", "filing_types")],
 )
-def test_regex_fullmatches_names_with_explicit_flags(configure, selector, argument):
+@pytest.mark.parametrize(
+    "name,expected", [("MOTION", True), ("Motion to dismiss", True), ("Notice of Motion", False), ("", False)]
+)
+def test_regex_fullmatches_names_with_explicit_flags(configure, selector, argument, name, expected):
     configure({"rules": [{selector: [{"regex": "(?i)motion(?: to .+)?"}]}]})
-    for name, expected in [("MOTION", True), ("Motion to dismiss", True), ("Notice of Motion", False), ("", False)]:
-        value = [name] if argument == "filing_types" else name
-        assert bool(filing_unavailable_message("illinois", "cook:law1", **{argument: value})) == expected
+    value = [name] if argument == "filing_types" else name
+    assert bool(filing_unavailable_message("illinois", "cook:law1", **{argument: value})) == expected
 
 
 @pytest.mark.django_db
-def test_saved_draft_rule_survives_numeric_id_changes(configure, submission_draft):
+@pytest.mark.parametrize("code", ["183541", "999999"])
+def test_saved_draft_rule_survives_numeric_id_changes(configure, submission_draft, code):
     configure({"rules": [{"case_types": ["Contract"]}]})
-    for code in ("183541", "999999"):
-        submission_draft.case_type_code = code
-        submission_draft.save()
-        assert draft_unavailable_message(submission_draft)
+    submission_draft.case_type_code = code
+    submission_draft.save()
+    assert draft_unavailable_message(submission_draft)
 
 
 @pytest.mark.parametrize("code", ["183541", "999999"])
 def test_submit_resolves_current_ids_and_ignores_client_names(configure, monkeypatch, code):
-    from efile.services.filing_availability import outgoing_unavailable_message
-
     configure({"rules": [{"case_types": ["Contract"]}]})
     monkeypatch.setattr(
         "efile.services.filing_availability._EfspLookups.get", lambda self, url: [{"code": code, "name": "Contract"}]
@@ -320,8 +322,6 @@ def test_submit_resolves_current_ids_and_ignores_client_names(configure, monkeyp
 
 
 def test_submit_blocks_when_names_cannot_be_resolved(configure, monkeypatch):
-    from efile.services.filing_availability import outgoing_unavailable_message
-
     configure({"rules": [{"case_types": ["Contract"]}]})
     monkeypatch.setattr("efile.services.filing_availability._EfspLookups.get", lambda self, url: None)
     with pytest.raises(ValueError, match="could not confirm"):
@@ -329,8 +329,6 @@ def test_submit_blocks_when_names_cannot_be_resolved(configure, monkeypatch):
 
 
 def test_literal_punctuation_and_invalid_regex(configure):
-    from django.core.exceptions import ImproperlyConfigured
-
     configure({"rules": [{"filing_types": ["Motion (Other)"]}]})
     assert filing_unavailable_message("illinois", "cook:law1", filing_types=["Motion (Other)"])
     assert not filing_unavailable_message("illinois", "cook:law1", filing_types=["Motion Other"])
@@ -339,11 +337,31 @@ def test_literal_punctuation_and_invalid_regex(configure):
         filing_unavailable_message("illinois", "cook:law1", case_type="Contract")
 
 
-def test_empty_selectors_need_no_code_lookup(configure, monkeypatch):
-    from efile.services.filing_availability import outgoing_unavailable_message
+@pytest.mark.parametrize("selector", [[{"regex": "["}], "Contract", [7]])
+def test_malformed_rules_fail_even_with_blank_names(configure, selector):
+    # Drafts can save blank names; the rule must still fail before the claim.
+    configure({"rules": [{"case_types": selector}]})
+    with pytest.raises(ImproperlyConfigured):
+        filing_unavailable_message("illinois", "cook:law1")
 
+
+def test_null_selector_matches_nothing(configure):
+    configure({"rules": [{"case_types": None}]})
+    assert not filing_unavailable_message("illinois", "cook:law1", case_type="Contract")
+
+
+def test_empty_selectors_need_no_code_lookup(configure, monkeypatch):
     configure({"rules": [{"case_types": []}]})
     lookup = Mock()
     monkeypatch.setattr("efile.services.filing_availability._EfspLookups.get", lookup)
     assert not outgoing_unavailable_message("illinois", "cook:law1", {}, {})
     lookup.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_draft_check_skips_document_query_without_filing_type_rules(
+    configure, submission_draft, django_assert_num_queries
+):
+    configure({"rules": [{"case_types": ["Contract"]}]})
+    with django_assert_num_queries(0):
+        assert draft_unavailable_message(submission_draft)

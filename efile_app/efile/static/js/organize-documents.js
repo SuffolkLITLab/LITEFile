@@ -42,8 +42,9 @@
             case_type_name: context.case_type_name,
             filing_type_names: cards().map((card) => {
                 const select = card.querySelector(".filing-type");
-                if (!select.options.length) return card.dataset.filingTypeName || "";
-                return select.value ? apiUtils.cleanOptionText(select.selectedOptions[0]?.textContent) : "";
+                // Until the court's list loads, the saved name is the selection.
+                if (!card.dataset.filingTypesLoaded) return card.dataset.filingTypeName || "";
+                return apiUtils.selectedOptionText(select);
             }),
         }),
     });
@@ -376,9 +377,8 @@
     async function initializeCard(card) {
         const filingType = card.querySelector(".filing-type");
         setOptions(filingType, await loadFilingTypes(), card.dataset.filingType, "Choose a filing type");
-        availability.check();
+        card.dataset.filingTypesLoaded = "true";
         filingType.addEventListener("change", async () => {
-            card.dataset.filingType = filingType.value;
             availability.check(filingType.closest(".form-field") || filingType.parentElement);
             card.dataset.documentType = "";
             card.dataset.filingComponent = "";
@@ -504,5 +504,10 @@
         }
     });
 
-    Promise.all(cards().map(initializeCard)).then(updatePositions).catch((error) => showError(error.message));
+    Promise.all(cards().map(initializeCard))
+        .then(() => {
+            updatePositions();
+            availability.check();
+        })
+        .catch((error) => showError(error.message));
 })();

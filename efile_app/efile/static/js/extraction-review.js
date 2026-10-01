@@ -56,9 +56,9 @@
         selection: () => ({
             jurisdiction: context.jurisdiction,
             court: fields.court.select.value,
-            case_category_name: fields.case_category.select.value ? apiUtils.cleanOptionText(fields.case_category.select.selectedOptions[0]?.textContent) : "",
-            case_type_name: fields.case_type.select.value ? apiUtils.cleanOptionText(fields.case_type.select.selectedOptions[0]?.textContent) : "",
-            filing_type_names: [fields.filing_type.select.value ? apiUtils.cleanOptionText(fields.filing_type.select.selectedOptions[0]?.textContent) : ""],
+            case_category_name: apiUtils.selectedOptionText(fields.case_category.select),
+            case_type_name: apiUtils.selectedOptionText(fields.case_type.select),
+            filing_type_names: [apiUtils.selectedOptionText(fields.filing_type.select)],
         }),
     });
 
@@ -186,13 +186,12 @@
         const field = fields[key];
         const option = field.select.selectedOptions[0];
         const code = field.select.value;
-        const text = code ? apiUtils.cleanOptionText(option?.textContent) : "";
+        const text = apiUtils.selectedOptionText(field.select);
         field.current = {
             code,
             text
         };
         field.nameInput.value = text;
-        availability.check();
         if (field.valueEl && code) {
             field.valueEl.textContent = text + (option.textContent.trim().endsWith("*") ? " *" : "");
         }
@@ -724,5 +723,7 @@
     if (changePath) changePath.addEventListener("click", () => openPathQuestion(""));
     if (applySuggestion) applySuggestion.addEventListener("click", () => openPathQuestion(applySuggestion.dataset.value));
 
-    loadCourts();
+    // The guard blocks until a check runs. A guided selector with no court
+    // chosen yet fires no change, so check once the courts are in place.
+    loadCourts().finally(() => availability.check());
 })();
