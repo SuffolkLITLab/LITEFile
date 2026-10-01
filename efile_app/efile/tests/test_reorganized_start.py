@@ -147,6 +147,8 @@ def test_extraction_review_returns_to_review_when_edited_from_there(client, reor
         draft=reorganized_draft,
         role=FilingDocument.Role.LEAD,
         name="petition.pdf",
+        # Organized already, as every document on Review has been.
+        filing_type_code="petition",
     )
 
     response = client.post(

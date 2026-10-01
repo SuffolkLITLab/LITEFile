@@ -64,6 +64,7 @@
         {% if availability_message %}<div class="alert alert-warning" role="alert">{{ availability_message }}</div>{% endif %}
         <form method="post">
             {% csrf_token %}
+            <input type="hidden" name="return_to" value="{{ return_to }}" />
             <div class="confirmation-question">
                 <strong>{% translate "Does this match your case?" %}</strong>
                 <p>{% translate "If you choose Yes, we will attach your documents to this case." %}</p>

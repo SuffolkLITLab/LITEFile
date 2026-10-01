@@ -66,6 +66,7 @@
         </details>
         <form method="post" id="payment-form">
             {% csrf_token %}
+            <input type="hidden" name="return_to" value="{{ return_to }}" />
             <input type="hidden"
                    name="selected_payment_account"
                    id="selected-payment-account" />

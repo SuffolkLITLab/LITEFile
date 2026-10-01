@@ -156,12 +156,16 @@ def test_original_and_approval_survive_supporting_row_rebuilds(preview_draft):
     assert saved.preparation_reviewed_at == supporting.preparation_reviewed_at
 
 
+def organized(draft):
+    draft.documents.update(filing_type_code="complaint", document_type_code="public")
+
+
 def test_preview_return_destinations_are_restricted(client, preview_draft):
-    response = approve(client, preview_draft, return_to="https://attacker.example")
-    assert "extraction-review" in response.url
-    assert "attacker" not in response.url
-    response = approve(client, preview_draft, return_to="payment")
-    assert "/payment/" in response.url
+    organized(preview_draft)
+    for unknown in ("https://attacker.example", "payment", "document_checklist"):
+        response = approve(client, preview_draft, return_to=unknown)
+        assert response.url.partition("?")[0].endswith("/extraction-review/")
+        assert "return_to" not in response.url
 
 
 def test_lead_key_swap_resets_approval_and_cleans_only_unused_copies(preview_draft, django_capture_on_commit_callbacks):
@@ -312,3 +316,44 @@ def test_accessibility_seed_starts_with_a_prepared_acknowledged_document(tmp_pat
     draft = FilingDraft.objects.get(user__username="accessibility-checker")
     require_document_previews(draft)
     assert (tmp_path / "browser-state.json").exists()
+
+
+def test_change_files_keeps_where_the_filer_came_from(client, preview_draft):
+    with patch("efile.views.document_previews.prepare_stored_documents"):
+        preview = client.get(url("preview_documents", preview_draft) + "&return_to=review").content.decode()
+    assert 'upload-documents/?return_to=review"' in preview
+    upload = client.get(url("upload_documents", preview_draft) + "&return_to=review").content.decode()
+    # Both ways off the upload page lead back toward Review, not the start.
+    assert upload.count('preview-documents/?return_to=review"') == 2
+    unknown = client.get(url("upload_documents", preview_draft) + "&return_to=elsewhere").content.decode()
+    assert "return_to" not in unknown
+
+
+def test_upload_from_a_detour_continues_to_its_preview(client, preview_draft):
+    with patch("efile.views.upload_documents.upload_files", return_value={}):
+        response = client.post(
+            url("upload_documents", preview_draft) + "&return_to=review",
+            {"documents": SimpleUploadedFile("new.pdf", pdf_bytes())},
+        )
+    assert "preview-documents/?return_to=review" in response.json()["redirect_url"]
+
+
+def test_unchanged_files_return_straight_to_review(client, preview_draft):
+    organized(preview_draft)
+    response = approve(client, preview_draft, return_to="review")
+    assert response.url.startswith(reverse("case_review", kwargs={"jurisdiction": "vermont"}))
+
+
+def test_a_new_file_from_review_stops_only_at_organize(client, preview_draft):
+    organized(preview_draft)
+    FilingDocument.objects.create(draft=preview_draft, role="supporting", name="new.pdf", preparation="unchanged")
+    response = approve(client, preview_draft, return_to="review")
+    assert "/organize-documents/?return_to=review" in response.url
+    # Without a return target, new files still follow the full flow.
+    assert "extraction-review" in approve(client, preview_draft).url
+
+
+def test_handoff_detour_returns_to_its_list(client, preview_draft):
+    organized(preview_draft)
+    response = approve(client, preview_draft, return_to="handoff")
+    assert response.url == reverse("handoff_review", args=[preview_draft.pk])

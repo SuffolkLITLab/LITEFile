@@ -8,7 +8,14 @@ from django.views.decorators.http import require_http_methods
 from efile.api.suffolk_api_views import get_tyler_token
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.drafts import draft_snapshot, write_case_data
-from efile.workflow import ExistingCase, WorkflowStepKey, get_step_url, get_workflow_context
+from efile.workflow import (
+    ExistingCase,
+    WorkflowStepKey,
+    get_step_url,
+    get_workflow_context,
+    return_target,
+    with_return_to,
+)
 
 
 @require_http_methods(["GET", "POST"])
@@ -30,7 +37,9 @@ def case_lookup(request, jurisdiction):
         # plan that files into it. Searching for a case we have is busywork;
         # the confirm step is where the filer says whether it is the right one,
         # and answering no there comes back here with the case cleared.
-        return redirect(get_step_url(WorkflowStepKey.CASE_CONFIRMATION, jurisdiction))
+        return redirect(
+            with_return_to(get_step_url(WorkflowStepKey.CASE_CONFIRMATION, jurisdiction), return_target(request))
+        )
 
     if request.method == "POST":
         try:
@@ -66,7 +75,10 @@ def case_lookup(request, jurisdiction):
         return JsonResponse(
             {
                 "success": True,
-                "redirect_url": get_step_url(WorkflowStepKey.CASE_CONFIRMATION, jurisdiction),
+                # Confirming the case is part of finding it, detour or not.
+                "redirect_url": with_return_to(
+                    get_step_url(WorkflowStepKey.CASE_CONFIRMATION, jurisdiction), return_target(request)
+                ),
             }
         )
 

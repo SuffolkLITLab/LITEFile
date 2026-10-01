@@ -125,6 +125,8 @@ def test_fees_screen_flows_in_browser(live_server, client, django_user_model, tm
                 "evidence": str(evidence),
                 "paymentUrl": f"{payment}?draft={first.pk}",
                 "secondPaymentUrl": f"{payment}?draft={second.pk}",
+                "previewUrl": reverse("preview_documents", kwargs={"jurisdiction": "illinois"}) + f"?draft={first.pk}",
+                "uploadUrl": reverse("upload_documents", kwargs={"jurisdiction": "illinois"}) + f"?draft={first.pk}",
                 **paths,
             }
         )
@@ -132,6 +134,8 @@ def test_fees_screen_flows_in_browser(live_server, client, django_user_model, tm
     with (
         patch("efile.views.waiver_documents.S3UploadHandler", return_value=handler),
         patch("efile.views.document_previews.S3UploadHandler", return_value=handler),
+        patch("efile.services.document_uploads.S3UploadHandler", return_value=handler),
+        patch("efile.views.upload_documents.S3UploadHandler", return_value=handler),
         patch("efile.utils.s3_upload_handler.S3UploadHandler", return_value=handler),
         patch("efile.services.waiver_documents._codes", side_effect=codes),
         patch("efile.views.payment.estimate_fees", return_value={}),

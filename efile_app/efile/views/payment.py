@@ -20,7 +20,15 @@ from efile.services.waiver_documents import has_waiver_document
 from efile.utils.config_loader import config_loader
 from efile.views.waiver_documents import is_removable_waiver
 
-from ..workflow import WorkflowStepKey, get_step_url, get_workflow_context
+from ..workflow import (
+    WorkflowStepKey,
+    continue_step,
+    continue_url,
+    get_step_url,
+    get_workflow_context,
+    return_target,
+    with_return_to,
+)
 
 
 @require_http_methods(["GET", "POST"])
@@ -35,23 +43,24 @@ def efile_payment(request, jurisdiction):
         current_step=WorkflowStepKey.PAYMENT,
         workflow_version=2,
     )
+    return_to = return_target(request)
     if not draft.court_code or not draft.case_type_code:
         messages.error(request, "Confirm the case information before choosing payment.")
-        return redirect("extraction_review", jurisdiction=jurisdiction)
+        return redirect(with_return_to(get_step_url(WorkflowStepKey.EXTRACTION_REVIEW, jurisdiction), return_to))
     if not FilingDocument.objects.filter(draft=draft).exists():
         messages.error(request, "Add and organize at least one document before choosing payment.")
-        return redirect("upload_documents", jurisdiction=jurisdiction)
+        return redirect(with_return_to(get_step_url(WorkflowStepKey.UPLOAD_DOCUMENTS, jurisdiction), return_to))
     filer = FilingParty.objects.filter(draft=draft, role="filer").first()
     # What has to be settled is who the filing is *for*, not whether the filer
     # is a party: someone filing for their child has no party type of their own
     # and is no less finished with this step.
     if filer is None or not filing_parties(draft):
         messages.error(request, "Complete the people in this filing before choosing payment.")
-        return redirect("parties", jurisdiction=jurisdiction)
+        return redirect(with_return_to(get_step_url(WorkflowStepKey.PARTIES, jurisdiction), return_to))
 
     if not appeal_answers_complete(draft):
         messages.error(request, "Complete the lower court information before checking fees.")
-        return redirect("case_questions", jurisdiction=jurisdiction)
+        return redirect(with_return_to(get_step_url(WorkflowStepKey.CASE_QUESTIONS, jurisdiction), return_to))
 
     documents = list(FilingDocument.objects.filter(draft=draft).order_by("role", "sort_order", "pk"))
     unchecked = [document for document in documents if document.preparation_reviewed_at is None]
@@ -59,7 +68,7 @@ def efile_payment(request, jurisdiction):
         # The page keeps Continue off until these are confirmed; this covers
         # a stale tab, so Review never sends the filer to another screen.
         messages.error(request, "Check your documents before you continue.")
-        return redirect("payment", jurisdiction=jurisdiction)
+        return redirect(with_return_to(get_step_url(WorkflowStepKey.PAYMENT, jurisdiction), return_to))
 
     if request.method == "POST":
         account_id = request.POST.get("selected_payment_account", "").strip()
@@ -77,7 +86,7 @@ def efile_payment(request, jurisdiction):
             # The fee quote itself is not read from this form: the fee API
             # recorded it on the draft, with what it was priced on, when it
             # answered (see efile.services.fee_quotes).
-            draft.current_step = WorkflowStepKey.REVIEW
+            draft.current_step = continue_step(draft, return_to, WorkflowStepKey.REVIEW)
             draft.save(
                 update_fields=[
                     "selected_payment_account_id",
@@ -87,7 +96,7 @@ def efile_payment(request, jurisdiction):
                     "updated_at",
                 ]
             )
-            return redirect(get_step_url(WorkflowStepKey.REVIEW, jurisdiction))
+            return redirect(continue_url(draft, jurisdiction, return_to, WorkflowStepKey.REVIEW))
 
     context = {
         "documents": [document for document in documents if document.preparation_reviewed_at is not None],
@@ -102,6 +111,7 @@ def efile_payment(request, jurisdiction):
         "waiver_upload_url": draft_url(reverse("waiver_documents", kwargs={"jurisdiction": jurisdiction}), draft.pk),
         "has_waiver_document": has_waiver_document(draft),
         "is_logged_in": True,
+        "return_to": return_to,
         "new_toga_url": f"{settings.EFSP_URL}/jurisdictions/{jurisdiction}/payments/new-toga-account",
         "case_data": read_case_data(draft),
         "filing_draft": draft_snapshot(draft),

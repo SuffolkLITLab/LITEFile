@@ -9,7 +9,7 @@ from efile.services.appeals import LOWER_COURT_FIELDS
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.drafts import draft_snapshot
 from efile.services.people import get_case_questions, needs_amount_in_controversy, parse_question_answer
-from efile.workflow import RETURN_TO_REVIEW, WorkflowStepKey, get_step_url, get_workflow_context
+from efile.workflow import WorkflowStepKey, continue_step, continue_url, get_workflow_context, return_target
 
 
 def _parse_amount(raw: str) -> Decimal | None:
@@ -35,11 +35,10 @@ def case_questions(request, jurisdiction):
     questions = get_case_questions(draft)
     show_amount_field = needs_amount_in_controversy(draft)
     if not questions and not show_amount_field:
-        return_to = request.POST.get("return_to") or request.GET.get("return_to")
-        next_step = WorkflowStepKey.REVIEW if return_to == RETURN_TO_REVIEW else WorkflowStepKey.PAYMENT
-        draft.current_step = next_step
+        return_to = return_target(request)
+        draft.current_step = continue_step(draft, return_to, WorkflowStepKey.PAYMENT)
         draft.save(update_fields=["current_step", "updated_at"])
-        return redirect(get_step_url(next_step, jurisdiction))
+        return redirect(continue_url(draft, jurisdiction, return_to, WorkflowStepKey.PAYMENT))
 
     for question in questions:
         raw_value = (
@@ -97,19 +96,17 @@ def case_questions(request, jurisdiction):
             if show_amount_field:
                 draft.amount_in_controversy = str(amount_in_controversy)
                 update_fields.append("amount_in_controversy")
-            next_step = (
-                WorkflowStepKey.REVIEW if request.POST.get("return_to") == RETURN_TO_REVIEW else WorkflowStepKey.PAYMENT
-            )
-            draft.current_step = next_step
+            return_to = return_target(request)
+            draft.current_step = continue_step(draft, return_to, WorkflowStepKey.PAYMENT)
             draft.save(update_fields=update_fields)
-            return redirect(get_step_url(next_step, jurisdiction))
+            return redirect(continue_url(draft, jurisdiction, return_to, WorkflowStepKey.PAYMENT))
 
     context = {
         "is_logged_in": True,
         "filing_draft": draft_snapshot(draft),
         "questions": questions,
         "answers": draft.supplemental_fields or {},
-        "return_to": request.POST.get("return_to") or request.GET.get("return_to", ""),
+        "return_to": return_target(request),
         "show_amount_field": show_amount_field,
         "amount_in_controversy": draft.amount_in_controversy,
     }

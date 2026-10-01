@@ -41,7 +41,7 @@ from efile.services.handoff import (
     validate_payload,
 )
 from efile.utils.s3_upload_handler import S3UploadHandler
-from efile.workflow import WorkflowStepKey
+from efile.workflow import RETURN_TO_HANDOFF, WorkflowStepKey, with_return_to
 
 CLAIM_SALT = "litefile.handoff.claim.v1"
 REPLACE_SALT = "litefile.handoff.replace.v1"
@@ -207,7 +207,7 @@ def _issue_links(draft):
     issues = issues_for(draft)
     for issue in issues:
         url = reverse(issue["view"], kwargs={"jurisdiction": draft.jurisdiction})
-        issue["url"] = draft_url(url + "?return_to=handoff", draft.pk)
+        issue["url"] = draft_url(with_return_to(url, RETURN_TO_HANDOFF), draft.pk)
     return issues
 
 
@@ -255,15 +255,20 @@ def handoff_review(request, draft_id):
                 "can_return": bool(receipt and receipt.payload.get("return_url")),
                 "review_url": draft_url(reverse("case_review", kwargs={"jurisdiction": draft.jurisdiction}), draft.pk),
                 "case_url": draft_url(
-                    reverse("extraction_review", kwargs={"jurisdiction": draft.jurisdiction}) + "?return_to=handoff",
+                    with_return_to(
+                        reverse("extraction_review", kwargs={"jurisdiction": draft.jurisdiction}), RETURN_TO_HANDOFF
+                    ),
                     draft.pk,
                 ),
                 "documents_url": draft_url(
-                    reverse("organize_documents", kwargs={"jurisdiction": draft.jurisdiction}) + "?return_to=handoff",
+                    with_return_to(
+                        reverse("organize_documents", kwargs={"jurisdiction": draft.jurisdiction}), RETURN_TO_HANDOFF
+                    ),
                     draft.pk,
                 ),
                 "parties_url": draft_url(
-                    reverse("parties", kwargs={"jurisdiction": draft.jurisdiction}) + "?return_to=handoff", draft.pk
+                    with_return_to(reverse("parties", kwargs={"jurisdiction": draft.jurisdiction}), RETURN_TO_HANDOFF),
+                    draft.pk,
                 ),
             },
         )

@@ -240,6 +240,44 @@ async function main() {
         await screenshot("browser-failure-2.png");
         throw error;
     }
+    try {
+        // 8. Changing files from a Review detour returns to Review, stopping
+        // at Organize only when a file needs a filing type.
+        const review = /\/review\//;
+        await page.goto(config.baseUrl + config.previewUrl + "&return_to=review");
+        await page.getByRole("link", {
+            name: "Change files"
+        }).click();
+        await page.waitForURL(/upload-documents\/\?.*return_to=review/);
+        await page.locator("#documents-input").setInputFiles(config.wrongFile);
+        await Promise.all([page.waitForEvent("load"), page.locator("#upload-button").click()]);
+        await page.locator(".document-row").nth(2).waitFor();
+        assert.ok(page.url().includes("return_to=review"), `upload reload lost its origin: ${page.url()}`);
+        await page.locator("#continue-to-analysis").click();
+        await page.waitForURL(/preview-documents\/\?.*return_to=review/);
+        await Promise.all([page.waitForURL(/organize-documents\/\?.*return_to=review/), page.getByRole("button", {
+            name: "Continue"
+        }).click()]);
+        await screenshot("05-new-file-stops-at-organize.png");
+        // Taking the new file back out leaves nothing to organize.
+        await page.goto(config.baseUrl + config.uploadUrl + "&return_to=review");
+        await Promise.all([page.waitForEvent("load"), page.locator(".remove-document").nth(2).click()]);
+        await page.locator(".document-row").nth(1).waitFor();
+        assert.equal(await page.locator(".document-row").count(), 2);
+        await page.getByRole("link", {
+            name: "Back"
+        }).click();
+        await page.waitForURL(/preview-documents\/\?.*return_to=review/);
+        await Promise.all([page.waitForURL(review), page.getByRole("button", {
+            name: "Continue"
+        }).click()]);
+        assert.ok(!visited.slice(-3).some((url) => url.includes("extraction-review")), `visited ${visited}`);
+        await screenshot("06-back-to-review.png");
+        console.log("Scenario 8 passed");
+    } catch (error) {
+        await screenshot("browser-failure-3.png");
+        throw error;
+    }
     assert.deepEqual(errors, []);
     console.log("Fees browser validation passed.");
     await browser.close();

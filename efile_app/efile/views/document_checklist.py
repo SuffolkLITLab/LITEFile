@@ -1,5 +1,4 @@
 from django.contrib import messages
-from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
@@ -28,10 +27,12 @@ from efile.services.filing_plans import (
     status_choices,
 )
 from efile.workflow import (
-    RETURN_TO_REVIEW,
     WorkflowStepKey,
+    continue_step,
+    continue_url,
     get_step_url,
     get_workflow_context,
+    return_target,
     with_return_to,
 )
 
@@ -41,7 +42,7 @@ def _this_page(request, jurisdiction):
 
     return with_return_to(
         get_step_url(WorkflowStepKey.DOCUMENT_CHECKLIST, jurisdiction),
-        request.POST.get("return_to") or request.GET.get("return_to"),
+        return_target(request),
     )
 
 
@@ -175,17 +176,10 @@ def document_checklist(request, jurisdiction):
         # the review step names what is missing. Go straight back to Review,
         # unless a document still needs a filing type -- organizing is where
         # that is chosen, and the court will not take a filing without it.
-        return_to = request.POST.get("return_to", "")
-        needs_organizing = documents.filter(Q(filing_type_code="") | Q(document_type_code="")).exists()
-        next_step = (
-            WorkflowStepKey.REVIEW
-            if return_to == RETURN_TO_REVIEW and not needs_organizing
-            else WorkflowStepKey.ORGANIZE_DOCUMENTS
-        )
-        draft.current_step = next_step
+        return_to = return_target(request)
+        draft.current_step = continue_step(draft, return_to, WorkflowStepKey.ORGANIZE_DOCUMENTS)
         draft.save(update_fields=["current_step", "updated_at"])
-        next_url = get_step_url(next_step, jurisdiction)
-        return redirect(with_return_to(next_url, return_to) if next_step != WorkflowStepKey.REVIEW else next_url)
+        return redirect(continue_url(draft, jurisdiction, return_to, WorkflowStepKey.ORGANIZE_DOCUMENTS))
 
     missing = documents_missing_from_envelope(plan, draft)
     context = {
@@ -207,7 +201,7 @@ def document_checklist(request, jurisdiction):
         # needed" item is already an empty box on this page, and repeating it
         # here would nag rather than help.
         "ready_to_add": [item for item in missing if item["reason"] == "have"],
-        "return_to": request.GET.get("return_to", ""),
+        "return_to": return_target(request),
     }
     context.update(get_workflow_context(WorkflowStepKey.DOCUMENT_CHECKLIST, jurisdiction, draft))
     return render(request, "efile/document_checklist.html", context)

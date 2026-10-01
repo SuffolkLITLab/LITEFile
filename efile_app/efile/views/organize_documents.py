@@ -17,7 +17,17 @@ from efile.services.drafts import draft_snapshot
 from efile.services.filing_availability import draft_unavailable_message
 from efile.utils.config_loader import config_loader
 from efile.utils.ui_text import get_texts
-from efile.workflow import RETURN_TO_REVIEW, ExistingCase, WorkflowStepKey, get_step_url, get_workflow_context
+from efile.workflow import (
+    ExistingCase,
+    WorkflowStepKey,
+    clean_return_to,
+    continue_step,
+    continue_url,
+    get_step_url,
+    get_workflow_context,
+    return_target,
+    with_return_to,
+)
 
 # Strings the organize-documents script renders itself, handed to it through the
 # page. Keyed in the JSON by their last path segment: `loading_choices`, and so on.
@@ -133,7 +143,9 @@ def organize_documents(request, jurisdiction):
     )
     documents = FilingDocument.objects.filter(draft=draft).order_by("role", "sort_order", "created_at")
     if not documents.exists():
-        return redirect("upload_documents", jurisdiction=jurisdiction)
+        return redirect(
+            with_return_to(get_step_url(WorkflowStepKey.UPLOAD_DOCUMENTS, jurisdiction), return_target(request))
+        )
     if not draft.court_code:
         # Filing types can't be looked up without a court. Send the filer back
         # to whichever step is responsible for setting one, instead of
@@ -144,7 +156,7 @@ def organize_documents(request, jurisdiction):
             else WorkflowStepKey.EXTRACTION_REVIEW
         )
         messages.error(request, "Confirm the court for this filing before organizing your documents.")
-        return redirect(get_step_url(fix_step, jurisdiction))
+        return redirect(with_return_to(get_step_url(fix_step, jurisdiction), return_target(request)))
 
     if request.method == "POST":
         try:
@@ -169,14 +181,13 @@ def organize_documents(request, jurisdiction):
         if message := draft_unavailable_message(draft):
             return JsonResponse({"success": False, "error": message}, status=403)
 
-        return_to_review = data.get("return_to") == RETURN_TO_REVIEW
-        next_step = WorkflowStepKey.REVIEW if return_to_review else WorkflowStepKey.YOUR_INFORMATION
-        draft.current_step = next_step
+        return_to = clean_return_to(data.get("return_to"))
+        draft.current_step = continue_step(draft, return_to, WorkflowStepKey.YOUR_INFORMATION)
         draft.save(update_fields=["current_step", "updated_at"])
         return JsonResponse(
             {
                 "success": True,
-                "redirect_url": get_step_url(next_step, jurisdiction),
+                "redirect_url": continue_url(draft, jurisdiction, return_to, WorkflowStepKey.YOUR_INFORMATION),
             }
         )
 
@@ -187,7 +198,7 @@ def organize_documents(request, jurisdiction):
         "availability_message": draft_unavailable_message(draft),
         "filing_draft": draft_snapshot(draft),
         "documents": documents,
-        "return_to": request.GET.get("return_to", ""),
+        "return_to": return_target(request),
         "organize_context": {
             "jurisdiction": jurisdiction,
             "court": draft.court_code,
@@ -198,7 +209,7 @@ def organize_documents(request, jurisdiction):
             "existing_case": "yes" if draft.existing_case == ExistingCase.EXISTING else "no",
             "guessed_filing_type": (draft.extracted_guesses or {}).get("filing type", ""),
             "default_confidentiality": confidentiality_config.get("default", ""),
-            "return_to": request.GET.get("return_to", ""),
+            "return_to": return_target(request),
             # The script rewrites these choice lists once the court answers, so
             # the strings it renders have to travel with the page -- otherwise
             # they are the only copy on this screen that no state can reword and

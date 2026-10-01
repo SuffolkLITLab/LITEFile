@@ -26,7 +26,7 @@
             {% endfor %}
             <div class="workflow-actions">
                 <a class="btn btn-outline-secondary"
-                   href="{% url 'upload_documents' jurisdiction %}">{% translate "Change files" %}</a>
+                   href="{% url 'upload_documents' jurisdiction %}{% if return_to %}?return_to={{ return_to }}{% endif %}">{% translate "Change files" %}</a>
                 <button class="btn btn-primary"
                         type="submit"
                         {% if preparation_pending %}disabled{% endif %}>{% translate "Continue" %}</button>

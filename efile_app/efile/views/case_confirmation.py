@@ -7,7 +7,16 @@ from efile.services.current_drafts import ensure_current_draft
 from efile.services.drafts import draft_snapshot, write_case_data
 from efile.services.filing_availability import draft_unavailable_message, unavailable_response
 from efile.services.filing_plans import link_case_to_plan, remember_case_for_plan
-from efile.workflow import ExistingCase, WorkflowStepKey, get_step_url, get_workflow_context
+from efile.workflow import (
+    ExistingCase,
+    WorkflowStepKey,
+    continue_step,
+    continue_url,
+    get_step_url,
+    get_workflow_context,
+    return_target,
+    with_return_to,
+)
 
 
 @require_http_methods(["GET", "POST"])
@@ -35,9 +44,10 @@ def case_confirmation(request, jurisdiction):
             # it on the plan so their next filing goes into the same case
             # without searching for it again.
             remember_case_for_plan(draft)
-            draft.current_step = WorkflowStepKey.DOCUMENT_CHECKLIST
+            return_to = return_target(request)
+            draft.current_step = continue_step(draft, return_to, WorkflowStepKey.DOCUMENT_CHECKLIST)
             draft.save(update_fields=["current_step", "updated_at"])
-            return redirect(get_step_url(WorkflowStepKey.DOCUMENT_CHECKLIST, jurisdiction))
+            return redirect(continue_url(draft, jurisdiction, return_to, WorkflowStepKey.DOCUMENT_CHECKLIST))
 
         # Saying "this is not my case" about the case the plan proposed means
         # the plan is pointing at the wrong one, so it stops pointing anywhere.
@@ -57,13 +67,14 @@ def case_confirmation(request, jurisdiction):
             },
             current_step=WorkflowStepKey.CASE_LOOKUP,
         )
-        return redirect(get_step_url(WorkflowStepKey.CASE_LOOKUP, jurisdiction))
+        return redirect(with_return_to(get_step_url(WorkflowStepKey.CASE_LOOKUP, jurisdiction), return_target(request)))
 
     context = {
         "is_logged_in": True,
         "filing_draft": draft_snapshot(draft),
         "case": draft,
         "availability_message": draft_unavailable_message(draft),
+        "return_to": return_target(request),
     }
     context.update(get_workflow_context(WorkflowStepKey.CASE_CONFIRMATION, jurisdiction, draft))
     return render(request, "efile/case_confirmation.html", context)

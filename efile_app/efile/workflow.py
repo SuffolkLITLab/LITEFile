@@ -301,34 +301,85 @@ def get_step_url(step_key: WorkflowStepKey | str, jurisdiction: str) -> str:
     return reverse(get_step(step_key).url_name, kwargs={"jurisdiction": jurisdiction})
 
 
+# Detours ---------------------------------------------------------------------
+#
+# A filer sent from Review (or from the interview handoff's list of missing
+# details) to change one earlier answer should come back when that step is
+# finished, not walk every later screen again. The origin travels as a
+# ``return_to`` marker: a hidden field, a query string, or a JSON field.
+#
+# Only a step's *completion* decides where to go next, through
+# ``continue_url``. Intermediate actions on a screen (adding a person, picking
+# a role, removing a file) keep the marker and stay on that screen. When a
+# change leaves the filing needing something Review cannot accept, the filer
+# stops at the step that fixes it, still carrying the marker.
+
 RETURN_TO_REVIEW = "review"
+RETURN_TO_HANDOFF = "handoff"
+RETURN_TARGETS = frozenset({RETURN_TO_REVIEW, RETURN_TO_HANDOFF})
 
 
-def get_return_url(request: Any, jurisdiction: str, default_step: WorkflowStepKey | str) -> str:
-    """Resolve where a step's successful save should redirect to.
+def clean_return_to(value: Any) -> str:
+    """A return marker we act on, or "" for anything else."""
 
-    Following "Edit" from the Review screen carries a ``return_to=review``
-    marker through the step's form (a hidden field, or a query string for
-    JS-driven saves). Without it, saving always continues to ``default_step`` --
-    the next screen in the linear workflow -- which otherwise forces filers to
-    click through every later screen again just to get back to Review, even
-    when only one earlier answer needed correcting.
-    """
+    return value if value in RETURN_TARGETS else ""
 
-    return_to = request.POST.get("return_to") or request.GET.get("return_to")
-    if return_to == RETURN_TO_REVIEW:
-        return get_step_url(WorkflowStepKey.REVIEW, jurisdiction)
-    return get_step_url(default_step, jurisdiction)
+
+def return_target(request: Any) -> str:
+    """The checked return marker from a form field or the query string."""
+
+    return clean_return_to(request.POST.get("return_to") or request.GET.get("return_to", ""))
 
 
 def with_return_to(url: str, return_to: str | None) -> str:
-    """Carry the return_to marker across an intermediate redirect (e.g. to fill
+    """Carry the return marker across an intermediate redirect (e.g. to fill
     in one more required party) so it survives to reach the step it names."""
 
+    return_to = clean_return_to(return_to)
     if not return_to:
         return url
     separator = "&" if "?" in url else "?"
     return f"{url}{separator}return_to={return_to}"
+
+
+def documents_need_organizing(draft: Any) -> bool:
+    """Whether a document has not been through Organize since it changed.
+
+    New files arrive without a filing type, a replaced main document needs one
+    chosen, and switching between a new and an existing case clears them all.
+    Only the filing type is checked: Organize leaves the document type empty
+    when the court offers no confidentiality choices, so an empty document
+    type can be a finished answer, and checking it would loop back here.
+    """
+
+    return draft.documents.filter(filing_type_code="").exists()
+
+
+def continue_step(draft: Any, return_to: str, default_step: WorkflowStepKey | str) -> WorkflowStepKey:
+    """The workflow step a finished step leads to, for the draft's resume point.
+
+    Without a marker this is the linear flow's ``default_step``. A handoff
+    detour also resumes there: its own list, not a workflow step, is where the
+    filer is sent (see ``continue_url``).
+    """
+
+    if clean_return_to(return_to) == RETURN_TO_REVIEW:
+        return WorkflowStepKey.ORGANIZE_DOCUMENTS if documents_need_organizing(draft) else WorkflowStepKey.REVIEW
+    return WorkflowStepKey(default_step)
+
+
+def continue_url(draft: Any, jurisdiction: str, return_to: str, default_step: WorkflowStepKey | str) -> str:
+    """Where a finished step sends the filer: back to the detour's origin, to
+    the one step that fixes what the change broke, or on through the flow."""
+
+    return_to = clean_return_to(return_to)
+    if return_to == RETURN_TO_HANDOFF:
+        # The handoff list re-checks everything and links to whatever is
+        # still missing, so it is always the way back.
+        return reverse("handoff_review", args=[draft.pk])
+    step = continue_step(draft, return_to, default_step)
+    url = get_step_url(step, jurisdiction)
+    return url if step == WorkflowStepKey.REVIEW else with_return_to(url, return_to)
 
 
 def get_resume_step_url(

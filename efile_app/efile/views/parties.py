@@ -35,7 +35,15 @@ from efile.services.people import (
     self_claimed_party,
     set_filing_parties,
 )
-from efile.workflow import RETURN_TO_REVIEW, WorkflowStepKey, get_step_url, get_workflow_context, with_return_to
+from efile.workflow import (
+    RETURN_TO_REVIEW,
+    WorkflowStepKey,
+    continue_step,
+    continue_url,
+    get_workflow_context,
+    return_target,
+    with_return_to,
+)
 
 
 def _party_details_url(jurisdiction, party, return_to=None):
@@ -79,12 +87,10 @@ def _continue_from_parties(request, jurisdiction, draft, party_types, return_to)
         **(draft.supplemental_fields or {}),
         "_case_questions_required": has_questions,
     }
-    if return_to == RETURN_TO_REVIEW:
-        draft.current_step = WorkflowStepKey.REVIEW
-    else:
-        draft.current_step = WorkflowStepKey.CASE_QUESTIONS if has_questions else WorkflowStepKey.PAYMENT
+    default_step = WorkflowStepKey.CASE_QUESTIONS if has_questions else WorkflowStepKey.PAYMENT
+    draft.current_step = continue_step(draft, return_to, default_step)
     draft.save(update_fields=["supplemental_fields", "current_step", "updated_at"])
-    return redirect(get_step_url(draft.current_step, jurisdiction))
+    return redirect(continue_url(draft, jurisdiction, return_to, default_step))
 
 
 def _continue_previews(draft, filer, party_types, return_to):
@@ -210,7 +216,7 @@ def parties(request, jurisdiction):
 
     if request.method == "POST":
         action = request.POST.get("action", "continue")
-        return_to = request.POST.get("return_to")
+        return_to = return_target(request)
         if action == "add":
             last_order = (
                 FilingParty.objects.filter(draft=draft, role="other")
@@ -317,7 +323,7 @@ def parties(request, jurisdiction):
     attempted_filing_for = {int(value) for value in request.POST.getlist("filing_for") if str(value).isdigit()}
     filing_for = attempted_filing_for or saved_filing_for
     filing_for_someone_else = attempted == NOT_A_PARTY or (bool(saved_filing_for) and not filer.party_type)
-    return_to = request.GET.get("return_to") or request.POST.get("return_to", "")
+    return_to = return_target(request)
     # What Continue will do next, said before it does it -- for the role that
     # is selected, which parties.js keeps in step as the selection changes.
     continue_previews = _continue_previews(draft, filer, party_types, return_to)
