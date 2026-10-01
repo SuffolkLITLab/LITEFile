@@ -56,9 +56,9 @@
         selection: () => ({
             jurisdiction: context.jurisdiction,
             court: fields.court.select.value,
-            case_category: fields.case_category.select.value,
-            case_type: fields.case_type.select.value,
-            filing_types: [fields.filing_type.select.value],
+            case_category_name: fields.case_category.select.value ? apiUtils.cleanOptionText(fields.case_category.select.selectedOptions[0]?.textContent) : "",
+            case_type_name: fields.case_type.select.value ? apiUtils.cleanOptionText(fields.case_type.select.selectedOptions[0]?.textContent) : "",
+            filing_type_names: [fields.filing_type.select.value ? apiUtils.cleanOptionText(fields.filing_type.select.selectedOptions[0]?.textContent) : ""],
         }),
     });
 

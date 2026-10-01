@@ -38,9 +38,13 @@
         selection: () => ({
             jurisdiction: context.jurisdiction,
             court: context.court,
-            case_category: context.case_category,
-            case_type: context.case_type,
-            filing_types: cards().map((card) => card.querySelector(".filing-type").value || card.dataset.filingType || ""),
+            case_category_name: context.case_category_name,
+            case_type_name: context.case_type_name,
+            filing_type_names: cards().map((card) => {
+                const select = card.querySelector(".filing-type");
+                if (!select.options.length) return card.dataset.filingTypeName || "";
+                return select.value ? apiUtils.cleanOptionText(select.selectedOptions[0]?.textContent) : "";
+            }),
         }),
     });
     availability.check();

@@ -32,10 +32,10 @@
             const params = new URLSearchParams({
                 jurisdiction: values.jurisdiction,
                 court: values.court,
-                case_category: values.case_category || "",
-                case_type: values.case_type || "",
+                case_category_name: values.case_category_name || "",
+                case_type_name: values.case_type_name || "",
             });
-            (values.filing_types || []).forEach((value) => params.append("filing_type", value));
+            (values.filing_type_names || []).forEach((value) => params.append("filing_type_name", value));
             try {
                 const response = await fetch(`/api/filing-availability/?${params}`, {
                     signal: controller.signal

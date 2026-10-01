@@ -193,6 +193,8 @@ def organize_documents(request, jurisdiction):
             "court": draft.court_code,
             "case_category": draft.case_category_code,
             "case_type": draft.case_type_code,
+            "case_category_name": draft.case_category_name,
+            "case_type_name": draft.case_type_name,
             "existing_case": "yes" if draft.existing_case == ExistingCase.EXISTING else "no",
             "guessed_filing_type": (draft.extracted_guesses or {}).get("filing type", ""),
             "default_confidentiality": confidentiality_config.get("default", ""),

@@ -20,7 +20,8 @@ def submission_draft(client, django_user_model):
         court_code="cook:law1",
         court_name="Cook County",
         case_category_code="civil",
-        case_type_code="contract",
+        case_category_name="Civil",
+        case_type_code="Contract",
         case_type_name="Contract",
     )
     reviewed_document(
@@ -29,6 +30,7 @@ def submission_draft(client, django_user_model):
         sort_order=0,
         name="Petition.pdf",
         filing_type_code="petition",
+        filing_type_name="Petition",
         document_type_code="public",
     )
     client.force_login(user)
@@ -63,22 +65,22 @@ def test_default_enabled_and_jurisdiction_and_court_scope(configure):
 @pytest.mark.parametrize(
     "selector,arguments",
     [
-        ("case_categories", {"case_category": "123"}),
-        ("case_types", {"case_type": "123"}),
-        ("filing_types", {"filing_types": ["unrestricted", "123"]}),
+        ("case_categories", {"case_category": "Human name"}),
+        ("case_types", {"case_type": "Human name"}),
+        ("filing_types", {"filing_types": ["unrestricted", "Human name"]}),
     ],
 )
-def test_each_selector_matches_codes_including_numeric_yaml(configure, selector, arguments):
-    configure({"rules": [{selector: [123], "message": "Scheduling is unavailable."}]})
+def test_each_selector_matches_exact_names(configure, selector, arguments):
+    configure({"rules": [{selector: ["Human name"], "message": "Scheduling is unavailable."}]})
     assert filing_unavailable_message("illinois", "cook:law1", **arguments) == "Scheduling is unavailable."
     assert not filing_unavailable_message("illinois", "cook:law1")
 
 
 def test_rules_combine_selectors_and_fall_back_to_court_message(configure):
-    configure({"message": "Court notice", "rules": [{"case_types": ["contract"], "filing_types": ["motion"]}]})
-    assert not filing_unavailable_message("illinois", "cook:law1", case_type="contract")
+    configure({"message": "Court notice", "rules": [{"case_types": ["Contract"], "filing_types": ["Motion"]}]})
+    assert not filing_unavailable_message("illinois", "cook:law1", case_type="Contract")
     assert (
-        filing_unavailable_message("illinois", "cook:law1", case_type="contract", filing_types=["motion"])
+        filing_unavailable_message("illinois", "cook:law1", case_type="Contract", filing_types=["Motion"])
         == "Court notice"
     )
 
@@ -92,14 +94,14 @@ def test_county_prefix_is_bounded_and_specific_message_wins(monkeypatch):
                 "cook:law1": {
                     "filing_availability": {
                         "enabled": True,
-                        "rules": [{"case_types": ["contract"], "message": "Hearing scheduling is unavailable."}],
+                        "rules": [{"case_types": ["Contract"], "message": "Hearing scheduling is unavailable."}],
                     }
                 },
             }
         },
     )
     assert (
-        filing_unavailable_message("illinois", "cook:law1", case_type="contract")
+        filing_unavailable_message("illinois", "cook:law1", case_type="Contract")
         == "Hearing scheduling is unavailable."
     )
     assert filing_unavailable_message("illinois", "cook:law1", case_type="other") == "County notice"
@@ -110,16 +112,16 @@ def test_county_prefix_is_bounded_and_specific_message_wins(monkeypatch):
 def test_empty_rules_do_not_disable_and_specific_overrides_generic(configure):
     configure({"rules": [{"message": "No selector"}, {"case_types": []}]})
     assert not filing_unavailable_message("illinois", "cook:law1")
-    configure({"enabled": False, "message": "Generic", "rules": [{"case_types": ["contract"], "message": "Specific"}]})
-    assert filing_unavailable_message("illinois", "cook:law1", case_type="contract") == "Specific"
+    configure({"enabled": False, "message": "Generic", "rules": [{"case_types": ["Contract"], "message": "Specific"}]})
+    assert filing_unavailable_message("illinois", "cook:law1", case_type="Contract") == "Specific"
 
 
 @pytest.mark.django_db
 def test_supporting_document_blocks_envelope_and_removal_restores_filing(configure, submission_draft):
-    configure({"rules": [{"filing_types": ["motion"]}]})
+    configure({"rules": [{"filing_types": ["Motion"]}]})
     assert not draft_unavailable_message(submission_draft)
     document = FilingDocument.objects.create(
-        draft=submission_draft, role="supporting", sort_order=1, filing_type_code="motion"
+        draft=submission_draft, role="supporting", sort_order=1, filing_type_code="123", filing_type_name="Motion"
     )
     assert draft_unavailable_message(submission_draft)
     document.delete()
@@ -129,7 +131,7 @@ def test_supporting_document_blocks_envelope_and_removal_restores_filing(configu
 @pytest.mark.django_db
 @pytest.mark.parametrize("view", ["document_checklist", "case_review"])
 def test_blocked_page_preserves_draft_and_escapes_message(configure, client, submission_draft, view):
-    configure({"rules": [{"case_types": ["contract"], "message": "Scheduling <script>alert(1)</script>"}]})
+    configure({"rules": [{"case_types": ["Contract"], "message": "Scheduling <script>alert(1)</script>"}]})
     response = client.get(reverse(view, kwargs={"jurisdiction": "illinois"}))
     assert response.status_code == 403
     assert b"Scheduling &lt;script&gt;" in response.content
@@ -141,7 +143,7 @@ def test_blocked_page_preserves_draft_and_escapes_message(configure, client, sub
 
 @pytest.mark.django_db
 def test_direct_submit_cannot_bypass_new_restriction(configure, client, submission_draft, monkeypatch):
-    configure({"rules": [{"case_types": ["contract"], "message": "Hearing scheduling is unavailable."}]})
+    configure({"rules": [{"case_types": ["Contract"], "message": "Hearing scheduling is unavailable."}]})
     forward = Mock()
     monkeypatch.setattr("efile.views.submission.forward_final_filing", forward)
     response = client.post(reverse("submit_final_filing"), {}, content_type="application/json")
@@ -153,20 +155,35 @@ def test_direct_submit_cannot_bypass_new_restriction(configure, client, submissi
 
 
 @pytest.mark.django_db
-def test_outgoing_payload_codes_are_also_checked(configure, client, submission_draft, monkeypatch):
+def test_outgoing_ids_are_resolved_to_names_before_checking(configure, client, submission_draft, monkeypatch):
     from django.test import RequestFactory
 
     from efile.views.session_api import forward_final_filing
 
-    configure({"rules": [{"case_types": ["contract"], "filing_types": ["blocked"]}]})
+    configure({"rules": [{"case_types": ["Contract"], "filing_types": ["Blocked filing"]}]})
     request = RequestFactory().post("/")
     request.user = submission_draft.user
     request.session = client.session
     external = Mock()
     monkeypatch.setattr("requests.post", external)
+    monkeypatch.setattr(
+        "efile.services.filing_availability._EfspLookups.get",
+        lambda self, url: (
+            [{"code": "Contract", "name": "Contract"}]
+            if "case_types" in url
+            else [{"code": "allowed", "name": "Allowed filing"}, {"code": "blocked", "name": "Blocked filing"}]
+        ),
+    )
     response = forward_final_filing(
         request,
-        {"efile_data": {"al_court_bundle": {"elements": [{"filing_type": "allowed"}, {"filing_type": "blocked"}]}}},
+        {
+            "efile_data": {
+                "al_court_bundle": [
+                    {"filing_type": "allowed"},
+                    {"filing_type": "blocked", "filing_description": "Allowed filing"},
+                ]
+            }
+        },
     )
     assert response.status_code == 403
     external.assert_not_called()
@@ -174,7 +191,7 @@ def test_outgoing_payload_codes_are_also_checked(configure, client, submission_d
 
 @pytest.mark.django_db
 def test_confirm_new_case_keeps_choices_editable_when_blocked(configure, client, submission_draft):
-    configure({"rules": [{"case_types": ["blocked"], "message": "Scheduling is unavailable."}]})
+    configure({"rules": [{"case_types": ["Blocked type"], "message": "Scheduling is unavailable."}]})
     response = client.post(
         reverse("extraction_review", kwargs={"jurisdiction": "illinois"}),
         {
@@ -190,7 +207,7 @@ def test_confirm_new_case_keeps_choices_editable_when_blocked(configure, client,
     assert b"Scheduling is unavailable." in response.content
     assert response.context["extraction_context"]["case_type_code"] == "blocked"
     submission_draft.refresh_from_db()
-    assert submission_draft.case_type_code == "contract"
+    assert submission_draft.case_type_code == "Contract"
 
 
 @pytest.mark.django_db
@@ -210,16 +227,17 @@ def test_existing_case_confirmation_is_blocked_but_search_again_works(configure,
 
 @pytest.mark.django_db
 def test_organize_blocks_supporting_type_but_allows_correction(configure, client, submission_draft):
-    configure({"rules": [{"filing_types": ["motion"], "message": "Scheduling is unavailable."}]})
+    configure({"rules": [{"filing_types": ["Motion"], "message": "Scheduling is unavailable."}]})
     document = submission_draft.documents.first()
     url = reverse("organize_documents", kwargs={"jurisdiction": "illinois"})
-    details = {"id": document.pk, "filing_type": "motion", "document_type": "public"}
+    details = {"id": document.pk, "filing_type": "123", "filing_type_name": "Motion", "document_type": "public"}
     payload = {"main_document_id": document.pk, "documents": [details]}
     response = client.post(url, payload, content_type="application/json")
     assert response.status_code == 403
     assert response.json()["error"] == "Scheduling is unavailable."
     assert b"Scheduling is unavailable." in client.get(url).content
     details["filing_type"] = "petition"
+    details["filing_type_name"] = "Petition"
     assert client.post(url, payload, content_type="application/json").status_code == 200
 
 
@@ -242,12 +260,90 @@ def test_live_api_checks_partial_choices_and_multiple_filing_types(configure, cl
     response = client.get(url, params)
     assert response.json() == {"success": True, "available": False, "message": "Court disabled"}
     assert "no-store" in response.headers["Cache-Control"]
-    configure({"rules": [{"filing_types": ["motion"], "message": "Scheduling unavailable"}]})
+    configure({"rules": [{"filing_types": ["Motion"], "message": "Scheduling unavailable"}]})
     assert client.get(url, params).json()["available"]
-    params["filing_type"] = ["petition", "motion"]
+    params["filing_type_name"] = ["petition", "Motion"]
     assert not client.get(url, params).json()["available"]
 
 
 @pytest.mark.django_db
 def test_live_api_rejects_unknown_jurisdiction(client):
     assert client.get(reverse("api:filing_availability"), {"jurisdiction": "unknown"}).status_code == 400
+
+
+@pytest.mark.parametrize(
+    "name,blocked", [("Contract", True), ("contract", False), ("Contract dispute", False), ("183541", False)]
+)
+def test_exact_name_matching_is_not_substring_or_id_matching(configure, name, blocked):
+    configure({"rules": [{"case_types": ["Contract"]}]})
+    assert bool(filing_unavailable_message("illinois", "cook:law1", case_type=name)) == blocked
+
+
+@pytest.mark.parametrize(
+    "selector,argument",
+    [("case_categories", "case_category"), ("case_types", "case_type"), ("filing_types", "filing_types")],
+)
+def test_regex_fullmatches_names_with_explicit_flags(configure, selector, argument):
+    configure({"rules": [{selector: [{"regex": "(?i)motion(?: to .+)?"}]}]})
+    for name, expected in [("MOTION", True), ("Motion to dismiss", True), ("Notice of Motion", False), ("", False)]:
+        value = [name] if argument == "filing_types" else name
+        assert bool(filing_unavailable_message("illinois", "cook:law1", **{argument: value})) == expected
+
+
+@pytest.mark.django_db
+def test_saved_draft_rule_survives_numeric_id_changes(configure, submission_draft):
+    configure({"rules": [{"case_types": ["Contract"]}]})
+    for code in ("183541", "999999"):
+        submission_draft.case_type_code = code
+        submission_draft.save()
+        assert draft_unavailable_message(submission_draft)
+
+
+@pytest.mark.parametrize("code", ["183541", "999999"])
+def test_submit_resolves_current_ids_and_ignores_client_names(configure, monkeypatch, code):
+    from efile.services.filing_availability import outgoing_unavailable_message
+
+    configure({"rules": [{"case_types": ["Contract"]}]})
+    monkeypatch.setattr(
+        "efile.services.filing_availability._EfspLookups.get", lambda self, url: [{"code": code, "name": "Contract"}]
+    )
+    assert outgoing_unavailable_message(
+        "illinois",
+        "cook:law1",
+        {},
+        {
+            "efile_case_type": code,
+            "case_type_name": "Unrestricted type",
+            "al_court_bundle": [],
+        },
+    )
+
+
+def test_submit_blocks_when_names_cannot_be_resolved(configure, monkeypatch):
+    from efile.services.filing_availability import outgoing_unavailable_message
+
+    configure({"rules": [{"case_types": ["Contract"]}]})
+    monkeypatch.setattr("efile.services.filing_availability._EfspLookups.get", lambda self, url: None)
+    with pytest.raises(ValueError, match="could not confirm"):
+        outgoing_unavailable_message("illinois", "cook:law1", {}, {"efile_case_type": "123"})
+
+
+def test_literal_punctuation_and_invalid_regex(configure):
+    from django.core.exceptions import ImproperlyConfigured
+
+    configure({"rules": [{"filing_types": ["Motion (Other)"]}]})
+    assert filing_unavailable_message("illinois", "cook:law1", filing_types=["Motion (Other)"])
+    assert not filing_unavailable_message("illinois", "cook:law1", filing_types=["Motion Other"])
+    configure({"rules": [{"case_types": [{"regex": "["}]}]})
+    with pytest.raises(ImproperlyConfigured, match="Invalid filing availability regex"):
+        filing_unavailable_message("illinois", "cook:law1", case_type="Contract")
+
+
+def test_empty_selectors_need_no_code_lookup(configure, monkeypatch):
+    from efile.services.filing_availability import outgoing_unavailable_message
+
+    configure({"rules": [{"case_types": []}]})
+    lookup = Mock()
+    monkeypatch.setattr("efile.services.filing_availability._EfspLookups.get", lookup)
+    assert not outgoing_unavailable_message("illinois", "cook:law1", {}, {})
+    lookup.assert_not_called()

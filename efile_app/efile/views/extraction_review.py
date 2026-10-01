@@ -143,9 +143,9 @@ def extraction_review(request, jurisdiction):
         availability_message = filing_unavailable_message(
             jurisdiction,
             court_code,
-            case_category=case_category_code,
-            case_type=case_type_code,
-            filing_types=[request.POST.get("filing_type_code", "")],
+            case_category=request.POST.get("case_category_name", ""),
+            case_type=request.POST.get("case_type_name", ""),
+            filing_types=[request.POST.get("filing_type_name", "")],
         )
 
         offered_roles = {role["id"] for role in _offered_filer_roles(request, jurisdiction)}

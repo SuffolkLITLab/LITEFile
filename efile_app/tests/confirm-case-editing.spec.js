@@ -657,12 +657,12 @@ test('small screens: editing fits without sideways scrolling', async ({
 test.describe('live filing availability', () => {
     const warning = 'Hearing scheduling is not supported for this selection.';
     const choices = [
-        ['court', 'court', 'vt:washington', 'cook:cvd1'],
-        ['case_category', 'case_category', '7000', '6198'],
-        ['case_type', 'case_type', '183542', '183541'],
-        ['filing_type', 'filing_type', '143133', '143132'],
+        ['court', 'court', 'vt:washington', 'cook:cvd1', 'vt:washington'],
+        ['case_category', 'case_category_name', '7000', '6198', 'Civil'],
+        ['case_type', 'case_type_name', '183542', '183541', 'Tort'],
+        ['filing_type', 'filing_type_name', '143133', '143132', 'Answer'],
     ];
-    for (const [name, parameter, blocked, allowed] of choices) {
+    for (const [name, parameter, blocked, allowed, blockedName] of choices) {
         test(`warns immediately for ${name} and clears after correction`, async ({
             page
         }) => {
@@ -670,7 +670,7 @@ test.describe('live filing availability', () => {
                 flat: true
             });
             await page.route('**/api/filing-availability/**', (route) => {
-                const unavailable = new URL(route.request().url()).searchParams.getAll(parameter).includes(blocked);
+                const unavailable = new URL(route.request().url()).searchParams.getAll(parameter).includes(blockedName);
                 return route.fulfill({
                     json: {
                         success: true,
@@ -695,6 +695,40 @@ test.describe('live filing availability', () => {
         });
     }
 
+    test('a changed numeric ID still sends the human-readable name', async ({
+        page
+    }) => {
+        await mockCourtLists(page, {
+            flat: true
+        });
+        await page.route('**/api/dropdowns/case-types/**', (route) => route.fulfill({
+            json: {
+                success: true,
+                data: [{
+                    value: '987654',
+                    text: 'Contract'
+                }],
+            }
+        }));
+        await page.route('**/api/filing-availability/**', (route) => {
+            const blocked = new URL(route.request().url()).searchParams.get('case_type_name') === 'Contract';
+            return route.fulfill({
+                json: {
+                    success: true,
+                    available: !blocked,
+                    message: blocked ? warning : ''
+                }
+            });
+        });
+        await page.goto(PAGE);
+        await expect(field(page, 'case_type').select).toBeEnabled();
+        await field(page, 'case_type').select.selectOption('987654');
+        await expect(page.locator('#filing-availability-notice')).toHaveText(warning);
+        await expect(page.getByRole('button', {
+            name: 'Confirm and continue'
+        })).toBeDisabled();
+    });
+
     test('a late allowed response cannot clear the current restriction', async ({
         page
     }) => {
@@ -704,7 +738,7 @@ test.describe('live filing availability', () => {
         let delayAllowed = false;
         let lateDelivered = false;
         await page.route('**/api/filing-availability/**', async (route) => {
-            const blocked = new URL(route.request().url()).searchParams.get('filing_type') === '143133';
+            const blocked = new URL(route.request().url()).searchParams.get('filing_type_name') === 'Answer';
             const delayed = delayAllowed && !blocked;
             if (delayed) await new Promise((resolve) => setTimeout(resolve, 500));
             await route.fulfill({
@@ -757,7 +791,7 @@ test.describe('live filing availability', () => {
             }
         }));
         await page.route('**/api/filing-availability/**', (route) => {
-            const blocked = new URL(route.request().url()).searchParams.getAll('filing_type').includes('143133');
+            const blocked = new URL(route.request().url()).searchParams.getAll('filing_type_name').includes('Answer');
             return route.fulfill({
                 json: {
                     success: true,

@@ -13,9 +13,9 @@ def get_filing_availability(request):
         message = filing_unavailable_message(
             request.GET.get("jurisdiction") or request.session.get("jurisdiction"),
             request.GET.get("court", ""),
-            case_category=request.GET.get("case_category", ""),
-            case_type=request.GET.get("case_type", ""),
-            filing_types=request.GET.getlist("filing_type"),
+            case_category=request.GET.get("case_category_name", ""),
+            case_type=request.GET.get("case_type_name", ""),
+            filing_types=request.GET.getlist("filing_type_name"),
         )
     except InvalidJurisdiction as error:
         return JsonResponse({"success": False, "error": str(error)}, status=400)
