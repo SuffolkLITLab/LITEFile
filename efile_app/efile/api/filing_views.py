@@ -14,7 +14,7 @@ from django.views.decorators.http import require_http_methods
 from efile.utils.jurisdiction_stuff import get_jurisdiction_from_request
 
 from ..services.current_drafts import get_current_draft
-from ..services.efsp_errors import describe_efsp_error
+from ..services.efsp_errors import describe_efsp_error, efsp_error_problems, error_actions
 from ..services.efsp_payload import PayloadValidationError, prepare_efile_payload
 from ..services.fee_quotes import fee_inputs_token, fee_quote_summary, quote_from_efsp_response, record_fee_quote
 from ..utils.case_data_utils import get_case_data
@@ -161,6 +161,8 @@ class FilingAPIViews(APIResponseMixin):
             case_data = get_case_data(request, jurisdiction_id)
             court_id = case_data.get("court", "")
 
+            draft = get_current_draft(request, jurisdiction=jurisdiction_id, resume_latest=False)
+
             # Must match what submit_final_filing sends, or fees are quoted
             # against a payload that differs from the one actually filed.
             try:
@@ -168,7 +170,14 @@ class FilingAPIViews(APIResponseMixin):
             except PayloadValidationError as error:
                 # Known-bad payload: answer with the specific reason rather than
                 # letting the EFSP reply with a code-list error no filer can act on.
-                return JsonResponse({"success": False, "error": str(error)}, status=400)
+                return JsonResponse(
+                    {
+                        "success": False,
+                        "error": str(error),
+                        "error_actions": error_actions(draft, efile_data, error.problems),
+                    },
+                    status=400,
+                )
 
             url = f"{settings.EFSP_URL}/jurisdictions/{jurisdiction_id}/filingreview/courts/{court_id}/filing/fees"
 
@@ -188,7 +197,6 @@ class FilingAPIViews(APIResponseMixin):
             # The draft this request prices, as the page that built it saw it.
             # Checked again when the EFSP answers: the request can take a
             # minute, and the filing can be edited in another tab meanwhile.
-            draft = get_current_draft(request, jurisdiction=jurisdiction_id, resume_latest=False)
             inputs_token = str(data.get("fee_inputs_token") or "")
             priced_current_draft = draft is not None and bool(inputs_token) and fee_inputs_token(draft) == inputs_token
 
@@ -234,6 +242,9 @@ class FilingAPIViews(APIResponseMixin):
                     {
                         "success": False,
                         "error": f"Could not get filing fees: {error_message}",
+                        "error_actions": error_actions(
+                            draft, efile_data, efsp_error_problems(response), message=error_message
+                        ),
                         "api_status_code": response.status_code,
                         "api_response": response.text[:500] if response.text else "No response body",
                     },

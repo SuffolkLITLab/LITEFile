@@ -86,6 +86,7 @@
                 </div>
                 <div class="col-md-4">
                     {{ form.state.label_tag }} {{ form.state }}
+                    {% if form.state.help_text %}<div class="form-text">{{ form.state.help_text }}</div>{% endif %}
                     {% if form.state.errors %}<div class="text-danger small">{{ form.state.errors }}</div>{% endif %}
                 </div>
                 <div class="col-md-3">

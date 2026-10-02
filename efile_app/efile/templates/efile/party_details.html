@@ -1,6 +1,7 @@
 {% extends "efile/workflow_base.html" %}
 {% load static %}
 {% load i18n %}
+{% load efsp_validation %}
 {% block title %}
     {% translate "Party details" %}
 {% endblock title %}
@@ -28,6 +29,7 @@
                             <input class="form-check-input"
                                    type="radio"
                                    name="party_type"
+                                   {% if forloop.first %}id="id_party_type"{% endif %}
                                    value="{{ party_type.code }}"
                                    {% if party.party_type == party_type.code %}checked{% endif %}
                                    required />
@@ -97,29 +99,36 @@
                         <input class="form-control"
                                name="first_name"
                                value="{{ party.first_name }}"
-                               {% if party_kind != "organization" %}required{% endif %} />
+                               {% if party_kind != "organization" %}required{% endif %}
+                               {% validation_attrs "first_name" %}>
+                        {% field_feedback "first_name" %}
                     </label>
                     <label class="form-field">
                         <span>{% translate "Middle name" %} <em>{% translate "Optional" %}</em></span>
                         <input class="form-control"
                                name="middle_name"
-                               value="{{ party.middle_name }}" />
+                               value="{{ party.middle_name }}"
+                               {% validation_attrs "middle_name" %}>
+                        {% field_feedback "middle_name" %}
                     </label>
                     <label class="form-field">
                         <span>{% translate "Last name" %}</span>
                         <input class="form-control"
                                name="last_name"
                                value="{{ party.last_name }}"
-                               {% if party_kind != "organization" %}required{% endif %} />
+                               {% if party_kind != "organization" %}required{% endif %}
+                               {% validation_attrs "last_name" %}>
+                        {% field_feedback "last_name" %}
                     </label>
                     <label class="form-field">
                         <span>{% translate "Suffix" %} <em>{% translate "Optional" %}</em></span>
                         <select class="form-select"
                                 name="suffix"
-                                id="suffix"
-                                data-selected="{{ party.suffix }}">
+                                data-selected="{{ party.suffix }}"
+                                {% validation_attrs "suffix" %}>
                             <option value="">{% translate "None" %}</option>
                         </select>
+                        {% field_feedback "suffix" %}
                     </label>
                 </div>
             </div>
@@ -130,7 +139,9 @@
                     <input class="form-control"
                            name="organization_name"
                            value="{{ party.organization_name }}"
-                           {% if party_kind == "organization" %}required{% endif %} />
+                           {% if party_kind == "organization" %}required{% endif %}
+                           {% validation_attrs "organization_name" %}>
+                    {% field_feedback "organization_name" %}
                 </label>
             </div>
             <div class="people-section">
@@ -172,41 +183,49 @@
                         <input class="form-control"
                                name="address_line_1"
                                value="{{ party.address_line_1 }}"
-                               {% if address_required %}required{% endif %} />
+                               {% if address_required %}required{% endif %}
+                               {% validation_attrs "address_line_1" %}>
+                        {% field_feedback "address_line_1" %}
                     </label>
                     <label class="form-field people-grid__wide">
                         <span>{% translate "Apartment, unit, or suite" %} <em>{% translate "Optional" %}</em></span>
                         <input class="form-control"
                                name="address_line_2"
-                               value="{{ party.address_line_2 }}" />
+                               value="{{ party.address_line_2 }}"
+                               {% validation_attrs "address_line_2" %}>
+                        {% field_feedback "address_line_2" %}
                     </label>
                     <label class="form-field">
                         <span>{% translate "City" %}</span>
                         <input class="form-control"
                                name="city"
                                value="{{ party.city }}"
-                               {% if address_required %}required{% endif %} />
+                               {% if address_required %}required{% endif %}
+                               {% validation_attrs "city" %}>
+                        {% field_feedback "city" %}
                     </label>
                     <label class="form-field">
                         <span>{% translate "State" %}</span>
-                        <input class="form-control"
-                               name="state"
-                               value="{{ party.state }}"
-                               maxlength="2"
-                               {% if address_required %}required{% endif %} />
+                        {% include "efile/partials/state_choices.html" with required=address_required %}
+                        {% field_feedback "state" %}
                     </label>
                     <label class="form-field">
                         <span>{% translate "ZIP code" %}</span>
                         <input class="form-control"
                                name="zip_code"
                                value="{{ party.zip_code }}"
-                               {% if address_required %}required{% endif %} />
+                               {% if address_required %}required{% endif %}
+                               {% validation_attrs "zip_code" %}>
+                        {% field_feedback "zip_code" %}
                     </label>
                 </div>
             </div>
             <div class="people-section">
                 <h2>
-                    {% translate "Contact information" %} <em>{% translate "Optional" %}</em>
+                    {% translate "Contact information" %}
+                    {% if not validation_rules.email.required and not validation_rules.phone.required %}
+                        <em>{% translate "Optional" %}</em>
+                    {% endif %}
                 </h2>
                 <div class="people-grid">
                     <label class="form-field">
@@ -214,14 +233,18 @@
                         <input class="form-control"
                                type="email"
                                name="email"
-                               value="{{ party.email }}" />
+                               value="{{ party.email }}"
+                               {% validation_attrs "email" %}>
+                        {% field_feedback "email" %}
                     </label>
                     <label class="form-field">
                         <span>{% translate "Phone" %}</span>
                         <input class="form-control"
                                type="tel"
                                name="phone"
-                               value="{{ party.phone }}" />
+                               value="{{ party.phone }}"
+                               {% validation_attrs "phone" %}>
+                        {% field_feedback "phone" %}
                     </label>
                 </div>
             </div>
@@ -273,6 +296,8 @@
     {% include "efile/components/claim_party_dialog.html" %}
 {% endblock workflow_content %}
 {% block extra_js %}
+    {{ validation_rules|json_script:"party-validation-rules" }}
     <script src="{% static 'js/party-details.js' %}"></script>
     <script src="{% static 'js/claim-party.js' %}"></script>
+    <script src="{% static 'js/party-validation.js' %}"></script>
 {% endblock extra_js %}

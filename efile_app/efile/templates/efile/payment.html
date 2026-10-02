@@ -152,6 +152,8 @@
             </section>
             <div class="alert alert-danger" id="errorMessage" role="alert" hidden>
                 <i class="fas fa-exclamation-triangle me-2" aria-hidden="true"></i><span id="errorText"></span>
+                <ul id="filing-error-actions" hidden>
+                </ul>
             </div>
             <div class="alert alert-success" id="successMessage" role="alert" hidden>
                 <i class="fas fa-check-circle me-2" aria-hidden="true"></i><span id="successText"></span>
@@ -179,6 +181,7 @@
     {{ fee_estimate.is_zero|json_script:"estimated-zero-fees" }}
 {% endblock workflow_content %}
 {% block extra_js %}
+    <script src="{% static 'js/filing-error-actions.js' %}"></script>
     <script src="{% static 'js/filing-payload.js' %}"></script>
     <script src="{% static 'js/document-checks.js' %}"></script>
     <script src="{% static 'js/payment.js' %}"></script>

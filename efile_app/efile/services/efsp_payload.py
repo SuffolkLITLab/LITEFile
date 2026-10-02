@@ -13,6 +13,8 @@ import requests
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 
+from efile.services.efsp_validation import party_validation, validate_party
+
 logger = logging.getLogger(__name__)
 
 # Labels the UI has historically stored in place of a real court filing-component
@@ -34,6 +36,10 @@ class PayloadValidationError(Exception):
     Raised only for conditions the court's own code lists already prove wrong, so
     the message can be specific. Views turn this into a 400 carrying the message.
     """
+
+    def __init__(self, message, *, problems=None):
+        super().__init__(message)
+        self.problems = problems or []
 
 
 class _EfspLookups:
@@ -126,6 +132,7 @@ def prepare_efile_payload(efile_data, jurisdiction_id, court_id):
     """
     lookups = _EfspLookups()
     _clean_case_identifiers(efile_data)
+    validate_party_formats(efile_data, jurisdiction_id, court_id)
     validate_lower_court(efile_data, jurisdiction_id, court_id, lookups=lookups)
     _drop_empty_cross_references(efile_data)
     substitute_test_document_urls(efile_data)
@@ -134,6 +141,53 @@ def prepare_efile_payload(efile_data, jurisdiction_id, court_id):
     normalize_optional_services(efile_data, jurisdiction_id, court_id, lookups=lookups)
     validate_required_party_types(efile_data, jurisdiction_id, court_id, lookups=lookups)
     return efile_data
+
+
+def validate_party_formats(payload, jurisdiction, court):
+    """Catch invalid extracted/saved values even if a people form was bypassed."""
+    metadata_by_country = {}
+    problems = []
+    for collection in ("users", "other_parties"):
+        parties = payload.get(collection)
+        if not isinstance(parties, list):
+            continue
+        for index, party in enumerate(parties):
+            if not isinstance(party, dict):
+                continue
+            address = party.get("address") or {}
+            name = party.get("name") or {}
+            if not isinstance(address, dict) or not isinstance(name, dict):
+                continue
+            country = str(address.get("country") or "US").upper()
+            if country not in metadata_by_country:
+                metadata_by_country[country] = party_validation(jurisdiction, court, country)
+            metadata = metadata_by_country[country]
+            organization = str(party.get("person_type") or "").lower() in {"business", "organization"}
+            values = {
+                "first_name": name.get("first"),
+                "middle_name": name.get("middle"),
+                "last_name": name.get("last"),
+                "organization_name": name.get("first"),
+                "email": party.get("email"),
+                "phone": party.get("phone_number") or party.get("mobile_number"),
+                "state": address.get("state"),
+            }
+            errors = validate_party(values, metadata, organization=organization, address_started=bool(address))
+            paths = {
+                "first_name": "name.first",
+                "middle_name": "name.middle",
+                "last_name": "name.last",
+                "organization_name": "name.first",
+                "phone": "phone_number",
+                "email": "email",
+                "state": "address.state",
+            }
+            for field, message in errors.items():
+                problems.append({"name": f"{collection}[{index}].{paths[field]}", "message": message})
+    if problems:
+        raise PayloadValidationError(
+            "Check the party information: " + "; ".join(p["message"] for p in problems), problems=problems
+        )
 
 
 def _clean_case_identifiers(efile_data):

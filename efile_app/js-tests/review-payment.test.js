@@ -20,6 +20,7 @@ test("free filing help follows the current quote and closes on errors", () => {
         return nodes.get(id);
     };
     const context = vm.createContext({
+        window: {},
         document: {
             getElementById: node,
             addEventListener() {}

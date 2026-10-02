@@ -237,12 +237,13 @@ class ApiUtils {
                 // actionable thing the filer can be told -- which required party
                 // is missing, which document the EFSP could not fetch. Collapsing
                 // every 400 to "Invalid request" throws exactly that away.
-                const serverMessage = await response.clone().json()
-                    .then(body => body?.error)
+                const serverBody = await response.clone().json()
                     .catch(() => null);
+                const serverMessage = serverBody?.error;
                 const error = new Error(serverMessage || `HTTP error! status: ${response.status}`);
                 error.status = response.status;
                 error.serverMessage = serverMessage || null;
+                error.errorActions = serverBody?.error_actions || [];
                 throw error;
             }
 

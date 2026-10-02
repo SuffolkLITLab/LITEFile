@@ -5,8 +5,9 @@ const Messages = {
         document.getElementById("errorMessage").hidden = true;
         document.getElementById("successMessage").hidden = true;
     },
-    showError(message) {
+    showError(message, actions = []) {
         document.getElementById("errorText").textContent = message;
+        window.FilingErrorActions?.render("filing-error-actions", actions);
         const box = document.getElementById("errorMessage");
         box.hidden = false;
         box.scrollIntoView({
@@ -95,15 +96,17 @@ const FilingHandler = {
         document.getElementById("fee-quote-total").hidden = false;
         document.getElementById("fee-quote-pending").hidden = true;
         document.getElementById("fee-quote-error").hidden = true;
+        window.FilingErrorActions?.render("fee-error-actions", []);
     },
 
-    showFeeError(message) {
+    showFeeError(message, actions = []) {
         this.setFreeFilingHelp(false);
         document.getElementById("submit-button-label").textContent = gettext("Submit filing");
         document.getElementById("fee-quote-breakdown").replaceChildren();
         document.getElementById("fee-quote-pending").hidden = true;
         document.getElementById("fee-quote-total").hidden = true;
         document.getElementById("fee-quote-error-text").textContent = message;
+        window.FilingErrorActions?.render("fee-error-actions", actions);
         document.getElementById("fee-quote-error").hidden = false;
     },
 
@@ -136,7 +139,7 @@ const FilingHandler = {
             this.showFeeQuote(quote);
         } catch (error) {
             this.feeQuoteState = "missing";
-            this.showFeeError(`${error?.serverMessage || error?.message || gettext("We could not calculate the court's fees.")} ${gettext("You cannot submit until the fees are known.")}`);
+            this.showFeeError(`${error?.serverMessage || error?.message || gettext("We could not calculate the court's fees.")} ${gettext("You cannot submit until the fees are known.")}`, error?.errorActions);
         }
         this.setSubmissionState(false);
     },
@@ -164,7 +167,7 @@ const FilingHandler = {
                 // Something changed in another tab since this page loaded.
                 await this.refreshFeeQuote();
             }
-            Messages.showError(error?.serverMessage || gettext("We could not submit the filing. Please try again."));
+            Messages.showError(error?.serverMessage || gettext("We could not submit the filing. Please try again."), error?.errorActions);
             this.setSubmissionState(false);
         }
     }

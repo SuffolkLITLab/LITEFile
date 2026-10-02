@@ -409,7 +409,7 @@ const FilingPayload = {
                 window.location.href = result.redirect_url || `/jurisdiction/${jurisdiction}/filing-confirmation/`;
             }, 2000);
         } else {
-            Messages.showError(result?.error || "An error occurred during submission.");
+            Messages.showError(result?.error || "An error occurred during submission.", result?.error_actions);
             this.setSubmissionState(false);
         }
     },
@@ -449,7 +449,7 @@ const FilingPayload = {
             infoElem.appendChild(receipt);
             document.getElementById("paymentSection").removeAttribute("hidden");
         } else {
-            Messages.showError(result?.error || "An error occurred when calculating fees.");
+            Messages.showError(result?.error || "An error occurred when calculating fees.", result?.error_actions);
         }
         this.setFeesState(false);
     }

@@ -253,10 +253,12 @@
                                 {% translate "We are calculating the court's fees for this filing." %}
                             {% endif %}
                         </p>
-                        <p class="alert alert-warning" id="fee-quote-error" hidden>
+                        <div class="alert alert-warning" id="fee-quote-error" hidden>
                             <span id="fee-quote-error-text"></span>
+                            <ul id="fee-error-actions" hidden>
+                            </ul>
                             <a href="{% url 'payment' jurisdiction %}">{% translate "Check fees on the Payment step" %}</a>
-                        </p>
+                        </div>
                     {% endif %}
                 </div>
             </section>
@@ -290,6 +292,8 @@
         {% endif %}
         <div class="alert alert-danger mt-4" id="errorMessage" role="alert" hidden>
             <i class="fas fa-exclamation-triangle me-2" aria-hidden="true"></i><span id="errorText"></span>
+            <ul id="filing-error-actions" hidden>
+            </ul>
         </div>
         <div class="alert alert-success mt-4"
              id="successMessage"
@@ -348,6 +352,7 @@
     {{ fee_inputs_token|json_script:"fee-inputs-token" }}
 {% endblock workflow_content %}
 {% block extra_js %}
+    <script src="{% static 'js/filing-error-actions.js' %}"></script>
     <script src="{% static 'js/filing-payload.js' %}"></script>
     <script src="{% static 'js/review.js' %}"></script>
 {% endblock extra_js %}

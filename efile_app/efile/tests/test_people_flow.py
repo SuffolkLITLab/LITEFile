@@ -725,9 +725,9 @@ def test_your_information_defaults_the_state_to_this_jurisdiction(client, django
     with patch("efile.views.your_information.cached_account_profile", return_value=None):
         response = client.get(reverse("your_information", kwargs={"jurisdiction": jurisdiction}))
 
-    state_input = re.search(r'<input[^>]*name="state"[^>]*>', response.content.decode())
-    assert state_input is not None
-    assert f'value="{state_code}"' in state_input.group()
+    content = response.content.decode()
+    assert re.search(r'<select[^>]*name="state"[^>]*>', content)
+    assert re.search(rf'<option value="{state_code}"\s+selected', content)
 
 
 @pytest.mark.django_db
