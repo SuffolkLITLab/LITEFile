@@ -29,6 +29,8 @@ const DocumentChecks = {
         body.append("action", action);
         body.append("document_id", check.dataset.documentId);
         body.append("preview_fingerprint", check.dataset.fingerprint);
+        const feeToken = document.getElementById("fee-inputs-token");
+        if (feeToken) body.append("fee_inputs_token", JSON.parse(feeToken.textContent));
         body.append("csrfmiddlewaretoken", apiUtils.getCSRFToken());
         buttons.forEach((element) => {
             element.disabled = true;

@@ -370,6 +370,10 @@ class FilingDocument(models.Model):
     )
     preparation_reviewed_at = models.DateTimeField(null=True, blank=True)
 
+    # A blank document type is a completed answer only when Organize checked
+    # that the court offers no confidentiality choices for this filing type.
+    document_type_confirmed = models.BooleanField(default=False)
+
     filing_type_code = models.CharField(max_length=100, blank=True)
     filing_type_name = models.CharField(max_length=255, blank=True)
     document_type_code = models.CharField(max_length=100, blank=True)

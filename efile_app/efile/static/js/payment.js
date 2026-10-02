@@ -66,6 +66,8 @@ const PaymentPage = {
         action,
         data
     }) {
+        // The check endpoint verified this page's fee token before changing
+        // documents, so the returned token still matches our caseData.
         document.getElementById("fee-inputs-token").textContent = JSON.stringify(data.fee_inputs_token);
         const confirmation = document.getElementById("waiver-upload-confirmation");
         if (action === "remove") {

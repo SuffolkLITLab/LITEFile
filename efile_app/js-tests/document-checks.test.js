@@ -4,7 +4,7 @@ const fs = require("node:fs");
 const vm = require("node:vm");
 const path = require("node:path");
 
-function harness(fetch, action = "confirm") {
+function harness(fetch, action = "confirm", feeToken = null) {
     const events = [];
     const status = {
         textContent: ""
@@ -41,6 +41,9 @@ function harness(fetch, action = "confirm") {
     let click;
     const context = vm.createContext({
         document: {
+            getElementById: () => feeToken === null ? null : {
+                textContent: JSON.stringify(feeToken)
+            },
             addEventListener(event, callback) {
                 if (event === "click") click = callback;
             }
@@ -117,6 +120,26 @@ test("removing sends the remove action", async () => {
     await page.click();
     assert.equal(action, "remove");
     assert.equal(page.events[0].detail.action, "remove");
+});
+
+test("payment checks send the token for the case data the page still holds", async () => {
+    for (const action of ["confirm", "remove"]) {
+        let token;
+        const page = harness(async (_url, options) => {
+            token = options.body.get("fee_inputs_token");
+            return {
+                ok: false,
+                json: async () => ({
+                    error: "This filing changed. Reload this page."
+                })
+            };
+        }, action, "page-inputs-token");
+        await page.click();
+        assert.equal(token, "page-inputs-token");
+        assert.equal(page.check.removed, false);
+        assert.equal(page.events.length, 0);
+        assert.match(page.status.textContent, /Reload this page/);
+    }
 });
 
 test("a refused check stays on the page with its reason and can be retried", async () => {

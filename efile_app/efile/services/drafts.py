@@ -426,6 +426,10 @@ def _apply_document(doc: FilingDocument, file_obj: dict[str, Any], config: dict[
             value = config.get(config_key)
             if isinstance(value, dict):
                 value = value.get("id") or value.get("code") or ""
+            if model_field in {"filing_type_code", "document_type_code"} and getattr(doc, model_field) != _as_str(
+                value
+            ):
+                doc.document_type_confirmed = False
             setattr(doc, model_field, _as_str(value))
 
     if "optional_services" in config:
@@ -508,6 +512,11 @@ def write_upload_data(
             if document.s3_key
         ]
         claimed_items = {document.s3_key: document.checklist_item_id for document in previous}
+        confirmed_types = {
+            document.s3_key: (document.filing_type_code, document.document_type_code)
+            for document in previous
+            if document.document_type_confirmed
+        }
         # Handoff provenance and pending corrections are keyed by row id, so
         # they follow the file to its rebuilt row the same way.
         previous_ids = {document.s3_key: document.pk for document in previous}
@@ -524,6 +533,9 @@ def write_upload_data(
             _upsert_document(draft, FilingDocument.Role.SUPPORTING, index, file_obj or {}, config or {})
         moved = {}
         for document in FilingDocument.objects.filter(draft=draft, role=FilingDocument.Role.SUPPORTING):
+            if confirmed_types.get(document.s3_key) == (document.filing_type_code, document.document_type_code):
+                document.document_type_confirmed = True
+                document.save(update_fields=["document_type_confirmed", "updated_at"])
             if metadata := preparation_metadata.get(document.s3_key):
                 for field, value in metadata.items():
                     setattr(document, field, value)
