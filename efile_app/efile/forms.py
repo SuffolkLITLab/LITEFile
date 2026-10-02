@@ -2,6 +2,8 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 
+from efile.services.efsp_validation import state_choices
+from efile.services.postal_codes import USPS_STATES
 from efile.utils.account_ids import jurisdiction_account_username
 
 User = get_user_model()
@@ -28,6 +30,13 @@ class EFileRegistrationForm(forms.Form):
     def __init__(self, *args, jurisdiction=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.jurisdiction = jurisdiction
+        choices, source = state_choices(jurisdiction, "0")
+        self.fields["state"].choices = [("", "Select a state"), *choices]
+        if source == "efsp":
+            self.fields["state"].help_text = (
+                "Only locations accepted by the filing service are listed. If your address is not listed, "
+                "contact the court for filing instructions. Do not choose a different state."
+            )
 
     # Legal Name
     first_name = forms.CharField(
@@ -54,59 +63,7 @@ class EFileRegistrationForm(forms.Form):
     city = forms.CharField(
         max_length=100, widget=forms.TextInput(attrs={"class": "form-control", "id": "city", "required": "required"})
     )
-    STATE_CHOICES = [
-        ("", "Select a state"),
-        ("AL", "Alabama"),
-        ("AK", "Alaska"),
-        ("AZ", "Arizona"),
-        ("AR", "Arkansas"),
-        ("CA", "California"),
-        ("CO", "Colorado"),
-        ("CT", "Connecticut"),
-        ("DE", "Delaware"),
-        ("FL", "Florida"),
-        ("GA", "Georgia"),
-        ("HI", "Hawaii"),
-        ("ID", "Idaho"),
-        ("IL", "Illinois"),
-        ("IN", "Indiana"),
-        ("IA", "Iowa"),
-        ("KS", "Kansas"),
-        ("KY", "Kentucky"),
-        ("LA", "Louisiana"),
-        ("ME", "Maine"),
-        ("MD", "Maryland"),
-        ("MA", "Massachusetts"),
-        ("MI", "Michigan"),
-        ("MN", "Minnesota"),
-        ("MS", "Mississippi"),
-        ("MO", "Missouri"),
-        ("MT", "Montana"),
-        ("NE", "Nebraska"),
-        ("NV", "Nevada"),
-        ("NH", "New Hampshire"),
-        ("NJ", "New Jersey"),
-        ("NM", "New Mexico"),
-        ("NY", "New York"),
-        ("NC", "North Carolina"),
-        ("ND", "North Dakota"),
-        ("OH", "Ohio"),
-        ("OK", "Oklahoma"),
-        ("OR", "Oregon"),
-        ("PA", "Pennsylvania"),
-        ("RI", "Rhode Island"),
-        ("SC", "South Carolina"),
-        ("SD", "South Dakota"),
-        ("TN", "Tennessee"),
-        ("TX", "Texas"),
-        ("UT", "Utah"),
-        ("VT", "Vermont"),
-        ("VA", "Virginia"),
-        ("WA", "Washington"),
-        ("WV", "West Virginia"),
-        ("WI", "Wisconsin"),
-        ("WY", "Wyoming"),
-    ]
+    STATE_CHOICES = [("", "Select a state"), *USPS_STATES.items()]
     state = forms.ChoiceField(
         choices=STATE_CHOICES,
         widget=forms.Select(attrs={"class": "form-select", "id": "state", "required": "required"}),

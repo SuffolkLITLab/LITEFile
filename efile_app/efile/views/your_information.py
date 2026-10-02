@@ -7,6 +7,7 @@ from efile.models import FilingParty
 from efile.services.account_profile import cached_account_profile, default_state_code
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.drafts import draft_snapshot
+from efile.services.efsp_validation import party_validation, validate_party
 from efile.workflow import WorkflowStepKey, continue_step, continue_url, get_workflow_context, return_target
 
 # Account profile field -> the filer field it fills in when that field is blank.
@@ -52,6 +53,9 @@ def your_information(request, jurisdiction):
     )
     filer, _created = FilingParty.objects.get_or_create(draft=draft, role="filer", sort_order=0)
 
+    metadata = party_validation(jurisdiction, draft.court_code, filer.country or "US")
+    field_errors = {}
+
     if request.method == "POST":
         required = {
             "first_name": "First name",
@@ -63,16 +67,20 @@ def your_information(request, jurisdiction):
             "email": "Email",
         }
         values = {field: request.POST.get(field, "").strip() for field in required}
+        values.update(
+            {
+                field: request.POST.get(field, "").strip()
+                for field in ("middle_name", "suffix", "address_line_2", "phone")
+            }
+        )
+        values["state"] = values["state"].upper()
+        for field, value in values.items():
+            setattr(filer, field, value)
+        field_errors = validate_party(values, metadata, address_started=True)
         missing = [label for field, label in required.items() if not values[field]]
         if missing:
             messages.error(request, f"Complete these fields: {', '.join(missing)}.")
-        else:
-            for field, value in values.items():
-                setattr(filer, field, value)
-            filer.middle_name = request.POST.get("middle_name", "").strip()
-            filer.suffix = request.POST.get("suffix", "").strip()
-            filer.address_line_2 = request.POST.get("address_line_2", "").strip()
-            filer.phone = request.POST.get("phone", "").strip()
+        elif not field_errors:
             filer.save()
             return_to = return_target(request)
             draft.current_step = continue_step(draft, return_to, WorkflowStepKey.PARTIES)
@@ -83,10 +91,14 @@ def your_information(request, jurisdiction):
     # afterwards from JavaScript: the filer should not watch their own name
     # appear a second or two after the form does. Anything already saved on the
     # draft wins, so a filer who corrected an address keeps the correction.
-    profile = cached_account_profile(request, jurisdiction)
-    prefilled = _prefill_from_account(filer, profile, request.user) if profile else False
+    profile = cached_account_profile(request, jurisdiction) if request.method == "GET" else None
+    prefilled = _prefill_from_account(filer, profile, request.user) if profile else request.method == "POST"
 
     context = {
+        **metadata,
+        "field_errors": field_errors,
+        "selected_state": filer.state or default_state_code(jurisdiction),
+        "unsupported_state": bool(filer.state) and filer.state not in dict(metadata["state_choices"]),
         "is_logged_in": True,
         "filing_draft": draft_snapshot(draft),
         "filer": filer,

@@ -8,6 +8,7 @@ from efile.models import FilingParty
 from efile.party_sides import PartySide, side_for_party_type_name
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.drafts import draft_snapshot
+from efile.services.efsp_validation import party_validation, validate_party
 from efile.services.extracted_parties import party_display_name
 from efile.services.party_requirements import address_is_blank, party_address_requirement
 from efile.services.people import (
@@ -51,6 +52,9 @@ def party_details(request, jurisdiction):
     filer_party_type = filer_row.party_type if filer_row else ""
     same_role_error = False
 
+    metadata = party_validation(jurisdiction, draft.court_code, party.country or "US")
+    field_errors = {}
+
     if request.method == "POST":
         party_kind = request.POST.get("party_kind", "person")
         party_type = request.POST.get("party_type", "").strip()
@@ -62,7 +66,7 @@ def party_details(request, jurisdiction):
         address = {
             "address_line_1": request.POST.get("address_line_1", "").strip(),
             "city": request.POST.get("city", "").strip(),
-            "state": request.POST.get("state", "").strip(),
+            "state": request.POST.get("state", "").strip().upper(),
             "zip_code": request.POST.get("zip_code", "").strip(),
         }
         address_line_2 = request.POST.get("address_line_2", "").strip()
@@ -77,52 +81,35 @@ def party_details(request, jurisdiction):
         show_optional_address = address_started
         has_name = organization_name if party_kind == "organization" else first_name and last_name
         same_role_confirmed = request.POST.get("same_role_confirmed") == "yes"
+        # Keep all attempted values on every validation failure, in memory only.
+        party.party_type = party_type
+        party.party_type_name = party_type_names.get(party_type, "")
+        party.organization_name = organization_name if party_kind == "organization" else ""
+        for field in ("first_name", "middle_name", "last_name", "suffix"):
+            setattr(party, field, request.POST.get(field, "").strip() if party_kind == "person" else "")
+        for field, value in address.items():
+            setattr(party, field, value)
+        party.address_line_2 = address_line_2
+        party.email = request.POST.get("email", "").strip()
+        party.phone = request.POST.get("phone", "").strip()
+        field_errors = validate_party(
+            {field: getattr(party, field) for field in (*metadata["validation_rules"], "state")},
+            metadata,
+            organization=party_kind == "organization",
+            address_started=address_started,
+        )
         if not party_type or not has_name:
             messages.error(request, "Complete the party role and name.")
         elif filer_party_type and party_type == filer_party_type and not same_role_confirmed:
-            # Keep everything they entered, so answering the question is all
-            # that is left to do.
             same_role_error = True
-            party.party_type = party_type
-            party.party_type_name = party_type_names.get(party_type, party.party_type_name)
-            party.organization_name = organization_name if party_kind == "organization" else ""
-            party.first_name = first_name if party_kind == "person" else ""
-            party.middle_name = request.POST.get("middle_name", "").strip() if party_kind == "person" else ""
-            party.last_name = last_name if party_kind == "person" else ""
-            party.suffix = request.POST.get("suffix", "").strip() if party_kind == "person" else ""
-            for field, value in address.items():
-                setattr(party, field, value)
-            party.address_line_2 = address_line_2
-            party.email = request.POST.get("email", "").strip()
-            party.phone = request.POST.get("phone", "").strip()
         elif (address_requirement.required or address_started) and not address_complete:
-            # Keep the attempted address visible when returning validation
-            # errors. These assignments only affect this rendered instance;
-            # nothing is saved until every required part is present.
-            for field, value in address.items():
-                setattr(party, field, value)
-            party.address_line_2 = address_line_2
             if address_requirement.required:
                 messages.error(request, f"Complete the mailing address. {address_requirement.reason}")
             else:
                 messages.error(request, "Complete the optional mailing address, or clear all of its fields.")
-        else:
-            party.party_type = party_type
-            party.party_type_name = party_type_names.get(party_type, party.party_type_name)
-            # A type chosen by hand is the better answer, so the side follows
-            # it rather than the other way round. A type with no side in its
-            # name ("Guardian Ad Litem") is exactly what "someone else" means.
+        elif not field_errors:
+            # Choosing a court role by hand also establishes this party's side.
             party.party_side = side_for_party_type_name(party.party_type_name) or PartySide.OTHER
-            party.organization_name = organization_name if party_kind == "organization" else ""
-            party.first_name = first_name if party_kind == "person" else ""
-            party.middle_name = request.POST.get("middle_name", "").strip() if party_kind == "person" else ""
-            party.last_name = last_name if party_kind == "person" else ""
-            party.suffix = request.POST.get("suffix", "").strip() if party_kind == "person" else ""
-            for field, value in address.items():
-                setattr(party, field, value)
-            party.address_line_2 = address_line_2
-            party.email = request.POST.get("email", "").strip()
-            party.phone = request.POST.get("phone", "").strip()
             party.save()
 
             return_to = return_target(request)
@@ -143,6 +130,10 @@ def party_details(request, jurisdiction):
 
     address_requirement = party_address_requirement(draft, party, party_types=party_types)
     context = {
+        **metadata,
+        "field_errors": field_errors,
+        "selected_state": party.state,
+        "unsupported_state": bool(party.state) and party.state not in dict(metadata["state_choices"]),
         "is_logged_in": True,
         "filing_draft": draft_snapshot(draft),
         "party": party,

@@ -23,8 +23,9 @@ const paymentMessages = {
         document.getElementById("errorMessage").hidden = true;
         document.getElementById("successMessage").hidden = true;
     },
-    showError(message) {
+    showError(message, actions = []) {
         document.getElementById("errorText").textContent = message;
+        window.FilingErrorActions?.render("filing-error-actions", actions);
         const box = document.getElementById("errorMessage");
         box.hidden = false;
         box.scrollIntoView({
@@ -271,7 +272,7 @@ const PaymentPage = {
         } catch (error) {
             if (currentRequestId !== this.quoteRequestId) return;
             this.feeQuoteReady = false;
-            paymentMessages.showError(error?.serverMessage || gettext("We could not calculate fees. Please try again."));
+            paymentMessages.showError(error?.serverMessage || gettext("We could not calculate fees. Please try again."), error?.errorActions);
             this.setFeesState(false);
         }
     },

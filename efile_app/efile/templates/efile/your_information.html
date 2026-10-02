@@ -1,6 +1,7 @@
 {% extends "efile/workflow_base.html" %}
 {% load static %}
 {% load i18n %}
+{% load efsp_validation %}
 {% load ui_text %}
 {% block title %}
     {% translate "Your information" %}
@@ -25,14 +26,18 @@
                                name="first_name"
                                value="{{ filer.first_name }}"
                                autocomplete="given-name"
-                               required />
+                               required
+                               {% validation_attrs "first_name" %}>
+                        {% field_feedback "first_name" %}
                     </label>
                     <label class="form-field">
                         <span>{% translate "Middle name" %} <em>{% translate "Optional" %}</em></span>
                         <input class="form-control"
                                name="middle_name"
                                value="{{ filer.middle_name }}"
-                               autocomplete="additional-name" />
+                               autocomplete="additional-name"
+                               {% validation_attrs "middle_name" %}>
+                        {% field_feedback "middle_name" %}
                     </label>
                     <label class="form-field">
                         <span>{% translate "Last name" %}</span>
@@ -40,16 +45,19 @@
                                name="last_name"
                                value="{{ filer.last_name }}"
                                autocomplete="family-name"
-                               required />
+                               required
+                               {% validation_attrs "last_name" %}>
+                        {% field_feedback "last_name" %}
                     </label>
                     <label class="form-field">
                         <span>{% translate "Suffix" %} <em>{% translate "Optional" %}</em></span>
                         <select class="form-select"
                                 name="suffix"
-                                id="suffix"
-                                data-selected="{{ filer.suffix }}">
+                                data-selected="{{ filer.suffix }}"
+                                {% validation_attrs "suffix" %}>
                             <option value="">{% translate "None" %}</option>
                         </select>
+                        {% field_feedback "suffix" %}
                     </label>
                 </div>
             </div>
@@ -62,14 +70,18 @@
                                name="address_line_1"
                                value="{{ filer.address_line_1 }}"
                                autocomplete="address-line1"
-                               required />
+                               required
+                               {% validation_attrs "address_line_1" %}>
+                        {% field_feedback "address_line_1" %}
                     </label>
                     <label class="form-field people-grid__wide">
                         <span>{% translate "Apartment, unit, or suite" %} <em>{% translate "Optional" %}</em></span>
                         <input class="form-control"
                                name="address_line_2"
                                value="{{ filer.address_line_2 }}"
-                               autocomplete="address-line2" />
+                               autocomplete="address-line2"
+                               {% validation_attrs "address_line_2" %}>
+                        {% field_feedback "address_line_2" %}
                     </label>
                     <label class="form-field">
                         <span>{% translate "City" %}</span>
@@ -77,16 +89,14 @@
                                name="city"
                                value="{{ filer.city }}"
                                autocomplete="address-level2"
-                               required />
+                               required
+                               {% validation_attrs "city" %}>
+                        {% field_feedback "city" %}
                     </label>
                     <label class="form-field">
                         <span>{% translate "State" %}</span>
-                        <input class="form-control"
-                               name="state"
-                               value="{{ filer.state|default:default_state_code }}"
-                               maxlength="2"
-                               autocomplete="address-level1"
-                               required />
+                        {% include "efile/partials/state_choices.html" with required=True %}
+                        {% field_feedback "state" %}
                     </label>
                     <label class="form-field">
                         <span>{% translate "ZIP code" %}</span>
@@ -94,7 +104,9 @@
                                name="zip_code"
                                value="{{ filer.zip_code }}"
                                autocomplete="postal-code"
-                               required />
+                               required
+                               {% validation_attrs "zip_code" %}>
+                        {% field_feedback "zip_code" %}
                     </label>
                 </div>
             </div>
@@ -108,15 +120,23 @@
                                name="email"
                                value="{{ filer.email }}"
                                autocomplete="email"
-                               required />
+                               required
+                               {% validation_attrs "email" %}>
+                        {% field_feedback "email" %}
                     </label>
                     <label class="form-field">
-                        <span>{% translate "Phone" %} <em>{% translate "Optional" %}</em></span>
+                        <span>{% translate "Phone" %}
+                            {% if not validation_rules.phone.required %}
+                                <em>{% translate "Optional" %}</em>
+                            {% endif %}
+                        </span>
                         <input class="form-control"
                                type="tel"
                                name="phone"
                                value="{{ filer.phone }}"
-                               autocomplete="tel" />
+                               autocomplete="tel"
+                               {% validation_attrs "phone" %}>
+                        {% field_feedback "phone" %}
                     </label>
                 </div>
             </div>
@@ -139,5 +159,7 @@
     </section>
 {% endblock workflow_content %}
 {% block extra_js %}
+    {{ validation_rules|json_script:"party-validation-rules" }}
     <script src="{% static 'js/your-information.js' %}"></script>
+    <script src="{% static 'js/party-validation.js' %}"></script>
 {% endblock extra_js %}

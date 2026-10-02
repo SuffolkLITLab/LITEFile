@@ -6,7 +6,8 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
-from ..services.efsp_errors import describe_efsp_error
+from ..services.current_drafts import get_current_draft
+from ..services.efsp_errors import describe_efsp_error, efsp_error_problems, error_actions
 from ..services.efsp_payload import PayloadValidationError, prepare_efile_payload
 from ..services.extraction_fields import EXTRACTION_FIELDS, EXTRACTION_HINTS
 from ..services.filing_availability import outgoing_unavailable_message
@@ -175,6 +176,8 @@ def forward_final_filing(request, data):
                 status=status,
             )
 
+        draft = get_current_draft(request, jurisdiction=jurisdiction_id, resume_latest=False)
+
         # Same fixups the fee quote applied, so the filing matches the quote.
         try:
             prepare_efile_payload(efile_data, jurisdiction_id, court_id)
@@ -183,6 +186,7 @@ def forward_final_filing(request, data):
                 {
                     "success": False,
                     "error_code": SubmissionErrorCode.PAYLOAD_VALIDATION_FAILED,
+                    "error_actions": error_actions(draft, efile_data, error.problems),
                     "error": str(error),
                 },
                 status=400,
@@ -257,6 +261,9 @@ def forward_final_filing(request, data):
                     {
                         "success": False,
                         "error": f"Filing submission failed: {error_message}",
+                        "error_actions": error_actions(
+                            draft, efile_data, efsp_error_problems(response), message=error_message
+                        ),
                         "api_status_code": response.status_code,
                         "api_response": response.text[:500] if response.text else "No response body",
                     },

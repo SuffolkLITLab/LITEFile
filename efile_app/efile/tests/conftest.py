@@ -35,3 +35,9 @@ def court_requirements(monkeypatch):
 def appellate_code_lists(monkeypatch):
     """Appellate tests opt into specific catalogs; other tests never call EFSP."""
     monkeypatch.setattr("efile.services.appeals.code_list", lambda jurisdiction, path, lookups=None: None)
+
+
+@pytest.fixture(autouse=True)
+def efsp_validation_metadata(monkeypatch):
+    """Validation lookup tests opt into metadata; other tests use USPS fallback."""
+    monkeypatch.setattr("efile.services.efsp_validation.RuleLookups.get", lambda *args: None)

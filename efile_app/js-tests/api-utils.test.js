@@ -173,7 +173,11 @@ test("a failed request surfaces the server's own error message", async () => {
         status: 400,
         body: {
             success: false,
-            error: "This case type requires a Plaintiff."
+            error: "This case type requires a Plaintiff.",
+            error_actions: [{
+                url: "/jurisdiction/illinois/party-details/?party=2&focus=party_type",
+                label: "Edit role"
+            }]
         },
     }));
 
@@ -182,6 +186,7 @@ test("a failed request surfaces the server's own error message", async () => {
         (error) => {
             assert.strictEqual(error.message, "This case type requires a Plaintiff.");
             assert.strictEqual(error.serverMessage, "This case type requires a Plaintiff.");
+            assert.strictEqual(error.errorActions[0].label, "Edit role");
             assert.strictEqual(error.status, 400);
             return true;
         },
