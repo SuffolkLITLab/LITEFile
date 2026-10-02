@@ -24,7 +24,9 @@
         let invalid = false;
         if (input.value && rule.regex) {
             try {
-                const regex = new RegExp(rule.regex, "u");
+                // No "u" flag: it rejects identity escapes such as \- that
+                // portable_regex accepts and Python treats as literals.
+                const regex = new RegExp(rule.regex);
                 invalid = !regex.test(input.value) && !(field === "phone" && regex.test(normalizePhone(input.value)));
             } catch {
                 /* Java expressions unsupported by this browser stay server validated. */

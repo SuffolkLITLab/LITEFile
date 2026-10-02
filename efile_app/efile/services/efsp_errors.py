@@ -255,7 +255,7 @@ _PARTY_FIELDS = {
     "party_type": "party_type",
 }
 _STATE_MESSAGE = re.compile(
-    r"(?:Opposing party|Filing party).*?(?:doesn't|dosesn't|does not) support a state named\s+(.+?)(?:\.$|$)",
+    r"(?:Opposing party|Filing party).*?(?:doesn't|dosesn't|does not) support a state named\s+['\"]?([^\s.'\"]+)",
     re.IGNORECASE,
 )
 
@@ -319,10 +319,11 @@ def error_actions(draft, payload, problems, *, message=""):
     parties = list(draft.parties.all())
     candidates = list(problems)
     # Older proxy wording contains the rejected state, but no field path.
-    # Locate it only when exactly one outgoing party has that value.
+    # Locate it only when exactly one outgoing party has that value. The
+    # message may already carry describe_efsp_error's hint after the state.
     match = _STATE_MESSAGE.search(message)
     if match:
-        state = match[1].strip(" '\"")
+        state = match[1]
         locations = []
         for collection in ("users", "other_parties"):
             rows = payload.get(collection)

@@ -239,12 +239,20 @@ def test_ambiguous_parties_and_unknown_field_paths_do_not_get_guessed_links(draf
 
 
 @pytest.mark.django_db
-def test_legacy_state_message_locates_unique_rejected_value(draft):
+@pytest.mark.parametrize("described", [False, True])
+def test_legacy_state_message_locates_unique_rejected_value(draft, described):
     FilingParty.objects.create(draft=draft, role="other", first_name="Lee", last_name="Smith", party_type="DEF")
     payload = {
         "other_parties": [{"name": {"first": "Lee", "last": "Smith"}, "party_type": "DEF", "address": {"state": "BAD"}}]
     }
-    actions = error_actions(draft, payload, [], message="Opposing party dosesn't support a state named BAD")
+    message = "Opposing party dosesn't support a state named BAD"
+    if described:
+        # The views pass the described message, which appends a hint sentence.
+        response = Mock(status_code=400, text=message)
+        response.json.return_value = {"error": message}
+        message = describe_efsp_error(response)
+        assert message != "Opposing party dosesn't support a state named BAD"
+    actions = error_actions(draft, payload, [], message=message)
     assert len(actions) == 1
     assert "focus=state" in actions[0]["url"]
 
