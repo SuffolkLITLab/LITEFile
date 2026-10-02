@@ -80,9 +80,11 @@ def _set_lead_filing_type(draft, filing_type_code, filing_type_name):
     lead = FilingDocument.objects.filter(draft=draft, role=FilingDocument.Role.LEAD).first()
     if lead is None:
         return
+    if lead.filing_type_code != filing_type_code:
+        lead.document_type_confirmed = False
     lead.filing_type_code = filing_type_code
     lead.filing_type_name = filing_type_name
-    lead.save(update_fields=["filing_type_code", "filing_type_name", "updated_at"])
+    lead.save(update_fields=["filing_type_code", "filing_type_name", "document_type_confirmed", "updated_at"])
 
 
 def _case_identity(existing_case, docket_number):

@@ -13,6 +13,7 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any
 
+from django.db.models import Q
 from django.urls import reverse
 from django.utils.functional import Promise
 from django.utils.translation import gettext_lazy as _
@@ -345,14 +346,14 @@ def with_return_to(url: str, return_to: str | None) -> str:
 def documents_need_organizing(draft: Any) -> bool:
     """Whether a document has not been through Organize since it changed.
 
-    New files arrive without a filing type, a replaced main document needs one
-    chosen, and switching between a new and an existing case clears them all.
-    Only the filing type is checked: Organize leaves the document type empty
-    when the court offers no confidentiality choices, so an empty document
-    type can be a finished answer, and checking it would loop back here.
+    Checklist attachments can have a filing type before confidentiality is
+    answered. A blank document type is valid only after Organize checked that
+    the court offers no choices, so it must carry that confirmation.
     """
 
-    return draft.documents.filter(filing_type_code="").exists()
+    return draft.documents.filter(
+        Q(filing_type_code="") | Q(document_type_code="", document_type_confirmed=False)
+    ).exists()
 
 
 def continue_step(draft: Any, return_to: str, default_step: WorkflowStepKey | str) -> WorkflowStepKey:

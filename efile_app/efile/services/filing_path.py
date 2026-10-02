@@ -112,6 +112,7 @@ def change_filing_path(draft: FilingDraft, new_path: str) -> FilingPathChange:
             chosen.update(
                 filing_type_code="",
                 filing_type_name="",
+                document_type_confirmed=False,
                 filing_component_code="",
                 filing_component_name="",
                 requested_optional_services=[],

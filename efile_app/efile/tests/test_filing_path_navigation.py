@@ -328,6 +328,9 @@ def test_changing_back_to_a_new_case_drops_the_existing_case_it_was_filed_into(s
 def test_an_unchanged_answer_from_review_still_returns_to_review(signed_in):
     draft = start_from_menu(signed_in, ExistingCase.NEW)
     lead = lead_with_evidence(draft, phase="initial", title="Complaint")
+    # This detour starts after the filer organized the filing for Review.
+    lead.document_type_code = "public"
+    lead.save()
 
     response = confirm(signed_in, existing_case=ExistingCase.NEW, return_to="review")
 

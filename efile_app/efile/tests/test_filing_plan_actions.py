@@ -6,13 +6,16 @@ putting it in the envelope, to being told before you file if it is still not
 there -- and the home the plan lives at between filings.
 """
 
+import json
 from unittest.mock import Mock, patch
 
 import pytest
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 
 from efile.models import FilingDocument, FilingDraft, FilingPlan
 from efile.services.current_drafts import CURRENT_DRAFT_SESSION_KEY
+from efile.services.document_previews import preview_fingerprint
 from efile.services.drafts import read_upload_data, write_upload_data
 from efile.services.filing_plans import (
     documents_missing_from_envelope,
@@ -417,6 +420,72 @@ def test_a_complete_filing_returns_straight_to_review(client, signed_in):
     )
 
     assert response.url.partition("?")[0] == reverse("case_review", kwargs={"jurisdiction": "illinois"})
+
+
+@pytest.mark.django_db
+def test_checklist_upload_with_an_automatic_filing_type_requires_confidentiality(client, signed_in):
+    def upload(draft, *_args, **_kwargs):
+        FilingDocument.objects.create(
+            draft=draft,
+            role="supporting",
+            name="waiver.pdf",
+            preparation="unchanged",
+        )
+
+    with (
+        patch("efile.views.document_checklist.upload_files", side_effect=upload),
+        patch("efile.views.document_checklist.filing_type_for_item", return_value=("6529", "Fee waiver")),
+    ):
+        attached = client.post(
+            f"{CHECKLIST_URL}?return_to=review",
+            {
+                "action": "attach_item",
+                "item_id": "fee_waiver",
+                "document": SimpleUploadedFile("waiver.pdf", b"uploaded copy"),
+            },
+        )
+    assert "#document-checks" in attached.url
+    document = signed_in.documents.get(role="supporting")
+    assert document.filing_type_code == "6529"
+    assert document.document_type_code == ""
+    assert not document.document_type_confirmed
+    checked = client.post(
+        reverse("document_checks", kwargs={"jurisdiction": "illinois"}) + f"?draft={signed_in.pk}",
+        {"action": "confirm", "document_id": document.pk, "preview_fingerprint": preview_fingerprint([document])},
+    )
+    assert checked.status_code == 200
+    continued = client.post(f"{CHECKLIST_URL}?return_to=review", {"return_to": "review"})
+    assert continued.url.partition("?")[0] == reverse("organize_documents", kwargs={"jurisdiction": "illinois"})
+    assert "return_to=review" in continued.url
+
+    lead = signed_in.documents.get(role="lead")
+    details = {
+        "main_document_id": lead.pk,
+        "return_to": "review",
+        "documents": [
+            {"id": lead.pk, "filing_type": lead.filing_type_code, "document_type": "public"},
+            {"id": document.pk, "filing_type": document.filing_type_code, "document_type": ""},
+        ],
+    }
+    organize = reverse("organize_documents", kwargs={"jurisdiction": "illinois"}) + f"?draft={signed_in.pk}"
+    with patch("efile.views.organize_documents._court_document_types", return_value=[{"code": "sealed"}]):
+        refused = client.post(organize, json.dumps(details), content_type="application/json")
+    assert refused.status_code == 400
+    assert "Choose a confidentiality setting" in refused.json()["error"]
+    document.refresh_from_db()
+    assert not document.document_type_confirmed
+
+    details["documents"][1].update(document_type="sealed", filing_component="supporting")
+    with patch("efile.views.organize_documents.draft_unavailable_message", return_value=""):
+        organized = client.post(organize, json.dumps(details), content_type="application/json")
+    assert organized.status_code == 200
+    assert organized.json()["redirect_url"].partition("?")[0] == reverse(
+        "case_review", kwargs={"jurisdiction": "illinois"}
+    )
+    document.refresh_from_db()
+    assert document.document_type_code == "sealed"
+    assert document.filing_component_code == "supporting"
+    assert document.document_type_confirmed
 
 
 # --- The plan's own home -----------------------------------------------------

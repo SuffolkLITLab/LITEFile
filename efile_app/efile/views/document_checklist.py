@@ -104,7 +104,10 @@ def _attach_to_item(request, draft, plan, jurisdiction):
         if code:
             document.filing_type_code = code
             document.filing_type_name = name
-            document.save(update_fields=["filing_type_code", "filing_type_name", "updated_at"])
+            document.document_type_confirmed = False
+            document.save(
+                update_fields=["filing_type_code", "filing_type_name", "document_type_confirmed", "updated_at"]
+            )
 
     messages.success(request, f"{label} is in this filing.")
     # A new file is checked right here, before the filer moves on.
@@ -128,6 +131,11 @@ def document_checklist(request, jurisdiction):
     if not documents.exists():
         messages.error(request, "Upload at least one document before checking your filing.")
         return redirect("upload_documents", jurisdiction=jurisdiction)
+
+    if documents.filter(preparation="").exists():
+        return redirect(
+            with_return_to(get_step_url(WorkflowStepKey.PREVIEW_DOCUMENTS, jurisdiction), return_target(request))
+        )
 
     if request.method == "POST" and request.POST.get("action") == "upload":
         uploaded_files = request.FILES.getlist("documents")
@@ -187,8 +195,8 @@ def document_checklist(request, jurisdiction):
         #
         # Coming back here from Review to add a document is common now that
         # the review step names what is missing. Go straight back to Review,
-        # unless a document still needs a filing type -- organizing is where
-        # that is chosen, and the court will not take a filing without it.
+        # unless a document still needs its filing details and confidentiality
+        # checked on Organize.
         return_to = return_target(request)
         draft.current_step = continue_step(draft, return_to, WorkflowStepKey.ORGANIZE_DOCUMENTS)
         draft.save(update_fields=["current_step", "updated_at"])

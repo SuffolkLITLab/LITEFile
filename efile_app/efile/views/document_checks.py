@@ -61,6 +61,14 @@ def document_checks(request, jurisdiction):
         draft = FilingDraft.objects.select_for_update().get(pk=draft.pk)
         if draft.status not in ACTIVE_DRAFT_STATUSES:
             return JsonResponse({"error": "This filing is not available to edit."}, status=409)
+        inputs_token = request.POST.get("fee_inputs_token")
+        if inputs_token is not None and inputs_token != fee_inputs_token(draft):
+            # Payment will adopt the token returned below while keeping its
+            # page's case data. Only advance it from inputs that still match.
+            return JsonResponse(
+                {"error": "This filing changed. Reload this page before checking documents or calculating fees."},
+                status=409,
+            )
         document = draft.documents.filter(pk=request.POST.get("document_id") or None).first()
         if document is None:
             return JsonResponse(

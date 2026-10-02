@@ -149,6 +149,7 @@ def test_extraction_review_returns_to_review_when_edited_from_there(client, reor
         name="petition.pdf",
         # Organized already, as every document on Review has been.
         filing_type_code="petition",
+        document_type_code="public",
     )
 
     response = client.post(

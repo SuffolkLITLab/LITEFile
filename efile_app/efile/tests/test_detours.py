@@ -11,7 +11,10 @@ import pytest
 from django.urls import reverse
 
 from efile.models import FilingDocument, FilingParty
+from efile.services.drafts import read_upload_data, write_upload_data
+from efile.services.filing_path import change_filing_path
 from efile.tests.test_review_submit_flow import submission_draft as _submission_draft
+from efile.views.organize_documents import _save_document_details
 from efile.workflow import (
     WorkflowStepKey,
     clean_return_to,
@@ -67,10 +70,49 @@ def test_an_empty_document_type_is_a_finished_answer(draft):
     # Organize saves no document type when the court offers no confidentiality
     # choices. Treating that as unorganized would send Organize back to itself.
     draft.documents.update(document_type_code="", document_type_name="")
+    assert documents_need_organizing(draft)
+    lead = draft.documents.get()
+
+    with patch("efile.views.organize_documents._court_document_types", return_value=[]):
+        _save_document_details(
+            draft,
+            [{"id": lead.pk, "filing_type": lead.filing_type_code, "document_type": ""}],
+            lead.pk,
+        )
     assert not documents_need_organizing(draft)
     assert continue_url(draft, "illinois", "review", WorkflowStepKey.YOUR_INFORMATION) == reverse(
         "case_review", kwargs=J
     )
+
+
+def test_empty_confidentiality_confirmation_is_reset_when_the_filing_path_changes(draft):
+    draft.documents.update(document_type_code="", document_type_confirmed=True)
+    change_filing_path(draft, "existing")
+    lead = draft.documents.get()
+    assert not lead.document_type_confirmed
+    lead.filing_type_code = "automatically-assigned"
+    lead.save()
+    assert documents_need_organizing(draft)
+
+
+def test_empty_confidentiality_confirmation_survives_rebuild_only_for_the_same_types(draft):
+    document = FilingDocument.objects.create(
+        draft=draft,
+        role="supporting",
+        s3_key="supporting.pdf",
+        filing_type_code="motion",
+        document_type_confirmed=True,
+    )
+    wire = read_upload_data(draft)
+    write_upload_data(draft, wire)
+    document = draft.documents.get(s3_key=document.s3_key)
+    assert document.document_type_confirmed
+    assert not documents_need_organizing(draft)
+
+    wire["supporting_documents"][0]["filing_type"] = "different-type"
+    write_upload_data(draft, wire)
+    assert not draft.documents.get(s3_key=document.s3_key).document_type_confirmed
+    assert documents_need_organizing(draft)
 
 
 def test_adding_a_person_on_a_handoff_detour_stays_on_the_people_screens(client, draft):
