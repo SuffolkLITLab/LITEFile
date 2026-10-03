@@ -71,11 +71,18 @@ Deactivate with `deactivate` when you're done.
 ## Optional
 
 - __Create an admin user__
-  - With uv:
+  - Set `LITEFILE_STAFF_BOOTSTRAP_USERNAME` and a unique
+    `LITEFILE_STAFF_BOOTSTRAP_PASSWORD` through your shell or secret manager, then:
     ```bash
-    uv run python manage.py createsuperuser
+    cd efile_app
+    uv run python manage.py bootstrap_staff
     ```
-  Admin will be available at `/admin/` after you start the server.
+  Store the generated TOTP setup URI in your password manager. Alternatively,
+  supply its Base32 secret using `LITEFILE_STAFF_BOOTSTRAP_TOTP_SECRET`.
+  With the default private path, open http://127.0.0.1:8000/staff-7c83f0a2/.
+  Every staff role requires a local password and TOTP, including superusers.
+  See the [staff setup and local demo runbook](docs/developer-notes/staff-privacy-and-analytics.md)
+  for local sample data, deployment switches, and recovery.
 
 - __Static files__
   During development, static files are served automatically. No `collectstatic` is needed.
