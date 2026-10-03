@@ -111,6 +111,8 @@ def _unavailable_message(availabilities, *, case_category="", case_type="", fili
 
 
 def draft_unavailable_message(draft):
+    if draft.deletion_pending:
+        return "A verified data deletion is in progress for this filing."
     availabilities = _court_availability(draft.jurisdiction, draft.court_code)
     # Most courts have no filing-type rule; skip the document query for them.
     filing_types = (

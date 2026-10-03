@@ -33,15 +33,15 @@ def auth_with_tyler_api(username, password, jurisdiction):
     try:
         response = requests.post(url, json=payload, headers=headers, timeout=10)
     except requests.RequestException as error:
-        logger.error("Auth endpoint failed: %s - %s", url, error)
+        logger.error("Court authentication endpoint unavailable")
         raise EfspUnavailable(str(error)) from error
-    logger.info("Auth API response: status=%s url=%s", response.status_code, url)
+    logger.info("Court authentication endpoint status: %s", response.status_code)
 
     if response.status_code == 200:
         return response.json()
     if response.status_code >= 500:
         raise EfspUnavailable(f"Auth endpoint returned {response.status_code}")
-    logger.warning("Auth endpoint returned status %s for user %s", response.status_code, username)
+    logger.warning("Court authentication endpoint rejected credentials: %s", response.status_code)
     return None
 
 

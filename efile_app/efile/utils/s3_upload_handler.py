@@ -72,8 +72,8 @@ class S3UploadHandler:
                 ),
             )
 
-        except Exception as e:
-            logger.error("Failed to initialize S3 client: %s", e)
+        except Exception:
+            logger.error("Document storage initialization failed")
             self.s3_client = None
 
     def upload_file(self, file_obj, file_type="document", metadata=None):
@@ -132,7 +132,7 @@ class S3UploadHandler:
             # Generate the URL that can be used for efile submission
             file_url = self._generate_file_url(s3_key)
 
-            logger.info(f"Successfully uploaded file {file_obj.name} to S3: {s3_key}")
+            logger.info("Document upload succeeded")
 
             return {
                 "success": True,
@@ -146,11 +146,11 @@ class S3UploadHandler:
 
         except ClientError as e:
             error_msg = f"Failed to upload file to S3: {e}"
-            logger.error(error_msg)
+            logger.error("Document storage request failed")
             return {"success": False, "error": error_msg}
         except Exception as e:
             error_msg = f"Unexpected error during S3 upload: {e}"
-            logger.error(error_msg)
+            logger.error("Document storage request failed unexpectedly")
             return {"success": False, "error": error_msg}
 
     def _generate_file_url(self, s3_key, expiration=3600):
@@ -173,8 +173,8 @@ class S3UploadHandler:
 
             return presigned_url
 
-        except ClientError as e:
-            logger.error(f"Failed to generate presigned URL: {e}")
+        except ClientError:
+            logger.error("Document URL generation failed")
             raise
 
     def get_public_url(self, s3_key, expiration=604800):  # 7 days default
@@ -200,13 +200,54 @@ class S3UploadHandler:
 
         try:
             self.s3_client.delete_object(Bucket=self.bucket_name, Key=s3_key)
-            logger.info(f"Successfully deleted file from S3: {s3_key}")
+            logger.info("Document deletion succeeded")
             return {"success": True}
 
         except ClientError as e:
             error_msg = f"Failed to delete file from S3: {e}"
-            logger.error(error_msg)
+            logger.error("Document deletion failed")
             return {"success": False, "error": error_msg}
+
+    def erase_file(self, s3_key):
+        """Permanently erase this exact key, including noncurrent versions.
+
+        Fail closed when version listing/deletion is denied or object lock blocks
+        erasure. Never mistake a delete marker for permanent deletion.
+        """
+        if not self._ensure_initialized():
+            return {"success": False}
+        try:
+            versioning = self.s3_client.get_bucket_versioning(Bucket=self.bucket_name)
+            if versioning.get("Status") in {"Enabled", "Suspended"}:
+                objects = []
+                pages = self.s3_client.get_paginator("list_object_versions").paginate(
+                    Bucket=self.bucket_name, Prefix=s3_key
+                )
+                for page in pages:
+                    objects.extend(
+                        {"Key": s3_key, "VersionId": item["VersionId"]}
+                        for item in [*page.get("Versions", []), *page.get("DeleteMarkers", [])]
+                        if item["Key"] == s3_key
+                    )
+                for start in range(0, len(objects), 1000):
+                    result = self.s3_client.delete_objects(
+                        Bucket=self.bucket_name, Delete={"Objects": objects[start : start + 1000], "Quiet": True}
+                    )
+                    if result.get("Errors"):
+                        return {"success": False}
+                for page in self.s3_client.get_paginator("list_object_versions").paginate(
+                    Bucket=self.bucket_name, Prefix=s3_key
+                ):
+                    if any(
+                        item["Key"] == s3_key for item in [*page.get("Versions", []), *page.get("DeleteMarkers", [])]
+                    ):
+                        return {"success": False}
+            else:
+                self.s3_client.delete_object(Bucket=self.bucket_name, Key=s3_key)
+            return {"success": True}
+        except Exception:
+            logger.warning("Privacy object erasure failed; restricted retry manifest retained")
+            return {"success": False}
 
     def download_file(self, s3_key, destination):
         """Download a private object to a local path for background processing."""
@@ -218,7 +259,7 @@ class S3UploadHandler:
             return {"success": True}
         except ClientError as error:
             error_msg = f"Failed to download file from S3: {error}"
-            logger.error(error_msg)
+            logger.error("Document download failed")
             return {"success": False, "error": error_msg}
 
     def _get_file_extension(self, filename):

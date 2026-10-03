@@ -326,6 +326,7 @@ def populate(draft, payload, uploads):
             public_url=uploaded["url"],
             original_s3_key=uploaded.get("original_s3_key", ""),
             preparation=uploaded.get("preparation", ""),
+            upload_has_form_fields=uploaded.get("upload_has_form_fields"),
         )
         order[document["role"]] += 1
         record(draft, f"documents.{row.pk}", "source_suggestion", document)
@@ -558,6 +559,9 @@ def full_snapshot(draft):
 
 @transaction.atomic
 def create_correction(draft, detail, fields):
+    from efile.models import UserProfile
+
+    UserProfile.objects.select_for_update().get(pk=draft.user_id)
     original = FilingDraft.objects.select_for_update().get(pk=draft.pk)
     if original.status != FilingDraft.Status.SUBMITTED or detail.get("status", "").strip().lower() not in {
         "rejected",

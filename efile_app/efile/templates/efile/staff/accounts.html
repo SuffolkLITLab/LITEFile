@@ -1,0 +1,20 @@
+{% extends "efile/staff/base.html" %}
+{% block staff_content %}
+    <form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Find accounts</button></form>
+    <table>
+        <caption>Local accounts in the selected jurisdiction</caption>
+        <thead>
+            <tr>
+                <th>Account</th>
+                <th>Email</th>
+                <th>Jurisdiction</th>
+                <th>Created</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for account in accounts %}<tr><td><a href="{% url 'litefile_staff:account' account.pk %}">#{{ account.pk }}</a></td><td>{{ account.account_email }}</td><td>{{ account.tyler_jurisdiction }}</td><td>{{ account.created_at }}</td></tr>{% empty %}<tr><td colspan="4">No matching accounts.</td></tr>{% endfor %}
+        </tbody>
+    </table>
+    {% if accounts.has_previous %}<a href="?page={{ accounts.previous_page_number }}">Previous</a>{% endif %}
+    {% if accounts.has_next %}<a href="?page={{ accounts.next_page_number }}">Next</a>{% endif %}
+{% endblock %}

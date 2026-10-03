@@ -1,0 +1,27 @@
+{% extends "efile/staff/base.html" %}
+{% block staff_content %}
+    <p>Reference {{ item.reference }} — {{ item.jurisdiction }} — {{ item.get_status_display }}.</p>
+    <p>Outcome: {{ item.outcome|default:"Pending" }}. {% if item.account_wide %}Scope: delete this local account and all of its LITEFile data.{% else %}Scope: delete selected filings and keep the account.{% endif %}</p>
+    {% if item.target_id %}<p>Account #{{ item.target_id }} — {{ item.target.account_email }}.</p>{% endif %}
+    <h2>Deletion preview</h2>
+    <dl>{% for name, count in plan.counts.items %}<dt>{{ name }}</dt><dd>{{ count }}</dd>{% endfor %}</dl>
+    {% if plan.blockers %}
+        <h3>Requires operator review</h3>
+        <ul>{% for blocker in plan.blockers %}<li>{{ blocker }}</li>{% endfor %}</ul>
+    {% endif %}
+    <p>Shared objects and correction chains outside this scope are blockers. Submitting filings and uncertain transmission outcomes require reconciliation; active extraction workers must stop before deletion.</p>
+    <p>Deleting LITEFile's copies does not withdraw a filing, erase court records, or delete a Tyler account. Backup and provider cleanup need a separate operator disposition.</p>
+    {% if item.status != 'completed' and not deletion_enabled %}<p><strong>Deletion is disabled on this deployment.</strong> You can review and verify this request. Ask a deployment administrator to enable deletion before the final confirmation.</p>{% endif %}
+    {% if item.status == 'received' %}
+        <h2>Verify the requester's authority</h2>
+        <p>Review the inventory above and verify the requester's identity and authority. Then continue to the final deletion confirmation.</p>
+        <form method="post">{% csrf_token %}<input type="hidden" name="action" value="verify"><label><input type="checkbox" name="verified" value="yes" required> I verified identity and authority for this exact local account and scope using the contact channel.</label><button type="submit">Verify and continue</button></form>
+    {% elif item.status != 'completed' %}
+        <h2>Confirm permanent deletion</h2>
+        {% if deletion_enabled %}
+            {% if plan.blockers %}<p>Resolve the items under <strong>Requires operator review</strong> before deleting this data.</p>{% endif %}
+            <form method="post">{% csrf_token %}<input type="hidden" name="action" value="process"><input type="hidden" name="preview" value="{{ preview_token }}"><label>Type the request reference shown above to confirm permanent deletion: <input name="confirmed" required autocomplete="off"></label><button type="submit" {% if plan.blockers %}disabled{% endif %}>{% if item.status == 'attention' or item.status == 'processing' %}Retry deletion{% elif item.account_wide %}Permanently delete account{% else %}Permanently delete selected filings{% endif %}</button></form>
+        {% endif %}
+    {% endif %}
+    {% if item.status == 'completed' and item.external_cleanup_pending %}<p>Live-system deletion completed. Backup/provider disposition remains outstanding; do not describe the request as fully erased.</p><form method="post">{% csrf_token %}<input type="hidden" name="action" value="external_resolved"><label><input type="checkbox" name="resolved" value="yes" required> I confirmed backup expiry or approved isolation and the disposition of provider-held data.</label><button type="submit">Record external disposition</button></form>{% endif %}
+{% endblock %}

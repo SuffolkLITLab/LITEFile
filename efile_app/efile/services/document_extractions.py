@@ -492,15 +492,22 @@ def claim_next_extraction(stale_after_minutes=15):
         completed_at=now,
         updated_at=now,
     )
-    candidates = DocumentExtraction.objects.filter(attempts__lt=max_attempts).filter(
-        Q(status=DocumentExtraction.Status.PENDING, available_at__lte=now) | expired
-    )
+    candidates = DocumentExtraction.objects.filter(
+        attempts__lt=max_attempts, document__draft__deletion_pending=False
+    ).filter(Q(status=DocumentExtraction.Status.PENDING, available_at__lte=now) | expired)
     with transaction.atomic():
-        if connection.features.has_select_for_update_skip_locked:
-            candidates = candidates.select_for_update(skip_locked=True)
-        else:
-            candidates = candidates.select_for_update()
         job = candidates.order_by("created_at").first()
+        if job is None:
+            return None
+        # Match deletion and completion lock order: draft, then extraction job.
+        drafts = FilingDraft.objects.filter(pk=job.document.draft_id, deletion_pending=False)
+        if connection.features.has_select_for_update_skip_locked:
+            drafts = drafts.select_for_update(skip_locked=True)
+        else:
+            drafts = drafts.select_for_update()
+        if drafts.first() is None:
+            return None
+        job = candidates.select_for_update().filter(pk=job.pk).first()
         if job is None:
             return None
         job.status = DocumentExtraction.Status.PROCESSING
@@ -523,6 +530,7 @@ def _current_claim(job_id, claim_token):
         claim_token=claim_token,
         status=DocumentExtraction.Status.PROCESSING,
         lease_expires_at__gt=timezone.now(),
+        document__draft__deletion_pending=False,
     )
 
 

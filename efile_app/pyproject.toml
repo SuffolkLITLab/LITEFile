@@ -29,6 +29,7 @@ dependencies = [
     "suffolklitlab-macourts @ git+https://github.com/SuffolkLITLab/MACourts@main",
     # Vermont Superior Court unit lookup by town, county, or ZIP.
     "suffolklitlab-vtcourts @ git+https://github.com/SuffolkLITLab/VTCourts@main",
+    "django-otp>=1.7.0,<2",
 ]
 
 [build-system]

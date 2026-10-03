@@ -1,5 +1,6 @@
 import json
 import logging
+import uuid
 
 from django.db import transaction
 from django.http import JsonResponse
@@ -46,8 +47,13 @@ def _claim_for_submission(draft: FilingDraft, acceptance: dict) -> bool:
         status=FilingDraft.Status.SUBMITTING,
         disclaimer_acceptance=acceptance,
         updated_at=timezone.now(),
+        submission_operation=uuid.uuid4(),
     )
     if claimed:
+        from efile.services.analytics import record_event
+
+        draft.refresh_from_db(fields=["submission_operation"])
+        record_event(draft, "submission_attempt", operation=draft.submission_operation)
         draft.status = FilingDraft.Status.SUBMITTING
         draft.disclaimer_acceptance = acceptance
     return bool(claimed)
@@ -157,6 +163,9 @@ def submit_final_filing(request):
         request.session.modified = True
         clear_current_draft(request)
     elif _failed_before_external_call(payload) or _confirmed_api_rejection(payload):
+        from efile.services.analytics import record_event
+
+        record_event(draft, "submission_error", operation=draft.submission_operation)
         # Nothing was filed (rejected before the call, or the API refused it),
         # so it is safe to return the draft to DRAFT for a corrected retry.
         _release_claim(draft)

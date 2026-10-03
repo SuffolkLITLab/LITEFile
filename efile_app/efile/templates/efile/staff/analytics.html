@@ -1,0 +1,23 @@
+{% extends "efile/staff/base.html" %}
+{% block staff_content %}
+    <p>Reporting timezone: UTC. Collection enabled: {{ collecting|yesno:"Yes,No" }}. First retained coverage: {{ health.first_counter|default:"No collected data" }}. Latest update: {{ health.freshness|default:"None" }}. Pending events: {{ health.pending }}.</p>
+    <p>Successful transmissions measure delivery to the filing service, not court acceptance. Matters and repeat use are counted per local account; they do not identify unique people. Case types use configured categories; unmatched types are grouped as other or unknown.</p>
+    <p>Small cohorts suppress the whole requested breakdown and period, including its subtotals and rare labels. Detailed breakdowns require complete UTC calendar months.</p>
+    <form method="get">{{ form.as_p }}<button type="submit">View report</button>{% if export_enabled %}<button type="submit" name="format" value="csv">Download CSV</button>{% endif %}</form>
+    <table>
+        <thead>
+            <tr>
+                <th>Period</th>
+                <th>Jurisdiction</th>
+                <th>Metric</th>
+                <th>New/existing</th>
+                <th>Breakdown</th>
+                <th>Value</th>
+                <th>Count</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in rows %}<tr><td>{{ row.period }}</td><td>{{ row.jurisdiction }}</td><td>{{ row.metric }}</td><td>{{ row.filing_kind }}</td><td>{{ row.dimension }}</td><td>{{ row.value }}</td><td>{{ row.count }}</td></tr>{% empty %}<tr><td colspan="7">No rows in this range.</td></tr>{% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

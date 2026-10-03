@@ -219,7 +219,8 @@ def test_supervisor_terminates_a_timed_out_child_and_requeues(lead):
             "efile.management.commands.process_document_extractions.multiprocessing.get_context",
             return_value=Mock(Process=Mock(return_value=child)),
         ),
-        patch("efile.management.commands.process_document_extractions.time.monotonic", side_effect=[0, 2, 2]),
+        # Initial rollup, child deadline, join deadline, rollup check, timeout.
+        patch("efile.management.commands.process_document_extractions.time.monotonic", side_effect=[0, 0, 2, 2, 2]),
     ):
         call_command("process_document_extractions", once=True)
     child.terminate.assert_called_once()

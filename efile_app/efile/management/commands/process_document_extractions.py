@@ -1,8 +1,10 @@
+import io
 import logging
 import multiprocessing
 import time
 
 from django.conf import settings
+from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.db import close_old_connections
 
@@ -51,8 +53,22 @@ class Command(BaseCommand):
             renew_extraction_lease,
         )
 
+        next_rollup = 0.0
+
+        def rollup_if_due():
+            nonlocal next_rollup
+            now = time.monotonic()
+            if now < next_rollup:
+                return
+            next_rollup = now + 60
+            try:
+                call_command("process_usage_events", stdout=io.StringIO())
+            except Exception:
+                logger.error("Usage rollup failed; queued events retained for retry")
+
         while True:
             close_old_connections()
+            rollup_if_due()
             job = claim_next_extraction()
             if job is None:
                 if options["once"]:
@@ -73,6 +89,7 @@ class Command(BaseCommand):
                     if not child.is_alive():
                         break
                     close_old_connections()
+                    rollup_if_due()
                     if time.monotonic() >= deadline or not renew_extraction_lease(job.pk, job.claim_token):
                         child.terminate()
                         break

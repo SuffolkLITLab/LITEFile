@@ -52,6 +52,7 @@ MIDDLEWARE.insert(insert_at, "whitenoise.middleware.WhiteNoiseMiddleware")
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
+    "filters": {"staff_redaction": {"()": "efile.staff_logging.StaffLogRedactionFilter"}},
     "formatters": {
         "verbose": {
             "format": "%(asctime)s [%(levelname)s] %(name)s: %(message)s",
@@ -61,6 +62,7 @@ LOGGING = {
         "console": {
             "class": "logging.StreamHandler",
             "formatter": "verbose",
+            "filters": ["staff_redaction"],
         },
     },
     "root": {

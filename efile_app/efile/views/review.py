@@ -62,6 +62,9 @@ def case_review(request, jurisdiction):
         return redirect("payment", jurisdiction=jurisdiction)
 
     question_labels = {question["name"]: question["label"] for question in get_case_questions(draft)}
+    from efile.services.analytics import record_event
+
+    record_event(draft, "review")
     question_answers = [
         {
             "label": question_labels.get(key, key.replace("_", " ").title()),
