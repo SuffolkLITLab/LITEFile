@@ -49,6 +49,9 @@
     <section aria-labelledby="information-collected">
         <h2 id="information-collected">{% translate "Information we collect" %}</h2>
         <p>
+            {% translate "We keep aggregate usage counts to understand which kinds of filings people make, which jurisdictions they use, whether they start or respond to cases, whether they file for themselves or someone else, filer ZIP codes, and whether uploaded PDFs contain form fields. Reports do not include names, email addresses, account identifiers, case numbers, documents, or authentication credentials. We restrict access to these reports and hide small groups to reduce the risk of identifying a person. Aggregate counts may be retained indefinitely after account or filing data is deleted." %}
+        </p>
+        <p>
             {% translate "To provide e-filing, we may collect information you enter or upload, including your name, contact information, addresses, party information, case details, filing documents, payment information, and account credentials. We may also collect browser, device, IP address, and activity information needed for security, troubleshooting, and service improvement." %}
         </p>
         <p>
@@ -129,6 +132,9 @@
     </section>
     <section aria-labelledby="contact-us">
         <h2 id="contact-us">{% translate "Questions or privacy requests" %}</h2>
+        <p>
+            {% translate "You can ask us to delete a particular filing's data or the data associated with your LITEFile account through the contact channel below. We verify your identity and authority before processing a request. Accounts in different jurisdictions are handled separately. Deleting LITEFile's copies does not withdraw a filing, erase a court record, or delete your account with the court's filing service. We may need to resolve a filing still in progress, shared records, retention requirements, or backup and provider-held copies before confirming what has been deleted." %}
+        </p>
         <p>
             {% translate "Contact the Suffolk LIT Lab at" %}
             <a href="mailto:{{ config.jurisdiction.contact_email|default:'litlab@suffolk.edu' }}">{{ config.jurisdiction.contact_email|default:"litlab@suffolk.edu" }}</a>

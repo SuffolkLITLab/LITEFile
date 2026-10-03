@@ -1,0 +1,5 @@
+{% extends "efile/staff/base.html" %}
+{% block staff_content %}
+    <p>Provision TOTP for local staff account #{{ target.pk }} ({{ target.username }}). Verify the recipient through an approved staff onboarding channel.</p>
+    {% if config_url %}<p>This secret is shown once. Transfer it securely to the administrator and have them add it to their authenticator. Do not put it in email, tickets, screenshots, or application logs.</p><p><code>{{ config_url }}</code></p>{% else %}<form method="post">{% csrf_token %}<label><input type="checkbox" name="confirmed" value="yes" required> I verified this staff onboarding request.</label><button type="submit">Provision TOTP</button></form>{% endif %}
+{% endblock %}

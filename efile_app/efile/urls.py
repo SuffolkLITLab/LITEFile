@@ -3,6 +3,7 @@ from django.shortcuts import redirect
 from django.urls import include, path
 from django.views.i18n import JavaScriptCatalog
 
+from efile.staff_admin import staff_site
 from efile.utils.config_loader import config_loader
 from efile.utils.jurisdiction_stuff import has_jurisdiction_login
 
@@ -65,6 +66,7 @@ def jurisdiction_homepage(request, jurisdiction):
 
 
 urlpatterns = [
+    path(f"{settings.LITEFILE_STAFF_PATH}/", staff_site.urls),
     path("api/handoffs/v1/", external_handoff, name="external_handoff"),
     path("api/handoffs/v1/documents/", replace_documents, name="handoff_replace_documents"),
     path("handoff/claim/<str:token>/", handoff_claim, name="handoff_claim"),

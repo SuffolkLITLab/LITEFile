@@ -1,0 +1,34 @@
+{% extends "efile/staff/base.html" %}
+{% block staff_content %}
+    <p>Local account #{{ target.pk }}: {{ target.account_email }} — {{ target.tyler_jurisdiction }}</p>
+    <p>Created {{ target.created_at }}. Last sign-in {{ target.last_login|default:"Unknown" }}. Plans: {{ plans }}. Archived cases: {{ archived }}.</p>
+    <h2>Filings</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Draft</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Updated</th>
+                <th>Documents</th>
+                <th>Parties</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for draft in drafts %}<tr><td>#{{ draft.pk }}</td><td>{{ draft.status }}</td><td>{{ draft.created_at }}</td><td>{{ draft.updated_at }}</td><td>{{ draft.documents.count }}</td><td>{{ draft.parties.count }}</td></tr>{% empty %}<tr><td colspan="6">No filings.</td></tr>{% endfor %}
+        </tbody>
+    </table>
+    {% if drafts.has_previous %}<a href="?page={{ drafts.previous_page_number }}">Previous</a>{% endif %}{% if drafts.has_next %}<a href="?page={{ drafts.next_page_number }}">Next</a>{% endif %}
+    <h2>Browser sessions</h2>
+    <p>Activity is estimated from session expiry and the configured session lifetime.</p>
+    {% for session in sessions %}<form method="post">{% csrf_token %}<input type="hidden" name="action" value="revoke"><input type="hidden" name="session" value="{{ session.token }}"><p>Estimated activity {{ session.estimated_activity }}; expires {{ session.expires }}. <button type="submit">Revoke this session</button></p></form>{% empty %}<p>No stored sessions.</p>{% endfor %}
+    <h2>Delete account or filing data</h2>
+    {% if open_requests %}
+        <h3>Continue an existing deletion request</h3>
+        <ul>{% for item in open_requests %}<li><a href="{% url 'litefile_staff:privacy_request' item.pk %}">Continue deletion review</a> — {{ item.get_status_display }} — {% if item.account_wide %}Whole account{% else %}Selected filings{% endif %}</li>{% endfor %}</ul>
+    {% endif %}
+    <p>Choose what to delete, then select <strong>Review deletion</strong> to see the inventory. On the next screen, verify the requester's authority and confirm permanent deletion.</p>
+    {% if not deletion_enabled %}<p><strong>Deletion is disabled on this deployment.</strong> You can review and verify a request, but the final delete action is unavailable until a deployment administrator enables deletion.</p>{% endif %}
+    <p>Use the existing contact channel to verify identity and authority. Select this local account only. Other jurisdictions require separate requests. Do not collect passwords or filing documents for verification.</p>
+    <form method="post">{% csrf_token %}<input type="hidden" name="action" value="request">{{ form.as_p }}<button type="submit">Review deletion</button></form>
+{% endblock %}

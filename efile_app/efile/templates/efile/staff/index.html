@@ -1,0 +1,11 @@
+{% extends "admin/index.html" %}
+{% block content %}
+    <div class="module">
+        <h2>Staff tools</h2>
+        <ul>
+            {% if account_access %}<li><a href="{% url 'litefile_staff:accounts' %}">Find an account</a></li><li><a href="{% url 'litefile_staff:requests' %}">Deletion requests</a></li>{% endif %}
+            {% if analytics_access %}<li><a href="{% url 'litefile_staff:analytics' %}">Aggregate usage</a></li>{% endif %}
+        </ul>
+    </div>
+    {{ block.super }}
+{% endblock %}

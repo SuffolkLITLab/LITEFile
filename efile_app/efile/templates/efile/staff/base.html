@@ -1,0 +1,5 @@
+{% extends "admin/base_site.html" %}
+{% block breadcrumbs %}<div class="breadcrumbs"><a href="{% url 'litefile_staff:index' %}">Staff tools</a> › {{ title }}</div>{% endblock %}
+{% block content %}
+    {% block staff_content %}{% endblock %}
+{% endblock %}

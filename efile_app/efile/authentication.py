@@ -13,10 +13,12 @@ User = get_user_model()
 
 class SuffolkEFileBackend(BaseBackend):
     def authenticate(self, request, username=None, password=None, **kwargs):
-        logger.info("Trying auth?")
-
         jurisdiction = kwargs.get("jurisdiction", get_jurisdiction_from_request(request))
         if not username or not password or not jurisdiction:
+            return None
+
+        # A staff password must also stay local if entered on a filer form.
+        if User.objects.filter(username__iexact=username, is_staff=True).exists():
             return None
 
         try:
@@ -29,23 +31,27 @@ class SuffolkEFileBackend(BaseBackend):
                     request.efsp_unavailable = True
                 return None
             if not auth_data or "tokens" not in auth_data:
-                logger.info("Tyler auth failed for user %s", username)
+                logger.info("Court authentication failed")
                 return None
 
             request.session["auth_tokens"] = auth_data["tokens"]
 
-            logger.info("Auth data: %s", auth_data)
-
             user = self._get_or_create_user(username, auth_data, jurisdiction)
+            if not user.is_active or user.is_staff:
+                request.session.pop("auth_tokens", None)
+                return None
             # TODO(brycew): actually write these?
             # if request:
             #    self._store_tokens_in_session(request, auth_data, jurisdiction)
 
-            logger.info("Successfully auth'd user: %s", username)
+            logger.info("Court authentication succeeded")
             request.session["user_email"] = user.email
             return user
         except Exception:
-            logger.exception("Error during auth for user: %s", username)
+            if request is not None:
+                request.session.pop("auth_tokens", None)
+                request.session.pop("user_email", None)
+            logger.error("Court authentication failed unexpectedly")
             return None
 
     def get_user(self, user_id):

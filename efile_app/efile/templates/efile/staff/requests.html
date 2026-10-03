@@ -1,0 +1,18 @@
+{% extends "efile/staff/base.html" %}
+{% block staff_content %}
+    <table>
+        <thead>
+            <tr>
+                <th>Reference</th>
+                <th>Jurisdiction</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Outcome</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}<tr><td><a href="{% url 'litefile_staff:privacy_request' item.pk %}">{{ item.reference }}</a></td><td>{{ item.jurisdiction }}</td><td>{{ item.get_status_display }}</td><td>{{ item.created_at }}</td><td>{{ item.outcome }}</td></tr>{% empty %}<tr><td colspan="5">No requests.</td></tr>{% endfor %}
+        </tbody>
+    </table>
+    {% if items.has_previous %}<a href="?page={{ items.previous_page_number }}">Previous</a>{% endif %}{% if items.has_next %}<a href="?page={{ items.next_page_number }}">Next</a>{% endif %}
+{% endblock %}

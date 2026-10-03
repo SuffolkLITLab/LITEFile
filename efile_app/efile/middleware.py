@@ -13,6 +13,8 @@ class DraftIdentityMiddleware(MiddlewareMixin):
     """Validate named drafts before views run and preserve them in redirects."""
 
     def process_view(self, request, view_func, view_args, view_kwargs):
+        if request.resolver_match.namespace == "litefile_staff":
+            return None
         statuses = (FilingDraft.Status.DRAFT, FilingDraft.Status.ERROR)
         if request.resolver_match.url_name == "submit_final_filing":
             statuses = (*statuses, FilingDraft.Status.SUBMITTING)
