@@ -31,14 +31,15 @@ class UserProfile(AbstractUser):
     # differ -- FilingDraft.ai_assistance_opted_out is what the worker reads --
     # so this is the value a new draft is born with, not a lock on it.
     ai_assistance_opted_out = models.BooleanField(default=False)
+    analytics_excluded = models.BooleanField(default=False)
 
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = "User Profile"
-        verbose_name_plural = "User Profiles"
+        verbose_name = "User profile"
+        verbose_name_plural = "User profiles"
         constraints = [
             models.UniqueConstraint(
                 fields=["tyler_jurisdiction", "tyler_username"],
@@ -280,6 +281,8 @@ class FilingDraft(models.Model):
     submission_response = models.JSONField(default=dict, blank=True)
 
     submitted_at = models.DateTimeField(blank=True, null=True)
+    submission_operation = models.UUIDField(null=True, blank=True, editable=False)
+    deletion_pending = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -323,12 +326,17 @@ class FilingDraft(models.Model):
                 "updated_at",
             ]
         )
+        from efile.services.analytics import record_event, record_matter
+
+        record_event(self, "transmitted")
+        record_matter(self)
 
     def mark_error(self, response_data):
         self.status = self.Status.ERROR
         self.submission_response = response_data or {}
         self.save(update_fields=["status", "submission_response", "updated_at"])
 
+    @transaction.atomic
     def save(self, *args, **kwargs):
         update_fields = kwargs.get("update_fields")
         if self.pk and (update_fields is None or {"filing_type_code", "filing_type_name"}.intersection(update_fields)):
@@ -358,6 +366,7 @@ class FilingDocument(models.Model):
     public_url = models.URLField(max_length=2048, blank=True)
     # Originals are private recovery copies; only s3_key is sent to the court.
     original_s3_key = models.CharField(max_length=1024, blank=True)
+    upload_has_form_fields = models.BooleanField(null=True, blank=True)
     preparation = models.CharField(
         max_length=30,
         blank=True,
@@ -544,6 +553,10 @@ class FilingParty(models.Model):
         display_name = " ".join(part for part in [self.first_name, self.middle_name, self.last_name] if part)
         return display_name or self.organization_name or f"{self.role} for draft #{self.draft_id}"
 
+    @transaction.atomic
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
 
 class InterviewHandoff(models.Model):
     """Authenticated source receipt, retained independently of browser sessions."""
@@ -622,3 +635,16 @@ class PendingActivation(models.Model):
     @classmethod
     def forget(cls, email, jurisdiction):
         cls.objects.filter(email=email.strip().lower(), jurisdiction=jurisdiction).delete()
+
+
+from efile.staff_models import (  # noqa: E402,F401
+    PrivacyRequest,
+    StaffAudit,
+    StaffLoginThrottle,
+    StaffRoleGrant,
+    StoredUpload,
+    UsageContributor,
+    UsageCounter,
+    UsageEvent,
+    UsageMatter,
+)

@@ -200,7 +200,7 @@ def handoff_claim(request, token):
 def _owned(request, draft_id):
     if not request.user.is_authenticated:
         raise HandoffError("Sign in to open this draft.", status=401)
-    return get_object_or_404(FilingDraft, pk=draft_id, user=request.user)
+    return get_object_or_404(FilingDraft, pk=draft_id, user=request.user, deletion_pending=False)
 
 
 def _issue_links(draft):
@@ -381,6 +381,8 @@ def replace_documents(request):
         digest = fingerprint(payload)
         with transaction.atomic():
             draft = get_object_or_404(FilingDraft.objects.select_for_update(), pk=scope["draft"])
+            if draft.deletion_pending:
+                raise HandoffError("This draft is unavailable during data deletion.", status=409)
             receipt = receipt_for(draft)
             if (
                 not receipt
@@ -427,6 +429,7 @@ def replace_documents(request):
                     row.size = uploaded["size"]
                     row.original_s3_key = uploaded["original_s3_key"]
                     row.preparation = uploaded["preparation"]
+                    row.upload_has_form_fields = uploaded.get("upload_has_form_fields")
                     row.preparation_reviewed_at = None
                     row.save(
                         update_fields=[
@@ -438,6 +441,7 @@ def replace_documents(request):
                             "size",
                             "original_s3_key",
                             "preparation",
+                            "upload_has_form_fields",
                             "preparation_reviewed_at",
                             "updated_at",
                         ]

@@ -16,9 +16,86 @@ def synchronize_deleted_document(sender, instance, **kwargs):
 # Metadata provenance is recorded for ordinary filing screens as well as the
 # handoff screen. Source suggestions stay in the receipt when a filer overrides
 # them. Pure summary synchronization intentionally uses QuerySet.update instead.
+from django.contrib.sessions.models import Session  # noqa: E402
 from django.db.models.signals import post_save, pre_save  # noqa: E402
 
 from efile.models import FilingParty  # noqa: E402
+
+
+@receiver(pre_save, sender=Session)
+def prevent_erased_account_sessions(sender, instance, raw=False, **kwargs):
+    """Serialize late login/response saves with account deletion and freezing."""
+    if raw:
+        return
+    from django.contrib.sessions.backends.db import SessionStore
+    from django.core.exceptions import PermissionDenied
+
+    from efile.models import PrivacyRequest, UserProfile
+
+    data = SessionStore().decode(instance.session_data)
+    user_id = data.get("_auth_user_id")
+    if user_id is None:
+        return
+    owner = UserProfile.objects.select_for_update().filter(pk=user_id).first()
+    if (
+        owner is None
+        or PrivacyRequest.objects.filter(target=owner, status="processing").exists()
+        or owner.filing_drafts.filter(deletion_pending=True).exists()
+    ):
+        raise PermissionDenied("This account is unavailable.")
+
+
+@receiver(pre_save, sender=FilingDraft)
+@receiver(pre_save, sender=FilingDocument)
+@receiver(pre_save, sender=FilingParty)
+def prevent_erased_data_writes(sender, instance, raw=False, **kwargs):
+    if raw:
+        return
+    from django.core.exceptions import PermissionDenied
+
+    draft_id = instance.pk if sender is FilingDraft else instance.draft_id
+    if draft_id:
+        state = FilingDraft.objects.select_for_update().filter(pk=draft_id).values("deletion_pending").first()
+        if state is None or state["deletion_pending"]:
+            raise PermissionDenied("This filing is unavailable.")
+    elif sender is FilingDraft and instance.user_id:
+        from efile.models import PrivacyRequest, UserProfile
+
+        owner = UserProfile.objects.select_for_update().filter(pk=instance.user_id).first()
+        if (
+            owner is None
+            or PrivacyRequest.objects.filter(target=owner, status="processing").exists()
+            or owner.filing_drafts.filter(deletion_pending=True).exists()
+        ):
+            raise PermissionDenied("This account is unavailable.")
+
+
+@receiver(post_save, sender=FilingDraft)
+def collect_draft_usage(sender, instance, created=False, raw=False, update_fields=None, **kwargs):
+    if raw or not instance.user_id:
+        return
+    from efile.services.analytics import record_event
+
+    if not created and (update_fields is None or "user" not in update_fields):
+        return
+    record_event(instance, "started")
+    for document in instance.documents.exclude(preparation=""):
+        record_event(instance, "document_uploaded", operation=f"document:{document.pk}", document=document)
+
+
+@receiver(post_save, sender=FilingDocument)
+def collect_document_usage(sender, instance, raw=False, created=False, **kwargs):
+    if not raw:
+        from efile.models import StoredUpload
+
+        for key in (instance.s3_key, instance.original_s3_key):
+            if key:
+                StoredUpload.objects.get_or_create(draft_id=instance.draft_id, key=key)
+    if not raw and created and instance.preparation:
+        from efile.services.analytics import record_event
+
+        record_event(instance.draft, "document_uploaded", operation=f"document:{instance.pk}", document=instance)
+
 
 _METADATA_FIELDS = {
     FilingDraft: ("court_code", "case_category_code", "case_type_code", "case_subtype_code"),

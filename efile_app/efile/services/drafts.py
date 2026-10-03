@@ -25,7 +25,7 @@ CURRENT_DRAFT_STATUSES = (*ACTIVE_DRAFT_STATUSES, FilingDraft.Status.SUBMITTING)
 def active_drafts_for(user, *, jurisdiction: str | None = None) -> QuerySet[FilingDraft]:
     """Return active drafts owned by ``user``, newest first."""
 
-    drafts = FilingDraft.objects.filter(user=user, status__in=ACTIVE_DRAFT_STATUSES)
+    drafts = FilingDraft.objects.filter(user=user, status__in=ACTIVE_DRAFT_STATUSES, deletion_pending=False)
     if jurisdiction is not None:
         drafts = drafts.filter(jurisdiction=jurisdiction)
     return drafts.order_by("-updated_at")
@@ -40,7 +40,7 @@ def get_active_draft(
 ) -> FilingDraft | None:
     """Get an owned draft by ID, or the user's most recent one, within ``statuses``."""
 
-    drafts = FilingDraft.objects.filter(user=user, status__in=statuses)
+    drafts = FilingDraft.objects.filter(user=user, status__in=statuses, deletion_pending=False)
     if jurisdiction is not None:
         drafts = drafts.filter(jurisdiction=jurisdiction)
     drafts = drafts.order_by("-updated_at")
@@ -63,6 +63,16 @@ def create_draft(
         raise ValueError("A filing draft must have an authenticated owner")
     if not jurisdiction:
         raise ValueError("A filing draft must have a jurisdiction")
+
+    from efile.models import PrivacyRequest, UserProfile
+
+    UserProfile.objects.select_for_update().get(pk=user.pk)
+    if (
+        user.is_staff
+        or PrivacyRequest.objects.filter(target=user, status="processing").exists()
+        or user.filing_drafts.filter(deletion_pending=True).exists()
+    ):
+        raise ValueError("This account is unavailable for filing.")
 
     return FilingDraft.objects.create(
         user=user,

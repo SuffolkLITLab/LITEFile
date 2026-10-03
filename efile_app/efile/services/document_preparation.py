@@ -33,6 +33,7 @@ class PreparedDocument:
     content: bytes
     filename: str
     operation: str
+    upload_has_form_fields: bool | None = None
 
 
 def requires_flattening(jurisdiction):
@@ -213,6 +214,7 @@ def prepare_document(uploaded_file, jurisdiction):
     if not content or len(content) > settings.MAX_FILE_SIZE:
         raise PreparationError("Choose a file that is not empty and is up to 10 MB.")
     operation = "unchanged"
+    upload_has_form_fields = bool(inspect_pdf(content)[1]) if suffix == ".pdf" else None
     filename = uploaded_file.name
     if suffix in {".doc", ".docx"}:
         _word_format(content, suffix)
@@ -230,7 +232,7 @@ def prepare_document(uploaded_file, jurisdiction):
             operation = "converted_flattened" if operation == "converted" else "flattened"
     else:
         inspect_pdf(content)
-    return PreparedDocument(content, filename, operation)
+    return PreparedDocument(content, filename, operation, upload_has_form_fields)
 
 
 def store_prepared_document(handler, uploaded_file, jurisdiction, role, *, keys, metadata=None):
@@ -254,6 +256,7 @@ def store_prepared_document(handler, uploaded_file, jurisdiction, role, *, keys,
         "original_filename": uploaded_file.name[:255],
         "original_s3_key": original_key,
         "preparation": prepared.operation,
+        "upload_has_form_fields": prepared.upload_has_form_fields,
         "preparation_reviewed_at": None,
         "size": len(prepared.content),
         "content_type": "application/pdf",

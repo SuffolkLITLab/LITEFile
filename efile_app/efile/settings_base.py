@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -33,6 +34,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django_otp",
+    "django_otp.plugins.otp_totp",
     "efile",
     "efile.templatetags.md_to_html",
     "crosswalk_review",
@@ -48,6 +51,8 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django_otp.middleware.OTPMiddleware",
+    "efile.staff_security.StaffIsolationMiddleware",
     "efile.middleware.JurisdictionSessionMiddleware",
     "efile.middleware.DraftIdentityMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
@@ -141,6 +146,19 @@ AWS_S3_ENDPOINT_URL = os.getenv("AWS_S3_ENDPOINT_URL", None)
 # in deployed filing apps while that corpus is not provisioned outside the image.
 CROSSWALK_REVIEW_ENABLED = False
 
+# Private staff URL: intentionally absent from public menus and sitemaps.
+LITEFILE_STAFF_PATH = os.getenv("LITEFILE_STAFF_PATH", "staff-7c83f0a2").strip("/")
+if not re.fullmatch(r"[A-Za-z][A-Za-z0-9_-]{11,79}", LITEFILE_STAFF_PATH):
+    raise ValueError(
+        "LITEFILE_STAFF_PATH must be a private URL segment of 12–80 letters, digits, underscores or hyphens."
+    )
+LITEFILE_STAFF_SESSION_SECONDS = 900
+LITEFILE_ANALYTICS_ENABLED = os.getenv("LITEFILE_ANALYTICS_ENABLED", "false").lower() == "true"
+LITEFILE_PRIVACY_DELETION_ENABLED = os.getenv("LITEFILE_PRIVACY_DELETION_ENABLED", "false").lower() == "true"
+LITEFILE_ANALYTICS_EXPORT_ENABLED = os.getenv("LITEFILE_ANALYTICS_EXPORT_ENABLED", "false").lower() == "true"
+LITEFILE_ANALYTICS_MIN_CONTRIBUTORS = int(os.getenv("LITEFILE_ANALYTICS_MIN_CONTRIBUTORS", "5"))
+LITEFILE_STAFF_REQUEST_RETENTION_DAYS = int(os.getenv("LITEFILE_STAFF_REQUEST_RETENTION_DAYS", "90"))
+
 # File Upload Settings
 DOCUMENT_EXTRACTION_TIMEOUT_SECONDS = int(os.getenv("DOCUMENT_EXTRACTION_TIMEOUT_SECONDS", "600"))
 DOCUMENT_EXTRACTION_MEMORY_MB = int(os.getenv("DOCUMENT_EXTRACTION_MEMORY_MB", "768"))
@@ -174,6 +192,7 @@ CROSSWALK_REVIEW_FORMS_ROOT = Path(os.getenv("CROSSWALK_REVIEW_FORMS_ROOT", BASE
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
+    "filters": {"staff_redaction": {"()": "efile.staff_logging.StaffLogRedactionFilter"}},
     "formatters": {
         "simple": {
             "format": "[%(levelname)s] %(asctime)s %(name)s: %(message)s",
@@ -183,6 +202,7 @@ LOGGING = {
         "console": {
             "class": "logging.StreamHandler",
             "formatter": "simple",
+            "filters": ["staff_redaction"],
         }
     },
     "loggers": {

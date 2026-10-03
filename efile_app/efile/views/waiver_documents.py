@@ -51,7 +51,11 @@ def waiver_documents(request, jurisdiction):
             raise ValueError("Document storage is not available. Try again.")
         with transaction.atomic():
             draft = FilingDraft.objects.select_for_update().get(pk=draft.pk)
-            if draft.status not in ACTIVE_DRAFT_STATUSES or data.get("fee_inputs_token") != fee_inputs_token(draft):
+            if (
+                draft.deletion_pending
+                or draft.status not in ACTIVE_DRAFT_STATUSES
+                or data.get("fee_inputs_token") != fee_inputs_token(draft)
+            ):
                 return JsonResponse(
                     {"error": "This filing changed. Reload this page before adding a document."}, status=409
                 )
