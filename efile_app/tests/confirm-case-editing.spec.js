@@ -18,13 +18,16 @@ const {
 const {
     default: AxeBuilder
 } = require('@axe-core/playwright');
+const fs = require('node:fs');
 
 async function auditCodeSearch(page, state) {
     const accessibility = await new AxeBuilder({
         page
     }).include('#code-search-dialog').analyze();
+    const reportPath = test.info().outputPath(`filing-search-${state}.json`);
+    fs.writeFileSync(reportPath, JSON.stringify(accessibility, null, 2));
     await test.info().attach(`filing-search-${state}`, {
-        body: JSON.stringify(accessibility, null, 2),
+        path: reportPath,
         contentType: 'application/json'
     });
     expect(accessibility.violations).toEqual([]);

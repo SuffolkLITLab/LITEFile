@@ -66,11 +66,11 @@ jobs:
         # Same server and seeded session as the Axe checks; the court lists
         # are mocked in the browser. Includes desktop/mobile Axe audits and
         # keyboard checks for contextual filters, claim amounts, and path details.
-        run: npm run test:confirm-case
+        run: npm run test:confirm-case -- --output=test-results/confirm-case
 
       - name: Run party role keyboard checks
         working-directory: efile_app
-        run: npx playwright test --config=playwright.parties.config.js
+        run: npx playwright test --config=playwright.parties.config.js --output=test-results/parties
 
       - name: Upload accessibility results
         if: always()
