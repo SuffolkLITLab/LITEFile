@@ -103,3 +103,9 @@ if _DEV_DATABASE_URL:
         conn_max_age=0,  # no pooling for dev; immediate close on request end
         ssl_require=False,
     )
+
+if DATABASES["default"]["ENGINE"] == "django.db.backends.sqlite3":
+    # Uploads and background workers read before writing. SQLite ignores
+    # select_for_update(); reserve the writer at BEGIN so those transactions
+    # wait instead of failing when upgrading a read lock after storage/network IO.
+    DATABASES["default"].setdefault("OPTIONS", {}).update(transaction_mode="IMMEDIATE", timeout=60)

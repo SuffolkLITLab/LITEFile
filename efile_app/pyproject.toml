@@ -30,6 +30,7 @@ dependencies = [
     # Vermont Superior Court unit lookup by town, county, or ZIP.
     "suffolklitlab-vtcourts @ git+https://github.com/SuffolkLITLab/VTCourts@main",
     "django-otp>=1.7.0,<2",
+    "snowballstemmer>=3,<4",
 ]
 
 [build-system]
@@ -42,7 +43,7 @@ exclude = [
 ]
 
 [tool.setuptools.package-data]
-efile = ["prompts/*.yaml", "data/*.json"]
+efile = ["prompts/*.yaml", "data/*.json", "data/*.yaml"]
 
 [tool.uv]
 
@@ -107,7 +108,9 @@ testpaths = [
 # new:
 #addopts = "--reuse-db --nomigrations"
 # merged:
-addopts = "-ra --strict-markers --strict-config --reuse-db --nomigrations"
+# Run schema migrations: SQLite's full-text index and synchronization triggers
+# are migration-managed database objects, not ordinary Django model tables.
+addopts = "-ra --strict-markers --strict-config --reuse-db"
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "integration: marks tests as integration tests",

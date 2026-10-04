@@ -1,0 +1,113 @@
+{% load i18n %}
+<div class="code-search-invitation">
+    <strong>{% translate "Not sure which code to use?" %}</strong>
+    <p>{% translate "Search in plain language across courts, case categories, case types, and filing types." %}</p>
+    <button type="button"
+            class="btn btn-outline-primary"
+            id="open-code-search"
+            disabled>{% translate "Find the right filing code" %}</button>
+</div>
+<dialog id="code-search-dialog"
+        class="code-search"
+        aria-labelledby="code-search-title"
+        aria-describedby="code-search-help">
+    <div class="code-search__heading">
+        <h2 id="code-search-title">{% translate "Find the right filing code" %}</h2>
+        <button type="button"
+                class="btn-close"
+                id="close-code-search"
+                aria-label="{% translate 'Close code search' %}"></button>
+    </div>
+    <p id="code-search-help">
+        {% translate "Search across courts, then narrow your results. Check the case type and filing path before choosing." %}
+    </p>
+    <label for="code-search-query" class="visually-hidden">{% translate "Search filing codes" %}</label>
+    <input type="search"
+           id="code-search-query"
+           class="form-control"
+           maxlength="160"
+           placeholder="{% translate 'Search filing codes' %}"
+           autocomplete="off" />
+    <div class="code-search__filters"
+         role="group"
+         aria-label="{% translate 'Narrow filing types' %}">
+        <div>
+            <label for="code-search-purpose">{% translate "Your task" %}</label>
+            <select id="code-search-purpose" class="form-select form-select-sm">
+                <option value="">{% translate "Any task" %}</option>
+                <option value="starting">{% translate "Starting a claim" %}</option>
+                <option value="responding">{% translate "Responding to a claim" %}</option>
+                <option value="either">{% translate "Requests from either side" %}</option>
+                <option value="unknown">{% translate "Not classified" %}</option>
+            </select>
+        </div>
+        <div>
+            <label for="code-search-stage">{% translate "Case stage" %}</label>
+            <select id="code-search-stage" class="form-select form-select-sm">
+                <option value="no">{% translate "Starting a new case" %}</option>
+                <option value="yes">{% translate "Filing in an existing case" %}</option>
+            </select>
+        </div>
+        <div>
+            <label for="code-search-document">{% translate "Document" %}</label>
+            <select id="code-search-document" class="form-select form-select-sm">
+                <option value="">{% translate "Any document" %}</option>
+                <option value="main">{% translate "Main document" %}</option>
+                <option value="attachment">{% translate "Attachment / exhibit" %}</option>
+                <option value="unknown">{% translate "Not classified" %}</option>
+            </select>
+        </div>
+        <div id="code-search-zip-filter" hidden>
+            <label for="code-search-zip">{% translate "Case location ZIP" %}</label>
+            <input id="code-search-zip"
+                   type="search"
+                   inputmode="numeric"
+                   maxlength="10"
+                   class="form-control form-control-sm"
+                   placeholder="{% translate 'Any county' %}"
+                   aria-describedby="code-search-zip-help" />
+        </div>
+    </div>
+    <p id="code-search-zip-help" class="code-search__meta" hidden>{% translate "Use the ZIP connected to the case. County matches come from a ZIP table; clear this filter to see all courts." %}</p>
+    <div id="code-search-case-filters"
+         class="code-search__case-filters"
+         hidden
+         role="group"
+         aria-label="{% translate 'Case-specific filters' %}"></div>
+    <p id="code-search-status" role="status" aria-live="polite"></p>
+    <div id="code-search-suggestions" hidden>
+        <h3>{% translate "Common filing types" %}</h3>
+        <p>{% translate "Choose a starting point, or describe what you want to file above." %}</p>
+        <div class="code-search__suggestions">
+            <button type="button"
+                    class="btn btn-outline-primary"
+                    data-code-query="complaint">{% translate "Complaint" %}</button>
+            <button type="button"
+                    class="btn btn-outline-primary"
+                    data-code-query="answer">{% translate "Answer" %}</button>
+            <button type="button"
+                    class="btn btn-outline-primary"
+                    data-code-query="motion">{% translate "Motion" %}</button>
+            <button type="button"
+                    class="btn btn-outline-primary"
+                    data-code-query="fee waiver">{% translate "Fee waiver" %}</button>
+            <button type="button"
+                    class="btn btn-outline-primary"
+                    data-code-query="appearance">{% translate "Appearance" %}</button>
+            <button type="button"
+                    class="btn btn-outline-primary"
+                    data-code-query="notice">{% translate "Notice" %}</button>
+        </div>
+    </div>
+    <div id="code-search-results"
+         class="code-search__results"
+         role="group"
+         aria-label="{% translate 'Matching filing paths' %}"></div>
+    <button type="button" class="btn btn-link" id="code-search-more" hidden>{% translate "Show more results" %}</button>
+    <div class="code-search__actions">
+        <button type="button"
+                class="btn btn-outline-secondary"
+                id="cancel-code-search">{% translate "Cancel" %}</button>
+        <button type="button" class="btn btn-primary" id="apply-code-search" disabled>{% translate "Use this path" %}</button>
+    </div>
+</dialog>

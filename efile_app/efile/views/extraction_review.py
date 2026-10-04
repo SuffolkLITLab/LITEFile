@@ -13,7 +13,12 @@ from efile.services.drafts import draft_snapshot, write_case_data
 from efile.services.extracted_parties import review_rows, save_reviewed_parties
 from efile.services.extraction_fields import display_extracted_fields, document_summary_details
 from efile.services.filing_availability import filing_unavailable_message
-from efile.services.filing_path import change_filing_path, describe_path_change, filing_path_conflict
+from efile.services.filing_path import (
+    change_filing_path,
+    clear_changed_classification,
+    describe_path_change,
+    filing_path_conflict,
+)
 from efile.workflow import (
     ExistingCase,
     WorkflowStepKey,
@@ -82,9 +87,28 @@ def _set_lead_filing_type(draft, filing_type_code, filing_type_name):
         return
     if lead.filing_type_code != filing_type_code:
         lead.document_type_confirmed = False
+        lead.document_type_code = ""
+        lead.document_type_name = ""
+        lead.filing_component_code = ""
+        lead.filing_component_name = ""
+        lead.requested_optional_services = []
+        lead.filing_requires_amount_in_controversy = False
     lead.filing_type_code = filing_type_code
     lead.filing_type_name = filing_type_name
-    lead.save(update_fields=["filing_type_code", "filing_type_name", "document_type_confirmed", "updated_at"])
+    lead.save(
+        update_fields=[
+            "filing_type_code",
+            "filing_type_name",
+            "document_type_confirmed",
+            "document_type_code",
+            "document_type_name",
+            "filing_component_code",
+            "filing_component_name",
+            "requested_optional_services",
+            "filing_requires_amount_in_controversy",
+            "updated_at",
+        ]
+    )
 
 
 def _case_identity(existing_case, docket_number):
@@ -190,6 +214,8 @@ def extraction_review(request, jurisdiction):
             path_change = change_filing_path(draft, existing_case)
             if path_change.changed and path_change.cleared:
                 messages.info(request, describe_path_change(path_change))
+            if clear_changed_classification(draft, court_code, case_category_code, case_type_code):
+                messages.info(request, "Filing path changed. Check each document's filing options and fees again.")
             write_case_data(
                 draft,
                 {

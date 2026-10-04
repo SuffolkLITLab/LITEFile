@@ -5,6 +5,10 @@
 {% block title %}
     {% translate "Review what we found" %}
 {% endblock title %}
+{% block extra_css %}
+    <link rel="stylesheet"
+          href="{% static 'css/components/filing-code-search.css' %}" />
+{% endblock extra_css %}
 {% block workflow_content %}
     <section class="workflow-card">
         <div class="workflow-eyebrow">{% translate "Confirm case" %}</div>
@@ -246,6 +250,7 @@
                     <small id="docket-number-hint">{% translate "We will use this to find your case in the court's records." %}</small>
                 </div>
             </div>
+            {% include "efile/components/filing_code_search.html" %}
             <div class="review-grid">
                 <div class="review-field" data-field="court" data-guess-key="court">
                     <span>{{ court_label }}</span>
@@ -520,6 +525,7 @@
     {{ extraction_context|json_script:"extraction-context" }}
 {% endblock workflow_content %}
 {% block extra_js %}
+    <script src="{% static 'js/filing-code-search.js' %}"></script>
     <script src="{% static 'js/filing-availability.js' %}"></script>
     <script src="{% static 'js/court-selector.js' %}"></script>
     <script src="{% static 'js/extraction-review.js' %}"></script>

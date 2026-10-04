@@ -251,6 +251,7 @@
         // The newest request whose answer has been drawn (or failed). Anything
         // below `latest` is still on its way, whatever order older ones return in.
         let settledRequest = 0;
+        let latestStart = 0; // orders start() calls against each other
         let lastSteps = [];
         let expanded = ""; // the answered question the filer reopened
         let lastRender = {
@@ -558,7 +559,14 @@
 
         return {
             /** Draw the first questions, picking up a court already chosen. */
-            async start(courtCode, guessedCourt) {
+            async start(courtCode, guessedCourt, {
+                requireMatch = false
+            } = {}) {
+                // Nothing in flight is dropped until this lands: a court that
+                // cannot be matched (or a failed fetch) leaves the questions,
+                // and any answer still loading for them, exactly as they were.
+                const token = ++latestStart;
+                const before = latest;
                 const query = new URLSearchParams({
                     jurisdiction
                 });
@@ -570,7 +578,16 @@
                     },
                 });
                 const result = await response.json();
+                // A newer start, or an answer the filer gave meanwhile, wins.
+                if (token !== latestStart || before !== latest) return false;
                 if (!response.ok || !result.success || !result.data.available) return false;
+                if (requireMatch && result.data.selected?.value !== courtCode) return false;
+                latest += 1;
+                settledRequest = latest;
+                container.removeAttribute("aria-busy");
+                editing = null;
+                expanded = "";
+                Object.keys(answers).forEach(key => delete answers[key]);
                 (result.data.steps || []).forEach((step) => {
                     if (step.answer) answers[step.id] = step.answer;
                 });

@@ -1,0 +1,17 @@
+# Discovery aids based on filing names, not the filer's legal party status or
+# permission to upload a document as an attachment. Unmatched names stay unknown.
+version: 1
+rules:
+  - pattern: '^(exhibits?|attachments?|appendix|appendices|supporting documents?)\b'
+    document: attachment
+  - pattern: '^(answer|response|objection)\b'
+    purpose: responding
+    document: main
+  - pattern: '^(motion|notice|appearance)\b'
+    purpose: either
+    document: main
+  - pattern: '^affidavit\b'
+    purpose: either
+  - pattern: '^(complaint|petition|counterclaim|crossclaim)\b|^(eviction|summary process|civil|small claims|verified|amended)\b.*\b(complaint|petition)$'
+    purpose: starting
+    document: main

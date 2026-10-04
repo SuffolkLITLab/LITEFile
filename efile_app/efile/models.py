@@ -8,6 +8,32 @@ from efile.party_sides import PARTY_SIDE_CHOICES
 from efile.workflow import ExistingCase, WorkflowStepKey, get_workflow_step_choices
 
 
+class FilingCodeIndex(models.Model):
+    """One complete, last-known-good code snapshot per jurisdiction and EFSP."""
+
+    jurisdiction = models.CharField(max_length=20, unique=True)
+    source_url = models.URLField()
+    refreshed_at = models.DateTimeField()
+    rules_digest = models.CharField(max_length=64)
+    vocabulary = models.JSONField(default=dict)
+
+
+class FilingCodePath(models.Model):
+    """A real court/category/case-type/filing-type path, never a cross product."""
+
+    index = models.ForeignKey(FilingCodeIndex, on_delete=models.CASCADE, related_name="paths")
+    initial = models.BooleanField()
+    court = models.JSONField()
+    case_category = models.JSONField()
+    case_type = models.JSONField()
+    filing_type = models.JSONField()
+    search_text = models.TextField()
+    filing_terms = models.TextField()
+    case_terms = models.TextField()
+    explanation = models.TextField(blank=True)
+    explanation_source = models.URLField(blank=True)
+
+
 class UserProfile(AbstractUser):
     """
     Extended user profile to store eFile registration information.

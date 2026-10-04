@@ -22,7 +22,7 @@ from typing import Any
 
 from django.db import transaction
 
-from efile.models import FilingDocument, FilingDraft, sync_primary_filing_type
+from efile.models import FilingDocument, FilingDraft, FilingParty, sync_primary_filing_type
 from efile.services.fee_quotes import invalidate_fee_quote
 from efile.workflow import ExistingCase, normalize_existing_case
 
@@ -137,6 +137,51 @@ PATH_NAMES = {
     ExistingCase.EXISTING: "a case that is already open",
     ExistingCase.UNSURE: "not sure yet",
 }
+
+
+@transaction.atomic
+def clear_changed_classification(draft, court_code, case_category_code, case_type_code):
+    """Codes and fees below a changed parent cannot carry over to another path."""
+    previous = (draft.court_code, draft.case_category_code, draft.case_type_code)
+    if not any(previous) or previous == (court_code, case_category_code, case_type_code):
+        return False
+    FilingDocument.objects.filter(draft=draft).update(
+        filing_type_code="",
+        filing_type_name="",
+        document_type_code="",
+        document_type_name="",
+        document_type_confirmed=False,
+        filing_component_code="",
+        filing_component_name="",
+        requested_optional_services=[],
+        filing_requires_amount_in_controversy=False,
+    )
+    FilingParty.objects.filter(draft=draft).update(party_type="", party_type_name="")
+    draft.case_subtype_code = ""
+    draft.case_subtype_name = ""
+    draft.document_type_code = ""
+    draft.document_type_name = ""
+    draft.previous_case_id = ""
+    draft.case_title = ""
+    draft.optional_services = []
+    invalidate_fee_quote(draft, save=False)
+    draft.save(
+        update_fields=[
+            "case_subtype_code",
+            "case_subtype_name",
+            "document_type_code",
+            "document_type_name",
+            "previous_case_id",
+            "case_title",
+            "optional_services",
+            "quoted_fee_total",
+            "quoted_fee_breakdown",
+            "quoted_fee_fingerprint",
+            "updated_at",
+        ]
+    )
+    sync_primary_filing_type(draft)
+    return True
 
 
 def describe_path_change(change: FilingPathChange) -> str:

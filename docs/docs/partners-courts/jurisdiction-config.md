@@ -405,3 +405,209 @@ See [Control filing availability](./filing-availability.md) for the complete
 field reference, Cook County hearing-scheduling example, county-prefix rules,
 message precedence, deployment and re-enabling instructions, troubleshooting,
 and live-check API.
+
+## Filing code search terms and explanations
+
+The “Find the right filing code” modal on Confirm case searches complete paths
+across court, case category, case type, and filing type. A selected court does not
+limit results. New and existing cases have separate filing-type lists. Search uses
+English Snowball stemming, phrase synonyms, and conservative spelling suggestions;
+it does not call an LLM or decide which court has jurisdiction over a person's case.
+
+An empty search offers common filing-type starting points. Results group repeated
+filing labels and recognized synonyms across courts, so the same filing does not
+occupy a separate result for every county. Users expand a group, choose a court,
+then choose an exact case-type and filing-code path. A court already selected on
+the form is offered first. Grouping does not substitute one court's code for
+another's, and distinct documents such as complaints and answers remain separate.
+Each group also shows a compact case-category/type context, so a generic name such
+as “Petition” has meaning before a court is chosen. Repeated category/type names
+are collapsed (“Small claims › Small claims” becomes “Small claims”). Groups used
+in multiple case types show a count and an expandable preview of up to eight;
+the exact court-specific paths remain available on selection. Each case-type entry
+is clickable: choosing it narrows both the court list and the exact paths to that
+category/type pair. “Show all case types” clears that choice. Contexts reflect
+the paths matching the current search, not unrelated uses of the same filing name.
+
+The compact search filters separate the task (starting a claim, responding, or a
+request from either side), case stage (new or existing), and document kind (main
+document or attachment/exhibit). Starting a claim is not a determination of the
+filer's party role: for example, an existing case can include a counterclaim.
+`efile_app/efile/data/filing_code_facets.yaml` contains ordered filing-name rules;
+the first match supplies the classification. Rules may limit `jurisdictions`.
+Unmatched or ambiguous names remain unclassified and are available under the
+unfiltered or “Not classified” choices. Filters apply before pagination and carry
+through court and exact-path selection. These labels do not change which documents
+the court permits as attachments. Choosing a different case stage changes the form
+only after the filer applies a validated path.
+
+Shared rules live in `efile_app/efile/data/filing_code_search.yaml`. The
+`jurisdictions` list currently includes Illinois, Massachusetts, and Vermont.
+Concepts group search terms, such as eviction, unlawful detainer, and summary
+process. A concept can include its own `jurisdictions` list to limit its scope.
+These are search associations, not statements that remedies or procedures are
+legally interchangeable. Multiword phrases match together: “summary judgment”
+does not expand to “summary process.”
+
+When the displayed name does not contain the search phrase, “Why is this result
+shown?” explains a related concept, an alternate name, a spelling correction, or
+associated case/court information. Concept definitions are expandable, keeping
+multiple results visible. They describe the topic, not the purpose of every document
+returned for that topic. A search for eviction can also find an affidavit within an
+eviction case.
+
+Display definitions live separately in
+`efile_app/efile/data/filing_concept_definitions.yaml`, keyed by the same normalized
+concept IDs as the search rules. The precedence is general default, state, county,
+then exact court. Before a court is chosen, results show the general or statewide
+meaning. Selected-court paths use the local meaning and identify its scope.
+
+For example, the following illustrates where **court-reviewed local wording**
+belongs; the placeholder text is not a statement of Cook County procedure:
+
+```yaml
+version: 1
+county_courts:
+  illinois:
+    Cook:
+      names: [Cook County]
+      prefixes: ["Cook County - "]
+concepts:
+  eviction:
+    label: Eviction
+    default:
+      text: A court process about recovering possession of property.
+    jurisdictions:
+      illinois:
+        text: "<Statewide explanation>"
+        source: "https://example.org/state-court-source"
+        counties:
+          Cook:
+            text: "<Reviewed county-specific explanation>"
+            source: "https://example.org/county-court-source"
+        courts:
+          Cook County - Municipal Civil - District 1 - Chicago:
+            text: "<Reviewed court-specific explanation>"
+            source: "https://example.org/court-specific-source"
+```
+
+County membership uses explicitly configured court names or prefixes, matched
+without regard to capitalization. Use a separating boundary in prefixes, as above;
+do not assume a court's county from a substring. Exact court overrides take priority
+over county overrides. A replacement `text` uses its own `source`; it never inherits
+a potentially unrelated source link. An empty `text` suppresses the inherited
+definition. `label` can also be overridden. Unconfigured localities use the state
+definition, then the general fallback.
+
+```yaml
+concepts:
+  eviction:
+    terms: [eviction, evict, unlawful detainer, summary process]
+
+explanations:
+  - jurisdictions: [massachusetts]
+    filing_type: [Summary Process Complaint, Complaint for Summary Process]
+    text: A complaint asking the court to decide an eviction case.
+    source: https://www.mass.gov/how-to/file-an-eviction-case
+```
+
+Explanation rules match whole filing-type names after normalizing capitalization,
+accents, and punctuation. They can also specify lists of exact `court`,
+`case_category`, and `case_type` names, plus an `initial` boolean. All specified
+conditions must match; the first matching rule supplies the explanation and its
+source link. Put specific rules before general ones. Use court sources and short,
+descriptive text rather than eligibility advice. Avoid matching numerical codes,
+which can change between courts or environments.
+
+Unknown or renamed codes remain searchable without an explanation. The modal says
+when no explanation is available and shows the official name and full path.
+Live selection validation regenerates the explanation using the current names.
+Filing availability restrictions remain visible and prevent choosing blocked paths.
+
+For changes to indexed terms or filing-code explanation rules in
+`filing_code_search.yaml`, deploy with the application, restart workers, and refresh the index
+using the [deployment instructions](../admin/deployment.md#filing-code-search-index).
+Changes to concept definitions or facet classifications need only a web-process
+restart; they are applied to responses outside the cached search results and do
+not invalidate or rebuild the filing catalog.
+Add search and explanation examples to
+`efile_app/efile/tests/test_filing_code_search.py` when changing matching rules.
+
+### ZIP filters in filing code search
+
+Illinois search offers an optional case-location ZIP filter using the bundled
+`efile/utils/zip_to_county_il.py` county table. Filtering happens before grouping,
+so case-type previews, courts, and exact paths all use the same county scope.
+Every county listed for a ZIP is retained. The UI displays matched counties;
+clearing the ZIP restores statewide results. Unknown ZIPs produce a recoverable
+message rather than silently showing statewide results. ZIP matching is a location
+aid, not a determination of which court has jurisdiction. Other jurisdictions do
+not display this filter until an appropriate local mapping is supported.
+
+### Context-specific case guidance
+
+`efile/data/case_type_guidance.yaml` defines 20 starter case families with
+plain-language descriptions, source links, and contextual facets. This is a
+coverage set, not a statistical ranking of filing volume. Definitions are
+matched by names, independently of environment-specific numeric IDs.
+
+| Case family | Contextual choices |
+| --- | --- |
+| Eviction | Tenant/landlord, home/business, possession/money |
+| Foreclosure | Owner/lender, property, mortgage/other lien |
+| Debt collection | Collecting/responding, debt or collection type |
+| Small claims | Claimant/responding, dispute type, claim amount |
+| Contracts | Claimant/responding, services/goods/insurance |
+| Personal injury | Claimant/responding, vehicle/medical/property/death |
+| Property damage | Claimant/responding, kind of property |
+| Replevin and detinue | Requesting/responding, recovery procedure |
+| Divorce and separation | Requesting/responding, children, kind of request |
+| Parentage | Requesting/responding, establishing/challenging, order action |
+| Parenting and custody | Requesting/responding, decisions/time/moving, order action |
+| Child support | Requesting/responding, order action, interstate order |
+| Protection orders | Requesting/responding, kind of protection, duration |
+| Adult guardianship | Requesting/objecting, personal/financial authority, duration |
+| Child guardianship | Requesting/objecting, personal/financial authority, duration |
+| Estates and probate | Requesting/objecting, administration/will dispute/claim |
+| Name changes | Requesting/objecting, adult/child |
+| Adoption | Requesting/objecting, adult/child, relationship |
+| Agency review | Challenging/responding, kind of agency decision |
+| Employment | Worker/responding, wages/discrimination/dismissal |
+
+The configuration supports Illinois, Massachusetts, and Vermont. General starter
+meanings do not establish eligibility or replace local court requirements. State
+entries under a topic's `jurisdictions` can replace descriptions and facet rules.
+County entries can provide `court_names` or `court_prefixes` and override `text`
+and `source`; exact court entries under `courts` take precedence. Local wording
+can differ without changing the state-level discovery classification. Detailed
+rules should use explicit terms; absent information stays `unknown`.
+
+Each facet defines a key, label, and options. An option's regular expression
+matches the case label, filing name, or both, according to its `field`.
+Dimensions with no recognized values are hidden. Unknown classifications remain
+included when filtering, with an explanation in the interface. Role choices
+narrow explicit document names and keep shared/unclassified documents; they do
+not decide a filer's legal party status. Changing the query or case area resets
+its contextual choices. Filtering applies before pagination and remains in
+effect when listing courts and exact paths.
+
+Small claims takes precedence over substantive labels within that track, such
+as a contract claim in a small-claims category. The amount dropdown appears when
+remaining labels contain different recognizable claim brackets. It parses
+amounts in integer cents, including dollar signs, commas, decimal amounts, and
+`K` suffixes. It never reads internal code IDs or filing fees. Labels without
+recognizable brackets stay visible. A selected amount remains visible and can
+be cleared even if another filter removes its matching labeled paths.
+
+Amount brackets describe catalog choices, not legal eligibility. State-specific
+help links explain the usual limits and exceptions: Illinois generally uses
+$10,000 excluding interest and costs; Massachusetts generally uses $7,000 with
+an automobile property-damage exception; Vermont generally uses $10,000 but
+limits consumer-credit and medical-debt claims to $5,000. Brackets crossing the
+usual limit are marked for checking. Sources are stored alongside the wording
+in the YAML, including the [Illinois court rules](https://www.illinoiscourts.gov/rules/supreme-court-rules/),
+[Massachusetts small claims guidance](https://www.mass.gov/info-details/small-claims-court),
+and [Vermont small claims guidance](https://www.vtcourts.gov/civil/suing-and-being-sued-small-claims).
+
+The guidance configuration is cached per web process. Restart the web service
+after editing it; no filing catalog rebuild or database migration is required.

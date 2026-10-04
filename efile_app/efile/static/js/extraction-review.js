@@ -251,6 +251,7 @@
             params: () => ({
                 court: fields.court.select.value,
                 guessed_case_category: guesses["case category"] || "",
+                existing_case: existingCaseWire(),
             }),
         },
         case_type: {
@@ -261,6 +262,7 @@
                 court: fields.court.select.value,
                 parent: fields.case_category.select.value,
                 guessed_case_type: guesses["case type"] || "",
+                existing_case: existingCaseWire(),
             }),
         },
         filing_type: {
@@ -522,8 +524,52 @@
         filing_type: loadFilerRoles,
     };
 
+    let applyingSearch = false;
+
+    async function applySearchPath(path) {
+        applyingSearch = true;
+        try {
+            if (courtSelector && !await courtSelector.start(path.court.code, "", {
+                    requireMatch: true
+                })) {
+                throw new Error(gettext("This court could not be selected. Try again or use the court questions."));
+            }
+            const stage = form.querySelector(`input[name="existing_case"][value="${path.initial ? "new" : "existing"}"]`);
+            if (stage && !stage.checked) {
+                stage.checked = true;
+                stage.dispatchEvent(new Event("change", {
+                    bubbles: true
+                }));
+                // Make the changed answer visible beside the saved summary.
+                if (pathQuestion) pathQuestion.hidden = false;
+                changePath?.setAttribute("aria-expanded", "true");
+            }
+            // All four lists were validated together on the server. Publish
+            // them together so old cascading requests cannot undo this choice.
+            supersede("court");
+            ORDER.forEach(key => {
+                const field = fields[key];
+                field.select.replaceChildren(new Option(gettext("Choose an option"), ""));
+                path.options[key].forEach(item => field.select.add(new Option(item.name, item.code)));
+                field.select.value = path[key].code;
+                field.select.disabled = false;
+                field.loaded = true;
+                finishLoading(key);
+                remember(key);
+                field.hint.textContent = field.defaultHint;
+                setMode(key, field.guided ? "edit" : "found");
+            });
+            await loadFilerRoles();
+            availability.check();
+            announce(gettext("Filing path updated. Check the choices, then confirm and continue to save them."));
+        } finally {
+            applyingSearch = false;
+        }
+    }
+
     ORDER.forEach((key) => {
         fields[key].select.addEventListener("change", () => {
+            if (applyingSearch) return;
             remember(key);
             availability.check(fields[key].root);
             fields[key].hint.textContent = fields[key].defaultHint;
@@ -533,7 +579,8 @@
 
     form.querySelectorAll('input[name="existing_case"]').forEach((radio) => {
         radio.addEventListener("change", () => {
-            if (fields.case_type.select.value) loadList("filing_type");
+            if (applyingSearch) return;
+            if (fields.court.select.value) loadList("case_category");
         });
     });
 
@@ -725,5 +772,12 @@
 
     // The guard blocks until a check runs. A guided selector with no court
     // chosen yet fires no change, so check once the courts are in place.
-    loadCourts().finally(() => availability.check());
+    loadCourts().finally(() => {
+        availability.check();
+        window.filingCodeSearch?.mount({
+            jurisdiction: context.jurisdiction,
+            existingCase: existingCaseWire,
+            applyPath: applySearchPath,
+        });
+    });
 })();

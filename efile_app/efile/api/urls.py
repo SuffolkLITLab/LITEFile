@@ -27,6 +27,7 @@ from .dropdown_views import (
     get_party_types,
 )
 from .filing_availability import get_filing_availability
+from .filing_code_search import filing_code_search
 from .filing_views import get_filings, payment_fees
 from .payment_views import delete_payment_account, waiver_account
 from .suffolk_api_views import get_party_types_from_suffolk_api, lookup_case
@@ -34,6 +35,7 @@ from .suffolk_api_views import get_party_types_from_suffolk_api, lookup_case
 app_name = "api"
 
 urlpatterns = [
+    path("filing-code-search/", filing_code_search, name="filing_code_search"),
     path("get-party-types/", get_party_types_from_suffolk_api, name="get_party_types"),
     # Dropdown API endpoints
     path("dropdowns/case-categories/", get_case_categories, name="case_categories"),

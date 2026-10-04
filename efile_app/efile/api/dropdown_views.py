@@ -119,7 +119,8 @@ class DropdownAPIViews(APIResponseMixin):
 
             # Make API call to external categories endpoint
             api_url = f"{settings.EFSP_URL}/jurisdictions/{jurisdiction}/codes/courts/{court_code}/categories"
-            params = {"fileable_only": True, "timing": "Initial"}
+            timing = "Subsequent" if request.GET.get("existing_case") == "yes" else "Initial"
+            params = {"fileable_only": True, "timing": timing}
 
             # Make the API request with auth tokens if available
             headers = {}
@@ -169,7 +170,8 @@ class DropdownAPIViews(APIResponseMixin):
             # Make API call to external case types endpoint
             path = f"/jurisdictions/{jurisdiction}/codes/courts/{court_code}/case_types/"
             api_url = f"{settings.EFSP_URL}{path}"
-            params = {"category_id": category_id, "timing": "Initial"}
+            timing = "Subsequent" if request.GET.get("existing_case") == "yes" else "Initial"
+            params = {"category_id": category_id, "timing": timing}
 
             # Make the API request with auth tokens if available
             headers = {}

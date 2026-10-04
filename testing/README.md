@@ -20,6 +20,43 @@ awslocal s3 ls s3://litefile-staging/efile-documents/ --recursive
 
 Also make sure that `AWS_S3_ENDPOINT_URL = "http://host.docker.internal:4566"` and `AWS_ACCOUNT_ID_ENDPOINT_MODE = "disabled"` in your env.
 
+## Filing code search
+
+`docker compose up` also starts `code_index_worker`, which builds the filing-code
+search indexes and refreshes them daily. The web container's migrations must
+finish before the worker starts. Search is unavailable until a state's first
+complete catalog has been indexed; opening the search dialog does not start a
+build. The court lists remain usable while indexing runs.
+
+If Compose is already running, start the worker in a terminal you control:
+
+```bash
+docker compose up code_index_worker
+```
+
+To build only Illinois once in the existing web container instead:
+
+```bash
+docker compose exec web uv run python manage.py refresh_filing_code_index --jurisdiction illinois --verbosity 2 --cache-dir /data/filing-code-cache
+```
+
+Progress lists each court as it is fetched. Wait for `indexed ... filing paths`,
+then search becomes available (an open search retries automatically). Indexes
+persist in the shared database volume. If a refresh
+fails, the command reports the error and keeps any previous complete index.
+Temporary court-service failures are retried within each request. The recurring
+worker retries failed states after one minute and skips indexes refreshed within
+the daily interval, including after a restart. A one-shot command still exits
+with an error if its retries fail. Completed courts are checkpointed in compressed
+files in the shared volume and reused for up to six hours after a failed build.
+
+Local keyword searches use SQLite FTS5, including jurisdiction and new/existing-case
+filters. The schema migration builds postings from any existing catalog; later
+catalog changes maintain them automatically. Run `docker compose exec web uv run
+python manage.py migrate --noinput` when updating a running stack. Compose runs
+migrations automatically when starting the web container. Python tests run migrations
+too, because `--nomigrations` would omit the FTS5 table and its synchronization triggers.
+
 ## Calculating fees and filing end-to-end
 
 The EFSP proxy **downloads each document itself** from the `data_url` in the
