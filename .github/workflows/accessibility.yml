@@ -59,12 +59,13 @@ jobs:
           curl --retry 30 --retry-connrefused --retry-delay 1 --fail http://127.0.0.1:8000/choose-jurisdiction
           npm run test:a11y
 
-      - name: Run Confirm case editing checks
+      - name: Run confirm case and filing search accessibility checks
         working-directory: efile_app
         env:
           A11Y_STORAGE_STATE: playwright/.auth/a11y.json
         # Same server and seeded session as the Axe checks; the court lists
-        # are mocked in the browser.
+        # are mocked in the browser. Includes desktop/mobile Axe audits and
+        # keyboard checks for contextual filters, claim amounts, and path details.
         run: npm run test:confirm-case
 
       - name: Run party role keyboard checks

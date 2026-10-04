@@ -15,6 +15,21 @@ const {
     expect
 } = require('@playwright/test');
 
+const {
+    default: AxeBuilder
+} = require('@axe-core/playwright');
+
+async function auditCodeSearch(page, state) {
+    const accessibility = await new AxeBuilder({
+        page
+    }).include('#code-search-dialog').analyze();
+    await test.info().attach(`filing-search-${state}`, {
+        body: JSON.stringify(accessibility, null, 2),
+        contentType: 'application/json'
+    });
+    expect(accessibility.violations).toEqual([]);
+}
+
 const PAGE = '/jurisdiction/illinois/extraction-review/';
 
 // The seeded draft is filed in "cook:cvd1", Small Claims (6198), Contract
@@ -654,6 +669,7 @@ test.describe('filing code search', () => {
         await expect(group.getByRole('link', {
             name: 'About this concept'
         })).toHaveAttribute('href', meaning.source);
+        await auditCodeSearch(page, 'synonym-explanation');
         await group.getByRole('button', {
             name: 'Choose a court for Eviction complaint'
         }).click();
@@ -761,10 +777,26 @@ test.describe('filing code search', () => {
             exact: true
         }).check();
         await expect.poll(() => queries.at(-1)?.choices.property).toBe('residential');
-        await expect(facets.getByRole('radio', {
+        const business = facets.getByRole('radio', {
             name: 'Business',
             exact: true
-        })).not.toBeChecked();
+        });
+        await expect(business).not.toBeChecked();
+        await facets.getByRole('radio', {
+            name: 'Home',
+            exact: true
+        }).focus();
+        await page.keyboard.press('ArrowRight');
+        await expect(business).toBeChecked();
+        await expect.poll(() => queries.at(-1)?.choices.property).toBe('commercial');
+        await expect(business).toBeFocused();
+        await auditCodeSearch(page, 'contextual-radios-desktop');
+        await page.setViewportSize({
+            width: 390,
+            height: 844
+        });
+        expect(await page.getByRole('dialog').evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
+        await auditCodeSearch(page, 'contextual-radios-mobile');
         await facets.getByLabel('Case area', {
             exact: true
         }).selectOption('small_claims');
@@ -779,10 +811,26 @@ test.describe('filing code search', () => {
         await expect(facets.getByLabel('Claim amount', {
             exact: true
         })).toHaveValue('250001:1000000');
-        await facets.getByText('About claim amounts', {
+        const amount = facets.getByLabel('Claim amount', {
             exact: true
-        }).click();
+        });
+        await amount.focus();
+        await page.keyboard.press('ArrowUp');
+        await expect.poll(() => queries.at(-1)?.choices.amount).toBe('0:250000');
+        await expect(amount).toBeFocused();
+        const amountHelp = facets.getByText('About claim amounts', {
+            exact: true
+        });
+        await amountHelp.focus();
+        await page.keyboard.press('Enter');
+        await expect(amountHelp).toBeFocused();
         await expect(facets.getByText('State-specific limits and exceptions.')).toBeVisible();
+        await auditCodeSearch(page, 'claim-amount-help-mobile');
+        await page.setViewportSize({
+            width: 1366,
+            height: 768
+        });
+        await auditCodeSearch(page, 'claim-amount-help-desktop');
         await page.getByRole('searchbox', {
             name: 'Search filing codes'
         }).fill('small claims');
@@ -905,10 +953,15 @@ test.describe('filing code search', () => {
         })).toBeVisible();
         await expect(choices.locator('label')).not.toContainText([filingName, filingName, filingName, filingName, filingName]);
         expect(await choices.evaluateAll(rows => rows.every(row => row.getBoundingClientRect().height < 65))).toBe(true);
-        await page.getByRole('radio', {
+        const residential = page.getByRole('radio', {
             name: 'Eviction › Residential - Eviction',
             exact: true
-        }).check();
+        });
+        await residential.focus();
+        await page.keyboard.press('Space');
+        await expect(residential).toBeChecked();
+        await expect(residential).toHaveAccessibleDescription('An existing plain-language case description.');
+        await auditCodeSearch(page, 'case-paths-collapsed-desktop');
         await expect(choices.locator('details[open]')).toHaveCount(0);
         const visible = await choices.evaluateAll(rows => {
             const bounds = document.getElementById('code-search-results').getBoundingClientRect();
@@ -920,12 +973,22 @@ test.describe('filing code search', () => {
         });
         const before = await toggle.boundingBox();
         await expect(choices.nth(3).getByText('An existing plain-language case description.')).toBeVisible();
-        await toggle.click();
+        await toggle.focus();
+        await page.keyboard.press('Enter');
+        await expect(toggle).toBeFocused();
         expect(await toggle.boundingBox()).toEqual(before);
         await expect(choices.nth(3).locator('ol')).not.toContainText('case-3');
         await expect(choices.locator('.code-search__match-reason')).toHaveCount(0);
         await expect(choices.nth(3).locator('ol')).toContainText(filingName);
-        await toggle.click();
+        await auditCodeSearch(page, 'case-path-details-desktop');
+        await page.setViewportSize({
+            width: 390,
+            height: 844
+        });
+        expect(await page.getByRole('dialog').evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
+        await auditCodeSearch(page, 'case-path-details-mobile');
+        await page.keyboard.press('Enter');
+        await expect(toggle).toBeFocused();
         await expect(choices.nth(3).locator('ol')).not.toBeVisible();
         await expect(page.getByRole('button', {
             name: 'Use this path'
@@ -1159,6 +1222,7 @@ test.describe('filing code search', () => {
         }).fill('petition');
         const group = page.locator('.code-search__group');
         await group.locator('summary').click();
+        await auditCodeSearch(page, 'case-type-context-links');
         const small = group.getByRole('button', {
             name: 'Small claims',
             exact: true
@@ -1378,13 +1442,7 @@ test.describe('filing code search', () => {
             height: 740
         });
         expect(await page.getByRole('dialog').evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
-        const {
-            default: AxeBuilder
-        } = require('@axe-core/playwright');
-        const accessibility = await new AxeBuilder({
-            page
-        }).include('#code-search-dialog').analyze();
-        expect(accessibility.violations).toEqual([]);
+        await auditCodeSearch(page, 'unavailable-path-mobile');
     });
 });
 
