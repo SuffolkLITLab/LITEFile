@@ -20,6 +20,7 @@ LITEFile follows [Twelve-Factor App](https://12factor.net/) principles, configur
 | `DATABASE_URL` | Yes (Prod) | `sqlite:///db.sqlite3` | Database connection string (e.g., `postgres://user:pass@host:5432/dbname`). |
 | `DJANGO_ALLOWED_HOSTS` | Yes (Prod) | `localhost,127.0.0.1` | Comma-separated list of allowed hostnames/domains. |
 | `EFSP_URL` | No | `https://efile-test.suffolklitlab.org` | Base URL for the EFSP REST API endpoint. |
+| `FILING_CODE_SYNC_MODE` | No | `bulk` | Import only changed court catalog exports. `legacy` explicitly enables the older full crawler during proxy rollout. |
 | `SUFFOLK_EFILE_API_KEY` | No | `""` | API authentication key for the EFSP proxy service. |
 | `OPENAI_API_KEY` | Optional | `None` | API key for OpenAI or compatible LLM provider used for document extraction. |
 | `OPENAI_BASE_URL` | Optional | `https://api.openai.com/v1/` | Base URL for OpenAI-compatible endpoint (or local LLM gateway). |

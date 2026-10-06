@@ -13,16 +13,30 @@ from efile.services.filing_code_search import current_index, refresh_index, rule
 
 
 class Command(BaseCommand):
-    help = "Refresh filing search for all jurisdictions, preserving previous snapshots on failure."
+    help = "Sync changed court code exports, preserving previous snapshots on failure."
 
     def add_arguments(self, parser):
         parser.add_argument("--jurisdiction", choices=rules()[0]["jurisdictions"])
         parser.add_argument("--interval", type=int, default=0, help="Repeat after this many seconds (0: run once).")
         parser.add_argument("--retry-interval", type=int, default=60, help="Seconds before retrying failed states.")
         parser.add_argument(
+            "--legacy-crawl", action="store_true", help="Explicitly use the expensive full list-API crawler."
+        )
+        parser.add_argument(
+            "--court",
+            action="append",
+            default=[],
+            help="Re-download this court even if its revision is unchanged (repeatable; needs --jurisdiction).",
+        )
+        parser.add_argument(
+            "--dry-run",
+            action="store_true",
+            help="Download and check changed courts and report path counts, without saving anything.",
+        )
+        parser.add_argument(
             "--cache-dir",
             default=str(Path.home() / ".cache" / "litefile" / "filing-code-cache"),
-            help="Compressed court checkpoints, reused for six hours.",
+            help="Legacy crawler checkpoints, reused for six hours.",
         )
 
     def handle(self, *args, **options):
@@ -32,6 +46,10 @@ class Command(BaseCommand):
         retry_interval = options["retry_interval"]
         if retry_interval <= 0:
             raise CommandError("Retry interval must be positive")
+        if options["court"] and not options["jurisdiction"]:
+            raise CommandError("--court needs --jurisdiction")
+        if (options["court"] or options["dry_run"]) and interval:
+            raise CommandError("--court and --dry-run run once; drop --interval")
         jurisdictions = [options["jurisdiction"]] if options["jurisdiction"] else rules()[0]["jurisdictions"]
         while True:
             failures = []
@@ -52,10 +70,14 @@ class Command(BaseCommand):
                             jurisdiction,
                             cache_dir=options["cache_dir"],
                             progress=lambda court, state=jurisdiction: self.stdout.write(f"{state}: {court}")
-                            if options["verbosity"] > 1
+                            if options["verbosity"] > 1 or options["dry_run"]
                             else None,
+                            force=options["court"],
+                            dry_run=options["dry_run"],
+                            **({"transport": "legacy"} if options["legacy_crawl"] else {}),
                         )
-                    self.stdout.write(self.style.SUCCESS(f"{jurisdiction}: indexed {count} filing paths"))
+                    verb = "would synchronize" if options["dry_run"] else "synchronized"
+                    self.stdout.write(self.style.SUCCESS(f"{jurisdiction}: {verb} {count} changed filing paths"))
                 # DatabaseError covers a lost connection and an overlapping run
                 # creating the same jurisdiction's row first (IntegrityError).
                 except (requests.RequestException, ValueError, DatabaseError) as error:

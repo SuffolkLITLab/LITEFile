@@ -4,6 +4,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models, transaction
 from django.utils import timezone
 
+from efile.db_expressions import CourtCode
 from efile.party_sides import PARTY_SIDE_CHOICES
 from efile.workflow import ExistingCase, WorkflowStepKey, get_workflow_step_choices
 
@@ -16,6 +17,7 @@ class FilingCodeIndex(models.Model):
     refreshed_at = models.DateTimeField()
     rules_digest = models.CharField(max_length=64)
     vocabulary = models.JSONField(default=dict)
+    court_snapshots = models.JSONField(default=dict)
 
 
 class FilingCodePath(models.Model):
@@ -32,6 +34,9 @@ class FilingCodePath(models.Model):
     case_terms = models.TextField()
     explanation = models.TextField(blank=True)
     explanation_source = models.URLField(blank=True)
+
+    class Meta:
+        indexes = [models.Index(models.F("index"), CourtCode("court"), name="filing_path_court")]
 
 
 class UserProfile(AbstractUser):

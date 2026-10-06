@@ -33,6 +33,13 @@ from efile.services.filing_path import clear_changed_classification
 pytestmark = pytest.mark.django_db
 
 
+@pytest.fixture(autouse=True)
+def legacy_catalog_transport(settings):
+    # These tests exercise the legacy reader and shared search/validation behavior.
+    # The bulk transport and incremental imports have separate contract tests.
+    settings.FILING_CODE_SYNC_MODE = "legacy"
+
+
 def option(code, name):
     return {"code": code, "name": name}
 
@@ -622,6 +629,7 @@ def test_management_command_attempts_each_jurisdiction_and_reports_failure():
     assert [call.args[0] for call in refresh.call_args_list] == ["illinois", "massachusetts", "vermont"]
 
 
+@pytest.mark.django_db(transaction=True)
 def test_worker_retries_failed_state_soon_and_skips_fresh_states(index):
     from efile.models import FilingCodeIndex
 

@@ -391,7 +391,21 @@ def _court_entries(catalog, jurisdiction, court, executor):
                     )
 
 
-def refresh_index(jurisdiction, *, progress=None, cache_dir=None):
+def refresh_index(jurisdiction, *, progress=None, cache_dir=None, transport=None, force=(), dry_run=False):
+    """Synchronize changed court exports; the expensive old crawler requires explicit opt-in."""
+    mode = transport or getattr(settings, "FILING_CODE_SYNC_MODE", "bulk")
+    if mode == "bulk":
+        from efile.services.filing_code_sync import synchronize_index
+
+        return synchronize_index(jurisdiction, progress=progress, force=force, dry_run=dry_run)
+    if mode != "legacy":
+        raise ValueError("FILING_CODE_SYNC_MODE must be 'bulk' or 'legacy'")
+    if force or dry_run:
+        raise ValueError("Forcing courts and dry runs need the bulk sync")
+    return _refresh_index_legacy(jurisdiction, progress=progress, cache_dir=cache_dir)
+
+
+def _refresh_index_legacy(jurisdiction, *, progress=None, cache_dir=None):
     """Replace a jurisdiction atomically after *every* branch was fetched.
 
     No database transaction is held open during the slow network traversal.
@@ -437,6 +451,7 @@ def refresh_index(jurisdiction, *, progress=None, cache_dir=None):
             index.refreshed_at = started
             index.rules_digest = rules()[1]
             index.vocabulary = {"words": sorted(vocabulary), "tokens": sorted(indexed_terms)}
+            index.court_snapshots = {}
             index.save()
     return count
 

@@ -10,10 +10,13 @@ primary_region = 'lax'
 
 [env]
   DJANGO_SETTINGS_MODULE = "efile.settings_staging"
+  # Keep existing code imports until the proxy filing_catalog API is deployed.
+  FILING_CODE_SYNC_MODE = "legacy"
 
 [deploy]
   # Run database migrations before each release
   release_command = "uv run python manage.py migrate --noinput --fake-initial"
+  release_command_timeout = "30m"
 
 [processes]
   app = "uv run gunicorn efile.asgi:application -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --workers 2 --timeout 60 --access-logfile - --error-logfile - --log-level debug"

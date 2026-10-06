@@ -61,10 +61,12 @@ primary_region = 'lax'
 
 [env]
   DJANGO_SETTINGS_MODULE = "efile.settings_staging"
+  FILING_CODE_SYNC_MODE = "legacy"
 
 [deploy]
   # Run database migrations before each release
   release_command = "uv run python manage.py migrate --noinput --fake-initial"
+  release_command_timeout = "30m"
 
 [processes]
   app = "uv run gunicorn efile.asgi:application -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --workers 2 --timeout 60"
@@ -114,20 +116,19 @@ uv run python manage.py refresh_filing_code_index
 uv run python manage.py refresh_filing_code_index --jurisdiction vermont
 ```
 
-Refreshes traverse all filing courts and their category, case-type, and filing-type
-lists, including both new and existing filings. This can take time; it runs outside
-web requests and the release command. Entries are staged in compressed disk storage
-and inserted in batches. Each jurisdiction is replaced in one transaction only
-after its complete catalog was fetched. A failed request or empty catalog preserves
-the previous snapshot; the command reports failures and exits unsuccessfully in
-one-shot mode. Temporary HTTP failures are retried before abandoning a refresh.
-The recurring worker retries failed states after one minute (`--retry-interval`)
-and skips fresh indexes, including after a restart. Monitor worker logs for
-refresh failures. Complete court checkpoints are reused for up to six hours after
-a failed build. `--cache-dir` controls their location; Compose uses
-`/data/filing-code-cache` in the shared volume so a container replacement retains
-progress. Checkpoints are separated by jurisdiction, source service, and rules
-revision. Incomplete courts are never reused or published.
+Fly's configuration uses `FILING_CODE_SYNC_MODE=legacy` so LITEFile can deploy
+before the proxy update, retaining the existing full crawler. After deploying the
+proxy's `filing_catalog` manifest and per-court bulk exports, change that setting
+to `bulk` and redeploy. The first bulk import rebuilds the catalog once;
+subsequent checks download and replace only changed courts.
+These endpoints read the proxy's installed code tables without contacting Tyler.
+LITEFile accesses them over HTTP, keeping the two databases separate.
+
+Downloads finish before changed courts are replaced in one transaction; failures
+preserve the existing index. PostgreSQL uses COPY for imports. The worker retries
+failed states after one minute and skips fresh indexes after a restart. To use
+the older full crawler during rollout, explicitly pass `--legacy-crawl` (or
+`./run_all.sh --legacy-code-crawl`). `--cache-dir` applies only to that crawler.
 
 Local Docker Compose also starts `code_index_worker` after the web container is
 healthy, using the shared database volume. For an already-running local stack,
