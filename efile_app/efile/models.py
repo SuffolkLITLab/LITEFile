@@ -4,8 +4,90 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models, transaction
 from django.utils import timezone
 
+from efile.db_expressions import CourtCode
 from efile.party_sides import PARTY_SIDE_CHOICES
 from efile.workflow import ExistingCase, WorkflowStepKey, get_workflow_step_choices
+
+
+class FilingCodeIndex(models.Model):
+    """One complete, last-known-good code snapshot per jurisdiction and EFSP."""
+
+    jurisdiction = models.CharField(max_length=20, unique=True)
+    source_url = models.URLField()
+    refreshed_at = models.DateTimeField()
+    rules_digest = models.CharField(max_length=64)
+    vocabulary = models.JSONField(default=dict)
+    court_snapshots = models.JSONField(default=dict)
+
+
+class FilingCodePath(models.Model):
+    """A real court/category/case-type/filing-type path, never a cross product."""
+
+    index = models.ForeignKey(FilingCodeIndex, on_delete=models.CASCADE, related_name="paths")
+    initial = models.BooleanField()
+    court = models.JSONField()
+    case_category = models.JSONField()
+    case_type = models.JSONField()
+    filing_type = models.JSONField()
+    search_text = models.TextField()
+    filing_terms = models.TextField()
+    case_terms = models.TextField()
+    explanation = models.TextField(blank=True)
+    explanation_source = models.URLField(blank=True)
+
+    class Meta:
+        indexes = [models.Index(models.F("index"), CourtCode("court"), name="filing_path_court")]
+
+
+class FilingCodeCourtCatalog(models.Model):
+    """One court's filing code tables, copied from the EFSP codes database.
+
+    The search index is built from these copies, so rebuilding it (after a
+    search-rules change, say) never touches the EFSP. ``revision`` is the
+    EFSP's own: it changes when the court's name or code lists change.
+    """
+
+    jurisdiction = models.CharField(max_length=20)
+    code = models.CharField(max_length=100)
+    name = models.CharField(max_length=255)
+    revision = models.CharField(max_length=64)
+    data = models.JSONField()
+    filing_count = models.PositiveIntegerField(default=0)
+    copied_at = models.DateTimeField()
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["jurisdiction", "code"], name="unique_court_catalog_per_jurisdiction")
+        ]
+
+
+class FilingCodeJob(models.Model):
+    """A staff request to resync codes or rebuild indexes, run by the code index worker."""
+
+    class Kind(models.TextChoices):
+        RESYNC = "resync", "Resync codes"
+        REBUILD = "rebuild", "Rebuild code search indexes"
+
+    class Status(models.TextChoices):
+        QUEUED = "queued", "Queued"
+        RUNNING = "running", "Running"
+        SUCCEEDED = "succeeded", "Succeeded"
+        FAILED = "failed", "Failed"
+
+    kind = models.CharField(max_length=20, choices=Kind.choices)
+    # Blank for every jurisdiction.
+    jurisdiction = models.CharField(max_length=20, blank=True)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.QUEUED)
+    requested_by = models.ForeignKey(
+        "efile.UserProfile", null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
+    requested_at = models.DateTimeField(auto_now_add=True)
+    started_at = models.DateTimeField(null=True, blank=True)
+    finished_at = models.DateTimeField(null=True, blank=True)
+    message = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["-requested_at"]
 
 
 class UserProfile(AbstractUser):
@@ -32,6 +114,10 @@ class UserProfile(AbstractUser):
     # so this is the value a new draft is born with, not a lock on it.
     ai_assistance_opted_out = models.BooleanField(default=False)
     analytics_excluded = models.BooleanField(default=False)
+    # The last few ZIP codes this filer used to find a filing code, newest
+    # first. Filers who file for others often file far from their own address,
+    # so code search offers these as shortcuts, never as a prefilled value.
+    recent_case_zips = models.JSONField(default=list, blank=True)
 
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)

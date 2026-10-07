@@ -1,0 +1,113 @@
+# Display text only. Editing this file does not invalidate filing-code indexes.
+version: 1
+# Explicit county membership, independent of court codes that vary by environment.
+# Add mappings when adding county-specific definitions below.
+county_courts:
+  illinois:
+    Cook:
+      names: [Cook County]
+      prefixes: ["Cook County - "]
+concepts:
+  eviction:
+    label: Eviction
+    default:
+      text: A court process about recovering possession of property from an occupant.
+      source: https://www.vtcourts.gov/civil/eviction-process
+    jurisdictions:
+      illinois:
+        text: An eviction case asks the court to return possession of property to a landlord or owner. Some cases also seek unpaid rent.
+        source: https://www.illinoiscourts.gov/courts/additional-resources/eviction/
+        counties: {}
+        courts: {}
+      massachusetts:
+        label: Eviction (summary process)
+        text: Massachusetts calls an eviction court case “summary process.” It concerns possession of rental property and may also include a claim for unpaid rent.
+        source: https://www.mass.gov/eviction-for-tenants
+      vermont:
+        text: An eviction case asks the Civil Division of the Superior Court to return possession of rented property to a landlord.
+        source: https://www.vtcourts.gov/civil/eviction-process
+  answer:
+    label: Answer
+    default:
+      text: A response to a complaint that admits or denies claims and may state defenses.
+      source: https://www.vtcourts.gov/glossary
+  appeal:
+    label: Appeal
+    default:
+      text: A request for a higher court to review a lower court’s decision.
+      source: https://www.vtcourts.gov/glossary
+  continuance:
+    label: Continuance
+    default:
+      text: Postponing a scheduled court hearing to a later date.
+      source: https://www.vtcourts.gov/glossary
+  contempt:
+    label: Contempt
+    default:
+      text: Disobeying a court order or interfering with the court’s authority.
+      source: https://www.vtcourts.gov/glossary
+  divorce:
+    label: Divorce
+    default:
+      text: The legal process for ending a marriage.
+      source: https://www.vtcourts.gov/glossary
+  custody:
+    label: Child custody
+    default:
+      text: Rights and responsibilities for a child’s care and important decisions.
+      source: https://www.vtcourts.gov/glossary
+  child_support:
+    label: Child support
+    default:
+      text: Payments ordered to help cover a child’s needs.
+      source: https://www.vtcourts.gov/glossary
+  dismiss:
+    label: Dismissal
+    default:
+      text: Ending a case or claim without continuing to decide it.
+      source: https://www.vtcourts.gov/glossary
+  probate:
+    label: Probate
+    default:
+      text: Court proceedings concerning matters such as a deceased person’s estate.
+      source: https://www.vtcourts.gov/glossary
+  parenting_time:
+    label: Parenting time
+    default:
+      text: The time a child spends with each parent.
+      source: https://www.vtcourts.gov/family/parent-coordination
+  protection:
+    label: Protective order
+    default:
+      text: A court order intended to protect a person from harm.
+      source: https://www.vtcourts.gov/family/relief-abuse
+  fee_waiver:
+    label: Fee waiver
+    default:
+      text: Court permission not to pay certain court fees because of financial hardship.
+      source: https://www.vtcourts.gov/fees
+  name_change:
+    label: Name change
+    default:
+      text: A court process to change a person’s legal name.
+      source: https://www.vtcourts.gov/probate/name-changes
+  small_claims:
+    label: Small claims
+    default:
+      text: A simplified court process for certain disputes about money.
+      source: https://www.vtcourts.gov/civil/suing-and-being-sued-small-claims
+  expungement:
+    label: Expungement
+    default:
+      text: Removing a criminal record under the rules that apply to that record.
+      source: https://www.vtcourts.gov/criminal/expungement
+  sealing:
+    label: Record sealing
+    default:
+      text: Restricting access to a record instead of destroying it.
+      source: https://www.vtcourts.gov/criminal/expungement
+  garnishment:
+    label: Garnishment
+    default:
+      text: Collecting a debt from money held by someone else, such as an employer or bank.
+      source: https://www.vtcourts.gov/civil/collecting-small-claims-judgment

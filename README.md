@@ -8,8 +8,29 @@ A minimal Django app for form submission and review. The Django project lives un
   - Python 3.10+
   - uv
 
-  
-### Using uv (recommended)
+### Single-command local startup (`run_all.sh`)
+
+To quickly run the entire local development stack without building the full Docker container:
+
+```bash
+./run_all.sh
+```
+
+This script:
+
+- Verifies Astral `uv` and synchronizes the local virtual environment (`efile_app/.venv`)
+- Automatically initializes `efile_app/.env` from `.env.example` if needed
+- Starts LocalStack (S3 mock) in Docker if Docker is running
+- Applies Django database migrations
+- Runs the Django development server (`http://127.0.0.1:8000`) and background extraction worker together
+- Starts the filing code index worker, which copies changed courts' codes from the EFSP codes database once a day and indexes them
+- Cleanly stops all child processes upon pressing `Ctrl+C`
+
+Filing code search becomes available after the first successful sync, which needs `EFSP_CODES_DATABASE_URL` in `efile_app/.env` (the test EFSP's codes database, read only). `--legacy-code-crawl` explicitly enables the older full crawler instead.
+
+Run `./run_all.sh --help` to see additional options (e.g., custom ports, running without Docker, or `--no-code-index` to skip the court code index worker).
+
+### Using uv manually
 
 - __0) Install uv__ (one-time)
   - macOS (Homebrew):

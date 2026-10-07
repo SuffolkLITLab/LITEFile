@@ -1,0 +1,135 @@
+# Plain-language meanings for court terms that show up in filing and case-type
+# names. Code search offers a term's meaning wherever a result names it.
+#
+# Each term lists the words that name it (`match`, matched as whole words,
+# case-insensitive), a short `text`, and an optional `source`. Under
+# `jurisdictions`, a state can reword a term or add its own; its entries
+# replace the general ones key by key. Meanings describe a term, never advise
+# whether to file. Keep each to one or two sentences.
+version: 1
+terms:
+  subrogation:
+    label: Subrogation
+    match: [subrogation]
+    text: When an insurance company that paid for someone's loss sues the person who caused it, to get that money back.
+  dram_shop:
+    label: Dram shop
+    match: [dram shop]
+    text: A claim against a bar, restaurant, or store that served or sold alcohol to someone who then injured another person.
+  tort:
+    label: Tort
+    match: [tort, torts]
+    text: A wrong that harms someone, such as an injury or damage to their property, that they can sue over. It is not a crime or a broken contract.
+  intentional_tort:
+    label: Intentional tort
+    match: [intentional tort]
+    text: Harm caused on purpose, such as assault or battery, that the injured person can sue over.
+  fela:
+    label: FELA
+    match: [FELA]
+    text: The Federal Employers' Liability Act. It lets railroad workers sue their employer for injuries on the job.
+  statutory_action:
+    label: Statutory action
+    match: [statutory action]
+    text: A lawsuit based on a specific law that gives people the right to sue, rather than on a general legal rule.
+  premises_liability:
+    label: Premises liability
+    match: [premises liability]
+    text: A claim that someone was hurt because a property owner or manager let the property become unsafe.
+  product_liability:
+    label: Product liability
+    match: [product liability]
+    text: A claim that a product was made, designed, or labeled in a way that made it unsafe and caused an injury.
+  malpractice:
+    label: Malpractice
+    match: [malpractice]
+    text: A claim that a professional, such as a doctor or lawyer, did their job so carelessly that it caused harm.
+  wrongful_death:
+    label: Wrongful death
+    match: [wrongful death]
+    text: A lawsuit brought by a family member or estate when someone dies because of another person's wrongful act.
+  mandamus:
+    label: Mandamus
+    match: [mandamus]
+    text: A request asking the court to order a government official or agency to do something the law requires of them.
+  certiorari:
+    label: Certiorari
+    match: [certiorari]
+    text: A request asking a higher court to review a decision made by a lower court or agency.
+  declaratory_judgment:
+    label: Declaratory judgment
+    match: [declaratory judgment]
+    text: A request asking the court to decide what the parties' rights are, without ordering anyone to pay or act.
+  confession_of_judgment:
+    label: Confession of judgment
+    match: [confession of judgment]
+    text: A judgment entered because a contract the other side signed agreed ahead of time to let the court rule against them if they didn't pay.
+  ejectment:
+    label: Ejectment
+    match: [ejectment]
+    text: A lawsuit to remove someone from land or a building when the person suing says they own it.
+  replevin:
+    label: Replevin
+    match: [replevin, detinue]
+    text: A lawsuit to get back specific personal property that someone else is holding.
+  mechanics_lien:
+    label: Mechanic's lien
+    match: [mechanic lien, mechanics lien, mechanic's lien]
+    text: A claim on a property by someone who did work on it or supplied materials and was not paid.
+  garnishment:
+    label: Garnishment
+    match: [garnishment, wage deduction]
+    text: A way to collect a judgment by having money taken from the other side's paycheck or bank account.
+  citation_to_discover_assets:
+    label: Citation to discover assets
+    match: [citation to discover assets]
+    text: A court order requiring someone who owes a judgment to answer questions about their money and property.
+  forcible_entry_and_detainer:
+    label: Forcible entry and detainer
+    match: [forcible entry and detainer, forcible detainer]
+    text: Another name for an eviction case, asking the court to return possession of a home or other property.
+  joint_action:
+    label: Joint action
+    match: [joint action]
+    text: An eviction case that asks for both possession of the property and money, such as unpaid rent.
+  possession_only:
+    label: Possession only
+    match: [possession only]
+    text: An eviction case that asks only to get the property back, not for money.
+  subpoena:
+    label: Subpoena
+    match: [subpoena]
+    text: A court order requiring someone to come to court or to hand over documents.
+  stipulation:
+    label: Stipulation
+    match: [stipulation, stipulated]
+    text: Something both sides agree to and put in writing for the court.
+  interpleader:
+    label: Interpleader
+    match: [interpleader]
+    text: A case asking the court to decide which of several people is entitled to money or property held by someone else.
+  partition:
+    label: Partition
+    match: [partition]
+    text: A lawsuit to divide property owned by more than one person, or to sell it and divide the money.
+  quiet_title:
+    label: Quiet title
+    match: [quiet title]
+    text: A lawsuit asking the court to settle who owns a property.
+  ex_parte:
+    label: Ex parte
+    match: [ex parte]
+    text: A request the court decides without first hearing from the other side, usually in an emergency.
+jurisdictions:
+  illinois:
+    terms:
+      forcible_entry_and_detainer:
+        label: Forcible entry and detainer
+        match: [forcible entry and detainer, forcible detainer]
+        text: Illinois' older name for an eviction case, asking the court to return possession of a home or other property.
+  massachusetts:
+    terms:
+      summary_process:
+        label: Summary process
+        match: [summary process]
+        text: Massachusetts' name for an eviction case.

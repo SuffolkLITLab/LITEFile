@@ -23,7 +23,7 @@ from django.utils.html import format_html
 from django_otp.admin import OTPAdminSite
 from django_otp.plugins.otp_totp.models import TOTPDevice
 
-from efile.models import FilingDraft, PrivacyRequest, StaffRoleGrant, UserProfile
+from efile.models import FilingCodeJob, FilingDraft, PrivacyRequest, StaffRoleGrant, UserProfile
 from efile.services.analytics import collection_health, report_rows
 from efile.services.privacy import account_sessions, audit, create_request, preview, process_request, verify_request
 from efile.staff_security import StaffLoginForm, jurisdictions_for, require_scope
@@ -105,6 +105,7 @@ class StaffSite(OTPAdminSite):
             {
                 "account_access": bool(jurisdictions_for(request.user, "accounts")),
                 "analytics_access": bool(jurisdictions_for(request.user, "analytics")),
+                "filing_codes_access": request.user.is_superuser,
             }
         )
         return context
@@ -117,6 +118,7 @@ class StaffSite(OTPAdminSite):
             path("requests/<int:request_id>/", self.admin_view(self.privacy_request), name="privacy_request"),
             path("analytics/", self.admin_view(self.analytics), name="analytics"),
             path("authenticator/<int:account_id>/", self.admin_view(self.authenticator), name="authenticator"),
+            path("filing-codes/", self.admin_view(self.filing_codes), name="filing_codes"),
         ]
         return extra + super().get_urls()
 
@@ -353,6 +355,43 @@ class StaffSite(OTPAdminSite):
             health=collection_health(scopes),
             collecting=settings.LITEFILE_ANALYTICS_ENABLED,
             export_enabled=settings.LITEFILE_ANALYTICS_EXPORT_ENABLED,
+        )
+
+    def filing_codes(self, request):
+        """Resync codes from the EFSP, or rebuild search indexes; the code index worker runs them."""
+        if not request.user.is_superuser:
+            raise PermissionDenied
+        from efile.services.filing_code_copy import status
+        from efile.services.filing_code_search import rules
+
+        jurisdictions = rules()[0]["jurisdictions"]
+        if request.method == "POST":
+            kind = request.POST.get("kind", "")
+            jurisdiction = request.POST.get("jurisdiction", "")
+            if kind not in FilingCodeJob.Kind.values or jurisdiction not in ["", *jurisdictions]:
+                messages.error(request, "Choose a valid action and jurisdiction.")
+            elif FilingCodeJob.objects.filter(
+                kind=kind, jurisdiction=jurisdiction, status=FilingCodeJob.Status.QUEUED
+            ).exists():
+                messages.info(request, "That is already queued.")
+            else:
+                FilingCodeJob.objects.create(kind=kind, jurisdiction=jurisdiction, requested_by=request.user)
+                audit(request.user, jurisdiction, f"filing_codes_{kind}", "queued")
+                messages.success(
+                    request,
+                    f"{FilingCodeJob.Kind(kind).label} queued for {jurisdiction.capitalize() or 'every jurisdiction'}. "
+                    "The code index worker starts it within a minute.",
+                )
+            return redirect("litefile_staff:filing_codes")
+        return self.page(
+            request,
+            "filing_codes",
+            title="Filing codes",
+            jurisdictions=jurisdictions,
+            statuses=[status(jurisdiction) for jurisdiction in jurisdictions],
+            jobs=FilingCodeJob.objects.select_related("requested_by")[:15],
+            schedule=f"{settings.FILING_CODE_SYNC_TIME} {settings.FILING_CODE_SYNC_TIMEZONE}",
+            source=settings.FILING_CODE_SYNC_MODE,
         )
 
     def authenticator(self, request, account_id):

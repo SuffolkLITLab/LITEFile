@@ -5,6 +5,7 @@
         <ul>
             {% if account_access %}<li><a href="{% url 'litefile_staff:accounts' %}">Find an account</a></li><li><a href="{% url 'litefile_staff:requests' %}">Deletion requests</a></li>{% endif %}
             {% if analytics_access %}<li><a href="{% url 'litefile_staff:analytics' %}">Aggregate usage</a></li>{% endif %}
+            {% if filing_codes_access %}<li><a href="{% url 'litefile_staff:filing_codes' %}">Filing codes</a></li>{% endif %}
         </ul>
     </div>
     {{ block.super }}

@@ -6,7 +6,7 @@ import time
 from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
-from django.db import close_old_connections
+from django.db import OperationalError, close_old_connections, connection
 
 logger = logging.getLogger(__name__)
 
@@ -69,7 +69,21 @@ class Command(BaseCommand):
         while True:
             close_old_connections()
             rollup_if_due()
-            job = claim_next_extraction()
+            try:
+                job = claim_next_extraction()
+            except OperationalError as error:
+                # A large local code-index publication can outlast SQLite's
+                # busy timeout. Keep the supervisor alive to claim work after
+                # the writer finishes; other database errors still fail loudly.
+                if (
+                    options["once"]
+                    or connection.vendor != "sqlite"
+                    or str(error) not in {"database is locked", "database table is locked"}
+                ):
+                    raise
+                logger.warning("Local database is busy; document extraction will retry")
+                time.sleep(max(0.1, options["poll_interval"]))
+                continue
             if job is None:
                 if options["once"]:
                     return

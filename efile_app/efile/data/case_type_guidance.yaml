@@ -1,0 +1,854 @@
+# Curated guidance and discovery facets. Unknown classifications remain visible.
+version: 2
+jurisdictions:
+- illinois
+- massachusetts
+- vermont
+topics:
+  eviction:
+    label: Eviction
+    pattern: \b(eviction|ejectment|forcible|unlawful detainer|summary process)\b
+    query_pattern: \b(eviction|evict\w*|ejectment|unlawful detainer|summary process|landlord|tenant|forcible)\b
+    text: A case about who has the right to occupy property.
+    source: https://www.illinoiscourts.gov/courts/additional-resources/eviction/
+    facets:
+    - key: role
+      label: Your role
+      options:
+      - value: tenant
+        label: Tenant / occupant
+        pattern: ^(answer|response|objection)\b|\b(for|by) (respondent|defendant)\b
+        field: filing
+      - value: landlord
+        label: Landlord / owner
+        pattern: ^(complaint|petition)(\b|/)|\b(for|by) (petitioner|plaintiff)\b
+        field: filing
+    - key: property
+      label: Property
+      options:
+      - value: residential
+        label: Home
+        pattern: \bresidential\b
+        field: case
+        text: A home or apartment.
+      - value: commercial
+        label: Business
+        pattern: \bcommercial\b
+        field: case
+        text: Property used for a business, such as a store or office.
+    - key: relief
+      label: What the landlord is asking for
+      options:
+      - value: possession
+        label: Property back only
+        pattern: \bpossession only\b
+        field: case
+        text: The landlord seeks the property back, not unpaid rent; court costs may still be requested.
+      - value: money
+        label: Money too
+        pattern: \b(money|rent|damages)\b
+        field: case
+        text: Includes a money claim; check the complaint for what is requested.
+    jurisdictions:
+      illinois:
+        text: An eviction case asks the court to return possession of property to a landlord or owner. Some cases
+          also seek unpaid rent.
+        source: https://www.illinoiscourts.gov/courts/additional-resources/eviction/
+        special:
+        - pattern: \bejectment\b
+          text: A claim to recover property based on a legal right to possess it. It can involve ownership rights;
+            it is not simply another name for a residential rental eviction.
+          source: https://my.ilga.gov/legislation/ILCS/details?ActID=2017&ActName=Code+of+Civil+Procedure.&ChapAct=735+ILCS+5%2F&Chapter=CIVIL+PROCEDURE&ChapterID=56&MajorTopic=RIGHTS+AND+REMEDIES&SeqEnd=39000000&SeqStart=34500000
+      massachusetts:
+        text: Massachusetts calls an eviction court case “summary process.” It concerns possession of rental property
+          and may also include a claim for unpaid rent.
+        source: https://www.mass.gov/eviction-for-tenants
+      vermont:
+        text: An eviction case asks the Civil Division of the Superior Court to return possession of rented property
+          to a landlord.
+        source: https://www.vtcourts.gov/civil/eviction-process
+    unknown_notes:
+    - when: relief
+      if_known: property
+      text: The name does not say whether money is requested; check the complaint.
+  foreclosure:
+    label: Mortgage foreclosure
+    pattern: \b(foreclos\w*)\b
+    query_pattern: \b(foreclos\w*)\b
+    text: A lender or lien holder asks the court to sell property to pay a secured debt.
+    source: https://www.illinoiscourts.gov/courts/additional-resources/mortgage-foreclosure/
+    facets:
+    - key: role
+      label: Your role
+      options:
+      - value: responding
+        label: Property owner
+        pattern: ^(answer|response|objection)\b|\b(for|by) (respondent|defendant)\b
+        field: filing
+      - value: requesting
+        label: Lender / lien holder
+        pattern: ^(complaint|petition)(\b|/)|\b(for|by) (petitioner|plaintiff)\b
+        field: filing
+    - key: property
+      label: Property
+      options:
+      - value: residential
+        label: Home
+        pattern: \bresidential\b
+        field: case
+        text: A home or apartment.
+      - value: commercial
+        label: Business
+        pattern: \bcommercial\b
+        field: case
+        text: Property used for a business, such as a store or office.
+    - key: issue
+      label: Type of claim
+      options:
+      - value: mortgage
+        label: Mortgage loan
+        pattern: \bmortgage\b
+        field: case
+      - value: lien
+        label: Other lien
+        pattern: \b(mechanic|assessment|condominium|lien)\b
+        field: case
+    jurisdictions: {}
+  replevin:
+    label: Return of personal property
+    pattern: \b(replevin|detinue)\b
+    query_pattern: \b(replevin|detinue)\b
+    text: A request to recover belongings held by someone else; this is different from recovering land or housing.
+    source: https://www.illinoislegalaid.org/legal-information/getting-my-property-back
+    facets:
+    - key: role
+      label: Your role
+      options:
+      - value: responding
+        label: Responding to the request
+        pattern: ^(answer|response|objection)\b|\b(for|by) (respondent|defendant)\b
+        field: filing
+      - value: requesting
+        label: Seeking property back
+        pattern: ^(complaint|petition)(\b|/)|\b(for|by) (petitioner|plaintiff)\b
+        field: filing
+    - key: procedure
+      label: Court label
+      options:
+      - value: replevin
+        label: Replevin
+        pattern: \breplevin\b
+        field: case
+        text: Replevin asks for return of specific belongings through a statutory court process.
+      - value: detinue
+        label: Detinue
+        pattern: \bdetinue\b
+        field: case
+        text: Detinue is another court procedure for recovery of belongings or their value.
+    jurisdictions: {}
+  property_damage:
+    label: Property damage
+    pattern: \b(property damage|damage to property)\b
+    query_pattern: \b(property damage|damage to property)\b
+    text: A claim for harm to belongings, a vehicle, or real estate, rather than injury to a person.
+    source: https://www.illinoislegalaid.org/legal-information/what-are-my-rights-when-car-accident-happens
+    facets:
+    - key: role
+      label: Your role
+      options:
+      - value: responding
+        label: Responding to a claim
+        pattern: ^(answer|response|objection)\b|\b(for|by) (respondent|defendant)\b
+        field: filing
+      - value: requesting
+        label: Seeking payment for damage
+        pattern: ^(complaint|petition)(\b|/)|\b(for|by) (petitioner|plaintiff)\b
+        field: filing
+    - key: property
+      label: Damaged property
+      options:
+      - value: vehicle
+        label: Vehicle
+        pattern: \b(vehicle|auto\w*)\b
+        field: case
+      - value: real_estate
+        label: Land or building
+        pattern: \b(real estate|real property|building)\b
+        field: case
+      - value: belongings
+        label: Other belongings
+        pattern: \b(personal property|belongings)\b
+        field: case
+    jurisdictions: {}
+  personal_injury:
+    label: Personal injury
+    # "Tort - Not Personal Injury" is not one; legal and other professional
+    # malpractice harm money, not people.
+    pattern: (?<!not )\b(personal injury|bodily injury|medical malpractice|wrongful death|motor vehicle|automobile negligence|premises
+      liability|product liability|construction injur\w*)\b
+    query_pattern: \b(personal injury|bodily injury|malpractice|wrongful death|motor vehicle|automobile negligence|premises
+      liability|product liability)\b
+    text: A claim for harm to a person, often seeking money for injuries caused by someone else.
+    source: https://www.illinoislegalaid.org/legal-information/what-are-my-rights-when-car-accident-happens
+    facets:
+    - key: role
+      label: Your role
+      options:
+      - value: responding
+        label: Responding to a claim
+        pattern: ^(answer|response|objection)\b|\b(for|by) (respondent|defendant)\b
+        field: filing
+      - value: requesting
+        label: Bringing an injury claim
+        pattern: ^(complaint|petition)(\b|/)|\b(for|by) (petitioner|plaintiff)\b
+        field: filing
+    - key: issue
+      label: Injury involving
+      # Case types none of these name -- the general personal-injury lawsuit --
+      # are what "Something else" keeps.
+      other: Something else
+      options:
+      - value: vehicle
+        label: Vehicle accident
+        pattern: \b(motor vehicle|auto\w*|traffic)\b
+        field: case
+      - value: medical
+        label: Medical care
+        pattern: \bmedical\b
+        field: case
+      - value: premises
+        label: Unsafe property
+        pattern: \bpremises\b
+        field: case
+      - value: product
+        label: A product
+        pattern: \b(product liability|silicone implant|fen-phen)\b
+        field: case
+      - value: exposure
+        label: Asbestos, lead, or toxic exposure
+        pattern: \b(asbestos|lead exposure|toxic)\b
+        field: case
+      - value: death
+        label: Death
+        # Not Cook's catch-all "Other Personal Injury/Wrongful Death".
+        pattern: (?<!injury/)(?<!injury / )\bwrongful death\b
+        field: case
+    jurisdictions: {}
+  small_claims:
+    label: Small claims
+    pattern: \bsmall claims?\b
+    query_pattern: \bsmall claims?\b
+    text: A simpler court process for certain lower-value money disputes; the court sets the limit.
+    source: https://www.illinoislegalaid.org/legal-information/small-claims
+    facets:
+    - key: role
+      label: Your role
+      options:
+      - value: responding
+        label: Responding to a claim
+        pattern: ^(answer|response|objection)\b|\b(for|by) (respondent|defendant)\b
+        field: filing
+      - value: requesting
+        label: Asking for payment
+        pattern: ^(complaint|petition)(\b|/)|\b(for|by) (petitioner|plaintiff)\b
+        field: filing
+    - key: issue
+      label: Dispute about
+      options:
+      - value: contract
+        label: Agreement or bill
+        pattern: \b(contract|debt|account|bill)\b
+        field: case
+      - value: damage
+        label: Damaged property
+        pattern: \b(property damage|damage to property)\b
+        field: case
+      - value: deposit
+        label: Security deposit
+        pattern: \bsecurity deposit\b
+        field: case
+    jurisdictions:
+      illinois:
+        usual_limit_cents: 1000000
+        amount_help: Illinois small claims generally cover up to $10,000, excluding interest and costs. Amount brackets
+          below come from the remaining court labels.
+        source: https://www.illinoiscourts.gov/rules/supreme-court-rules/
+      massachusetts:
+        usual_limit_cents: 700000
+        amount_help: Massachusetts generally limits small claims to $7,000; motor-vehicle property-damage claims
+          can exceed that limit. Brackets below reflect the remaining court labels.
+        source: https://www.mass.gov/info-details/small-claims-court
+      vermont:
+        usual_limit_cents: 1000000
+        amount_help: Vermont generally allows up to $10,000; consumer credit and medical debt claims are capped
+          at $5,000. Brackets below reflect the remaining court labels.
+        source: https://www.vtcourts.gov/civil/suing-and-being-sued-small-claims
+  debt:
+    label: Debt collection
+    pattern: \b(debt|collection|garnishment|wage deduction|citation to discover|credit card)\b
+    query_pattern: \b(debt|collection|garnishment|wage deduction|citation to discover|credit card)\b
+    text: A creditor seeks payment of a debt, or collection of an existing judgment.
+    source: https://www.illinoislegalaid.org/legal-information/debt-collection
+    facets:
+    - key: role
+      label: Your role
+      options:
+      - value: responding
+        label: Disputing collection
+        pattern: ^(answer|response|objection)\b|\b(for|by) (respondent|defendant)\b
+        field: filing
+      - value: requesting
+        label: Collecting a debt
+        pattern: ^(complaint|petition)(\b|/)|\b(for|by) (petitioner|plaintiff)\b
+        field: filing
+    - key: issue
+      label: Debt or collection
+      options:
+      - value: card
+        label: Credit card
+        pattern: \bcredit card\b
+        field: case
+      - value: medical
+        label: Medical bill
+        pattern: \bmedical\b
+        field: case
+      - value: judgment
+        label: Collecting a judgment
+        pattern: \b(garnishment|wage deduction|citation to discover|post.?judgment)\b
+        field: both
+    jurisdictions: {}
+  employment:
+    label: Employment and wages
+    pattern: \b(employment|wage claim|unpaid wages|wrongful termination|employment discrimination)\b
+    query_pattern: \b(employment|wage claim|unpaid wages|wrongful termination|employment discrimination)\b
+    text: A workplace dispute, such as unpaid wages, discrimination, or unlawful dismissal.
+    source: https://www.illinoislegalaid.org/legal-information/business-work
+    facets:
+    - key: role
+      label: Your role
+      options:
+      - value: responding
+        label: Responding to a claim
+        pattern: ^(answer|response|objection)\b|\b(for|by) (respondent|defendant)\b
+        field: filing
+      - value: requesting
+        label: Worker bringing a claim
+        pattern: ^(complaint|petition)(\b|/)|\b(for|by) (petitioner|plaintiff)\b
+        field: filing
+    - key: issue
+      label: Workplace issue
+      options:
+      - value: wages
+        label: Pay / wages
+        pattern: \b(wages?|pay|overtime)\b
+        field: case
+      - value: discrimination
+        label: Discrimination
+        pattern: \bdiscrimination\b
+        field: case
+      - value: termination
+        label: Dismissal
+        pattern: \b(termination|dismissal|discharge)\b
+        field: case
+    jurisdictions: {}
+  contract:
+    label: Contracts
+    pattern: \b(contracts?|breach of warranty)\b
+    query_pattern: \b(contracts?|breach of warranty)\b
+    text: A dispute about promises in an agreement, such as payment or work that was not completed.
+    source: https://www.illinoislegalaid.org/legal-information/starting-new-case
+    facets:
+    - key: role
+      label: Your role
+      options:
+      - value: responding
+        label: Responding to a claim
+        pattern: ^(answer|response|objection)\b|\b(for|by) (respondent|defendant)\b
+        field: filing
+      - value: requesting
+        label: Bringing a claim
+        pattern: ^(complaint|petition)(\b|/)|\b(for|by) (petitioner|plaintiff)\b
+        field: filing
+    - key: issue
+      label: Agreement about
+      options:
+      - value: services
+        label: Work or services
+        pattern: \b(service|construction|contractor)\b
+        field: case
+      - value: sales
+        label: Goods or sales
+        pattern: \b(sale|goods|warranty)\b
+        field: case
+      - value: insurance
+        label: Insurance
+        pattern: \binsurance\b
+        field: case
+    jurisdictions: {}
+  child_support:
+    label: Child support
+    pattern: \b(child support|support of children|uniform interstate family support|uifsa)\b
+    query_pattern: \b(child support|support of children|uniform interstate family support|uifsa)\b
+    text: A case about financial support for a child, including setting, changing, or enforcing an order.
+    source: https://www.illinoislegalaid.org/legal-information/child-support-and-child-care
+    facets:
+    - key: role
+      label: Your role
+      options:
+      - value: responding
+        label: Responding to a request
+        pattern: ^(answer|response|objection)\b|\b(for|by) (respondent|defendant)\b
+        field: filing
+      - value: requesting
+        label: Making a support request
+        pattern: ^(complaint|petition)(\b|/)|\b(for|by) (petitioner|plaintiff)\b
+        field: filing
+    - key: action
+      label: What you need
+      options:
+      - value: change
+        label: Change an order
+        pattern: \b(modif\w*|change|amend\w*)\b
+        field: both
+      - value: enforce
+        label: Enforce an order
+        pattern: \b(enforc\w*|contempt|rule to show cause)\b
+        field: both
+      - value: establish
+        label: Get an order
+        pattern: \b(establish\w*|initial)\b
+        field: both
+    - key: issue
+      label: Order from
+      options:
+      - value: interstate
+        label: Another state or country
+        pattern: \b(interstate|foreign|uifsa)\b
+        field: case
+      - value: local
+        label: This state
+        pattern: \bintrastate\b
+        field: case
+    jurisdictions: {}
+  parentage:
+    label: Parentage
+    pattern: \b(parentage|paternity)\b
+    query_pattern: \b(parentage|paternity)\b
+    text: A case to determine who a child’s legal parents are; support and parenting orders may also be involved.
+    source: https://www.illinoislegalaid.org/legal-information/paternity-or-parentage
+    facets:
+    - key: role
+      label: Your role
+      options:
+      - value: responding
+        label: Responding to it
+        pattern: ^(answer|response|objection)\b|\b(for|by) (respondent|defendant)\b
+        field: filing
+      - value: requesting
+        label: Making the request
+        pattern: ^(complaint|petition)(\b|/)|\b(for|by) (petitioner|plaintiff)\b
+        field: filing
+    - key: issue
+      label: Request about
+      options:
+      - value: establish
+        label: Establish parentage
+        pattern: \b(establish\w*|determin\w*)\b
+        field: both
+      - value: challenge
+        label: Challenge parentage
+        pattern: \b(disestablish\w*|non.?paternity|vacate|rescind)\b
+        field: both
+    - key: action
+      label: What you need
+      options:
+      - value: change
+        label: Change an order
+        pattern: \b(modif\w*|change|amend\w*)\b
+        field: both
+      - value: enforce
+        label: Enforce an order
+        pattern: \b(enforc\w*|contempt|rule to show cause)\b
+        field: both
+      - value: establish
+        label: Get an order
+        pattern: \b(establish\w*|initial)\b
+        field: both
+    jurisdictions: {}
+  parenting:
+    label: Parenting and custody
+    pattern: \b(custody|parenting|parental responsibilit\w*|visitation)\b
+    query_pattern: \b(custody|parenting|parental responsibilit\w*|visitation)\b
+    text: A case about decisions for a child or when the child spends time with each parent.
+    source: https://www.illinoislegalaid.org/legal-information/parental-responsibilities-custody-and-visitation
+    facets:
+    - key: role
+      label: Your role
+      options:
+      - value: responding
+        label: Responding to it
+        pattern: ^(answer|response|objection)\b|\b(for|by) (respondent|defendant)\b
+        field: filing
+      - value: requesting
+        label: Making the request
+        pattern: ^(complaint|petition)(\b|/)|\b(for|by) (petitioner|plaintiff)\b
+        field: filing
+    - key: issue
+      label: Parenting issue
+      options:
+      - value: decisions
+        label: Decision-making / custody
+        pattern: \b(custody|decision|allocation)\b
+        field: case
+      - value: time
+        label: Parenting time / visitation
+        pattern: \b(parenting time|visitation)\b
+        field: case
+      - value: relocation
+        label: Moving with a child
+        pattern: \b(relocation|removal)\b
+        field: case
+    - key: action
+      label: What you need
+      options:
+      - value: change
+        label: Change an order
+        pattern: \b(modif\w*|change|amend\w*)\b
+        field: both
+      - value: enforce
+        label: Enforce an order
+        pattern: \b(enforc\w*|contempt|rule to show cause)\b
+        field: both
+      - value: establish
+        label: Get an order
+        pattern: \b(establish\w*|initial)\b
+        field: both
+    jurisdictions: {}
+  divorce:
+    label: Divorce and separation
+    pattern: \b(divorce|dissolution|legal separation|invalidity|annulment)\b
+    query_pattern: \b(divorce|dissolution|legal separation|invalidity|annulment)\b
+    text: A case to end a marriage or civil union, or address a legal separation.
+    source: https://www.illinoislegalaid.org/legal-information/divorce
+    facets:
+    - key: role
+      label: Your role
+      options:
+      - value: responding
+        label: Responding to it
+        pattern: ^(answer|response|objection)\b|\b(for|by) (respondent|defendant)\b
+        field: filing
+      - value: requesting
+        label: Making the request
+        pattern: ^(complaint|petition)(\b|/)|\b(for|by) (petitioner|plaintiff)\b
+        field: filing
+    - key: children
+      label: Children
+      options:
+      - value: without
+        label: Without children
+        pattern: \b(without|no) (minor )?children\b
+        field: case
+      - value: with
+        label: With children
+        pattern: \bwith (minor )?children\b
+        field: case
+    - key: issue
+      label: What you are seeking
+      options:
+      - value: separation
+        label: Legal separation
+        pattern: \blegal separation\b
+        field: case
+        text: Legal separation addresses living apart without ending the marriage.
+      - value: annulment
+        label: Invalidity / annulment
+        pattern: \b(invalidity|annulment)\b
+        field: case
+        text: A request to declare a marriage legally invalid.
+      - value: divorce
+        label: End the marriage
+        pattern: \b(divorce|dissolution)\b
+        field: case
+    jurisdictions: {}
+  protection:
+    label: Protection and no-contact orders
+    pattern: \b(order of protection|protective order|protection order|restraining order|no contact|no-contact|stalking|abuse
+      prevention)\b
+    query_pattern: \b(order of protection|protective order|protection order|restraining order|no contact|no-contact|stalking|abuse
+      prevention)\b
+    text: A request for an order limiting contact or other conduct to protect someone from harm.
+    source: https://www.illinoiscourts.gov/courts/additional-resources/order-of-protection/
+    facets:
+    - key: role
+      label: Your role
+      options:
+      - value: responding
+        label: Responding to the request
+        pattern: ^(answer|response|objection)\b|\b(for|by) (respondent|defendant)\b
+        field: filing
+      - value: requesting
+        label: Requesting protection
+        pattern: ^(complaint|petition)(\b|/)|\b(for|by) (petitioner|plaintiff)\b
+        field: filing
+    - key: issue
+      label: Court label
+      options:
+      - value: domestic
+        label: Domestic abuse
+        pattern: \b(domestic|order of protection)\b
+        field: case
+      - value: stalking
+        label: Stalking
+        pattern: \bstalking\b
+        field: case
+      - value: sexual
+        label: Sexual assault / civil no contact
+        pattern: \b(sexual|civil no.contact)\b
+        field: case
+    - key: duration
+      label: Order requested
+      options:
+      - value: emergency
+        label: Emergency / temporary
+        pattern: \b(emergency|temporary|interim)\b
+        field: both
+      - value: longer
+        label: Longer-term / plenary
+        pattern: \b(plenary|final)\b
+        field: both
+    jurisdictions: {}
+  minor_guardianship:
+    label: Child guardianship
+    pattern: \b(minor.*guardianship|guardianship.*(minor|child))\b
+    query_pattern: \b(minor.*guardianship|guardianship.*(minor|child))\b
+    text: A request for a guardian to make decisions for a child; guardianship is different from adoption.
+    source: https://www.illinoislegalaid.org/legal-information/child-guardianship
+    facets:
+    - key: role
+      label: Your role
+      options:
+      - value: responding
+        label: Responding or objecting
+        pattern: ^(answer|response|objection)\b|\b(for|by) (respondent|defendant)\b
+        field: filing
+      - value: requesting
+        label: Requesting guardianship
+        pattern: ^(complaint|petition)(\b|/)|\b(for|by) (petitioner|plaintiff)\b
+        field: filing
+    - key: scope
+      label: Decisions about
+      options:
+      - value: personal
+        label: Care of the child
+        pattern: \b(person only|of the person)\b
+        field: case
+      - value: financial
+        label: Child’s money / estate
+        pattern: \b(estate only|of the estate)\b
+        field: case
+      - value: both
+        label: Care and money
+        pattern: \b(person and estate|person & estate)\b
+        field: case
+    - key: duration
+      label: Guardianship
+      options:
+      - value: temporary
+        label: Temporary / emergency
+        pattern: \b(temporary|emergency|short.term)\b
+        field: both
+      - value: standby
+        label: Standby
+        pattern: \bstandby\b
+        field: case
+        text: A standby guardian is designated to take over when specified conditions occur.
+    jurisdictions: {}
+  adult_guardianship:
+    label: Adult guardianship
+    pattern: \b(adult guardianship|guardianship of (an? )?(adult|disabled)|disabled (adult|person)|adult.*guardianship)\b
+    query_pattern: \b(adult guardianship|guardianship of (an? )?(adult|disabled)|disabled (adult|person)|adult.*guardianship)\b
+    text: A request for authority to make specified personal or financial decisions for an adult who needs a guardian.
+    source: https://www.illinoislegalaid.org/legal-information/adult-guardianship
+    facets:
+    - key: role
+      label: Your role
+      options:
+      - value: responding
+        label: Responding or objecting
+        pattern: ^(answer|response|objection)\b|\b(for|by) (respondent|defendant)\b
+        field: filing
+      - value: requesting
+        label: Requesting guardianship
+        pattern: ^(complaint|petition)(\b|/)|\b(for|by) (petitioner|plaintiff)\b
+        field: filing
+    - key: scope
+      label: Decisions about
+      options:
+      - value: personal
+        label: Personal care
+        pattern: \b(person only|of the person)\b
+        field: case
+      - value: financial
+        label: Money / estate
+        pattern: \b(estate only|of the estate)\b
+        field: case
+      - value: both
+        label: Personal care and money
+        pattern: \b(person and estate|person & estate)\b
+        field: case
+    - key: duration
+      label: Guardianship
+      options:
+      - value: temporary
+        label: Temporary / emergency
+        pattern: \b(temporary|emergency)\b
+        field: both
+      - value: limited
+        label: Limited authority
+        pattern: \blimited\b
+        field: case
+      - value: plenary
+        label: Full / plenary authority
+        pattern: \bplenary\b
+        field: case
+    jurisdictions: {}
+  probate:
+    label: Estates and probate
+    pattern: \b(probate|decedent|will contest|estate administration|letters of (office|administration|testamentary))\b
+    query_pattern: \b(probate|decedent|will contest|estate administration|letters of (office|administration|testamentary))\b
+    text: A case about managing and distributing someone’s property after their death.
+    source: https://www.illinoislegalaid.org/legal-information/estates-powers-attorney
+    facets:
+    - key: role
+      label: Your role
+      options:
+      - value: responding
+        label: Responding or objecting
+        pattern: ^(answer|response|objection)\b|\b(for|by) (respondent|defendant)\b
+        field: filing
+      - value: requesting
+        label: Requesting court action
+        pattern: ^(complaint|petition)(\b|/)|\b(for|by) (petitioner|plaintiff)\b
+        field: filing
+    - key: issue
+      label: Estate matter
+      options:
+      - value: administration
+        label: Administer an estate
+        pattern: \b(administration|letters|admit.*will)\b
+        field: both
+      - value: contest
+        label: Dispute a will
+        pattern: \b(will contest|contest.*will)\b
+        field: both
+      - value: claim
+        label: Claim against estate
+        pattern: \bclaim\b
+        field: both
+    jurisdictions: {}
+  name_change:
+    label: Name changes
+    pattern: \b(name change|change of name)\b
+    query_pattern: \b(name change|change of name)\b
+    text: A request for a court order changing a person’s legal name.
+    source: https://www.illinoiscourts.gov/courts/additional-resources/name-change/
+    facets:
+    - key: role
+      label: Your role
+      options:
+      - value: responding
+        label: Responding or objecting
+        pattern: ^(answer|response|objection)\b|\b(for|by) (respondent|defendant)\b
+        field: filing
+      - value: requesting
+        label: Requesting a name change
+        pattern: ^(complaint|petition)(\b|/)|\b(for|by) (petitioner|plaintiff)\b
+        field: filing
+    - key: person
+      label: Whose name
+      options:
+      - value: adult
+        label: Adult
+        pattern: \badult\b
+        field: case
+      - value: minor
+        label: Child
+        pattern: \b(minor|child)\b
+        field: case
+    jurisdictions: {}
+  adoption:
+    label: Adoption
+    pattern: \badoption\b
+    query_pattern: \badoption\b
+    text: A case to establish a legal parent-child relationship through adoption.
+    source: https://www.illinoislegalaid.org/legal-information/adoption
+    facets:
+    - key: role
+      label: Your role
+      options:
+      - value: responding
+        label: Responding or objecting
+        pattern: ^(answer|response|objection)\b|\b(for|by) (respondent|defendant)\b
+        field: filing
+      - value: requesting
+        label: Requesting adoption
+        pattern: ^(complaint|petition)(\b|/)|\b(for|by) (petitioner|plaintiff)\b
+        field: filing
+    - key: person
+      label: Person being adopted
+      options:
+      - value: adult
+        label: Adult
+        pattern: \badult\b
+        field: case
+      - value: minor
+        label: Child
+        pattern: \b(minor|child|infant)\b
+        field: case
+    - key: relationship
+      label: Adoption type
+      options:
+      - value: related
+        label: Relative / stepparent
+        pattern: \b(related|relative|step.?parent)\b
+        field: case
+      - value: unrelated
+        label: Unrelated / agency
+        pattern: \b(unrelated|agency)\b
+        field: case
+    jurisdictions: {}
+  administrative_review:
+    label: Review of agency decisions
+    pattern: \b(administrative review|review of administrative)\b
+    query_pattern: \b(administrative review|review of administrative)\b
+    text: A request for a court to review a government agency’s decision.
+    source: https://www.illinoislegalaid.org/legal-information/lawyer-manual/administrative-review
+    facets:
+    - key: role
+      label: Your role
+      options:
+      - value: responding
+        label: Responding to the challenge
+        pattern: ^(answer|response|objection)\b|\b(for|by) (respondent|defendant)\b
+        field: filing
+      - value: requesting
+        label: Challenging a decision
+        pattern: ^(complaint|petition)(\b|/)|\b(for|by) (petitioner|plaintiff)\b
+        field: filing
+    - key: agency
+      label: Decision about
+      options:
+      - value: benefits
+        label: Benefits
+        pattern: \b(unemployment|benefit|public aid)\b
+        field: case
+      - value: license
+        label: License or permit
+        pattern: \b(license|permit)\b
+        field: case
+      - value: tax
+        label: Tax
+        pattern: \btax\b
+        field: case
+    jurisdictions: {}

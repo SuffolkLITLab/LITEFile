@@ -1,0 +1,186 @@
+{% load i18n %}
+<div class="code-search-invitation">
+    <strong>{% translate "Not sure which code to use?" %}</strong>
+    <p>{% translate "Search in plain language across courts, case categories, case types, and filing types." %}</p>
+    <button type="button"
+            class="btn btn-outline-primary"
+            id="open-code-search"
+            disabled>{% translate "Find the right filing code" %}</button>
+</div>
+{% comment %}
+Three steps, each answering one question: what is being filed (search, ZIP,
+short questions), where and under which case type (court, then case type),
+and a last check of the full path before it fills the form.
+{% endcomment %}
+<dialog id="code-search-dialog"
+        class="code-search"
+        aria-labelledby="code-search-title">
+    <div class="code-search__heading">
+        <div>
+            <p class="code-search__step" id="code-search-step">{% translate "Step 1 of 3" %}</p>
+            <h2 id="code-search-title" tabindex="-1">{% translate "What are you filing?" %}</h2>
+        </div>
+        <button type="button"
+                class="btn-close"
+                id="close-code-search"
+                aria-label="{% translate 'Close code search' %}"></button>
+    </div>
+    <div class="code-search__body">
+        <section id="code-search-step-filing"
+                 class="code-search__panel"
+                 aria-labelledby="code-search-title">
+            <div class="code-search__lookup">
+                <div>
+                    <label for="code-search-query">{% translate "What you're filing" %}</label>
+                    <input type="search"
+                           id="code-search-query"
+                           class="form-control"
+                           maxlength="160"
+                           placeholder="{% translate 'For example: complaint, fee waiver' %}"
+                           autocomplete="off" />
+                </div>
+                <div id="code-search-zip-filter">
+                    <label for="code-search-zip">{% translate "Case ZIP code" %}</label>
+                    <input id="code-search-zip"
+                           type="text"
+                           inputmode="numeric"
+                           maxlength="10"
+                           autocomplete="off"
+                           class="form-control"
+                           placeholder="{% translate 'Optional' %}"
+                           aria-describedby="code-search-zip-status" />
+                </div>
+            </div>
+            <div class="code-search__context-line">
+                <div class="code-search__zip-help">
+                    <p id="code-search-zip-status"></p>
+                    <p id="code-search-zip-shortcuts"
+                       class="code-search__zip-shortcuts"
+                       hidden></p>
+                </div>
+                <p class="code-search__stage">
+                    <span id="code-search-stage-label">{% translate "New case" %}</span>
+                    ·
+                    <button type="button" class="code-search__link" id="code-search-stage-toggle">
+                        {% translate "Change" %}<span class="visually-hidden"> {% translate "case stage" %}</span>
+                    </button>
+                    ·
+                    <button type="button"
+                            class="code-search__link"
+                            id="code-search-more-filters"
+                            aria-expanded="false"
+                            aria-controls="code-search-filters">{% translate "More filters" %}</button>
+                </p>
+            </div>
+            <div id="code-search-filters" class="code-search__narrow" hidden>
+                <div class="code-search__question"
+                     role="group"
+                     aria-labelledby="code-search-document-label">
+                    <span class="code-search__question-label" id="code-search-document-label">{% translate "Document" %}</span>
+                    <div class="code-search__chips">
+                        <button type="button"
+                                class="code-search__chip"
+                                data-document=""
+                                aria-pressed="true">{% translate "Any" %}</button>
+                        <button type="button"
+                                class="code-search__chip"
+                                data-document="main"
+                                aria-pressed="false">{% translate "Main document" %}</button>
+                        <button type="button"
+                                class="code-search__chip"
+                                data-document="attachment"
+                                aria-pressed="false">{% translate "Attachment or exhibit" %}</button>
+                    </div>
+                </div>
+            </div>
+            <section id="code-search-case-filters"
+                     class="code-search__narrow"
+                     aria-label="{% translate 'Narrow your results' %}"
+                     hidden>
+            </section>
+            <p id="code-search-status" role="status" aria-live="polite"></p>
+            <div id="code-search-suggestions" hidden>
+                <h3>{% translate "Common filing types" %}</h3>
+                <div class="code-search__suggestions">
+                    <button type="button"
+                            class="btn btn-outline-primary"
+                            data-code-query="complaint">{% translate "Complaint" %}</button>
+                    <button type="button"
+                            class="btn btn-outline-primary"
+                            data-code-query="answer">{% translate "Answer" %}</button>
+                    <button type="button"
+                            class="btn btn-outline-primary"
+                            data-code-query="motion">{% translate "Motion" %}</button>
+                    <button type="button"
+                            class="btn btn-outline-primary"
+                            data-code-query="fee waiver">{% translate "Fee waiver" %}</button>
+                    <button type="button"
+                            class="btn btn-outline-primary"
+                            data-code-query="appearance">{% translate "Appearance" %}</button>
+                    <button type="button"
+                            class="btn btn-outline-primary"
+                            data-code-query="notice">{% translate "Notice" %}</button>
+                </div>
+            </div>
+            <div id="code-search-results"
+                 class="code-search__results"
+                 role="radiogroup"
+                 aria-label="{% translate 'Filing types' %}"></div>
+            <button type="button" class="btn btn-link" id="code-search-more" hidden></button>
+            <button type="button"
+                    class="btn btn-link code-search__other-stage"
+                    id="code-search-other-stage"
+                    hidden></button>
+        </section>
+        <section id="code-search-step-path"
+                 class="code-search__panel"
+                 aria-labelledby="code-search-title"
+                 hidden>
+            <div class="code-search__summary">
+                <dl id="code-search-summary">
+                </dl>
+                <button type="button"
+                        class="code-search__link"
+                        data-code-search-step="filing">
+                    {% translate "Change" %}<span class="visually-hidden"> {% translate "what you're filing" %}</span>
+                </button>
+            </div>
+            <div id="code-search-courts"></div>
+            <section id="code-search-path-questions"
+                     class="code-search__narrow"
+                     aria-label="{% translate 'About your case' %}"
+                     hidden>
+            </section>
+            <p id="code-search-path-status" role="status" aria-live="polite"></p>
+            <fieldset id="code-search-case-types" class="code-search__case-types" hidden>
+                <legend>{% translate "Choose your case type" %}</legend>
+                <div id="code-search-paths"></div>
+                <button type="button" class="btn btn-link" id="code-search-more-paths" hidden>
+                    {% translate "Show more case types" %}
+                </button>
+            </fieldset>
+        </section>
+        <section id="code-search-step-confirm"
+                 class="code-search__panel"
+                 aria-labelledby="code-search-title"
+                 hidden>
+            <dl id="code-search-confirm" class="code-search__confirm">
+            </dl>
+            <div id="code-search-explanation" class="code-search__explanation" hidden></div>
+            <p id="code-search-apply-status" role="status" aria-live="polite"></p>
+        </section>
+    </div>
+    <div class="code-search__actions">
+        <button type="button"
+                class="btn btn-outline-secondary"
+                id="cancel-code-search">{% translate "Cancel" %}</button>
+        <button type="button"
+                class="btn btn-outline-secondary"
+                id="code-search-back"
+                hidden>{% translate "Back" %}</button>
+        <button type="button" class="btn btn-primary" id="code-search-next" disabled>
+            {% translate "Next: court and case type" %}
+        </button>
+        <button type="button" class="btn btn-primary" id="apply-code-search" hidden>{% translate "Use this filing code" %}</button>
+    </div>
+</dialog>

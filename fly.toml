@@ -10,14 +10,26 @@ primary_region = 'lax'
 
 [env]
   DJANGO_SETTINGS_MODULE = "efile.settings_staging"
+  # Long-running workers' progress reaches fly logs as it happens.
+  PYTHONUNBUFFERED = "1"
+  # Copy filing codes straight from the EFSP proxy's codes database, read
+  # only. Set the connection with: fly secrets set EFSP_CODES_DATABASE_URL=...
+  FILING_CODE_SYNC_MODE = "database"
+  # Staging uses the test EFSP, which updates its codes from Tyler daily at
+  # 19:35 Eastern; copy them two hours later. (Production EFSP: 02:13, so 04:30.)
+  FILING_CODE_SYNC_TIME = "21:30"
+  FILING_CODE_SYNC_TIMEZONE = "America/New_York"
 
 [deploy]
   # Run database migrations before each release
   release_command = "uv run python manage.py migrate --noinput --fake-initial"
+  release_command_timeout = "30m"
 
 [processes]
   app = "uv run gunicorn efile.asgi:application -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --workers 2 --timeout 60 --access-logfile - --error-logfile - --log-level debug"
   extraction_worker = "uv run python manage.py process_document_extractions"
+  # Daily copy + index at FILING_CODE_SYNC_TIME, plus staff-requested resyncs and rebuilds.
+  code_index_worker = "uv run python manage.py refresh_filing_code_index --daily --retry-interval 900"
 
 [http_service]
   internal_port = 8000

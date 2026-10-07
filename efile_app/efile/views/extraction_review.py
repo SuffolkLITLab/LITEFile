@@ -1,3 +1,5 @@
+import re
+
 from django.contrib import messages
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
@@ -5,6 +7,7 @@ from django.views.decorators.http import require_http_methods
 from efile.api.suffolk_api_views import get_tyler_token
 from efile.models import DocumentExtraction, FilingDocument
 from efile.party_sides import PARTY_SIDE_HELP, PARTY_SIDE_LABELS, PartySide
+from efile.services.account_profile import cached_account_profile
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.document_checklists import resolve_filer_roles
 from efile.services.document_extractions import extraction_for_document
@@ -13,7 +16,12 @@ from efile.services.drafts import draft_snapshot, write_case_data
 from efile.services.extracted_parties import review_rows, save_reviewed_parties
 from efile.services.extraction_fields import display_extracted_fields, document_summary_details
 from efile.services.filing_availability import filing_unavailable_message
-from efile.services.filing_path import change_filing_path, describe_path_change, filing_path_conflict
+from efile.services.filing_path import (
+    change_filing_path,
+    clear_changed_classification,
+    describe_path_change,
+    filing_path_conflict,
+)
 from efile.workflow import (
     ExistingCase,
     WorkflowStepKey,
@@ -82,9 +90,47 @@ def _set_lead_filing_type(draft, filing_type_code, filing_type_name):
         return
     if lead.filing_type_code != filing_type_code:
         lead.document_type_confirmed = False
+        lead.document_type_code = ""
+        lead.document_type_name = ""
+        lead.filing_component_code = ""
+        lead.filing_component_name = ""
+        lead.requested_optional_services = []
+        lead.filing_requires_amount_in_controversy = False
     lead.filing_type_code = filing_type_code
     lead.filing_type_name = filing_type_name
-    lead.save(update_fields=["filing_type_code", "filing_type_name", "document_type_confirmed", "updated_at"])
+    lead.save(
+        update_fields=[
+            "filing_type_code",
+            "filing_type_name",
+            "document_type_confirmed",
+            "document_type_code",
+            "document_type_name",
+            "filing_component_code",
+            "filing_component_name",
+            "requested_optional_services",
+            "filing_requires_amount_in_controversy",
+            "updated_at",
+        ]
+    )
+
+
+def _zip_shortcuts(request, draft, jurisdiction):
+    """ZIP codes code search offers one click away: the filer's own, then recent ones.
+
+    The account profile is the same cached fetch "Your information" makes, so
+    asking for it here moves the call earlier rather than adding one.
+    """
+    filer = draft.parties.filter(role="filer").first()
+    own = filer.zip_code if filer else ""
+    if not own and request.method == "GET":
+        own = (cached_account_profile(request, jurisdiction) or {}).get("zip") or ""
+    shortcuts = []
+    if re.fullmatch(r"[0-9]{5}(?:-[0-9]{4})?", own):
+        shortcuts.append({"zip": own[:5], "kind": "address"})
+    for postal_code in request.user.recent_case_zips or []:
+        if all(item["zip"] != postal_code for item in shortcuts):
+            shortcuts.append({"zip": postal_code, "kind": "recent"})
+    return shortcuts
 
 
 def _case_identity(existing_case, docket_number):
@@ -190,6 +236,8 @@ def extraction_review(request, jurisdiction):
             path_change = change_filing_path(draft, existing_case)
             if path_change.changed and path_change.cleared:
                 messages.info(request, describe_path_change(path_change))
+            if clear_changed_classification(draft, court_code, case_category_code, case_type_code):
+                messages.info(request, "Filing path changed. Check each document's filing options and fees again.")
             write_case_data(
                 draft,
                 {
@@ -261,6 +309,7 @@ def extraction_review(request, jurisdiction):
         # Only some case types have sides. The screen asks for one as soon as
         # the chosen case type turns out to be one of them.
         "filer_role": draft.filer_role,
+        "zip_shortcuts": _zip_shortcuts(request, draft, jurisdiction),
     }
     suggested_existing_case = (
         "new"

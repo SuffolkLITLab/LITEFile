@@ -15,6 +15,24 @@ const {
     expect
 } = require('@playwright/test');
 
+const {
+    default: AxeBuilder
+} = require('@axe-core/playwright');
+const fs = require('node:fs');
+
+async function auditCodeSearch(page, state) {
+    const accessibility = await new AxeBuilder({
+        page
+    }).include('#code-search-dialog').analyze();
+    const reportPath = test.info().outputPath(`filing-search-${state}.json`);
+    fs.writeFileSync(reportPath, JSON.stringify(accessibility, null, 2));
+    await test.info().attach(`filing-search-${state}`, {
+        path: reportPath,
+        contentType: 'application/json'
+    });
+    expect(accessibility.violations).toEqual([]);
+}
+
 const PAGE = '/jurisdiction/illinois/extraction-review/';
 
 // The seeded draft is filed in "cook:cvd1", Small Claims (6198), Contract
@@ -247,6 +265,1176 @@ test.use({
     storageState: process.env.A11Y_STORAGE_STATE
 });
 test.skip(!process.env.A11Y_STORAGE_STATE, 'Needs the seeded session: run seed_accessibility_session and set A11Y_STORAGE_STATE.');
+
+test.describe('filing code search', () => {
+    const result = {
+        id: 101,
+        initial: true,
+        court: {
+            code: 'vt:orange',
+            name: 'Orange Unit'
+        },
+        case_category: {
+            code: '7000',
+            name: 'Civil'
+        },
+        case_type: {
+            code: '7100',
+            name: 'Landlord tenant'
+        },
+        filing_type: {
+            code: '143132',
+            name: 'Complaint'
+        },
+        explanation: '',
+        explanation_source: '',
+        unavailable: '',
+    };
+    const options = {
+        court: Object.entries(UNITS).map(([code, name]) => ({
+            code,
+            name
+        })),
+        case_category: [{
+            code: '7000',
+            name: 'Civil'
+        }],
+        case_type: [{
+            code: '7100',
+            name: 'Landlord tenant'
+        }],
+        filing_type: [{
+            code: '143132',
+            name: 'Complaint'
+        }],
+    };
+
+    async function mockSearch(page, {
+        reject = false,
+        unavailable = false
+    } = {}) {
+        const queries = [];
+        await page.route('**/api/filing-code-search/**', async route => {
+            const params = new URL(route.request().url()).searchParams;
+            queries.push(Object.fromEntries(params));
+            if (params.has('path_id')) {
+                return route.fulfill(reject ? {
+                    status: 409,
+                    json: {
+                        error: 'The code list has changed. Search again.'
+                    },
+                } : {
+                    json: {
+                        path: {
+                            ...result,
+                            options
+                        }
+                    }
+                });
+            }
+            return route.fulfill({
+                json: {
+                    results: [{
+                        ...result,
+                        unavailable: unavailable ? 'Temporarily unavailable' : ''
+                    }],
+                    total: 1,
+                    corrected_terms: [],
+                    stale: false,
+                }
+            });
+        });
+        return queries;
+    }
+
+    const searchbox = page => page.getByRole('searchbox', {
+        name: "What you're filing"
+    });
+    const button = (page, name) => page.getByRole('dialog').getByRole('button', {
+        name,
+        exact: true
+    });
+    const toCourts = page => button(page, 'Next: court and case type').click();
+    const toCheck = page => button(page, 'Next: check and use').click();
+    const useCode = page => button(page, 'Use this filing code').click();
+
+    async function openSearch(page) {
+        await page.getByRole('button', {
+            name: 'Find the right filing code'
+        }).click();
+        return page.getByRole('dialog');
+    }
+
+    function courtRoutes(page, {
+        groups,
+        courts = [{
+            code: 'vt:orange',
+            name: 'Orange Unit'
+        }],
+        paths = params => [{
+            ...result,
+            court: {
+                code: params.get('court'),
+                name: UNITS[params.get('court')]
+            }
+        }],
+        extra = {},
+        queries = [],
+    }) {
+        return page.route('**/api/filing-code-search/**', route => {
+            const params = new URL(route.request().url()).searchParams;
+            queries.push({
+                ...Object.fromEntries(params),
+                choices: JSON.parse(params.get('case_filters') || '{}')
+            });
+            if (params.has('path_id')) return route.fulfill({
+                json: {
+                    path: {
+                        ...result,
+                        initial: params.get('existing_case') !== 'yes',
+                        options
+                    }
+                }
+            });
+            if (params.has('court')) {
+                const results = paths(params);
+                return route.fulfill({
+                    json: {
+                        results,
+                        total: results.length,
+                        corrected_terms: []
+                    }
+                });
+            }
+            if (params.has('group')) return route.fulfill({
+                json: {
+                    courts,
+                    corrected_terms: []
+                }
+            });
+            const shown = typeof groups === 'function' ? groups(params) : groups;
+            return route.fulfill({
+                json: {
+                    groups: shown,
+                    total: shown.length,
+                    corrected_terms: [],
+                    stale: false,
+                    ...(typeof extra === 'function' ? extra(params) : extra),
+                }
+            });
+        });
+    }
+
+    test('empty search offers common types, clears back to them, and accepts one character', async ({
+        page
+    }) => {
+        await mockCourtLists(page, {
+            flat: true
+        });
+        const queries = await mockSearch(page);
+        await openSavedDraft(page);
+        const dialog = await openSearch(page);
+        await expect(dialog.getByRole('heading', {
+            name: 'Common filing types'
+        })).toBeVisible();
+        await expect(dialog).toContainText('Step 1 of 3');
+        expect(queries).toEqual([]);
+        await button(page, 'Complaint').click();
+        await expect(dialog.getByRole('radio', {
+            name: 'Complaint'
+        })).toBeVisible();
+        expect(queries[0].q).toBe('complaint');
+        await dialog.getByRole('radio').check();
+        await expect(button(page, 'Next: check and use')).toBeEnabled();
+        await searchbox(page).fill('');
+        await expect(dialog.getByRole('heading', {
+            name: 'Common filing types'
+        })).toBeVisible();
+        await expect(dialog.getByRole('radio')).toHaveCount(0);
+        await expect(button(page, 'Next: court and case type')).toBeDisabled();
+        await searchbox(page).fill('m');
+        await expect(dialog.getByRole('radio')).toBeVisible();
+        expect(queries.at(-1).q).toBe('m');
+    });
+
+    test('an HTML server error gives a readable message and search can be retried', async ({
+        page
+    }) => {
+        await mockCourtLists(page, {
+            flat: true
+        });
+        await mockSearch(page);
+        await page.route('**/api/filing-code-search/**', route => route.fulfill({
+            status: 503,
+            contentType: 'text/html',
+            body: '<!DOCTYPE html><title>Unavailable</title>',
+        }), {
+            times: 1
+        });
+        await openSavedDraft(page);
+        await openSearch(page);
+        await button(page, 'Complaint').click();
+        await expect(page.locator('#code-search-status')).toContainText('Code search could not be loaded');
+        await searchbox(page).press('Enter');
+        await expect(page.getByRole('dialog').getByRole('radio')).toBeVisible();
+    });
+
+    test('search becomes usable when the first index finishes without reopening the dialog', async ({
+        page
+    }) => {
+        await mockCourtLists(page, {
+            flat: true
+        });
+        await mockSearch(page);
+        await page.clock.install();
+        await page.route('**/api/filing-code-search/**', route => route.fulfill({
+            status: 503,
+            json: {
+                error: 'Code search is not available yet.'
+            },
+        }), {
+            times: 1
+        });
+        await openSavedDraft(page);
+        await openSearch(page);
+        await button(page, 'Complaint').click();
+        await expect(page.locator('#code-search-status')).toContainText('We will try again shortly.');
+        await page.clock.fastForward(10000);
+        await expect(page.getByRole('dialog').getByRole('radio')).toBeVisible();
+    });
+
+    for (const flat of [true, false]) {
+        test(`a full path result skips to the check step and fills all four fields (${flat ? 'flat' : 'guided'})`, async ({
+            page
+        }) => {
+            await mockCourtLists(page, {
+                flat
+            });
+            const queries = await mockSearch(page);
+            await openSavedDraft(page);
+            const open = page.getByRole('button', {
+                name: 'Find the right filing code'
+            });
+            const dialog = await openSearch(page);
+            await expect(searchbox(page)).toBeFocused();
+            await searchbox(page).fill('eviction');
+            await dialog.getByRole('radio', {
+                name: 'Complaint'
+            }).check();
+            await toCheck(page);
+            await expect(dialog.getByRole('heading', {
+                name: 'Check your choices'
+            })).toBeFocused();
+            await expect(dialog.locator('#code-search-confirm')).toContainText('Landlord tenant');
+            await expect(dialog.locator('#code-search-confirm')).toContainText('Orange Unit');
+            await auditCodeSearch(page, 'check-step');
+            await useCode(page);
+            await expect(dialog).not.toBeVisible();
+            await expect(open).toBeFocused();
+            await expect(page.locator('#court_code')).toHaveValue('vt:orange');
+            await expect(field(page, 'case_category').value).toHaveText('Civil');
+            await expect(field(page, 'case_type').value).toHaveText('Landlord tenant');
+            await expect(field(page, 'filing_type').value).toHaveText('Complaint');
+            if (!flat) await expect(page.locator('.court-selector__result')).toContainText('Orange Unit');
+            expect(queries[0]).toMatchObject({
+                jurisdiction: 'illinois',
+                existing_case: 'no',
+                q: 'eviction',
+                offset: '0'
+            });
+            expect(queries[0]).not.toHaveProperty('court');
+            expect(queries[0]).not.toHaveProperty('purpose');
+            expect(queries[1].path_id).toBe('101');
+        });
+    }
+
+    for (const hasCourt of [false, true]) {
+        test(`the court step offers court cards with ${hasCourt ? 'the current court first' : 'no court chosen'}`, async ({
+            page
+        }) => {
+            await mockCourtLists(page, {
+                flat: true
+            });
+            await courtRoutes(page, {
+                groups: [{
+                    key: 'eviction',
+                    name: 'Eviction Complaint',
+                    variants: ['Eviction Complaint', 'Summary Process Complaint'],
+                    path_count: 100
+                }],
+                courts: [{
+                    code: 'vt:orange',
+                    name: 'Orange Unit'
+                }, {
+                    code: 'cook:cvd1',
+                    name: 'Chittenden Unit'
+                }],
+            });
+            await openSavedDraft(page);
+            if (!hasCourt) await page.locator('#court_code').evaluate(input => input.value = '');
+            const dialog = await openSearch(page);
+            await searchbox(page).fill('eviction');
+            await expect(dialog.locator('.code-search__group')).toHaveCount(1);
+            await expect(dialog).toContainText('Also listed as: Summary Process Complaint');
+            await expect(button(page, 'Next: court and case type')).toBeDisabled();
+            await dialog.getByRole('radio', {
+                name: 'Eviction Complaint'
+            }).check();
+            await toCourts(page);
+            await expect(dialog).toContainText('Step 2 of 3');
+            await expect(dialog.locator('#code-search-summary')).toContainText('Eviction Complaint');
+            const courts = dialog.getByRole('group', {
+                name: 'Which court will hear the case?'
+            }).getByRole('radio');
+            await expect(courts).toHaveCount(2);
+            await expect(courts.first()).toHaveAccessibleName(hasCourt ? 'Chittenden Unit' : 'Orange Unit');
+            const caseTypes = dialog.locator('input[name="code-search-result"]');
+            if (hasCourt) {
+                await expect(courts.first()).toBeChecked();
+                await expect(caseTypes).toHaveCount(1);
+                await caseTypes.check();
+                await expect(button(page, 'Next: check and use')).toBeEnabled();
+            } else {
+                await expect(courts.first()).not.toBeChecked();
+                await expect(caseTypes).toHaveCount(0);
+            }
+            await dialog.getByRole('radio', {
+                name: 'Orange Unit'
+            }).check();
+            await expect(button(page, 'Next: check and use')).toBeDisabled();
+            await expect(caseTypes).toHaveCount(1);
+            await caseTypes.check();
+            await auditCodeSearch(page, `court-cards-${hasCourt ? 'current' : 'none'}`);
+            await toCheck(page);
+            await button(page, 'Back').click();
+            await expect(dialog.getByRole('radio', {
+                name: 'Orange Unit'
+            })).toBeChecked();
+            await toCheck(page);
+            await useCode(page);
+            await expect(dialog).not.toBeVisible();
+            await expect(page.locator('#court_code')).toHaveValue('vt:orange');
+            await expect(page.locator('#case_type_code')).toHaveValue('7100');
+        });
+    }
+
+    test('many courts fall back to a dropdown and the summary returns to step one', async ({
+        page
+    }) => {
+        await mockCourtLists(page, {
+            flat: true
+        });
+        await courtRoutes(page, {
+            groups: [{
+                key: 'petition',
+                name: 'Petition',
+                variants: ['Petition']
+            }],
+            courts: Object.entries(UNITS).map(([code, name]) => ({
+                code,
+                name
+            })),
+        });
+        await openSavedDraft(page);
+        const dialog = await openSearch(page);
+        await searchbox(page).fill('petition');
+        await dialog.getByRole('radio', {
+            name: 'Petition'
+        }).check();
+        await toCourts(page);
+        const court = dialog.getByLabel('Which court will hear the case?');
+        await expect(court).toHaveValue('cook:cvd1');
+        await court.selectOption('vt:addison');
+        await expect(dialog.locator('input[name="code-search-result"]')).toHaveCount(1);
+        await button(page, 'Change what you\'re filing').click();
+        await expect(dialog).toContainText('Step 1 of 3');
+        await expect(dialog.getByRole('radio', {
+            name: 'Petition'
+        })).toBeChecked();
+        await toCourts(page);
+        await expect(court).toHaveValue('vt:addison');
+    });
+
+    test('synonym results explain their concepts and show local meanings after court selection', async ({
+        page
+    }) => {
+        await mockCourtLists(page, {
+            flat: true
+        });
+        const meaning = {
+            key: 'eviction',
+            label: 'Eviction',
+            text: 'Statewide eviction meaning.',
+            scope: 'state',
+            scope_name: 'Vermont',
+            source: 'https://www.vtcourts.gov/civil/eviction-process',
+        };
+        const reasonFor = params => params.get('q') === 'eviction' ? null : {
+            kind: 'related_concept',
+            query: params.get('q'),
+            concepts: ['eviction'],
+            corrected_terms: [],
+        };
+        await courtRoutes(page, {
+            groups: params => [{
+                key: 'eviction',
+                name: 'Eviction complaint',
+                variants: ['Eviction complaint'],
+                concepts: [meaning],
+                match_reason: reasonFor(params)
+            }],
+            courts: [{
+                code: 'vt:orange',
+                name: 'Orange Unit'
+            }, {
+                code: 'cook:cvd1',
+                name: 'Chittenden Unit'
+            }],
+            paths: params => {
+                const county = params.get('court') === 'vt:orange' ? 'Orange' : 'Chittenden';
+                return [{
+                    ...result,
+                    case_description: `${county} local meaning.`
+                }];
+            },
+        });
+        await openSavedDraft(page);
+        await page.locator('#court_code').evaluate(input => input.value = '');
+        const dialog = await openSearch(page);
+        await searchbox(page).fill('unlawful detainer');
+        const group = page.locator('.code-search__group');
+        await expect(group.locator('.code-search__meta')).toHaveText('Related to eviction');
+        const about = group.locator('details');
+        await expect(about.locator('p').first()).not.toBeVisible();
+        await about.locator('summary').focus();
+        await page.keyboard.press('Enter');
+        await expect(about).toContainText('Meaning in Vermont: Statewide eviction meaning.');
+        await expect(group.getByRole('radio')).not.toBeChecked();
+        await expect(group.getByRole('link', {
+            name: 'About this concept'
+        })).toHaveAttribute('href', meaning.source);
+        await auditCodeSearch(page, 'synonym-explanation');
+        await group.getByRole('radio').check();
+        await toCourts(page);
+        await dialog.getByRole('radio', {
+            name: 'Orange Unit'
+        }).check();
+        await expect(dialog).toContainText('Orange local meaning.');
+        await dialog.getByRole('radio', {
+            name: 'Chittenden Unit'
+        }).check();
+        await expect(dialog).toContainText('Chittenden local meaning.');
+        await expect(dialog).not.toContainText('Orange local meaning.');
+        await button(page, 'Back').click();
+        await searchbox(page).fill('eviction');
+        await expect(group.locator('.code-search__meta')).toHaveCount(0);
+        await expect(group).toContainText('Statewide eviction meaning.');
+    });
+
+    test('case questions are chips that reset when the case area changes', async ({
+        page
+    }) => {
+        await mockCourtLists(page, {
+            flat: true
+        });
+        const queries = [];
+        await courtRoutes(page, {
+            queries,
+            groups: [{
+                key: 'answer',
+                name: 'Answer',
+                variants: ['Answer']
+            }],
+            extra: params => {
+                const topic = params.get('case_topic') || (params.get('q') === 'eviction' ? 'eviction' : 'small_claims');
+                return {
+                    case_topic: topic,
+                    case_topics: [{
+                        value: 'eviction',
+                        label: 'Eviction'
+                    }, {
+                        value: 'small_claims',
+                        label: 'Small claims'
+                    }],
+                    case_facets: topic === 'eviction' ? [{
+                        key: 'role',
+                        label: 'Your role',
+                        options: [{
+                            value: 'tenant',
+                            label: 'Tenant / occupant'
+                        }, {
+                            value: 'landlord',
+                            label: 'Landlord / owner'
+                        }]
+                    }, {
+                        key: 'property',
+                        label: 'Property',
+                        options: [{
+                            value: 'residential',
+                            label: 'Home'
+                        }, {
+                            value: 'commercial',
+                            label: 'Business'
+                        }]
+                    }] : [{
+                        key: 'amount',
+                        label: 'Claim amount',
+                        options: [{
+                            value: '0:250000',
+                            label: 'Up to $2,500'
+                        }, {
+                            value: '250001:1000000',
+                            label: '$2,500.01–$10,000'
+                        }],
+                        help: 'State-specific limits and exceptions.',
+                        source: 'https://www.illinoiscourts.gov/'
+                    }],
+                };
+            },
+        });
+        await openSavedDraft(page);
+        const dialog = await openSearch(page);
+        await searchbox(page).fill('eviction');
+        const facets = page.locator('#code-search-case-filters');
+        await expect(facets.getByRole('group', {
+            name: 'Your role'
+        })).toBeVisible();
+        await expect(facets.getByRole('radio')).toHaveCount(0);
+        await expect(facets.getByRole('heading')).toHaveCount(0);
+        const chip = name => facets.getByRole('button', {
+            name,
+            exact: true
+        });
+        await chip('Tenant / occupant').click();
+        await expect.poll(() => queries.at(-1)?.choices.role).toBe('tenant');
+        await expect(chip('Tenant / occupant')).toHaveAttribute('aria-pressed', 'true');
+        await chip('Home').click();
+        await expect.poll(() => queries.at(-1)?.choices.property).toBe('residential');
+        await chip('Business').focus();
+        await page.keyboard.press('Enter');
+        await expect.poll(() => queries.at(-1)?.choices.property).toBe('commercial');
+        await expect(chip('Business')).toBeFocused();
+        await expect(chip('Business')).toHaveAttribute('aria-pressed', 'true');
+        await expect(chip('Home')).toHaveAttribute('aria-pressed', 'false');
+        await auditCodeSearch(page, 'case-chips-desktop');
+        await page.setViewportSize({
+            width: 390,
+            height: 844
+        });
+        expect(await dialog.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
+        await auditCodeSearch(page, 'case-chips-mobile');
+        await expect(chip('Eviction')).toHaveAttribute('aria-pressed', 'true');
+        await facets.getByRole('group', {
+            name: 'Kind of case'
+        }).getByRole('button', {
+            name: 'Small claims'
+        }).click();
+        await expect(chip('Up to $2,500')).toBeVisible();
+        expect(queries.at(-1).choices).toEqual({});
+        await chip('$2,500.01–$10,000').click();
+        await expect.poll(() => queries.at(-1)?.choices.amount).toBe('250001:1000000');
+        await expect(chip('$2,500.01–$10,000')).toHaveAttribute('aria-pressed', 'true');
+        const amountHelp = facets.getByText('About claim amounts', {
+            exact: true
+        });
+        await amountHelp.focus();
+        await page.keyboard.press('Enter');
+        await expect(amountHelp).toBeFocused();
+        await expect(facets.getByText('State-specific limits and exceptions.')).toBeVisible();
+        await auditCodeSearch(page, 'claim-amount-help-mobile');
+        await page.setViewportSize({
+            width: 1366,
+            height: 768
+        });
+        await dialog.getByRole('radio', {
+            name: 'Answer'
+        }).check();
+        await toCourts(page);
+        await expect(dialog.locator('#code-search-summary')).toContainText('Small claims · $2,500.01–$10,000');
+        await button(page, 'Back').click();
+        await searchbox(page).fill('small claims');
+        await expect.poll(() => queries.at(-1)?.q).toBe('small claims');
+        expect(queries.at(-1).choices).toEqual({});
+    });
+
+    test('case types are the choice in step two, each with its own description', async ({
+        page
+    }) => {
+        await page.setViewportSize({
+            width: 1366,
+            height: 768
+        });
+        await mockCourtLists(page, {
+            flat: true
+        });
+        const filingName = 'Answer/Response to Complaint/Petition';
+        const caseTypes = ['Commercial', 'Commercial - Possession Only', 'Ejectment', 'Residential - Eviction', 'Residential - Eviction Possession Only'];
+        await courtRoutes(page, {
+            groups: [{
+                key: 'answer',
+                name: filingName,
+                variants: [filingName]
+            }],
+            paths: () => caseTypes.map((name, i) => ({
+                ...result,
+                id: i + 100,
+                filing_type: {
+                    ...result.filing_type,
+                    name: i === 2 ? 'Answer - Ejectment' : filingName
+                },
+                case_type: {
+                    code: `case-${i}`,
+                    name
+                },
+                case_context: `Eviction › ${name}`,
+                case_description: 'An existing plain-language case description.',
+            })),
+        });
+        await openSavedDraft(page);
+        const dialog = await openSearch(page);
+        await searchbox(page).fill('answer');
+        await dialog.getByRole('radio', {
+            name: filingName
+        }).check();
+        await toCourts(page);
+        await expect(dialog.getByRole('radio', {
+            name: 'Orange Unit'
+        })).toBeChecked();
+        const choices = page.locator('.code-search__path-choice');
+        await expect(choices).toHaveCount(5);
+        await expect(page.locator('#code-search-path-status')).toHaveText('5 case types fit');
+        for (const name of caseTypes) await expect(page.getByRole('radio', {
+            name: `Eviction › ${name}`,
+            exact: true
+        })).toBeVisible();
+        await expect(choices.nth(2)).toContainText('This court calls it “Answer - Ejectment”.');
+        await expect(choices.nth(0)).not.toContainText('This court calls it');
+        const residential = page.getByRole('radio', {
+            name: 'Eviction › Residential - Eviction',
+            exact: true
+        });
+        await residential.focus();
+        await page.keyboard.press('Space');
+        await expect(residential).toBeChecked();
+        await expect(residential).toHaveAccessibleDescription('An existing plain-language case description.');
+        await expect(button(page, 'Next: check and use')).toBeEnabled();
+        await auditCodeSearch(page, 'case-types-desktop');
+        await page.setViewportSize({
+            width: 390,
+            height: 844
+        });
+        expect(await page.getByRole('dialog').evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
+        await auditCodeSearch(page, 'case-types-mobile');
+    });
+
+    test('case stage and document filters sit behind a short line and apply case stage only with a path', async ({
+        page
+    }) => {
+        await page.setViewportSize({
+            width: 1366,
+            height: 768
+        });
+        await mockCourtLists(page, {
+            flat: true
+        });
+        const queries = [];
+        await courtRoutes(page, {
+            queries,
+            groups: Array.from({
+                length: 6
+            }, (_, i) => ({
+                key: `type-${i}`,
+                name: `Complaint / Petition - Eviction - Residential - Possession Only - Fee ${i}`,
+                variants: ['Complaint', 'Petition'],
+                case_contexts: ['Small claims', 'Civil › Eviction'],
+                case_context_count: 2,
+                concepts: [{
+                    key: 'eviction',
+                    label: 'Eviction',
+                    text: 'A short explanation of this concept.',
+                    scope: 'general'
+                }],
+            })),
+        });
+        await openSavedDraft(page);
+        const dialog = await openSearch(page);
+        await searchbox(page).fill('eviction');
+        await expect(page.locator('.code-search__group')).toHaveCount(6);
+        await expect(page.locator('.code-search__group').first().locator('.code-search__meta')).toContainText('2 case types, including Small claims');
+        await expect(dialog.getByLabel('Your task')).toHaveCount(0);
+        await expect(dialog.getByRole('button', {
+            name: 'Main document'
+        })).not.toBeVisible();
+        const before = await page.locator('input[name="existing_case"]:checked').inputValue();
+        await expect(page.locator('#code-search-stage-label')).toHaveText('New case');
+        await button(page, 'Change case stage').click();
+        await expect(page.locator('#code-search-stage-label')).toHaveText('Existing case');
+        await expect.poll(() => queries.at(-1)?.existing_case).toBe('yes');
+        const toggle = dialog.locator('#code-search-more-filters');
+        await expect(toggle).toHaveText('More filters');
+        await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+        await toggle.click();
+        await expect(toggle).toHaveText('Fewer filters');
+        await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+        await button(page, 'Main document').click();
+        await expect.poll(() => queries.at(-1)?.document).toBe('main');
+        await auditCodeSearch(page, 'more-filters-open');
+        await toggle.click();
+        await expect(toggle).toHaveText('More filters (1)');
+        await expect(button(page, 'Main document')).toBeHidden();
+        await expect(page.locator('input[name="existing_case"]:checked')).toHaveValue(before);
+        await dialog.getByRole('radio').first().check();
+        await toCourts(page);
+        await expect(dialog.locator('#code-search-summary')).toContainText('Existing case');
+        await dialog.locator('input[name="code-search-result"]').check();
+        await toCheck(page);
+        await useCode(page);
+        await expect(dialog).not.toBeVisible();
+        await expect(page.locator('input[name="existing_case"]:checked')).toHaveValue('existing');
+        await expect(page.locator('#case_type_code')).toHaveValue('7100');
+    });
+
+    test('ZIP narrows the search, offers the filer\'s ZIP as a shortcut, and clears back to every county', async ({
+        page
+    }) => {
+        await mockCourtLists(page, {
+            flat: true
+        });
+        const queries = [];
+        await courtRoutes(page, {
+            queries,
+            groups: [{
+                key: 'petition',
+                name: 'Petition',
+                variants: ['Petition']
+            }],
+            extra: params => ({
+                location_counties: params.get('zip') ? ['Cook'] : []
+            }),
+        });
+        await openSavedDraft(page);
+        const dialog = await openSearch(page);
+        const zip = dialog.getByLabel('Case ZIP code', {
+            exact: true
+        });
+        await expect(zip).toHaveValue('');
+        await searchbox(page).fill('eviction');
+        await expect(page.locator('.code-search__group')).toHaveCount(1);
+        const shortcut = button(page, 'Use your ZIP (60601)');
+        await expect(shortcut).toBeVisible();
+        await zip.fill('606');
+        await expect(page.locator('#code-search-zip-status')).toHaveText('Enter all 5 digits.');
+        expect(queries.at(-1).zip).toBe('');
+        await shortcut.click();
+        await expect(zip).toHaveValue('60601');
+        await expect(zip).toBeFocused();
+        await expect(page.locator('#code-search-zip-status')).toHaveText('60601 is in Cook County.');
+        await expect(shortcut).toBeHidden();
+        expect(queries.at(-1).zip).toBe('60601');
+        await auditCodeSearch(page, 'zip-shortcut');
+        await dialog.getByRole('radio', {
+            name: 'Petition'
+        }).check();
+        await toCourts(page);
+        await expect(dialog.locator('#code-search-summary')).toContainText('60601 · Cook');
+        await button(page, 'Back').click();
+        await zip.fill('');
+        await expect(page.locator('#code-search-zip-status')).toHaveText('');
+        await expect.poll(() => queries.at(-1)?.zip).toBe('');
+        await expect(shortcut).toBeVisible();
+    });
+
+    test('many results ask what the filer wants to do, with counts, and show name matches first', async ({
+        page
+    }) => {
+        await mockCourtLists(page, {
+            flat: true
+        });
+        const queries = [];
+        const all = Array.from({
+            length: 12
+        }, (_, i) => ({
+            key: `type-${i}`,
+            name: i < 3 ? `Small Claims Complaint ${i}` : `Affidavit ${i}`,
+            variants: [`Filing ${i}`],
+        }));
+        await courtRoutes(page, {
+            queries,
+            groups: params => {
+                const offset = Number(params.get('offset'));
+                const shown = params.get('strong') === 'true' ? all.slice(0, 3) : all;
+                return shown.slice(offset, offset + 20);
+            },
+            extra: params => ({
+                total: params.get('action') === 'start' ? 3 : 12,
+                strong_total: 3,
+                actions: [{
+                    value: 'start',
+                    label: 'Start a case',
+                    count: 3
+                }, {
+                    value: 'proof',
+                    label: 'Supporting papers',
+                    count: 9
+                }],
+                case_topics: [],
+                case_facets: [],
+            }),
+        });
+        await openSavedDraft(page);
+        const dialog = await openSearch(page);
+        await searchbox(page).fill('small claims');
+        await expect(dialog.locator('.code-search__group')).toHaveCount(3);
+        await expect(page.locator('#code-search-status')).toHaveText('3 filing types match “small claims”');
+        expect(queries.at(-1).strong).toBe('true');
+        const question = dialog.getByRole('group', {
+            name: 'What do you want to do?'
+        });
+        await expect(question.getByRole('button', {
+            name: 'Supporting papers 9'
+        })).toBeVisible();
+        await auditCodeSearch(page, 'action-question');
+        await dialog.getByRole('button', {
+            name: 'Show 9 more filing types used in these case types'
+        }).click();
+        await expect(dialog.locator('.code-search__group')).toHaveCount(12);
+        expect(queries.at(-1)).toMatchObject({
+            strong: 'false',
+            offset: '3'
+        });
+        await question.getByRole('button', {
+            name: 'Start a case 3'
+        }).click();
+        await expect.poll(() => queries.at(-1)?.action).toBe('start');
+        await expect(question).toBeVisible();
+        // The card's padding, outside its label, still chooses it.
+        await dialog.locator('.code-search__group').first().click({
+            position: {
+                x: 4,
+                y: 4
+            }
+        });
+        await expect(dialog.locator('.code-search__group').first().getByRole('radio')).toBeChecked();
+        await toCourts(page);
+        await expect(dialog.locator('#code-search-summary')).toContainText('Start a case');
+    });
+
+    test('the court step asks only about choices its case types differ on', async ({
+        page
+    }) => {
+        await mockCourtLists(page, {
+            flat: true
+        });
+        const over = {
+            value: '1000001:',
+            label: 'More than $10,000'
+        };
+        const rows = [
+            ['Civil - Amount Claimed Greater Than $10,000', 'Other Personal Injury Complaint - Jury', '(Jury - 12) (Govn\'t)', '12', 'lawyer', 'yes', over],
+            ['Civil - Amount Claimed Greater Than $10,000', 'Other Personal Injury Complaint - Jury', '(Jury - 12)', '12', 'lawyer', 'no', over],
+            ['Civil - Amount Claimed Greater Than $10,000', 'Other Personal Injury Complaint - Jury', '(Jury - 6)', '6', 'lawyer', 'no', over],
+            ['Civil', 'Other Personal Injury Complaint - Jury - Self-Represented Litigant', '(Jury - 12)', '12', 'self', 'no', null],
+            ['Civil', 'Other Personal Injury Complaint - Jury - Self-Represented Litigant', '(Jury - 6)', '6', 'self', 'no', null],
+            ['Civil - Amount Claimed Greater Than $10,000', 'Other Personal Injury Complaint - Non-Jury', '', 'none', 'lawyer', 'no', over],
+            ['Civil', 'Other Personal Injury Complaint - Non-Jury - Self-Represented Litigant', '', 'none', 'self', 'no', null],
+            ['Civil', 'Personal Injury Complaint - Jury', '(Jury - 12) (Govn\'t)', '12', 'lawyer', 'yes', null],
+        ];
+        const filingName = 'Complaint / Petition - Personal Injury';
+        await courtRoutes(page, {
+            groups: [{
+                key: 'pi',
+                name: filingName,
+                variants: [filingName]
+            }],
+            courts: [{
+                code: 'vt:orange',
+                name: 'Orange Unit'
+            }],
+            paths: () => rows.map(([category, caseType, qualifier, jury, representation, government, amount], i) => ({
+                ...result,
+                id: 300 + i,
+                case_context: `${category} › ${caseType}`,
+                filing_type: {
+                    code: `pi-${i}`,
+                    name: `${filingName} ${qualifier} - Fee`
+                },
+                filing_label: filingName,
+                qualifiers: {
+                    jury,
+                    representation,
+                    government,
+                    amount
+                },
+            })),
+        });
+        await openSavedDraft(page);
+        const dialog = await openSearch(page);
+        await searchbox(page).fill('personal injury');
+        await dialog.getByRole('radio', {
+            name: filingName
+        }).check();
+        await toCourts(page);
+        const questions = page.locator('#code-search-path-questions');
+        const status = page.locator('#code-search-path-status');
+        const government = questions.getByRole('group', {
+            name: 'Filing for a government body?'
+        });
+        await expect(government.getByRole('button', {
+            name: 'No',
+            exact: true
+        })).toHaveAttribute('aria-pressed', 'true');
+        await expect(questions.getByRole('group', {
+            name: 'How much are you asking for?'
+        })).toHaveCount(0);
+        await expect(status).toHaveText('6 case types fit');
+        await questions.getByRole('button', {
+            name: "No, I'm representing myself"
+        }).click();
+        await expect(status).toHaveText('3 case types fit');
+        await expect(government).toHaveCount(0);
+        await questions.getByRole('button', {
+            name: 'Jury of 12'
+        }).click();
+        await expect(status).toHaveText('1 case type fits');
+        await expect(dialog.locator('.code-search__path-choice')).not.toContainText('This court calls it');
+        await auditCodeSearch(page, 'court-step-questions');
+        await dialog.locator('input[name="code-search-result"]').check();
+        await toCheck(page);
+        await expect(dialog.locator('#code-search-confirm')).toContainText('(Jury - 12)');
+    });
+
+    test('long choice rows collapse, categories filter, and court terms explain themselves', async ({
+        page
+    }) => {
+        await mockCourtLists(page, {
+            flat: true
+        });
+        const queries = [];
+        const categories = ['Personal Injury/Wrongful Death', 'Civil', 'Civil - Amount Claimed Greater Than $10,000', 'Probate', 'Chancery', 'Law', 'Other Actions', 'Commercial Litigation'];
+        const subrogation = {
+            key: 'subrogation',
+            label: 'Subrogation',
+            text: 'When an insurance company that paid for someone\'s loss sues the person who caused it.',
+            source: ''
+        };
+        await courtRoutes(page, {
+            queries,
+            groups: ['Personal Injury', 'Personal Injury - Subrogation', 'Dram Shop'].map((name, i) => ({
+                key: `g-${i}`,
+                name: `Complaint / Petition - ${name}`,
+                variants: [`Complaint / Petition - ${name}`],
+                glossary: i === 1 ? [subrogation] : [],
+            })),
+            extra: {
+                categories: categories.map((label, i) => ({
+                    value: label,
+                    label,
+                    count: 10 - i
+                })),
+            },
+        });
+        await openSavedDraft(page);
+        const dialog = await openSearch(page);
+        await searchbox(page).fill('complaint');
+        const row = dialog.getByRole('group', {
+            name: 'Case category'
+        });
+        await expect(row.getByRole('button')).toHaveCount(7);
+        await row.getByRole('button', {
+            name: 'Show 3 more choices for Case category'
+        }).click();
+        await expect(row.getByRole('button')).toHaveCount(9);
+        await expect(row.getByRole('button', {
+            name: 'Law 5'
+        })).toBeFocused();
+        await row.getByRole('button', {
+            name: 'Civil 9',
+            exact: true
+        }).click();
+        await expect.poll(() => queries.at(-1)?.category).toBe('Civil');
+        const prefix = dialog.locator('.code-search__name-prefix').first();
+        await expect(prefix).toHaveClass(/is-shared/);
+        await expect(dialog.getByRole('radio', {
+            name: 'Complaint / Petition - Personal Injury',
+            exact: true
+        })).toBeVisible();
+        const term = dialog.locator('.code-search__glossary summary');
+        await expect(term).toHaveText('What does “subrogation” mean?');
+        await term.click();
+        await expect(dialog.locator('.code-search__glossary')).toContainText('insurance company');
+        await expect(dialog.getByRole('radio', {
+            name: 'Complaint / Petition - Personal Injury - Subrogation'
+        })).not.toBeChecked();
+        await auditCodeSearch(page, 'categories-and-glossary');
+    });
+
+    test('a search with matches only in the other case stage links to them', async ({
+        page
+    }) => {
+        await mockCourtLists(page, {
+            flat: true
+        });
+        const queries = [];
+        await courtRoutes(page, {
+            queries,
+            groups: params => params.get('existing_case') === 'yes' ? [{
+                key: 'seal',
+                name: 'Impound/Seal',
+                variants: ['Impound/Seal']
+            }] : [],
+            extra: params => ({
+                other_stage_total: params.get('existing_case') === 'yes' ? 0 : 10
+            }),
+        });
+        await openSavedDraft(page);
+        const dialog = await openSearch(page);
+        await searchbox(page).fill('seal eviction');
+        await expect(page.locator('#code-search-status')).toContainText('No matching filing types');
+        const link = button(page, '10 results in “existing case” filings');
+        await expect(link).toBeVisible();
+        await auditCodeSearch(page, 'other-stage-link');
+        await link.click();
+        await expect(page.locator('#code-search-stage-label')).toHaveText('Existing case');
+        await expect(dialog.getByRole('radio', {
+            name: 'Impound/Seal'
+        })).toBeVisible();
+        expect(queries.at(-1)).toMatchObject({
+            existing_case: 'yes',
+            q: 'seal eviction'
+        });
+        await expect(dialog.locator('#code-search-other-stage')).toBeHidden();
+    });
+
+    test('earlier groups remain usable after loading another page of groups', async ({
+        page
+    }) => {
+        await mockCourtLists(page, {
+            flat: true
+        });
+        await courtRoutes(page, {
+            groups: params => Array.from({
+                length: Number(params.get('offset')) ? 1 : 20
+            }, (_, i) => ({
+                key: `type-${Number(params.get('offset')) + i}`,
+                name: `Filing ${Number(params.get('offset')) + i}`,
+                variants: [`Filing ${Number(params.get('offset')) + i}`],
+            })),
+            extra: {
+                total: 21
+            },
+        });
+        await openSavedDraft(page);
+        const dialog = await openSearch(page);
+        await button(page, 'Complaint').click();
+        await expect(page.locator('.code-search__group')).toHaveCount(20);
+        await dialog.getByRole('button', {
+            name: /^Show more/
+        }).click();
+        await expect(page.locator('.code-search__group')).toHaveCount(21);
+        await dialog.getByRole('radio', {
+            name: 'Filing 0',
+            exact: true
+        }).check();
+        await toCourts(page);
+        await dialog.locator('input[name="code-search-result"]').check();
+        await expect(button(page, 'Next: check and use')).toBeEnabled();
+    });
+
+    test('rejects a retired path without changing form choices and restores focus on Escape', async ({
+        page
+    }) => {
+        await mockCourtLists(page, {
+            flat: true
+        });
+        await mockSearch(page, {
+            reject: true
+        });
+        await openSavedDraft(page);
+        await openSearch(page);
+        await searchbox(page).fill('eviction');
+        await page.getByRole('dialog').getByRole('radio').check();
+        await toCheck(page);
+        await useCode(page);
+        await expect(page.getByRole('dialog')).toContainText('The code list has changed');
+        await expect(page.locator('#court_code')).toHaveValue('cook:cvd1');
+        await page.keyboard.press('Escape');
+        await expect(page.getByRole('dialog')).not.toBeVisible();
+        await expect(page.getByRole('button', {
+            name: 'Find the right filing code'
+        })).toBeFocused();
+    });
+
+    test('a late search cannot replace a newer query or leave an old selection active', async ({
+        page
+    }) => {
+        await mockCourtLists(page, {
+            flat: true
+        });
+        await mockSearch(page);
+        let delivered = false;
+        await page.route('**/api/filing-code-search/**', async route => {
+            const params = new URL(route.request().url()).searchParams;
+            if (params.get('q') !== 'delayed') return route.fallback();
+            await new Promise(resolve => setTimeout(resolve, 800));
+            await route.fulfill({
+                json: {
+                    results: [{
+                        ...result,
+                        filing_type: {
+                            code: 'old',
+                            name: 'Outdated result'
+                        }
+                    }],
+                    total: 1,
+                    corrected_terms: [],
+                    stale: false,
+                }
+            }).catch(() => {});
+            delivered = true;
+        });
+        await openSavedDraft(page);
+        await openSearch(page);
+        await searchbox(page).fill('eviction');
+        await page.getByRole('dialog').getByRole('radio').check();
+        const waiting = page.waitForRequest(request => new URL(request.url()).searchParams.get('q') === 'delayed');
+        await searchbox(page).fill('delayed');
+        await expect(button(page, 'Next: court and case type')).toBeDisabled();
+        await waiting;
+        await searchbox(page).fill('eviction');
+        await expect(page.getByRole('dialog').getByRole('radio', {
+            name: 'Complaint'
+        })).toBeVisible();
+        await expect.poll(() => delivered).toBe(true);
+        await expect(page.getByRole('dialog')).not.toContainText('Outdated result');
+        await expect(button(page, 'Next: court and case type')).toBeDisabled();
+    });
+
+    test('shows unavailable paths without allowing selection, and keeps focus in the modal', async ({
+        page
+    }) => {
+        await mockCourtLists(page, {
+            flat: true
+        });
+        await mockSearch(page, {
+            unavailable: true
+        });
+        await openSavedDraft(page);
+        await openSearch(page);
+        await searchbox(page).fill('eviction');
+        await expect(page.getByRole('dialog').getByRole('radio')).toBeDisabled();
+        await expect(button(page, 'Next: court and case type')).toBeDisabled();
+        for (let i = 0; i < 12; i++) {
+            await page.keyboard.press('Tab');
+            expect(await page.evaluate(() => document.querySelector('#code-search-dialog').contains(document.activeElement))).toBe(true);
+        }
+        await page.setViewportSize({
+            width: 375,
+            height: 740
+        });
+        expect(await page.getByRole('dialog').evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
+        await auditCodeSearch(page, 'unavailable-path-mobile');
+    });
+});
 
 test.describe('guided court questions (Vermont-shaped)', () => {
     test('rapid unit changes stay open until Update, and a late answer cannot win', async ({

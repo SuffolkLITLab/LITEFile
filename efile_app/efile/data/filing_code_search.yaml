@@ -1,0 +1,79 @@
+# Search aids only: these terms do not decide a court's jurisdiction or make
+# different remedies interchangeable. Only paths supplied by the EFSP appear.
+version: 1
+jurisdictions: [illinois, massachusetts, vermont]
+stemming: english
+stop_words: [a, an, and, are, for, how, i, in, is, it, my, of, "on", or, the, to, want, with]
+concepts:
+  eviction:
+    terms: [eviction, evict, evicted, unlawful detainer, forcible entry and detainer, forcible detainer, summary process, ejectment]
+  divorce:
+    terms: [divorce, dissolution of marriage, dissolve marriage]
+  custody:
+    terms: [custody, parental rights and responsibilities, allocation of parental responsibilities]
+  parenting_time:
+    terms: [parenting time, visitation, parent child contact]
+  child_support:
+    terms: [child support, support of children]
+  protection:
+    terms: [restraining order, protective order, order of protection, abuse prevention, relief from abuse]
+  fee_waiver:
+    terms: [fee waiver, waive fees, indigency, in forma pauperis, cannot afford fees]
+  name_change:
+    terms: [name change, change name, change of name]
+  small_claims:
+    terms: [small claims, small claim]
+  answer:
+    terms: [answer, respond to complaint, response to complaint]
+  dismiss:
+    terms: [dismiss, dismissal, dismissing]
+  continuance:
+    terms: [continuance, postpone hearing, reschedule hearing, continue hearing]
+  expungement:
+    terms: [expungement, expunge]
+  # Closing records off from the public. Courts name these filings
+  # differently: "Impound/Seal", "Filed Under Seal", "Motion for Redaction".
+  sealing:
+    terms: [seal, sealed, sealing, under seal, seal record, sealing records, record sealing, impound, impounded, impoundment, redact, redacted, redaction]
+  garnishment:
+    terms: [garnishment, wage deduction, trustee process]
+  probate:
+    terms: [probate, estate administration]
+  contempt:
+    terms: [contempt, violation of court order]
+  appeal:
+    terms: [appeal, appellate]
+# Whole normalized filing names only. Never infer a document's purpose just
+# because its case type mentions eviction, or because its label contains
+# "complaint" (which would also match an answer or a motion to dismiss).
+# Rules can also constrain court, case_category, case_type, and initial.
+# Add jurisdiction-specific terms to a concept with `jurisdictions: [...]`.
+explanations:
+  - jurisdictions: [illinois, massachusetts, vermont]
+    filing_type: [Motion, Motion to the Court]
+    text: A request for the court to make an order or decision in a case.
+    source: https://www.mass.gov/info-details/glossary-of-court-terms
+  - jurisdictions: [illinois, massachusetts, vermont]
+    filing_type: [Affidavit]
+    text: A written statement of facts made under oath or penalties of perjury.
+    source: https://www.mass.gov/info-details/glossary-of-court-terms
+  - jurisdictions: [illinois, massachusetts, vermont]
+    filing_type: [Answer, Answer to Complaint]
+    text: A written response to the claims in a complaint.
+    source: https://www.vtcourts.gov/glossary
+  - jurisdictions: [massachusetts]
+    filing_type: [Summary Process Complaint, Complaint for Summary Process, Summary Process Summons and Complaint]
+    text: A complaint asking the court to decide an eviction case.
+    source: https://www.mass.gov/how-to/file-an-eviction-case
+  - jurisdictions: [massachusetts]
+    filing_type: [Answer to Summary Process Complaint, Summary Process Answer]
+    text: The tenant's response to an eviction complaint.
+    source: https://www.mass.gov/lists/court-forms-for-eviction
+  - jurisdictions: [illinois]
+    filing_type: [Eviction Complaint, Complaint for Eviction]
+    text: A complaint asking the court to decide an eviction case.
+    source: https://www.illinoiscourts.gov/forms/approved-forms/forms-approved-forms-circuit-court/eviction/
+  - jurisdictions: [vermont]
+    filing_type: [Eviction Complaint, Complaint for Eviction]
+    text: A complaint asking the court to decide an eviction case.
+    source: https://www.vtcourts.gov/civil/eviction-process
