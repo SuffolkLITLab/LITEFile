@@ -131,7 +131,17 @@ OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1/")
 # Base URL for EFSP-compatible APIs (Suffolk LIT Lab by default)
 # Override per environment with EFSP_URL env var
 EFSP_URL = os.getenv("EFSP_URL", "https://efile-test.suffolklitlab.org")
-FILING_CODE_SYNC_MODE = os.getenv("FILING_CODE_SYNC_MODE", "bulk")
+# Where filing codes come from: "database" copies them straight from the EFSP
+# proxy's codes database (read only); "bulk" and "legacy" use its HTTP API.
+FILING_CODE_SYNC_MODE = os.getenv("FILING_CODE_SYNC_MODE", "database")
+# The proxy's Postgres codes database. LITEFile only ever reads it, inside
+# READ ONLY transactions; a read-only database role is still recommended.
+EFSP_CODES_DATABASE_URL = os.getenv("EFSP_CODES_DATABASE_URL", "")
+# When the code index worker copies codes each day, in FILING_CODE_SYNC_TIMEZONE.
+# Set it well after the proxy's own daily Tyler code update (production 02:13,
+# test 19:35 Eastern) so that day's codes are in place.
+FILING_CODE_SYNC_TIME = os.getenv("FILING_CODE_SYNC_TIME", "04:30")
+FILING_CODE_SYNC_TIMEZONE = os.getenv("FILING_CODE_SYNC_TIMEZONE", "America/New_York")
 EFILE_SUBMISSION_CONNECT_TIMEOUT_SECONDS = int(os.getenv("EFILE_SUBMISSION_CONNECT_TIMEOUT_SECONDS", "10"))
 EFILE_SUBMISSION_READ_TIMEOUT_SECONDS = int(os.getenv("EFILE_SUBMISSION_READ_TIMEOUT_SECONDS", "300"))
 

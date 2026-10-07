@@ -31,8 +31,10 @@ concepts:
     terms: [continuance, postpone hearing, reschedule hearing, continue hearing]
   expungement:
     terms: [expungement, expunge]
+  # Closing records off from the public. Courts name these filings
+  # differently: "Impound/Seal", "Filed Under Seal", "Motion for Redaction".
   sealing:
-    terms: [seal record, sealing records, record sealing]
+    terms: [seal, sealed, sealing, under seal, seal record, sealing records, record sealing, impound, impounded, impoundment, redact, redacted, redaction]
   garnishment:
     terms: [garnishment, wage deduction, trustee process]
   probate:

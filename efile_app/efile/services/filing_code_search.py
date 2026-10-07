@@ -37,15 +37,20 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from efile.models import FilingCodeIndex, FilingCodePath
+from efile.services.case_location import locate
 from efile.services.case_type_guidance import (
+    _money,
     case_guidance,
+    claim_range,
     facet_metadata,
     matches_amount,
     matches_case_filters,
     validate_case_filters,
 )
+from efile.services.case_type_guidance import case_topic as topic_of
 from efile.services.court_selection import is_non_filing_court
 from efile.services.filing_availability import filing_unavailable_message
+from efile.services.glossary import glossary_for
 
 FACETS = ("court", "case_category", "case_type", "filing_type")
 RULES_PATH = Path(__file__).resolve().parents[1] / "data" / "filing_code_search.yaml"
@@ -394,12 +399,16 @@ def _court_entries(catalog, jurisdiction, court, executor):
 def refresh_index(jurisdiction, *, progress=None, cache_dir=None, transport=None, force=(), dry_run=False):
     """Synchronize changed court exports; the expensive old crawler requires explicit opt-in."""
     mode = transport or getattr(settings, "FILING_CODE_SYNC_MODE", "bulk")
+    if mode == "database":
+        from efile.services.filing_code_copy import resync
+
+        return resync(jurisdiction, progress=progress, force=force, dry_run=dry_run)
     if mode == "bulk":
         from efile.services.filing_code_sync import synchronize_index
 
         return synchronize_index(jurisdiction, progress=progress, force=force, dry_run=dry_run)
     if mode != "legacy":
-        raise ValueError("FILING_CODE_SYNC_MODE must be 'bulk' or 'legacy'")
+        raise ValueError("FILING_CODE_SYNC_MODE must be 'database', 'bulk', or 'legacy'")
     if force or dry_run:
         raise ValueError("Forcing courts and dry runs need the bulk sync")
     return _refresh_index_legacy(jurisdiction, progress=progress, cache_dir=cache_dir)
@@ -418,6 +427,7 @@ def _refresh_index_legacy(jurisdiction, *, progress=None, cache_dir=None):
         if jurisdiction in concept.get("jurisdictions", rules()[0]["jurisdictions"]):
             vocabulary.update(word for term in concept["terms"] for word in words(term))
     count = 0
+    courts = {}
     # Large catalogs share many names but still have many distinct paths. Stage
     # on disk, then insert bounded batches: memory does not grow with row count.
     with closing(CodeCatalog(jurisdiction)) as catalog, TemporaryFile(mode="w+b") as staging:
@@ -425,6 +435,7 @@ def _refresh_index_legacy(jurisdiction, *, progress=None, cache_dir=None):
             for entry in catalog_entries(catalog, jurisdiction, progress, cache_dir):
                 output.write(json.dumps(entry) + "\n")
                 indexed_terms.update(entry["search_text"].split())
+                courts.setdefault(entry["court"]["code"], entry["court"]["name"])
                 vocabulary.update(word for facet in FACETS for word in words(entry[facet]["name"]))
                 count += 1
         if not count:
@@ -450,7 +461,7 @@ def _refresh_index_legacy(jurisdiction, *, progress=None, cache_dir=None):
             index.source_url = source_url()
             index.refreshed_at = started
             index.rules_digest = rules()[1]
-            index.vocabulary = {"words": sorted(vocabulary), "tokens": sorted(indexed_terms)}
+            index.vocabulary = {"words": sorted(vocabulary), "tokens": sorted(indexed_terms), "courts": courts}
             index.court_snapshots = {}
             index.save()
     return count
@@ -489,8 +500,50 @@ def case_description(path):
     return next((meaning["text"] for meaning in meanings if meaning.get("text")), "")
 
 
+JURY_SIZE = re.compile(r"\(\s*jury\s*-\s*(\d+)\s*\)", re.IGNORECASE)
+NON_JURY = re.compile(r"\bnon\s*-?\s*jury\b", re.IGNORECASE)
+JURY = re.compile(r"\bjury\b", re.IGNORECASE)
+SELF_REPRESENTED = re.compile(r"self\s*-?\s*represented|\bSRL\b|\bpro se\b", re.IGNORECASE)
+GOVERNMENT = re.compile(r"\(\s*govn'?t\s*\)|\bgovernment(al)? (filer|entity|agency)\b", re.IGNORECASE)
+
+
+def path_qualifiers(category, case_type, filing_name):
+    """Choices some courts code as separate case or filing types, in plain values.
+
+    Cook County, for one, has a separate code for each mix of jury size,
+    government filer, self-represented litigant, and claim amount. The court
+    step asks only the ones its paths actually differ on.
+    """
+    case_text = f"{category} {case_type}"
+    if size := JURY_SIZE.search(filing_name):
+        jury = size.group(1)
+    elif NON_JURY.search(case_text) or NON_JURY.search(filing_name):
+        jury = "none"
+    elif JURY.search(case_text) or JURY.search(filing_name):
+        jury = "jury"
+    else:
+        jury = "none"
+    bounds = claim_range(case_type) or claim_range(category)
+    amount = None
+    if bounds:
+        low, high = bounds
+        amount = {
+            "value": f"{low}:{high if high is not None else ''}",
+            "label": f"{_money(low)} to {_money(high)}" if high is not None else f"More than {_money(low - 1)}",
+        }
+    return {
+        "jury": jury,
+        "representation": "self" if SELF_REPRESENTED.search(case_text) else "lawyer",
+        "government": "yes" if GOVERNMENT.search(filing_name) else "no",
+        "amount": amount,
+    }
+
+
 def serialize_path(path, *, query="", corrected=(), resolved_query=None):
     return {
+        "qualifiers": path_qualifiers(path.case_category["name"], path.case_type["name"], path.filing_type["name"]),
+        "filing_label": unqualified_label(path.filing_type["name"]),
+        "glossary": glossary_for(path.index.jurisdiction, [path.filing_type["name"], path.case_type["name"]]),
         "id": path.pk,
         **{facet: getattr(path, facet) for facet in FACETS},
         "initial": path.initial,
@@ -567,23 +620,27 @@ def matching_paths(index, query, initial):
     else:
         for token in sorted(tokens):
             paths = paths.filter(search_text__contains=f" {token} ")
-    score = Value(0, output_field=IntegerField())
+    scores = {
+        "filing_terms": Value(0, output_field=IntegerField()),
+        "case_terms": Value(0, output_field=IntegerField()),
+    }
     for token in sorted(tokens):
         for field, weight in (("filing_terms", 8), ("case_terms", 3)):
             clause = Q(**{f"{field}__contains": f" {token} "})
-            score += Case(When(clause, then=Value(weight)), default=Value(0), output_field=IntegerField())
-    return paths.annotate(score=score), corrected
+            scores[field] += Case(When(clause, then=Value(weight)), default=Value(0), output_field=IntegerField())
+    paths = paths.annotate(name_score=scores["filing_terms"])
+    return paths.annotate(score=scores["filing_terms"] + scores["case_terms"]), corrected
 
 
-def search_paths(index, query, *, initial=True, offset=0, limit=20, names=None, court=None, contexts=None, counties=()):
+def search_paths(index, query, *, initial=True, offset=0, limit=20, names=None, court=None, contexts=None, courts=()):
     paths, corrected = matching_paths(index, query, initial)
     resolved_query = corrected_search_query(index, query)[0] if corrected else query
     if names is not None:
         paths = paths.filter(filing_type__name__in=names)
     if court:
         paths = paths.filter(court__code=court)
-    if counties:
-        paths = paths.filter(county_filter(counties))
+    if courts:
+        paths = paths.filter(court__code__in=courts)
     if contexts is not None:
         paths = paths.filter(context_filter(contexts))
     total = paths.count()
@@ -603,11 +660,28 @@ def clean_filing_label(name):
     return re.sub(r"\s+filed[.\s]*$", "", name, flags=re.IGNORECASE).strip(" .-")
 
 
+# Qualifiers some courts code as separate filings of the same document, such as
+# Cook County's "Complaint / Petition - Fraud (Jury - 12) (Govn't) - Fee". The
+# filer still picks the exact one in the court step; search shows it once.
+FILING_QUALIFIERS = re.compile(
+    r"\((?:jury[^)]*|govn'?t|government|no fee|fee)\)|\s+-\s+(?:no\s+)?fee\s*$",
+    re.IGNORECASE,
+)
+
+
+def unqualified_label(name):
+    previous = None
+    name = clean_filing_label(name)
+    while previous != name:
+        previous, name = name, clean_filing_label(FILING_QUALIFIERS.sub("", name))
+    return re.sub(r"\s{2,}", " ", name)
+
+
 def filing_group_key(name, jurisdiction):
     # Group discovery results using the same curated synonyms and stemming as
     # search. These are related labels, not interchangeable court codes: the
     # filer still chooses and validates an exact court/category/type path.
-    label = " ".join(words(clean_filing_label(name)))
+    label = " ".join(words(unqualified_label(name)))
     aliases = {
         "answer to complaint": "answer",
         "response to complaint": "answer",
@@ -653,6 +727,55 @@ def facet_rules():
     return [(re.compile(rule["pattern"], re.IGNORECASE), rule) for rule in config["rules"]]
 
 
+@lru_cache(maxsize=1)
+def action_rules():
+    config = yaml.safe_load(RULES_PATH.with_name("filing_code_facets.yaml").read_bytes())
+    return [(re.compile(rule["pattern"], re.IGNORECASE), rule) for rule in config.get("actions", [])]
+
+
+@lru_cache(maxsize=65536)
+def filing_action(name):
+    """What a filing does, in plain words, guessed from its name; "" when unknown."""
+    label = " ".join(words(clean_filing_label(name)))
+    return next((rule["key"] for pattern, rule in action_rules() if pattern.search(label)), "")
+
+
+def action_options(groups):
+    counts = {}
+    for group in groups:
+        for action in {filing_action(label["name"]) for label in group["_labels"]} - {""}:
+            counts[action] = counts.get(action, 0) + 1
+    return [
+        {"value": rule["key"], "label": rule["label"], "count": counts[rule["key"]]}
+        for _, rule in action_rules()
+        if rule["key"] in counts
+    ]
+
+
+def category_options(groups):
+    """Case categories (Cook's "Civil", "Probate", ...) the groups are filed under, most used first."""
+    counts = {}
+    for group in groups:
+        for name in {label["category"] for label in group["_labels"]}:
+            key = tuple(words(name))
+            counts.setdefault(key, [name, 0])[1] += 1
+    return [
+        {"value": name, "label": name, "count": count}
+        for name, count in sorted(counts.values(), key=lambda item: (-item[1], item[0].casefold()))
+    ]
+
+
+def strong_matches(groups):
+    """How many leading groups match by filing name rather than only by case type.
+
+    Groups sort by name score first, so these lead. A name match has to be at
+    least half as strong as the best one, so a two-word search does not count a
+    one-word partial match beside an exact one.
+    """
+    top = max((group["name_rank"] for group in groups), default=0)
+    return sum(1 for group in groups if top and group["name_rank"] >= top / 2)
+
+
 def filing_facets(name, jurisdiction):
     label = " ".join(words(clean_filing_label(name)))
     result = {"purpose": "unknown", "document": "unknown"}
@@ -671,6 +794,25 @@ def case_context_label(category, case_type):
     return case_type if words(category) == words(case_type) else f"{category} › {case_type}"
 
 
+# Parts of a case-type name that only say jury, self-representation, or the
+# small-claims band: the court step asks about those, so step 1 counts and
+# shows "Personal Injury Complaint" once instead of once per variant.
+CASE_QUALIFIERS = re.compile(
+    r"\s*-?\s*\b(?:non\s*-?\s*)?jury(?: demand)?\b"
+    r"|\s*-?\s*\b(?:self\s*-?\s*represented litigant|srl)\b"
+    r"|\s*-?\s*\bsmall claims\b\s*-?\s*\$[\d,]+\s*to\s*\$[\d,]+",
+    re.IGNORECASE,
+)
+
+
+def unqualified_case_type(case_type):
+    return re.sub(r"\s*-\s*$", "", CASE_QUALIFIERS.sub("", case_type)).strip() or case_type
+
+
+def display_case_context(category, case_type):
+    return case_context_label(category, unqualified_case_type(case_type))
+
+
 def case_context_key(category, case_type):
     return hashlib.sha256(json.dumps([words(category), words(case_type)]).encode()).hexdigest()[:24]
 
@@ -686,8 +828,8 @@ def case_contexts(labels):
     contexts = {}
     for label in labels:
         category, case_type = label["category"], label["case_type"]
-        key = (tuple(words(category)), tuple(words(case_type)))
-        context = contexts.setdefault(key, {"label": case_context_label(category, case_type), "count": 0, "rank": 0})
+        key = (tuple(words(category)), tuple(words(unqualified_case_type(case_type))))
+        context = contexts.setdefault(key, {"label": display_case_context(category, case_type), "count": 0, "rank": 0})
         context["count"] += label["path_count"]
         context["rank"] = max(context["rank"], label["rank"])
     return [
@@ -708,6 +850,8 @@ def filter_filing_groups(
     relief="",
     case_topic="",
     case_filters=None,
+    action="",
+    category="",
 ):
     selected = []
     for group in groups:
@@ -719,6 +863,10 @@ def filter_filing_groups(
             ) or not matches_amount(label, (case_filters or {}).get("amount", "")):
                 continue
             facets = filing_facets(label["name"], jurisdiction)
+            if action and filing_action(label["name"]) != action:
+                continue
+            if category and words(label["category"]) != words(category):
+                continue
             if (not purpose or facets["purpose"] == purpose) and (not document or facets["document"] == document):
                 labels.append(label)
         if not labels:
@@ -728,7 +876,7 @@ def filter_filing_groups(
         )
         distinct = {}
         for name in names:
-            distinct.setdefault(tuple(words(name)), name)
+            distinct.setdefault(tuple(words(unqualified_label(name))), unqualified_label(name))
         contexts = case_contexts(labels)
         selected.append(
             {
@@ -736,19 +884,20 @@ def filter_filing_groups(
                 "_labels": labels,
                 "_names": names,
                 "variants": list(distinct.values()),
-                "name": clean_filing_label(names[0]),
+                "name": unqualified_label(names[0]),
                 "path_count": sum(label["path_count"] for label in labels),
                 "rank": max(label["rank"] for label in labels),
+                "name_rank": max(label["name_rank"] for label in labels),
                 "case_contexts": contexts[:8],
                 "case_context_count": len(contexts),
                 "case_context_options": list(
                     {
                         case_context_key(label["category"], label["case_type"]): {
                             "key": case_context_key(label["category"], label["case_type"]),
-                            "label": case_context_label(label["category"], label["case_type"]),
+                            "label": display_case_context(label["category"], label["case_type"]),
                         }
                         for label in labels
-                        if case_context_label(label["category"], label["case_type"]) in contexts[:8]
+                        if display_case_context(label["category"], label["case_type"]) in contexts[:8]
                     }.values()
                 ),
                 "facets": {
@@ -762,65 +911,42 @@ def filter_filing_groups(
     return sorted(
         selected,
         key=lambda group: (
+            -group["name_rank"],
             -group["rank"],
+            -group["path_count"],
             len(search_tokens(group["name"], jurisdiction, query=True)),
             group["name"].casefold(),
         ),
     )
 
 
-def zip_counties(jurisdiction, postal_code):
-    """Keep every county in the local table when a ZIP spans county entries."""
-    if not postal_code:
-        return []
-    if jurisdiction != "illinois":
-        raise ValueError("ZIP filtering is not available for this jurisdiction yet.")
-    if not re.fullmatch(r"[0-9]{5}(?:-[0-9]{4})?", postal_code):
-        raise ValueError("Enter a five-digit ZIP code, or clear the ZIP filter.")
-    from efile.utils.zip_to_county_il import COUNTY_TO_ZIPS_IL
-
-    counties = [name for name, codes in COUNTY_TO_ZIPS_IL.items() if postal_code[:5] in codes]
-    if not counties:
-        raise ValueError(
-            "This ZIP code is not in the Illinois county table. Clear the ZIP filter to search all courts."
-        )
-    return counties
-
-
-def county_filter(counties):
-    condition = Q(pk__in=[])
-    for county in counties:
-        code = "".join(words(county))
-        condition |= Q(court__code__iexact=code) | Q(court__code__istartswith=code + ":")
-    return condition
-
-
-def filing_groups(index, query, initial, counties=()):
-    fingerprint = hashlib.sha256(f"{index.pk}:{index.refreshed_at}:{initial}:{query}:{counties}".encode()).hexdigest()
-    key = f"filing-groups-v5:{fingerprint}"
+def filing_groups(index, query, initial, courts=()):
+    fingerprint = hashlib.sha256(f"{index.pk}:{index.refreshed_at}:{initial}:{query}:{courts}".encode()).hexdigest()
+    key = f"filing-groups-v7:{fingerprint}"
     cached = cache.get(key)
     if cached is not None:
         return cached
     paths, corrected = matching_paths(index, query, initial)
-    if counties:
-        paths = paths.filter(county_filter(counties))
+    if courts:
+        paths = paths.filter(court__code__in=courts)
     labels = (
         paths.order_by()
         .values("filing_type__name", "case_category__name", "case_type__name")
-        .annotate(path_count=Count("pk"), rank=Max("score"))
+        .annotate(path_count=Count("pk"), rank=Max("score"), name_rank=Max("name_score"))
     )
     groups = {}
     for label in labels:
         name = label["filing_type__name"]
         group_key = filing_group_key(name, index.jurisdiction)
         group = groups.setdefault(
-            group_key, {"key": group_key, "variants": [], "path_count": 0, "rank": 0, "_labels": []}
+            group_key, {"key": group_key, "variants": [], "path_count": 0, "rank": 0, "name_rank": 0, "_labels": []}
         )
         group["_labels"].append(
             {
                 "name": name,
                 "path_count": label["path_count"],
                 "rank": label["rank"],
+                "name_rank": label["name_rank"],
                 "category": label["case_category__name"],
                 "case_type": label["case_type__name"],
             }
@@ -828,6 +954,7 @@ def filing_groups(index, query, initial, counties=()):
         group["variants"].append(name)
         group["path_count"] += label["path_count"]
         group["rank"] = max(group["rank"], label["rank"])
+        group["name_rank"] = max(group["name_rank"], label["name_rank"])
     for group in groups.values():
         group["variants"] = sorted(
             set(group["variants"]), key=lambda name: (len(name), name.isupper(), name.casefold())
@@ -835,14 +962,16 @@ def filing_groups(index, query, initial, counties=()):
         group["_names"] = group["variants"][:]
         distinct = {}
         for name in group["variants"]:
-            distinct.setdefault(tuple(words(name)), name)
+            distinct.setdefault(tuple(words(unqualified_label(name))), unqualified_label(name))
         group["variants"] = list(distinct.values())
-        group["name"] = clean_filing_label(group["variants"][0])
+        group["name"] = group["variants"][0]
     result = (
         sorted(
             groups.values(),
             key=lambda group: (
+                -group["name_rank"],
                 -group["rank"],
+                -group["path_count"],
                 len(search_tokens(group["name"], index.jurisdiction, query=True)),
                 group["name"].casefold(),
             ),
@@ -851,6 +980,18 @@ def filing_groups(index, query, initial, counties=()):
     )
     cache.set(key, result, timeout=300)
     return result
+
+
+def count_groups(index, query, initial, courts, *, purpose, document, topic, case_filters, action, category):
+    """How many filing types the same search and answers find in the other case stage."""
+    groups = filing_groups(index, query, initial, courts)[0]
+    groups = filter_filing_groups(groups, index.jurisdiction, purpose, document)
+    groups = filter_filing_groups(groups, index.jurisdiction, case_topic=topic, case_filters=case_filters)
+    if action:
+        groups = filter_filing_groups(groups, index.jurisdiction, action=action)
+    if category:
+        groups = filter_filing_groups(groups, index.jurisdiction, category=category)
+    return len(groups)
 
 
 def search_grouped_paths(
@@ -871,9 +1012,13 @@ def search_grouped_paths(
     relief="",
     case_topic="",
     case_filters=None,
+    action="",
+    category="",
+    strong_only=False,
 ):
-    counties = zip_counties(index.jurisdiction, postal_code)
-    groups, corrected = filing_groups(index, query, initial, counties)
+    location = locate(index, postal_code) or {"counties": [], "courts": []}
+    counties, courts = location["counties"], tuple(location["courts"])
+    groups, corrected = filing_groups(index, query, initial, courts)
     resolved_query = corrected_search_query(index, query)[0] if corrected else query
     case_filters = case_filters or {}
     if any((role, property_kind, relief)):
@@ -888,11 +1033,56 @@ def search_grouped_paths(
     )
     selected_topic = "" if metadata["case_topic"] == "all" else metadata["case_topic"]
     groups = filter_filing_groups(groups, index.jurisdiction, case_topic=selected_topic, case_filters=case_filters)
+    topic_counts = {}
+    for group in filing_groups(index, query, initial, courts)[0] if metadata["case_topics"] else []:
+        for topic in {
+            topic_of(index.jurisdiction, label["category"], label["case_type"]) for label in group["_labels"]
+        }:
+            topic_counts[topic] = topic_counts.get(topic, 0) + 1
+    for item in metadata["case_topics"]:
+        item["count"] = topic_counts.get(item["value"], 0)
+    metadata["case_topics"].sort(key=lambda item: (-item["count"], item["label"].casefold()))
+    actions = action_options(groups)
+    if action:
+        groups = filter_filing_groups(groups, index.jurisdiction, action=action)
+    categories = category_options(groups)
+    if category:
+        groups = filter_filing_groups(groups, index.jurisdiction, category=category)
     if not group_key:
+        strong = strong_matches(groups)
+        shown = groups[:strong] if strong_only and strong else groups
+        # Sealing an eviction, say, is filed in the existing case: a filer
+        # searching new-case filings is told the other list has matches.
+        other_stage_total = (
+            count_groups(
+                index,
+                query,
+                not initial,
+                courts,
+                purpose=purpose,
+                document=document,
+                topic=selected_topic,
+                case_filters=case_filters,
+                action=action,
+                category=category,
+            )
+            if not offset
+            else None
+        )
         return {
             "groups": [
                 {
                     **{key: value for key, value in group.items() if not key.startswith("_")},
+                    # Only the names shown: filing and case-type names without the
+                    # qualifiers step 1 drops, and not categories (Cook files every
+                    # Law-division injury under "Personal Injury/Wrongful Death").
+                    "glossary": glossary_for(
+                        index.jurisdiction,
+                        [
+                            group["name"],
+                            *sorted({unqualified_case_type(label["case_type"]) for label in group["_labels"]}),
+                        ],
+                    ),
                     **search_context(
                         index.jurisdiction,
                         query,
@@ -901,9 +1091,13 @@ def search_grouped_paths(
                         resolved_query=resolved_query,
                     ),
                 }
-                for group in groups[offset : offset + limit]
+                for group in shown[offset : offset + limit]
             ],
             **metadata,
+            "actions": actions,
+            "categories": categories,
+            "strong_total": strong,
+            "other_stage_total": other_stage_total,
             "eviction_facets": selected_topic == "eviction",
             "location_counties": counties,
             "total": len(groups),
@@ -929,11 +1123,11 @@ def search_grouped_paths(
             names=group["_names"],
             court=court,
             contexts=contexts,
-            counties=counties,
+            courts=courts,
         )
     paths, _ = matching_paths(index, query, initial)
-    if counties:
-        paths = paths.filter(county_filter(counties))
+    if courts:
+        paths = paths.filter(court__code__in=courts)
     if contexts is not None:
         paths = paths.filter(context_filter(contexts))
     courts = (

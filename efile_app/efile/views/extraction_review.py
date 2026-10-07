@@ -1,3 +1,5 @@
+import re
+
 from django.contrib import messages
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
@@ -5,6 +7,7 @@ from django.views.decorators.http import require_http_methods
 from efile.api.suffolk_api_views import get_tyler_token
 from efile.models import DocumentExtraction, FilingDocument
 from efile.party_sides import PARTY_SIDE_HELP, PARTY_SIDE_LABELS, PartySide
+from efile.services.account_profile import cached_account_profile
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.document_checklists import resolve_filer_roles
 from efile.services.document_extractions import extraction_for_document
@@ -109,6 +112,25 @@ def _set_lead_filing_type(draft, filing_type_code, filing_type_name):
             "updated_at",
         ]
     )
+
+
+def _zip_shortcuts(request, draft, jurisdiction):
+    """ZIP codes code search offers one click away: the filer's own, then recent ones.
+
+    The account profile is the same cached fetch "Your information" makes, so
+    asking for it here moves the call earlier rather than adding one.
+    """
+    filer = draft.parties.filter(role="filer").first()
+    own = filer.zip_code if filer else ""
+    if not own and request.method == "GET":
+        own = (cached_account_profile(request, jurisdiction) or {}).get("zip") or ""
+    shortcuts = []
+    if re.fullmatch(r"[0-9]{5}(?:-[0-9]{4})?", own):
+        shortcuts.append({"zip": own[:5], "kind": "address"})
+    for postal_code in request.user.recent_case_zips or []:
+        if all(item["zip"] != postal_code for item in shortcuts):
+            shortcuts.append({"zip": postal_code, "kind": "recent"})
+    return shortcuts
 
 
 def _case_identity(existing_case, docket_number):
@@ -287,6 +309,7 @@ def extraction_review(request, jurisdiction):
         # Only some case types have sides. The screen asks for one as soon as
         # the chosen case type turns out to be one of them.
         "filer_role": draft.filer_role,
+        "zip_shortcuts": _zip_shortcuts(request, draft, jurisdiction),
     }
     suggested_existing_case = (
         "new"

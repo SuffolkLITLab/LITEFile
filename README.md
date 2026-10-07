@@ -23,10 +23,10 @@ This script:
 - Starts LocalStack (S3 mock) in Docker if Docker is running
 - Applies Django database migrations
 - Runs the Django development server (`http://127.0.0.1:8000`) and background extraction worker together
-- Starts the filing code index worker, which checks for changed courts daily and imports only their bulk code exports
+- Starts the filing code index worker, which copies changed courts' codes from the EFSP codes database once a day and indexes them
 - Cleanly stops all child processes upon pressing `Ctrl+C`
 
-Filing code search becomes available after the first successful import. Deploy the proxy's `filing_catalog` API first; during rollout, `--legacy-code-crawl` explicitly enables the older full crawler.
+Filing code search becomes available after the first successful sync, which needs `EFSP_CODES_DATABASE_URL` in `efile_app/.env` (the test EFSP's codes database, read only). `--legacy-code-crawl` explicitly enables the older full crawler instead.
 
 Run `./run_all.sh --help` to see additional options (e.g., custom ports, running without Docker, or `--no-code-index` to skip the court code index worker).
 

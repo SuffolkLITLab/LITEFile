@@ -113,7 +113,7 @@ def test_amount_metadata_is_state_specific_and_only_shown_when_useful():
     for jurisdiction, text in [("illinois", "$10,000"), ("massachusetts", "$7,000"), ("vermont", "medical debt")]:
         data = facet_metadata(jurisdiction, "small claims", labels)
         amount = next(facet for facet in data["case_facets"] if facet["key"] == "amount")
-        assert amount["control"] == "select" and text in amount["help"]
+        assert text in amount["help"]
     assert all(
         facet["key"] != "amount" for facet in facet_metadata("illinois", "small claims", labels[:1])["case_facets"]
     )
@@ -124,7 +124,7 @@ def test_amount_metadata_is_state_specific_and_only_shown_when_useful():
     [
         ("small_claims", {"amount": "x"}),
         ("small_claims", {"amount": "500:100"}),
-        ("divorce", {"amount": "0:500"}),
+        ("", {"amount": "500:100"}),
         ("eviction", {"children": "with"}),
         ("no_such_topic", {}),
         ("", {"role": "tenant"}),
@@ -163,3 +163,53 @@ def test_local_description_precedence(monkeypatch):
     finally:
         topic_config.cache_clear()
         case_guidance.cache_clear()
+
+
+def test_civil_searches_spanning_amounts_ask_for_one_and_name_small_claims():
+    labels = [
+        {"category": "Civil", "case_type": "Contract - Small Claims - $0 to $10,000 - Jury", "name": "Complaint"},
+        {
+            "category": "Civil - Amount Claimed Greater Than $10,000",
+            "case_type": "Contract - Jury",
+            "name": "Complaint",
+        },
+        {"category": "Civil", "case_type": "Contract - Jury", "name": "Complaint"},
+    ]
+    data = facet_metadata("illinois", "civil complaint", labels)
+    amount = next(facet for facet in data["case_facets"] if facet["key"] == "amount")
+    assert amount["label"] == "How much are you asking for?"
+    assert [option["label"] for option in amount["options"]] == ["Up to $10,000 (small claims)", "$10,000.01 or more"]
+    assert not amount["help"]
+    validate_case_filters("illinois", "", {"amount": amount["options"][0]["value"]})
+
+
+@pytest.mark.parametrize(
+    ("category", "case_type", "topic", "issue"),
+    [
+        ("Civil", "Personal Injury Complaint - Jury", "personal_injury", "unknown"),
+        ("Civil", "Tort - Not Personal Injury - Jury", "", None),
+        ("Other Actions", "Legal Malpractice", "", None),
+        ("Personal Injury/Wrongful Death", "Medical Malpractice", "personal_injury", "medical"),
+        ("Personal Injury/Wrongful Death", "Other Personal Injury/Wrongful Death", "personal_injury", "unknown"),
+        ("Personal Injury/Wrongful Death", "Asbestos - Jury Demand", "personal_injury", "exposure"),
+        ("Personal Injury/Wrongful Death", "Product Liability", "personal_injury", "product"),
+    ],
+)
+def test_injury_case_types_are_classified_without_false_matches(category, case_type, topic, issue):
+    guidance = case_guidance("illinois", category, case_type, "Complaint / Petition")
+    assert guidance.get("topic", "") == topic
+    assert guidance.get("issue") == issue
+
+
+def test_something_else_keeps_only_case_types_no_option_names():
+    general = case_guidance("illinois", "Civil", "Personal Injury Complaint", "Complaint")
+    vehicle = case_guidance("illinois", "Civil", "Personal Injury - Motor Vehicle", "Complaint")
+    assert matches_case_filters(general, filters={"issue": "other"})
+    assert not matches_case_filters(vehicle, filters={"issue": "other"})
+    assert matches_case_filters(general, filters={"issue": "vehicle"})
+    validate_case_filters("illinois", "personal_injury", {"issue": "other"})
+    with pytest.raises(ValueError):
+        validate_case_filters("illinois", "eviction", {"role": "other"})
+    labels = [{"category": "Civil", "case_type": "Personal Injury - Motor Vehicle", "name": "Complaint"}]
+    issue = next(f for f in facet_metadata("illinois", "", labels)["case_facets"] if f["key"] == "issue")
+    assert issue["options"][-1] == {"value": "other", "label": "Something else"}

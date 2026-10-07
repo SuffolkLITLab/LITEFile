@@ -182,8 +182,10 @@ topics:
     jurisdictions: {}
   personal_injury:
     label: Personal injury
-    pattern: \b(personal injury|bodily injury|malpractice|wrongful death|motor vehicle|automobile negligence|premises
-      liability|product liability)\b
+    # "Tort - Not Personal Injury" is not one; legal and other professional
+    # malpractice harm money, not people.
+    pattern: (?<!not )\b(personal injury|bodily injury|medical malpractice|wrongful death|motor vehicle|automobile negligence|premises
+      liability|product liability|construction injur\w*)\b
     query_pattern: \b(personal injury|bodily injury|malpractice|wrongful death|motor vehicle|automobile negligence|premises
       liability|product liability)\b
     text: A claim for harm to a person, often seeking money for injuries caused by someone else.
@@ -202,6 +204,9 @@ topics:
         field: filing
     - key: issue
       label: Injury involving
+      # Case types none of these name -- the general personal-injury lawsuit --
+      # are what "Something else" keeps.
+      other: Something else
       options:
       - value: vehicle
         label: Vehicle accident
@@ -209,15 +214,24 @@ topics:
         field: case
       - value: medical
         label: Medical care
-        pattern: \b(medical|malpractice)\b
+        pattern: \bmedical\b
         field: case
       - value: premises
         label: Unsafe property
         pattern: \bpremises\b
         field: case
+      - value: product
+        label: A product
+        pattern: \b(product liability|silicone implant|fen-phen)\b
+        field: case
+      - value: exposure
+        label: Asbestos, lead, or toxic exposure
+        pattern: \b(asbestos|lead exposure|toxic)\b
+        field: case
       - value: death
         label: Death
-        pattern: \bwrongful death\b
+        # Not Cook's catch-all "Other Personal Injury/Wrongful Death".
+        pattern: (?<!injury/)(?<!injury / )\bwrongful death\b
         field: case
     jurisdictions: {}
   small_claims:

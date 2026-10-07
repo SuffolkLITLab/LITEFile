@@ -1,78 +1,174 @@
 (function() {
+    const STEPS = {
+        filing: {
+            number: 1,
+            title: () => gettext("What are you filing?")
+        },
+        path: {
+            number: 2,
+            title: () => gettext("Choose your court and case type")
+        },
+        confirm: {
+            number: 3,
+            title: () => gettext("Check your choices")
+        },
+    };
+    // Up to this many courts show as cards; more fall back to a dropdown.
+    const COURT_CARD_LIMIT = 6;
+    // "What do you want to do?" is asked only once results are this many.
+    const ACTION_QUESTION_MIN = 8;
+    // A question with more choices than this shows the most used ones first.
+    const CHIPS_SHOWN = 5;
+    // Choices a court may code as separate case types, asked in this order and
+    // only when the court's paths differ on them. See path_qualifiers().
+    const PATH_QUESTIONS = [{
+        key: "amount",
+        label: () => gettext("How much are you asking for?"),
+        options: {}
+    }, {
+        key: "representation",
+        label: () => gettext("Do you have a lawyer?"),
+        options: {
+            self: () => gettext("No, I'm representing myself"),
+            lawyer: () => gettext("Yes")
+        }
+    }, {
+        key: "jury",
+        label: () => gettext("Do you want a jury?"),
+        options: {
+            none: () => gettext("No jury"),
+            jury: () => gettext("Jury"),
+            6: () => gettext("Jury of 6"),
+            12: () => gettext("Jury of 12")
+        }
+    }, {
+        key: "government",
+        label: () => gettext("Filing for a government body?"),
+        options: {
+            no: () => gettext("No"),
+            yes: () => gettext("Yes")
+        },
+        // Almost no one filing here is; the answer stays visible to change.
+        assume: "no"
+    }];
+    const ZIP_PATTERN = /^\d{5}(?:-\d{4})?$/;
+
     function mount({
         jurisdiction,
         existingCase,
-        applyPath
+        applyPath,
+        zipShortcuts = []
     }) {
         const dialog = document.getElementById("code-search-dialog");
         const open = document.getElementById("open-code-search");
         if (!dialog || !open) return;
-        const query = document.getElementById("code-search-query");
-        const status = document.getElementById("code-search-status");
-        const results = document.getElementById("code-search-results");
-        const apply = document.getElementById("apply-code-search");
-        const more = document.getElementById("code-search-more");
-        const suggestions = document.getElementById("code-search-suggestions");
-        const purpose = document.getElementById("code-search-purpose");
-        const stage = document.getElementById("code-search-stage");
-        const documentKind = document.getElementById("code-search-document");
-        const postalCode = document.getElementById("code-search-zip");
-        if (jurisdiction === "illinois") {
-            document.getElementById("code-search-zip-filter").hidden = false;
-            document.getElementById("code-search-zip-help").hidden = false;
-        }
-        postalCode.addEventListener("input", () => {
-            invalidate();
-            clearResults();
-            timer = setTimeout(() => search(), 350);
-        });
-        const caseFilters = document.getElementById("code-search-case-filters");
+        const byId = id => document.getElementById(id);
+        const title = byId("code-search-title");
+        const stepLabel = byId("code-search-step");
+        const panels = {
+            filing: byId("code-search-step-filing"),
+            path: byId("code-search-step-path"),
+            confirm: byId("code-search-step-confirm"),
+        };
+        const query = byId("code-search-query");
+        const status = byId("code-search-status");
+        const results = byId("code-search-results");
+        const more = byId("code-search-more");
+        const otherStage = byId("code-search-other-stage");
+        const suggestions = byId("code-search-suggestions");
+        const postalCode = byId("code-search-zip");
+        const zipStatus = byId("code-search-zip-status");
+        const zipShortcutList = byId("code-search-zip-shortcuts");
+        const stageLabel = byId("code-search-stage-label");
+        const stageToggle = byId("code-search-stage-toggle");
+        const moreFilters = byId("code-search-more-filters");
+        const filterPanel = byId("code-search-filters");
+        const caseFilters = byId("code-search-case-filters");
+        const summary = byId("code-search-summary");
+        const courtsBox = byId("code-search-courts");
+        const pathStatus = byId("code-search-path-status");
+        const pathQuestions = byId("code-search-path-questions");
+        const caseTypes = byId("code-search-case-types");
+        const paths = byId("code-search-paths");
+        const morePaths = byId("code-search-more-paths");
+        const confirmList = byId("code-search-confirm");
+        const explanation = byId("code-search-explanation");
+        const applyStatus = byId("code-search-apply-status");
+        const cancel = byId("cancel-code-search");
+        const back = byId("code-search-back");
+        const next = byId("code-search-next");
+        const apply = byId("apply-code-search");
+
+        let step = "filing";
+        let stage = "no";
+        let documentKind = "";
+        let action = "";
+        let category = "";
+        const expanded = new Set();
+        let showAll = false;
+        let strongTotal = 0;
+        let activeZip = "";
         let caseTopic = "";
         let caseChoices = {};
         let caseFilterSchema = "";
-        const caseFilterValues = () => ({
-            case_topic: caseTopic,
-            case_filters: JSON.stringify(caseChoices)
-        });
-        caseFilters.addEventListener("change", event => {
-            const key = event.target.dataset.caseFacet;
-            if (key === "topic") {
-                caseTopic = event.target.value;
-                caseChoices = {};
-            } else if (key) {
-                if (event.target.value) caseChoices[key] = event.target.value;
-                else delete caseChoices[key];
-            }
-            search();
-        });
-
-        function resetCaseFilters() {
-            caseTopic = "";
-            caseChoices = {};
-            caseFilterSchema = "";
-            caseFilters.hidden = true;
-        }
-        const filters = [purpose, stage, documentKind];
+        let lastFacets = null;
+        let lastCounties = [];
         let generation = 0;
         let controller;
         let timer;
-        let selected = null;
         let offset = 0;
+        let chosen = null;
+        let selected = null;
+        let pathGeneration = 0;
+        let pathController;
+        let loadedFor = null;
+        let court = "";
+        let pathOffset = 0;
+        let courtPaths = [];
+        let pathAnswers = {};
         let applying = false;
 
-        function invalidate() {
-            generation += 1;
-            controller?.abort();
-            controller = null;
-            clearTimeout(timer);
-            selected = null;
-            apply.disabled = true;
-            more.hidden = true;
+        function element(tag, text, className) {
+            const node = document.createElement(tag);
+            if (text) node.textContent = text;
+            if (className) node.className = className;
+            return node;
+        }
+
+        function link(text, href) {
+            const node = element("a", text);
+            node.href = href;
+            node.target = "_blank";
+            node.rel = "noopener noreferrer";
+            return node;
+        }
+
+        function chip(text, pressed, data) {
+            const button = element("button", text, "code-search__chip");
+            button.type = "button";
+            button.setAttribute("aria-pressed", String(pressed));
+            Object.assign(button.dataset, data);
+            return button;
+        }
+
+        function pressOnly(button) {
+            for (const sibling of button.parentElement.querySelectorAll(".code-search__chip")) {
+                sibling.setAttribute("aria-pressed", String(sibling === button));
+            }
+        }
+
+        function list(items) {
+            return items.length > 1 ?
+                interpolate(gettext("%(first)s and %(last)s"), {
+                    first: items.slice(0, -1).join(", "),
+                    last: items.at(-1)
+                }, true) : items[0] || "";
         }
 
         async function request(params, signal) {
             const response = await fetch(`/api/filing-code-search/?${new URLSearchParams({
-                jurisdiction, zip: postalCode.value.trim(), existing_case: stage.value, purpose: purpose.value, document: documentKind.value, grouped: "true", ...caseFilterValues(), ...params,
+                jurisdiction, zip: activeZip, existing_case: stage, document: documentKind, grouped: "true",
+                case_topic: caseTopic, case_filters: JSON.stringify(caseChoices), action, category, strong: String(!showAll), ...params,
             })}`, {
                 signal,
                 headers: {
@@ -98,21 +194,102 @@
             return data;
         }
 
-        function element(tag, text, className) {
-            const node = document.createElement(tag);
-            if (text) node.textContent = text;
-            if (className) node.className = className;
-            return node;
+        // Steps
+
+        function showStep(name, {
+            focus = true
+        } = {}) {
+            step = name;
+            for (const [key, panel] of Object.entries(panels)) panel.hidden = key !== name;
+            stepLabel.textContent = interpolate(gettext("Step %(number)s of 3"), {
+                number: STEPS[name].number
+            }, true);
+            title.textContent = STEPS[name].title();
+            cancel.hidden = name !== "filing";
+            back.hidden = name === "filing";
+            next.hidden = name === "confirm";
+            apply.hidden = name !== "confirm";
+            updateNext();
+            if (focus) title.focus();
         }
 
-        function addSearchContext(data, target) {
-            const meanings = data.concepts || [];
-            const reason = data.match_reason?.kind === "related_concept" ? data.match_reason : null;
-            if (!reason && !meanings.some(item => item.text)) return null;
-            const details = element("details", "", reason ? "code-search__match-reason" : "code-search__concept-info");
-            details.append(element("summary", reason ? gettext("Why is this result shown?") : gettext("About this filing type")));
+        function updateNext() {
+            next.textContent = step === "path" || chosen?.path ?
+                gettext("Next: check and use") : gettext("Next: court and case type");
+            next.disabled = step === "filing" ? !chosen : !selected;
+            apply.disabled = !selected || applying;
+        }
+
+        function goForward() {
+            if (step === "filing" && chosen?.path) {
+                selected = chosen.path;
+                renderConfirm();
+                showStep("confirm");
+            } else if (step === "filing" && chosen) {
+                showStep("path");
+                if (loadedFor !== chosen) loadCourts();
+            } else if (step === "path" && selected) {
+                renderConfirm();
+                showStep("confirm");
+            }
+        }
+
+        function goBack() {
+            if (step === "confirm" && !chosen?.path) showStep("path");
+            else showStep("filing");
+        }
+
+        // Step 1: search, ZIP, and case questions
+
+        function invalidate() {
+            generation += 1;
+            controller?.abort();
+            controller = null;
+            clearTimeout(timer);
+            chosen = null;
+            resetPaths();
+            more.hidden = true;
+            updateNext();
+        }
+
+        function resetPaths() {
+            pathGeneration += 1;
+            pathController?.abort();
+            pathController = null;
+            loadedFor = null;
+            selected = null;
+        }
+
+        function clearResults() {
+            results.replaceChildren();
+        }
+
+        // "What does “subrogation” mean?", from the state's glossary.
+        function addGlossary(terms, target) {
+            if (!terms?.length) return;
+            const details = element("details", "", "code-search__glossary");
+            details.append(element("summary", terms.length === 1 ?
+                interpolate(gettext("What does “%(term)s” mean?"), {
+                    term: terms[0].label.toLowerCase()
+                }, true) : gettext("What do these terms mean?")));
+            const definitions = element("dl");
+            for (const term of terms) {
+                const meaning = element("dd", term.text);
+                if (term.source) meaning.append(" ", link(gettext("Learn more"), term.source));
+                definitions.append(element("dt", term.label), meaning);
+            }
+            details.append(definitions);
             target.append(details);
-            for (const concept of meanings.filter(item => item.text)) {
+        }
+
+        function addMeanings(data, target) {
+            addGlossary(data.glossary, target);
+            const meanings = (data.concepts || []).filter(item => item.text);
+            const variants = data.variants || [];
+            if (!meanings.length && variants.length < 2) return;
+            const details = element("details", "", "code-search__concept-info");
+            details.append(element("summary", gettext("About this filing type")));
+            for (const concept of meanings) {
                 const definition = element("div", "", "code-search__meaning");
                 let scope = gettext("General meaning");
                 if (concept.scope === "county") scope = interpolate(gettext("Meaning in %(name)s County"), {
@@ -122,371 +299,316 @@
                     name: concept.scope_name
                 }, true);
                 definition.append(element("p", `${concept.label} — ${scope}: ${concept.text}`));
-                if (concept.source) {
-                    const source = element("a", gettext("About this concept"));
-                    source.href = concept.source;
-                    source.target = "_blank";
-                    source.rel = "noopener noreferrer";
-                    definition.append(source);
-                }
+                if (concept.source) definition.append(link(gettext("About this concept"), concept.source));
                 details.append(definition);
             }
-            if (!reason) return details;
-            const labels = meanings.filter(item => reason.concepts.includes(item.key)).map(item => item.label);
-            const text = interpolate(gettext('Your search for “%(query)s” relates to %(concepts)s. This filing name or its associated case information deals with similar concepts.'), {
-                query: reason.query,
-                concepts: labels.join(", ")
-            }, true);
-            details.insertBefore(element("p", text), details.children[1] || null);
-            return details;
+            if (variants.length > 1) details.append(element("p", gettext("Also listed as:") + " " + variants.slice(1).join("; ")));
+            target.append(details);
         }
 
-        function addFacetSummary(data, target) {
-            const facets = data.facets || {};
-            const purposes = {
-                starting: gettext("Starting a claim"),
-                responding: gettext("Responding to a claim"),
-                either: gettext("Either side")
-            };
-            const documents = {
-                main: gettext("Main document"),
-                attachment: gettext("Attachment / exhibit")
-            };
-            const labels = [purposes[facets.purpose], documents[facets.document]].filter(Boolean);
+        // Only when the search found this through a different word, such as
+        // "unlawful detainer" finding an eviction filing.
+        function relatedTerms(data) {
+            const reason = data.match_reason?.kind === "related_concept" ? data.match_reason : null;
+            if (!reason) return "";
+            const asked = words(reason.query);
+            const labels = (data.concepts || [])
+                .filter(item => reason.concepts.includes(item.key) && words(item.label) !== asked)
+                .map(item => item.label.toLowerCase());
+            return labels.length ? interpolate(gettext("Related to %(terms)s"), {
+                terms: list(labels)
+            }, true) : "";
+        }
+
+        function words(text) {
+            return String(text || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+        }
+
+        function contextSummary(data) {
             const contexts = data.case_contexts || [];
-            if (contexts.length) {
-                const context = data.case_context_count > 1 ?
-                    interpolate(gettext("%(count)s case types, including %(context)s"), {
-                        context: contexts[0],
-                        count: data.case_context_count
-                    }, true) : contexts[0];
-                labels.unshift(context);
-            }
-            if (labels.length) {
-                const summary = element("p", labels.join(" · "), "code-search__meta");
-                summary.title = summary.textContent;
-                target.append(summary);
-            }
+            if (!contexts.length) return "";
+            return data.case_context_count > 1 ?
+                interpolate(gettext("%(count)s case types, including %(context)s"), {
+                    context: contexts[0],
+                    count: data.case_context_count
+                }, true) : contexts[0];
         }
 
-        function addResult(path, target = results, group = null) {
-            const row = element("div", "", group ? "code-search__result code-search__path-choice" : "code-search__result");
-            const label = element("label");
-            const radio = document.createElement("input");
+        function choiceRow(name, onChoose, disabled = false) {
+            const row = element("div", "", "code-search__result");
+            const label = element("label", "", "code-search__choice");
+            const radio = element("input");
             radio.type = "radio";
-            radio.name = "code-search-result";
-            radio.value = path.id;
-            radio.disabled = Boolean(path.unavailable);
-            const choiceName = group ? (path.case_context || path.case_type.name) : path.filing_type.name;
-            label.append(radio, element("span", choiceName));
+            radio.name = "code-search-filing";
+            radio.disabled = disabled;
+            // A leading "Complaint / Petition - " that many results share is
+            // muted (see markSharedPrefixes) so the words that differ stand out.
+            const [, prefix, rest] = name.match(/^(.+?\s-\s)(.+)$/) || [null, "", name];
+            const text = element("span", "", "code-search__name");
+            if (prefix) {
+                const muted = element("span", prefix, "code-search__name-prefix");
+                muted.dataset.prefix = prefix;
+                text.append(muted);
+            }
+            text.append(rest);
+            label.append(radio, text);
             row.append(label);
-            if (!group) {
-                addFacetSummary(path, row);
-                row.append(element("p", `${path.case_context || path.case_type.name} · ${path.court.name}`, "code-search__meta"));
-            } else if (path.filing_type.name.toLowerCase() !== group.name.toLowerCase()) {
-                row.append(element("p", path.filing_type.name, "code-search__variant"));
-            }
-            if (group && path.case_description) {
-                const description = element("p", path.case_description, "code-search__case-description");
-                description.id = `code-search-description-${path.id}`;
-                radio.setAttribute("aria-describedby", description.id);
-                row.append(description);
-            }
-            const details = element("details");
-            details.append(element("summary", group ? gettext("Details") : gettext("Filing path")));
-            if (group) {
-                addFacetSummary(path, details);
-            }
-            if (path.explanation) details.append(element("p", path.explanation));
-            if (path.case_guidance?.source) {
-                const source = element("a", gettext("About this case type"));
-                source.href = path.case_guidance.source;
-                source.target = "_blank";
-                source.rel = "noopener noreferrer";
-                details.append(source);
-            }
-            if (path.explanation_source) {
-                const source = element("a", gettext("Court information"));
-                source.href = path.explanation_source;
-                source.target = "_blank";
-                source.rel = "noopener noreferrer";
-                details.append(source);
-            }
-            const list = element("ol", "", "code-search__path");
-            const facets = [
-                ["court", gettext("Court")],
-                ["case_category", gettext("Case category")],
-                ["case_type", gettext("Case type")],
-                ["filing_type", gettext("Filing type")],
-            ];
-            facets.forEach(([key, title]) => list.append(element("li", `${title}: ${path[key].name}`)));
-            details.append(list);
-            row.append(details);
-            if (path.unavailable) row.append(element("p", path.unavailable));
-            radio.addEventListener("change", () => {
-                selected = path;
-                apply.disabled = false;
-                for (const item of results.querySelectorAll("details")) item.open = !group && item === details;
+            radio.addEventListener("change", onChoose);
+            // The whole card chooses it, except the "About" disclosure and links.
+            row.addEventListener("click", event => {
+                if (!event.target.closest("details, a, label, input")) radio.click();
             });
-            target.append(row);
+            return {
+                row,
+                radio
+            };
         }
 
         function addGroup(group, searchText) {
-            const row = element("div", "", "code-search__result code-search__group");
-            row.append(element("h3", group.name));
-            let info = addSearchContext(group, row);
-            addFacetSummary(group, row);
-            if (!info && (group.case_contexts?.length || group.variants.length > 1)) {
-                info = element("details");
-                info.append(element("summary", gettext("About this filing type")));
-                row.append(info);
-            }
-            if (group.case_contexts?.length) {
-                info.append(element("p", gettext("Used in these case types:")));
-                const contexts = element("ul");
-                for (const context of group.case_contexts) {
-                    const item = element("li");
-                    const option = group.case_context_options?.find(candidate => candidate.label === context);
-                    if (option) {
-                        const link = element("button", context, "btn btn-link code-search__context-link");
-                        link.type = "button";
-                        link.addEventListener("click", () => {
-                            contextKey = option.key;
-                            contextLabel.textContent = interpolate(gettext("Case type: %(name)s"), {
-                                name: context
-                            }, true);
-                            contextChoice.hidden = false;
-                            loadCourts();
-                        });
-                        item.append(link);
-                    } else item.textContent = context;
-                    contexts.append(item);
-                }
-                info.append(contexts);
-                if (group.case_context_count > group.case_contexts.length) {
-                    info.append(element("p", gettext("More case types are available. Choose a court to see its full filing paths.")));
-                }
-            }
-            if (group.variants.length > 1) {
-                info.append(element("p", gettext("Also listed as:") + " " + group.variants.slice(1).join("; ")));
-            }
-            const choose = element("button", gettext("Choose a court"), "btn btn-outline-primary");
-            choose.type = "button";
-            choose.setAttribute("aria-label", interpolate(gettext("Choose a court for %(name)s"), {
-                name: group.name
-            }, true));
-            const panel = element("div", "", "code-search__group-panel");
-            panel.hidden = true;
-            const message = element("p");
-            message.setAttribute("role", "status");
-            const contextChoice = element("div");
-            contextChoice.hidden = true;
-            const contextLabel = element("span");
-            const resetContext = element("button", gettext("Show all case types"), "btn btn-link");
-            resetContext.type = "button";
-            contextChoice.append(contextLabel, resetContext);
-            const label = element("label", gettext("Court"));
-            const court = element("select", "", "form-select form-select-sm");
-            court.id = `code-search-court-${group.key}`;
-            label.htmlFor = court.id;
-            const paths = element("div");
-            const next = element("button", gettext("Show more paths in this court"), "btn btn-link");
-            next.type = "button";
-            next.hidden = true;
-            const courtControls = element("div", "", "code-search__court-controls");
-            courtControls.append(label, court, message);
-            panel.append(contextChoice, courtControls, paths, next);
-            row.append(choose, panel);
-            results.append(row);
-            const token = generation;
-            const signal = controller.signal;
-            let detailGeneration = 0;
-            let courtGeneration = 0;
-            let contextKey = "";
-            let pathOffset = 0;
-
-            async function loadPaths(append = false) {
-                const detailToken = ++detailGeneration;
-                if (!append) {
-                    pathOffset = 0;
-                    paths.replaceChildren();
-                    selected = null;
-                    apply.disabled = true;
-                    for (const input of results.querySelectorAll('input[name="code-search-result"]')) input.checked = false;
-                }
-                next.hidden = true;
-                if (!court.value) {
-                    message.textContent = gettext("Choose a court to see its case types and filing paths.");
-                    return;
-                }
-                message.textContent = gettext("Loading filing paths…");
-                try {
-                    const data = await request({
-                        q: searchText,
-                        group: group.key,
-                        context: contextKey,
-                        court: court.value,
-                        offset: pathOffset
-                    }, signal);
-                    if (token !== generation || detailToken !== detailGeneration || !dialog.open) return;
-                    for (const path of data.results) addResult(path, paths, group);
-                    pathOffset += data.results.length;
-                    message.textContent = data.total ? gettext("Choose your case type.") : gettext("No matching paths in this court.");
-                    next.hidden = pathOffset >= data.total || pathOffset >= 10000;
-                } catch (error) {
-                    if (token === generation && detailToken === detailGeneration && error.name !== "AbortError") message.textContent = error.message;
-                }
-            }
-
-            court.addEventListener("change", () => loadPaths());
-            next.addEventListener("click", () => loadPaths(true));
-            async function loadCourts() {
-                const courtToken = ++courtGeneration;
-                ++detailGeneration;
-                paths.replaceChildren();
-                selected = null;
-                apply.disabled = true;
-                next.hidden = true;
-                for (const input of results.querySelectorAll('input[name="code-search-result"]')) input.checked = false;
-                const previousCourt = court.value;
-                choose.disabled = true;
-                panel.hidden = false;
-                court.disabled = true;
-                message.textContent = gettext("Loading courts…");
-                try {
-                    const data = await request({
-                        q: searchText,
-                        group: group.key,
-                        context: contextKey
-                    }, signal);
-                    if (token !== generation || courtToken !== courtGeneration || !dialog.open) return;
-                    court.replaceChildren(element("option", gettext("Choose a court")));
-                    court.firstElementChild.value = "";
-                    const preferred = previousCourt || document.getElementById("court_code")?.value;
-                    const prioritized = [];
-                    for (const item of data.courts) {
-                        if (item.code === preferred) prioritized.unshift(item);
-                        else prioritized.push(item);
-                    }
-                    for (const item of prioritized) {
-                        const option = element("option", item.name);
-                        option.value = item.code;
-                        court.append(option);
-                    }
-                    if (prioritized[0]?.code === preferred) court.value = preferred;
-                    court.disabled = false;
-                    choose.hidden = true;
-                    court.focus();
-                    await loadPaths();
-                } catch (error) {
-                    if (token === generation && courtToken === courtGeneration && error.name !== "AbortError") {
-                        message.textContent = error.message;
-                        choose.disabled = false;
-                    }
-                }
-            }
-            choose.addEventListener("click", loadCourts);
-            resetContext.addEventListener("click", () => {
-                contextKey = "";
-                contextChoice.hidden = true;
-                loadCourts();
+            const choice = {
+                group,
+                query: searchText
+            };
+            const {
+                row
+            } = choiceRow(group.name, () => {
+                chosen = choice;
+                updateNext();
             });
-        }
-
-        function clearResults() {
-            results.querySelectorAll(".code-search__result").forEach(row => row.remove());
-        }
-
-        function facetSelect(facet) {
-            const wrapper = element("div");
-            const id = `code-search-facet-${facet.key}`;
-            const label = element("label", facet.label);
-            label.htmlFor = id;
-            const select = element("select", "", "form-select form-select-sm");
-            select.id = id;
-            select.dataset.caseFacet = facet.key;
-            const any = element("option", facet.key === "topic" ? gettext("All case areas") : gettext("Any / not sure"));
-            any.value = facet.key === "topic" ? "all" : "";
-            select.append(any);
-            for (const choice of facet.options) {
-                const option = element("option", choice.label);
-                option.value = choice.value;
-                select.append(option);
+            row.classList.add("code-search__group");
+            const meta = [contextSummary(group), relatedTerms(group)].filter(Boolean).join(" · ");
+            if (meta) {
+                const summaryLine = element("p", meta, "code-search__meta");
+                summaryLine.title = meta;
+                row.append(summaryLine);
             }
-            select.value = facet.key === "topic" ? caseTopic || "all" : caseChoices[facet.key] || "";
-            wrapper.append(label, select);
-            return wrapper;
+            addMeanings(group, row);
+            results.append(row);
         }
 
-        function facetRadios(facet) {
-            const fieldset = element("fieldset");
-            fieldset.append(element("legend", facet.label));
-            for (const choice of [{
-                    value: "",
-                    label: gettext("Any")
-                }, ...facet.options]) {
-                const label = element("label");
-                const input = element("input");
-                input.type = "radio";
-                input.name = `code-search-${facet.key}`;
-                input.id = `code-search-${facet.key}-${choice.value || "any"}`;
-                input.dataset.caseFacet = facet.key;
-                input.value = choice.value;
-                input.checked = choice.value === (caseChoices[facet.key] || "");
-                label.append(input, document.createTextNode(choice.label));
-                fieldset.append(label);
+        // Ungrouped results are already full paths, so they skip the court step.
+        function addPath(path) {
+            const {
+                row
+            } = choiceRow(path.filing_type.name, () => {
+                chosen = {
+                    path
+                };
+                updateNext();
+            }, Boolean(path.unavailable));
+            row.append(element("p", `${path.case_context || path.case_type.name} · ${path.court.name}`, "code-search__meta"));
+            if (path.unavailable) row.append(element("p", path.unavailable));
+            results.append(row);
+        }
+
+        function topicLabel(value) {
+            return lastFacets?.case_topics.find(item => item.value === value)?.label || "";
+        }
+
+        // Only rows ranked by how many results they hold collapse; a fixed
+        // question's choices always show.
+        function question(key, label, options, pressed, collapsible = false) {
+            const row = element("div", "", "code-search__question");
+            row.setAttribute("role", "group");
+            const name = element("span", label, "code-search__question-label");
+            name.id = `code-search-question-${key}`;
+            row.setAttribute("aria-labelledby", name.id);
+            const chips = element("div", "", "code-search__chips");
+            // "Not sure" (last) and the current answer always stay visible.
+            const collapse = collapsible && options.length > CHIPS_SHOWN + 2 && !expanded.has(key);
+            const shown = collapse ?
+                options.filter((option, index) => index < CHIPS_SHOWN || index === options.length - 1 || option.value === pressed) :
+                options;
+            for (const option of shown) {
+                const button = chip(option.label, option.value === pressed, {
+                    caseFacet: key,
+                    value: option.value
+                });
+                button.id = `code-search-chip-${key}-${option.value || "any"}`;
+                if (option.count) button.append(element("span", String(option.count), "code-search__chip-count"));
+                chips.append(button);
             }
-            return fieldset;
+            if (collapse) {
+                const moreChips = element("button", interpolate(gettext("%(count)s more"), {
+                    count: options.length - shown.length
+                }, true), "code-search__chip code-search__chip--more");
+                moreChips.type = "button";
+                moreChips.id = `code-search-chip-${key}-more`;
+                moreChips.dataset.expand = key;
+                moreChips.setAttribute("aria-label", interpolate(gettext("Show %(count)s more choices for %(question)s"), {
+                    count: options.length - shown.length,
+                    question: label
+                }, true));
+                chips.insertBefore(moreChips, chips.lastElementChild);
+            }
+            row.append(name, chips);
+            caseFilters.append(row);
+            return row;
+        }
+
+        function addFacetHelp(facet, open) {
+            const facetHelp = element("details", "", "code-search__amount-help");
+            const toggle = element("summary", gettext("About claim amounts"));
+            facetHelp.id = `code-search-help-${facet.key}`;
+            toggle.id = `${facetHelp.id}-toggle`;
+            facetHelp.open = open;
+            facetHelp.append(toggle, element("p", facet.help));
+            if (facet.source) facetHelp.append(link(gettext("Court guidance"), facet.source));
+            caseFilters.append(facetHelp);
         }
 
         function renderCaseFilters(data) {
+            lastFacets = data;
             caseTopic = data.case_topic || "";
-            caseFilters.hidden = !data.case_topics.length && !Object.keys(caseChoices).length;
-            const schema = JSON.stringify([caseTopic, data.case_topics, data.case_facets]);
+            const actions = data.actions || [];
+            const askAction = action || (data.total >= ACTION_QUESTION_MIN && actions.length > 1);
+            const askTopic = data.case_topics.length > 1;
+            const categories = data.categories || [];
+            const askCategory = category || categories.length > 1;
+            const schema = JSON.stringify([caseTopic, caseChoices, action, category, [...expanded], askAction && actions, askCategory && categories, askTopic, data.case_topics, data.case_facets]);
+            caseFilters.hidden = !askAction && !askTopic && !askCategory && !data.case_facets.length;
             if (schema === caseFilterSchema) return;
             caseFilterSchema = schema;
             const focused = caseFilters.contains(document.activeElement) ? document.activeElement.id : "";
+            const opened = new Set(Array.from(caseFilters.querySelectorAll("details[open]"), item => item.id));
             caseFilters.replaceChildren();
-            caseFilters.append(facetSelect({
-                key: "topic",
-                label: gettext("Case area"),
-                options: data.case_topics
-            }));
+            const notSure = gettext("Not sure");
+            if (askAction) question("action", gettext("What do you want to do?"), [...actions, {
+                value: "",
+                label: notSure
+            }], action);
+            if (askTopic) question("topic", gettext("Kind of case"), [...data.case_topics, {
+                value: "all",
+                label: notSure
+            }], caseTopic || "all", true);
+            if (askCategory) question("category", gettext("Case category"), [...categories, {
+                value: "",
+                label: notSure
+            }], category, true);
             for (const facet of data.case_facets) {
-                caseFilters.append(facet.control === "select" ? facetSelect(facet) : facetRadios(facet));
-                if (facet.help) {
-                    const help = element("details", "", "code-search__amount-help");
-                    help.append(element("summary", gettext("About claim amounts")), element("p", facet.help));
-                    if (facet.source) {
-                        const source = element("a", gettext("Court guidance"));
-                        source.href = facet.source;
-                        source.target = "_blank";
-                        source.rel = "noopener noreferrer";
-                        help.append(source);
-                    }
-                    caseFilters.append(help);
-                }
+                question(facet.key, facet.label, [...facet.options, {
+                    value: "",
+                    label: notSure
+                }], caseChoices[facet.key] || "");
+                if (facet.help) addFacetHelp(facet, opened.has(`code-search-help-${facet.key}`));
             }
-            if (data.case_facets.length) caseFilters.append(element("p", gettext("Options with unspecified details stay included."), "code-search__meta"));
-            if (focused) document.getElementById(focused)?.focus();
+            if (focused) byId(focused)?.focus();
         }
 
-        function showSearchSummary(data) {
-            if (data.case_topics) renderCaseFilters(data);
-            const template = data.groups ?
-                gettext("Showing %(shown)s of %(total)s filing types.") :
-                gettext("Showing %(shown)s of %(total)s matching paths.");
-            status.textContent = data.total ? interpolate(template, {
-                    shown: offset,
-                    total: data.total
-                }, true) :
-                gettext("No matching paths. Try fewer words, another term, or the court lists.");
-            if (data.location_counties?.length) status.textContent += " " + interpolate(gettext("Counties: %(names)s."), {
-                names: data.location_counties.join(", ")
+        function resetCaseFilters() {
+            caseTopic = "";
+            caseChoices = {};
+            caseFilterSchema = "";
+            action = "";
+            category = "";
+            expanded.clear();
+            lastFacets = null;
+            caseFilters.hidden = true;
+        }
+
+        function showZipStatus(counties) {
+            lastCounties = counties;
+            const typed = postalCode.value.trim();
+            zipStatus.textContent = "";
+            if (typed && !ZIP_PATTERN.test(typed)) zipStatus.textContent = gettext("Enter all 5 digits.");
+            else if (counties.length) zipStatus.textContent = interpolate(ngettext("%(zip)s is in %(names)s County.", "%(zip)s is in %(names)s counties.", counties.length), {
+                zip: typed.slice(0, 5),
+                names: list(counties)
             }, true);
-            if (data.corrected_terms.length) status.textContent += " " + gettext("Similar spellings were included.");
-            if (data.stale) status.textContent += " " + gettext("These lists may be out of date. We will check your choice with the court.");
-            more.hidden = offset >= data.total || offset >= 10000;
+            renderZipShortcuts();
+        }
+
+        function renderZipShortcuts() {
+            const typed = postalCode.value.trim().slice(0, 5);
+            const options = zipShortcuts.filter(item => item.zip !== typed);
+            zipShortcutList.hidden = !options.length;
+            zipShortcutList.replaceChildren();
+            const own = options.find(item => item.kind === "address");
+            const recent = options.filter(item => item.kind === "recent");
+            const shortcut = (text, zip, label) => {
+                const button = element("button", text, "code-search__link");
+                button.type = "button";
+                button.dataset.zipShortcut = zip;
+                if (label) button.setAttribute("aria-label", label);
+                return button;
+            };
+            if (own) {
+                zipShortcutList.append(shortcut(interpolate(gettext("Use your ZIP (%(zip)s)"), {
+                    zip: own.zip
+                }, true), own.zip));
+            }
+            if (recent.length) {
+                if (own) zipShortcutList.append(" · ");
+                zipShortcutList.append(gettext("Recent:") + " ");
+                recent.forEach((item, index) => {
+                    if (index) zipShortcutList.append(", ");
+                    zipShortcutList.append(shortcut(item.zip, item.zip, interpolate(gettext("Use recent ZIP %(zip)s"), {
+                        zip: item.zip
+                    }, true)));
+                });
+            }
+        }
+
+        function zipChanged() {
+            const typed = postalCode.value.trim();
+            if (typed && !ZIP_PATTERN.test(typed)) {
+                showZipStatus([]);
+                return;
+            }
+            if (typed === activeZip) return showZipStatus(lastCounties);
+            activeZip = typed;
+            invalidate();
+            clearResults();
+            showZipStatus([]);
+            timer = setTimeout(() => search(), 350);
+        }
+
+        function showOtherStage(count) {
+            otherStage.hidden = !count;
+            otherStage.textContent = stage === "yes" ?
+                interpolate(ngettext("%(count)s result in “new case” filings", "%(count)s results in “new case” filings", count), {
+                    count
+                }, true) :
+                interpolate(ngettext("%(count)s result in “existing case” filings", "%(count)s results in “existing case” filings", count), {
+                    count
+                }, true);
+        }
+
+        function markSharedPrefixes() {
+            const prefixes = Array.from(results.querySelectorAll("[data-prefix]"));
+            const counts = {};
+            for (const node of prefixes) counts[node.dataset.prefix] = (counts[node.dataset.prefix] || 0) + 1;
+            for (const node of prefixes) node.classList.toggle("is-shared", counts[node.dataset.prefix] >= 3);
+        }
+
+        function showSearchSummary(data, text) {
+            markSharedPrefixes();
+            if (data.case_topics || data.categories) renderCaseFilters({
+                case_topics: [],
+                case_facets: [],
+                ...data
+            });
+            showZipStatus(data.location_counties || []);
+            strongTotal = data.strong_total || 0;
+            const narrowed = !showAll && strongTotal && strongTotal < data.total;
+            const shownTotal = narrowed ? strongTotal : data.total;
+            if (!data.total) status.textContent = gettext("No matching filing types. Try fewer words or another term.");
+            else if (narrowed) status.textContent = interpolate(ngettext("%(count)s filing type matches “%(query)s”", "%(count)s filing types match “%(query)s”", strongTotal), {
+                count: strongTotal,
+                query: text
+            }, true);
+            else status.textContent = interpolate(ngettext("%(total)s filing type", "%(total)s filing types", data.total), {
+                total: data.total
+            }, true);
+            if (data.corrected_terms.length) status.textContent += ". " + gettext("Similar spellings were included.");
+            if (data.stale) status.textContent += ". " + gettext("These lists may be out of date.");
+            // Only the first page carries it; later pages keep the link as is.
+            if (data.other_stage_total !== undefined && data.other_stage_total !== null) showOtherStage(data.other_stage_total);
+            const remaining = data.total - offset;
+            more.hidden = offset >= 10000 || remaining <= 0;
+            more.textContent = offset < shownTotal ? gettext("Show more") : interpolate(ngettext("Show %(count)s more filing type used in these case types", "Show %(count)s more filing types used in these case types", remaining), {
+                count: remaining
+            }, true);
         }
 
         async function search(append = false) {
@@ -494,10 +616,12 @@
             if (!append) {
                 invalidate();
                 offset = 0;
+                showAll = false;
                 clearResults();
             }
             suggestions.hidden = Boolean(text);
             results.hidden = !text;
+            if (!append) otherStage.hidden = true;
             if (!text) {
                 status.textContent = "";
                 return;
@@ -505,7 +629,7 @@
             const token = generation;
             controller ||= new AbortController();
             more.hidden = true;
-            status.textContent = gettext("Searching filing paths…");
+            status.textContent = gettext("Searching filing types…");
             try {
                 const data = await request({
                     q: text,
@@ -513,9 +637,9 @@
                 }, controller.signal);
                 if (token !== generation || !dialog.open) return;
                 if (data.groups) data.groups.forEach(group => addGroup(group, text));
-                else data.results.forEach(path => addResult(path));
+                else data.results.forEach(path => addPath(path));
                 offset += (data.groups || data.results).length;
-                showSearchSummary(data);
+                showSearchSummary(data, text);
             } catch (error) {
                 if (token === generation && error.name !== "AbortError") {
                     status.textContent = error.message;
@@ -527,21 +651,402 @@
             }
         }
 
+        function showStage() {
+            stageLabel.textContent = stage === "yes" ? gettext("Existing case") : gettext("New case");
+        }
+
+        // Step 2: court, then case type
+
+        function answers() {
+            const chosenLabels = [];
+            const chosenAction = lastFacets?.actions?.find(item => item.value === action);
+            if (chosenAction) chosenLabels.push(chosenAction.label);
+            if (category) chosenLabels.push(category);
+            if (caseTopic && caseTopic !== "all") chosenLabels.push(topicLabel(caseTopic));
+            for (const facet of lastFacets?.case_facets || []) {
+                const option = facet.options.find(item => item.value === caseChoices[facet.key]);
+                if (option) chosenLabels.push(option.label);
+            }
+            if (documentKind) chosenLabels.push(filterPanel.querySelector(`[data-document="${documentKind}"]`).textContent.trim());
+            return chosenLabels.filter(Boolean);
+        }
+
+        function renderSummary() {
+            summary.replaceChildren();
+            const add = (term, value) => {
+                if (!value) return;
+                summary.append(element("dt", term), element("dd", value));
+            };
+            add(gettext("Filing"), chosen.group.name);
+            add(gettext("Case"), stage === "yes" ? gettext("Existing case") : gettext("New case"));
+            if (activeZip) {
+                add(gettext("Case ZIP"), lastCounties.length ? interpolate(gettext("%(zip)s · %(names)s"), {
+                    zip: activeZip,
+                    names: list(lastCounties)
+                }, true) : activeZip);
+            }
+            add(gettext("Your answers"), answers().join(" · "));
+        }
+
+        async function loadCourts() {
+            resetPaths();
+            const target = chosen;
+            loadedFor = target;
+            const token = pathGeneration;
+            pathController = new AbortController();
+            renderSummary();
+            courtsBox.replaceChildren();
+            paths.replaceChildren();
+            caseTypes.hidden = true;
+            morePaths.hidden = true;
+            updateNext();
+            pathStatus.textContent = gettext("Loading courts…");
+            try {
+                const data = await request({
+                    q: target.query,
+                    group: target.group.key
+                }, pathController.signal);
+                if (token !== pathGeneration || !dialog.open) return;
+                const preferred = court || byId("court_code")?.value;
+                const courts = [...data.courts].sort((a, b) => (b.code === preferred) - (a.code === preferred));
+                if (courts.some(item => item.code === preferred)) court = preferred;
+                else court = courts.length === 1 ? courts[0].code : "";
+                if (!courts.length) {
+                    pathStatus.textContent = gettext("No court accepts this filing with your answers. Go back and change them.");
+                    return;
+                }
+                renderCourts(courts);
+                await loadPaths();
+            } catch (error) {
+                if (token === pathGeneration && error.name !== "AbortError") pathStatus.textContent = error.message;
+            }
+        }
+
+        function renderCourts(courts) {
+            const question = gettext("Which court will hear the case?");
+            if (courts.length <= COURT_CARD_LIMIT) {
+                const fieldset = element("fieldset", "", "code-search__courts");
+                fieldset.append(element("legend", question));
+                const grid = element("div", "", "code-search__court-cards");
+                for (const item of courts) {
+                    const label = element("label", "", "code-search__card");
+                    const radio = element("input");
+                    radio.type = "radio";
+                    radio.name = "code-search-court";
+                    radio.value = item.code;
+                    radio.checked = item.code === court;
+                    radio.addEventListener("change", () => {
+                        court = item.code;
+                        loadPaths();
+                    });
+                    label.append(radio, element("span", item.name));
+                    grid.append(label);
+                }
+                fieldset.append(grid);
+                courtsBox.append(fieldset);
+            } else {
+                const wrapper = element("div", "", "code-search__courts");
+                const label = element("label", question);
+                const select = element("select", "", "form-select");
+                select.id = "code-search-court";
+                label.htmlFor = select.id;
+                const blank = element("option", gettext("Choose a court"));
+                blank.value = "";
+                select.append(blank);
+                for (const item of courts) {
+                    const option = element("option", item.name);
+                    option.value = item.code;
+                    select.append(option);
+                }
+                select.value = court;
+                select.addEventListener("change", () => {
+                    court = select.value;
+                    loadPaths();
+                });
+                wrapper.append(label, select);
+                courtsBox.append(wrapper);
+            }
+        }
+
+        function addCaseType(path) {
+            const row = element("div", "", "code-search__result code-search__path-choice");
+            const label = element("label", "", "code-search__choice");
+            const radio = element("input");
+            radio.type = "radio";
+            radio.name = "code-search-result";
+            radio.value = path.id;
+            radio.disabled = Boolean(path.unavailable);
+            label.append(radio, element("span", path.case_context || path.case_type.name));
+            row.append(label);
+            const described = [];
+            if ((path.filing_label || path.filing_type.name).toLowerCase() !== chosen.group.name.toLowerCase()) {
+                const variant = element("p", interpolate(gettext("This court calls it “%(name)s”."), {
+                    name: path.filing_type.name
+                }, true), "code-search__variant");
+                variant.id = `code-search-variant-${path.id}`;
+                described.push(variant.id);
+                row.append(variant);
+            }
+            if (path.case_description) {
+                const description = element("p", path.case_description, "code-search__case-description");
+                description.id = `code-search-description-${path.id}`;
+                described.push(description.id);
+                row.append(description);
+            }
+            if (described.length) radio.setAttribute("aria-describedby", described.join(" "));
+            if (path.unavailable) row.append(element("p", path.unavailable));
+            radio.addEventListener("change", () => {
+                selected = path;
+                updateNext();
+            });
+            paths.append(row);
+        }
+
+        function qualifierValue(path, key) {
+            const value = path.qualifiers?.[key];
+            return key === "amount" ? value?.value || "" : value || "";
+        }
+
+        function qualifierChoices(questionSpec, pathList) {
+            const values = new Map();
+            for (const path of pathList) {
+                const value = qualifierValue(path, questionSpec.key);
+                if (!value) continue;
+                const label = questionSpec.key === "amount" ? path.qualifiers.amount.label : questionSpec.options[value]?.();
+                values.set(value, label || value);
+            }
+            return values;
+        }
+
+        // Each question's choices, from the paths the earlier answers leave.
+        function askedQuestions() {
+            let remaining = courtPaths;
+            const asked = [];
+            for (const questionSpec of PATH_QUESTIONS) {
+                const values = qualifierChoices(questionSpec, remaining);
+                if (values.size < 2) continue;
+                let answer = pathAnswers[questionSpec.key] ?? questionSpec.assume ?? "";
+                if (!values.has(answer)) answer = "";
+                asked.push({
+                    ...questionSpec,
+                    answer,
+                    choices: [...values].sort(([a], [b]) => String(a).localeCompare(String(b), undefined, {
+                        numeric: true
+                    }))
+                });
+                // A path that doesn't say stays in, as with step 1's questions.
+                if (answer) remaining = remaining.filter(path => [answer, ""].includes(qualifierValue(path, questionSpec.key)));
+            }
+            return {
+                asked,
+                remaining
+            };
+        }
+
+        function renderCaseTypes() {
+            const {
+                asked,
+                remaining
+            } = askedQuestions();
+            const focused = pathQuestions.contains(document.activeElement) ? document.activeElement.id : "";
+            pathQuestions.replaceChildren();
+            for (const item of asked) {
+                const row = element("div", "", "code-search__question");
+                row.setAttribute("role", "group");
+                const name = element("span", item.label(), "code-search__question-label");
+                name.id = `code-search-path-question-${item.key}`;
+                row.setAttribute("aria-labelledby", name.id);
+                const chips = element("div", "", "code-search__chips");
+                for (const [value, label] of [...item.choices, ["", gettext("Not sure")]]) {
+                    const button = chip(label, value === item.answer, {
+                        pathQuestion: item.key,
+                        value
+                    });
+                    button.id = `code-search-path-chip-${item.key}-${value || "any"}`;
+                    chips.append(button);
+                }
+                row.append(name, chips);
+                pathQuestions.append(row);
+            }
+            pathQuestions.hidden = !asked.length;
+            if (focused) byId(focused)?.focus();
+            if (selected && !remaining.includes(selected)) selected = null;
+            paths.replaceChildren();
+            const terms = new Map(remaining.flatMap(path => path.glossary || []).map(term => [term.key, term]));
+            addGlossary([...terms.values()], paths);
+            remaining.forEach(addCaseType);
+            for (const radio of paths.querySelectorAll("input")) radio.checked = String(selected?.id) === radio.value;
+            caseTypes.hidden = !remaining.length;
+            pathStatus.textContent = remaining.length ?
+                interpolate(ngettext("%(count)s case type fits", "%(count)s case types fit", remaining.length), {
+                    count: remaining.length
+                }, true) : gettext("No matching case types in this court.");
+            updateNext();
+        }
+
+        async function loadPaths(append = false) {
+            const token = ++pathGeneration;
+            pathController?.abort();
+            pathController = new AbortController();
+            if (!append) {
+                pathOffset = 0;
+                courtPaths = [];
+                paths.replaceChildren();
+                pathQuestions.hidden = true;
+                selected = null;
+                updateNext();
+            }
+            morePaths.hidden = true;
+            if (!court) {
+                caseTypes.hidden = true;
+                pathStatus.textContent = gettext("Choose a court to see its case types.");
+                return;
+            }
+            pathStatus.textContent = gettext("Loading case types…");
+            try {
+                const data = await request({
+                    q: chosen.query,
+                    group: chosen.group.key,
+                    court,
+                    offset: pathOffset,
+                    limit: 500
+                }, pathController.signal);
+                if (token !== pathGeneration || !dialog.open) return;
+                courtPaths = courtPaths.concat(data.results);
+                pathOffset += data.results.length;
+                renderCaseTypes();
+                morePaths.hidden = pathOffset >= data.total || pathOffset >= 10000;
+            } catch (error) {
+                if (token === pathGeneration && error.name !== "AbortError") pathStatus.textContent = error.message;
+            }
+        }
+
+        // Step 3: check and use
+
+        function renderConfirm() {
+            confirmList.replaceChildren();
+            applyStatus.textContent = "";
+            const row = (term, value, note, changeStep, changeLabel) => {
+                const item = element("div", "", "code-search__confirm-row");
+                const detail = element("dd");
+                const text = element("span", "", "code-search__confirm-value");
+                text.append(element("span", value));
+                if (note) text.append(element("span", note, "code-search__meta"));
+                detail.append(text);
+                if (changeStep) {
+                    const change = element("button", gettext("Change"), "code-search__link");
+                    change.type = "button";
+                    change.dataset.codeSearchStep = changeStep;
+                    change.append(element("span", " " + changeLabel, "visually-hidden"));
+                    detail.append(change);
+                }
+                item.append(element("dt", term), detail);
+                confirmList.append(item);
+            };
+            const viaGroup = !chosen?.path;
+            row(gettext("Court"), selected.court.name, "", viaGroup && "path", gettext("court"));
+            row(gettext("Case category"), selected.case_category.name);
+            row(gettext("Case type"), selected.case_type.name, selected.case_description, viaGroup && "path", gettext("case type"));
+            const renamed = viaGroup && selected.filing_type.name.toLowerCase() !== chosen.group.name.toLowerCase();
+            row(gettext("Filing type"), selected.filing_type.name, renamed ? interpolate(gettext("This court's name for “%(name)s”"), {
+                name: chosen.group.name
+            }, true) : "", "filing", gettext("filing type"));
+            explanation.replaceChildren();
+            addGlossary(selected.glossary, explanation);
+            if (selected.explanation) explanation.append(element("p", selected.explanation));
+            if (selected.case_guidance?.source) explanation.append(link(gettext("About this case type"), selected.case_guidance.source));
+            if (selected.explanation_source) explanation.append(link(gettext("Court information"), selected.explanation_source));
+            explanation.hidden = !explanation.children.length;
+        }
+
+        // Events
+
         open.disabled = false;
         open.addEventListener("click", () => {
-            stage.value = existingCase();
+            stage = existingCase();
+            showStage();
+            showStep("filing", {
+                focus: false
+            });
+            showZipStatus(lastCounties);
             dialog.showModal();
             query.focus();
             search();
         });
-        filters.forEach(filter => filter.addEventListener("change", () => search()));
         query.addEventListener("input", () => {
             resetCaseFilters();
             invalidate();
             clearResults();
-            status.textContent = gettext("Searching filing paths…");
+            status.textContent = gettext("Searching filing types…");
             if (!query.value.trim()) search();
             else timer = setTimeout(() => search(), 250);
+        });
+        query.addEventListener("keydown", event => {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                search();
+            }
+        });
+        postalCode.addEventListener("input", zipChanged);
+        zipShortcutList.addEventListener("click", event => {
+            const button = event.target.closest("[data-zip-shortcut]");
+            if (!button) return;
+            postalCode.value = button.dataset.zipShortcut;
+            postalCode.focus();
+            zipChanged();
+        });
+
+        function switchStage() {
+            stage = stage === "yes" ? "no" : "yes";
+            showStage();
+            search();
+        }
+        stageToggle.addEventListener("click", switchStage);
+        otherStage.addEventListener("click", () => {
+            switchStage();
+            query.focus();
+        });
+
+        function showFilterToggle() {
+            moreFilters.setAttribute("aria-expanded", String(!filterPanel.hidden));
+            if (!filterPanel.hidden) moreFilters.textContent = gettext("Fewer filters");
+            else moreFilters.textContent = documentKind ? gettext("More filters (1)") : gettext("More filters");
+        }
+        moreFilters.addEventListener("click", () => {
+            filterPanel.hidden = !filterPanel.hidden;
+            showFilterToggle();
+        });
+        filterPanel.addEventListener("click", event => {
+            const button = event.target.closest("[data-document]");
+            if (!button) return;
+            documentKind = button.dataset.document;
+            pressOnly(button);
+            showFilterToggle();
+            search();
+        });
+        caseFilters.addEventListener("click", event => {
+            const expand = event.target.closest("[data-expand]");
+            if (expand) {
+                expanded.add(expand.dataset.expand);
+                caseFilterSchema = "";
+                renderCaseFilters(lastFacets);
+                // Focus the first choice that was hidden.
+                const chips = byId(`code-search-question-${expand.dataset.expand}`).nextElementSibling.children;
+                chips[Math.min(CHIPS_SHOWN, chips.length - 1)]?.focus();
+                return;
+            }
+            const button = event.target.closest("[data-case-facet]");
+            if (!button) return;
+            const key = button.dataset.caseFacet;
+            pressOnly(button);
+            if (key === "action") action = button.dataset.value;
+            else if (key === "category") category = button.dataset.value;
+            else if (key === "topic") {
+                caseTopic = button.dataset.value;
+                caseChoices = {};
+            } else if (button.dataset.value) caseChoices[key] = button.dataset.value;
+            else delete caseChoices[key];
+            search();
         });
         suggestions.addEventListener("click", event => {
             const button = event.target.closest("[data-code-query]");
@@ -550,24 +1055,34 @@
             query.focus();
             search();
         });
-        query.addEventListener("keydown", event => {
-            if (event.key === "Enter") {
-                event.preventDefault();
-                search();
-            }
+        more.addEventListener("click", () => {
+            if (offset >= strongTotal) showAll = true;
+            search(true);
         });
-        more.addEventListener("click", () => search(true));
+        morePaths.addEventListener("click", () => loadPaths(true));
+        pathQuestions.addEventListener("click", event => {
+            const button = event.target.closest("[data-path-question]");
+            if (!button) return;
+            pathAnswers[button.dataset.pathQuestion] = button.dataset.value;
+            renderCaseTypes();
+        });
+        next.addEventListener("click", goForward);
+        back.addEventListener("click", goBack);
+        dialog.addEventListener("click", event => {
+            const button = event.target.closest("[data-code-search-step]");
+            if (button && !applying) showStep(button.dataset.codeSearchStep);
+        });
 
         function close() {
             if (!applying) dialog.close();
         }
-        ["close-code-search", "cancel-code-search"].forEach(id => document.getElementById(id).addEventListener("click", close));
+        ["close-code-search", "cancel-code-search"].forEach(id => byId(id).addEventListener("click", close));
         dialog.addEventListener("cancel", event => {
             if (applying) event.preventDefault();
         });
         dialog.addEventListener("keydown", event => {
             if (event.key !== "Tab") return;
-            const controls = Array.from(dialog.querySelectorAll("button, input, select, a[href], summary, [tabindex]"))
+            const controls = Array.from(dialog.querySelectorAll("button, input, select, a[href], summary, [tabindex]:not([tabindex='-1'])"))
                 .filter(node => node.tabIndex >= 0 && !node.matches(":disabled") && node.getClientRects().length);
             const first = controls[0];
             const last = controls[controls.length - 1];
@@ -586,12 +1101,10 @@
         apply.addEventListener("click", async () => {
             if (!selected || applying) return;
             applying = true;
-            apply.disabled = true;
-            query.disabled = true;
-            filters.forEach(filter => filter.disabled = true);
-            results.inert = true;
-            more.disabled = true;
-            status.textContent = gettext("Checking this path with the court…");
+            updateNext();
+            back.disabled = true;
+            panels.confirm.inert = true;
+            applyStatus.textContent = gettext("Checking this path with the court…");
             try {
                 const data = await request({
                     path_id: selected.id
@@ -599,14 +1112,12 @@
                 await applyPath(data.path);
                 dialog.close();
             } catch (error) {
-                status.textContent = error.message;
-                apply.disabled = false;
+                applyStatus.textContent = error.message;
             } finally {
                 applying = false;
-                query.disabled = false;
-                filters.forEach(filter => filter.disabled = false);
-                results.inert = false;
-                more.disabled = false;
+                back.disabled = false;
+                panels.confirm.inert = false;
+                updateNext();
             }
         });
     }

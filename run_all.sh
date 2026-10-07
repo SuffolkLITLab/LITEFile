@@ -299,7 +299,7 @@ fi
 
 if [ "$START_CODE_INDEX_WORKER" = true ]; then
     log_info "Starting filing code index worker in background..."
-    CODE_INDEX_ARGS=(--interval 86400 --verbosity 2)
+    CODE_INDEX_ARGS=(--daily --retry-interval 900 --verbosity 2)
     if [ "$LEGACY_CODE_CRAWL" = true ]; then
         log_warn "Legacy code crawling is enabled: every refresh downloads and rebuilds the full catalog."
         CODE_INDEX_ARGS+=(--legacy-crawl)

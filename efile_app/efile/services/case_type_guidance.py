@@ -85,16 +85,21 @@ def case_guidance(jurisdiction, category, case_type, filing_name="", court_name=
     return result
 
 
+OTHER = "other"
+
+
 def matches_case_filters(guidance, role="", property_kind="", relief="", *, topic="", filters=None):
     choices = filters if filters is not None else {"role": role, "property": property_kind, "relief": relief}
     if topic and guidance.get("topic") != topic:
         return False
+    # Amounts are matched against the label (see ``matches_amount``), not guidance.
+    choices = {key: value for key, value in choices.items() if key != "amount"}
     if not any(choices.values()):
         return True
+    # "other" keeps only the case types none of a facet's options name.
     return bool(guidance) and all(
-        not value or guidance.get(key, "unknown") in (value, "unknown")
+        not value or guidance.get(key, "unknown") in ((value, "unknown") if value != OTHER else ("unknown",))
         for key, value in choices.items()
-        if key != "amount"
     )
 
 
@@ -140,11 +145,15 @@ def _money(cents):
 
 
 def amount_options(labels):
-    ranges = {
-        bounds
-        for label in labels
-        if (bounds := claim_range(label["case_type"]) or claim_range(label["category"])) is not None
-    }
+    ranges = set()
+    small_claims = set()
+    for label in labels:
+        bounds = claim_range(label["case_type"]) or claim_range(label["category"])
+        if bounds is None:
+            continue
+        ranges.add(bounds)
+        if re.search(r"\bsmall claims?\b", f"{label['category']} {label['case_type']}", re.IGNORECASE):
+            small_claims.add(bounds)
     if len(ranges) < 2:
         return []
     cuts = sorted({0, *(low for low, _ in ranges), *(high + 1 for _, high in ranges if high is not None)})
@@ -158,37 +167,54 @@ def amount_options(labels):
             bands[-1] = (bands[-1][0], high, members)
         else:
             bands.append((low, high, members))
+    # Name a band "small claims" only when it sets small claims apart from
+    # the others, as a civil search spanning both does.
+    marked = [bool(members & small_claims) for _, _, members in bands]
     return [
         {
             "value": f"{low}:{high if high is not None else ''}",
-            "label": f"{_money(low)} or more"
-            if high is None
-            else f"Up to {_money(high)}"
-            if low == 0
-            else f"{_money(low)}–{_money(high)}",
+            "label": (
+                f"{_money(low)} or more"
+                if high is None
+                else f"Up to {_money(high)}"
+                if low == 0
+                else f"{_money(low)}–{_money(high)}"
+            )
+            + (" (small claims)" if is_small and not all(marked) else ""),
         }
-        for low, high, _ in bands
+        for (low, high, _), is_small in zip(bands, marked, strict=True)
     ]
+
+
+def _valid_amount(value):
+    if value == "":
+        return True
+    if not isinstance(value, str) or not re.fullmatch(r"\d{1,12}:\d{0,12}", value):
+        return False
+    low, high = value.split(":")
+    return not high or int(low) <= int(high)
 
 
 def validate_case_filters(jurisdiction, topic, choices):
     if not isinstance(choices, dict) or len(choices) > 8:
         raise ValueError("Choose valid case-type filters.")
     if topic in ("", "all"):
-        if choices:
+        # A claim amount narrows any search; other details belong to a case area.
+        if set(choices) - {"amount"} or not _valid_amount(choices.get("amount", "")):
             raise ValueError("Choose a case area before narrowing its details.")
         return
     config = topic_config(jurisdiction, topic)
     if not config:
         raise ValueError("Choose a supported case area.")
-    allowed = {facet["key"]: {option["value"] for option in facet["options"]} for facet in config["facets"]}
+    allowed = {
+        facet["key"]: {option["value"] for option in facet["options"]} | ({OTHER} if facet.get("other") else set())
+        for facet in config["facets"]
+    }
     for key, value in choices.items():
         if not isinstance(value, str):
             raise ValueError("Choose valid case-type filters.")
-        if key == "amount" and topic == "small_claims" and re.fullmatch(r"\d{1,12}:\d{0,12}", value):
-            low, high = value.split(":")
-            if not high or int(low) <= int(high):
-                continue
+        if key == "amount" and _valid_amount(value):
+            continue
         if key not in allowed or value not in allowed[key] | {""}:
             raise ValueError("Choose valid case-type filters.")
 
@@ -217,45 +243,49 @@ def facet_metadata(jurisdiction, query, labels, topic="", choices=None):
                 {
                     "key": facet["key"],
                     "label": facet["label"],
-                    "options": [{"value": option["value"], "label": option["label"]} for option in facet["options"]],
+                    "options": [{"value": option["value"], "label": option["label"]} for option in facet["options"]]
+                    + ([{"value": OTHER, "label": facet["other"]}] if facet.get("other") else []),
                 }
             )
-    if selected == "small_claims":
-        applicable = [
-            label
-            for label in labels
-            if case_topic(jurisdiction, label["category"], label["case_type"]) == selected
-            and matches_case_filters(
-                case_guidance(jurisdiction, label["category"], label["case_type"], label["name"]), filters=choices or {}
-            )
-        ]
-        options = amount_options(applicable)
-        selected_amount = (choices or {}).get("amount")
-        if selected_amount and not any(option["value"] == selected_amount for option in options):
-            low, high = selected_amount.split(":")
-            options.append(
-                {
-                    "value": selected_amount,
-                    "label": f"{_money(int(low))}–{_money(int(high))}" if high else f"{_money(int(low))} or more",
-                }
-            )
-        limit = config.get("usual_limit_cents")
-        if limit:
-            for option in options:
-                low, high = option["value"].split(":")
-                if int(low) > limit or not high or int(high) > limit:
-                    option["label"] += " (check small-claims limit)"
-        if options or selected_amount:
-            facets.append(
-                {
-                    "key": "amount",
-                    "label": "Claim amount",
-                    "control": "select",
-                    "options": options,
-                    "help": config.get("amount_help", ""),
-                    "source": config["source"],
-                }
-            )
+    # Claim amounts narrow any search whose case types differ by amount -- a
+    # civil complaint search spanning small claims and larger claims, say --
+    # not only one already in small claims.
+    in_area = selected not in ("", "all")
+    applicable = [
+        label
+        for label in labels
+        if (not in_area or case_topic(jurisdiction, label["category"], label["case_type"]) == selected)
+        and matches_case_filters(
+            case_guidance(jurisdiction, label["category"], label["case_type"], label["name"]), filters=choices or {}
+        )
+    ]
+    options = amount_options(applicable)
+    selected_amount = (choices or {}).get("amount")
+    if selected_amount and not any(option["value"] == selected_amount for option in options):
+        low, high = selected_amount.split(":")
+        options.append(
+            {
+                "value": selected_amount,
+                "label": f"{_money(int(low))}–{_money(int(high))}" if high else f"{_money(int(low))} or more",
+            }
+        )
+    small_claims = selected == "small_claims"
+    limit = config.get("usual_limit_cents") if small_claims else None
+    if limit:
+        for option in options:
+            low, high = option["value"].split(":")
+            if int(low) > limit or not high or int(high) > limit:
+                option["label"] += " (check small-claims limit)"
+    if options or selected_amount:
+        facets.append(
+            {
+                "key": "amount",
+                "label": "How much are you asking for?",
+                "options": options,
+                "help": config.get("amount_help", "") if small_claims else "",
+                "source": config["source"] if small_claims else "",
+            }
+        )
     return {
         "case_topics": [{"value": key, "label": topic_config(jurisdiction, key)["label"]} for key in sorted(available)],
         "case_topic": selected,

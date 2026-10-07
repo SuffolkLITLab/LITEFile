@@ -89,7 +89,7 @@ services:
 
   code_index_worker:
     image: litefile:web
-    command: uv run python manage.py refresh_filing_code_index --interval 86400 --verbosity 2 --cache-dir /data/filing-code-cache
+    command: uv run python manage.py refresh_filing_code_index --daily --retry-interval 900 --verbosity 2 --cache-dir /data/filing-code-cache
     depends_on:
       web:
         condition: service_healthy

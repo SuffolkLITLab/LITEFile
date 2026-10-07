@@ -193,19 +193,22 @@ def _insert_paths(index, snapshot, count, progress):
                 progress(f"Saved {saved} of {count} changed filing paths")
 
 
-def synchronize_index(jurisdiction, *, progress=None, force=(), dry_run=False):
-    """Re-download courts whose revision changed, plus any court codes in ``force``.
+def synchronize_index(jurisdiction, *, progress=None, force=(), dry_run=False, catalog=None, full=False):
+    """Re-index courts whose revision changed, plus any court codes in ``force``.
 
-    ``dry_run`` downloads and checks everything, reports each changed court, and saves nothing.
+    ``catalog`` supplies courts (the proxy's HTTP export by default, or the local
+    copy of the EFSP database); ``full`` re-indexes every court. ``dry_run``
+    reads and checks everything, reports each changed court, and saves nothing.
     """
     started = timezone.now()
     baseline = FilingCodeIndex.objects.filter(jurisdiction=jurisdiction).first()
     previous = (
         baseline if baseline and baseline.source_url == source_url() and baseline.rules_digest == rules()[1] else None
     )
-    snapshots = previous.court_snapshots if previous else {}
+    snapshots = previous.court_snapshots if previous and not full else {}
     # Stage every changed court before publishing anything. A failure preserves the whole old index.
-    with closing(BulkCodeCatalog(jurisdiction)) as catalog, TemporaryDirectory(prefix="filing-sync-") as directory:
+    catalog = catalog or BulkCodeCatalog(jurisdiction)
+    with closing(catalog), TemporaryDirectory(prefix="filing-sync-") as directory:
         courts = catalog.manifest()
         if unknown := set(force) - set(courts):
             raise ValueError("Not filing courts in the proxy's catalog manifest: " + ", ".join(sorted(unknown)))
@@ -274,6 +277,10 @@ def synchronize_index(jurisdiction, *, progress=None, force=(), dry_run=False):
             index.rules_digest = rules()[1]
             index.refreshed_at = started
             index.court_snapshots = next_snapshots
-            index.vocabulary = {"words": sorted(vocabulary), "tokens": sorted(tokens)}
+            index.vocabulary = {
+                "words": sorted(vocabulary),
+                "tokens": sorted(tokens),
+                "courts": {code: court["name"] for code, court in courts.items()},
+            }
             index.save()
     return count

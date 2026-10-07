@@ -210,3 +210,35 @@ def find_courts(matcher: str, place: str, court_types: list[str], courts: list[d
         seen.add(court["value"])
         results.append({**court, "reason": match["reason"], "matched_name": match["name"]})
     return results
+
+
+def courts_for_postal_code(matcher: str, postal_code: str, courts: dict[str, str]) -> dict[str, set[str]] | None:
+    """Split ``courts`` (code -> name) by what the matcher says about a ZIP.
+
+    ``matched`` serve it; ``unknown`` are courts the matcher has no record of --
+    a statewide division, a court added to e-filing after the package's data --
+    which the caller places some other way. None when the ZIP places nowhere.
+    MACourts identifies courts by code; Vermont's units by name.
+    """
+
+    if matcher == "macourts":
+        finder = _finder()
+        matches = finder.find_by_postal_code(postal_code)
+        matched = {normalize_court_code(r.tyler_code) for m in matches for r in m.records if r.tyler_code}
+        known = {normalize_court_code(r.tyler_code) for r in finder.catalog.records if r.tyler_code}
+        keys = {code: normalize_court_code(code) for code in courts}
+    elif matcher == "vtcourts":
+        from vtcourts import Location
+
+        units = _vermont_finder().find_units(Location(postal_code=postal_code, state="Vermont"))
+        matched = {normalize_court_name(f"{unit.unit} Unit") for unit in units}
+        keys = {code: normalize_court_name(name) for code, name in courts.items()}
+        known = {key for key in keys.values() if key.endswith(" unit")}
+    else:
+        raise LocationLookupUnavailable(f"No court location lookup is configured for '{matcher}'.")
+    if not matched:
+        return None
+    return {
+        "matched": {code for code, key in keys.items() if key in matched},
+        "unknown": {code for code, key in keys.items() if key not in known},
+    }

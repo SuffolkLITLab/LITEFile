@@ -620,6 +620,37 @@ def test_endpoint_search_ignores_current_facets_and_validates_without_saving(sig
     assert signed_in.get(URL, {"jurisdiction": "massachusetts", "path_id": "bad"}).status_code == 400
 
 
+def test_using_a_path_remembers_its_zip_newest_first(signed_in, index, catalog, django_user_model):
+    path_id = signed_in.get(URL, {"jurisdiction": "massachusetts", "q": "eviction"}).json()["results"][0]["id"]
+    user = django_user_model.objects.get(username="searcher")
+    with patch("efile.api.filing_code_search.validate_path", return_value={}):
+        for postal_code in ("02108", "02139", "", "not-a-zip", "02108", "01060-1234", "02445"):
+            signed_in.get(URL, {"jurisdiction": "massachusetts", "path_id": path_id, "zip": postal_code})
+    user.refresh_from_db()
+    assert user.recent_case_zips == ["02445", "01060", "02108"]
+    with patch("efile.api.filing_code_search.validate_path", side_effect=ValueError("gone")):
+        signed_in.get(URL, {"jurisdiction": "massachusetts", "path_id": path_id, "zip": "02210"})
+    user.refresh_from_db()
+    assert user.recent_case_zips[0] == "02445"
+
+
+def test_zip_shortcuts_put_the_filers_own_zip_before_recent_ones(rf, django_user_model):
+    from efile.views.extraction_review import _zip_shortcuts
+
+    user = django_user_model.objects.create_user(
+        username="filer", tyler_jurisdiction="illinois", recent_case_zips=["60187", "60601"]
+    )
+    draft = FilingDraft.objects.create(user=user, jurisdiction="illinois")
+    FilingParty.objects.create(draft=draft, role="filer", zip_code="60601-1234")
+    request = rf.post("/")
+    request.user = user
+    request.session = {}
+    assert _zip_shortcuts(request, draft, "illinois") == [
+        {"zip": "60601", "kind": "address"},
+        {"zip": "60187", "kind": "recent"},
+    ]
+
+
 def test_management_command_attempts_each_jurisdiction_and_reports_failure():
     with patch(
         "efile.management.commands.refresh_filing_code_index.refresh_index", side_effect=[ValueError("bad"), 2, 3]
@@ -747,18 +778,100 @@ def test_zip_filter_scopes_groups_contexts_courts_and_paths(catalog):
 
 
 @pytest.mark.parametrize("postal_code", ["606", "00000", "abcde"])
-def test_zip_filter_rejects_invalid_or_unknown_zip(index, postal_code):
-    from efile.services.filing_code_search import zip_counties
+def test_zip_filter_rejects_invalid_or_unknown_zip(catalog, postal_code):
+    from efile.services.case_location import locate
 
+    refresh_index("illinois")
     with pytest.raises(ValueError):
-        zip_counties("illinois", postal_code)
+        locate(current_index("illinois"), postal_code)
 
 
 def test_zip_filter_preserves_multiple_counties():
-    from efile.services.filing_code_search import zip_counties
+    from efile.services.case_location import zip_counties
 
     with patch("efile.utils.zip_to_county_il.COUNTY_TO_ZIPS_IL", {"Cook": ["60601"], "Lake": ["60601"]}):
         assert zip_counties("illinois", "60601-1234") == ["Cook", "Lake"]
+
+
+def test_census_table_places_zips_in_every_state():
+    from efile.services.case_location import zip_counties
+
+    assert zip_counties("massachusetts", "02139") == ["Middlesex"]
+    assert zip_counties("vermont", "05602") == ["Washington"]
+    assert zip_counties("vermont", "02139") == []
+
+
+@pytest.mark.parametrize(
+    ("jurisdiction", "code", "name", "counties"),
+    [
+        ("illinois", "cook:cvd1", "Cook County - Civil", {"Cook"}),
+        ("illinois", "jodaviess", "Jo Daviess County", {"Jo Daviess"}),
+        ("vermont", "sc:grandisle", "Grand Isle Unit", {"Grand Isle"}),
+        (
+            "massachusetts",
+            "0965:BE",
+            "Juvenile Court -- Franklin-Hampshire County -- Belchertown",
+            {"Franklin", "Hampshire"},
+        ),
+        ("massachusetts", "490", "District Court - Cambridge", {"Middlesex"}),
+        ("illinois", "ilsc", "Illinois Supreme Court", set()),
+    ],
+)
+def test_courts_are_placed_by_county_in_their_code_or_name_or_by_town(jurisdiction, code, name, counties):
+    from efile.services.case_location import court_counties
+
+    assert set(court_counties(jurisdiction, code, name)) == counties
+
+
+def test_county_states_keep_courts_that_name_no_county(catalog):
+    from efile.services.case_location import locate
+
+    refresh_index("illinois")
+    index = current_index("illinois")
+    index.vocabulary["courts"] = {"cook:cvd1": "Cook County", "adams": "Adams County", "ilsc": "Supreme Court"}
+    assert locate(index, "60601") == {"counties": ["Cook"], "courts": ["cook:cvd1", "ilsc"]}
+
+
+def test_matcher_states_narrow_only_courts_the_matcher_knows(index):
+    from efile.services import court_location
+    from efile.services.case_location import locate
+
+    record = lambda code: Mock(tyler_code=code)  # noqa: E731
+    finder = Mock()
+    finder.find_by_postal_code.return_value = [Mock(records=[record("0490")])]
+    finder.catalog.records = [record("490"), record("500")]
+    index.vocabulary["courts"] = {
+        "490": "Cambridge",
+        "500": "Somewhere else",
+        "sjc": "Supreme Judicial Court",
+        "new-1": "District Court - Winchendon",
+        "new-2": "District Court - Somerville",
+    }
+    with patch.object(court_location, "_finder", return_value=finder):
+        # Courts MACourts doesn't know fall back to their town's county.
+        assert locate(index, "02139")["courts"] == ["490", "new-2", "sjc"]
+        finder.find_by_postal_code.return_value = []
+        with pytest.raises(ValueError):
+            locate(index, "02139")
+    finder.find_by_postal_code.assert_called_with("02139")
+
+
+def test_vermont_narrows_units_by_name_and_keeps_statewide_courts():
+    from efile.services import court_location
+
+    finder = Mock()
+    finder.find_units.return_value = [Mock(unit="Washington")]
+    courts = {"sc:washington": "Washington Unit", "sc:orange": "Orange Unit", "vermont:supreme": "Supreme Court"}
+    with patch.object(court_location, "_vermont_finder", return_value=finder):
+        assert court_location.courts_for_postal_code("vtcourts", "05602", courts) == {
+            "matched": {"sc:washington"},
+            "unknown": {"vermont:supreme"},
+        }
+
+
+def test_refresh_records_each_courts_name(catalog):
+    refresh_index("illinois")
+    assert current_index("illinois").vocabulary["courts"]
 
 
 def test_overlapping_words_do_not_need_a_synonym_explanation():
@@ -861,3 +974,203 @@ def test_small_claim_amount_filters_groups_courts_and_exact_paths(catalog):
     assert detail["total"] == 2
     assert len(search_grouped_paths(index, "small claims", group_key=group["key"], **args)["courts"]) == 2
     assert search_grouped_paths(index, "small claims")["groups"][0]["path_count"] == 6
+
+
+@pytest.mark.parametrize(
+    ("name", "action"),
+    [
+        ("Small Claims Complaint", "start"),
+        ("Answer/Response to Complaint/Petition", "respond"),
+        ("Response to Motion to Dismiss", "respond"),
+        ("Motion to Dismiss", "ask"),
+        ("Stipulation to Dismiss", "settle"),
+        ("Agreed Order", "settle"),
+        ("Petition for Dissolution of Marriage", "start"),
+        ("Petition to Modify Custody", "ask"),
+        ("Certificate of Service", "proof"),
+        ("Proposed Order", "order"),
+        ("Notice of Hearing", "notice"),
+        ("Additional Defendants", ""),
+    ],
+)
+def test_filing_names_map_to_a_plain_language_action(name, action):
+    from efile.services.filing_code_search import filing_action
+
+    assert filing_action(name) == action
+
+
+def test_jury_government_and_fee_variants_share_one_group():
+    from efile.services.filing_code_search import filing_group_key, unqualified_label
+
+    names = [
+        "Complaint / Petition - Fraud - Fee",
+        "Complaint / Petition - Fraud (Jury - 12) - Fee",
+        "Complaint / Petition - Fraud (Govn't) - Fee",
+        "Complaint / Petition - Fraud (Jury - 6) (Govn't)",
+    ]
+    assert {unqualified_label(name) for name in names} == {"Complaint / Petition - Fraud"}
+    assert len({filing_group_key(name, "illinois") for name in names}) == 1
+    assert filing_group_key("Complaint / Petition - Fraud", "illinois") != filing_group_key(
+        "Complaint / Petition - Breach Of Contract", "illinois"
+    )
+
+
+def test_name_matches_lead_and_case_only_matches_are_counted_apart():
+    from efile.services.filing_code_search import action_options, strong_matches
+
+    groups = [
+        {"name_rank": 24, "_labels": [{"name": "Small Claims Complaint"}]},
+        {"name_rank": 16, "_labels": [{"name": "Notice of Small Claims"}]},
+        {"name_rank": 8, "_labels": [{"name": "Claim Affidavit"}]},
+        {"name_rank": 0, "_labels": [{"name": "Affidavit"}, {"name": "Exhibit"}]},
+    ]
+    assert strong_matches(groups) == 2
+    assert strong_matches([{"name_rank": 0}]) == 0
+    assert action_options(groups) == [
+        {"value": "start", "label": "Start a case", "count": 1},
+        {"value": "proof", "label": "Supporting papers", "count": 2},
+        {"value": "notice", "label": "Notice", "count": 1},
+    ]
+
+
+def test_endpoint_filters_by_action_and_rejects_unknown_ones(signed_in, index):
+    params = {"jurisdiction": "massachusetts", "q": "eviction", "grouped": "true"}
+    data = signed_in.get(URL, params).json()
+    assert {"actions", "strong_total"} <= set(data)
+    assert signed_in.get(URL, {**params, "action": "bogus"}).status_code == 400
+    for option in data["actions"]:
+        narrowed = signed_in.get(URL, {**params, "action": option["value"]}).json()
+        assert narrowed["total"] == option["count"]
+
+
+@pytest.mark.parametrize(
+    ("category", "case_type", "filing", "expected"),
+    [
+        (
+            "Civil",
+            "Other Personal Injury Complaint - Jury - Self-Represented Litigant",
+            "Complaint / Petition - Personal Injury (Jury - 6) (Govn't) - Fee",
+            {"jury": "6", "representation": "self", "government": "yes", "amount": None},
+        ),
+        (
+            "Civil - Amount Claimed Greater Than $10,000",
+            "Personal Injury Complaint - Non-Jury",
+            "Complaint / Petition - Personal Injury - Fee",
+            {
+                "jury": "none",
+                "representation": "lawyer",
+                "government": "no",
+                "amount": {"value": "1000001:", "label": "More than $10,000"},
+            },
+        ),
+        (
+            "Civil",
+            "Personal Injury Complaint - Non-Jury- Small Claims $0 to $10,000- SRL",
+            "Complaint / Petition - Personal Injury - Fee",
+            {
+                "jury": "none",
+                "representation": "self",
+                "government": "no",
+                "amount": {"value": "0:1000000", "label": "$0 to $10,000"},
+            },
+        ),
+        (
+            "Personal Injury/Wrongful Death",
+            "Other Personal Injury/Wrongful Death - Jury Demand",
+            "Complaint / Petition - Personal Injury (Jury - 12) - Fee",
+            {"jury": "12", "representation": "lawyer", "government": "no", "amount": None},
+        ),
+    ],
+)
+def test_paths_are_tagged_with_the_choices_courts_code_separately(category, case_type, filing, expected):
+    from efile.services.filing_code_search import path_qualifiers
+
+    assert path_qualifiers(category, case_type, filing) == expected
+
+
+def test_glossary_finds_terms_once_with_state_wording():
+    from efile.services.glossary import glossary_for
+
+    terms = glossary_for(
+        "illinois", ["Complaint / Petition - Intentional Tort", "Personal Injury - Motor Vehicle Subrogation - SRL"]
+    )
+    assert [term["label"] for term in terms] == ["Intentional tort", "Subrogation"]
+    assert glossary_for("illinois", ["Tortious Interference? No: Torte Bakery"]) == []
+    assert "Illinois' older name" in glossary_for("illinois", ["Forcible Entry and Detainer"])[0]["text"]
+    assert glossary_for("massachusetts", ["Summary Process Complaint"])[0]["label"] == "Summary process"
+    assert glossary_for("illinois", ["Summary Process Complaint"]) == []
+
+
+def test_case_type_variants_are_shown_once_in_previews():
+    from efile.services.filing_code_search import case_contexts, unqualified_case_type
+
+    assert unqualified_case_type("Personal Injury Complaint - Non-Jury- Small Claims $0 to $10,000- SRL") == (
+        "Personal Injury Complaint"
+    )
+    assert unqualified_case_type("Other Personal Injury/Wrongful Death - Jury Demand") == (
+        "Other Personal Injury/Wrongful Death"
+    )
+    labels = [
+        {"category": "Civil", "case_type": name, "path_count": 1, "rank": 1}
+        for name in [
+            "Personal Injury Complaint - Jury",
+            "Personal Injury Complaint - Non-Jury - Self-Represented Litigant",
+        ]
+    ]
+    assert case_contexts(labels) == ["Civil › Personal Injury Complaint"]
+
+
+def test_fee_waivers_ask_the_court_rather_than_start_a_case():
+    from efile.services.filing_code_search import filing_action
+
+    assert filing_action("Fee Waiver Petition Filed - Petitioner/Plaintiff") == "ask"
+
+
+def test_endpoint_offers_and_applies_case_categories(signed_in, index):
+    params = {"jurisdiction": "massachusetts", "q": "eviction", "grouped": "true"}
+    data = signed_in.get(URL, params).json()
+    assert data["categories"] and all({"value", "label", "count"} <= set(item) for item in data["categories"])
+    first = data["categories"][0]
+    narrowed = signed_in.get(URL, {**params, "category": first["value"]}).json()
+    assert narrowed["total"] == first["count"]
+
+
+def test_data_files_have_no_duplicate_keys():
+    # YAML lets a repeated key silently replace the first, as a second
+    # "sealing:" concept once did.
+    from pathlib import Path
+
+    import yaml
+
+    class Strict(yaml.SafeLoader):
+        pass
+
+    def mapping(loader, node, deep=False):
+        keys = [loader.construct_object(key, deep=deep) for key, _ in node.value]
+        assert len(keys) == len(set(keys)), f"duplicate keys in {node.start_mark}"
+        return yaml.SafeLoader.construct_mapping(loader, node, deep)
+
+    Strict.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, mapping)
+    for path in (Path(__file__).resolve().parents[1] / "data").glob("*.yaml"):
+        yaml.load(path.read_text(), Loader=Strict)
+
+
+def test_seal_searches_find_impound_and_redaction_filings():
+    from efile.services.filing_code_search import search_tokens
+
+    for name in ["Impound/Seal", "Filed Under Seal", "Motion for Redaction & Confidential Filing"]:
+        assert "conceptsealing" in search_tokens(name, "illinois")
+    assert "conceptsealing" in search_tokens("seal eviction", "illinois", query=True)
+    assert "conceptsealing" not in search_tokens("Other Document Not Listed (Confidential)", "illinois")
+
+
+def test_other_stage_count_points_new_case_searches_at_existing_filings(catalog):
+    from efile.services.filing_code_search import search_grouped_paths
+
+    refresh_index("massachusetts")
+    index = current_index("massachusetts")
+    new = search_grouped_paths(index, "eviction", initial=True)
+    existing = search_grouped_paths(index, "eviction", initial=False)
+    assert new["other_stage_total"] == existing["total"]
+    assert existing["other_stage_total"] == new["total"]
+    assert search_grouped_paths(index, "eviction", initial=True, offset=20)["other_stage_total"] is None

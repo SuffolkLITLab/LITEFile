@@ -95,52 +95,104 @@ By default, LITEFile sends only the first 20 PDF pages for analysis. Set `DOCUME
 
 ### Filing code search index
 
-The `code_index_worker` builds search indexes for Illinois, Massachusetts, and
-Vermont at startup, then refreshes them daily. Keep one Machine running in this
-process group. It uses the same database and `EFSP_URL` as the web process.
-Database migrations create a PostgreSQL GIN full-text index or a SQLite FTS5
-inverted index automatically; pgvector and model downloads are not required.
-Both use the same stemmed words, thesaurus, and whole-word matching. SQLite
-looks up matching path IDs, jurisdiction, and new/existing-case status in FTS5
-before ranking and grouping results, rather than scanning every filing path.
-SQLite triggers keep the postings synchronized with catalog inserts, updates,
-deletes, and transaction rollbacks. An existing SQLite installation's first FTS5
-migration indexes its saved catalog locally; it does not fetch court data again.
+Filing codes come straight from the EFSP proxy's codes database. The proxy
+updates its codes from Tyler once a day (production at 02:13, test at 19:35
+Eastern). Each day at `FILING_CODE_SYNC_TIME` in `FILING_CODE_SYNC_TIMEZONE`, the
+`code_index_worker` copies every court whose codes changed into LITEFile's own
+database, then rebuilds the search index for those courts. Set the time well
+after the proxy's update: Fly staging, which uses the test EFSP, runs at 21:30
+Eastern. Production should run at about 04:30. Keep one Machine running in the
+`code_index_worker` process group.
 
-To refresh once, run these commands from `efile_app/` in the target environment:
+LITEFile connects with `EFSP_CODES_DATABASE_URL` and only ever reads. The court
+list and every court's tables are read in one `READ ONLY`, `REPEATABLE READ`
+transaction, so the copy is a consistent snapshot and the database refuses any
+write. Supabase's connection pooler ignores connection-level settings, which is
+why read-only is set per transaction. The queries match the proxy's own
+filing-catalog export: courts with all three installed code lists, non-criminal
+case categories, and filings that aren't court-use only.
+
+LITEFile connects as its own role, `litefile_codes_reader`, never with the
+proxy's credentials. The proxy keeps user data in the same database, so the role
+can read only the five code tables. It is also read only at the server, which
+holds even through Supabase's pooler. The test EFSP's database already has it.
+For another environment's database, run this once as its `postgres` role,
+with a new random password:
+
+```sql
+CREATE ROLE litefile_codes_reader LOGIN PASSWORD '<random>'
+  NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS
+  CONNECTION LIMIT 5;
+ALTER ROLE litefile_codes_reader SET default_transaction_read_only = on;
+ALTER ROLE litefile_codes_reader SET statement_timeout = '10min';
+GRANT CONNECT ON DATABASE postgres TO litefile_codes_reader;
+GRANT USAGE ON SCHEMA public TO litefile_codes_reader;
+GRANT SELECT ON public.location, public.installedversion, public.casecategory,
+  public.casetype, public.filing TO litefile_codes_reader;
+```
+
+Through Supabase's pooler, the user name is `litefile_codes_reader.<project ref>`:
+`postgresql://litefile_codes_reader.<project ref>:<password>@<pooler host>:5432/postgres?sslmode=require`.
+The proxy's nightly update reloads these tables' rows without dropping them, so
+the grants persist. If a proxy schema migration ever recreates one of them,
+grant `SELECT` on it again. Postgres lets every role create session-private
+temporary tables (a `PUBLIC` default that can't be revoked from one role). Those
+can't touch shared data, and the role's read-only default refuses them unless a
+client turns read-only off, which LITEFile never does.
+
+A court whose revision is unchanged is not read again. A court that suddenly
+has no filing types usually means the proxy's update is half finished, so the
+copy stops and keeps the old one. Failed states are retried every 15 minutes
+(`--retry-interval 900`), then the schedule returns to daily. On startup, the
+worker syncs immediately if any jurisdiction has no current index. That is the
+case on a fresh deployment, or after a search-rules change.
+
+#### Resync and rebuild from the staff tools
+
+Superusers see a **Filing codes** page in the staff tools (at the private `LITEFILE_STAFF_PATH`). It shows
+each jurisdiction's copy and index, recent runs, and two buttons, for one
+jurisdiction or all of them:
+
+- **Resync codes** copies changed courts from the EFSP now, then updates their
+  part of the index.
+- **Rebuild code search indexes** rebuilds the whole index from the copy already
+  in LITEFile, without contacting the EFSP. Use it after changing search rules
+  in `filing_code_search.yaml`.
+
+The buttons queue a job, which the code index worker starts within a minute.
+Each request is recorded in the staff audit log.
+
+#### From the command line
+
+Run these from `efile_app/` in the target environment:
 
 ```bash
 uv run python manage.py migrate --noinput
-uv run python manage.py refresh_filing_code_index
-# Or refresh just one state's complete catalog:
-uv run python manage.py refresh_filing_code_index --jurisdiction vermont
+uv run python manage.py refresh_filing_code_index                          # resync every state now
+uv run python manage.py refresh_filing_code_index --jurisdiction vermont   # one state
+uv run python manage.py refresh_filing_code_index --rebuild                # rebuild from the local copy
+uv run python manage.py refresh_filing_code_index --dry-run --jurisdiction vermont  # report changes only
+uv run python manage.py refresh_filing_code_index --daily                  # what the worker runs
 ```
 
-Fly's configuration uses `FILING_CODE_SYNC_MODE=legacy` so LITEFile can deploy
-before the proxy update, retaining the existing full crawler. After deploying the
-proxy's `filing_catalog` manifest and per-court bulk exports, change that setting
-to `bulk` and redeploy. The first bulk import rebuilds the catalog once;
-subsequent checks download and replace only changed courts.
-These endpoints read the proxy's installed code tables without contacting Tyler.
-LITEFile accesses them over HTTP, keeping the two databases separate.
+On the test EFSP, Vermont (22 courts, about 1.1 million search paths) copies and
+indexes in about two minutes. A run with nothing changed takes seconds.
 
-Downloads finish before changed courts are replaced in one transaction; failures
-preserve the existing index. PostgreSQL uses COPY for imports. The worker retries
-failed states after one minute and skips fresh indexes after a restart. To use
-the older full crawler during rollout, explicitly pass `--legacy-crawl` (or
-`./run_all.sh --legacy-code-crawl`). `--cache-dir` applies only to that crawler.
+`FILING_CODE_SYNC_MODE=bulk` (the proxy's HTTP `filing_catalog` export) and
+`legacy` (the full list-API crawler, `--legacy-crawl`) remain available as
+fallbacks. Neither needs database access. `--cache-dir` applies only to the
+legacy crawler.
 
-Local Docker Compose also starts `code_index_worker` after the web container is
-healthy, using the shared database volume. For an already-running local stack,
-run `docker compose up code_index_worker` to start it and watch progress.
+Local Docker Compose and `./run_all.sh` start the same daily worker. They read
+`EFSP_CODES_DATABASE_URL` and `FILING_CODE_SYNC_TIME` from `efile_app/.env`.
 
-Before the first successful refresh, the modal explains that search is unavailable
+Before the first successful sync, the modal explains that search is unavailable
 and the usual court lists remain available. The dialog does not trigger indexing,
 but retries an unavailable search automatically while it stays open.
-Results older than two days carry an out-of-date notice. Every selected path is checked against the live court
-lists before it updates the form. A changed `EFSP_URL` or thesaurus revision requires
-a fresh index, so test-server codes and incompatible search terms cannot leak into
-another environment. Restart the web and index workers after changing search rules.
+Results older than two days carry an out-of-date notice. Every selected path is
+checked against the live court lists before it updates the form. A changed
+`EFSP_URL` or thesaurus revision requires a fresh index, so test-server codes and
+incompatible search terms cannot leak into another environment.
 
 ### Setting Fly.io production secrets:
 ```bash
@@ -153,6 +205,7 @@ fly secrets set \
   AWS_S3_REGION_NAME="us-east-1" \
   OPENAI_API_KEY="sk-..." \
   GOTENBERG_URL="https://..." \
+  EFSP_CODES_DATABASE_URL="postgresql://<read-only role>:...@<host>:5432/postgres?sslmode=require" \
   GOTENBERG_USERNAME="..." \
   GOTENBERG_PASSWORD="..."
 ```

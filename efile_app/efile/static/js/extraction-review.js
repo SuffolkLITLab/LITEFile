@@ -778,6 +778,7 @@
             jurisdiction: context.jurisdiction,
             existingCase: existingCaseWire,
             applyPath: applySearchPath,
+            zipShortcuts: context.zip_shortcuts || [],
         });
     });
 })();

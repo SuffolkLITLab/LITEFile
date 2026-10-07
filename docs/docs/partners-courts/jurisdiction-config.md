@@ -414,32 +414,82 @@ limit results. New and existing cases have separate filing-type lists. Search us
 English Snowball stemming, phrase synonyms, and conservative spelling suggestions;
 it does not call an LLM or decide which court has jurisdiction over a person's case.
 
-An empty search offers common filing-type starting points. Results group repeated
-filing labels and recognized synonyms across courts, so the same filing does not
-occupy a separate result for every county. Users expand a group, choose a court,
-then choose an exact case-type and filing-code path. A court already selected on
-the form is offered first. Grouping does not substitute one court's code for
-another's, and distinct documents such as complaints and answers remain separate.
-Each group also shows a compact case-category/type context, so a generic name such
-as “Petition” has meaning before a court is chosen. Repeated category/type names
-are collapsed (“Small claims › Small claims” becomes “Small claims”). Groups used
-in multiple case types show a count and an expandable preview of up to eight;
-the exact court-specific paths remain available on selection. Each case-type entry
-is clickable: choosing it narrows both the court list and the exact paths to that
-category/type pair. “Show all case types” clears that choice. Contexts reflect
-the paths matching the current search, not unrelated uses of the same filing name.
+The modal walks through three steps, each answering one question:
 
-The compact search filters separate the task (starting a claim, responding, or a
-request from either side), case stage (new or existing), and document kind (main
-document or attachment/exhibit). Starting a claim is not a determination of the
-filer's party role: for example, an existing case can include a counterclaim.
+1. **What are you filing?** A plain-language search, the case ZIP, and short
+   questions shown as chips. An empty search offers common filing-type starting
+   points. Results group repeated filing labels and recognized synonyms across
+   courts, so the same filing does not occupy a separate result for every county.
+   Codes a court splits only by jury, government-filer, or fee qualifiers
+   (Cook County's “Complaint / Petition - Fraud (Jury - 12) (Govn't) - Fee”) also
+   appear once; the exact one is chosen in step 2. Filings whose own names match
+   the search are listed first. When some do, filings that match only through
+   their case type are held behind a “Show N more” button.
+2. **Choose your court and case type.** Courts that accept the chosen filing,
+   under the current answers and ZIP, appear as cards (or a dropdown when there
+   are more than six). A court already selected on the form is offered first and
+   preselected. Choosing a court lists its exact case-type paths; when a court
+   names the filing differently, the case type says so. Some courts code one
+   filing as many case types that differ only by claim amount, a lawyer or
+   self-represented filer, jury size, or a government filer (Cook County has 28
+   for one personal-injury complaint). The court step reads those from the case
+   type and filing names and asks, as chips, only the ones that court's paths
+   differ on. It assumes a filer isn't filing for a government body, and shows
+   that answer so it can be changed. A path that doesn't say stays listed.
+3. **Check your choices.** The full court, case category, case type, and filing
+   type, each with a link back to the step that set it. Applying revalidates the
+   path with the court before it fills the form.
+
+When a search matches eight or more filing types, step 1 also asks **What do you
+want to do?** (start a case, respond, ask the court, settle or end, supporting
+papers, proposed order, notice), with a count on each choice. The answer is a
+guess from the filing name alone, from the ordered `actions` rules in
+`efile_app/efile/data/filing_code_facets.yaml`; names no rule matches are
+shown only under “Not sure”.
+
+When the matching case types name different claim amounts (“Small Claims -
+$0 to $10,000”, “Amount Claimed Greater Than $10,000”), step 1 also asks **How
+much are you asking for?**, in any case area. A range is labeled “(small
+claims)” when its case types say so and the others don't. Case types that name
+no amount stay listed.
+
+Step 1 also offers **Case category** (Cook's “Civil”, “Personal Injury/Wrongful
+Death”, “Probate”, …) when results span more than one, so a filer can set aside
+a division that doesn't fit. “Kind of case” and “Case category” list their most
+used choices first and collapse the rest behind an “N more” chip. A case
+question in `case_type_guidance.yaml` can set `other:` (for example
+`other: Something else`) to add a choice that keeps only the case types none
+of its options name, such as the general personal-injury lawsuit.
+
+### Court-term glossary
+
+`efile_app/efile/data/legal_glossary.yaml` gives plain-language meanings for
+court terms that appear in filing and case-type names, such as subrogation,
+dram shop, and tort. Each term lists the words that name it (`match`, whole
+words, case-insensitive), a one- or two-sentence `text`, and an optional
+`source` link. Under `jurisdictions:`, a state can reword a general term or add
+its own (Massachusetts' “summary process”); its entries replace general ones
+key by key. Wherever a result names a term, code search offers a “What does
+‘subrogation’ mean?” disclosure: on each filing type, above a court's case
+types, and on the final check. Meanings describe a term; they don't advise
+whether to file.
+
+Grouping does not substitute one court's code for another's, and distinct
+documents such as complaints and answers remain separate. Contexts reflect the
+paths matching the current search, not unrelated uses of the same filing name.
+
+Case stage (new or existing) appears as one line under the search, with a
+**Change** link. Document kind (main document or attachment/exhibit) sits behind
+**More filters**. Starting a claim is not a determination of the filer's party
+role: for example, an existing case can include a counterclaim.
 `efile_app/efile/data/filing_code_facets.yaml` contains ordered filing-name rules;
 the first match supplies the classification. Rules may limit `jurisdictions`.
-Unmatched or ambiguous names remain unclassified and are available under the
-unfiltered or “Not classified” choices. Filters apply before pagination and carry
+Unmatched or ambiguous names remain unclassified and are shown when no document
+filter is chosen. Filters apply before pagination and carry
 through court and exact-path selection. These labels do not change which documents
 the court permits as attachments. Choosing a different case stage changes the form
-only after the filer applies a validated path.
+only after the filer applies a validated path. The API still accepts a `purpose`
+filter, but the modal no longer offers it.
 
 Shared rules live in `efile_app/efile/data/filing_code_search.yaml`. The
 `jurisdictions` list currently includes Illinois, Massachusetts, and Vermont.
@@ -449,12 +499,15 @@ These are search associations, not statements that remedies or procedures are
 legally interchangeable. Multiword phrases match together: “summary judgment”
 does not expand to “summary process.”
 
-When the displayed name does not contain the search phrase, “Why is this result
-shown?” explains a related concept, an alternate name, a spelling correction, or
-associated case/court information. Concept definitions are expandable, keeping
-multiple results visible. They describe the topic, not the purpose of every document
-returned for that topic. A search for eviction can also find an affidavit within an
-eviction case.
+When a result was found through a related term rather than its own name (a
+search for “unlawful detainer” finding an eviction filing), it says “Related to
+eviction”. Concept definitions are expandable under “About this filing type”.
+They describe the topic, not the purpose of every document.
+
+At the bottom of the results, a link such as “10 results in ‘existing case’
+filings” appears when the same search and answers find filings in the other
+case stage. This matters for filings like sealing an eviction, which go in the
+existing case. Choosing it switches the case stage and searches again.
 
 Display definitions live separately in
 `efile_app/efile/data/filing_concept_definitions.yaml`, keyed by the same normalized
@@ -535,14 +588,28 @@ Add search and explanation examples to
 
 ### ZIP filters in filing code search
 
-Illinois search offers an optional case-location ZIP filter using the bundled
-`efile/utils/zip_to_county_il.py` county table. Filtering happens before grouping,
-so case-type previews, courts, and exact paths all use the same county scope.
-Every county listed for a ZIP is retained. The UI displays matched counties;
-clearing the ZIP restores statewide results. Unknown ZIPs produce a recoverable
-message rather than silently showing statewide results. ZIP matching is a location
-aid, not a determination of which court has jurisdiction. Other jurisdictions do
-not display this filter until an appropriate local mapping is supported.
+Every jurisdiction offers an optional case ZIP. A state whose `court_selector`
+configures a location `matcher` answers from that package: Massachusetts asks
+MACourts and Vermont asks VTCourts which courts serve the ZIP. Courts the
+package has no record of are placed by county instead. Other states (Illinois
+and any new state) go through counties alone: the ZIP maps to counties through
+`efile/data/zip_counties.json.gz`, built from Census 2020 ZCTA relationship files
+by `efile_app/scripts/build_zip_counties.py`. Illinois's own
+`efile/utils/zip_to_county_il.py` is checked first because it also knows
+PO-box ZIPs. A court is placed in a county by its code (`cook:cvd1`), its name
+(“Orange Unit”, “Middlesex Probate and Family Court”), or a town at the end of
+its name (“District Court - Cambridge”). A court nothing can place, such as an
+appeals court or a statewide division, stays visible for every ZIP.
+
+Filtering happens before grouping, so case-type previews, courts, and exact
+paths all use the same scope. Clearing the ZIP restores statewide results.
+Unknown ZIPs produce a recoverable message rather than silently showing
+statewide results. ZIP matching is a location aid, not a determination of which
+court has jurisdiction. The field is never prefilled. Instead, one-click
+shortcuts offer the filer's own address ZIP and the last three ZIP codes they
+used with an applied filing code. These are kept on the account as
+`recent_case_zips`, because filers who help others often file far from their
+own address.
 
 ### Context-specific case guidance
 

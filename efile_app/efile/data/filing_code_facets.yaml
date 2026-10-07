@@ -15,3 +15,30 @@ rules:
   - pattern: '^(complaint|petition|counterclaim|crossclaim)\b|^(eviction|summary process|civil|small claims|verified|amended)\b.*\b(complaint|petition)$'
     purpose: starting
     document: main
+
+# "What do you want to do?" in code search: a plain-language guess from the
+# filing name alone, offered when a search matches many filing types. Ordered;
+# the first match wins, so "Response to Motion to Dismiss" is a response and
+# "Motion to Dismiss" a request. Unmatched names fall under "Not sure" only.
+actions:
+  - key: respond
+    label: Respond or appear
+    pattern: '\b(answer|response|responses|reply|objection|objections|appearance|jury demand)\b'
+  - key: ask
+    label: Ask the court
+    pattern: '\b(fee waiver|waiver of (court )?fees|motion|motions|request|application|petition (for|to) (rule|leave|review|relief|modif\w*|enforce\w*|vacate|reconsider\w*))\b'
+  - key: settle
+    label: Settle or end
+    pattern: '\b(stipulation|stipulated|settlement|agreed|agreement|dismissal|dismiss|withdraw\w*|satisfaction|release|nonsuit)\b'
+  - key: start
+    label: Start a case
+    pattern: '\b(complaint|petition|counterclaim|counter claim|crossclaim|cross claim|statement of (small )?claims?|initial filing|new case)\b'
+  - key: proof
+    label: Supporting papers
+    pattern: '\b(affidavit|declaration|certificate|certification|proof|exhibit|exhibits|attachment|attachments|summons|service|financial statement|memorandum|brief)\b'
+  - key: order
+    label: Proposed order
+    pattern: '\b(order|judgment|decree|findings)\b'
+  - key: notice
+    label: Notice
+    pattern: '\b(notice|letter|correspondence)\b'

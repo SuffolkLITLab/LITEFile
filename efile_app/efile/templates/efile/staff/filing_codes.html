@@ -1,0 +1,72 @@
+{% extends "efile/staff/base.html" %}
+{% block staff_content %}
+    <p>
+        Codes are copied from the EFSP ({{ source }}) every day at {{ schedule }}, then indexed for code search.
+        <strong>Resync codes</strong> copies any courts that changed and updates their part of the index.
+        <strong>Rebuild code search indexes</strong> rebuilds the whole index from the copy already here, without contacting the EFSP. Use it after changing search rules.
+    </p>
+    <table>
+        <thead>
+            <tr>
+                <th>Jurisdiction</th>
+                <th>Courts copied</th>
+                <th>Last copied</th>
+                <th>Filing paths indexed</th>
+                <th>Last indexed</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in statuses %}
+                <tr>
+                    <td>{{ item.jurisdiction|capfirst }}</td>
+                    <td>{{ item.copied_courts }}</td>
+                    <td>{{ item.copied_at|default:"Never" }}</td>
+                    <td>{{ item.indexed_paths }}</td>
+                    <td>{{ item.indexed_at|default:"Never" }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <h2>Run now</h2>
+    <form method="post">
+        {% csrf_token %}
+        <label for="filing-code-jurisdiction">Jurisdiction</label>
+        <select id="filing-code-jurisdiction" name="jurisdiction">
+            <option value="">Every jurisdiction</option>
+            {% for jurisdiction in jurisdictions %}<option value="{{ jurisdiction }}">{{ jurisdiction|capfirst }}</option>{% endfor %}
+        </select>
+        <button type="submit" name="kind" value="resync">Resync codes</button>
+        <button type="submit" name="kind" value="rebuild">Rebuild code search indexes</button>
+    </form>
+    <h2>Recent runs</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Requested</th>
+                <th>Action</th>
+                <th>Jurisdiction</th>
+                <th>By</th>
+                <th>Status</th>
+                <th>Finished</th>
+                <th>Result</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for job in jobs %}
+                <tr>
+                    <td>{{ job.requested_at }}</td>
+                    <td>{{ job.get_kind_display }}</td>
+                    <td>{{ job.jurisdiction|capfirst|default:"Every jurisdiction" }}</td>
+                    <td>{{ job.requested_by|default:"" }}</td>
+                    <td>{{ job.get_status_display }}</td>
+                    <td>{{ job.finished_at|default:"" }}</td>
+                    <td>{{ job.message|linebreaksbr }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="7">No runs requested yet.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
