@@ -6,12 +6,14 @@ from unittest.mock import Mock, patch
 
 import pytest
 import requests
+from django.core.cache import cache
 from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.db import connection, transaction
 from django.urls import reverse
 
 from efile.models import FilingDocument, FilingDraft, FilingParty
+from efile.services import court_selection
 from efile.services.filing_code_search import (
     CodeCatalog,
     concept_definitions,
@@ -1187,3 +1189,63 @@ def test_other_stage_count_points_new_case_searches_at_existing_filings(catalog)
     assert new["other_stage_total"] == existing["total"]
     assert existing["other_stage_total"] == new["total"]
     assert search_grouped_paths(index, "eviction", initial=True, offset=20)["other_stage_total"] is None
+
+
+def test_search_reuses_index_metadata_across_results(index, django_assert_num_queries):
+    # Keep real serialization: it accesses path.index for vocabulary and state
+    # guidance. Every result must reuse the already loaded index, without a
+    # join that decodes its potentially multi-megabyte JSON again per row.
+    from efile.models import FilingCodeIndex
+    from efile.services.filing_code_search import serialize_path
+
+    def serialize_known_index(path, **kwargs):
+        assert path.index is index
+        return serialize_path(path, **kwargs)
+
+    with (
+        patch.object(FilingCodeIndex, "from_db", side_effect=AssertionError("Refetched index metadata")),
+        patch("efile.services.filing_code_search.serialize_path", side_effect=serialize_known_index),
+        django_assert_num_queries(2),
+    ):
+        result = search_paths(index, "eviction", limit=500)
+    assert result["total"] == 2
+    assert {path["court"]["code"] for path in result["results"]} == {"housing", "district"}
+
+
+def test_search_index_leaves_import_snapshots_lazy(index, django_assert_num_queries):
+    expected_snapshots = index.court_snapshots
+    with django_assert_num_queries(1):
+        loaded = current_index("massachusetts")
+        assert loaded is not None
+        assert loaded.vocabulary == index.vocabulary
+    assert loaded.get_deferred_fields() == {"court_snapshots"}
+    with django_assert_num_queries(1):
+        assert loaded.court_snapshots == expected_snapshots
+
+
+def test_search_leaves_out_heading_courts_even_in_an_older_index(index, monkeypatch):
+    monkeypatch.setattr("efile.services.filing_code_search.heading_court_codes", lambda jurisdiction: {"district"})
+    paths, _ = matching_paths(index, "eviction", True)
+    codes = set(paths.values_list("court__code", flat=True))
+    assert codes
+    assert "district" not in codes
+
+
+def test_live_validation_rejects_a_heading_court(index, catalog, monkeypatch):
+    path = index.paths.filter(initial=True).first()
+    monkeypatch.setattr(
+        "efile.services.filing_code_search.heading_court_codes", lambda jurisdiction: {path.court["code"]}
+    )
+    catalog.categories.reset_mock()
+    with pytest.raises(ValueError, match="no longer offered"):
+        validate_path(path)
+    catalog.categories.assert_not_called()
+
+
+def test_unreadable_court_lists_drop_nothing_and_are_not_refetched_per_search():
+    cache.clear()
+    with patch("efile.services.court_selection.requests.get", side_effect=requests.Timeout()) as get:
+        assert court_selection.heading_court_codes("massachusetts") == frozenset()
+        assert court_selection.heading_court_codes("massachusetts") == frozenset()
+    assert get.call_count == 1
+    cache.clear()

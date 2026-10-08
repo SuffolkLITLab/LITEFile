@@ -60,6 +60,7 @@ function pageHarness(post, checks = {
     vm.runInContext(fs.readFileSync(path.join(__dirname, "../efile/static/js/payment.js"), "utf8") +
         "\nglobalThis.payment = PaymentPage;", context);
     return {
+        context,
         payment: context.payment,
         window: context.window,
         apiUtils: context.apiUtils,
@@ -314,6 +315,7 @@ test("failed removal keeps the existing payment selection usable and permits ret
     node("selected-payment-account").value = "card";
     node("selected-payment-account-name").value = "My card";
     node("paymentSection").hidden = false;
+    node("feeQuoteHelp").hidden = false;
     payment.feeQuoteReady = true;
     payment.quoteRequestId = 7;
     apiUtils.delete = async () => {
@@ -329,6 +331,7 @@ test("failed removal keeps the existing payment selection usable and permits ret
     assert.equal(button.disabled, false);
     assert.equal(payment.removingAccount, false);
     assert.equal(node("errorMessage").hidden, false);
+    assert.equal(node("feeQuoteHelp").hidden, true);
     assert.equal(node("selected-payment-account").value, "card");
     assert.equal(node("selected-payment-account-name").value, "My card");
     assert.equal(node("paymentSection").hidden, false);
@@ -349,5 +352,38 @@ test("a copy still waiting to be checked keeps review disabled", async () => {
     assert.equal(node("submitButton").disabled, true);
     pending = false;
     payment.setFeesState(false);
+    assert.equal(node("submitButton").disabled, false);
+});
+
+test("a rejected fee quote still lets the filer continue to Review", async () => {
+    const {
+        payment,
+        node,
+        apiUtils,
+        context
+    } = pageHarness(async () => {
+        throw {
+            serverMessage: "This court cannot accept an initial filing"
+        };
+    });
+    context.ApiUtils = {
+        FEE_TIMEOUT_MS: 1000
+    };
+    context.FilingPayload.userDataFromCaseData = () => ({});
+    context.document.querySelector = () => ({
+        value: "card",
+        dataset: {
+            name: "My card",
+            type: "CC"
+        }
+    });
+    apiUtils.getUploadData = async () => ({});
+    payment.buildEFilingData = () => ({});
+    await payment.selectAndQuote();
+    assert.equal(payment.feeQuoteReady, false);
+    assert.equal(node("errorMessage").hidden, false);
+    assert.match(node("errorText").textContent, /cannot accept an initial filing/);
+    assert.equal(node("feeQuoteHelp").hidden, false);
+    assert.equal(node("selected-payment-account").value, "card");
     assert.equal(node("submitButton").disabled, false);
 });

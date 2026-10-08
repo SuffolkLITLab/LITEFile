@@ -52,7 +52,7 @@ def filing_code_search(request):
             path_id = int(request.GET["path_id"])
         except ValueError:
             return JsonResponse({"error": "Invalid filing path."}, status=400)
-        path = index.paths.filter(pk=path_id, initial=initial).select_related("index").first()
+        path = index.paths.filter(pk=path_id, initial=initial).first()
         if path is None:
             return JsonResponse({"error": "The code list has changed. Search again."}, status=409)
         try:

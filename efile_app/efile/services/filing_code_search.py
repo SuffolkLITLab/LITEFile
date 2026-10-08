@@ -48,7 +48,7 @@ from efile.services.case_type_guidance import (
     validate_case_filters,
 )
 from efile.services.case_type_guidance import case_topic as topic_of
-from efile.services.court_selection import is_non_filing_court
+from efile.services.court_selection import heading_court_codes, is_non_filing_court
 from efile.services.filing_availability import filing_unavailable_message
 from efile.services.glossary import glossary_for
 
@@ -468,11 +468,17 @@ def _refresh_index_legacy(jurisdiction, *, progress=None, cache_dir=None):
 
 
 def current_index(jurisdiction):
-    return FilingCodeIndex.objects.filter(
-        jurisdiction=jurisdiction,
-        source_url=source_url(),
-        rules_digest=rules()[1],
-    ).first()
+    # Search needs the vocabulary, but not the much larger import snapshots.
+    # Keep snapshots lazy for callers that inspect synchronization metadata.
+    return (
+        FilingCodeIndex.objects.filter(
+            jurisdiction=jurisdiction,
+            source_url=source_url(),
+            rules_digest=rules()[1],
+        )
+        .defer("court_snapshots")
+        .first()
+    )
 
 
 def case_description(path):
@@ -600,7 +606,9 @@ def matching_paths(index, query, initial):
     tokens = search_tokens(resolved_query, index.jurisdiction, query=True)
     if not tokens:
         return index.paths.none().annotate(score=Value(0)), []
-    paths = index.paths.filter(initial=initial)
+    # A court that only heads the locations under it is refused by the e-filing
+    # service, even when an older index imported filing codes for it.
+    paths = index.paths.filter(initial=initial).exclude(court__code__in=heading_court_codes(index.jurisdiction))
     if connection.vendor == "postgresql":
         search = SearchQuery(" ".join(sorted(tokens)), config="simple")
         paths = paths.annotate(document=SearchVector("search_text", config="simple")).filter(document=search)
@@ -648,7 +656,10 @@ def search_paths(index, query, *, initial=True, offset=0, limit=20, names=None, 
     return {
         "results": [
             serialize_path(path, query=query, corrected=corrected, resolved_query=resolved_query)
-            for path in paths.select_related("index")[offset : offset + limit]
+            # index.paths already carries its index as a known related object.
+            # Joining it repeats megabytes of vocabulary/snapshots for every
+            # row, particularly on the court screen's 500-result pages.
+            for path in paths[offset : offset + limit]
         ],
         "total": total,
         "corrected_terms": corrected,
@@ -921,8 +932,11 @@ def filter_filing_groups(
 
 
 def filing_groups(index, query, initial, courts=()):
-    fingerprint = hashlib.sha256(f"{index.pk}:{index.refreshed_at}:{initial}:{query}:{courts}".encode()).hexdigest()
-    key = f"filing-groups-v8:{fingerprint}"
+    headings = sorted(heading_court_codes(index.jurisdiction))
+    fingerprint = hashlib.sha256(
+        f"{index.pk}:{index.refreshed_at}:{initial}:{query}:{courts}:{headings}".encode()
+    ).hexdigest()
+    key = f"filing-groups-v9:{fingerprint}"
     cached = cache.get(key)
     if cached is not None:
         return cached
@@ -1154,7 +1168,8 @@ def validate_path(path):
         return chosen
 
     try:
-        options = {"court": catalog.courts()}
+        headings = heading_court_codes(path.index.jurisdiction)
+        options = {"court": [court for court in catalog.courts() if court["code"] not in headings]}
         court = find(options["court"], "court")
         options["case_category"] = catalog.categories(court["code"], path.initial)
         category = find(options["case_category"], "case_category")
