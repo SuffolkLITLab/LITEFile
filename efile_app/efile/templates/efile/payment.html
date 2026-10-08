@@ -11,6 +11,7 @@
     <section class="workflow-card workflow-card--narrow">
         <div class="workflow-eyebrow">{% translate "Fees" %}</div>
         <h1>{% translate "Choose how to pay court fees" %}</h1>
+        {% include "efile/partials/filing_guidance.html" %}
         {% for document in documents %}
             {% include "efile/components/document_preview.html" with document=document %}
         {% endfor %}

@@ -1,0 +1,21 @@
+# Demonstration filing guidance for local validation only. These are not court
+# instructions. LITEFile reads this file only under development settings, when
+# FILING_GUIDANCE_DEMO_FILE points at it, so it never reaches a deployed site or
+# the translation catalog. Rules use the filing_guidance format described in
+# docs/docs/partners-courts/jurisdiction-config.md, keyed by jurisdiction.
+illinois:
+  - id: local_validation_new_case
+    steps: [upload_documents, document_checklist, organize_documents, review]
+    title: "Local test: new-case guidance"
+    text: "This demonstration message appears for new Illinois cases. You can continue without responding to it."
+    when:
+      existing_case: ["new"]
+  - id: local_validation_county_division
+    steps: [document_checklist, organize_documents, review]
+    title: "Local test: court-specific guidance"
+    text: "This demonstration message appears when Cook County's County Division is saved as the court."
+    when:
+      court_codes: ["cook:cd1"]
+    resources:
+      - label: "Illinois Court Help"
+        url: "https://www.ilcourthelp.gov/"
