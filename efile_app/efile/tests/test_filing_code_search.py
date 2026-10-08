@@ -522,6 +522,19 @@ def test_grouped_endpoint_keeps_court_selection_separate(signed_in, index):
     assert signed_in.get(URL, params).status_code == 409
 
 
+def test_numeric_code_names_stay_text_in_grouped_search(catalog):
+    # Illinois has a case type named "97"; SQLite's JSON key lookup decodes it as a number.
+    catalog.types.return_value = [option("97", "97")]
+    catalog.courts.return_value = [option("42", "42")]
+    refresh_index("massachusetts")
+    result = search_grouped_paths(current_index("massachusetts"), "complaint", initial=True)
+    assert [group["name"] for group in result["groups"]] == ["Summary Process Complaint"]
+    courts = search_grouped_paths(
+        current_index("massachusetts"), "complaint", initial=True, group_key=result["groups"][0]["key"]
+    )["courts"]
+    assert courts == [{"code": "42", "name": "42"}]
+
+
 def test_refresh_resumes_completed_courts_after_late_failure(catalog, tmp_path):
     def fail_district(court, category, initial):
         if court == "district":

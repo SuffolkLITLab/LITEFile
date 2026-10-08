@@ -922,7 +922,7 @@ def filter_filing_groups(
 
 def filing_groups(index, query, initial, courts=()):
     fingerprint = hashlib.sha256(f"{index.pk}:{index.refreshed_at}:{initial}:{query}:{courts}".encode()).hexdigest()
-    key = f"filing-groups-v7:{fingerprint}"
+    key = f"filing-groups-v8:{fingerprint}"
     cached = cache.get(key)
     if cached is not None:
         return cached
@@ -936,7 +936,8 @@ def filing_groups(index, query, initial, courts=()):
     )
     groups = {}
     for label in labels:
-        name = label["filing_type__name"]
+        # SQLite's JSON key lookup decodes numeric-looking names, such as Illinois' "97" case type.
+        name = str(label["filing_type__name"])
         group_key = filing_group_key(name, index.jurisdiction)
         group = groups.setdefault(
             group_key, {"key": group_key, "variants": [], "path_count": 0, "rank": 0, "name_rank": 0, "_labels": []}
@@ -947,8 +948,8 @@ def filing_groups(index, query, initial, courts=()):
                 "path_count": label["path_count"],
                 "rank": label["rank"],
                 "name_rank": label["name_rank"],
-                "category": label["case_category__name"],
-                "case_type": label["case_type__name"],
+                "category": str(label["case_category__name"]),
+                "case_type": str(label["case_type__name"]),
             }
         )
         group["variants"].append(name)
@@ -1137,7 +1138,7 @@ def search_grouped_paths(
         .distinct()
     )
     return {
-        "courts": [{"code": row["court__code"], "name": row["court__name"]} for row in courts],
+        "courts": [{"code": str(row["court__code"]), "name": str(row["court__name"])} for row in courts],
         "corrected_terms": corrected,
     }
 
