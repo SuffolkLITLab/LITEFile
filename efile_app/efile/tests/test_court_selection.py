@@ -410,6 +410,28 @@ class TestFetchingTheCourtList:
         courts = self._fetch(payload, [{"code": "cook:cvd1"}, {"code": "will"}])
         assert [court["value"] for court in courts] == ["cook:chd", "cook:cvd1", "will"]
 
+    def test_a_division_heading_over_fileable_locations_is_not_offered(self):
+        payload = [
+            {"code": "cook:cvd", "name": "Cook County - Municipal Civil"},
+            {"code": "cook:cvd2", "name": "Cook County - Municipal Civil - District 2 - Skokie"},
+            {"code": "cook:eld1", "name": "Cook County - Elder Law - District 1 - Chicago"},
+        ]
+        # Elder Law takes filings although the fileable list leaves it out;
+        # only a row heading a location the service does list is dropped.
+        courts = self._fetch(payload, [payload[1]])
+        assert sorted(court["value"] for court in courts) == ["cook:cvd2", "cook:eld1"]
+
+    def test_courts_missing_from_the_fileable_list_are_still_offered(self):
+        # Massachusetts lists almost none of its District Courts as fileable,
+        # and a bare number is not a prefix of other courts' codes.
+        payload = [
+            {"code": "1", "name": "Supreme Judicial Court"},
+            {"code": "490", "name": "District Court - Cambridge"},
+            {"code": "1036:BA", "name": "Juvenile Court -- Barnstable County -- Barnstable"},
+        ]
+        courts = self._fetch(payload, [payload[2]])
+        assert sorted(court["value"] for court in courts) == ["1", "1036:BA", "490"]
+
     def test_nothing_is_dropped_when_the_fileable_list_cannot_be_read(self):
         payload = [
             {"code": "cook", "name": "Cook County"},

@@ -41,3 +41,13 @@ def appellate_code_lists(monkeypatch):
 def efsp_validation_metadata(monkeypatch):
     """Validation lookup tests opt into metadata; other tests use USPS fallback."""
     monkeypatch.setattr("efile.services.efsp_validation.RuleLookups.get", lambda *args: None)
+
+
+@pytest.fixture(autouse=True)
+def court_headings(monkeypatch):
+    """Search and the court dropdown drop no heading courts unless a test opts in.
+
+    Tests of the court lists themselves call court_selection directly.
+    """
+    monkeypatch.setattr("efile.services.filing_code_search.heading_court_codes", lambda *args: frozenset())
+    monkeypatch.setattr("efile.api.dropdown_views.heading_court_codes", lambda *args: frozenset())
