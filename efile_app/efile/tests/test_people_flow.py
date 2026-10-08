@@ -4,7 +4,7 @@ from unittest.mock import patch
 import pytest
 from django.urls import reverse
 
-from efile.models import FilingDocument, FilingDraft, FilingParty
+from efile.models import DocumentExtraction, FilingDocument, FilingDraft, FilingParty
 from efile.services.current_drafts import CURRENT_DRAFT_SESSION_KEY
 from efile.services.drafts import read_case_data
 from efile.services.party_requirements import AddressRequirement
@@ -524,6 +524,40 @@ def test_case_questions_asks_for_amount_in_controversy_with_no_other_questions(c
 
     assert response.status_code == 200
     assert b"Amount in controversy" in response.content
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("saved_amount", ["", "500.00"])
+def test_extracted_amount_is_only_a_suggestion_until_confirmed(client, people_draft, saved_amount):
+    document = reviewed_document(
+        draft=people_draft,
+        role=FilingDocument.Role.LEAD,
+        name="petition.pdf",
+        filing_requires_amount_in_controversy=True,
+    )
+    DocumentExtraction.objects.create(
+        document=document,
+        status=DocumentExtraction.Status.COMPLETE,
+        evidence={"monetary amounts": [{"label": "Amount in controversy", "amount": "1275.00"}]},
+    )
+    people_draft.amount_in_controversy = saved_amount
+    people_draft.save(update_fields=["amount_in_controversy"])
+    url = reverse("case_questions", kwargs={"jurisdiction": "illinois"})
+    response = client.get(url)
+    assert response.context["amount_in_controversy"] == (saved_amount or "1275.00")
+    people_draft.refresh_from_db()
+    assert people_draft.amount_in_controversy == saved_amount
+
+    # A rejected submission must retain what was typed, not restore the guess.
+    response = client.post(url, {"amount_in_controversy": "invalid amount"})
+    assert response.context["amount_in_controversy"] == "invalid amount"
+    people_draft.refresh_from_db()
+    assert people_draft.amount_in_controversy == saved_amount
+
+    response = client.post(url, {"amount_in_controversy": "1200.00"})
+    assert response.status_code == 302
+    people_draft.refresh_from_db()
+    assert people_draft.amount_in_controversy == "1200.00"
 
 
 @pytest.mark.django_db

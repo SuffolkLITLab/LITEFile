@@ -15,10 +15,12 @@ from efile.services.current_drafts import CURRENT_DRAFT_SESSION_KEY
 from efile.services.document_extractions import (
     EXTRACTION_WAIT_LIMIT,
     claim_next_extraction,
+    extraction_is_waiting,
     process_document_extraction,
     queue_document_extraction,
 )
 from efile.services.extraction_fields import normalize_document_evidence, normalize_extracted_fields
+from efile.services.fee_quotes import fee_fingerprint
 from efile.services.taxonomy_classification import ClassificationRun, HierarchicalDocumentClassifier
 from efile.tests.helpers import reviewed_document
 from efile.workflow import ExistingCase
@@ -193,7 +195,8 @@ def test_worker_reads_a_real_uploaded_pdf_before_classification(extraction_draft
     assert job.analysis_metadata["form_identifier_scan_source"] == "pypdf"
     assert job.analysis_metadata["form_identifier_scan_ms"] < 2000
     assert extraction_draft.extracted_guesses["court"] == "Middlesex Probate and Family Court"
-    assert extraction_draft.amount_in_controversy == "1275"
+    assert extraction_draft.amount_in_controversy == ""
+    assert job.evidence["monetary amounts"][0]["amount"] == "1275"
 
 
 @pytest.mark.django_db
@@ -511,3 +514,43 @@ def test_replacing_the_lead_restarts_the_wait(extraction_draft):
     document = _queued_lead(extraction_draft, waited=EXTRACTION_WAIT_LIMIT * 2)
     job = queue_document_extraction(document)
     assert job.created_at > timezone.now() - timedelta(seconds=5)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("saved_amount", ["", "500.00"])
+def test_late_analysis_keeps_fee_inputs_unchanged(extraction_draft, saved_amount):
+    _queued_lead(extraction_draft, waited=EXTRACTION_WAIT_LIMIT * 2)
+    claimed = claim_next_extraction()
+    assert not extraction_is_waiting(claimed)
+    extraction_draft.current_step = "review"
+    extraction_draft.amount_in_controversy = saved_amount
+    extraction_draft.save(update_fields=["current_step", "amount_in_controversy"])
+    fingerprint = fee_fingerprint(extraction_draft)
+
+    handler = MagicMock()
+
+    def download(_key, destination):
+        writer = PdfWriter()
+        writer.add_blank_page(width=612, height=792)
+        with open(destination, "wb") as pdf_file:
+            writer.write(pdf_file)
+        return {"success": True}
+
+    handler.download_file.side_effect = download
+    evidence = {"monetary amounts": [{"label": "Amount in controversy", "amount": "1275.00"}]}
+    with (
+        patch("efile.services.document_extractions.S3UploadHandler", return_value=handler),
+        patch(
+            "efile.services.document_extractions.analyze_document",
+            return_value={"guesses": {"document title": "Complaint"}, "evidence": evidence},
+        ),
+    ):
+        process_document_extraction(claimed.pk, claimed.claim_token)
+
+    extraction_draft.refresh_from_db()
+    claimed.refresh_from_db()
+    assert claimed.status == DocumentExtraction.Status.COMPLETE
+    assert claimed.evidence == evidence
+    assert extraction_draft.extracted_guesses == {"document title": "Complaint"}
+    assert extraction_draft.amount_in_controversy == saved_amount
+    assert fee_fingerprint(extraction_draft) == fingerprint

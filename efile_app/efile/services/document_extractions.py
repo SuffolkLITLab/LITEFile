@@ -29,7 +29,6 @@ from efile.services.taxonomy_classification import (
     HierarchicalDocumentClassifier,
     deterministic_form_identity,
     exact_form_crosswalk_matches,
-    primary_amount_in_controversy,
     scan_document_for_form_identifiers,
     summarize_form_crosswalk_matches,
 )
@@ -458,12 +457,10 @@ def process_document_extraction(job_id, claim_token):
         ).exists()
         if is_current_lead:
             draft.extracted_guesses = guesses
-            update_fields = ["extracted_guesses", "updated_at"]
-            amount = primary_amount_in_controversy(evidence)
-            if amount and not draft.amount_in_controversy:
-                draft.amount_in_controversy = amount
-                update_fields.append("amount_in_controversy")
-            draft.save(update_fields=update_fields)
+            # A filer may already have continued manually after the wait limit.
+            # Keep extracted amounts in evidence until the filer confirms them
+            # on the case-questions form; workers must not change fee inputs.
+            draft.save(update_fields=["extracted_guesses", "updated_at"])
         job.status = DocumentExtraction.Status.COMPLETE
         job.total_pages = total_pages
         job.pages_analyzed = pages_analyzed
