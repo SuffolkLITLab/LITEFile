@@ -1,6 +1,7 @@
 import io
 import logging
 import multiprocessing
+import os
 import time
 
 from django.conf import settings
@@ -54,6 +55,13 @@ class Command(BaseCommand):
         )
 
         next_rollup = 0.0
+        # The child's memory cap is on address space, and glibc reserves a
+        # malloc arena of up to 64 MB per thread, up to eight per CPU core. A
+        # job that uses about 250 MB reached 800 MB of address space on an
+        # eight-core machine. Two arenas keep each child's address space close
+        # to what it uses, whatever the host's core count. Spawned children
+        # read this at startup; an operator's own value is kept.
+        os.environ.setdefault("MALLOC_ARENA_MAX", "2")
 
         def rollup_if_due():
             nonlocal next_rollup
