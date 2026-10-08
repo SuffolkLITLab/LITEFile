@@ -131,7 +131,7 @@ const scenarios = [{
     label: 'Will adoption application',
     court: 'will',
     category: '7306',
-    caseType: '184409',
+    caseType: '344590',
     filingType: '48969'
 }, {
     label: 'Winnebago adoption complaint',
