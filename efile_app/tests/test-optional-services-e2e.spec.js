@@ -214,7 +214,7 @@ test('adding and removing optional services dynamically updates calculated fees 
 
     // Pay from the active BankAccount payment option
     await choosePayByAccount(page);
-    const bankAccount = page.locator('input[name="paymentMethod"][data-type="BankAccount"], input[name="paymentMethod"][value="d44fd7ed-6683-48e1-a670-f7964e5bba4d"]');
+    const bankAccount = page.locator('input[name="paymentMethod"][data-type="BankAccount"]');
     await expect(bankAccount.first()).toBeAttached({
         timeout: 120000
     });
