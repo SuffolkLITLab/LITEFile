@@ -212,9 +212,15 @@ async function main() {
             state: "detached"
         });
         await other.close();
+        // Removing a document also changes the fee inputs. The stale page is
+        // rejected by that guard before the document's existence is checked.
+        const staleCheck = page.waitForResponse((response) =>
+            response.url().includes("/document-checks/") && response.request().method() === "POST"
+        );
         await checks.first().locator("[data-document-confirm]").click();
+        assert.equal((await staleCheck).status(), 409);
         await checks.first().locator("[data-document-check-status]").filter({
-            hasText: /no longer part of your filing/
+            hasText: /This filing changed\. Reload this page/
         }).waitFor();
         assert.equal(await submit.isDisabled(), true);
         await screenshot("04-stale-tab.png");
