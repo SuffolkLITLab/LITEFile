@@ -6,6 +6,9 @@ const path = require('path');
 const {
     getTestConfig,
     loginViaLoginPage,
+    continueFromUpload,
+    fillRequiredInputs,
+    choosePayByAccount,
     continueFromExtractionReview,
     continueFromDocumentChecklist,
     chooseFilingPath,
@@ -153,21 +156,6 @@ async function selectAfterLoad(page, selector, value) {
         timeout: 120000
     });
     await page.locator(selector).selectOption(value);
-}
-
-async function fillRequiredInputs(page, values) {
-    for (const [name, value] of Object.entries(values)) {
-        const field = page.locator(`[name="${name}"]:visible`).first();
-        if (await field.count()) await field.fill(value);
-    }
-    const required = page.locator('input[required]:visible');
-    for (let index = 0; index < await required.count(); index += 1) {
-        const input = required.nth(index);
-        if (await input.inputValue()) continue;
-        const type = await input.getAttribute('type');
-        if (type === 'radio' || type === 'checkbox') continue;
-        await input.fill(type === 'email' ? 'efile-test@example.com' : type === 'number' ? '1' : 'Test value');
-    }
 }
 
 async function completeParty(page, ordinal) {
@@ -319,11 +307,12 @@ async function finishFiling(page, scenario, ordinal) {
         await expect(page.locator('#waiver-upload-confirmation')).toBeVisible({
             timeout: 120000
         });
+        // A copy added on Fees is checked here before Review is offered.
+        await page.getByRole('button', {
+            name: 'This copy looks right'
+        }).click();
     } else {
-        await page.locator('input[name="paymentIntent"][value="pay"]').check();
-        await expect(page.locator('input[name="paymentMethod"]')).not.toHaveCount(0, {
-            timeout: 120000
-        });
+        await choosePayByAccount(page);
     }
     const quoteOutcome = await Promise.race([
         page.locator('#errorMessage:not([hidden])').waitFor({
@@ -389,10 +378,7 @@ async function runNewCase(page, scenario, ordinal) {
     await expect(page.locator('.document-row')).toHaveCount(1, {
         timeout: 180000
     });
-    await Promise.all([
-        page.waitForURL(/\/extraction-review\//),
-        page.locator('#continue-to-analysis').click(),
-    ]);
+    await continueFromUpload(page);
 
     console.log(`${scenario.label}: selecting case codes`);
     await selectGuidedCourt(page, 'illinois', scenario.court);
@@ -415,10 +401,7 @@ async function runExistingCase(page, scenario, ordinal) {
     await expect(page.locator('.document-row')).toHaveCount(1, {
         timeout: 180000
     });
-    await Promise.all([
-        page.waitForURL(/\/extraction-review\//),
-        page.locator('#continue-to-analysis').click(),
-    ]);
+    await continueFromUpload(page);
 
     await selectGuidedCourt(page, 'illinois', scenario.court);
     await chooseFilingPath(page, 'existing');

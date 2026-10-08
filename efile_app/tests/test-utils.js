@@ -99,6 +99,76 @@ async function loginViaLoginPage(page, config = getTestConfig()) {
 }
 
 /**
+ * Leave Upload once the first file has been read, through Preview to Confirm
+ * case. Confirm case sends a filer back while analysis is still running, so
+ * wait for the analysis first, then confirm the prepared PDFs on Preview.
+ */
+async function continueFromUpload(page, timeout = 300000) {
+    await expect(page.locator('.status-pill--analyzing')).toHaveCount(0, {
+        timeout
+    });
+    const next = page.locator('#continue-to-analysis');
+    await expect(next).toHaveAttribute('href', /.+/, {
+        timeout
+    });
+    await Promise.all([
+        page.waitForURL(/\/(preview-documents|extraction-review)\//, {
+            timeout: 120000
+        }),
+        next.click(),
+    ]);
+    if (/\/preview-documents\//.test(page.url())) {
+        await Promise.all([
+            page.waitForURL(/\/extraction-review\//, {
+                timeout: 120000
+            }),
+            page.getByRole('button', {
+                name: 'Continue',
+                exact: true
+            }).click(),
+        ]);
+    }
+}
+
+/**
+ * Fill the named fields, then any other visible required text field. A field
+ * may be a select (State is), which takes an option value instead of text.
+ */
+async function fillRequiredInputs(page, values) {
+    for (const [name, value] of Object.entries(values)) {
+        const field = page.locator(`[name="${name}"]:visible`).first();
+        if (!(await field.count())) continue;
+        if ((await field.evaluate((element) => element.tagName)) === 'SELECT') await field.selectOption(value);
+        else await field.fill(value);
+    }
+    await fillOtherRequiredInputs(page);
+}
+
+async function fillOtherRequiredInputs(page) {
+    const required = page.locator('input[required]:visible');
+    for (let index = 0; index < (await required.count()); index += 1) {
+        const input = required.nth(index);
+        const type = await input.getAttribute('type');
+        if (type === 'radio' || type === 'checkbox' || (await input.inputValue())) continue;
+        await input.fill(type === 'email' ? 'efile-test@example.com' : type === 'number' ? '1' : 'Test value');
+    }
+}
+
+/**
+ * Pay from a saved account on Fees. The intent radios are only wired up once
+ * the page has loaded the filer's accounts, so wait for that before choosing.
+ */
+async function choosePayByAccount(page) {
+    await page.waitForFunction('typeof PaymentPage !== "undefined" && Array.isArray(PaymentPage.accounts)', null, {
+        timeout: 120000
+    });
+    await page.locator('input[name="paymentIntent"][value="pay"]').check();
+    await expect(page.locator('input[name="paymentMethod"]')).not.toHaveCount(0, {
+        timeout: 120000
+    });
+}
+
+/**
  * Submit the extraction review after answering its conditional questions.
  * The filer-side question only appears for case types whose checklist differs
  * by side, and it is populated asynchronously after the taxonomy choices.
@@ -234,6 +304,9 @@ module.exports = {
     loginUser,
     loginViaLogout,
     loginViaLoginPage,
+    continueFromUpload,
+    fillRequiredInputs,
+    choosePayByAccount,
     continueFromExtractionReview,
     continueFromDocumentChecklist,
     chooseFilingPath,
