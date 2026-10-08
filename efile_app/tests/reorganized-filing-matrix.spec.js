@@ -4,6 +4,9 @@ const {
 } = require('@playwright/test');
 const path = require('path');
 const {
+    resolveNamedOption
+} = require('./named-options');
+const {
     getTestConfig,
     loginViaLoginPage,
     continueFromUpload,
@@ -19,143 +22,175 @@ const SAMPLE_PDF = path.resolve(__dirname, '../../testing/sample_test.pdf');
 
 test.skip(!process.env.RUN_FILING_MATRIX, 'Set RUN_FILING_MATRIX=1 to create filings in the test EFSP.');
 
+// Match the names filers see; provider codes may change when a choice is re-created.
 const scenarios = [{
     label: 'Adams adoption complaint',
-    court: 'adams',
-    category: '7306',
-    caseType: '25361',
-    filingType: '27959'
+    courtName: 'Adams County',
+    categoryName: 'Adoption',
+    caseTypeName: 'Adoption',
+    filingTypeName: 'Complaint'
 }, {
     label: 'Bond adoption application',
-    court: 'bond',
-    category: '7306',
-    caseType: '25361',
-    filingType: '29730'
+    courtName: 'Bond County',
+    categoryName: 'Adoption',
+    caseTypeName: 'Adoption',
+    filingTypeName: 'Application'
 }, {
     label: 'Cass adoption affidavit',
-    court: 'cass',
-    category: '7306',
-    caseType: '25361',
-    filingType: '29670'
+    courtName: 'Cass County',
+    categoryName: 'Adoption',
+    caseTypeName: 'Adoption',
+    filingTypeName: 'Affidavit'
 }, {
     label: 'Champaign adoption appearance',
-    court: 'champaign',
-    category: '7306',
-    caseType: '159407',
-    filingType: '40376'
+    courtName: 'Champaign County',
+    categoryName: 'Adoption',
+    caseTypeName: 'Adoption',
+    filingTypeName: 'Appearance'
 }, {
     label: 'Christian adoption complaint',
-    court: 'christian',
-    category: '7306',
-    caseType: '25361',
-    filingType: '28106'
+    courtName: 'Christian County',
+    categoryName: 'Adoption',
+    caseTypeName: 'Adoption',
+    filingTypeName: 'Complaint'
 }, {
     label: 'Cook chancery accounting petition',
-    court: 'cook:chd1',
-    category: '173185',
-    caseType: '173191',
-    filingType: '173741'
+    courtName: 'Cook County - Chancery - District 1 - Chicago',
+    categoryName: 'General Chancery',
+    caseTypeName: 'Accounting',
+    filingTypeName: 'Complaint / Petition - Petition For Accounting Filed'
 }, {
     label: 'Cook domestic relations transfer certification',
-    court: 'cook:dr1',
-    category: '172833',
-    caseType: '186545',
-    filingType: '172974'
+    courtName: 'Cook County - Domestic Relations - District 1 - Chicago',
+    categoryName: 'Domestic Relations - General Proceedings',
+    caseTypeName: 'Case Record [Change of Venue]',
+    filingTypeName: 'Certification - Out Of County Transfer'
 }, {
     label: 'Cook municipal administrative review petition',
-    court: 'cook:cvd1',
-    category: '174140',
-    caseType: '174188',
-    filingType: '174592'
+    courtName: 'Cook County - Municipal Civil - District 1 - Chicago',
+    categoryName: 'Civil',
+    caseTypeName: 'Administrative Review - Ordinance Violation - Non-Jury',
+    filingTypeName: 'Complaint / Petition - Administrative Review - Ordinance Violation - Fee'
 }, {
     label: 'DuPage adoption foreign judgment',
-    court: 'dupage',
-    category: '7306',
-    caseType: '129482',
-    filingType: '148587'
+    courtName: 'DuPage County',
+    categoryName: 'Adoption',
+    caseTypeName: 'Adoption',
+    filingTypeName: 'Foreign Judgment'
 }, {
     label: 'Edgar adoption amended complaint',
-    court: 'edgar',
-    category: '7306',
-    caseType: '25361',
-    filingType: '143017'
+    courtName: 'Edgar County',
+    categoryName: 'Adoption',
+    caseTypeName: 'Adoption',
+    filingTypeName: 'Amended Complaint'
 }, {
     label: 'Fulton adoption foreign judgment',
-    court: 'fulton',
-    category: '7306',
-    caseType: '25361',
-    filingType: '122841'
+    courtName: 'Fulton County',
+    categoryName: 'Adoption',
+    caseTypeName: 'Adoption',
+    filingTypeName: 'Foreign Judgment'
 }, {
     label: 'Kane adoption complaint',
-    court: 'kane',
-    category: '7405',
-    caseType: '10663',
-    filingType: '26571'
+    courtName: 'Kane County',
+    categoryName: 'Adoption',
+    caseTypeName: 'Adoption',
+    filingTypeName: 'Complaint'
 }, {
     label: 'Kankakee abandoned mobile home application',
-    court: 'KankakeeCV',
-    category: '7406',
-    caseType: '257879',
-    filingType: '8201'
+    courtName: 'Kankakee - Civil',
+    categoryName: 'Chancery',
+    caseTypeName: 'Abandoned Mobile Home',
+    filingTypeName: 'Application'
 }, {
     label: 'Lake adoption affidavit',
-    court: 'lake',
-    category: '7306',
-    caseType: '242427',
-    filingType: '55469'
+    courtName: 'Lake County',
+    categoryName: 'Adoption',
+    caseTypeName: 'Adoption',
+    filingTypeName: 'Affidavit'
 }, {
     label: 'McLean adoption complaint',
-    court: 'mclean',
-    category: '6187',
-    caseType: '324985',
-    filingType: '5905'
+    courtName: 'McLean',
+    categoryName: 'Adoption',
+    caseTypeName: 'Adoption',
+    filingTypeName: 'Complaint'
 }, {
     label: 'Peoria adoption complaint',
-    court: 'peoria',
-    category: '7405',
-    caseType: '5892',
-    filingType: '127173'
+    courtName: 'Peoria County',
+    categoryName: 'Adoption',
+    caseTypeName: 'Adoption',
+    filingTypeName: 'Complaint'
 }, {
     label: 'Sangamon adoption appearance',
-    court: 'sangamon',
-    category: '7306',
-    caseType: '154869',
-    filingType: '58129'
+    courtName: 'Sangamon County',
+    categoryName: 'Adoption',
+    caseTypeName: 'Adoption',
+    filingTypeName: 'Appearance'
 }, {
     label: 'St Clair adoption complaint',
-    court: 'stclair',
-    category: '7306',
-    caseType: '312761',
-    filingType: '314512'
+    courtName: 'St. Clair County',
+    categoryName: 'Adoption',
+    caseTypeName: 'Adoption',
+    filingTypeName: 'Complaint'
 }, {
     label: 'Will adoption application',
-    court: 'will',
-    category: '7306',
-    caseType: '344590',
-    filingType: '48969'
+    courtName: 'Will County',
+    categoryName: 'Adoption',
+    caseTypeName: 'Adoption',
+    filingTypeName: 'Application'
 }, {
     label: 'Winnebago adoption complaint',
-    court: 'winnebago',
-    category: '7306',
-    caseType: '76969',
-    filingType: '6618'
-}, ];
+    courtName: 'Winnebago County',
+    categoryName: 'Adoption',
+    caseTypeName: 'Adoption',
+    filingTypeName: 'Complaint'
+}];
 
 const existingCaseScenarios = [{
     label: 'Existing Sangamon small-claims case',
-    court: 'sangamon',
+    courtName: 'Sangamon County',
     caseNumber: '2019SC999999'
 }, {
     label: 'Existing Kankakee civil case',
-    court: 'KankakeeCV',
+    courtName: 'Kankakee - Civil',
     caseNumber: '20250527-ITK-IL-2'
 }, ];
 
-async function selectAfterLoad(page, selector, value) {
-    await expect(page.locator(`${selector} option[value="${value}"]`)).toHaveCount(1, {
+async function namedOptionValue(select, name) {
+    await expect(select).toBeEnabled({
         timeout: 120000
     });
-    await page.locator(selector).selectOption(value);
+    await expect.poll(() => select.locator('option').evaluateAll(options =>
+        options.some(option => option.value && !option.disabled)
+    ), {
+        timeout: 120000
+    }).toBe(true);
+    const options = await select.locator('option').evaluateAll(items => items.map(option => ({
+        value: option.value,
+        text: option.textContent,
+        disabled: option.disabled
+    })));
+    return resolveNamedOption(options, name, 'dropdown').value;
+}
+
+async function selectByName(page, selector, name) {
+    const select = page.locator(selector);
+    const value = await namedOptionValue(select, name);
+    await select.selectOption(value);
+    return value;
+}
+
+async function selectCourtByName(page, name) {
+    const response = await page.request.get('/api/dropdowns/courts/', {
+        params: {
+            jurisdiction: 'illinois'
+        }
+    });
+    expect(response.ok()).toBe(true);
+    const payload = await response.json();
+    expect(payload.success).toBe(true);
+    const court = resolveNamedOption(payload.data, name, 'Illinois courts');
+    await selectGuidedCourt(page, 'illinois', court.value);
+    return court.value;
 }
 
 async function completeParty(page, ordinal) {
@@ -211,8 +246,9 @@ async function finishFiling(page, scenario, ordinal) {
     await continueFromDocumentChecklist(page);
     console.log(`${scenario.label}: organizing document`);
     const filingType = page.locator('.organize-card .filing-type');
-    if (scenario.filingType) {
-        await expect(filingType).toHaveValue(scenario.filingType, {
+    if (scenario.filingTypeName) {
+        const expected = await namedOptionValue(filingType, scenario.filingTypeName);
+        await expect(filingType).toHaveValue(expected, {
             timeout: 120000
         });
     } else {
@@ -224,7 +260,6 @@ async function finishFiling(page, scenario, ordinal) {
         );
         const firstAvailable = await filingType.locator('option').nth(1).getAttribute('value');
         await filingType.selectOption(firstAvailable);
-        scenario.filingType = firstAvailable;
     }
     await expect(page.locator('.organize-card .document-type-options input')).not.toHaveCount(0, {
         timeout: 120000
@@ -381,10 +416,10 @@ async function runNewCase(page, scenario, ordinal) {
     await continueFromUpload(page);
 
     console.log(`${scenario.label}: selecting case codes`);
-    await selectGuidedCourt(page, 'illinois', scenario.court);
-    await selectAfterLoad(page, '#case_category_code', scenario.category);
-    await selectAfterLoad(page, '#case_type_code', scenario.caseType);
-    await selectAfterLoad(page, '#filing_type_code', scenario.filingType);
+    await selectCourtByName(page, scenario.courtName);
+    await selectByName(page, '#case_category_code', scenario.categoryName);
+    await selectByName(page, '#case_type_code', scenario.caseTypeName);
+    await selectByName(page, '#filing_type_code', scenario.filingTypeName);
     await chooseFilingPath(page, 'new');
     await continueFromExtractionReview(page, /\/document-checklist\//);
 
@@ -403,12 +438,12 @@ async function runExistingCase(page, scenario, ordinal) {
     });
     await continueFromUpload(page);
 
-    await selectGuidedCourt(page, 'illinois', scenario.court);
+    const courtCode = await selectCourtByName(page, scenario.courtName);
     await chooseFilingPath(page, 'existing');
     await continueFromExtractionReview(page, /\/case-lookup\//);
     // Confirm case already saved the court. The guided picker on Lookup hides
     // its backing select, so wait for the saved value rather than clicking it.
-    await expect(page.locator('#court')).toHaveValue(scenario.court, {
+    await expect(page.locator('#court')).toHaveValue(courtCode, {
         timeout: 120000
     });
     await page.locator('#case-number').fill(scenario.caseNumber);
