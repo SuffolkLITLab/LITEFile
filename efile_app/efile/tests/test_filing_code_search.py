@@ -1187,3 +1187,35 @@ def test_other_stage_count_points_new_case_searches_at_existing_filings(catalog)
     assert new["other_stage_total"] == existing["total"]
     assert existing["other_stage_total"] == new["total"]
     assert search_grouped_paths(index, "eviction", initial=True, offset=20)["other_stage_total"] is None
+
+
+def test_search_reuses_index_metadata_across_results(index, django_assert_num_queries):
+    # Keep real serialization: it accesses path.index for vocabulary and state
+    # guidance. Every result must reuse the already loaded index, without a
+    # join that decodes its potentially multi-megabyte JSON again per row.
+    from efile.models import FilingCodeIndex
+    from efile.services.filing_code_search import serialize_path
+
+    def serialize_known_index(path, **kwargs):
+        assert path.index is index
+        return serialize_path(path, **kwargs)
+
+    with (
+        patch.object(FilingCodeIndex, "from_db", side_effect=AssertionError("Refetched index metadata")),
+        patch("efile.services.filing_code_search.serialize_path", side_effect=serialize_known_index),
+        django_assert_num_queries(2),
+    ):
+        result = search_paths(index, "eviction", limit=500)
+    assert result["total"] == 2
+    assert {path["court"]["code"] for path in result["results"]} == {"housing", "district"}
+
+
+def test_search_index_leaves_import_snapshots_lazy(index, django_assert_num_queries):
+    expected_snapshots = index.court_snapshots
+    with django_assert_num_queries(1):
+        loaded = current_index("massachusetts")
+        assert loaded is not None
+        assert loaded.vocabulary == index.vocabulary
+    assert loaded.get_deferred_fields() == {"court_snapshots"}
+    with django_assert_num_queries(1):
+        assert loaded.court_snapshots == expected_snapshots

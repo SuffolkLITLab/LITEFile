@@ -468,11 +468,17 @@ def _refresh_index_legacy(jurisdiction, *, progress=None, cache_dir=None):
 
 
 def current_index(jurisdiction):
-    return FilingCodeIndex.objects.filter(
-        jurisdiction=jurisdiction,
-        source_url=source_url(),
-        rules_digest=rules()[1],
-    ).first()
+    # Search needs the vocabulary, but not the much larger import snapshots.
+    # Keep snapshots lazy for callers that inspect synchronization metadata.
+    return (
+        FilingCodeIndex.objects.filter(
+            jurisdiction=jurisdiction,
+            source_url=source_url(),
+            rules_digest=rules()[1],
+        )
+        .defer("court_snapshots")
+        .first()
+    )
 
 
 def case_description(path):
@@ -648,7 +654,10 @@ def search_paths(index, query, *, initial=True, offset=0, limit=20, names=None, 
     return {
         "results": [
             serialize_path(path, query=query, corrected=corrected, resolved_query=resolved_query)
-            for path in paths.select_related("index")[offset : offset + limit]
+            # index.paths already carries its index as a known related object.
+            # Joining it repeats megabytes of vocabulary/snapshots for every
+            # row, particularly on the court screen's 500-result pages.
+            for path in paths[offset : offset + limit]
         ],
         "total": total,
         "corrected_terms": corrected,
