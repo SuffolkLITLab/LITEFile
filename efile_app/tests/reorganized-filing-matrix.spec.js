@@ -406,7 +406,11 @@ async function runExistingCase(page, scenario, ordinal) {
     await selectGuidedCourt(page, 'illinois', scenario.court);
     await chooseFilingPath(page, 'existing');
     await continueFromExtractionReview(page, /\/case-lookup\//);
-    await selectAfterLoad(page, '#court', scenario.court);
+    // Confirm case already saved the court. The guided picker on Lookup hides
+    // its backing select, so wait for the saved value rather than clicking it.
+    await expect(page.locator('#court')).toHaveValue(scenario.court, {
+        timeout: 120000
+    });
     await page.locator('#case-number').fill(scenario.caseNumber);
     const lookupOutcome = await Promise.race([
         page.waitForURL(/\/case-confirmation\//, {
