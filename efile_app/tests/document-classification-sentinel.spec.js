@@ -5,7 +5,8 @@ const {
 const path = require('path');
 const {
     getTestConfig,
-    loginViaLoginPage
+    loginViaLoginPage,
+    continueFromUpload
 } = require('./test-utils');
 
 const SENTINEL_PDF = path.resolve(__dirname, '../../benchmarking/synthetic/filled_pdfs/flattened/IL-02.pdf');
@@ -32,12 +33,7 @@ test('real uploaded PDF is extracted and classified against live Tyler choices',
     await expect(page.locator('.document-row')).toHaveCount(1, {
         timeout: 120000
     });
-    await Promise.all([
-        page.waitForURL(/\/extraction-review\//, {
-            timeout: 300000
-        }),
-        page.locator('#continue-to-analysis').click(),
-    ]);
+    await continueFromUpload(page);
 
     await expect(page.getByRole('heading', {
         name: /Check what we read from your document/i
@@ -57,7 +53,9 @@ test('real uploaded PDF is extracted and classified against live Tyler choices',
     await expect(page.locator('#case_type_name')).toHaveValue('Dissolution (with children)', {
         timeout: 120000
     });
-    await expect(page.locator('#filing_type_name')).toHaveValue('Petition Dissolution of Marriage/Civil Union', {
+    // Lake County names this filing type "Petition" (checked against the live
+    // code list on 2026-10-08); it was "Petition Dissolution of Marriage/Civil Union".
+    await expect(page.locator('#filing_type_name')).toHaveValue('Petition', {
         timeout: 120000
     });
     await expect(page.locator('input[type="radio"][name="existing_case"][value="new"]')).toBeChecked();

@@ -6,6 +6,9 @@ const path = require('path');
 const {
     getTestConfig,
     loginViaLoginPage,
+    continueFromUpload,
+    fillRequiredInputs,
+    choosePayByAccount,
     continueFromExtractionReview,
     continueFromDocumentChecklist,
     chooseFilingPath,
@@ -19,23 +22,6 @@ async function selectAfterLoad(page, selector, value) {
         timeout: 120000,
     });
     await page.locator(selector).selectOption(value);
-}
-
-async function fillRequiredInputs(page, values) {
-    for (const [name, value] of Object.entries(values)) {
-        const field = page.locator(`[name="${name}"]:visible`).first();
-        if (await field.count()) await field.fill(value);
-    }
-    const required = page.locator('input[required]:visible');
-    for (let index = 0; index < (await required.count()); index += 1) {
-        const input = required.nth(index);
-        if (await input.inputValue()) continue;
-        const type = await input.getAttribute('type');
-        if (type === 'radio' || type === 'checkbox') continue;
-        await input.fill(
-            type === 'email' ? 'efile-test@example.com' : type === 'number' ? '1' : 'Test value'
-        );
-    }
 }
 
 async function completeParty(page, ordinal) {
@@ -95,12 +81,7 @@ test('adding and removing optional services dynamically updates calculated fees 
     await expect(page.locator('.document-row')).toHaveCount(1, {
         timeout: 120000
     });
-    await Promise.all([
-        page.waitForURL(/\/extraction-review\//, {
-            timeout: 300000
-        }),
-        page.locator('#continue-to-analysis').click(),
-    ]);
+    await continueFromUpload(page);
 
     console.log('Step 4: Selecting case codes (Adams County - Small Claims)...');
     await selectGuidedCourt(page, 'illinois', 'adams');
@@ -231,8 +212,9 @@ test('adding and removing optional services dynamically updates calculated fees 
     console.log('Step 9: Verifying fee calculation on Payment page WITH optional service...');
     await expect(page).toHaveURL(/\/payment\//);
 
-    // Select the active BankAccount payment option
-    const bankAccount = page.locator('input[name="paymentMethod"][data-type="BankAccount"], input[name="paymentMethod"][value="d44fd7ed-6683-48e1-a670-f7964e5bba4d"]');
+    // Pay from the active BankAccount payment option
+    await choosePayByAccount(page);
+    const bankAccount = page.locator('input[name="paymentMethod"][data-type="BankAccount"]');
     await expect(bankAccount.first()).toBeAttached({
         timeout: 120000
     });
@@ -259,13 +241,13 @@ test('adding and removing optional services dynamically updates calculated fees 
         page.locator('#submitButton').click(),
     ]);
 
-    await expect(page.locator('.review-fee-total')).toBeVisible({
+    await expect(page.locator('#fee-quote-amount')).toContainText('262.25', {
         timeout: 120000
     });
-    const reviewTotalWithService = await page.locator('.review-fee-total').innerText();
+    const reviewTotalWithService = await page.locator('#fee-quote-amount').innerText();
     console.log('Review Total WITH Optional Service:\n' + reviewTotalWithService);
     expect(reviewTotalWithService).toContain('262.25');
-    await expect(page.locator('.review-fee-breakdown')).toContainText('Optional Service Fee');
+    await expect(page.locator('#fee-quote-breakdown')).toContainText('Optional Service Fee');
     console.log('✓ Verified: Review page shows $262.25 total and Optional Service Fee breakdown item.');
 
     // Step 11: Edit documents from Review page to UNCHECK the optional service
@@ -299,10 +281,10 @@ test('adding and removing optional services dynamically updates calculated fees 
     // offers Submit only once the new total is on screen. No trip to Payment.
     console.log('Step 12: Waiting for Review to recalculate the fee WITHOUT optional service...');
     await expect(page.locator('#fee-quote')).not.toContainText('262.25');
-    await expect(page.locator('.review-fee-total')).toContainText('256.25', {
+    await expect(page.locator('#fee-quote-amount')).toContainText('256.25', {
         timeout: 180000
     });
-    await expect(page.locator('.review-fee-breakdown')).not.toContainText('Optional Service Fee');
+    await expect(page.locator('#fee-quote-breakdown')).not.toContainText('Optional Service Fee');
     await expect(page.locator('#fee-quote')).toHaveAttribute('data-state', 'current');
     await page.locator('#confirm-filing').check();
     await expect(page.locator('#submitButton')).toBeEnabled();
