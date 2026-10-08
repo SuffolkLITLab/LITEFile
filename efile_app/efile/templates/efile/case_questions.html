@@ -8,6 +8,7 @@
     <section class="workflow-card">
         <div class="workflow-eyebrow">{% translate "People" %}</div>
         <h1>{% translate "A few questions about your case" %}</h1>
+        {% include "efile/partials/filing_guidance.html" %}
         <p class="workflow-lede">{% translate "The court needs these answers for the case type you selected." %}</p>
         <form method="post" id="case-questions-form">
             {% csrf_token %}

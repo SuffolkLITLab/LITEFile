@@ -1,10 +1,14 @@
 """Saved filing choices select informational guidance, never submission rules."""
 
+import re
 from copy import deepcopy
+from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
+import yaml
+from django.conf import settings
 from django.template.loader import render_to_string
 from django.urls import reverse
 
@@ -158,7 +162,8 @@ def test_workflow_renders_current_saved_guidance_after_resuming(client, django_u
     response = client.get(url)
     assert response.status_code == 200
     assert RULE["text"] in response.content.decode()
-    assert response.content.decode().index(RULE["text"]) < response.content.decode().index('id="document-upload-form"')
+    content = response.content.decode()
+    assert content.index("</h1>") < content.index(RULE["text"]) < content.index('id="document-upload-form"')
     filing.court_code = "court:other"
     filing.save()
     response = client.get(url)
@@ -167,3 +172,43 @@ def test_workflow_renders_current_saved_guidance_after_resuming(client, django_u
     filing.refresh_from_db()
     assert filing.disclaimer_acceptance == {}
     assert filing.status == FilingDraft.Status.DRAFT
+
+
+def test_invalid_guidance_is_checked_and_logged_once_per_loaded_config(monkeypatch, caplog):
+    loaded = {"filing_guidance": [{**deepcopy(RULE), "steps": "review"}]}
+    monkeypatch.setattr(config_loader, "load_jurisdiction_config", lambda jurisdiction: loaded)
+    for _ in range(3):
+        assert filing_guidance(draft(), "review") == []
+    assert len([record for record in caplog.records if "Invalid filing guidance" in record.message]) == 1
+
+
+def test_demo_guidance_is_shown_only_when_a_demo_file_is_set(settings, tmp_path):
+    demo = tmp_path / "demo.yaml"
+    demo.write_text("illinois:\n  - id: demo\n    steps: [review]\n    title: Demo title\n    text: Demo text\n")
+    settings.FILING_GUIDANCE_DEMO_FILE = ""
+    assert filing_guidance(draft(), "review") == []
+    settings.FILING_GUIDANCE_DEMO_FILE = str(demo)
+    assert [item["title"] for item in filing_guidance(draft(), "review")] == ["Demo title"]
+    assert filing_guidance(draft(jurisdiction="vermont"), "review") == []
+
+
+def test_shipped_demo_file_is_valid_and_kept_out_of_state_config():
+    demo = Path(settings.BASE_DIR).parent / "testing" / "filing-guidance-demo.yaml"
+    assert not guidance_errors({"filing_guidance": yaml.safe_load(demo.read_text())["illinois"]})
+    for jurisdiction in config_loader.get_available_jurisdictions():
+        rules = config_loader.load_jurisdiction_config(jurisdiction).get("filing_guidance", [])
+        assert not [rule for rule in rules if rule["id"].startswith("local_validation")]
+
+
+def test_every_workflow_page_shows_guidance_after_its_heading():
+    templates = Path(settings.BASE_DIR) / "efile" / "templates" / "efile"
+    include = '{% include "efile/partials/filing_guidance.html" %}'
+    assert include not in (templates / "workflow_base.html").read_text()
+    for template in templates.glob("*.html"):
+        source = template.read_text()
+        if 'extends "efile/workflow_base.html"' not in source:
+            continue
+        headings = [match.end() for match in re.finditer("</h1>", source)]
+        includes = [match.start() for match in re.finditer(re.escape(include), source)]
+        assert len(includes) == len(headings), template.name
+        assert all(heading < position for heading, position in zip(headings, includes, strict=True)), template.name

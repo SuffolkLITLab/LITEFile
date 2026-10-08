@@ -1,8 +1,11 @@
 """Informational, jurisdiction-maintained help matched to saved filing choices."""
 
 import logging
+import os
 from urllib.parse import urlsplit
 
+import yaml
+from django.conf import settings
 from django.utils.translation import pgettext
 
 from efile.utils.config_loader import config_loader
@@ -19,6 +22,9 @@ DRAFT_CONDITIONS = {
 }
 CONDITION_KEYS = {*DRAFT_CONDITIONS, "filing_type_codes"}
 RULE_KEYS = {"id", "steps", "title", "text", "when", "resources"}
+
+# jurisdiction -> (loaded config, demo file version, valid rules or None)
+_checked_rules = {}
 
 
 def _strings(value):
@@ -91,20 +97,60 @@ def guidance_strings(config):
             yield f"{prefix}.resources.{index}.label", resource["label"]
 
 
-def filing_guidance(draft, step, *, jurisdiction=None):
-    if draft is None:
+def _demo_file_version():
+    path = getattr(settings, "FILING_GUIDANCE_DEMO_FILE", "")
+    if not path:
+        return None
+    try:
+        stat = os.stat(path)
+    except OSError:
+        return (path, None)
+    return (path, stat.st_mtime_ns, stat.st_size)
+
+
+def _demo_rules(version, jurisdiction):
+    """Local demonstration guidance, kept out of the deployed jurisdiction files."""
+    if version is None:
         return []
-    jurisdiction = jurisdiction or draft.jurisdiction
+    try:
+        with open(version[0]) as demo_file:
+            rules = (yaml.safe_load(demo_file) or {}).get(jurisdiction, [])
+    except (OSError, yaml.YAMLError, AttributeError):
+        logger.warning("Could not read the filing guidance demo file %s", version[0])
+        return []
+    return rules if isinstance(rules, list) else [rules]
+
+
+def _rules(jurisdiction):
+    """The jurisdiction's guidance rules, validated once per loaded config."""
     config = config_loader.load_jurisdiction_config(jurisdiction)
-    errors = guidance_errors(config)
+    demo_version = _demo_file_version()
+    checked = _checked_rules.get(jurisdiction)
+    if checked and checked[0] is config and checked[1] == demo_version:
+        return checked[2]
+    rules = config.get("filing_guidance", [])
+    demo = _demo_rules(demo_version, jurisdiction)
+    if demo:
+        rules = [*rules, *demo] if isinstance(rules, list) else rules
+    errors = guidance_errors({"filing_guidance": rules})
     if errors:
         # Invalid informational copy must not prevent a filer from proceeding.
         # The system check reports it to maintainers before deployment.
         logger.warning("Invalid filing guidance for %s: %s", jurisdiction, "; ".join(errors))
+        rules = None
+    _checked_rules[jurisdiction] = (config, demo_version, rules)
+    return rules
+
+
+def filing_guidance(draft, step, *, jurisdiction=None):
+    if draft is None:
+        return []
+    rules = _rules(jurisdiction or draft.jurisdiction)
+    if not rules:
         return []
     matches = []
     document_codes = None
-    for rule in config.get("filing_guidance", []):
+    for rule in rules:
         if step not in rule["steps"]:
             continue
         conditions = rule.get("when", {})

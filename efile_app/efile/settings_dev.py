@@ -88,6 +88,10 @@ WHITENOISE_MAX_AGE = 0
 # and URLs; only the URL handed to the proxy changes. Defined here rather than in
 # settings_base so no environment variable can enable it outside development.
 EFSP_TEST_DOCUMENT_URL = os.getenv("EFSP_TEST_DOCUMENT_URL", "").strip()
+# Extra filing guidance for local validation, such as
+# ../testing/filing-guidance-demo.yaml. Development only, like the setting above,
+# so demonstration messages can never be shown to filers on a deployed site.
+FILING_GUIDANCE_DEMO_FILE = os.getenv("FILING_GUIDANCE_DEMO_FILE", "").strip()
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost",
     "http://127.0.0.1",

@@ -33,7 +33,6 @@
             {% if handoff_draft_id %}
                 <p><a href="{% url 'handoff_review' handoff_draft_id %}">{% translate "Return to saved interview answers and corrections" %}</a></p>
             {% endif %}
-            {% include "efile/partials/filing_guidance.html" %}
             {% block workflow_content %}
             {% endblock workflow_content %}
         </main>

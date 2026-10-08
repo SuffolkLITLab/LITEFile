@@ -7,6 +7,7 @@
     <section class="workflow-card">
         <div class="workflow-eyebrow">{% translate "Upload" %}</div>
         <h1>{% translate "Check your documents" %}</h1>
+        {% include "efile/partials/filing_guidance.html" %}
         <p class="workflow-lede">{% translate "The court will get these copies. Open each PDF and check every page before you continue." %}</p>
         <p>{% translate "If a file looks wrong, go back and replace it." %}</p>
         {% if preview_error %}<p class="alert alert-danger" role="alert">{{ preview_error }}</p>{% endif %}
