@@ -90,20 +90,15 @@ def selector_config(jurisdiction: str) -> dict[str, Any] | None:
 
 
 def fetch_courts(jurisdiction: str) -> list[dict[str, str]]:
-    """Every court the e-filing service will accept a filing for, as options.
+    """Courts explicitly accepting initial or subsequent filings."""
 
-    ``fileable_only`` is unreliable on the test service -- it hides courts that
-    do offer filing categories -- so the whole named list is fetched and the
-    rows that are plainly not courts are dropped here instead.
-    """
-
-    cache_key = f"court-selector:courts:{jurisdiction}"
+    cache_key = f"court-selector:fileable-courts:{jurisdiction}"
     cached = cache.get(cache_key)
     if cached is not None:
         return cached
 
     url = f"{settings.EFSP_URL}/jurisdictions/{jurisdiction}/codes/courts/"
-    response = requests.get(url, params={"fileable_only": False, "with_names": True}, timeout=15)
+    response = requests.get(url, params={"fileable_only": True, "with_names": True}, timeout=15)
     response.raise_for_status()
     payload = response.json()
     courts = [
@@ -112,8 +107,6 @@ def fetch_courts(jurisdiction: str) -> list[dict[str, str]]:
         if isinstance(court, dict) and court.get("code") and court.get("name")
         if not is_non_filing_court(court["name"])
     ]
-    fileable = _fileable_codes(jurisdiction)
-    courts = [court for court in courts if not _is_heading_only(court, courts, fileable)]
     rules = (selector_config(jurisdiction) or {}).get("court_names") or []
     for court in courts:
         court["text"] = _readable_name(court["text"], rules)
@@ -141,45 +134,6 @@ def _readable_name(name: str, rules: list[dict[str, str]]) -> str:
             rewritten = rewritten.replace(f"{{{field}}}", (value or "").strip())
         return " ".join(rewritten.split())
     return name
-
-
-def _fileable_codes(jurisdiction: str) -> set[str] | None:
-    """The courts the e-filing service says accept filings, or ``None``.
-
-    Taken as a hint rather than as the truth. It is demonstrably incomplete --
-    Cook County's Chancery division is missing from it and offers three case
-    categories -- so it is only ever used to confirm something already suspected
-    from the shape of the list, and a request that fails changes nothing.
-    """
-
-    try:
-        response = requests.get(
-            f"{settings.EFSP_URL}/jurisdictions/{jurisdiction}/codes/courts/",
-            params={"fileable_only": True, "with_names": True},
-            timeout=15,
-        )
-        response.raise_for_status()
-        return {str(court["code"]) for court in response.json() if isinstance(court, dict) and court.get("code")}
-    except (requests.RequestException, ValueError, KeyError):
-        logger.warning("Could not read the fileable court list for %s", jurisdiction)
-        return None
-
-
-def _is_heading_only(court: dict[str, str], courts: list[dict[str, str]], fileable: set[str] | None) -> bool:
-    """Whether a court is only a heading over the courts underneath it.
-
-    "Cook County" is such a row: every Cook filing goes to one of the eighty
-    locations whose code hangs off it, and choosing the county itself is a dead
-    end -- the case category list comes back empty and the filer is stuck with
-    no way to see why. Both things have to be true to drop it, because a
-    division like Cook County - Chancery has locations under it and still takes
-    filings of its own.
-    """
-
-    if fileable is None or court["value"] in fileable:
-        return False
-    prefix = f"{court['value']}:"
-    return any(other["value"].startswith(prefix) for other in courts)
 
 
 def _fill(template: Any, answers: dict[str, str]) -> Any:

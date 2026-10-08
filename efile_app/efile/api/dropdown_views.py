@@ -262,10 +262,8 @@ class DropdownAPIViews(APIResponseMixin):
 
             # Make API call to external jurisdiction endpoint
             api_url = f"{settings.EFSP_URL}/jurisdictions/{jurisdiction}/codes/courts/"
-            # `fileable_only=true` is incomplete on the EFSP test service and
-            # hides courts that do expose valid filing categories. Later
-            # dropdown calls still validate the chosen court's hierarchy.
-            params = {"fileable_only": False, "with_names": True}
+            # Published categories do not prove a location accepts filings.
+            params = {"fileable_only": True, "with_names": True}
 
             try:
                 # Make the API request with auth tokens if available

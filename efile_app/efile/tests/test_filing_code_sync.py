@@ -194,3 +194,9 @@ def test_court_emptied_by_a_partial_proxy_load_is_rejected_unless_forced(bulk):
     assert set(index.paths.values_list("pk", flat=True)) == ids
     assert refresh_index("massachusetts", force=["housing"]) == 0
     assert not index.paths.filter(court__code="housing").exists()
+
+
+@pytest.fixture(autouse=True)
+def court_eligibility():
+    with patch("efile.services.filing_code_search.eligible_court_codes", return_value=["housing", "district"]):
+        yield

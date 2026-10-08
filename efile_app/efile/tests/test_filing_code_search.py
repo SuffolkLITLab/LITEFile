@@ -6,6 +6,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 import requests
+from django.core.cache import cache
 from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.db import connection, transaction
@@ -38,6 +39,7 @@ def legacy_catalog_transport(settings):
     # These tests exercise the legacy reader and shared search/validation behavior.
     # The bulk transport and incremental imports have separate contract tests.
     settings.FILING_CODE_SYNC_MODE = "legacy"
+    cache.clear()
 
 
 def option(code, name):
@@ -1219,3 +1221,53 @@ def test_search_index_leaves_import_snapshots_lazy(index, django_assert_num_quer
     assert loaded.get_deferred_fields() == {"court_snapshots"}
     with django_assert_num_queries(1):
         assert loaded.court_snapshots == expected_snapshots
+
+
+def test_search_excludes_indexed_nonfileable_court(index, catalog):
+    catalog.courts.return_value = [option("housing", "Boston Housing Court")]
+    paths, _ = matching_paths(index, "eviction", True)
+    assert set(paths.values_list("court__code", flat=True)) == {"housing"}
+    catalog.courts.assert_called_with(True)
+
+
+def test_court_eligibility_depends_on_filing_timing(index, catalog):
+    catalog.courts.side_effect = lambda initial: [
+        option("housing", "Boston Housing Court") if initial else option("district", "Boston District Court")
+    ]
+    initial_paths, _ = matching_paths(index, "eviction", True)
+    subsequent_paths, _ = matching_paths(index, "eviction", False)
+    assert set(initial_paths.values_list("court__code", flat=True)) == {"housing"}
+    assert set(subsequent_paths.values_list("court__code", flat=True)) == {"district"}
+
+
+def test_live_validation_rejects_nonfileable_court_early(index, catalog):
+    path = index.paths.filter(initial=True).first()
+    catalog.courts.return_value = []
+    catalog.categories.reset_mock()
+    with pytest.raises(ValueError, match="no longer offered"):
+        validate_path(path)
+    catalog.courts.assert_called_with(True)
+    catalog.categories.assert_not_called()
+
+
+@pytest.mark.parametrize("initial,timing", [(None, "INITIAL_OR_SUBSEQUENT"), (True, "INITIAL"), (False, "SUBSEQUENT")])
+def test_catalog_requests_fileable_courts_for_timing(initial, timing):
+    with patch("efile.services.filing_code_search.requests.Session") as session:
+        session.return_value.get.return_value.json.return_value = [option("court", "Court")]
+        api = CodeCatalog("illinois")
+        try:
+            assert api.courts(initial) == [option("court", "Court")]
+            assert session.return_value.get.call_args.kwargs["params"] == {
+                "fileable_type": timing,
+                "with_names": "true",
+            }
+        finally:
+            api.close()
+
+
+def test_search_eligibility_failure_is_retryable(signed_in, index, catalog):
+    catalog.courts.side_effect = requests.Timeout()
+    params = {"jurisdiction": "massachusetts", "q": "eviction"}
+    assert signed_in.get(URL, params).status_code == 503
+    catalog.courts.side_effect = None
+    assert signed_in.get(URL, params).status_code == 200

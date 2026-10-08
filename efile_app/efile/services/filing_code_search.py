@@ -2,7 +2,7 @@
 
 Snowball stems and YAML concepts are materialized when refreshing the index.
 PostgreSQL uses an indexed simple tsvector; SQLite uses an FTS5 inverted index.
-No external service is called while searching. Selection is revalidated live.
+Court eligibility is cached briefly; selection is revalidated live.
 """
 
 from __future__ import annotations
@@ -303,8 +303,9 @@ class CodeCatalog:
             result[code] = {"code": code, "name": str(item["name"])}
         return list(result.values())
 
-    def courts(self):
-        return [c for c in self.get(fileable_only="false", with_names="true") if not is_non_filing_court(c["name"])]
+    def courts(self, initial=None):
+        timing = "INITIAL_OR_SUBSEQUENT" if initial is None else "INITIAL" if initial else "SUBSEQUENT"
+        return [c for c in self.get(fileable_type=timing, with_names="true") if not is_non_filing_court(c["name"])]
 
     def categories(self, court, initial=True):
         return self.get(
@@ -601,12 +602,27 @@ def corrected_search_query(index, query):
     return " ".join(query_words), corrected
 
 
+def eligible_court_codes(jurisdiction, initial):
+    """Apply current destination eligibility even to previously imported paths.
+
+    Cache one small list per jurisdiction/timing, never one request per result.
+    Failed reads propagate to the search API and are not cached as empty lists.
+    """
+    key = f"filing-court-eligibility:{jurisdiction}:{initial}"
+    codes = cache.get(key)
+    if codes is None:
+        with closing(CodeCatalog(jurisdiction, timeout=(5, 8))) as catalog:
+            codes = sorted(court["code"] for court in catalog.courts(initial))
+        cache.set(key, codes, 600)
+    return codes
+
+
 def matching_paths(index, query, initial):
     resolved_query, corrected = corrected_search_query(index, query)
     tokens = search_tokens(resolved_query, index.jurisdiction, query=True)
     if not tokens:
         return index.paths.none().annotate(score=Value(0)), []
-    paths = index.paths.filter(initial=initial)
+    paths = index.paths.filter(initial=initial, court__code__in=eligible_court_codes(index.jurisdiction, initial))
     if connection.vendor == "postgresql":
         search = SearchQuery(" ".join(sorted(tokens)), config="simple")
         paths = paths.annotate(document=SearchVector("search_text", config="simple")).filter(document=search)
@@ -930,8 +946,11 @@ def filter_filing_groups(
 
 
 def filing_groups(index, query, initial, courts=()):
-    fingerprint = hashlib.sha256(f"{index.pk}:{index.refreshed_at}:{initial}:{query}:{courts}".encode()).hexdigest()
-    key = f"filing-groups-v8:{fingerprint}"
+    eligible = eligible_court_codes(index.jurisdiction, initial)
+    fingerprint = hashlib.sha256(
+        f"{index.pk}:{index.refreshed_at}:{initial}:{query}:{courts}:{eligible}".encode()
+    ).hexdigest()
+    key = f"filing-groups-v9:{fingerprint}"
     cached = cache.get(key)
     if cached is not None:
         return cached
@@ -1163,7 +1182,7 @@ def validate_path(path):
         return chosen
 
     try:
-        options = {"court": catalog.courts()}
+        options = {"court": catalog.courts(path.initial)}
         court = find(options["court"], "court")
         options["case_category"] = catalog.categories(court["code"], path.initial)
         category = find(options["case_category"], "case_category")

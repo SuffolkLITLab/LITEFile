@@ -404,25 +404,28 @@ class TestFetchingTheCourtList:
             {"code": "cook:cvd1", "name": "Cook County - Municipal Civil - District 1 - Chicago"},
             {"code": "will", "name": "Will County"},
         ]
-        # The e-filing service leaves both Cook rows out of its fileable list,
-        # but only the county is a dead end: Chancery has locations under it and
-        # takes filings of its own, so the flag alone is not enough to drop it.
-        courts = self._fetch(payload, [{"code": "cook:cvd1"}, {"code": "will"}])
-        assert [court["value"] for court in courts] == ["cook:chd", "cook:cvd1", "will"]
+        courts = self._fetch(payload, [payload[2], payload[3]])
+        assert [court["value"] for court in courts] == ["cook:cvd1", "will"]
 
-    def test_nothing_is_dropped_when_the_fileable_list_cannot_be_read(self):
-        payload = [
-            {"code": "cook", "name": "Cook County"},
-            {"code": "cook:cvd1", "name": "Cook County - Municipal Civil - District 1 - Chicago"},
-        ]
+    def test_parent_with_published_codes_is_not_a_filing_destination(self):
+        parent = {"code": "cook:cvd", "name": "Cook County - Municipal Civil"}
+        child = {"code": "cook:cvd2", "name": "Cook County - Municipal Civil - District 2 - Skokie"}
+        assert self._fetch([parent, child], [child]) == [{"value": child["code"], "text": child["name"]}]
+
+    def test_fileable_parent_is_preserved_even_with_child_locations(self):
+        parent = {"code": "parent", "name": "Parent court"}
+        child = {"code": "parent:child", "name": "Child court"}
+        assert len(self._fetch([parent, child], [parent, child])) == 2
+
+    def test_unreadable_fileable_list_does_not_offer_unverified_courts(self):
         with (
             patch("efile.services.court_selection.requests.get") as get,
             patch("efile.services.court_selection.cache") as cache,
         ):
             cache.get.return_value = None
-            get.return_value.json.side_effect = [payload, ValueError("not json")]
-            get.return_value.raise_for_status.return_value = None
-            assert len(fetch_courts("illinois")) == 2
+            get.return_value.json.side_effect = ValueError("not json")
+            with pytest.raises(ValueError):
+                fetch_courts("illinois")
 
 
 @pytest.mark.django_db
