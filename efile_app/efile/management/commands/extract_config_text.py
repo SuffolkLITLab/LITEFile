@@ -22,6 +22,7 @@ import json
 
 from django.core.management.base import BaseCommand, CommandError
 
+from efile.services.filing_guidance import guidance_errors, guidance_strings
 from efile.utils.config_loader import config_loader
 from efile.utils.ui_text import UI_STRINGS, config_overrides
 
@@ -54,11 +55,17 @@ def _render():
     for jurisdiction in config_loader.get_available_jurisdictions():
         config = config_loader.load_jurisdiction_config(jurisdiction) or {}
         overrides = {key: value for key, value in config_overrides(config).items() if key in UI_STRINGS}
+        errors = guidance_errors(config)
+        if errors:
+            raise CommandError(f"{jurisdiction}.yaml: {'; '.join(errors)}")
+        overrides.update(guidance_strings(config))
         if not overrides:
             continue
         lines.append(f"    # {jurisdiction}.yaml\n")
         for key, value in sorted(overrides.items()):
-            description = UI_STRINGS[key].description
+            description = (
+                UI_STRINGS[key].description if key in UI_STRINGS else "Jurisdiction-maintained filing guidance."
+            )
             if description:
                 lines.append(f"    # Translators: {description}\n")
             # Written the way ruff would format it -- double quotes, one argument

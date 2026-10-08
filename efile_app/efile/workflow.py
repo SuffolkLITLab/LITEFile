@@ -416,6 +416,8 @@ def get_workflow_context(
     jurisdiction: str,
     draft: Any | None = None,
 ) -> dict[str, Any]:
+    from efile.services.filing_guidance import filing_guidance
+
     previous_step = get_previous_step(current_step, draft)
     next_step = get_next_step(current_step, draft)
     visible_workflow = get_visible_workflow(draft, current_step=current_step)
@@ -425,6 +427,7 @@ def get_workflow_context(
     current_stage_index = stages.index(current_stage)
 
     return {
+        "filing_guidance": filing_guidance(draft, current_step, jurisdiction=jurisdiction),
         "workflow_steps": visible_workflow,
         "workflow_stages": stages,
         "workflow_stage_progress": tuple(

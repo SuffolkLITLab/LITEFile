@@ -98,3 +98,20 @@ def configured_ui_text_keys_are_known(app_configs, **kwargs):
                     )
                 )
     return problems
+
+
+@register()
+def configured_filing_guidance_is_valid(app_configs, **kwargs):
+    """Report invalid informational rules before partners deploy their copy."""
+    from efile.services.filing_guidance import guidance_errors
+    from efile.utils.config_loader import config_loader
+
+    return [
+        Warning(
+            f"{jurisdiction}.yaml: {message}",
+            hint="Correct filing_guidance; invalid guidance is omitted, and never blocks a filing.",
+            id="efile.W004",
+        )
+        for jurisdiction in config_loader.get_available_jurisdictions()
+        for message in guidance_errors(config_loader.load_jurisdiction_config(jurisdiction))
+    ]

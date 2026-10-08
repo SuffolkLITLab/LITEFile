@@ -678,3 +678,63 @@ and [Vermont small claims guidance](https://www.vtcourts.gov/civil/suing-and-bei
 
 The guidance configuration is cached per web process. Restart the web service
 after editing it; no filing catalog rebuild or database migration is required.
+
+## Contextual filing guidance
+
+Use `filing_guidance` for informational warnings and help that depend on the
+filer's saved choices. These messages never require an acknowledgment or block
+navigation or submission. Court requirements accepted on Review remain separate.
+
+Each message appears above the form on its configured workflow steps. Choose a
+step before the relevant task: for example, `upload_documents` for statewide
+upload help, `document_checklist` or `organize_documents` for court-specific
+document instructions, and `payment` for payment help. Include `review` when the
+same information is useful before submission. Court-specific help appears only
+after a court is saved; use a later step if court selection happens after upload.
+
+The following example uses **placeholder codes and copy**, not actual court
+instructions. Replace them with current provider codes and partner-reviewed text
+and links before deploying:
+
+```yaml
+filing_guidance:
+  - id: local_document_help
+    steps: [document_checklist, organize_documents, review]
+    title: "Preparing documents for this court"
+    text: "Read this court's document instructions if you need help preparing your filing."
+    when:
+      court_codes: ["example:division-a", "example:division-b"]
+      case_type_codes: ["example-case-type"]
+      existing_case: ["new"]
+    resources:
+      - label: "Court document instructions"
+        url: "https://court.example.org/filing-help"
+```
+
+- `id`, `steps`, `title`, and `text` are required. IDs must be unique within the
+  jurisdiction. Titles and text are plain text; HTML is escaped.
+- Omit `when` for statewide help. All configured conditions must match; within
+  each list, any one value matches. Missing selections do not match a condition.
+- Supported conditions are `court_codes`, `case_category_codes`, `case_type_codes`,
+  `case_subtype_codes`, `filing_type_codes`, and `existing_case` (`new` or
+  `existing`). Code matching is exact. Quote numeric provider codes in YAML.
+- A `filing_type_codes` condition matches any saved document, including supporting
+  documents. It does not use an AI prediction or an obsolete draft-level default.
+- To target a county, division, or district, list its current filing court codes
+  in `court_codes`. Names, prefixes, and inferred geographic matches are not used.
+  Maintain this list when provider codes change.
+- `resources` is optional. Each resource needs a descriptive `label` and an
+  absolute HTTPS `url`. Links open in the same tab.
+- Supported steps are the active keys in `efile/workflow.py` (`FILING_WORKFLOW`).
+  Messages appear in configuration order. They refresh on the next rendered page
+  after choices are saved, including when a draft is resumed. They do not update
+  while a dropdown has an unsaved selection.
+
+No local court guidance is enabled by default. Add reviewed messages to the
+appropriate state's YAML file. Run `uv run python manage.py check` after editing;
+invalid configuration produces `efile.W004` and that jurisdiction's guidance is
+omitted. Filing remains available. Use
+`uv run python manage.py check --fail-level WARNING` to reject these errors in a
+configuration review. Run `uv run python manage.py extract_config_text` and then
+`uv run python manage.py makemessages -l es` to include the new copy and link
+labels in the existing translation workflow.

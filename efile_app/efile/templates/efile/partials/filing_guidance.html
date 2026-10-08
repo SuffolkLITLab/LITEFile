@@ -1,0 +1,14 @@
+{% for guidance in filing_guidance %}
+    <aside class="alert alert-info"
+           aria-labelledby="filing-guidance-{{ forloop.counter }}">
+        <h2 class="h5" id="filing-guidance-{{ forloop.counter }}">{{ guidance.title }}</h2>
+        <p>{{ guidance.text }}</p>
+        {% if guidance.resources %}
+            <ul>
+                {% for resource in guidance.resources %}
+                    <li><a href="{{ resource.url }}">{{ resource.label }}</a></li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </aside>
+{% endfor %}
