@@ -267,8 +267,8 @@
             <div class="plan-alert plan-alert--review" role="note">
                 <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
                 <div>
-                    <strong>{% translate "Optional suggestions from your plan" %}</strong>
-                    <p>{% translate "Your plan is a suggested checklist, not advice from the court about what you must file. You can choose which suggestions to follow." %}</p>
+                    <strong>{% translate "Other filers like you often include these documents" %}</strong>
+                    <p>{% translate "Your plan is a checklist, not advice from the court about what you must file. You decide which documents to include." %}</p>
                     <p>{% translate "These plan items are not attached to this filing:" %}</p>
                     <ul>
                         {% for item in plan_missing_documents %}
@@ -283,11 +283,11 @@
                         {% endfor %}
                     </ul>
                     <p>
-                        {% translate "You can review these suggestions and add documents if they apply to you, or continue with your filing as it is." %}
+                        {% translate "You can review your plan and add any documents that apply to you, or continue with your filing as it is." %}
                     </p>
                     <div class="plan-alert__actions">
                         <a class="btn btn-outline-primary btn-sm"
-                           href="{% url 'document_checklist' jurisdiction %}?return_to=review">{% translate "Review plan suggestions" %}</a>
+                           href="{% url 'document_checklist' jurisdiction %}?return_to=review">{% translate "Review your plan" %}</a>
                     </div>
                 </div>
             </div>
