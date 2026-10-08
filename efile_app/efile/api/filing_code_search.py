@@ -133,10 +133,6 @@ def filing_code_search(request):
             if purpose or document:
                 return JsonResponse({"error": "Use grouped search with filing-type filters."}, status=400)
             result = search_paths(index, query, initial=initial, offset=offset)
-    except requests.RequestException:
-        return JsonResponse(
-            {"error": "We could not check which courts accept filings. Try again in a moment."}, status=503
-        )
     except ValueError as error:
         return JsonResponse({"error": str(error)}, status=409)
     result.update(

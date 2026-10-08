@@ -186,9 +186,3 @@ def test_only_superusers_reach_the_filing_codes_page(client, django_user_model):
     assert client.get(reverse("litefile_staff:filing_codes")).status_code == 403
     assert client.post(reverse("litefile_staff:filing_codes"), {"kind": "resync"}).status_code == 403
     assert not FilingCodeJob.objects.exists()
-
-
-@pytest.fixture(autouse=True)
-def court_eligibility():
-    with patch("efile.services.filing_code_search.eligible_court_codes", return_value=["adams", "cook:cvd1"]):
-        yield
