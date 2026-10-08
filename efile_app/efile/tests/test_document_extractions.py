@@ -453,3 +453,25 @@ def test_management_command_processes_and_retries_failures(extraction_draft):
         assert job.status == DocumentExtraction.Status.FAILED
         assert job.attempts == 2
         assert "Document analysis failed" in job.error
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("status", [None, "pending", "processing", "complete", "failed"])
+def test_upload_continue_waits_for_analysis(client, extraction_draft, status):
+    authorize(client, extraction_draft)
+    if status is not None:
+        document = reviewed_document(draft=extraction_draft, role=FilingDocument.Role.LEAD, name="petition.pdf")
+        DocumentExtraction.objects.create(document=document, status=status)
+    response = client.get(reverse("upload_documents", kwargs={"jurisdiction": "illinois"}))
+    assert response.status_code == 200
+    content = response.content.decode()
+    match = re.search(r'<a\b[^>]*id="continue-to-analysis"[^>]*>', content)
+    assert match is not None
+    link = match.group()
+    if status in {"complete", "failed"}:
+        assert ' href="' in link
+        assert 'aria-disabled="true"' not in link
+    else:
+        assert ' href="' not in link
+        assert 'aria-disabled="true"' in link
+    assert "You can leave this page and come back while we work." not in content

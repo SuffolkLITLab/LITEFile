@@ -46,7 +46,9 @@
         </p>
         <form id="document-upload-form"
               enctype="multipart/form-data"
-              data-extraction-status-url="{% url 'document_extraction_status' jurisdiction %}">
+              data-extraction-status-url="{% url 'document_extraction_status' jurisdiction %}"
+              data-has-lead="{{ has_lead_document|yesno:'true,false' }}"
+              data-extraction-pending="{{ extraction_pending|yesno:'true,false' }}">
             {% csrf_token %}
             <label class="drop-zone" id="document-drop-zone" for="documents-input">
                 <input id="documents-input"
@@ -81,7 +83,7 @@
                 </strong>
                 <span id="upload-state-detail">
                     {% if extraction_pending %}
-                        {% translate "You can leave this page and come back while we work." %}
+                        {% translate "Please wait while we read your first file. You can continue when it is ready." %}
                     {% else %}
                         {% translate "Keep this page open while the files upload." %}
                     {% endif %}
@@ -218,10 +220,7 @@
             {% else %}
                 <a class="btn btn-outline-secondary" href="{{ workflow_previous_url }}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {% translate "Back" %}</a>
             {% endif %}
-            <a class="btn btn-primary {% if not has_lead_document %}disabled{% endif %}"
-               id="continue-to-analysis"
-               href="{% url 'preview_documents' jurisdiction %}{% if return_to %}?return_to={{ return_to }}{% endif %}"
-               {% if not has_lead_document %}aria-disabled="true" tabindex="-1"{% endif %}>{% translate "Preview your PDFs" %} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+            <a class="btn btn-primary {% if not has_lead_document or extraction_pending %}disabled{% endif %}" id="continue-to-analysis" data-continue-url="{% url 'preview_documents' jurisdiction %}{% if return_to %}?return_to={{ return_to }}{% endif %}" {% if not has_lead_document or extraction_pending %}aria-disabled="true" tabindex="-1"{% else %}href="{% url 'preview_documents' jurisdiction %}{% if return_to %}?return_to={{ return_to }}{% endif %}"{% endif %}>{% translate "Preview your PDFs" %} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
         </div>
     </section>
 {% endblock workflow_content %}

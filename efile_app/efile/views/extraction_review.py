@@ -174,7 +174,7 @@ def extraction_review(request, jurisdiction):
         DocumentExtraction.Status.PENDING,
         DocumentExtraction.Status.PROCESSING,
     }:
-        messages.info(request, "We are still analyzing your first PDF. You can leave this page and come back.")
+        messages.info(request, "Please wait while we read your first PDF. You can continue when it is ready.")
         return redirect(
             with_return_to(get_step_url(WorkflowStepKey.UPLOAD_DOCUMENTS, jurisdiction), return_target(request))
         )
