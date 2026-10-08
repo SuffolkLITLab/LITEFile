@@ -324,7 +324,7 @@ def test_change_files_keeps_where_the_filer_came_from(client, preview_draft):
     assert 'upload-documents/?return_to=review"' in preview
     upload = client.get(url("upload_documents", preview_draft) + "&return_to=review").content.decode()
     # Both ways off the upload page lead back toward Review, not the start.
-    assert upload.count('preview-documents/?return_to=review"') == 2
+    assert upload.count('href="/jurisdiction/vermont/preview-documents/?return_to=review"') == 2
     unknown = client.get(url("upload_documents", preview_draft) + "&return_to=elsewhere").content.decode()
     assert "return_to" not in unknown
 

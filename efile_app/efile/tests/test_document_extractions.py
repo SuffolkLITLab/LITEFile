@@ -1,22 +1,27 @@
 import os
 import re
 import shutil
+from datetime import timedelta
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
 from django.test import override_settings
 from django.urls import reverse
+from django.utils import timezone
 from pypdf import PdfReader, PdfWriter
 
 from efile.models import DocumentExtraction, FilingDocument, FilingDraft
 from efile.services.current_drafts import CURRENT_DRAFT_SESSION_KEY
 from efile.services.document_extractions import (
+    EXTRACTION_WAIT_LIMIT,
     claim_next_extraction,
+    extraction_is_waiting,
     process_document_extraction,
     queue_document_extraction,
 )
 from efile.services.extraction_fields import normalize_document_evidence, normalize_extracted_fields
+from efile.services.fee_quotes import fee_fingerprint
 from efile.services.taxonomy_classification import ClassificationRun, HierarchicalDocumentClassifier
 from efile.tests.helpers import reviewed_document
 from efile.workflow import ExistingCase
@@ -191,7 +196,8 @@ def test_worker_reads_a_real_uploaded_pdf_before_classification(extraction_draft
     assert job.analysis_metadata["form_identifier_scan_source"] == "pypdf"
     assert job.analysis_metadata["form_identifier_scan_ms"] < 2000
     assert extraction_draft.extracted_guesses["court"] == "Middlesex Probate and Family Court"
-    assert extraction_draft.amount_in_controversy == "1275"
+    assert extraction_draft.amount_in_controversy == ""
+    assert job.evidence["monetary amounts"][0]["amount"] == "1275"
 
 
 @pytest.mark.django_db
@@ -232,6 +238,7 @@ def test_status_endpoint_reports_when_review_is_ready(client, extraction_draft):
         "status": "complete",
         "ai_opted_out": False,
         "ready": True,
+        "wait_seconds": 0,
         "pages_analyzed": 20,
         "total_pages": 30,
         "review_url": reverse("preview_documents", kwargs={"jurisdiction": "illinois"}),
@@ -454,6 +461,100 @@ def test_management_command_processes_and_retries_failures(extraction_draft):
         assert job.status == DocumentExtraction.Status.FAILED
         assert job.attempts == 2
         assert "Document analysis failed" in job.error
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("status", [None, "pending", "processing", "complete", "failed"])
+def test_upload_continue_waits_for_analysis(client, extraction_draft, status):
+    authorize(client, extraction_draft)
+    if status is not None:
+        document = reviewed_document(draft=extraction_draft, role=FilingDocument.Role.LEAD, name="petition.pdf")
+        DocumentExtraction.objects.create(document=document, status=status)
+    response = client.get(reverse("upload_documents", kwargs={"jurisdiction": "illinois"}))
+    assert response.status_code == 200
+    content = response.content.decode()
+    match = re.search(r'<a\b[^>]*id="continue-to-analysis"[^>]*>', content)
+    assert match is not None
+    link = match.group()
+    if status in {"complete", "failed"}:
+        assert ' href="' in link
+        assert 'aria-disabled="true"' not in link
+    else:
+        assert ' href="' not in link
+        assert 'aria-disabled="true"' in link
+    assert "You can leave this page and come back while we work." not in content
+
+
+def _queued_lead(draft, *, waited):
+    document = reviewed_document(draft=draft, role=FilingDocument.Role.LEAD, name="petition.pdf")
+    job = queue_document_extraction(document)
+    DocumentExtraction.objects.filter(pk=job.pk).update(created_at=timezone.now() - waited)
+    return document
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(("waited", "may_continue"), [(timedelta(0), False), (EXTRACTION_WAIT_LIMIT, True)])
+def test_filer_may_go_on_without_analysis_after_the_wait_limit(client, extraction_draft, waited, may_continue):
+    authorize(client, extraction_draft)
+    _queued_lead(extraction_draft, waited=waited + timedelta(seconds=1) if may_continue else waited)
+
+    page = client.get(reverse("upload_documents", kwargs={"jurisdiction": "illinois"})).content.decode()
+    link = re.search(r'<a\b[^>]*id="continue-to-analysis"[^>]*>', page)
+    assert link is not None
+    assert (' href="' in link.group()) is may_continue
+    wait = client.get(reverse("document_extraction_status", kwargs={"jurisdiction": "illinois"})).json()
+    assert wait["ready"] is False
+    assert (wait["wait_seconds"] == 0) is may_continue
+    assert 0 <= wait["wait_seconds"] <= EXTRACTION_WAIT_LIMIT.total_seconds()
+    review = client.get(reverse("extraction_review", kwargs={"jurisdiction": "illinois"}))
+    assert (review.status_code == 200) is may_continue
+
+
+@pytest.mark.django_db
+def test_replacing_the_lead_restarts_the_wait(extraction_draft):
+    document = _queued_lead(extraction_draft, waited=EXTRACTION_WAIT_LIMIT * 2)
+    job = queue_document_extraction(document)
+    assert job.created_at > timezone.now() - timedelta(seconds=5)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("saved_amount", ["", "500.00"])
+def test_late_analysis_keeps_fee_inputs_unchanged(extraction_draft, saved_amount):
+    _queued_lead(extraction_draft, waited=EXTRACTION_WAIT_LIMIT * 2)
+    claimed = claim_next_extraction()
+    assert not extraction_is_waiting(claimed)
+    extraction_draft.current_step = "review"
+    extraction_draft.amount_in_controversy = saved_amount
+    extraction_draft.save(update_fields=["current_step", "amount_in_controversy"])
+    fingerprint = fee_fingerprint(extraction_draft)
+
+    handler = MagicMock()
+
+    def download(_key, destination):
+        writer = PdfWriter()
+        writer.add_blank_page(width=612, height=792)
+        with open(destination, "wb") as pdf_file:
+            writer.write(pdf_file)
+        return {"success": True}
+
+    handler.download_file.side_effect = download
+    evidence = {"monetary amounts": [{"label": "Amount in controversy", "amount": "1275.00"}]}
+    with (
+        patch("efile.services.document_extractions.S3UploadHandler", return_value=handler),
+        patch(
+            "efile.services.document_extractions.analyze_document",
+            return_value={"guesses": {"document title": "Complaint"}, "evidence": evidence},
+        ),
+    ):
+        process_document_extraction(claimed.pk, claimed.claim_token)
+
+    extraction_draft.refresh_from_db()
+    claimed.refresh_from_db()
+    assert claimed.status == DocumentExtraction.Status.COMPLETE
+    assert claimed.evidence == evidence
+    assert extraction_draft.extracted_guesses == {"document title": "Complaint"}
+    assert extraction_draft.amount_in_controversy == saved_amount
+    assert fee_fingerprint(extraction_draft) == fingerprint
 
 
 @pytest.mark.django_db

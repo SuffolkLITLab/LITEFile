@@ -33,6 +33,63 @@
     const aiRememberChoice = document.getElementById("ai-remember-choice");
     const selectedFiles = new Map();
     let nextSelectionId = 0;
+    let uploading = false;
+    const hasLead = form.dataset.hasLead === "true";
+    let analysisReady = hasLead && form.dataset.extractionPending !== "true";
+    // After the server's wait limit the filer may go on without the analysis.
+    let waitOver = hasLead && form.dataset.waitSeconds === "0";
+    // The analysis status the panel shows whenever no upload is in progress.
+    let analysisTitle = stateTitle.textContent;
+    let analysisDetail = stateDetail.textContent;
+
+    function canContinue() {
+        return !uploading && (analysisReady || waitOver);
+    }
+
+    function showAnalysisStatus(title, detail) {
+        analysisTitle = title;
+        analysisDetail = detail;
+        if (uploading) return;
+        stateTitle.textContent = title;
+        stateDetail.textContent = detail;
+    }
+
+    function endWait() {
+        if (waitOver) return;
+        waitOver = true;
+        updateContinue();
+        if (!analysisReady) {
+            showAnalysisStatus(analysisTitle, "This is taking longer than usual. You can continue and enter the case details yourself.");
+        }
+    }
+
+    function updateContinue() {
+        const disabled = !canContinue();
+        continueButton.classList.toggle("disabled", disabled);
+        if (disabled) {
+            continueButton.setAttribute("aria-disabled", "true");
+            continueButton.setAttribute("tabindex", "-1");
+            continueButton.removeAttribute("href");
+        } else {
+            continueButton.removeAttribute("aria-disabled");
+            continueButton.removeAttribute("tabindex");
+            continueButton.setAttribute("href", continueButton.dataset.continueUrl);
+        }
+    }
+
+    continueButton.addEventListener("click", (event) => {
+        if (!canContinue()) event.preventDefault();
+    });
+    updateContinue();
+    // The server decides when the wait is over; its status checks open
+    // Continue. This timer only matters if those checks keep failing, so a
+    // broken connection cannot hold the filer here.
+    let waitTimerDone = false;
+    if (hasLead && !waitOver) {
+        window.setTimeout(() => {
+            waitTimerDone = true;
+        }, Number(form.dataset.waitSeconds) * 1000);
+    }
     // The "remember this" row is offered only after the filer changes the
     // setting, and only for the rest of this page load. Until then the account
     // preference is not this request's business, so it is left out of the post.
@@ -169,6 +226,9 @@
 
     form.addEventListener("submit", async (event) => {
         event.preventDefault();
+        if (uploading) return;
+        uploading = true;
+        updateContinue();
         errorBox.hidden = true;
         state.hidden = false;
         uploadButton.disabled = true;
@@ -190,14 +250,20 @@
             const result = await response.json();
             if (!response.ok || !result.success) throw new Error(result.error || "Upload failed.");
             stateTitle.textContent = result.extraction_pending ? "Your documents are uploaded" : "Your documents are ready";
-            let pendingDetail = "You can review your PDFs while we read your first file.";
+            let pendingDetail = "Please wait while we read your first file. You can continue when it is ready.";
             if (aiIsOff()) pendingDetail = "AI is off. We are looking for form and case numbers.";
             stateDetail.textContent = result.extraction_pending ?
                 pendingDetail :
                 "Review what we found before you continue.";
             window.setTimeout(() => window.location.reload(), 300);
         } catch (error) {
-            state.hidden = true;
+            uploading = false;
+            updateContinue();
+            // Go back to the first file's analysis status, including any
+            // result that arrived while this upload was running.
+            state.hidden = form.dataset.extractionPending !== "true";
+            stateTitle.textContent = analysisTitle;
+            stateDetail.textContent = analysisDetail;
             errorBox.textContent = error.message;
             errorBox.hidden = false;
             uploadButton.disabled = false;
@@ -236,6 +302,7 @@
             const result = await response.json();
             if (!response.ok || !result.success) throw new Error(result.error || "Could not check document analysis.");
             if (!result.ready) {
+                if (result.wait_seconds === 0) endWait();
                 window.setTimeout(pollExtraction, 2500);
                 return;
             }
@@ -243,23 +310,25 @@
             state.querySelector(".spinner-border")?.remove();
             let readyTitle = "Document analysis is ready";
             if (result.ai_opted_out) readyTitle = "We finished checking your document";
-            stateTitle.textContent = result.status === "failed" ? "Your document is ready for manual review" : readyTitle;
             // Nothing is reviewed on this page: the details are on the next
             // one, so say where the checking actually happens.
             const nextPageNudge = "Review the information carefully on the next page.";
-            stateDetail.textContent = result.total_pages > result.pages_analyzed ?
+            analysisReady = true;
+            showAnalysisStatus(
+                result.status === "failed" ? "Your document is ready for manual review" : readyTitle,
+                result.total_pages > result.pages_analyzed ?
                 `We read the first ${result.pages_analyzed} of ${result.total_pages} pages. ${nextPageNudge}` :
-                nextPageNudge;
-            continueButton.classList.remove("disabled");
-            continueButton.removeAttribute("aria-disabled");
-            continueButton.removeAttribute("tabindex");
+                nextPageNudge
+            );
+            updateContinue();
             const analyzingPill = document.querySelector(".status-pill--analyzing");
             if (analyzingPill) {
                 analyzingPill.classList.replace("status-pill--analyzing", "status-pill--ready");
                 analyzingPill.innerHTML = '<i class="fa-solid fa-check" aria-hidden="true"></i> Ready';
             }
         } catch (error) {
-            stateDetail.textContent = error.message;
+            showAnalysisStatus(analysisTitle, error.message);
+            if (waitTimerDone) endWait();
             window.setTimeout(pollExtraction, 5000);
         }
     }

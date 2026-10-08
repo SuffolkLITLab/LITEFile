@@ -5,10 +5,13 @@ from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
 
 from efile.api.suffolk_api_views import get_tyler_token
+from efile.models import FilingDocument
 from efile.services.appeals import LOWER_COURT_FIELDS
 from efile.services.current_drafts import ensure_current_draft
+from efile.services.document_extractions import extraction_for_document
 from efile.services.drafts import draft_snapshot
 from efile.services.people import get_case_questions, needs_amount_in_controversy, parse_question_answer
+from efile.services.taxonomy_classification import primary_amount_in_controversy
 from efile.workflow import WorkflowStepKey, continue_step, continue_url, get_workflow_context, return_target
 
 
@@ -101,6 +104,15 @@ def case_questions(request, jurisdiction):
             draft.save(update_fields=update_fields)
             return redirect(continue_url(draft, jurisdiction, return_to, WorkflowStepKey.PAYMENT))
 
+    amount_value = draft.amount_in_controversy
+    if show_amount_field:
+        if request.method == "POST":
+            amount_value = request.POST.get("amount_in_controversy", "")
+        elif not amount_value:
+            lead = FilingDocument.objects.filter(draft=draft, role=FilingDocument.Role.LEAD).first()
+            extraction = extraction_for_document(lead) if lead else None
+            amount_value = primary_amount_in_controversy(extraction.evidence) if extraction else ""
+
     context = {
         "is_logged_in": True,
         "filing_draft": draft_snapshot(draft),
@@ -108,7 +120,7 @@ def case_questions(request, jurisdiction):
         "answers": draft.supplemental_fields or {},
         "return_to": return_target(request),
         "show_amount_field": show_amount_field,
-        "amount_in_controversy": draft.amount_in_controversy,
+        "amount_in_controversy": amount_value,
     }
     context.update(get_workflow_context(WorkflowStepKey.CASE_QUESTIONS, jurisdiction, draft))
     return render(request, "efile/case_questions.html", context)

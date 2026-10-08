@@ -10,7 +10,7 @@ from efile.party_sides import PARTY_SIDE_HELP, PARTY_SIDE_LABELS, PartySide
 from efile.services.account_profile import cached_account_profile
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.document_checklists import resolve_filer_roles
-from efile.services.document_extractions import extraction_for_document
+from efile.services.document_extractions import extraction_for_document, extraction_is_waiting
 from efile.services.document_previews import unreviewed_documents
 from efile.services.drafts import draft_snapshot, write_case_data
 from efile.services.extracted_parties import review_rows, save_reviewed_parties
@@ -170,11 +170,8 @@ def extraction_review(request, jurisdiction):
 
     lead = FilingDocument.objects.filter(draft=draft, role=FilingDocument.Role.LEAD).first()
     extraction = extraction_for_document(lead) if lead else None
-    if extraction is not None and extraction.status in {
-        DocumentExtraction.Status.PENDING,
-        DocumentExtraction.Status.PROCESSING,
-    }:
-        messages.info(request, "We are still analyzing your first PDF. You can leave this page and come back.")
+    if extraction_is_waiting(extraction):
+        messages.info(request, "Please wait while we read your first PDF. You can continue when it is ready.")
         return redirect(
             with_return_to(get_step_url(WorkflowStepKey.UPLOAD_DOCUMENTS, jurisdiction), return_target(request))
         )

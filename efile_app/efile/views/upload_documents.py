@@ -1,15 +1,22 @@
 import logging
+import math
 
 from django.db import transaction
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
+from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
 from efile.api.suffolk_api_views import get_tyler_token
 from efile.models import DocumentExtraction, FilingDocument, FilingDraft
 from efile.services.current_drafts import ensure_current_draft
-from efile.services.document_extractions import extraction_for_document, queue_document_extraction
+from efile.services.document_extractions import (
+    EXTRACTION_WAIT_LIMIT,
+    extraction_for_document,
+    extraction_is_waiting,
+    queue_document_extraction,
+)
 from efile.services.document_preparation import requires_flattening
 from efile.services.document_previews import document_storage_keys
 from efile.services.document_uploads import upload_files
@@ -190,6 +197,7 @@ def upload_documents(request, jurisdiction):
         "extraction": extraction,
         "extraction_pending": extraction is not None
         and extraction.status in {DocumentExtraction.Status.PENDING, DocumentExtraction.Status.PROCESSING},
+        "extraction_wait_seconds": _wait_seconds(extraction),
         "flatten_pdf_forms": requires_flattening(jurisdiction),
         "upload_data": upload_data,
         "ai_opted_out": draft.ai_assistance_opted_out,
@@ -201,6 +209,14 @@ def upload_documents(request, jurisdiction):
     context["upload_disclaimers"] = config_loader.get_upload_disclaimers(jurisdiction)
     context.update(get_workflow_context(WorkflowStepKey.UPLOAD_DOCUMENTS, jurisdiction, draft))
     return render(request, "efile/upload_documents.html", context)
+
+
+def _wait_seconds(extraction):
+    """Seconds left before the filer may go on without the analysis."""
+    if not extraction_is_waiting(extraction):
+        return 0
+    remaining = extraction.created_at + EXTRACTION_WAIT_LIMIT - timezone.now()
+    return max(1, math.ceil(remaining.total_seconds()))
 
 
 @require_http_methods(["GET"])
@@ -228,6 +244,7 @@ def document_extraction_status(request, jurisdiction):
             "status": extraction.status,
             "ai_opted_out": draft.ai_assistance_opted_out,
             "ready": extraction.status in {DocumentExtraction.Status.COMPLETE, DocumentExtraction.Status.FAILED},
+            "wait_seconds": _wait_seconds(extraction),
             "pages_analyzed": extraction.pages_analyzed,
             "total_pages": extraction.total_pages,
             "review_url": with_return_to(
