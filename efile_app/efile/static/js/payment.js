@@ -23,8 +23,12 @@ const paymentMessages = {
         document.getElementById("errorMessage").hidden = true;
         document.getElementById("successMessage").hidden = true;
     },
-    showError(message, actions = []) {
+    // Only a fee quote error is one the filer can go on past to Review.
+    showError(message, actions = [], {
+        feeQuote = false
+    } = {}) {
         document.getElementById("errorText").textContent = message;
+        document.getElementById("feeQuoteHelp").hidden = !feeQuote;
         window.FilingErrorActions?.render("filing-error-actions", actions);
         const box = document.getElementById("errorMessage");
         box.hidden = false;
@@ -269,12 +273,16 @@ const PaymentPage = {
             if (result?.success && result.quote_superseded) {
                 paymentMessages.showError(gettext("This filing changed while we were calculating fees, perhaps in another window. Reload this page to calculate them again."));
             } else if (result?.success && !result.quote_recorded) {
-                paymentMessages.showError(gettext("The court did not return a fee total for this filing. Try again, or contact the court before you file."));
+                paymentMessages.showError(gettext("The court did not return a fee total for this filing. Try again, or contact the court before you file."), [], {
+                    feeQuote: true
+                });
             }
         } catch (error) {
             if (currentRequestId !== this.quoteRequestId) return;
             this.feeQuoteReady = false;
-            paymentMessages.showError(error?.serverMessage || gettext("We could not calculate fees. Please try again."), error?.errorActions);
+            paymentMessages.showError(error?.serverMessage || gettext("We could not calculate fees. Please try again."), error?.errorActions, {
+                feeQuote: true
+            });
             this.setFeesState(false);
         }
     },
