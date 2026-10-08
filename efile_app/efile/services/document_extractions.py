@@ -44,6 +44,12 @@ class ExtractionSuperseded(Exception):
     """The requested analysis changed; this is not a processing failure."""
 
 
+# How long a filer waits on the upload page for the first file to be read.
+# After that the filer may go on and enter the case details by hand; the
+# analysis keeps running and its guesses are still offered if they arrive.
+EXTRACTION_WAIT_LIMIT = timedelta(minutes=2)
+
+
 def queue_document_extraction(document):
     """Create or reset the one background extraction job for a lead document."""
     if document.role != FilingDocument.Role.LEAD:
@@ -64,9 +70,20 @@ def queue_document_extraction(document):
             "error": "",
             "started_at": None,
             "completed_at": None,
+            # Restart the filer's wait for a replaced lead document.
+            "created_at": timezone.now(),
         },
     )
     return job
+
+
+def extraction_is_waiting(extraction):
+    """Whether the filer should still wait for this analysis before reviewing."""
+    return (
+        extraction is not None
+        and extraction.status in {DocumentExtraction.Status.PENDING, DocumentExtraction.Status.PROCESSING}
+        and extraction.created_at > timezone.now() - EXTRACTION_WAIT_LIMIT
+    )
 
 
 def extraction_for_document(document):

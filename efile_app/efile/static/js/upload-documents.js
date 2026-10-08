@@ -34,10 +34,37 @@
     const selectedFiles = new Map();
     let nextSelectionId = 0;
     let uploading = false;
-    let analysisReady = form.dataset.hasLead === "true" && form.dataset.extractionPending !== "true";
+    const hasLead = form.dataset.hasLead === "true";
+    let analysisReady = hasLead && form.dataset.extractionPending !== "true";
+    // After the server's wait limit the filer may go on without the analysis.
+    let waitOver = hasLead && form.dataset.waitSeconds === "0";
+    // The analysis status the panel shows whenever no upload is in progress.
+    let analysisTitle = stateTitle.textContent;
+    let analysisDetail = stateDetail.textContent;
+
+    function canContinue() {
+        return !uploading && (analysisReady || waitOver);
+    }
+
+    function showAnalysisStatus(title, detail) {
+        analysisTitle = title;
+        analysisDetail = detail;
+        if (uploading) return;
+        stateTitle.textContent = title;
+        stateDetail.textContent = detail;
+    }
+
+    function endWait() {
+        if (waitOver) return;
+        waitOver = true;
+        updateContinue();
+        if (!analysisReady) {
+            showAnalysisStatus(analysisTitle, "This is taking longer than usual. You can continue and enter the case details yourself.");
+        }
+    }
 
     function updateContinue() {
-        const disabled = uploading || !analysisReady;
+        const disabled = !canContinue();
         continueButton.classList.toggle("disabled", disabled);
         if (disabled) {
             continueButton.setAttribute("aria-disabled", "true");
@@ -51,9 +78,10 @@
     }
 
     continueButton.addEventListener("click", (event) => {
-        if (uploading || !analysisReady) event.preventDefault();
+        if (!canContinue()) event.preventDefault();
     });
     updateContinue();
+    if (hasLead && !waitOver) window.setTimeout(endWait, Number(form.dataset.waitSeconds) * 1000);
     // The "remember this" row is offered only after the filer changes the
     // setting, and only for the rest of this page load. Until then the account
     // preference is not this request's business, so it is left out of the post.
@@ -223,7 +251,11 @@
         } catch (error) {
             uploading = false;
             updateContinue();
-            state.hidden = form.dataset.extractionPending !== "true" || analysisReady;
+            // Go back to the first file's analysis status, including any
+            // result that arrived while this upload was running.
+            state.hidden = form.dataset.extractionPending !== "true";
+            stateTitle.textContent = analysisTitle;
+            stateDetail.textContent = analysisDetail;
             errorBox.textContent = error.message;
             errorBox.hidden = false;
             uploadButton.disabled = false;
@@ -262,6 +294,7 @@
             const result = await response.json();
             if (!response.ok || !result.success) throw new Error(result.error || "Could not check document analysis.");
             if (!result.ready) {
+                if (result.wait_seconds === 0) endWait();
                 window.setTimeout(pollExtraction, 2500);
                 return;
             }
@@ -269,14 +302,16 @@
             state.querySelector(".spinner-border")?.remove();
             let readyTitle = "Document analysis is ready";
             if (result.ai_opted_out) readyTitle = "We finished checking your document";
-            stateTitle.textContent = result.status === "failed" ? "Your document is ready for manual review" : readyTitle;
             // Nothing is reviewed on this page: the details are on the next
             // one, so say where the checking actually happens.
             const nextPageNudge = "Review the information carefully on the next page.";
-            stateDetail.textContent = result.total_pages > result.pages_analyzed ?
-                `We read the first ${result.pages_analyzed} of ${result.total_pages} pages. ${nextPageNudge}` :
-                nextPageNudge;
             analysisReady = true;
+            showAnalysisStatus(
+                result.status === "failed" ? "Your document is ready for manual review" : readyTitle,
+                result.total_pages > result.pages_analyzed ?
+                `We read the first ${result.pages_analyzed} of ${result.total_pages} pages. ${nextPageNudge}` :
+                nextPageNudge
+            );
             updateContinue();
             const analyzingPill = document.querySelector(".status-pill--analyzing");
             if (analyzingPill) {
@@ -284,7 +319,7 @@
                 analyzingPill.innerHTML = '<i class="fa-solid fa-check" aria-hidden="true"></i> Ready';
             }
         } catch (error) {
-            stateDetail.textContent = error.message;
+            showAnalysisStatus(analysisTitle, error.message);
             window.setTimeout(pollExtraction, 5000);
         }
     }

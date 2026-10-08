@@ -1,16 +1,19 @@
 import re
 import shutil
+from datetime import timedelta
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
 from django.test import override_settings
 from django.urls import reverse
+from django.utils import timezone
 from pypdf import PdfReader, PdfWriter
 
 from efile.models import DocumentExtraction, FilingDocument, FilingDraft
 from efile.services.current_drafts import CURRENT_DRAFT_SESSION_KEY
 from efile.services.document_extractions import (
+    EXTRACTION_WAIT_LIMIT,
     claim_next_extraction,
     process_document_extraction,
     queue_document_extraction,
@@ -231,6 +234,7 @@ def test_status_endpoint_reports_when_review_is_ready(client, extraction_draft):
         "status": "complete",
         "ai_opted_out": False,
         "ready": True,
+        "wait_seconds": 0,
         "pages_analyzed": 20,
         "total_pages": 30,
         "review_url": reverse("preview_documents", kwargs={"jurisdiction": "illinois"}),
@@ -475,3 +479,35 @@ def test_upload_continue_waits_for_analysis(client, extraction_draft, status):
         assert ' href="' not in link
         assert 'aria-disabled="true"' in link
     assert "You can leave this page and come back while we work." not in content
+
+
+def _queued_lead(draft, *, waited):
+    document = reviewed_document(draft=draft, role=FilingDocument.Role.LEAD, name="petition.pdf")
+    job = queue_document_extraction(document)
+    DocumentExtraction.objects.filter(pk=job.pk).update(created_at=timezone.now() - waited)
+    return document
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(("waited", "may_continue"), [(timedelta(0), False), (EXTRACTION_WAIT_LIMIT, True)])
+def test_filer_may_go_on_without_analysis_after_the_wait_limit(client, extraction_draft, waited, may_continue):
+    authorize(client, extraction_draft)
+    _queued_lead(extraction_draft, waited=waited + timedelta(seconds=1) if may_continue else waited)
+
+    page = client.get(reverse("upload_documents", kwargs={"jurisdiction": "illinois"})).content.decode()
+    link = re.search(r'<a\b[^>]*id="continue-to-analysis"[^>]*>', page)
+    assert link is not None
+    assert (' href="' in link.group()) is may_continue
+    wait = client.get(reverse("document_extraction_status", kwargs={"jurisdiction": "illinois"})).json()
+    assert wait["ready"] is False
+    assert (wait["wait_seconds"] == 0) is may_continue
+    assert 0 <= wait["wait_seconds"] <= EXTRACTION_WAIT_LIMIT.total_seconds()
+    review = client.get(reverse("extraction_review", kwargs={"jurisdiction": "illinois"}))
+    assert (review.status_code == 200) is may_continue
+
+
+@pytest.mark.django_db
+def test_replacing_the_lead_restarts_the_wait(extraction_draft):
+    document = _queued_lead(extraction_draft, waited=EXTRACTION_WAIT_LIMIT * 2)
+    job = queue_document_extraction(document)
+    assert job.created_at > timezone.now() - timedelta(seconds=5)

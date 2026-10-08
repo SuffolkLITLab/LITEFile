@@ -48,7 +48,8 @@
               enctype="multipart/form-data"
               data-extraction-status-url="{% url 'document_extraction_status' jurisdiction %}"
               data-has-lead="{{ has_lead_document|yesno:'true,false' }}"
-              data-extraction-pending="{{ extraction_pending|yesno:'true,false' }}">
+              data-extraction-pending="{{ extraction_pending|yesno:'true,false' }}"
+              data-wait-seconds="{{ extraction_wait_seconds }}">
             {% csrf_token %}
             <label class="drop-zone" id="document-drop-zone" for="documents-input">
                 <input id="documents-input"
@@ -220,7 +221,7 @@
             {% else %}
                 <a class="btn btn-outline-secondary" href="{{ workflow_previous_url }}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {% translate "Back" %}</a>
             {% endif %}
-            <a class="btn btn-primary {% if not has_lead_document or extraction_pending %}disabled{% endif %}" id="continue-to-analysis" data-continue-url="{% url 'preview_documents' jurisdiction %}{% if return_to %}?return_to={{ return_to }}{% endif %}" {% if not has_lead_document or extraction_pending %}aria-disabled="true" tabindex="-1"{% else %}href="{% url 'preview_documents' jurisdiction %}{% if return_to %}?return_to={{ return_to }}{% endif %}"{% endif %}>{% translate "Preview your PDFs" %} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+            <a class="btn btn-primary {% if not has_lead_document or extraction_wait_seconds %}disabled{% endif %}" id="continue-to-analysis" data-continue-url="{% url 'preview_documents' jurisdiction %}{% if return_to %}?return_to={{ return_to }}{% endif %}" {% if not has_lead_document or extraction_wait_seconds %}aria-disabled="true" tabindex="-1"{% else %}href="{% url 'preview_documents' jurisdiction %}{% if return_to %}?return_to={{ return_to }}{% endif %}"{% endif %}>{% translate "Preview your PDFs" %} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
         </div>
     </section>
 {% endblock workflow_content %}

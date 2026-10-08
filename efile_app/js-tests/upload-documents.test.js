@@ -42,6 +42,7 @@ const path = require("node:path");
 function uploadPage({
     pending = false,
     hasLead = true,
+    waitSeconds = pending ? 120 : 0,
     fetch
 }) {
     const nodes = new Map();
@@ -74,7 +75,8 @@ function uploadPage({
     node("document-upload-form").dataset = {
         hasLead: String(hasLead),
         extractionPending: String(pending),
-        extractionStatusUrl: "/status/"
+        extractionStatusUrl: "/status/",
+        waitSeconds: String(waitSeconds)
     };
     node("continue-to-analysis").dataset.continueUrl = "/preview/?return_to=review";
     node("upload-state").hidden = !pending;
@@ -89,7 +91,10 @@ function uploadPage({
             location: {
                 href: "/upload/"
             },
-            setTimeout: (callback) => timers.push(callback)
+            setTimeout: (callback, delay) => timers.push({
+                callback,
+                delay
+            })
         },
         apiUtils: {
             getCSRFToken: () => "csrf"
@@ -194,5 +199,61 @@ test("poll failures leave navigation blocked and schedule another check", async 
     });
     await flush();
     assert.equal(page.node("continue-to-analysis").attributes.has("href"), false);
-    assert.equal(page.timers.length, 1);
+    assert.equal(page.timers.filter(timer => timer.delay === 5000).length, 1);
+});
+
+test("navigation opens once the wait limit passes, even while checks fail", async () => {
+    const page = uploadPage({
+        pending: true,
+        fetch: async () => {
+            throw new Error("Offline");
+        }
+    });
+    await flush();
+    const link = page.node("continue-to-analysis");
+    assert.equal(link.attributes.has("href"), false);
+    page.timers.find(timer => timer.delay === 120000).callback();
+    assert.equal(link.attributes.get("href"), "/preview/?return_to=review");
+    assert.match(page.node("upload-state-detail").textContent, /taking longer than usual/);
+});
+
+test("the server ending the wait opens navigation and keeps checking", async () => {
+    const page = uploadPage({
+        pending: true,
+        fetch: async () => reply({
+            ready: false,
+            status: "pending",
+            wait_seconds: 0
+        })
+    });
+    await flush();
+    assert.equal(page.node("continue-to-analysis").attributes.get("href"), "/preview/?return_to=review");
+    assert.equal(page.timers.filter(timer => timer.delay === 2500).length, 1);
+});
+
+test("an upload failure keeps a ready result that arrived during the upload", async () => {
+    let finishPoll;
+    let failUpload;
+    const page = uploadPage({
+        pending: true,
+        fetch: (url) => new Promise((resolve, reject) => {
+            if (url === "/status/") finishPoll = resolve;
+            else failUpload = reject;
+        })
+    });
+    const upload = page.submit();
+    finishPoll(reply({
+        ready: true,
+        status: "complete",
+        pages_analyzed: 10,
+        total_pages: 30
+    }));
+    await flush();
+    assert.equal(page.node("upload-state-title").textContent, "Uploading your files…");
+    failUpload(new Error("Upload failed"));
+    await upload;
+    assert.equal(page.node("upload-state").hidden, false);
+    assert.equal(page.node("upload-state-title").textContent, "Document analysis is ready");
+    assert.match(page.node("upload-state-detail").textContent, /first 10 of 30 pages/);
+    assert.equal(page.node("continue-to-analysis").attributes.get("href"), "/preview/?return_to=review");
 });
