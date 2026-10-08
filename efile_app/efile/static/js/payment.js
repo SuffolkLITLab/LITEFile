@@ -59,7 +59,9 @@ const PaymentPage = {
 
     setFeesState(loading) {
         document.getElementById("loadingSpinner").style.display = loading ? "block" : "none";
-        document.getElementById("submitButton").disabled = loading || this.removingAccount || this.waiverUploading || DocumentChecks.pending() || !this.feeQuoteReady || !document.getElementById("selected-payment-account").value;
+        // Review is also where filers correct answers that caused a fee error.
+        // A confirmed quote is required for submission, not for opening Review.
+        document.getElementById("submitButton").disabled = loading || this.removingAccount || this.waiverUploading || DocumentChecks.pending() || !document.getElementById("selected-payment-account").value;
     },
 
     // A copy added on this page is confirmed here before Review.
