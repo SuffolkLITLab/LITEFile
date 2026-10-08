@@ -64,6 +64,8 @@ NON_FILING_COURT_MARKERS: tuple[str, ...] = (
 # How long the live court list is reused for. It changes a few times a year, and
 # the selector re-reads it on every answer the filer gives.
 COURT_LIST_TTL_SECONDS = 600
+# How long "nothing is dropped" stands after a court list could not be read.
+HEADING_COURTS_RETRY_SECONDS = 60
 
 _PLACEHOLDER = re.compile(r"\{(\w+)\}")
 
@@ -112,8 +114,10 @@ def fetch_courts(jurisdiction: str) -> list[dict[str, str]]:
         if isinstance(court, dict) and court.get("code") and court.get("name")
         if not is_non_filing_court(court["name"])
     ]
-    fileable = _fileable_codes(jurisdiction)
-    courts = [court for court in courts if not _is_heading_only(court, courts, fileable)]
+    headings = heading_court_codes(
+        jurisdiction, [str(court.get("code")) for court in payload if isinstance(court, dict)]
+    )
+    courts = [court for court in courts if court["value"] not in headings]
     rules = (selector_config(jurisdiction) or {}).get("court_names") or []
     for court in courts:
         court["text"] = _readable_name(court["text"], rules)
@@ -143,43 +147,74 @@ def _readable_name(name: str, rules: list[dict[str, str]]) -> str:
     return name
 
 
-def _fileable_codes(jurisdiction: str) -> set[str] | None:
-    """The courts the e-filing service says accept filings, or ``None``.
+def heading_court_codes(jurisdiction: str, codes: list[str] | None = None) -> frozenset[str]:
+    """Courts that are only headings over the courts that take filings.
 
-    Taken as a hint rather than as the truth. It is demonstrably incomplete --
-    Cook County's Chancery division is missing from it and offers three case
-    categories -- so it is only ever used to confirm something already suspected
-    from the shape of the list, and a request that fails changes nothing.
+    The court picker, the dropdown API and code search all leave these out, so
+    a filer is never offered a court the e-filing service will refuse. Cached
+    briefly; if either list cannot be read, nothing is dropped, and that answer
+    is cached for a shorter time so search never waits on the service.
+    """
+
+    cache_key = f"court-selector:heading-courts:{jurisdiction}"
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+    if codes is None:
+        codes = _court_codes(jurisdiction, fileable_only=False)
+    fileable = None if codes is None else _court_codes(jurisdiction, fileable_only=True)
+    if codes is None or fileable is None:
+        cache.set(cache_key, frozenset(), HEADING_COURTS_RETRY_SECONDS)
+        return frozenset()
+    fileable_codes = set(fileable)
+    headings = frozenset(code for code in codes if _is_heading_only(code, codes, fileable_codes))
+    cache.set(cache_key, headings, COURT_LIST_TTL_SECONDS)
+    return headings
+
+
+def _court_codes(jurisdiction: str, *, fileable_only: bool) -> list[str] | None:
+    """One of the e-filing service's court code lists, or ``None``.
+
+    The fileable list is taken as a hint rather than as the truth. It leaves
+    out courts that publish case categories and take filings -- nearly every
+    Massachusetts District and Probate and Family Court, and Cook County's
+    Elder Law locations -- so it only ever confirms what the shape of the list
+    already suggests, and a request that fails changes nothing.
     """
 
     try:
         response = requests.get(
             f"{settings.EFSP_URL}/jurisdictions/{jurisdiction}/codes/courts/",
-            params={"fileable_only": True, "with_names": True},
-            timeout=15,
+            params={"fileable_only": fileable_only, "with_names": True},
+            timeout=5,
         )
         response.raise_for_status()
-        return {str(court["code"]) for court in response.json() if isinstance(court, dict) and court.get("code")}
-    except (requests.RequestException, ValueError, KeyError):
-        logger.warning("Could not read the fileable court list for %s", jurisdiction)
+        return [str(court["code"]) for court in response.json() if isinstance(court, dict) and court.get("code")]
+    except (requests.RequestException, ValueError, KeyError, TypeError):
+        logger.warning("Could not read the court list for %s", jurisdiction)
         return None
 
 
-def _is_heading_only(court: dict[str, str], courts: list[dict[str, str]], fileable: set[str] | None) -> bool:
-    """Whether a court is only a heading over the courts underneath it.
+def _is_heading_only(code: str, codes: list[str], fileable: set[str]) -> bool:
+    """Whether a court is only a heading over fileable courts underneath it.
 
-    "Cook County" is such a row: every Cook filing goes to one of the eighty
-    locations whose code hangs off it, and choosing the county itself is a dead
-    end -- the case category list comes back empty and the filer is stuck with
-    no way to see why. Both things have to be true to drop it, because a
-    division like Cook County - Chancery has locations under it and still takes
-    filings of its own.
+    "Cook County" is such a row, and so is each Cook division: filings go to a
+    district location such as "cook:cvd1", and choosing "cook:cvd" itself is
+    refused by the e-filing service even though it publishes filing codes.
+    Both things have to be true to drop a court -- the service leaves it out
+    of its fileable list, and a court it does list as fileable hangs off its
+    code -- because the fileable list alone leaves out real courts.
     """
 
-    if fileable is None or court["value"] in fileable:
+    if code in fileable:
         return False
-    prefix = f"{court['value']}:"
-    return any(other["value"].startswith(prefix) for other in courts)
+    return any(other != code and other in fileable and _hangs_off(other, code) for other in codes)
+
+
+def _hangs_off(other: str, code: str) -> bool:
+    # "cook" -> "cook:cvd1"; "cook:cvd" -> "cook:cvd1". A bare number is not a
+    # prefix: Massachusetts court "1" does not head court "1036:BA".
+    return other.startswith(f"{code}:") or (":" in code and other.startswith(code))
 
 
 def _fill(template: Any, answers: dict[str, str]) -> Any:

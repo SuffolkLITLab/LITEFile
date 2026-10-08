@@ -11,6 +11,7 @@
     <section class="workflow-card workflow-card--narrow">
         <div class="workflow-eyebrow">{% translate "Fees" %}</div>
         <h1>{% translate "Choose how to pay court fees" %}</h1>
+        {% include "efile/partials/filing_guidance.html" %}
         {% for document in documents %}
             {% include "efile/components/document_preview.html" with document=document %}
         {% endfor %}
@@ -152,6 +153,7 @@
             </section>
             <div class="alert alert-danger" id="errorMessage" role="alert" hidden>
                 <i class="fas fa-exclamation-triangle me-2" aria-hidden="true"></i><span id="errorText"></span>
+                <p id="feeQuoteHelp" hidden>{% translate "If you have selected a payment method, you can continue to Review to check and change your responses. Fees must be confirmed before you submit your filing." %}</p>
                 <ul id="filing-error-actions" hidden>
                 </ul>
             </div>

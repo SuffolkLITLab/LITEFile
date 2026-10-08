@@ -6,6 +6,7 @@
 {% block workflow_content %}
     <section class="workflow-card workflow-card--narrow">
         <h1>{% translate "Filing is unavailable" %}</h1>
+        {% include "efile/partials/filing_guidance.html" %}
         <div class="alert alert-warning" role="alert">{{ availability_message }}</div>
         <dl class="case-summary">
             <div>

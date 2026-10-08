@@ -11,6 +11,7 @@
     <section class="workflow-card review-workflow-card">
         <div class="workflow-eyebrow">{% translate "Review" %}</div>
         <h1>{% translate "Review your filing" %}</h1>
+        {% include "efile/partials/filing_guidance.html" %}
         <p class="workflow-lede">
             {% translate "Check each section carefully. Use Edit to go back to the screen where you entered it." %}
         </p>
@@ -265,9 +266,11 @@
         </div>
         {% if plan_missing_documents %}
             <div class="plan-alert plan-alert--review" role="note">
-                <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
                 <div>
-                    <strong>{% translate "Your plan lists documents that are not in this filing" %}</strong>
+                    <strong>{% translate "Other filers like you often include these documents" %}</strong>
+                    <p>{% translate "Your plan is a checklist, not advice from the court about what you must file. You decide which documents to include." %}</p>
+                    <p>{% translate "These plan items are not attached to this filing:" %}</p>
                     <ul>
                         {% for item in plan_missing_documents %}
                             <li>
@@ -281,11 +284,11 @@
                         {% endfor %}
                     </ul>
                     <p>
-                        {% translate "You can add them to this envelope now, so the court gets everything at once. If you send them in a later filing, the clerk may wait for them before acting on your case." %}
+                        {% translate "You can review your plan and add any documents that apply to you, or continue with your filing as it is." %}
                     </p>
                     <div class="plan-alert__actions">
                         <a class="btn btn-outline-primary btn-sm"
-                           href="{% url 'document_checklist' jurisdiction %}?return_to=review">{% translate "Add them to this filing" %}</a>
+                           href="{% url 'document_checklist' jurisdiction %}?return_to=review">{% translate "Review your plan" %}</a>
                     </div>
                 </div>
             </div>

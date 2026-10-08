@@ -186,3 +186,22 @@ def test_statutory_exemption_choice_does_not_claim_low_income(client, payment_dr
     assert "I think I qualify for a fee waiver" not in body
     assert "You do not need to qualify based on income" in body
     assert "Add fee waiver documents" not in body
+
+
+def test_payment_without_a_fee_quote_can_open_review_for_corrections(client, payment_draft):
+    assert payment_draft.quoted_fee_total == ""
+    with patch(
+        "efile.views.payment.payment_accounts",
+        return_value=[{"paymentAccountID": "card", "paymentAccountTypeCode": "CC", "accountName": "My card"}],
+    ):
+        result = client.post(
+            reverse("payment", kwargs={"jurisdiction": "illinois"}),
+            {"selected_payment_account": "card"},
+        )
+    assert result.status_code == 302
+    review = client.get(result.url)
+    assert review.status_code == 200
+    assert "return_to=review" in review.content.decode()
+    payment_draft.refresh_from_db()
+    assert payment_draft.selected_payment_account_id == "card"
+    assert payment_draft.quoted_fee_total == ""

@@ -1,3 +1,4 @@
+import os
 import re
 import shutil
 from datetime import timedelta
@@ -554,3 +555,26 @@ def test_late_analysis_keeps_fee_inputs_unchanged(extraction_draft, saved_amount
     assert extraction_draft.extracted_guesses == {"document title": "Complaint"}
     assert extraction_draft.amount_in_controversy == saved_amount
     assert fee_fingerprint(extraction_draft) == fingerprint
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(("configured", "expected"), [(None, "2"), ("4", "4")])
+def test_worker_children_start_with_few_malloc_arenas(extraction_draft, monkeypatch, configured, expected):
+    from django.core.management import call_command
+
+    if configured is None:
+        monkeypatch.delenv("MALLOC_ARENA_MAX", raising=False)
+    else:
+        monkeypatch.setenv("MALLOC_ARENA_MAX", configured)
+    document = reviewed_document(draft=extraction_draft, role=FilingDocument.Role.LEAD, name="petition.pdf")
+    queue_document_extraction(document)
+    seen = []
+    child = MagicMock()
+    child.is_alive.return_value = False
+    child.start.side_effect = lambda: seen.append(os.environ.get("MALLOC_ARENA_MAX"))
+    with patch(
+        "efile.management.commands.process_document_extractions.multiprocessing.get_context",
+        return_value=MagicMock(Process=MagicMock(return_value=child)),
+    ):
+        call_command("process_document_extractions", once=True)
+    assert seen == [expected]

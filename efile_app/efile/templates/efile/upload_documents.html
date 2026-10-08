@@ -9,6 +9,7 @@
     <section class="workflow-card">
         <div class="workflow-eyebrow">{% translate "Upload" %}</div>
         <h1>{% translate "Upload your court documents" %}</h1>
+        {% include "efile/partials/filing_guidance.html" %}
         {% if saved_path %}
             <p class="path-summary path-summary--inline">
                 <span class="path-summary__label">{% translate "New or existing case" %}</span>

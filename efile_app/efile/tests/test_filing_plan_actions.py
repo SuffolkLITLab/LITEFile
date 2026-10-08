@@ -360,7 +360,9 @@ def test_review_names_what_the_plan_expects_and_the_envelope_lacks(client, signe
 
     page = client.get(reverse("case_review", kwargs={"jurisdiction": "illinois"})).content.decode()
 
-    assert "not in this filing" in page
+    assert "Other filers like you often include these documents" in page
+    assert "not advice from the court about what you must file" in page
+    assert "continue with your filing as it is" in page
     assert "Request to waive court fees" in page
     assert f"{CHECKLIST_URL}?return_to=review" in page
 

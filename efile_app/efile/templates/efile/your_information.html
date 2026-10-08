@@ -10,6 +10,7 @@
     <section class="workflow-card">
         <div class="workflow-eyebrow">{% translate "People" %}</div>
         <h1>{% translate "Your information" %}</h1>
+        {% include "efile/partials/filing_guidance.html" %}
         <p class="workflow-lede">{% ui_text "your_information.lede" %}</p>
         <form method="post"
               id="your-information-form"

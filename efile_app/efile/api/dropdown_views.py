@@ -11,7 +11,7 @@ import requests
 from django.conf import settings
 from django.views.decorators.http import require_http_methods
 
-from efile.services.court_selection import is_non_filing_court
+from efile.services.court_selection import heading_court_codes, is_non_filing_court
 from efile.services.efsp_payload import parse_optional_services
 from efile.utils.jurisdiction_stuff import get_jurisdiction_from_request
 
@@ -286,12 +286,15 @@ class DropdownAPIViews(APIResponseMixin):
                     # Transform API data to our dropdown format
                     courts = []
                     if isinstance(api_data, list):
+                        headings = heading_court_codes(
+                            jurisdiction, [str(court.get("code")) for court in api_data if isinstance(court, dict)]
+                        )
                         for court in api_data:
                             if isinstance(court, dict) and "code" in court and "name" in court:
                                 # Rows that exist only inside Tyler -- test
                                 # fixtures, retired locations -- are not courts
                                 # anyone can file into.
-                                if is_non_filing_court(court["name"]):
+                                if is_non_filing_court(court["name"]) or str(court["code"]) in headings:
                                     continue
 
                                 courts.append({"value": court["code"], "text": court["name"]})
