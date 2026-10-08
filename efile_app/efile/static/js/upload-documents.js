@@ -81,7 +81,15 @@
         if (!canContinue()) event.preventDefault();
     });
     updateContinue();
-    if (hasLead && !waitOver) window.setTimeout(endWait, Number(form.dataset.waitSeconds) * 1000);
+    // The server decides when the wait is over; its status checks open
+    // Continue. This timer only matters if those checks keep failing, so a
+    // broken connection cannot hold the filer here.
+    let waitTimerDone = false;
+    if (hasLead && !waitOver) {
+        window.setTimeout(() => {
+            waitTimerDone = true;
+        }, Number(form.dataset.waitSeconds) * 1000);
+    }
     // The "remember this" row is offered only after the filer changes the
     // setting, and only for the rest of this page load. Until then the account
     // preference is not this request's business, so it is left out of the post.
@@ -320,6 +328,7 @@
             }
         } catch (error) {
             showAnalysisStatus(analysisTitle, error.message);
+            if (waitTimerDone) endWait();
             window.setTimeout(pollExtraction, 5000);
         }
     }

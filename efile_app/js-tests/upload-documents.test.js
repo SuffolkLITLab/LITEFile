@@ -213,8 +213,27 @@ test("navigation opens once the wait limit passes, even while checks fail", asyn
     const link = page.node("continue-to-analysis");
     assert.equal(link.attributes.has("href"), false);
     page.timers.find(timer => timer.delay === 120000).callback();
+    assert.equal(link.attributes.has("href"), false);
+    page.timers.filter(timer => timer.delay === 5000).at(-1).callback();
+    await flush();
     assert.equal(link.attributes.get("href"), "/preview/?return_to=review");
     assert.match(page.node("upload-state-detail").textContent, /taking longer than usual/);
+});
+
+test("the page's own timer does not open navigation while the server is still waiting", async () => {
+    const page = uploadPage({
+        pending: true,
+        fetch: async () => reply({
+            ready: false,
+            status: "pending",
+            wait_seconds: 4
+        })
+    });
+    await flush();
+    page.timers.find(timer => timer.delay === 120000).callback();
+    page.timers.filter(timer => timer.delay === 2500).at(-1).callback();
+    await flush();
+    assert.equal(page.node("continue-to-analysis").attributes.has("href"), false);
 });
 
 test("the server ending the wait opens navigation and keeps checking", async () => {
