@@ -262,6 +262,10 @@ def review_rows(draft: FilingDraft) -> list[dict[str, Any]]:
             }
             for party in saved
         ]
+    from efile.services.extraction_confirmation import extraction_is_confirmed
+
+    if extraction_is_confirmed(draft):
+        return []
     return [
         {
             "id": "",

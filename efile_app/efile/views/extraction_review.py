@@ -21,7 +21,8 @@ from efile.services.document_previews import (
     unreviewed_documents,
 )
 from efile.services.drafts import draft_snapshot, write_case_data
-from efile.services.extracted_parties import review_rows, save_reviewed_parties
+from efile.services.extracted_parties import extracted_party_suggestions, review_rows, save_reviewed_parties
+from efile.services.extraction_confirmation import extraction_is_confirmed, extraction_review_fingerprint
 from efile.services.extraction_fields import display_extracted_fields, document_summary_details
 from efile.services.filing_availability import filing_unavailable_message
 from efile.services.filing_path import (
@@ -203,7 +204,11 @@ def extraction_review(request, jurisdiction):
     # The acknowledgement is only asked for when the page shows something to
     # acknowledge, so the check below and the template both key off this.
     guesses = display_extracted_fields(draft.extracted_guesses or {})
-    needs_acknowledgement = bool(guesses)
+    already_confirmed = extraction_is_confirmed(draft)
+    needs_acknowledgement = bool(guesses) and not already_confirmed
+    show_party_editor = bool(extracted_party_suggestions(draft.extracted_guesses)) or (
+        request.method == "POST" and bool(party_rows)
+    )
     acknowledgement_error = False
     availability_message = ""
 
@@ -279,7 +284,10 @@ def extraction_review(request, jurisdiction):
             # them. They are stored as sides here; the party screen turns each
             # side into this court's own party type once the case type it
             # depends on has been saved just above.
-            save_reviewed_parties(draft, party_rows)
+            if show_party_editor:
+                save_reviewed_parties(draft, party_rows)
+            draft.extraction_review_fingerprint = extraction_review_fingerprint(draft)
+            draft.save(update_fields=["extraction_review_fingerprint", "updated_at"])
             # A different kind of filing is not an edit Review can take back
             # as-is: an existing case has to be found in the court's records,
             # and a switched path clears the documents' filing types. The
@@ -377,7 +385,9 @@ def extraction_review(request, jurisdiction):
         "availability_message": availability_message,
         "lead_document": lead,
         "filing_draft": draft_snapshot(draft),
-        "has_guesses": needs_acknowledgement,
+        "has_guesses": bool(guesses),
+        "already_confirmed": already_confirmed,
+        "show_party_editor": show_party_editor,
         "document_summary_details": summary_details,
         "party_rows": party_rows,
         "party_side_options": party_side_options,

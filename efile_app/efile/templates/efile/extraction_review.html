@@ -3,7 +3,7 @@
 {% load i18n %}
 {% load ui_text %}
 {% block title %}
-    {% translate "Review what we found" %}
+    {% translate "Confirm information" %}
 {% endblock title %}
 {% block extra_css %}
     <link rel="stylesheet"
@@ -17,8 +17,7 @@
         {% ui_text "extraction_review.case_category_label" as case_category_label %}
         {% ui_text "extraction_review.case_category_help" as case_category_help %}
         {% if has_guesses %}
-            <h1>{% translate "Check what we read from your document" %}</h1>
-            {% include "efile/partials/filing_guidance.html" %}
+            <h1>{% translate "Confirm information" %}</h1>
             <p class="workflow-lede">
                 {% if ai_opted_out %}
                     {% translate "You turned AI off, so we searched the text of your document for a form number and a case number instead. These are clues from the document, not answers you gave us, and the search can be wrong. Correct anything that is." %}
@@ -57,33 +56,36 @@
                         {% translate "We read only part of this Word file. Add any missing details below." %}
                     </p>
                 {% endif %}
-                <div class="extraction-acknowledgment{% if acknowledgement_error %} extraction-acknowledgment--invalid{% endif %}"
-                     id="extraction-acknowledgment">
-                    <label>
-                        <input type="checkbox"
-                               class="form-check-input"
-                               name="reviewed_extraction"
-                               id="reviewed_extraction"
-                               value="yes"
-                               form="extraction-review-form"
-                               {% if acknowledgement_error %}aria-invalid="true" aria-describedby="reviewed-extraction-error"{% endif %}
-                               {% if reviewed_extraction %}checked{% endif %}
-                               required />
-                        <span>{% translate "I checked this against my document and will correct anything wrong below." %}</span>
-                    </label>
-                    {% comment %}
+                {% if needs_acknowledgement %}
+                    <div class="extraction-acknowledgment{% if acknowledgement_error %} extraction-acknowledgment--invalid{% endif %}"
+                         id="extraction-acknowledgment">
+                        <label>
+                            <input type="checkbox"
+                                   class="form-check-input"
+                                   name="reviewed_extraction"
+                                   id="reviewed_extraction"
+                                   value="yes"
+                                   form="extraction-review-form"
+                                   {% if acknowledgement_error %}aria-invalid="true" aria-describedby="reviewed-extraction-error"{% endif %}
+                                   {% if reviewed_extraction %}checked{% endif %}
+                                   required />
+                            <span>{% translate "I checked this against my document and will correct anything wrong below." %}</span>
+                        </label>
+                        {% comment %}
                     The checkbox only points at this while it is showing: a hidden
                     element named by aria-describedby is still read out. Focusing
                     the checkbox is what announces it.
-                    {% endcomment %}
-                    <p class="field-error"
-                       id="reviewed-extraction-error"
-                       {% if not acknowledgement_error %}hidden{% endif %}>
-                        {% translate "Check the box to confirm you compared these details with your document. Then continue." %}
-                    </p>
-                </div>
+                        {% endcomment %}
+                        <p class="field-error"
+                           id="reviewed-extraction-error"
+                           {% if not acknowledgement_error %}hidden{% endif %}>
+                            {% translate "Check the box to confirm you compared these details with your document. Then continue." %}
+                        </p>
+                    </div>
+                {% else %}
+                    <p>{% translate "You have confirmed these findings. Your corrections are saved below." %}</p>
+                {% endif %}
             </section>
-            <h2 class="confirm-filing-details-heading">{% translate "Confirm the details used for this filing" %}</h2>
             {% if classification %}
                 <p class="workflow-help">
                     {% translate "The choices below were matched against the court's current filing lists. Please confirm each one; you can edit any match." %}
@@ -94,8 +96,7 @@
                 </p>
             {% endif %}
         {% else %}
-            <h1>{% translate "Tell us about your case" %}</h1>
-            {% include "efile/partials/filing_guidance.html" %}
+            <h1>{% translate "Confirm information" %}</h1>
             <div class="alert alert-info">
                 {% if extraction_failed %}
                     {% translate "Our system could not pull details from your document. You can enter the details below, or" %}
@@ -120,10 +121,140 @@
             {% include "efile/components/filing_availability_notice.html" %}
             <input type="hidden" name="return_to" value="{{ return_to }}" />
             {% comment %}
+            The people the document named. They are collected here, where the
+            filer can see them against the document they just uploaded, and
+            each one's side becomes this court's own party type on the People
+            screen once the case type above has settled what that side is
+            called. Every row posts all four inputs so the parallel lists the
+            view reads back stay index-aligned.
+            {% endcomment %}
+            {% if show_party_editor %}
+                <fieldset class="review-parties" id="review-parties">
+                    <legend>{% translate "People named in your document" %}</legend>
+                    <p class="review-parties__lede">
+                        {% if party_rows %}
+                            {% translate "Fix any name we got wrong, and say which side each person is on. If one of them is you, say so here and we will not ask you to enter yourself again. You will add addresses later." %}
+                        {% else %}
+                            {% translate "Add the people involved in this case, and say which side each one is on. If one of them is you, say so here and we will not ask you to enter yourself again. You will add addresses later." %}
+                        {% endif %}
+                    </p>
+                    <ol class="review-parties__list" id="review-parties-list">
+                        {% for row in party_rows %}
+                            <li class="review-party">
+                                <input type="hidden" name="party_id" value="{{ row.id }}" />
+                                <input type="hidden" name="party_role_hint" value="{{ row.role_hint }}" />
+                                <div class="review-party__name">
+                                    <label>
+                                        <span>{% translate "Name" %}</span>
+                                        <input class="form-control"
+                                               type="text"
+                                               name="party_name"
+                                               value="{{ row.name }}"
+                                               autocomplete="off" />
+                                    </label>
+                                    {% if row.role_hint %}
+                                        <small class="review-party__hint">
+                                            {% blocktranslate with role=row.role_hint %}Your document calls this person the {{ role }}.{% endblocktranslate %}
+                                        </small>
+                                    {% elif row.party_type_name %}
+                                        <small class="review-party__hint">{{ row.party_type_name }}</small>
+                                    {% endif %}
+                                </div>
+                                <label class="review-party__side">
+                                    <span>{% translate "Side of the case" %}</span>
+                                    <select class="form-select" name="party_side">
+                                        <option value="">{% translate "Not sure" %}</option>
+                                        {% for option in party_side_options %}
+                                            <option value="{{ option.value }}"
+                                                    {% if option.value == row.side %}selected{% endif %}>
+                                                {{ option.label }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </label>
+                                <div class="review-party__is-me">
+                                    {% comment %}
+                                The value posts from every row, ticked or not, so the lists the
+                                view reads back stay lined up with the names. Only the button is
+                                conditional: a company can never be the person signed in, whose
+                                account is registered to an individual.
+                                    {% endcomment %}
+                                    <input type="hidden"
+                                           name="party_is_self"
+                                           value="{{ row.is_self|yesno:'true,false' }}" />
+                                    {% if not row.is_organization %}
+                                        <button class="btn btn-sm btn-outline-secondary review-party__is-me-toggle"
+                                                type="button"
+                                                aria-pressed="{{ row.is_self|yesno:'true,false' }}">
+                                            {% translate "This is me" %}
+                                        </button>
+                                    {% endif %}
+                                </div>
+                                <button class="btn btn-link text-danger review-party__remove"
+                                        type="button"
+                                        aria-label="{% translate "Remove this person" %}">
+                                    <i class="fa-solid fa-trash" aria-hidden="true"></i>
+                                </button>
+                            </li>
+                        {% endfor %}
+                    </ol>
+                    {% comment %}
+                The blank row the "Add another person" button clones, kept in
+                the template so an added row is worded and translated exactly
+                like the rows the document produced.
+                    {% endcomment %}
+                    <template id="review-party-template">
+                        <li class="review-party">
+                            <input type="hidden" name="party_id" value="" />
+                            <input type="hidden" name="party_role_hint" value="" />
+                            <div class="review-party__name">
+                                <label>
+                                    <span>{% translate "Name" %}</span>
+                                    <input class="form-control"
+                                           type="text"
+                                           name="party_name"
+                                           value=""
+                                           autocomplete="off" />
+                                </label>
+                            </div>
+                            <label class="review-party__side">
+                                <span>{% translate "Side of the case" %}</span>
+                                <select class="form-select" name="party_side">
+                                    <option value="">{% translate "Not sure" %}</option>
+                                    {% for option in party_side_options %}<option value="{{ option.value }}">{{ option.label }}</option>{% endfor %}
+                                </select>
+                            </label>
+                            <div class="review-party__is-me">
+                                <input type="hidden" name="party_is_self" value="false" />
+                                <button class="btn btn-sm btn-outline-secondary review-party__is-me-toggle"
+                                        type="button"
+                                        aria-pressed="false">{% translate "This is me" %}</button>
+                            </div>
+                            <button class="btn btn-link text-danger review-party__remove"
+                                    type="button"
+                                    aria-label="{% translate "Remove this person" %}">
+                                <i class="fa-solid fa-trash" aria-hidden="true"></i>
+                            </button>
+                        </li>
+                    </template>
+                    <p class="review-parties__empty"
+                       id="review-parties-empty"
+                       {% if party_rows %}hidden{% endif %}>
+                        {% translate "We did not find any names in your document. Add the people involved, or add them later." %}
+                    </p>
+                    <button class="btn btn-outline-primary btn-sm"
+                            type="button"
+                            id="add-review-party">
+                        <i class="fa-solid fa-plus" aria-hidden="true"></i> {% translate "Add another person" %}
+                    </button>
+                </fieldset>
+            {% endif %}
+            {% comment %}
             First, because the rest depends on it: the court lists different
             filing types for new and existing cases, and only an existing case
             has a case number to ask for.
             {% endcomment %}
+            <h2>{% translate "Questions about your filing" %}</h2>
             <div class="path-section" id="path-section">
                 {% comment %}
                 The new-or-existing answer, when the filer already gave one, is
@@ -362,137 +493,10 @@
                             <option value="">{% translate "Choose a case type first" %}</option>
                         </select>
                         <input type="hidden" name="filing_type_name" id="filing_type_name" />
-                        <small class="review-field__hint" id="filing_type_code-hint">{% translate "We will confirm this again when you organize your documents." %}</small>
+                        <small class="review-field__hint" id="filing_type_code-hint">{% translate "We will use this choice when you organize your documents." %}</small>
                     </div>
                 </div>
             </div>
-            {% comment %}
-            The people the document named. They are collected here, where the
-            filer can see them against the document they just uploaded, and
-            each one's side becomes this court's own party type on the People
-            screen once the case type above has settled what that side is
-            called. Every row posts all four inputs so the parallel lists the
-            view reads back stay index-aligned.
-            {% endcomment %}
-            <fieldset class="review-parties" id="review-parties">
-                <legend>{% translate "People named in your document" %}</legend>
-                <p class="review-parties__lede">
-                    {% if party_rows %}
-                        {% translate "Fix any name we got wrong, and say which side each person is on. If one of them is you, say so here and we will not ask you to enter yourself again. You will add addresses later." %}
-                    {% else %}
-                        {% translate "Add the people involved in this case, and say which side each one is on. If one of them is you, say so here and we will not ask you to enter yourself again. You will add addresses later." %}
-                    {% endif %}
-                </p>
-                <ol class="review-parties__list" id="review-parties-list">
-                    {% for row in party_rows %}
-                        <li class="review-party">
-                            <input type="hidden" name="party_id" value="{{ row.id }}" />
-                            <input type="hidden" name="party_role_hint" value="{{ row.role_hint }}" />
-                            <div class="review-party__name">
-                                <label>
-                                    <span>{% translate "Name" %}</span>
-                                    <input class="form-control"
-                                           type="text"
-                                           name="party_name"
-                                           value="{{ row.name }}"
-                                           autocomplete="off" />
-                                </label>
-                                {% if row.role_hint %}
-                                    <small class="review-party__hint">
-                                        {% blocktranslate with role=row.role_hint %}Your document calls this person the {{ role }}.{% endblocktranslate %}
-                                    </small>
-                                {% elif row.party_type_name %}
-                                    <small class="review-party__hint">{{ row.party_type_name }}</small>
-                                {% endif %}
-                            </div>
-                            <label class="review-party__side">
-                                <span>{% translate "Side of the case" %}</span>
-                                <select class="form-select" name="party_side">
-                                    <option value="">{% translate "Not sure" %}</option>
-                                    {% for option in party_side_options %}
-                                        <option value="{{ option.value }}"
-                                                {% if option.value == row.side %}selected{% endif %}>
-                                            {{ option.label }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                            </label>
-                            <div class="review-party__is-me">
-                                {% comment %}
-                                The value posts from every row, ticked or not, so the lists the
-                                view reads back stay lined up with the names. Only the button is
-                                conditional: a company can never be the person signed in, whose
-                                account is registered to an individual.
-                                {% endcomment %}
-                                <input type="hidden"
-                                       name="party_is_self"
-                                       value="{{ row.is_self|yesno:'true,false' }}" />
-                                {% if not row.is_organization %}
-                                    <button class="btn btn-sm btn-outline-secondary review-party__is-me-toggle"
-                                            type="button"
-                                            aria-pressed="{{ row.is_self|yesno:'true,false' }}">
-                                        {% translate "This is me" %}
-                                    </button>
-                                {% endif %}
-                            </div>
-                            <button class="btn btn-link text-danger review-party__remove"
-                                    type="button"
-                                    aria-label="{% translate "Remove this person" %}">
-                                <i class="fa-solid fa-trash" aria-hidden="true"></i>
-                            </button>
-                        </li>
-                    {% endfor %}
-                </ol>
-                {% comment %}
-                The blank row the "Add another person" button clones, kept in
-                the template so an added row is worded and translated exactly
-                like the rows the document produced.
-                {% endcomment %}
-                <template id="review-party-template">
-                    <li class="review-party">
-                        <input type="hidden" name="party_id" value="" />
-                        <input type="hidden" name="party_role_hint" value="" />
-                        <div class="review-party__name">
-                            <label>
-                                <span>{% translate "Name" %}</span>
-                                <input class="form-control"
-                                       type="text"
-                                       name="party_name"
-                                       value=""
-                                       autocomplete="off" />
-                            </label>
-                        </div>
-                        <label class="review-party__side">
-                            <span>{% translate "Side of the case" %}</span>
-                            <select class="form-select" name="party_side">
-                                <option value="">{% translate "Not sure" %}</option>
-                                {% for option in party_side_options %}<option value="{{ option.value }}">{{ option.label }}</option>{% endfor %}
-                            </select>
-                        </label>
-                        <div class="review-party__is-me">
-                            <input type="hidden" name="party_is_self" value="false" />
-                            <button class="btn btn-sm btn-outline-secondary review-party__is-me-toggle"
-                                    type="button"
-                                    aria-pressed="false">{% translate "This is me" %}</button>
-                        </div>
-                        <button class="btn btn-link text-danger review-party__remove"
-                                type="button"
-                                aria-label="{% translate "Remove this person" %}">
-                            <i class="fa-solid fa-trash" aria-hidden="true"></i>
-                        </button>
-                    </li>
-                </template>
-                <p class="review-parties__empty"
-                   id="review-parties-empty"
-                   {% if party_rows %}hidden{% endif %}>
-                    {% translate "We did not find any names in your document. Add the people involved, or add them later." %}
-                </p>
-                <button class="btn btn-outline-primary btn-sm"
-                        type="button"
-                        id="add-review-party">
-                    <i class="fa-solid fa-plus" aria-hidden="true"></i> {% translate "Add another person" %}
-                </button>
-            </fieldset>
             {% comment %}
             Only case types that mean different jobs for different parties --
             an eviction, say -- offer sides. The list depends on the case type
@@ -526,7 +530,7 @@
                 <button class="btn btn-primary"
                         type="submit"
                         {% if preparation_pending %}disabled{% endif %}>
-                    {% translate "Confirm and continue" %} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                    {% translate "Continue" %} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
                 </button>
             </div>
         </form>

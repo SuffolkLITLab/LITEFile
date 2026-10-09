@@ -104,7 +104,7 @@ async function main() {
         await page.locator('input[name="existing_case"][value="existing"]').check();
         await page
             .getByRole("button", {
-                name: "Confirm and continue",
+                name: "Continue",
                 exact: true
             })
             .click();
