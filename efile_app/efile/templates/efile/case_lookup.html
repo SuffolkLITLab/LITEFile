@@ -19,11 +19,18 @@
                 {% include "efile/components/extraction_marker_help.html" %}
             </div>
         {% endif %}
-        <form id="case-lookup-form">
+        <form id="case-lookup-form"
+              data-inference-url="{% url 'docket_court' jurisdiction %}">
             {% csrf_token %}
             {% include "efile/components/filing_availability_notice.html" %}
+            {% if jurisdiction == "massachusetts" %}
+                <p id="inferred-court" hidden>
+                    <span id="inferred-court-name" role="status"></span>
+                    <button type="button" id="change-inferred-court" class="btn btn-link">{% translate "Change court" %}</button>
+                </p>
+            {% endif %}
             <div class="lookup-fields">
-                <div class="form-field">
+                <div class="form-field" id="manual-court-field">
                     <span>{% translate "Court" %}</span>
                     {# Filled in by court-selector.js where the jurisdiction configures guided questions. The select below keeps carrying the answer either way. #}
                     <div class="court-selector" id="court-selector"></div>
@@ -45,7 +52,7 @@
                            id="case-number"
                            name="case_number"
                            value="{{ docket_number }}"
-                           placeholder="e.g., 2025MR000123"
+                           placeholder="{% if jurisdiction == 'massachusetts' %}e.g., 1473CV00213{% elif jurisdiction == 'vermont' %}e.g., 24-CV-00123{% else %}e.g., 2025MR000123{% endif %}"
                            autocomplete="off"
                            aria-describedby="case-number-hint"
                            required />

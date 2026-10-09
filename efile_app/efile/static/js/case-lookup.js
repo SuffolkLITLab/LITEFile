@@ -23,6 +23,7 @@
 
     async function mountCourtSelector() {
         const container = document.getElementById("court-selector");
+        if (apiUtils.getCurrentJurisdiction() === "massachusetts") return false;
         if (!container || !window.courtSelector) return false;
         const selector = window.courtSelector.mount({
             container,
@@ -73,6 +74,73 @@
         }
     }
 
+    const inferred = document.getElementById("inferred-court");
+    if (inferred) courtSelect.required = false;
+    let inferenceGeneration = 0;
+    let manualCourt = Boolean(selectedCourtCode);
+    let inferredCode = "";
+    let inferenceTimer;
+    async function inferCourt() {
+        if (!inferred || manualCourt) return;
+        const generation = ++inferenceGeneration;
+        try {
+            const params = new URLSearchParams({
+                docket_number: caseNumber.value
+            });
+            const response = await fetch(`${form.dataset.inferenceUrl}?${params}`);
+            const result = await response.json();
+            if (generation !== inferenceGeneration || manualCourt) return;
+            const court = result.success && result.court;
+            inferred.hidden = !court;
+            document.getElementById("manual-court-field").hidden = Boolean(court);
+            courtSelect.required = false;
+            if (court) {
+                if (!Array.from(courtSelect.options).some(option => option.value === court.value)) {
+                    courtSelect.add(new Option(court.text, court.value));
+                }
+                courtSelect.value = court.value;
+                inferredCode = court.value;
+                document.getElementById("inferred-court-name").textContent = `${gettext("Court identified from your case number:")} ${court.text}`;
+            } else if (inferredCode) {
+                courtSelect.value = "";
+                inferredCode = "";
+            }
+            availability.check();
+        } catch {
+            if (generation !== inferenceGeneration) return;
+            inferred.hidden = true;
+            document.getElementById("manual-court-field").hidden = false;
+            courtSelect.required = false;
+            if (inferredCode) courtSelect.value = "";
+            inferredCode = "";
+            availability.check();
+        }
+    }
+    if (inferred) {
+        document.getElementById("change-inferred-court").addEventListener("click", () => {
+            manualCourt = true;
+            ++inferenceGeneration;
+            inferred.hidden = true;
+            document.getElementById("manual-court-field").hidden = false;
+            courtSelect.required = false;
+            courtSelect.focus();
+        });
+        courtSelect.addEventListener("change", () => {
+            manualCourt = true;
+            ++inferenceGeneration;
+        });
+        caseNumber.addEventListener("input", () => {
+            ++inferenceGeneration;
+            if (!manualCourt && inferredCode) {
+                courtSelect.value = "";
+                inferred.hidden = true;
+                document.getElementById("manual-court-field").hidden = false;
+            }
+            clearTimeout(inferenceTimer);
+            inferenceTimer = setTimeout(inferCourt, 250);
+        });
+    }
+
     form.addEventListener("submit", async (event) => {
         event.preventDefault();
         errorBox.hidden = true;
@@ -80,6 +148,7 @@
         submitButton.disabled = true;
 
         try {
+            if (!courtSelect.value && inferred && !manualCourt) await inferCourt();
             if (!courtSelect.value) throw new Error("Choose a court to search for your case.");
             const jurisdiction = apiUtils.getCurrentJurisdiction();
             const lookup = await apiUtils.fetchJSON("/api/suffolk/lookup-case/", "GET", {
@@ -122,5 +191,8 @@
         }
     });
 
-    loadCourts().then(() => availability.check(courtSelect.closest(".form-field")));
+    loadCourts().then(() => {
+        availability.check(courtSelect.closest(".form-field"));
+        inferCourt();
+    });
 })();

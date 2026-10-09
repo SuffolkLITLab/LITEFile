@@ -91,3 +91,22 @@ def case_lookup(request, jurisdiction):
     }
     context.update(get_workflow_context(WorkflowStepKey.CASE_LOOKUP, jurisdiction, draft))
     return render(request, "efile/case_lookup.html", context)
+
+
+@require_http_methods(["GET"])
+def docket_court(request, jurisdiction):
+    """Resolve only a documented number to one court offered by this service."""
+    if not request.user.is_authenticated or not get_tyler_token(request, jurisdiction):
+        return JsonResponse({"success": False}, status=401)
+    if jurisdiction != "massachusetts":
+        return JsonResponse({"success": True, "court": None})
+    import requests
+
+    from efile.services.court_selection import fetch_courts
+    from efile.services.docket_courts import infer_massachusetts_court
+
+    try:
+        court = infer_massachusetts_court(request.GET.get("docket_number", ""), fetch_courts(jurisdiction))
+    except (requests.RequestException, ValueError, ImportError):
+        return JsonResponse({"success": False, "court": None}, status=503)
+    return JsonResponse({"success": True, "court": court})

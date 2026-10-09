@@ -1,0 +1,14 @@
+{
+  "sources": [
+    "https://www.mass.gov/info-details/district-court-get-to-know-the-case-number-format",
+    "https://www.mass.gov/info-details/superior-court-get-to-know-the-case-number-format",
+    "https://www.mass.gov/info-details/probate-and-family-court-get-to-know-the-case-number-format",
+    "https://www.mass.gov/info-details/trial-court-codes-numerical-listing"
+  ],
+  "verified_examples": [
+    {"docket": "1448CV001026", "court_code": "48", "tyler_code": "336", "name": "Ayer District Court"},
+    {"docket": "1473CV00213", "court_code": "73", "tyler_code": "1126", "name": "Bristol County Superior Court"},
+    {"docket": "ES15A0064AD", "court_code": "P77", "tyler_code": "352", "name": "Essex Probate and Family Court"}
+  ],
+  "manual_examples": ["98-1234", "123456", "24-CV-12", "1448CV001026-extra", "1499CV001026", "ES15Z0064AD", "", "1:24-cv-00123"]
+}
