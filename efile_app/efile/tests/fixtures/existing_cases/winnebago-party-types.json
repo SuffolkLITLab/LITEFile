@@ -1,0 +1,82 @@
+[
+  {
+    "code": "5605",
+    "name": "Ward",
+    "isrequired": false
+  },
+  {
+    "code": "59053",
+    "name": "Petitioner",
+    "isrequired": false
+  },
+  {
+    "code": "59054",
+    "name": "Plaintiff",
+    "isrequired": false
+  },
+  {
+    "code": "59055",
+    "name": "Defendant",
+    "isrequired": false
+  },
+  {
+    "code": "59056",
+    "name": "Respondent",
+    "isrequired": false
+  },
+  {
+    "code": "79731",
+    "name": "Third Party Defendant",
+    "isrequired": false
+  },
+  {
+    "code": "79736",
+    "name": "Putative Father",
+    "isrequired": false
+  },
+  {
+    "code": "79739",
+    "name": "Third Party Plaintiff",
+    "isrequired": false
+  },
+  {
+    "code": "79759",
+    "name": "Minor",
+    "isrequired": false
+  },
+  {
+    "code": "103298",
+    "name": "Other Party",
+    "isrequired": false
+  },
+  {
+    "code": "103299",
+    "name": "Decendent",
+    "isrequired": false
+  },
+  {
+    "code": "103300",
+    "name": "Counter Defendant",
+    "isrequired": false
+  },
+  {
+    "code": "103301",
+    "name": "Counter Plaintiff",
+    "isrequired": false
+  },
+  {
+    "code": "103302",
+    "name": "Disabled Person",
+    "isrequired": false
+  },
+  {
+    "code": "103303",
+    "name": "Subject",
+    "isrequired": false
+  },
+  {
+    "code": "328017",
+    "name": "Interested Party",
+    "isrequired": false
+  }
+]

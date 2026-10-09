@@ -54,7 +54,20 @@ def fee_inputs(draft: FilingDraft, *, payment_account_id: str | None = None) -> 
         for document in FilingDocument.objects.filter(draft=draft).order_by("role", "sort_order", "pk")
     ]
     parties = sorted(
-        (party.role, party.party_type, bool(party.is_filing_party), bool(party.organization_name))
+        (
+            party.role,
+            party.party_type,
+            bool(party.is_filing_party),
+            bool(party.organization_name),
+            party.external_party_id,
+            party.source_case_id,
+            json.dumps(party.representation, sort_keys=True),
+            party.first_name,
+            party.middle_name,
+            party.last_name,
+            party.suffix,
+            party.organization_name,
+        )
         for party in FilingParty.objects.filter(draft=draft)
     )
     return {

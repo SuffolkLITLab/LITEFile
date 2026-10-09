@@ -3,8 +3,10 @@ from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
 
 from efile.api.suffolk_api_views import get_tyler_token
+from efile.models import FilingParty
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.drafts import draft_snapshot, write_case_data
+from efile.services.existing_cases import CaseImportError, confirm_case, import_ready, load_case
 from efile.services.filing_availability import draft_unavailable_message, unavailable_response
 from efile.services.filing_plans import link_case_to_plan, remember_case_for_plan
 from efile.workflow import (
@@ -36,8 +38,30 @@ def case_confirmation(request, jurisdiction):
         messages.error(request, "Find your court case before confirming it.")
         return redirect("case_lookup", jurisdiction=jurisdiction)
 
+    availability_message = draft_unavailable_message(draft)
+    if availability_message and request.method == "POST" and request.POST.get("confirmed") == "yes":
+        return unavailable_response(request, draft, availability_message)
+
+    import_error = ""
+    if not availability_message and not (request.method == "POST" and request.POST.get("confirmed") != "yes"):
+        if not import_ready(draft):
+            try:
+                load_case(draft, get_tyler_token(request, jurisdiction), apply=False)
+            except CaseImportError as error:
+                import_error = str(error)
+        if draft.existing_case_snapshot.get("status") == "partial":
+            import_error = (
+                " ".join(draft.existing_case_snapshot.get("problems", []))
+                + " Retry loading the case or contact support."
+            )
+
     if request.method == "POST":
-        if request.POST.get("confirmed") == "yes":
+        if request.POST.get("confirmed") == "yes" and not import_error:
+            try:
+                confirm_case(draft)
+            except CaseImportError as error:
+                messages.error(request, str(error))
+                return redirect("case_confirmation", jurisdiction=jurisdiction)
             if message := draft_unavailable_message(draft):
                 return unavailable_response(request, draft, message)
             # The filer has just told us which court case this matter is. Keep
@@ -48,6 +72,20 @@ def case_confirmation(request, jurisdiction):
             draft.current_step = continue_step(draft, return_to, WorkflowStepKey.DOCUMENT_CHECKLIST)
             draft.save(update_fields=["current_step", "updated_at"])
             return redirect(continue_url(draft, jurisdiction, return_to, WorkflowStepKey.DOCUMENT_CHECKLIST))
+
+        if request.POST.get("confirmed") == "yes":
+            return render(
+                request,
+                "efile/case_confirmation.html",
+                {
+                    "case": draft,
+                    "import_error": import_error,
+                    "is_logged_in": True,
+                    "return_to": return_target(request),
+                    **get_workflow_context(WorkflowStepKey.CASE_CONFIRMATION, jurisdiction, draft),
+                },
+                status=422,
+            )
 
         # Saying "this is not my case" about the case the plan proposed means
         # the plan is pointing at the wrong one, so it stops pointing anywhere.
@@ -73,7 +111,9 @@ def case_confirmation(request, jurisdiction):
         "is_logged_in": True,
         "filing_draft": draft_snapshot(draft),
         "case": draft,
-        "availability_message": draft_unavailable_message(draft),
+        "import_error": import_error,
+        "court_parties": [FilingParty(**party) for party in draft.existing_case_snapshot.get("parties", [])],
+        "availability_message": availability_message,
         "return_to": return_target(request),
     }
     context.update(get_workflow_context(WorkflowStepKey.CASE_CONFIRMATION, jurisdiction, draft))

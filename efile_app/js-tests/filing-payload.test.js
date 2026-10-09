@@ -669,3 +669,64 @@ test("new appeal payload keeps the originating case separate from the appellate 
     assert.strictEqual(existing.lower_court_case, undefined);
     assert.strictEqual(existing.trial_court, undefined);
 });
+test("existing court filing and other parties retain IDs without account duplicates", () => {
+    const handler = makeHandler();
+    const courtParty = (id, filing) => ({
+        id,
+        role: "other",
+        source: "court",
+        external_party_id: `court-${id}`,
+        party_type: filing ? "plaintiff" : "defendant",
+        first_name: "Court",
+        last_name: "Name",
+        is_filing_party: filing,
+        is_self: filing
+    });
+    const payload = handler.buildEFilingData({
+        fullName: "Account Contact",
+        email: "contact@example.com"
+    }, {
+        previous_case_id: "existing-case",
+        court: "kane",
+        case_type: "civil",
+        filing_parties: [{
+                role: "filer",
+                first_name: "Account",
+                last_name: "Contact"
+            },
+            courtParty(1, true), courtParty(2, false)
+        ]
+    }, {
+        files: {
+            lead: {
+                name: "motion.pdf",
+                url: "https://example.com/motion.pdf"
+            }
+        }
+    }, "payment");
+    assert.equal(payload.users.length, 1);
+    assert.equal(payload.other_parties.length, 1);
+    assert.equal(payload.users[0].tyler_id, "court-1");
+    assert.equal(payload.other_parties[0].tyler_id, "court-2");
+    assert.equal(payload.users[0].is_new, false);
+    assert.equal(payload.other_parties[0].is_new, false);
+    assert.equal(payload.users[0].name.first, "Court");
+    assert.deepEqual(payload.al_court_bundle[0].filing_parties, ["users[0]"]);
+});
+
+test("an imported party without an ID cannot be serialized as new", () => {
+    assert.throws(() => makeHandler().partyFromDraft({
+        source: "court",
+        party_type: "plaintiff"
+    }), /no court ID/);
+});
+
+test("explicit new parties have no existing ID", () => {
+    const party = makeHandler().partyFromDraft({
+        source: "manual",
+        first_name: "New",
+        last_name: "Person"
+    });
+    assert.equal(party.is_new, true);
+    assert.equal(Object.hasOwn(party, "tyler_id"), false);
+});

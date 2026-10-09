@@ -289,6 +289,12 @@ def save_reviewed_parties(draft: FilingDraft, rows: list[dict[str, str]]) -> Non
     this screen must not lose the address they typed on the party screen.
     """
 
+    if (
+        draft.existing_case_snapshot.get("confirmed")
+        or FilingParty.objects.filter(draft=draft, source="court").exists()
+    ):
+        # Caption suggestions remain in extracted_guesses for review.
+        return
     existing = {party.pk: party for party in FilingParty.objects.filter(draft=draft, role="other")}
     kept: set[int] = set()
     next_order = max((party.sort_order for party in existing.values()), default=-1) + 1
@@ -308,7 +314,7 @@ def save_reviewed_parties(draft: FilingDraft, rows: list[dict[str, str]]) -> Non
             # a person to add to the case.
             if not name or is_placeholder_name(name):
                 continue
-            party = FilingParty(draft=draft, role="other", sort_order=next_order + index)
+            party = FilingParty(draft=draft, role="other", source="document", sort_order=next_order + index)
         else:
             kept.add(party.pk)
 

@@ -22,6 +22,22 @@ class DraftIdentityMiddleware(MiddlewareMixin):
             statuses = (FilingDraft.Status.SUBMITTED,)
         try:
             resolve_explicit_draft(request, jurisdiction=view_kwargs.get("jurisdiction"), statuses=statuses)
+            if request.resolver_match.url_name in {
+                "parties",
+                "party_details",
+                "case_questions",
+                "payment",
+                "case_review",
+            }:
+                from django.shortcuts import redirect
+
+                from efile.services.current_drafts import get_current_draft
+                from efile.services.existing_cases import import_ready
+                from efile.workflow import ExistingCase
+
+                draft = get_current_draft(request, jurisdiction=view_kwargs.get("jurisdiction"))
+                if draft and draft.existing_case == ExistingCase.EXISTING and not import_ready(draft):
+                    return redirect("case_confirmation", jurisdiction=draft.jurisdiction)
         except DraftIdentityError as error:
             return self.process_exception(request, error)
 

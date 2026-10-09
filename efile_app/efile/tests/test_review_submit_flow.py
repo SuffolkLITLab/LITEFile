@@ -200,6 +200,11 @@ def test_final_review_shows_a_found_case_as_the_courts_read_only_record(client, 
     submission_draft.selected_payment_account_id = "pay-123"
     submission_draft.save()
 
+    from efile.tests.helpers import loaded_case_snapshot
+
+    submission_draft.existing_case_snapshot = loaded_case_snapshot(submission_draft)
+    submission_draft.save(update_fields=["existing_case_snapshot"])
+
     content = client.get(reverse("case_review", kwargs={"jurisdiction": "illinois"})).content.decode()
     case_card = _case_card(content)
 

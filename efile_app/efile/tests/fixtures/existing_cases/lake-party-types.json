@@ -1,0 +1,472 @@
+[
+  {
+    "code": "5609",
+    "name": "Attorney",
+    "isrequired": false
+  },
+  {
+    "code": "5616",
+    "name": "Defendant",
+    "isrequired": false
+  },
+  {
+    "code": "5623",
+    "name": "Minor",
+    "isrequired": false
+  },
+  {
+    "code": "5624",
+    "name": "Plaintiff",
+    "isrequired": false
+  },
+  {
+    "code": "5627",
+    "name": "Respondent",
+    "isrequired": false
+  },
+  {
+    "code": "5628",
+    "name": "Petitioner",
+    "isrequired": false
+  },
+  {
+    "code": "7404",
+    "name": "Trustee",
+    "isrequired": false
+  },
+  {
+    "code": "10400",
+    "name": "Missing Person",
+    "isrequired": false
+  },
+  {
+    "code": "10403",
+    "name": "Parent",
+    "isrequired": false
+  },
+  {
+    "code": "50472",
+    "name": "Counter Plaintiff",
+    "isrequired": false
+  },
+  {
+    "code": "50474",
+    "name": "Temporary Guardian",
+    "isrequired": false
+  },
+  {
+    "code": "50475",
+    "name": "Third Party Defendant",
+    "isrequired": false
+  },
+  {
+    "code": "50476",
+    "name": "Third Party Plaintiff",
+    "isrequired": false
+  },
+  {
+    "code": "50478",
+    "name": "Father",
+    "isrequired": false
+  },
+  {
+    "code": "50479",
+    "name": "Alleged Putative Father",
+    "isrequired": false
+  },
+  {
+    "code": "50481",
+    "name": "Fourth Party Defendant",
+    "isrequired": false
+  },
+  {
+    "code": "50482",
+    "name": "Fourth Party Plaintiff",
+    "isrequired": false
+  },
+  {
+    "code": "50483",
+    "name": "Administrator",
+    "isrequired": false
+  },
+  {
+    "code": "50484",
+    "name": "Claimant",
+    "isrequired": false
+  },
+  {
+    "code": "50485",
+    "name": "Counter Defendant",
+    "isrequired": false
+  },
+  {
+    "code": "50486",
+    "name": "Decedent (Deceased)",
+    "isrequired": false
+  },
+  {
+    "code": "50487",
+    "name": "Disabled",
+    "isrequired": false
+  },
+  {
+    "code": "50488",
+    "name": "Executor",
+    "isrequired": false
+  },
+  {
+    "code": "50490",
+    "name": "Guardian",
+    "isrequired": false
+  },
+  {
+    "code": "60280",
+    "name": "SEARCH",
+    "isrequired": false
+  },
+  {
+    "code": "60281",
+    "name": "FORFEITED ITEM",
+    "isrequired": false
+  },
+  {
+    "code": "66286",
+    "name": "Adult",
+    "isrequired": false
+  },
+  {
+    "code": "74422",
+    "name": "Brother",
+    "isrequired": false
+  },
+  {
+    "code": "74423",
+    "name": "Foster Father",
+    "isrequired": false
+  },
+  {
+    "code": "74424",
+    "name": "Foster Mother",
+    "isrequired": false
+  },
+  {
+    "code": "74427",
+    "name": "Involved Party",
+    "isrequired": false
+  },
+  {
+    "code": "74430",
+    "name": "Respondent Mother",
+    "isrequired": false
+  },
+  {
+    "code": "74431",
+    "name": "Respondent Step Father",
+    "isrequired": false
+  },
+  {
+    "code": "74432",
+    "name": "Respondent Step Mother",
+    "isrequired": false
+  },
+  {
+    "code": "74433",
+    "name": "Seizure Warrant",
+    "isrequired": false
+  },
+  {
+    "code": "74434",
+    "name": "Sister",
+    "isrequired": false
+  },
+  {
+    "code": "74442",
+    "name": "Third Party Respondent",
+    "isrequired": false
+  },
+  {
+    "code": "74443",
+    "name": "Uncle",
+    "isrequired": false
+  },
+  {
+    "code": "74448",
+    "name": "Case Worker",
+    "isrequired": false
+  },
+  {
+    "code": "74452",
+    "name": "Cross Claimant",
+    "isrequired": false
+  },
+  {
+    "code": "74453",
+    "name": "Cross Defendant",
+    "isrequired": false
+  },
+  {
+    "code": "74454",
+    "name": "Cross Plaintiff",
+    "isrequired": false
+  },
+  {
+    "code": "74458",
+    "name": "Error",
+    "isrequired": false
+  },
+  {
+    "code": "74463",
+    "name": "Foster Relative",
+    "isrequired": false
+  },
+  {
+    "code": "74471",
+    "name": "Objector",
+    "isrequired": false
+  },
+  {
+    "code": "74475",
+    "name": "Respondent Father",
+    "isrequired": false
+  },
+  {
+    "code": "74476",
+    "name": "Respondent In Discovery",
+    "isrequired": false
+  },
+  {
+    "code": "74486",
+    "name": "Supervised Executor",
+    "isrequired": false
+  },
+  {
+    "code": "100509",
+    "name": "Administrator Of Estate",
+    "isrequired": false
+  },
+  {
+    "code": "100510",
+    "name": "Administrator To Collect",
+    "isrequired": false
+  },
+  {
+    "code": "100511",
+    "name": "Counter Petitioner",
+    "isrequired": false
+  },
+  {
+    "code": "100512",
+    "name": "Counter Respondent",
+    "isrequired": false
+  },
+  {
+    "code": "100513",
+    "name": "Delinquent",
+    "isrequired": false
+  },
+  {
+    "code": "100514",
+    "name": "Fifth Party Defendant",
+    "isrequired": false
+  },
+  {
+    "code": "100515",
+    "name": "Fifth Party Plaintiff",
+    "isrequired": false
+  },
+  {
+    "code": "100516",
+    "name": "Filer",
+    "isrequired": false
+  },
+  {
+    "code": "100517",
+    "name": "Heir",
+    "isrequired": false
+  },
+  {
+    "code": "100518",
+    "name": "Interested Party",
+    "isrequired": false
+  },
+  {
+    "code": "100519",
+    "name": "Intervening Defendant",
+    "isrequired": false
+  },
+  {
+    "code": "100520",
+    "name": "Intervening Petitioner",
+    "isrequired": false
+  },
+  {
+    "code": "100521",
+    "name": "Mother",
+    "isrequired": false
+  },
+  {
+    "code": "100522",
+    "name": "Special Representative",
+    "isrequired": false
+  },
+  {
+    "code": "100523",
+    "name": "State",
+    "isrequired": false
+  },
+  {
+    "code": "100524",
+    "name": "Successor Trustee",
+    "isrequired": false
+  },
+  {
+    "code": "100525",
+    "name": "Administrator With Will Annexed",
+    "isrequired": false
+  },
+  {
+    "code": "100526",
+    "name": "Aunt",
+    "isrequired": false
+  },
+  {
+    "code": "100527",
+    "name": "Catholic Charities",
+    "isrequired": false
+  },
+  {
+    "code": "100528",
+    "name": "Dept Of Children/Family Services",
+    "isrequired": false
+  },
+  {
+    "code": "100529",
+    "name": "Independent Administrator",
+    "isrequired": false
+  },
+  {
+    "code": "100530",
+    "name": "Independent Administrator To Collect",
+    "isrequired": false
+  },
+  {
+    "code": "100531",
+    "name": "Independent Administrator-Will Annexed",
+    "isrequired": false
+  },
+  {
+    "code": "100532",
+    "name": "Independent Executor",
+    "isrequired": false
+  },
+  {
+    "code": "100533",
+    "name": "Independent Executor With Will Annexed",
+    "isrequired": false
+  },
+  {
+    "code": "100534",
+    "name": "Limited & Temporary Guardian",
+    "isrequired": false
+  },
+  {
+    "code": "100535",
+    "name": "Limited Guardian",
+    "isrequired": false
+  },
+  {
+    "code": "100536",
+    "name": "Mortgagee",
+    "isrequired": false
+  },
+  {
+    "code": "100537",
+    "name": "Mortgagor",
+    "isrequired": false
+  },
+  {
+    "code": "100538",
+    "name": "Plenary Guardian",
+    "isrequired": false
+  },
+  {
+    "code": "100539",
+    "name": "Relative",
+    "isrequired": false
+  },
+  {
+    "code": "100540",
+    "name": "Special Administrator",
+    "isrequired": false
+  },
+  {
+    "code": "100541",
+    "name": "Special Administrator to Collect",
+    "isrequired": false
+  },
+  {
+    "code": "100542",
+    "name": "Standby Guardian",
+    "isrequired": false
+  },
+  {
+    "code": "100543",
+    "name": "Step-Father",
+    "isrequired": false
+  },
+  {
+    "code": "100544",
+    "name": "Step-Mother",
+    "isrequired": false
+  },
+  {
+    "code": "100545",
+    "name": "Successor Administrator",
+    "isrequired": false
+  },
+  {
+    "code": "100546",
+    "name": "Successor Administrator With Will Annexe",
+    "isrequired": false
+  },
+  {
+    "code": "100547",
+    "name": "Successor Executor",
+    "isrequired": false
+  },
+  {
+    "code": "100548",
+    "name": "Successor Guardian",
+    "isrequired": false
+  },
+  {
+    "code": "100549",
+    "name": "Successor Independent Administrator",
+    "isrequired": false
+  },
+  {
+    "code": "100550",
+    "name": "Successor Independent Executor",
+    "isrequired": false
+  },
+  {
+    "code": "100551",
+    "name": "Successor Limited Guardian",
+    "isrequired": false
+  },
+  {
+    "code": "100552",
+    "name": "Successor Plenary Guardian",
+    "isrequired": false
+  },
+  {
+    "code": "100553",
+    "name": "Supervised Administrator",
+    "isrequired": false
+  },
+  {
+    "code": "246247",
+    "name": "Living Person",
+    "isrequired": false
+  }
+]

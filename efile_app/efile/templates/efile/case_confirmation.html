@@ -62,6 +62,16 @@
                 </dd>
             </div>
         </dl>
+        {% if import_error %}
+            <div class="alert alert-danger" role="alert">{{ import_error }}</div>
+            <a href="{% url 'efile_login' jurisdiction %}">{% translate "Sign in again" %}</a>
+        {% endif %}
+        {% if court_parties %}
+            <h2>{% translate "Already on the court case" %}</h2>
+            <ul>
+                {% for party in court_parties %}<li>{{ party }} — {{ party.party_type_name }}</li>{% endfor %}
+            </ul>
+        {% endif %}
         {% if availability_message %}<div class="alert alert-warning" role="alert">{{ availability_message }}</div>{% endif %}
         <form method="post">
             {% csrf_token %}
@@ -82,7 +92,12 @@
                         name="confirmed"
                         value="yes"
                         {% if availability_message %}disabled{% endif %}>
-                    {% translate "Yes, this is my case" %} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                    {% if import_error %}
+                        {% translate "Retry loading the case" %}
+                    {% else %}
+                        {% translate "Yes, this is my case" %}
+                    {% endif %}
+                    <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
                 </button>
             </div>
         </form>

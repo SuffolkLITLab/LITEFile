@@ -692,13 +692,19 @@ def test_a_case_the_plan_knows_is_not_searched_for_again(client, signed_in):
 
 
 @pytest.mark.django_db
-def test_confirming_a_case_teaches_the_plan_where_to_file_next(client, signed_in):
+def test_confirming_a_case_teaches_the_plan_where_to_file_next(client, signed_in, monkeypatch):
     plan = configured_plan(signed_in)
     signed_in.existing_case = ExistingCase.EXISTING
     signed_in.previous_case_id = "tracking-123"
     signed_in.docket_number = "2025MR000123"
     signed_in.case_title = "In re Ada Lovelace"
     signed_in.save()
+
+    from efile.tests.helpers import loaded_case_snapshot
+
+    monkeypatch.setattr(
+        "efile.services.existing_cases.fetch_case", lambda draft, token: loaded_case_snapshot(draft, confirmed=False)
+    )
 
     client.post(reverse("case_confirmation", kwargs={"jurisdiction": "illinois"}), {"confirmed": "yes"})
 
@@ -708,7 +714,7 @@ def test_confirming_a_case_teaches_the_plan_where_to_file_next(client, signed_in
 
 
 @pytest.mark.django_db
-def test_saying_a_case_is_not_mine_unlinks_the_plan(client, signed_in):
+def test_saying_a_case_is_not_mine_unlinks_the_plan(client, signed_in, monkeypatch):
     plan = configured_plan(signed_in)
     plan.case_tracking_id = "tracking-123"
     plan.docket_number = "2025MR000123"

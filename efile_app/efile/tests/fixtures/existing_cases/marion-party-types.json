@@ -1,0 +1,152 @@
+[
+  {
+    "code": "5603",
+    "name": "Third Party Plaintiff",
+    "isrequired": false
+  },
+  {
+    "code": "5626",
+    "name": "Third Party Defendant",
+    "isrequired": false
+  },
+  {
+    "code": "7067",
+    "name": "Adoptive Parent",
+    "isrequired": false
+  },
+  {
+    "code": "7132",
+    "name": "Biological Parent",
+    "isrequired": false
+  },
+  {
+    "code": "7137",
+    "name": "Legal Father",
+    "isrequired": false
+  },
+  {
+    "code": "7395",
+    "name": "Guardian",
+    "isrequired": false
+  },
+  {
+    "code": "7403",
+    "name": "Minor",
+    "isrequired": false
+  },
+  {
+    "code": "8577",
+    "name": "Putative Father",
+    "isrequired": false
+  },
+  {
+    "code": "8750",
+    "name": "Counter Plaintiff/Petitioner",
+    "isrequired": false
+  },
+  {
+    "code": "8754",
+    "name": "Counter Defendant/Respondent",
+    "isrequired": false
+  },
+  {
+    "code": "9602",
+    "name": "Counter-Claimant",
+    "isrequired": false
+  },
+  {
+    "code": "9603",
+    "name": "Third-Party Litigant",
+    "isrequired": false
+  },
+  {
+    "code": "9833",
+    "name": "Administrator",
+    "isrequired": false
+  },
+  {
+    "code": "9835",
+    "name": "Decedent",
+    "isrequired": false
+  },
+  {
+    "code": "9838",
+    "name": "Executor",
+    "isrequired": false
+  },
+  {
+    "code": "9839",
+    "name": "Guardian Ad Litem",
+    "isrequired": false
+  },
+  {
+    "code": "9843",
+    "name": "Ward",
+    "isrequired": false
+  },
+  {
+    "code": "9844",
+    "name": "Other",
+    "isrequired": false
+  },
+  {
+    "code": "20640",
+    "name": "Adoptive Child",
+    "isrequired": false
+  },
+  {
+    "code": "20641",
+    "name": "Defendant/Respondent",
+    "isrequired": false
+  },
+  {
+    "code": "20642",
+    "name": "Fourth Party Defendant",
+    "isrequired": false
+  },
+  {
+    "code": "20643",
+    "name": "Fourth Party Plaintiff",
+    "isrequired": false
+  },
+  {
+    "code": "20644",
+    "name": "Intervenor-Defendant",
+    "isrequired": false
+  },
+  {
+    "code": "20645",
+    "name": "Intervenor-Plaintiff",
+    "isrequired": false
+  },
+  {
+    "code": "20646",
+    "name": "Plaintiff/Petitioner",
+    "isrequired": false
+  },
+  {
+    "code": "136614",
+    "name": "Non-litigant",
+    "isrequired": false
+  },
+  {
+    "code": "179603",
+    "name": "Legal Mother",
+    "isrequired": false
+  },
+  {
+    "code": "179604",
+    "name": "Legal Parent",
+    "isrequired": false
+  },
+  {
+    "code": "283697",
+    "name": "Biological Mother",
+    "isrequired": false
+  },
+  {
+    "code": "283698",
+    "name": "Biological Father",
+    "isrequired": false
+  }
+]

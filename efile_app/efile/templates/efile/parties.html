@@ -11,7 +11,9 @@
         <h1>{% translate "Who is involved in this case?" %}</h1>
         {% include "efile/partials/filing_guidance.html" %}
         <p class="workflow-lede">
-            {% if case_has_parties %}
+            {% if existing_court_case %}
+                {% translate "The court has already recorded these parties. Choose who you are filing for, or link yourself to an existing party." %}
+            {% elif case_has_parties %}
                 {% translate "You already told us who is in this case. The one thing left is your own part in it — the list below is here to check, not to fill in again." %}
             {% else %}
                 {% translate "Start with your own part in this case. Then we will ask about any other people, one at a time." %}
@@ -60,52 +62,54 @@
                     <small>{% translate "You — the person filing" %}</small>
                 </div>
             </div>
-            <fieldset class="form-field primary-question">
-                <legend>{% ui_text "parties.role_question" %}</legend>
-                <p>{% ui_text "parties.role_help" %}</p>
-                {% if guessed_party_type %}
-                    <div class="alert alert-info party-type-hint" id="party-type-hint">
-                        <i class="fa-regular fa-lightbulb" aria-hidden="true"></i>
-                        {% blocktranslate with name=guessed_party_type.name %}Based on this filing, you are likely the {{ name }}. We are not certain, so choose below to confirm.{% endblocktranslate %}
-                        <button type="button"
-                                class="btn btn-sm btn-outline-primary"
-                                id="apply-party-type-guess"
-                                data-value="{{ guessed_party_type.code }}">{% translate "Apply guess" %}</button>
-                    </div>
-                {% endif %}
-                <div class="compact-choice-list">
-                    {% for party_type in party_types %}
-                        <label>
-                            <input class="form-check-input"
-                                   type="radio"
-                                   name="filer_party_type"
-                                   value="{{ party_type.code }}"
-                                   {% if filer.party_type == party_type.code %}checked{% endif %}
-                                   required />
-                            <span>{{ party_type.name }}
-                                {% if party_type.required %}
-                                    — {% translate "required" %}
-                                {% endif %}
-                            </span>
-                        </label>
-                    {% endfor %}
-                    {% if party_types %}
-                        <label>
-                            <input class="form-check-input"
-                                   type="radio"
-                                   name="filer_party_type"
-                                   id="filer-not-a-party"
-                                   value="{{ not_a_party_value }}"
-                                   {% if filing_for_someone_else %}checked{% endif %}
-                                   required />
-                            <span>{% translate "I am not one of the parties — I am filing for someone else" %}</span>
-                        </label>
+            {% if not existing_court_case %}
+                <fieldset class="form-field primary-question">
+                    <legend>{% ui_text "parties.role_question" %}</legend>
+                    <p>{% ui_text "parties.role_help" %}</p>
+                    {% if guessed_party_type %}
+                        <div class="alert alert-info party-type-hint" id="party-type-hint">
+                            <i class="fa-regular fa-lightbulb" aria-hidden="true"></i>
+                            {% blocktranslate with name=guessed_party_type.name %}Based on this filing, you are likely the {{ name }}. We are not certain, so choose below to confirm.{% endblocktranslate %}
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-primary"
+                                    id="apply-party-type-guess"
+                                    data-value="{{ guessed_party_type.code }}">{% translate "Apply guess" %}</button>
+                        </div>
                     {% endif %}
-                </div>
-            </fieldset>
+                    <div class="compact-choice-list">
+                        {% for party_type in party_types %}
+                            <label>
+                                <input class="form-check-input"
+                                       type="radio"
+                                       name="filer_party_type"
+                                       value="{{ party_type.code }}"
+                                       {% if filer.party_type == party_type.code %}checked{% endif %}
+                                       required />
+                                <span>{{ party_type.name }}
+                                    {% if party_type.required %}
+                                        — {% translate "required" %}
+                                    {% endif %}
+                                </span>
+                            </label>
+                        {% endfor %}
+                        {% if party_types %}
+                            <label>
+                                <input class="form-check-input"
+                                       type="radio"
+                                       name="filer_party_type"
+                                       id="filer-not-a-party"
+                                       value="{{ not_a_party_value }}"
+                                       {% if filing_for_someone_else %}checked{% endif %}
+                                       required />
+                                <span>{% translate "I am not one of the parties — I am filing for someone else" %}</span>
+                            </label>
+                        {% endif %}
+                    </div>
+                </fieldset>
+            {% endif %}
             <fieldset class="form-field"
                       id="filing-for"
-                      {% if not filing_for_someone_else %}hidden{% endif %}>
+                      {% if not filing_for_someone_else and not existing_court_case %}hidden{% endif %}>
                 <legend>{% translate "Who are you filing for?" %}</legend>
                 <p>
                     {% translate "The court records every filing as being made on behalf of a party. Choose the person you are filing for." %}
@@ -159,12 +163,21 @@
                     name="action"
                     value="save_role"
                     {% if not party_types %}disabled{% endif %}>{% translate "Save role" %}</button>
-            <small class="form-text">{% translate "Clicking your court role saves it and updates the party list below. With a keyboard, select your role, then choose Save role or Continue. If you are filing for someone else, complete their information and choose Save role." %}</small>
+            <small class="form-text">
+                {% if existing_court_case %}
+                    {% translate "Choose the party you are filing for, then choose Save role or Continue. Use This is me to link yourself to a court party." %}
+                {% else %}
+                    {% translate "Clicking your court role saves it and updates the party list below. With a keyboard, select your role, then choose Save role or Continue. If you are filing for someone else, complete their information and choose Save role." %}
+                {% endif %}
+            </small>
         </form>
+        {% if caption_discrepancy %}
+            <p class="alert alert-info">{% translate "Your document also contains party names. Check its caption against the court roster below; the court roster is used for this filing." %}</p>
+        {% endif %}
         <div class="party-roster" id="party-list" tabindex="-1">
             <div class="party-roster__heading">
                 <h2>{% translate "Party list" %}</h2>
-                {% if not filer.party_type %}
+                {% if not filer.party_type and not existing_court_case %}
                     <button class="btn btn-outline-primary btn-sm"
                             type="button"
                             id="add-me-as-party">
@@ -176,13 +189,20 @@
                     <input type="hidden" name="action" value="add" />
                     <input type="hidden" name="return_to" value="{{ return_to }}" />
                     <button class="btn btn-outline-primary btn-sm" type="submit">
-                        <i class="fa-solid fa-plus" aria-hidden="true"></i> {% translate "Add another person" %}
+                        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                        {% if existing_court_case %}
+                            {% translate "Add a new party" %}
+                        {% else %}
+                            {% translate "Add another person" %}
+                        {% endif %}
                     </button>
                 </form>
             </div>
             {% if case_has_parties %}
                 <p class="party-roster__hint">
-                    {% if parties_from_document %}
+                    {% if existing_court_case %}
+                        {% translate "These parties are already on the court case. Choose who this filing is for. Their court details are read-only." %}
+                    {% elif parties_from_document %}
                         {% translate "These are the people we read from your document and you confirmed. Change anything that is wrong." %}
                     {% else %}
                         {% translate "These are the people you told us about. Change anything that is wrong." %}
@@ -204,12 +224,16 @@
                             {% if item.party.organization_name %}
                                 {{ item.party.organization_name }}
                             {% else %}
-                                {{ item.party.first_name }} {{ item.party.last_name }}
+                                {{ item.name }}
                             {% endif %}
                         </strong>
                         <small>
                             {% if item.party.role == "filer" and not item.party.party_type %}
-                                {% translate "You — filing this, but not a party in the case" %}
+                                {% if existing_court_case %}
+                                    {% translate "Your account contact information" %}
+                                {% else %}
+                                    {% translate "You — filing this, but not a party in the case" %}
+                                {% endif %}
                             {% else %}
                                 {% firstof item.party.party_type_name item.party.get_party_side_display "Role not chosen" %}
                                 {% if item.party.role == "filer" %}
@@ -228,17 +252,25 @@
                             {% translate "Needs details" %}
                         {% endif %}
                     </span>
+                    {% if item.party.source == "court" %}
+                        <span>{% translate "Already on the court case" %}{% if item.party.is_self %} · {% translate "This is you" %}{% endif %}</span>
+                        <span>
+                            {% if item.party.representation.status == "represented" %}
+                                {% translate "Attorney information on file" %}
+                            {% else %}
+                                {% translate "Representation not provided by the court" %}
+                            {% endif %}
+                        </span>
+                    {% endif %}
                     {% if item.party.role == "other" %}
                         {% if not filer.party_type and item.claimable %}
                             {% comment %}
-                            The court's required parties are often all taken by people the
-                            document named, so becoming one of them is claiming a row rather
-                            than adding another person. Claiming a row whose name is not
-                            yours replaces a person in the case, so it is not offered under
-                            the same words, and claim-party.js asks before it happens.
+                            Court and explicitly added rows link to the account without
+                            changing their names. Document suggestions retain the name
+                            choice dialog used when replacing a suggested person.
                             {% endcomment %}
                             <form method="post"
-                                  class="claim-party-form"
+                                  {% if item.party.source != "court" and item.party.source != "added" %}class="claim-party-form"{% endif %}
                                   data-party-id="{{ item.party.pk }}"
                                   data-party-name="{{ item.name }}"
                                   data-party-role="{{ item.party.party_type_name }}"
@@ -258,19 +290,21 @@
                                 </button>
                             </form>
                         {% endif %}
-                        <a class="btn btn-sm btn-light"
-                           href="{% url 'party_details' jurisdiction %}?party={{ item.party.pk }}{% if return_to %}&return_to={{ return_to }}{% endif %}">{% translate "Edit" %}</a>
-                        <form method="post">
-                            {% csrf_token %}
-                            <input type="hidden" name="action" value="remove" />
-                            <input type="hidden" name="party_id" value="{{ item.party.pk }}" />
-                            <input type="hidden" name="return_to" value="{{ return_to }}" />
-                            <button class="btn btn-sm btn-link text-danger"
-                                    type="submit"
-                                    aria-label="{% translate "Remove party" %}">
-                                <i class="fa-solid fa-trash" aria-hidden="true"></i>
-                            </button>
-                        </form>
+                        {% if item.party.source != "court" %}
+                            <a class="btn btn-sm btn-light"
+                               href="{% url 'party_details' jurisdiction %}?party={{ item.party.pk }}{% if return_to %}&return_to={{ return_to }}{% endif %}">{% translate "Edit" %}</a>
+                            <form method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="remove" />
+                                <input type="hidden" name="party_id" value="{{ item.party.pk }}" />
+                                <input type="hidden" name="return_to" value="{{ return_to }}" />
+                                <button class="btn btn-sm btn-link text-danger"
+                                        type="submit"
+                                        aria-label="{% translate "Remove party" %}">
+                                    <i class="fa-solid fa-trash" aria-hidden="true"></i>
+                                </button>
+                            </form>
+                        {% endif %}
                     {% endif %}
                 </article>
             {% endfor %}

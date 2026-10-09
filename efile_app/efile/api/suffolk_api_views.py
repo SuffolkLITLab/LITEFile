@@ -160,9 +160,8 @@ def lookup_case(request):
 
         success = True
         if not case_info.get("caseTrackingID") and not case_info.get("caseCategoryText"):
-            logger.warning(f"Could not extract case information from API response for case {case_number}: {api_data}")
-            # Return what we have from the API for debugging
-            case_info = api_data[0] if api_data and len(api_data) > 0 else {}
+            logger.warning("Could not extract case information from API response")
+            case_info = {}
             success = False
 
         response = JsonResponse(

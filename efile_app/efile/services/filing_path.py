@@ -96,6 +96,13 @@ def change_filing_path(draft: FilingDraft, new_path: str) -> FilingPathChange:
 
     update_fields = ["existing_case", "updated_at"]
     draft.existing_case = current
+    from efile.services.existing_cases import clear_case_import
+
+    if draft.existing_case_snapshot or FilingParty.objects.filter(draft=draft, source="court").exists():
+        had_quote = bool(draft.quoted_fee_total or draft.quoted_fee_breakdown or draft.quoted_fee_fingerprint)
+        clear_case_import(draft)
+        if had_quote:
+            change.cleared.append("fees")
 
     if current != ExistingCase.EXISTING and (draft.previous_case_id or draft.docket_number or draft.case_title):
         # A new case has no number or title until the court opens it, and a
@@ -156,7 +163,10 @@ def clear_changed_classification(draft, court_code, case_category_code, case_typ
         requested_optional_services=[],
         filing_requires_amount_in_controversy=False,
     )
-    FilingParty.objects.filter(draft=draft).update(party_type="", party_type_name="")
+    from efile.services.existing_cases import clear_case_import
+
+    clear_case_import(draft)
+    FilingParty.objects.filter(draft=draft).exclude(source="court").update(party_type="", party_type_name="")
     draft.case_subtype_code = ""
     draft.case_subtype_name = ""
     draft.document_type_code = ""

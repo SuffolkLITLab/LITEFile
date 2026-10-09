@@ -66,12 +66,25 @@ def test_case_lookup_result_is_persisted_on_the_draft(client, django_user_model)
 
 
 @pytest.mark.django_db
-def test_case_confirmation_accepts_case_and_converges_on_checklist(client, django_user_model):
+def test_case_confirmation_accepts_case_and_converges_on_checklist(client, django_user_model, monkeypatch):
     draft = prepare_client(client, django_user_model)
     draft.previous_case_id = "tracking-123"
     draft.docket_number = "2025MR000123"
     draft.case_title = "Ada Lovelace v. Example LLC"
     draft.save()
+
+    from efile.services.existing_cases import apply_case
+    from efile.tests.test_existing_cases import normalized
+
+    snapshot = normalized()
+    draft.court_code = snapshot["court"]
+    draft.previous_case_id = snapshot["tracking_id"]
+    draft.docket_number = snapshot["docket_number"]
+    draft.save()
+    monkeypatch.setattr(
+        "efile.views.case_confirmation.load_case",
+        lambda draft, token, apply=False: apply_case(draft, {**snapshot, "confirmed": False}),
+    )
 
     response = client.post(
         reverse("case_confirmation", kwargs={"jurisdiction": "illinois"}),

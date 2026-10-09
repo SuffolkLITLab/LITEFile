@@ -1,0 +1,803 @@
+{
+  "value": {
+    "caseTrackingID": {
+      "value": "4752350"
+    },
+    "caseDocketID": {
+      "value": "2024-EV-001752"
+    },
+    "caseTitleText": {
+      "value": "Sample plaintiff v. Sample defendant"
+    },
+    "caseCategoryText": {
+      "value": "200542"
+    },
+    "rest": [
+      {
+        "value": {
+          "caseCourt": {
+            "organizationIdentification": {
+              "name": "{http://niem.gov/niem/niem-core/2.0}OrganizationIdentification",
+              "value": {
+                "identificationID": {
+                  "value": "kane"
+                }
+              }
+            }
+          },
+          "caseLineageCase": [
+            {
+              "caseTrackingID": {
+                "value": "8534ec52-0fa8-4e77-91ca-55af362742c3"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "value": {
+          "caseParticipant": [
+            {
+              "name": "{urn:oasis:names:tc:legalxml-courtfiling:schema:xsd:CommonTypes-4.0}CaseParticipant",
+              "value": {
+                "entityRepresentation": {
+                  "name": "{urn:oasis:names:tc:legalxml-courtfiling:schema:xsd:CommonTypes-4.0}EntityPerson",
+                  "value": {
+                    "personName": {
+                      "personGivenName": {
+                        "value": "Sample"
+                      },
+                      "personMiddleName": {
+                        "value": ""
+                      },
+                      "personSurName": {
+                        "value": "Party"
+                      }
+                    },
+                    "personOtherIdentification": [
+                      {
+                        "identificationID": {
+                          "value": "71a08532-5778-58bb-8027-508ed3b73f49"
+                        },
+                        "identificationCategory": {
+                          "name": "{http://niem.gov/niem/niem-core/2.0}IdentificationCategoryText",
+                          "value": {
+                            "value": "CASEPARTYATTORNEYID"
+                          }
+                        }
+                      }
+                    ],
+                    "personAugmentation": {
+                      "contactInformation": [
+                        {
+                          "contactMeans": [
+                            {
+                              "name": "{http://niem.gov/niem/niem-core/2.0}ContactTelephoneNumber",
+                              "value": {
+                                "telephoneNumberRepresentation": {
+                                  "name": "{http://niem.gov/niem/niem-core/2.0}FullTelephoneNumber",
+                                  "value": {
+                                    "telephoneNumberFullID": {
+                                      "value": "5555550100"
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            {
+                              "name": "{http://niem.gov/niem/niem-core/2.0}ContactEmailID",
+                              "value": {
+                                "value": "sample@example.com"
+                              }
+                            },
+                            {
+                              "name": "{http://niem.gov/niem/niem-core/2.0}ContactMailingAddress",
+                              "value": {
+                                "addressRepresentation": {
+                                  "name": "{http://niem.gov/niem/niem-core/2.0}StructuredAddress",
+                                  "value": {
+                                    "addressDeliveryPoint": [
+                                      {
+                                        "name": "{http://niem.gov/niem/niem-core/2.0}LocationStreet",
+                                        "value": {
+                                          "streetFullText": {
+                                            "value": "123 Sample Street"
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "name": "{http://niem.gov/niem/niem-core/2.0}AddressSecondaryUnitText",
+                                        "value": {
+                                          "value": "Suite 1"
+                                        }
+                                      }
+                                    ],
+                                    "locationCityName": {
+                                      "value": "Sample city"
+                                    },
+                                    "locationState": {
+                                      "value": "IL"
+                                    },
+                                    "locationCountry": {
+                                      "value": "US"
+                                    },
+                                    "locationPostalCode": {
+                                      "value": "60000"
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                },
+                "caseParticipantRoleCode": {
+                  "value": "ATTY"
+                }
+              }
+            },
+            {
+              "name": "{urn:oasis:names:tc:legalxml-courtfiling:schema:xsd:CommonTypes-4.0}CaseParticipant",
+              "value": {
+                "entityRepresentation": {
+                  "name": "{urn:oasis:names:tc:legalxml-courtfiling:schema:xsd:CommonTypes-4.0}EntityOrganization",
+                  "value": {
+                    "organizationIdentification": {
+                      "name": "{urn:tyler:ecf:extensions:Common}OrganizationOtherIdentification",
+                      "value": {
+                        "identification": [
+                          {
+                            "identificationID": {
+                              "value": "3e54d37e-4732-5d4d-bcdb-9e618be79309"
+                            },
+                            "identificationCategory": {
+                              "name": "{http://niem.gov/niem/niem-core/2.0}IdentificationCategoryText",
+                              "value": {
+                                "value": "CASEPARTYID"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "organizationName": {
+                      "value": "Sample organization"
+                    },
+                    "rest": [
+                      {
+                        "name": "{urn:oasis:names:tc:legalxml-courtfiling:schema:xsd:CommonTypes-4.0}OrganizationAugmentation",
+                        "value": {
+                          "contactInformation": [
+                            {
+                              "contactMeans": [
+                                {
+                                  "name": "{urn:tyler:ecf:extensions:Common}ServiceConsentEmail",
+                                  "value": {
+                                    "value": ""
+                                  }
+                                },
+                                {
+                                  "name": "{http://niem.gov/niem/niem-core/2.0}ContactTelephoneNumber",
+                                  "value": {
+                                    "telephoneNumberRepresentation": {
+                                      "name": "{http://niem.gov/niem/niem-core/2.0}FullTelephoneNumber",
+                                      "value": {
+                                        "telephoneNumberFullID": {
+                                          "value": "5555550100"
+                                        }
+                                      }
+                                    }
+                                  }
+                                },
+                                {
+                                  "name": "{http://niem.gov/niem/niem-core/2.0}ContactEmailID",
+                                  "value": {
+                                    "value": "sample@example.com"
+                                  }
+                                },
+                                {
+                                  "name": "{http://niem.gov/niem/niem-core/2.0}ContactMailingAddress",
+                                  "value": {
+                                    "addressRepresentation": {
+                                      "name": "{http://niem.gov/niem/niem-core/2.0}StructuredAddress",
+                                      "value": {
+                                        "addressDeliveryPoint": [
+                                          {
+                                            "name": "{http://niem.gov/niem/niem-core/2.0}LocationStreet",
+                                            "value": {
+                                              "streetFullText": {
+                                                "value": "123 Sample Street"
+                                              }
+                                            }
+                                          },
+                                          {
+                                            "name": "{http://niem.gov/niem/niem-core/2.0}AddressSecondaryUnitText",
+                                            "value": {
+                                              "value": "Suite 1"
+                                            }
+                                          }
+                                        ],
+                                        "locationCityName": {
+                                          "value": "Sample city"
+                                        },
+                                        "locationState": {
+                                          "value": "IL"
+                                        },
+                                        "locationCountry": {
+                                          "value": "US"
+                                        },
+                                        "locationPostalCode": {
+                                          "value": "60000"
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                },
+                "caseParticipantRoleCode": {
+                  "value": "10406"
+                }
+              }
+            },
+            {
+              "name": "{urn:oasis:names:tc:legalxml-courtfiling:schema:xsd:CommonTypes-4.0}CaseParticipant",
+              "value": {
+                "entityRepresentation": {
+                  "name": "{urn:oasis:names:tc:legalxml-courtfiling:schema:xsd:CommonTypes-4.0}EntityPerson",
+                  "value": {
+                    "personName": {
+                      "personGivenName": {
+                        "value": "Sample"
+                      },
+                      "personMiddleName": {
+                        "value": ""
+                      },
+                      "personSurName": {
+                        "value": "Party"
+                      },
+                      "personNameSuffixText": {
+                        "value": "Jr"
+                      }
+                    },
+                    "personOtherIdentification": [
+                      {
+                        "identificationID": {
+                          "value": "59ca0ea7-ff8f-5636-949a-a239ee870557"
+                        },
+                        "identificationCategory": {
+                          "name": "{http://niem.gov/niem/niem-core/2.0}IdentificationCategoryText",
+                          "value": {
+                            "value": "CASEPARTYID"
+                          }
+                        }
+                      }
+                    ],
+                    "personAugmentation": {
+                      "contactInformation": [
+                        {
+                          "contactMeans": [
+                            {
+                              "name": "{urn:tyler:ecf:extensions:Common}ServiceConsentEmail",
+                              "value": {
+                                "value": ""
+                              }
+                            },
+                            {
+                              "name": "{http://niem.gov/niem/niem-core/2.0}ContactTelephoneNumber",
+                              "value": {
+                                "telephoneNumberRepresentation": {
+                                  "name": "{http://niem.gov/niem/niem-core/2.0}FullTelephoneNumber",
+                                  "value": {
+                                    "telephoneNumberFullID": {
+                                      "value": "5555550100"
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            {
+                              "name": "{http://niem.gov/niem/niem-core/2.0}ContactEmailID",
+                              "value": {
+                                "value": "sample@example.com"
+                              }
+                            },
+                            {
+                              "name": "{http://niem.gov/niem/niem-core/2.0}ContactMailingAddress",
+                              "value": {
+                                "addressRepresentation": {
+                                  "name": "{http://niem.gov/niem/niem-core/2.0}StructuredAddress",
+                                  "value": {
+                                    "addressDeliveryPoint": [
+                                      {
+                                        "name": "{http://niem.gov/niem/niem-core/2.0}LocationStreet",
+                                        "value": {
+                                          "streetFullText": {
+                                            "value": "123 Sample Street"
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "name": "{http://niem.gov/niem/niem-core/2.0}AddressSecondaryUnitText",
+                                        "value": {
+                                          "value": "Suite 1"
+                                        }
+                                      }
+                                    ],
+                                    "locationCityName": {
+                                      "value": "Sample city"
+                                    },
+                                    "locationState": {
+                                      "value": "IL"
+                                    },
+                                    "locationCountry": {
+                                      "value": "US"
+                                    },
+                                    "locationPostalCode": {
+                                      "value": "60000"
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                },
+                "caseParticipantRoleCode": {
+                  "value": "5616"
+                }
+              }
+            },
+            {
+              "name": "{urn:oasis:names:tc:legalxml-courtfiling:schema:xsd:CommonTypes-4.0}CaseParticipant",
+              "value": {
+                "entityRepresentation": {
+                  "name": "{urn:oasis:names:tc:legalxml-courtfiling:schema:xsd:CommonTypes-4.0}EntityPerson",
+                  "value": {
+                    "personName": {
+                      "personGivenName": {
+                        "value": "Sample"
+                      },
+                      "personMiddleName": {
+                        "value": ""
+                      },
+                      "personSurName": {
+                        "value": "Party"
+                      },
+                      "personNameSuffixText": {
+                        "value": "Jr"
+                      }
+                    },
+                    "personOtherIdentification": [
+                      {
+                        "identificationID": {
+                          "value": "b4770227-ab1f-5a6f-94cf-34413703ff28"
+                        },
+                        "identificationCategory": {
+                          "name": "{http://niem.gov/niem/niem-core/2.0}IdentificationCategoryText",
+                          "value": {
+                            "value": "CASEPARTYID"
+                          }
+                        }
+                      }
+                    ],
+                    "personAugmentation": {
+                      "contactInformation": [
+                        {
+                          "contactMeans": [
+                            {
+                              "name": "{urn:tyler:ecf:extensions:Common}ServiceConsentEmail",
+                              "value": {
+                                "value": ""
+                              }
+                            },
+                            {
+                              "name": "{http://niem.gov/niem/niem-core/2.0}ContactTelephoneNumber",
+                              "value": {
+                                "telephoneNumberRepresentation": {
+                                  "name": "{http://niem.gov/niem/niem-core/2.0}FullTelephoneNumber",
+                                  "value": {
+                                    "telephoneNumberFullID": {
+                                      "value": "5555550100"
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            {
+                              "name": "{http://niem.gov/niem/niem-core/2.0}ContactEmailID",
+                              "value": {
+                                "value": "sample@example.com"
+                              }
+                            },
+                            {
+                              "name": "{http://niem.gov/niem/niem-core/2.0}ContactMailingAddress",
+                              "value": {
+                                "addressRepresentation": {
+                                  "name": "{http://niem.gov/niem/niem-core/2.0}StructuredAddress",
+                                  "value": {
+                                    "addressDeliveryPoint": [
+                                      {
+                                        "name": "{http://niem.gov/niem/niem-core/2.0}LocationStreet",
+                                        "value": {
+                                          "streetFullText": {
+                                            "value": "123 Sample Street"
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "name": "{http://niem.gov/niem/niem-core/2.0}AddressSecondaryUnitText",
+                                        "value": {
+                                          "value": "Suite 1"
+                                        }
+                                      }
+                                    ],
+                                    "locationCityName": {
+                                      "value": "Sample city"
+                                    },
+                                    "locationState": {
+                                      "value": "IL"
+                                    },
+                                    "locationCountry": {
+                                      "value": "US"
+                                    },
+                                    "locationPostalCode": {
+                                      "value": "60000"
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                },
+                "caseParticipantRoleCode": {
+                  "value": "5616"
+                }
+              }
+            },
+            {
+              "name": "{urn:oasis:names:tc:legalxml-courtfiling:schema:xsd:CommonTypes-4.0}CaseParticipant",
+              "value": {
+                "entityRepresentation": {
+                  "name": "{urn:oasis:names:tc:legalxml-courtfiling:schema:xsd:CommonTypes-4.0}EntityOrganization",
+                  "value": {
+                    "organizationIdentification": {
+                      "name": "{urn:tyler:ecf:extensions:Common}OrganizationOtherIdentification",
+                      "value": {
+                        "identification": [
+                          {
+                            "identificationID": {
+                              "value": "0fcca70b-2f5a-54f3-94e1-ccbdff67b0cd"
+                            },
+                            "identificationCategory": {
+                              "name": "{http://niem.gov/niem/niem-core/2.0}IdentificationCategoryText",
+                              "value": {
+                                "value": "CASEPARTYID"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "organizationName": {
+                      "value": "Sample organization"
+                    },
+                    "rest": [
+                      {
+                        "name": "{urn:oasis:names:tc:legalxml-courtfiling:schema:xsd:CommonTypes-4.0}OrganizationAugmentation",
+                        "value": {
+                          "contactInformation": [
+                            {
+                              "contactMeans": [
+                                {
+                                  "name": "{urn:tyler:ecf:extensions:Common}ServiceConsentEmail",
+                                  "value": {
+                                    "value": ""
+                                  }
+                                },
+                                {
+                                  "name": "{http://niem.gov/niem/niem-core/2.0}ContactTelephoneNumber",
+                                  "value": {
+                                    "telephoneNumberRepresentation": {
+                                      "name": "{http://niem.gov/niem/niem-core/2.0}FullTelephoneNumber",
+                                      "value": {
+                                        "telephoneNumberFullID": {
+                                          "value": "5555550100"
+                                        }
+                                      }
+                                    }
+                                  }
+                                },
+                                {
+                                  "name": "{http://niem.gov/niem/niem-core/2.0}ContactEmailID",
+                                  "value": {
+                                    "value": "sample@example.com"
+                                  }
+                                },
+                                {
+                                  "name": "{http://niem.gov/niem/niem-core/2.0}ContactMailingAddress",
+                                  "value": {
+                                    "addressRepresentation": {
+                                      "name": "{http://niem.gov/niem/niem-core/2.0}StructuredAddress",
+                                      "value": {
+                                        "addressDeliveryPoint": [
+                                          {
+                                            "name": "{http://niem.gov/niem/niem-core/2.0}LocationStreet",
+                                            "value": {
+                                              "streetFullText": {
+                                                "value": "123 Sample Street"
+                                              }
+                                            }
+                                          },
+                                          {
+                                            "name": "{http://niem.gov/niem/niem-core/2.0}AddressSecondaryUnitText",
+                                            "value": {
+                                              "value": "Suite 1"
+                                            }
+                                          }
+                                        ],
+                                        "locationCityName": {
+                                          "value": "Sample city"
+                                        },
+                                        "locationState": {
+                                          "value": "IL"
+                                        },
+                                        "locationCountry": {
+                                          "value": "US"
+                                        },
+                                        "locationPostalCode": {
+                                          "value": "60000"
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                },
+                "caseParticipantRoleCode": {
+                  "value": "5616"
+                }
+              }
+            }
+          ],
+          "caseOtherEntityAttorney": [
+            {
+              "roleOfPersonReference": {
+                "ref": {
+                  "personName": {
+                    "personGivenName": {
+                      "value": "Sample"
+                    },
+                    "personMiddleName": {
+                      "value": ""
+                    },
+                    "personSurName": {
+                      "value": "Party"
+                    }
+                  },
+                  "personOtherIdentification": [
+                    {
+                      "identificationID": {
+                        "value": "71a08532-5778-58bb-8027-508ed3b73f49"
+                      },
+                      "identificationCategory": {
+                        "name": "{http://niem.gov/niem/niem-core/2.0}IdentificationCategoryText",
+                        "value": {
+                          "value": "CASEPARTYATTORNEYID"
+                        }
+                      }
+                    }
+                  ],
+                  "personAugmentation": {
+                    "contactInformation": [
+                      {
+                        "contactMeans": [
+                          {
+                            "name": "{http://niem.gov/niem/niem-core/2.0}ContactTelephoneNumber",
+                            "value": {
+                              "telephoneNumberRepresentation": {
+                                "name": "{http://niem.gov/niem/niem-core/2.0}FullTelephoneNumber",
+                                "value": {
+                                  "telephoneNumberFullID": {
+                                    "value": "5555550100"
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "name": "{http://niem.gov/niem/niem-core/2.0}ContactEmailID",
+                            "value": {
+                              "value": "sample@example.com"
+                            }
+                          },
+                          {
+                            "name": "{http://niem.gov/niem/niem-core/2.0}ContactMailingAddress",
+                            "value": {
+                              "addressRepresentation": {
+                                "name": "{http://niem.gov/niem/niem-core/2.0}StructuredAddress",
+                                "value": {
+                                  "addressDeliveryPoint": [
+                                    {
+                                      "name": "{http://niem.gov/niem/niem-core/2.0}LocationStreet",
+                                      "value": {
+                                        "streetFullText": {
+                                          "value": "123 Sample Street"
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "name": "{http://niem.gov/niem/niem-core/2.0}AddressSecondaryUnitText",
+                                      "value": {
+                                        "value": "Suite 1"
+                                      }
+                                    }
+                                  ],
+                                  "locationCityName": {
+                                    "value": "Sample city"
+                                  },
+                                  "locationState": {
+                                    "value": "IL"
+                                  },
+                                  "locationCountry": {
+                                    "value": "US"
+                                  },
+                                  "locationPostalCode": {
+                                    "value": "60000"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              },
+              "judicialOfficialBarMembership": {
+                "judicialOfficialBarIdentification": {
+                  "identificationID": {
+                    "value": "123456"
+                  }
+                }
+              },
+              "caseOfficialRoleText": {
+                "value": "LEAD"
+              },
+              "caseRepresentedPartyReference": [
+                {
+                  "ref": {
+                    "organizationIdentification": {
+                      "name": "{urn:tyler:ecf:extensions:Common}OrganizationOtherIdentification",
+                      "value": {
+                        "identification": [
+                          {
+                            "identificationID": {
+                              "value": "3e54d37e-4732-5d4d-bcdb-9e618be79309"
+                            },
+                            "identificationCategory": {
+                              "name": "{http://niem.gov/niem/niem-core/2.0}IdentificationCategoryText",
+                              "value": {
+                                "value": "CASEPARTYID"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "organizationName": {
+                      "value": "Sample organization"
+                    },
+                    "rest": [
+                      {
+                        "name": "{urn:oasis:names:tc:legalxml-courtfiling:schema:xsd:CommonTypes-4.0}OrganizationAugmentation",
+                        "value": {
+                          "contactInformation": [
+                            {
+                              "contactMeans": [
+                                {
+                                  "name": "{urn:tyler:ecf:extensions:Common}ServiceConsentEmail",
+                                  "value": {
+                                    "value": ""
+                                  }
+                                },
+                                {
+                                  "name": "{http://niem.gov/niem/niem-core/2.0}ContactTelephoneNumber",
+                                  "value": {
+                                    "telephoneNumberRepresentation": {
+                                      "name": "{http://niem.gov/niem/niem-core/2.0}FullTelephoneNumber",
+                                      "value": {
+                                        "telephoneNumberFullID": {
+                                          "value": "5555550100"
+                                        }
+                                      }
+                                    }
+                                  }
+                                },
+                                {
+                                  "name": "{http://niem.gov/niem/niem-core/2.0}ContactEmailID",
+                                  "value": {
+                                    "value": "sample@example.com"
+                                  }
+                                },
+                                {
+                                  "name": "{http://niem.gov/niem/niem-core/2.0}ContactMailingAddress",
+                                  "value": {
+                                    "addressRepresentation": {
+                                      "name": "{http://niem.gov/niem/niem-core/2.0}StructuredAddress",
+                                      "value": {
+                                        "addressDeliveryPoint": [
+                                          {
+                                            "name": "{http://niem.gov/niem/niem-core/2.0}LocationStreet",
+                                            "value": {
+                                              "streetFullText": {
+                                                "value": "123 Sample Street"
+                                              }
+                                            }
+                                          },
+                                          {
+                                            "name": "{http://niem.gov/niem/niem-core/2.0}AddressSecondaryUnitText",
+                                            "value": {
+                                              "value": "Suite 1"
+                                            }
+                                          }
+                                        ],
+                                        "locationCityName": {
+                                          "value": "Sample city"
+                                        },
+                                        "locationState": {
+                                          "value": "IL"
+                                        },
+                                        "locationCountry": {
+                                          "value": "US"
+                                        },
+                                        "locationPostalCode": {
+                                          "value": "60000"
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ],
+          "caseTypeText": {
+            "value": "318655"
+          }
+        }
+      }
+    ]
+  },
+  "name": "{urn:oasis:names:tc:legalxml-courtfiling:schema:xsd:CivilCase-4.0}CivilCase"
+}

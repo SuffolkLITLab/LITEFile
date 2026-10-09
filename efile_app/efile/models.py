@@ -311,6 +311,7 @@ class FilingDraft(models.Model):
     document_type_code = models.CharField(max_length=100, blank=True)
     document_type_name = models.CharField(max_length=255, blank=True)
 
+    existing_case_snapshot = models.JSONField(default=dict, blank=True)
     previous_case_id = models.CharField(max_length=255, blank=True)
     docket_number = models.CharField(max_length=255, blank=True)
     case_title = models.CharField(max_length=500, blank=True)
@@ -580,6 +581,9 @@ class FilingParty(models.Model):
     party_type = models.CharField(max_length=100, blank=True)
     party_type_name = models.CharField(max_length=255, blank=True)
     external_party_id = models.CharField(max_length=255, blank=True)
+    source = models.CharField(max_length=20, default="manual")
+    source_case_id = models.CharField(max_length=255, blank=True)
+    representation = models.JSONField(default=dict, blank=True)
 
     # Set on the review screen, where the people read off the document are
     # first shown: "this one is me". It is recorded on the party rather than
@@ -632,6 +636,11 @@ class FilingParty(models.Model):
         ordering = ["role", "sort_order", "created_at"]
         constraints = [
             models.UniqueConstraint(fields=["draft", "role", "sort_order"], name="unique_party_order_per_draft_role"),
+            models.UniqueConstraint(
+                fields=["draft", "source_case_id", "external_party_id"],
+                condition=models.Q(source="court") & ~models.Q(external_party_id=""),
+                name="unique_imported_case_party",
+            ),
         ]
         verbose_name_plural = "Filing parties"
 
