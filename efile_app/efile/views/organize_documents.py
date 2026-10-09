@@ -8,12 +8,15 @@ from django.core.validators import EmailValidator
 from django.db import transaction
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
 from efile.api.suffolk_api_views import get_tyler_token
-from efile.models import FilingDocument
+from efile.models import FilingDocument, FilingDraft
+from efile.services.case_filing_types import case_fingerprint, permitted_filing_types
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.drafts import draft_snapshot
+from efile.services.existing_cases import import_ready
 from efile.services.filing_availability import draft_unavailable_message
 from efile.utils.config_loader import config_loader
 from efile.utils.ui_text import get_texts
@@ -74,7 +77,13 @@ def _court_document_types(draft, filing_type):
 
 
 @transaction.atomic
-def _save_document_details(draft, document_details, main_document_id):
+def _save_document_details(draft, document_details, main_document_id, *, confirmed_case_fingerprint=None):
+    draft = FilingDraft.objects.select_for_update().get(pk=draft.pk)
+    permitted = None
+    if draft.existing_case == ExistingCase.EXISTING:
+        if confirmed_case_fingerprint != case_fingerprint(draft):
+            raise ValueError("Your court case changed. Reload the filing types before continuing.")
+        permitted = {option["value"]: option for option in permitted_filing_types(draft)}
     documents = {document.pk: document for document in FilingDocument.objects.select_for_update().filter(draft=draft)}
     if {item.get("id") for item in document_details} != set(documents):
         raise ValueError("The document list changed. Refresh the page and try again.")
@@ -95,6 +104,12 @@ def _save_document_details(draft, document_details, main_document_id):
         document = documents[item["id"]]
         filing_type = str(item.get("filing_type") or "").strip()
         document_type = str(item.get("document_type") or "").strip()
+        if permitted is not None:
+            if filing_type not in permitted:
+                raise ValueError(
+                    "This filing type is not available for your confirmed case. Choose another filing type."
+                )
+            item = {**item, "filing_type_name": permitted[filing_type]["text"]}
         if not filing_type:
             raise ValueError(f"Choose a filing type for {document.name}.")
         if not document_type:
@@ -147,6 +162,9 @@ def organize_documents(request, jurisdiction):
         return redirect(
             with_return_to(get_step_url(WorkflowStepKey.UPLOAD_DOCUMENTS, jurisdiction), return_target(request))
         )
+    if draft.existing_case == ExistingCase.EXISTING and not import_ready(draft):
+        step = WorkflowStepKey.CASE_CONFIRMATION if draft.previous_case_id else WorkflowStepKey.CASE_LOOKUP
+        return redirect(with_return_to(get_step_url(step, jurisdiction), return_target(request)))
     if not draft.court_code:
         # Filing types can't be looked up without a court. Send the filer back
         # to whichever step is responsible for setting one, instead of
@@ -175,7 +193,9 @@ def organize_documents(request, jurisdiction):
                 if lead_doc is None:
                     raise ValueError("Choose the main document for this filing.")
                 main_document_id = lead_doc.id
-            _save_document_details(draft, details, main_document_id)
+            _save_document_details(
+                draft, details, main_document_id, confirmed_case_fingerprint=data.get("case_fingerprint")
+            )
         except (json.JSONDecodeError, ValueError) as error:
             return JsonResponse({"success": False, "error": str(error)}, status=400)
 
@@ -202,6 +222,9 @@ def organize_documents(request, jurisdiction):
         "return_to": return_target(request),
         "organize_context": {
             "jurisdiction": jurisdiction,
+            "case_fingerprint": case_fingerprint(draft),
+            "filing_types_url": reverse("case_filing_types", kwargs={"jurisdiction": jurisdiction})
+            + f"?draft={draft.pk}",
             "court": draft.court_code,
             "case_category": draft.case_category_code,
             "case_type": draft.case_type_code,

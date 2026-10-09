@@ -181,6 +181,10 @@
 
     async function loadFilingTypes() {
         if (filingTypes) return filingTypes;
+        if (context.existing_case === "yes") {
+            filingTypes = await getJson(context.filing_types_url);
+            return filingTypes;
+        }
         const params = new URLSearchParams({
             jurisdiction: context.jurisdiction,
             court: context.court,
@@ -378,6 +382,15 @@
         const filingType = card.querySelector(".filing-type");
         setOptions(filingType, await loadFilingTypes(), card.dataset.filingType, "Choose a filing type");
         card.dataset.filingTypesLoaded = "true";
+        if (new URLSearchParams(window.location.search).get("find_filing_type") === "1" && card === cards()[0]) {
+            const finder = card.querySelector(".filing-type-finder");
+            if (finder) finder.open = true;
+        }
+        window.filingCodeSearch?.mountFilingTypeOnly({
+            container: card.querySelector(".filing-type-finder"),
+            select: filingType,
+            choices: filingTypes
+        });
         filingType.addEventListener("change", async () => {
             availability.check(filingType.closest(".form-field") || filingType.parentElement);
             card.dataset.documentType = "";
@@ -483,6 +496,7 @@
                 },
                 body: JSON.stringify({
                     documents,
+                    case_fingerprint: context.case_fingerprint,
                     // Null when nothing is selected. The server then falls back to
                     // the draft's own lead document; picking a card here as well
                     // would be a second, separately-written answer to the same
