@@ -3,19 +3,20 @@ import logging
 
 from botocore.exceptions import BotoCoreError, ClientError
 from django.conf import settings
-from django.db import transaction
 from django.http import FileResponse, Http404, HttpResponse, HttpResponseBase
 from django.shortcuts import redirect, render
-from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
 from efile.api.suffolk_api_views import get_tyler_token
-from efile.models import FilingDocument, FilingDraft
+from efile.models import FilingDocument
 from efile.services.current_drafts import ensure_current_draft, get_current_draft
 from efile.services.document_preparation import PreparationError, PreparationUnavailable
-from efile.services.document_previews import preview_fingerprint
-from efile.services.document_uploads import prepare_stored_documents
-from efile.services.drafts import ACTIVE_DRAFT_STATUSES
+from efile.services.document_previews import (
+    DocumentReviewError,
+    approve_document_review,
+    prepare_document_review,
+    preview_fingerprint,
+)
 from efile.utils.s3_upload_handler import S3UploadHandler
 from efile.workflow import WorkflowStepKey, continue_url, get_workflow_context, return_target
 
@@ -34,7 +35,7 @@ def preview_documents(request, jurisdiction):
     status = 200
     if request.method == "GET":
         try:
-            prepare_stored_documents(draft, S3UploadHandler())
+            prepare_document_review(draft, S3UploadHandler())
         except PreparationUnavailable as exc:
             error, status = str(exc), 503
         except PreparationError as exc:
@@ -42,18 +43,12 @@ def preview_documents(request, jurisdiction):
         except (BotoCoreError, ClientError):
             error, status = "We could not load your files. Try again later.", 503
     if request.method == "POST":
-        with transaction.atomic():
-            draft = FilingDraft.objects.select_for_update().get(pk=draft.pk)
-            documents = list(FilingDocument.objects.filter(draft=draft).order_by("role", "sort_order", "pk"))
-            if draft.status not in ACTIVE_DRAFT_STATUSES:
-                return HttpResponse("This filing is no longer available to edit.", status=409)
-            if any(not doc.preparation for doc in documents):
-                error = "Your files are not ready. Reload this page or replace them."
-            elif request.POST.get("preview_fingerprint") != preview_fingerprint(documents):
-                error = "Your files changed. Review these copies before you continue."
-            else:
-                FilingDocument.objects.filter(draft=draft).update(preparation_reviewed_at=timezone.now())
-                return redirect(continue_url(draft, jurisdiction, return_to, WorkflowStepKey.EXTRACTION_REVIEW))
+        try:
+            approve_document_review(draft, request.POST.get("preview_fingerprint"))
+        except DocumentReviewError as exc:
+            error, status = str(exc), exc.status
+        else:
+            return redirect(continue_url(draft, jurisdiction, return_to, WorkflowStepKey.EXTRACTION_REVIEW))
     documents = list(FilingDocument.objects.filter(draft=draft).order_by("role", "sort_order", "pk"))
     context = {
         "documents": documents,
