@@ -1,5 +1,6 @@
 import re
 
+from botocore.exceptions import BotoCoreError, ClientError
 from django.contrib import messages
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
@@ -11,7 +12,14 @@ from efile.services.account_profile import cached_account_profile
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.document_checklists import resolve_filer_roles
 from efile.services.document_extractions import extraction_for_document, extraction_is_waiting
-from efile.services.document_previews import unreviewed_documents
+from efile.services.document_preparation import PreparationError, PreparationUnavailable
+from efile.services.document_previews import (
+    DocumentReviewError,
+    approve_document_review,
+    prepare_document_review,
+    preview_fingerprint,
+    unreviewed_documents,
+)
 from efile.services.drafts import draft_snapshot, write_case_data
 from efile.services.extracted_parties import review_rows, save_reviewed_parties
 from efile.services.extraction_fields import display_extracted_fields, document_summary_details
@@ -22,6 +30,7 @@ from efile.services.filing_path import (
     describe_path_change,
     filing_path_conflict,
 )
+from efile.utils.s3_upload_handler import S3UploadHandler
 from efile.workflow import (
     ExistingCase,
     WorkflowStepKey,
@@ -161,12 +170,22 @@ def extraction_review(request, jurisdiction):
         messages.error(request, "Upload at least one document before reviewing the filing.")
         return redirect("upload_documents", jurisdiction=jurisdiction)
 
-    if unreviewed_documents(draft).exists():
-        # Checking files is a detour too: come back here, still on the way
-        # to wherever this screen was opened from.
-        return redirect(
-            with_return_to(get_step_url(WorkflowStepKey.PREVIEW_DOCUMENTS, jurisdiction), return_target(request))
-        )
+    preview_error = ""
+    status = 200
+    if request.method == "GET":
+        try:
+            prepare_document_review(draft, S3UploadHandler())
+        except PreparationUnavailable as exc:
+            preview_error, status = str(exc), 503
+        except PreparationError as exc:
+            preview_error, status = str(exc), 422
+        except (BotoCoreError, ClientError):
+            preview_error, status = "We could not load your files. Try again later.", 503
+    elif request.POST.get("preview_fingerprint") or unreviewed_documents(draft).exists():
+        try:
+            approve_document_review(draft, request.POST.get("preview_fingerprint"))
+        except DocumentReviewError as exc:
+            preview_error, status = str(exc), exc.status
 
     lead = FilingDocument.objects.filter(draft=draft, role=FilingDocument.Role.LEAD).first()
     extraction = extraction_for_document(lead) if lead else None
@@ -205,7 +224,9 @@ def extraction_review(request, jurisdiction):
         offered_roles = {role["id"] for role in _offered_filer_roles(request, jurisdiction)}
         filer_role = request.POST.get("filer_role", "")
 
-        if availability_message:
+        if preview_error:
+            pass
+        elif availability_message:
             pass  # Show the persistent notice alongside the editable choices.
         elif needs_acknowledgement and request.POST.get("reviewed_extraction") != "yes":
             # Shown beside the checkbox rather than as a toast, so it stays put
@@ -346,7 +367,12 @@ def extraction_review(request, jurisdiction):
         document_title=guesses.get("document title", ""),
         chosen=chosen_existing_case,
     )
+    documents = list(FilingDocument.objects.filter(draft=draft).order_by("role", "sort_order", "pk"))
     context = {
+        "documents": documents,
+        "preview_fingerprint": preview_fingerprint(documents),
+        "preview_error": preview_error,
+        "preparation_pending": any(not doc.preparation for doc in documents),
         "is_logged_in": True,
         "availability_message": availability_message,
         "lead_document": lead,
@@ -378,4 +404,4 @@ def extraction_review(request, jurisdiction):
         "return_to": return_target(request),
     }
     context.update(get_workflow_context(WorkflowStepKey.EXTRACTION_REVIEW, jurisdiction, draft))
-    return render(request, "efile/extraction_review.html", context)
+    return render(request, "efile/extraction_review.html", context, status=status)

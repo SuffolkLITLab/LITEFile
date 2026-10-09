@@ -373,11 +373,19 @@ def test_review_sends_an_unchecked_copy_to_preview_and_back(client, payment_draf
     review_url = reverse("case_review", kwargs={"jurisdiction": "illinois"}) + f"?draft={payment_draft.pk}"
     bounced = client.get(review_url)
     assert bounced.status_code == 302
-    assert "preview-documents" in bounced.url and "return_to=review" in bounced.url
-    preview_url = reverse("preview_documents", kwargs={"jurisdiction": "illinois"}) + f"?draft={payment_draft.pk}"
+    assert "extraction-review" in bounced.url and "return_to=review" in bounced.url
+    preview_url = reverse("extraction_review", kwargs={"jurisdiction": "illinois"}) + f"?draft={payment_draft.pk}"
     approved = client.post(
         preview_url,
-        {"preview_fingerprint": preview_fingerprint(list(payment_draft.documents.all())), "return_to": "review"},
+        {
+            "preview_fingerprint": preview_fingerprint(list(payment_draft.documents.all())),
+            "return_to": "review",
+            "existing_case": payment_draft.existing_case,
+            "court_code": payment_draft.court_code,
+            "court_name": payment_draft.court_name,
+            "case_category_code": payment_draft.case_category_code,
+            "case_type_code": payment_draft.case_type_code,
+        },
     )
     assert approved.status_code == 302
     assert "/review/" in approved.url

@@ -57,7 +57,7 @@ async function main() {
         await page.locator("#continue-to-analysis:not(.disabled)").waitFor();
         await page.waitForFunction(() => document.querySelectorAll(".document-row").length === 2);
         await page.locator("#continue-to-analysis").click();
-        await page.waitForURL(/preview-documents/);
+        await page.waitForURL(/extraction-review/);
         const previews = page.locator("[data-pdf-preview]");
         assert.equal(await previews.count(), 2);
         await previews.first().locator("summary").click();
@@ -101,13 +101,14 @@ async function main() {
             )
         );
         assert.equal(await page.locator('input[type="checkbox"]').count(), 0);
+        await page.locator('input[name="existing_case"][value="existing"]').check();
         await page
             .getByRole("button", {
-                name: "Continue",
+                name: "Confirm and continue",
                 exact: true
             })
             .click();
-        await page.waitForURL(/extraction-review/);
+        await page.waitForURL(/case-lookup/);
         await page.goto(config.baseUrl + config.organizeUrl);
         assert.match(page.url(), /organize-documents/);
         assert.equal(await page.locator("h1").innerText(), "Organize your documents");

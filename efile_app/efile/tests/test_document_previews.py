@@ -40,9 +40,10 @@ def url(name, draft, **kwargs):
 def approve(client, draft, **overrides):
     documents = list(draft.documents.all())
     return client.post(
-        url("preview_documents", draft),
+        url("extraction_review", draft),
         {
             "preview_fingerprint": preview_fingerprint(documents),
+            "existing_case": "existing",
             **overrides,
         },
     )
@@ -50,12 +51,10 @@ def approve(client, draft, **overrides):
 
 def test_continue_records_preview_without_checkboxes_for_current_documents(client, preview_draft):
     doc = preview_draft.documents.get()
-    redirect = client.get(url("extraction_review", preview_draft))
-    assert redirect.status_code == 302 and "preview-documents" in redirect.url
-    with patch("efile.views.document_previews.prepare_document_review"):
-        page = client.get(url("preview_documents", preview_draft))
+    with patch("efile.views.extraction_review.prepare_document_review"):
+        page = client.get(url("extraction_review", preview_draft))
     assert b'type="checkbox"' not in page.content
-    assert b"check every page before you continue" in page.content
+    assert b"preview_fingerprint" in page.content
     doc.refresh_from_db()
     assert doc.preparation_reviewed_at is None
     assert approve(client, preview_draft, preview_fingerprint="stale").status_code == 200
@@ -157,6 +156,9 @@ def test_original_and_approval_survive_supporting_row_rebuilds(preview_draft):
 
 
 def organized(draft):
+    draft.existing_case = "existing"
+    draft.previous_case_id = "verified-case"
+    draft.save()
     draft.documents.update(filing_type_code="complaint", document_type_code="public")
 
 
@@ -164,7 +166,7 @@ def test_preview_return_destinations_are_restricted(client, preview_draft):
     organized(preview_draft)
     for unknown in ("https://attacker.example", "payment", "document_checklist"):
         response = approve(client, preview_draft, return_to=unknown)
-        assert response.url.partition("?")[0].endswith("/extraction-review/")
+        assert response.url.partition("?")[0].endswith("/case-lookup/")
         assert "return_to" not in response.url
 
 
@@ -207,11 +209,11 @@ def test_legacy_word_support_is_prepared_before_it_can_be_approved(client, previ
         {"success": True, "key": "prepared.pdf"},
     ]
     with (
-        patch("efile.views.document_previews.S3UploadHandler", return_value=handler),
+        patch("efile.views.extraction_review.S3UploadHandler", return_value=handler),
         patch("efile.services.document_preparation.requests.post", return_value=service_response(pdf_bytes())),
         patch("efile.services.document_preparation.settings.GOTENBERG_URL", "https://synthetic.invalid"),
     ):
-        assert client.get(url("preview_documents", preview_draft)).status_code == 200
+        assert client.get(url("extraction_review", preview_draft)).status_code == 200
     supporting.refresh_from_db()
     assert supporting.preparation == "converted"
     assert supporting.s3_key == "prepared.pdf"
@@ -274,14 +276,14 @@ def test_legacy_pdf_is_flattened_and_cannot_be_acknowledged_after_preparation_fa
     doc.original_filename = "source.pdf"
     doc.save()
     with (
-        patch("efile.views.document_previews.S3UploadHandler", return_value=handler),
+        patch("efile.views.extraction_review.S3UploadHandler", return_value=handler),
         patch("efile.services.document_preparation.settings.GOTENBERG_URL", "https://synthetic.invalid"),
         patch(
             "efile.services.document_preparation.requests.post",
             return_value=service_response(pdf_bytes("Stored answer")),
         ),
     ):
-        assert client.get(url("preview_documents", preview_draft)).status_code == 200
+        assert client.get(url("extraction_review", preview_draft)).status_code == 200
     doc.refresh_from_db()
     assert doc.preparation == "flattened"
     assert doc.s3_key == "flat.pdf"
@@ -292,14 +294,14 @@ def test_legacy_pdf_is_flattened_and_cannot_be_acknowledged_after_preparation_fa
     doc.preparation_reviewed_at = None
     doc.save()
     with (
-        patch("efile.views.document_previews.S3UploadHandler", return_value=handler),
+        patch("efile.views.extraction_review.S3UploadHandler", return_value=handler),
         patch("efile.services.document_preparation.settings.GOTENBERG_URL", "https://synthetic.invalid"),
         patch(
             "efile.services.document_preparation.requests.post",
             return_value=service_response(pdf_bytes("Dropped answer")),
         ),
     ):
-        response = client.get(url("preview_documents", preview_draft))
+        response = client.get(url("extraction_review", preview_draft))
     assert response.status_code == 422
     assert b"Some answers are missing" in response.content
     assert approve(client, preview_draft).status_code == 200
@@ -319,12 +321,12 @@ def test_accessibility_seed_starts_with_a_prepared_acknowledged_document(tmp_pat
 
 
 def test_change_files_keeps_where_the_filer_came_from(client, preview_draft):
-    with patch("efile.views.document_previews.prepare_document_review"):
-        preview = client.get(url("preview_documents", preview_draft) + "&return_to=review").content.decode()
+    with patch("efile.views.extraction_review.prepare_document_review"):
+        preview = client.get(url("extraction_review", preview_draft) + "&return_to=review").content.decode()
     assert 'upload-documents/?return_to=review"' in preview
     upload = client.get(url("upload_documents", preview_draft) + "&return_to=review").content.decode()
     # Both ways off the upload page lead back toward Review, not the start.
-    assert upload.count('href="/jurisdiction/vermont/preview-documents/?return_to=review"') == 2
+    assert upload.count('href="/jurisdiction/vermont/extraction-review/?return_to=review"') == 2
     unknown = client.get(url("upload_documents", preview_draft) + "&return_to=elsewhere").content.decode()
     assert "return_to" not in unknown
 
@@ -335,7 +337,7 @@ def test_upload_from_a_detour_continues_to_its_preview(client, preview_draft):
             url("upload_documents", preview_draft) + "&return_to=review",
             {"documents": SimpleUploadedFile("new.pdf", pdf_bytes())},
         )
-    assert "preview-documents/?return_to=review" in response.json()["redirect_url"]
+    assert "extraction-review/?return_to=review" in response.json()["redirect_url"]
 
 
 def test_unchanged_files_return_straight_to_review(client, preview_draft):
@@ -350,7 +352,7 @@ def test_a_new_file_from_review_stops_only_at_organize(client, preview_draft):
     response = approve(client, preview_draft, return_to="review")
     assert "/organize-documents/?return_to=review" in response.url
     # Without a return target, new files still follow the full flow.
-    assert "extraction-review" in approve(client, preview_draft).url
+    assert "case-lookup" in approve(client, preview_draft).url
 
 
 def test_handoff_detour_returns_to_its_list(client, preview_draft):
@@ -376,3 +378,21 @@ def test_shared_review_rejects_unsafe_approval(preview_draft, state):
     with pytest.raises(DocumentReviewError):
         approve_document_review(preview_draft, fingerprint)
     assert not preview_draft.documents.filter(preparation_reviewed_at__isnull=False).exists()
+
+
+def test_legacy_preview_redirects_without_approving(client, preview_draft):
+    response = client.post(url("preview_documents", preview_draft) + "&return_to=review")
+    assert response.status_code == 302
+    assert "extraction-review/" in response.url
+    assert "return_to=review" in response.url
+    assert preview_draft.documents.get().preparation_reviewed_at is None
+
+
+def test_all_documents_are_available_on_confirm(client, preview_draft):
+    supporting = FilingDocument.objects.create(
+        draft=preview_draft, role="supporting", name="second.pdf", s3_key="second.pdf", preparation="original"
+    )
+    page = client.get(url("extraction_review", preview_draft))
+    assert page.status_code == 200
+    assert set(doc.pk for doc in page.context["documents"]) == set(preview_draft.documents.values_list("pk", flat=True))
+    assert str(supporting.pk).encode() in page.content

@@ -49,7 +49,6 @@ def test_target_workflow_declares_every_reorganized_screen():
         WorkflowStepKey.OPTIONS,
         WorkflowStepKey.FILING_PATH,
         WorkflowStepKey.UPLOAD_DOCUMENTS,
-        WorkflowStepKey.PREVIEW_DOCUMENTS,
         WorkflowStepKey.EXTRACTION_REVIEW,
         WorkflowStepKey.CASE_LOOKUP,
         WorkflowStepKey.CASE_CONFIRMATION,

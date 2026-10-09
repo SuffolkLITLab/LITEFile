@@ -218,11 +218,11 @@
                 preview it came from, not the start of the filing.
                 {% endcomment %}
                 <a class="btn btn-outline-secondary"
-                   href="{% url 'preview_documents' jurisdiction %}?return_to={{ return_to }}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {% translate "Back" %}</a>
+                   href="{% url 'extraction_review' jurisdiction %}?return_to={{ return_to }}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {% translate "Back" %}</a>
             {% else %}
                 <a class="btn btn-outline-secondary" href="{{ workflow_previous_url }}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {% translate "Back" %}</a>
             {% endif %}
-            <a class="btn btn-primary {% if not has_lead_document or extraction_wait_seconds %}disabled{% endif %}" id="continue-to-analysis" data-continue-url="{% url 'preview_documents' jurisdiction %}{% if return_to %}?return_to={{ return_to }}{% endif %}" {% if not has_lead_document or extraction_wait_seconds %}aria-disabled="true" tabindex="-1"{% else %}href="{% url 'preview_documents' jurisdiction %}{% if return_to %}?return_to={{ return_to }}{% endif %}"{% endif %}>{% translate "Preview your PDFs" %} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+            <a class="btn btn-primary {% if not has_lead_document or extraction_wait_seconds %}disabled{% endif %}" id="continue-to-analysis" data-continue-url="{% url 'extraction_review' jurisdiction %}{% if return_to %}?return_to={{ return_to }}{% endif %}" {% if not has_lead_document or extraction_wait_seconds %}aria-disabled="true" tabindex="-1"{% else %}href="{% url 'extraction_review' jurisdiction %}{% if return_to %}?return_to={{ return_to }}{% endif %}"{% endif %}>{% translate "Confirm information" %} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
         </div>
     </section>
 {% endblock workflow_content %}

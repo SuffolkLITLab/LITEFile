@@ -133,7 +133,7 @@ def test_legacy_main_documents_recover_through_preparation(client, draft, page, 
     with patch("efile.views.document_checklist.draft_unavailable_message", return_value=""):
         response = getattr(client, method)(url)
     assert response.status_code == 302
-    assert response.url.partition("?")[0] == reverse("preview_documents", kwargs={"jurisdiction": draft.jurisdiction})
+    assert response.url.partition("?")[0] == reverse("extraction_review", kwargs={"jurisdiction": draft.jurisdiction})
     assert f"draft={draft.pk}" in response.url
     if return_to:
         assert f"return_to={return_to}" in response.url

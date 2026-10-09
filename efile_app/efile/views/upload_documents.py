@@ -170,7 +170,7 @@ def upload_documents(request, jurisdiction):
             {
                 "success": True,
                 "redirect_url": with_return_to(
-                    get_step_url(WorkflowStepKey.PREVIEW_DOCUMENTS, jurisdiction), return_target(request)
+                    get_step_url(WorkflowStepKey.EXTRACTION_REVIEW, jurisdiction), return_target(request)
                 ),
                 "document_count": FilingDocument.objects.filter(draft=draft).count(),
                 "extraction_pending": FilingDocument.objects.filter(
@@ -248,7 +248,7 @@ def document_extraction_status(request, jurisdiction):
             "pages_analyzed": extraction.pages_analyzed,
             "total_pages": extraction.total_pages,
             "review_url": with_return_to(
-                get_step_url(WorkflowStepKey.PREVIEW_DOCUMENTS, jurisdiction), return_target(request)
+                get_step_url(WorkflowStepKey.EXTRACTION_REVIEW, jurisdiction), return_target(request)
             ),
         }
     )

@@ -65,7 +65,7 @@ def efile_payment(request, jurisdiction):
     if any(not document.preparation for document in documents):
         # Legacy uploads need preparation before they can be checked inline.
         # Preview handles preparation failures and offers replacement/retry.
-        return redirect(with_return_to(get_step_url(WorkflowStepKey.PREVIEW_DOCUMENTS, jurisdiction), return_to))
+        return redirect(with_return_to(get_step_url(WorkflowStepKey.EXTRACTION_REVIEW, jurisdiction), return_to))
     unchecked = [document for document in documents if document.preparation_reviewed_at is None]
     if request.method == "POST" and unchecked:
         # The page keeps Continue off until these are confirmed; this covers

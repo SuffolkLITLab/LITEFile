@@ -134,7 +134,7 @@ def document_checklist(request, jurisdiction):
 
     if documents.filter(preparation="").exists():
         return redirect(
-            with_return_to(get_step_url(WorkflowStepKey.PREVIEW_DOCUMENTS, jurisdiction), return_target(request))
+            with_return_to(get_step_url(WorkflowStepKey.EXTRACTION_REVIEW, jurisdiction), return_target(request))
         )
 
     if request.method == "POST" and request.POST.get("action") == "upload":

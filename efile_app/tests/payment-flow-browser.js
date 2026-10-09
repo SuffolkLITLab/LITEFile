@@ -260,9 +260,9 @@ async function main() {
         await page.locator(".document-row").nth(2).waitFor();
         assert.ok(page.url().includes("return_to=review"), `upload reload lost its origin: ${page.url()}`);
         await page.locator("#continue-to-analysis").click();
-        await page.waitForURL(/preview-documents\/\?.*return_to=review/);
+        await page.waitForURL(/extraction-review\/\?.*return_to=review/);
         await Promise.all([page.waitForURL(/organize-documents\/\?.*return_to=review/), page.getByRole("button", {
-            name: "Continue"
+            name: "Confirm and continue"
         }).click()]);
         await screenshot("05-new-file-stops-at-organize.png");
         // Taking the new file back out leaves nothing to organize.
@@ -273,11 +273,11 @@ async function main() {
         await page.getByRole("link", {
             name: "Back"
         }).click();
-        await page.waitForURL(/preview-documents\/\?.*return_to=review/);
+        await page.waitForURL(/extraction-review\/\?.*return_to=review/);
         await Promise.all([page.waitForURL(review), page.getByRole("button", {
-            name: "Continue"
+            name: "Confirm and continue"
         }).click()]);
-        assert.ok(!visited.slice(-3).some((url) => url.includes("extraction-review")), `visited ${visited}`);
+        assert.ok(!visited.slice(-3).some((url) => url.includes("preview-documents")), `visited ${visited}`);
         await screenshot("06-back-to-review.png");
         console.log("Scenario 8 passed");
     } catch (error) {
