@@ -18,6 +18,12 @@
         {% ui_text "extraction_review.case_category_help" as case_category_help %}
         {% if has_guesses %}
             <h1>{% translate "Confirm information" %}</h1>
+            {% if filing_guidance %}
+                <details class="mb-3">
+                    <summary>{% translate "Help with this filing" %}</summary>
+                    {% include "efile/partials/filing_guidance.html" %}
+                </details>
+            {% endif %}
             <p class="workflow-lede">
                 {% if ai_opted_out %}
                     {% translate "You turned AI off, so we searched the text of your document for a form number and a case number instead. These are clues from the document, not answers you gave us, and the search can be wrong. Correct anything that is." %}
@@ -97,6 +103,12 @@
             {% endif %}
         {% else %}
             <h1>{% translate "Confirm information" %}</h1>
+            {% if filing_guidance %}
+                <details class="mb-3">
+                    <summary>{% translate "Help with this filing" %}</summary>
+                    {% include "efile/partials/filing_guidance.html" %}
+                </details>
+            {% endif %}
             <div class="alert alert-info">
                 {% if extraction_failed %}
                     {% translate "Our system could not pull details from your document. You can enter the details below, or" %}
