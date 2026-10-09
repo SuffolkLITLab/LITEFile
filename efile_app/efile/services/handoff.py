@@ -15,6 +15,7 @@ from django.utils import timezone
 from efile.models import FilingDocument, FilingDraft, FilingMetadataEvent, FilingParty, InterviewHandoff
 from efile.party_sides import side_for_party_type_name
 from efile.services.document_checklists import normalize_name
+from efile.services.existing_cases import import_ready
 from efile.services.filing_plans import _codes
 from efile.utils.config_loader import config_loader
 from efile.workflow import ExistingCase, WorkflowStepKey
@@ -453,6 +454,8 @@ def resolve_metadata(draft):
                 )
     party_options = _codes(draft.jurisdiction, f"{draft.court_code}/case_types/{draft.case_type_code}/party_types")
     for party in draft.parties.all():
+        if party.source == "court":
+            continue
         if party.role == "filer" and not (party.is_self or party.is_filing_party):
             continue
         hints = [party.party_role_hint]
@@ -492,6 +495,13 @@ def issues_for(draft):
         need(field, getattr(draft, field), f"Choose {label}.", "extraction_review")
     if draft.existing_case == ExistingCase.EXISTING:
         need("previous_case_id", draft.previous_case_id, "Find and confirm the existing court case.", "case_lookup")
+        if draft.previous_case_id:
+            need(
+                "_court_case_import",
+                import_ready(draft),
+                "Load and confirm the court's existing parties.",
+                "case_confirmation",
+            )
     need("main_document", draft.documents.filter(role="lead").exists(), "Add the main PDF.", "upload_documents")
     for doc in draft.documents.all():
         for field, label in (
@@ -529,8 +539,10 @@ def issues_for(draft):
             f"Add the name for this party: {party}.",
             "parties",
         )
-        address_ok = address_is_complete(party) or (
-            address_is_blank(party) and not party_address_requirement(draft, party).required
+        address_ok = (
+            party.source == "court"
+            or address_is_complete(party)
+            or (address_is_blank(party) and not party_address_requirement(draft, party).required)
         )
         need(f"parties.{party.pk}.address", address_ok, f"Complete the address for {party}.", "parties")
     for question in get_case_questions(draft):

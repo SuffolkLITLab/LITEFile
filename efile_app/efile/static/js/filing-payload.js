@@ -50,6 +50,9 @@ const FilingPayload = {
     },
 
     partyFromDraft(party) {
+        if (party.source === "court" && !party.external_party_id) {
+            throw new Error("Reload the court case: an existing party has no court ID.");
+        }
         const address = {
             address: party.address_line_1 || "",
             unit: party.address_line_2 || "",
@@ -59,6 +62,9 @@ const FilingPayload = {
             country: party.country || "US"
         };
         return {
+            ...(party.source === "added" ? {
+                _draft_party_id: party.id
+            } : {}),
             party_type: party.party_type,
             // An organization has one name where a person has three, and the
             // EFSP only reads `name.first` that way when the entry says it is
@@ -70,7 +76,9 @@ const FilingPayload = {
                 person_type: "business"
             } : {}),
             name: {
-                first: party.first_name || party.organization_name || "",
+                // Matches person_type above: an organization name wins over
+                // a person's first name left over from before the switch.
+                first: party.organization_name || party.first_name || "",
                 middle: party.middle_name || "",
                 last: party.last_name || "",
                 suffix: party.suffix || ""
@@ -83,6 +91,9 @@ const FilingPayload = {
             } : {}),
             email: party.email || "",
             phone_number: party.phone || "",
+            ...(party.external_party_id ? {
+                tyler_id: party.external_party_id
+            } : {}),
             is_new: !party.external_party_id
         };
     },
@@ -207,7 +218,7 @@ const FilingPayload = {
         const mainUser = filerIsFilingParty ? this.accountUser(userData, partyType) : null;
         const users = filingParties.length ?
             filingParties.map((party) => (
-                party.role === "filer" ? mainUser : this.filingPartyFromDraft(party, noticeEmail)
+                party.role === "filer" && !party.external_party_id ? mainUser : this.filingPartyFromDraft(party, noticeEmail)
             )) : [mainUser];
 
         // Add second user if needed for name changes
@@ -244,7 +255,7 @@ const FilingPayload = {
             .filter((party) => party.role !== "filer" && party.party_type && !filingParties.includes(party))
             .map((party) => this.partyFromDraft(party));
 
-        if (other_parties.length === 0 && caseData.other_first_name && caseData.other_party_type) {
+        if (!durableParties.length && other_parties.length === 0 && caseData.other_first_name && caseData.other_party_type) {
             const legacyAddress = {
                 address: caseData.other_address_line_1 || "",
                 unit: caseData.other_address_line_2 || "",

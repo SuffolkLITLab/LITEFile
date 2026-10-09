@@ -28,6 +28,7 @@ from efile.services.people import (
     get_party_types,
     guess_filer_party_type,
     incomplete_parties,
+    missing_required_party_types,
     names_match,
     needs_amount_in_controversy,
     party_can_be_the_filer,
@@ -37,6 +38,7 @@ from efile.services.people import (
 )
 from efile.workflow import (
     RETURN_TO_REVIEW,
+    ExistingCase,
     WorkflowStepKey,
     continue_step,
     continue_url,
@@ -75,6 +77,16 @@ def _chosen_filing_parties(request, draft):
 def _continue_from_parties(request, jurisdiction, draft, party_types, return_to):
     """Fill in the court's required parties, then move on or collect the gaps."""
 
+    if draft.existing_case == ExistingCase.EXISTING:
+        missing = [item["name"] for item in missing_required_party_types(draft, party_types)]
+        if missing:
+            messages.error(
+                request,
+                "The court requires these roles: "
+                + ", ".join(missing)
+                + ". Use Add a new party if someone needs to join this case, or contact support about the court roster.",
+            )
+            return redirect(_parties_url(jurisdiction, return_to))
     ensure_required_parties(draft, party_types)
     incomplete = incomplete_parties(draft, party_types=party_types)
     if incomplete:
@@ -119,6 +131,9 @@ def _continue_previews(draft, filer, party_types, return_to):
             if item["required"] and item["code"] not in held_by_others and item["code"] != role_code
         ]
         hints = [gettext("The court also needs a %(name)s in this case.") % {"name": name} for name in missing]
+        if missing and draft.existing_case == ExistingCase.EXISTING:
+            hints.append(gettext("Use Add a new party if someone needs to join this case, or contact support."))
+            return {"label": gettext("Continue"), "hint": " ".join(hints)}
         if missing or others_incomplete or filer_incomplete:
             hints.append(gettext("Continue will ask for the details that are still missing."))
             label = gettext("Continue to missing party details")
@@ -143,6 +158,19 @@ def _save_filer_role(request, draft, filer, party_types):
     the answer is the same answer whichever button carried it.
     """
 
+    if draft.existing_case == ExistingCase.EXISTING:
+        chosen = _chosen_filing_parties(request, draft)
+        if not chosen or not all(p.on_case_roster for p in chosen):
+            messages.error(request, "Choose the existing party you are filing for.")
+            return False
+        notice_email = request.POST.get("notice_email", "").strip() or filer.email
+        if not _is_email(notice_email):
+            messages.error(request, "Give an email address for notices about this case.")
+            return False
+        set_filing_parties(draft, chosen)
+        draft.notice_email = notice_email
+        draft.save(update_fields=["notice_email", "updated_at"])
+        return True
     party_type_names = {item["code"]: item["name"] for item in party_types}
     filer_type = request.POST.get("filer_party_type", "").strip()
     if filer_type == NOT_A_PARTY:
@@ -224,9 +252,12 @@ def parties(request, jurisdiction):
                 .values_list("sort_order", flat=True)
                 .first()
             )
+            joins_court_case = draft.existing_case == ExistingCase.EXISTING
             party = FilingParty.objects.create(
                 draft=draft,
                 role="other",
+                source="added" if joins_court_case else "manual",
+                source_case_id=draft.previous_case_id if joins_court_case else "",
                 sort_order=0 if last_order is None else last_order + 1,
             )
             draft.current_step = WorkflowStepKey.PARTY_DETAILS
@@ -258,7 +289,11 @@ def parties(request, jurisdiction):
                 return redirect(_parties_url(jurisdiction, return_to))
             claim_party_as_filer(draft, party, use_party_name=name_choice == "theirs")
             filer.refresh_from_db()
-            if filer.party_type:
+            if party.on_case_roster:
+                messages.success(
+                    request, "You are linked to this party. Your account contact information stays separate."
+                )
+            elif filer.party_type:
                 messages.success(
                     request,
                     f"You are listed in this case as the {filer.party_type_name or filer.party_type}.",
@@ -268,6 +303,9 @@ def parties(request, jurisdiction):
             return redirect(f"{_parties_url(jurisdiction, return_to)}#your-role")
         if action == "remove":
             party = get_object_or_404(FilingParty, pk=request.POST.get("party_id"), draft=draft, role="other")
+            if party.source == "court":
+                messages.error(request, "A party already on the court case cannot be removed.")
+                return redirect(_parties_url(jurisdiction, return_to))
             party.delete()
             messages.success(request, "Party removed.")
             return redirect(_parties_url(jurisdiction, return_to))
@@ -305,7 +343,11 @@ def parties(request, jurisdiction):
     # filing for someone else has answered it, and does not need telling again
     # every time they come back to this screen.
     marked_self = self_claimed_party(draft)
-    named_in_document = None if saved_filing_for else (marked_self or filer_name_match(draft))
+    named_in_document = (
+        None
+        if saved_filing_for or draft.existing_case == ExistingCase.EXISTING
+        else (marked_self or filer_name_match(draft))
+    )
     # Never alongside the people themselves: a filer who has said who is in
     # this case has answered a better version of this question already, and
     # being told what they are "likely" to be contradicts it.
@@ -329,6 +371,10 @@ def parties(request, jurisdiction):
     continue_previews = _continue_previews(draft, filer, party_types, return_to)
     selected_role = attempted or (NOT_A_PARTY if filing_for_someone_else else filer.party_type)
     context = {
+        "existing_court_case": draft.existing_case == ExistingCase.EXISTING,
+        "caption_discrepancy": bool(
+            draft.existing_case_snapshot and draft.extracted_guesses and document_named_the_parties(draft)
+        ),
         "is_logged_in": True,
         "filing_draft": draft_snapshot(draft),
         "filer": filer,

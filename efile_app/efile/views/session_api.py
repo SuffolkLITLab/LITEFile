@@ -180,7 +180,7 @@ def forward_final_filing(request, data):
 
         # Same fixups the fee quote applied, so the filing matches the quote.
         try:
-            prepare_efile_payload(efile_data, jurisdiction_id, court_id)
+            prepare_efile_payload(efile_data, jurisdiction_id, court_id, draft=draft)
         except PayloadValidationError as error:
             return JsonResponse(
                 {

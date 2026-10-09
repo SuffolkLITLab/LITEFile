@@ -127,7 +127,16 @@
                             {{ filer.phone }}
                         {% endif %}
                     </address>
-                    {% if filer.party_type %}
+                    {% if existing_court_case %}
+                        {% if filer_court_party %}
+                            <p>{% blocktranslate with name=filer_court_party %}Your account is linked to {{ name }}.{% endblocktranslate %}</p>
+                        {% endif %}
+                        {% if filing_for %}
+                            <p class="review-filing-for">{% blocktranslate with names=filing_for|join:", " %}This filing is on behalf of {{ names }}.{% endblocktranslate %}</p>
+                        {% else %}
+                            <a href="{% url 'parties' jurisdiction %}?return_to=review">{% translate "Choose who you are filing for" %}</a>
+                        {% endif %}
+                    {% elif filer.party_type %}
                         <span class="status-pill status-pill--ready">{{ filer.party_type_name|default:filer.party_type }}</span>
                     {% else %}
                         <p class="review-filing-for">
@@ -139,7 +148,12 @@
                         </p>
                         <a class="btn btn-outline-primary btn-sm"
                            href="{% url 'parties' jurisdiction %}?return_to=review#your-role">
-                            <i class="fa-solid fa-user-plus" aria-hidden="true"></i> {% translate "Add me as a party" %}
+                            <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
+                            {% if existing_court_case %}
+                                {% translate "Choose an existing court party" %}
+                            {% else %}
+                                {% translate "Add me as a party" %}
+                            {% endif %}
                         </a>
                     {% endif %}
                 {% endif %}

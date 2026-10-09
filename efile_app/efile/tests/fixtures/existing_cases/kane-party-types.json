@@ -1,0 +1,127 @@
+[
+  {
+    "code": "5606",
+    "name": "Administrator",
+    "isrequired": false
+  },
+  {
+    "code": "5612",
+    "name": "Counter Defendant",
+    "isrequired": false
+  },
+  {
+    "code": "5615",
+    "name": "Decedent",
+    "isrequired": false
+  },
+  {
+    "code": "5616",
+    "name": "Defendant",
+    "isrequired": false
+  },
+  {
+    "code": "5617",
+    "name": "Disabled Adult",
+    "isrequired": false
+  },
+  {
+    "code": "5621",
+    "name": "Guardian Ad Litem",
+    "isrequired": false
+  },
+  {
+    "code": "5623",
+    "name": "Minor",
+    "isrequired": false
+  },
+  {
+    "code": "5627",
+    "name": "Respondent",
+    "isrequired": false
+  },
+  {
+    "code": "5628",
+    "name": "Petitioner",
+    "isrequired": false
+  },
+  {
+    "code": "10361",
+    "name": "Agent",
+    "isrequired": false
+  },
+  {
+    "code": "10366",
+    "name": "As Subrogee of",
+    "isrequired": false
+  },
+  {
+    "code": "10373",
+    "name": "Counter Plaintiff",
+    "isrequired": false
+  },
+  {
+    "code": "10384",
+    "name": "Executor",
+    "isrequired": false
+  },
+  {
+    "code": "10386",
+    "name": "Fourth Party Defendant",
+    "isrequired": false
+  },
+  {
+    "code": "10388",
+    "name": "Fourth Party Plaintiff",
+    "isrequired": false
+  },
+  {
+    "code": "10391",
+    "name": "Garnishee",
+    "isrequired": false
+  },
+  {
+    "code": "10393",
+    "name": "Guardian",
+    "isrequired": false
+  },
+  {
+    "code": "10400",
+    "name": "Missing Person",
+    "isrequired": false
+  },
+  {
+    "code": "10403",
+    "name": "Parent",
+    "isrequired": false
+  },
+  {
+    "code": "10406",
+    "name": "Plaintiff",
+    "isrequired": false
+  },
+  {
+    "code": "10424",
+    "name": "Third Party Defendant",
+    "isrequired": false
+  },
+  {
+    "code": "10427",
+    "name": "Third Party Plaintiff",
+    "isrequired": false
+  },
+  {
+    "code": "10446",
+    "name": "Other",
+    "isrequired": false
+  },
+  {
+    "code": "137491",
+    "name": "Ward",
+    "isrequired": false
+  },
+  {
+    "code": "145881",
+    "name": "Disabled Person",
+    "isrequired": false
+  }
+]

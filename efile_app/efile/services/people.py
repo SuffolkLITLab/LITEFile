@@ -6,6 +6,7 @@ from typing import Any
 
 import requests
 from django.conf import settings
+from django.db import transaction
 
 from efile.models import FilingDocument, FilingDraft, FilingParty
 from efile.party_sides import PARTY_SIDE_KEYWORDS, PartySide, side_for_party_type_name
@@ -34,6 +35,8 @@ NOT_A_PARTY = "__not_a_party__"
 
 def party_is_complete(party: FilingParty, *, draft=None, party_types=None) -> bool:
     has_name = bool(party.organization_name or (party.first_name and party.last_name))
+    if getattr(party, "source", "") == "court":
+        return bool(party.external_party_id and party.party_type and has_name)
     if getattr(party, "role", "") == "filer" and not party.party_type:
         # Someone filing for a party they are not. They have no party type to
         # be missing, and no caption address to complete: their name and
@@ -67,7 +70,13 @@ def filer_is_party(draft: FilingDraft) -> bool:
     """
 
     filer = FilingParty.objects.filter(draft=draft, role="filer").first()
-    return bool(filer and filer.party_type)
+    return bool(filer and filer.party_type) or linked_case_party(draft) is not None
+
+
+def linked_case_party(draft: FilingDraft) -> FilingParty | None:
+    """The court-roster party the filer said is them, if any."""
+
+    return FilingParty.objects.filter(draft=draft, source__in=FilingParty.CASE_ROSTER_SOURCES, is_self=True).first()
 
 
 def filing_parties(draft: FilingDraft) -> list[FilingParty]:
@@ -89,6 +98,7 @@ def filing_parties(draft: FilingDraft) -> list[FilingParty]:
     return [filer] if filer is not None and filer.party_type else []
 
 
+@transaction.atomic
 def set_filing_parties(draft: FilingDraft, parties) -> None:
     """Record who this filing is on behalf of, and no one else.
 
@@ -97,6 +107,7 @@ def set_filing_parties(draft: FilingDraft, parties) -> None:
     themselves behind as a second filing party.
     """
 
+    FilingDraft.objects.select_for_update().get(pk=draft.pk)
     wanted = {party.pk for party in parties}
     for party in FilingParty.objects.filter(draft=draft):
         if party.is_filing_party != (party.pk in wanted):
@@ -190,11 +201,13 @@ def claim_replaces_a_name(filer: FilingParty | None, party: FilingParty | None) 
     question to ask first.
     """
 
-    if party is None:
+    if party is None or party.on_case_roster:
+        # Linking to a court-roster party never renames anyone.
         return False
     return bool(party_display_name(party)) and not names_match(filer, party)
 
 
+@transaction.atomic
 def claim_party_as_filer(draft: FilingDraft, party: FilingParty, *, use_party_name: bool = False) -> None:
     """Answer "that party is me": become them, and stop listing them twice.
 
@@ -209,8 +222,21 @@ def claim_party_as_filer(draft: FilingDraft, party: FilingParty, *, use_party_na
     the default keeps their own.
     """
 
+    FilingDraft.objects.select_for_update().get(pk=draft.pk)
+    party = FilingParty.objects.filter(pk=party.pk, draft=draft).first()
     filer = FilingParty.objects.filter(draft=draft, role="filer").first()
-    if filer is None:
+    if filer is None or party is None:
+        return
+    if party.on_case_roster:
+        roster = FilingParty.objects.filter(draft=draft, source__in=FilingParty.CASE_ROSTER_SOURCES)
+        roster.update(is_self=False)
+        party.is_self = True
+        party.save(update_fields=["is_self", "updated_at"])
+        filer.party_type = filer.party_type_name = ""
+        filer.save(update_fields=["party_type", "party_type_name", "updated_at"])
+        # Linking yourself adds you to who this filing is for; it does not
+        # drop co-parties the filer already chose.
+        set_filing_parties(draft, [*roster.filter(is_filing_party=True).exclude(pk=party.pk), party])
         return
     name_fields: list[str] = []
     if use_party_name and party_display_name(party):
@@ -260,7 +286,7 @@ def discard_empty_parties(draft: FilingDraft) -> int:
     empty = [
         party
         for party in FilingParty.objects.filter(draft=draft, role="other", party_type="")
-        if not party_display_name(party) and not party.party_side
+        if party.source != "court" and not party_display_name(party) and not party.party_side
     ]
     for party in empty:
         party.delete()
@@ -415,7 +441,7 @@ def apply_party_sides(draft: FilingDraft, party_types: list[dict[str, Any]]) -> 
     if not party_types:
         return
     for party in FilingParty.objects.filter(draft=draft, role="other", party_type=""):
-        if not party.party_side:
+        if party.source == "court" or not party.party_side:
             continue
         match = party_type_for_party(party, party_types)
         if match is None:
@@ -443,7 +469,7 @@ def _filer_duplicates(draft: FilingDraft) -> list[FilingParty]:
     return [
         party
         for party in FilingParty.objects.filter(draft=draft, role="other")
-        if _comparable(party_display_name(party)) == filer_name
+        if party.source != "court" and _comparable(party_display_name(party)) == filer_name
     ]
 
 
@@ -481,22 +507,21 @@ def absorb_filer_duplicates(draft: FilingDraft) -> str:
     put to them on the parties screen instead; see :func:`filer_name_match`.
     """
 
-    if not filer_is_party(draft):
+    # A filer linked to a court-roster party is never merged by name.
+    filer = FilingParty.objects.filter(draft=draft, role="filer").first()
+    if not (filer and filer.party_type) or linked_case_party(draft) is not None:
         return side_named_for_filer(draft)
 
     duplicates = _filer_duplicates(draft)
     if not duplicates:
         return side_named_for_filer(draft)
 
-    filer = FilingParty.objects.filter(draft=draft, role="filer").first()
-    side = filer.party_side if filer is not None else ""
-    files_on_behalf = filer.is_filing_party if filer is not None else False
+    side = filer.party_side
+    files_on_behalf = filer.is_filing_party
     for party in duplicates:
         side = side or party.party_side or side_for_party_type_name(party.party_type_name)
         files_on_behalf = files_on_behalf or party.is_filing_party
         party.delete()
-    if filer is None:
-        return side
     updated = []
     if side and not filer.party_side:
         filer.party_side = side
@@ -509,24 +534,33 @@ def absorb_filer_duplicates(draft: FilingDraft) -> str:
     return side
 
 
+def missing_required_party_types(draft: FilingDraft, party_types: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """The court's required roles that no party in the draft holds yet."""
+
+    covered = set(FilingParty.objects.filter(draft=draft).exclude(party_type="").values_list("party_type", flat=True))
+    missing = {}
+    for party_type in party_types:
+        if party_type["required"] and party_type["code"] not in covered:
+            missing.setdefault(party_type["code"], party_type)
+    return list(missing.values())
+
+
 def ensure_required_parties(draft: FilingDraft, party_types: list[dict[str, Any]]) -> None:
+    if draft.existing_case_snapshot:
+        # A verified roster cannot acquire new people through placeholders.
+        # Existing-case additions require the filer's explicit Add action.
+        return
     parties = FilingParty.objects.filter(draft=draft)
-    covered = set(parties.exclude(party_type="").values_list("party_type", flat=True))
     last_order = parties.filter(role="other").order_by("-sort_order").values_list("sort_order", flat=True).first()
     next_order = 0 if last_order is None else last_order + 1
-    for party_type in party_types:
-        code = party_type["code"]
-        if not party_type["required"] or code in covered:
-            continue
+    for offset, party_type in enumerate(missing_required_party_types(draft, party_types)):
         FilingParty.objects.create(
             draft=draft,
             role="other",
-            sort_order=next_order,
-            party_type=code,
+            sort_order=next_order + offset,
+            party_type=party_type["code"],
             party_type_name=party_type["name"],
         )
-        covered.add(code)
-        next_order += 1
 
 
 def needs_amount_in_controversy(draft: FilingDraft) -> bool:

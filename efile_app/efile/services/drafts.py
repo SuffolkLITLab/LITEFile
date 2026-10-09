@@ -208,6 +208,8 @@ def write_case_data(
     """
 
     data = dict(case_data or {})
+    draft.refresh_from_db(from_queryset=FilingDraft.objects.select_for_update())
+    old_identity = (draft.court_code, draft.previous_case_id, draft.existing_case)
     update_fields: list[str] = []
 
     for field, sources in _DRAFT_FIELD_SOURCES.items():
@@ -220,6 +222,19 @@ def write_case_data(
         if getattr(draft, field) != value:
             setattr(draft, field, value)
             update_fields.append(field)
+
+    # existing_cases imports this module's draft statuses.
+    from efile.services.existing_cases import SNAPSHOT_CASE_FIELDS, clear_case_import
+
+    if old_identity != (draft.court_code, draft.previous_case_id, draft.existing_case):
+        clear_case_import(draft)
+
+    elif draft.existing_case_snapshot.get("status") == "loaded":
+        snapshot = draft.existing_case_snapshot
+        for field in SNAPSHOT_CASE_FIELDS:
+            if getattr(draft, field) != snapshot[field]:
+                setattr(draft, field, snapshot[field])
+                update_fields.append(field)
 
     if "optional_services" in data:
         services = data.get("optional_services") or []
@@ -270,7 +285,7 @@ def _write_parties(draft: FilingDraft, data: dict[str, Any]) -> None:
             party_type = _first_present(data, _PETITIONER_PARTY_TYPE_KEYS)
             if party_type is not _MISSING:
                 values["party_type"] = _as_str(party_type)
-        if values:
+        if values and not draft.existing_case_snapshot:
             FilingParty.objects.update_or_create(draft=draft, role=role, sort_order=0, defaults=values)
 
 
@@ -334,6 +349,11 @@ def read_case_data(draft: FilingDraft | None) -> dict[str, Any]:
     filing_parties = [
         {
             "id": party.pk,
+            "external_party_id": party.external_party_id,
+            "source": party.source,
+            "source_case_id": party.source_case_id,
+            "representation": party.representation,
+            "is_self": party.is_self,
             "role": party.role,
             # Whether the filing is made on behalf of this party -- the filer
             # themselves when they are one, someone they are filing for when

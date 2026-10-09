@@ -123,7 +123,7 @@ def test_adding_a_person_on_a_handoff_detour_stays_on_the_people_screens(client,
     assert f"party={added.pk}" in response.url and "return_to=handoff" in response.url
 
 
-def test_finding_a_case_on_a_handoff_detour_still_asks_to_confirm_it(client, draft):
+def test_finding_a_case_on_a_handoff_detour_still_asks_to_confirm_it(client, draft, monkeypatch):
     draft.existing_case = "existing"
     draft.save()
     response = client.post(
@@ -136,6 +136,12 @@ def test_finding_a_case_on_a_handoff_detour_still_asks_to_confirm_it(client, dra
     assert "return_to=handoff" in redirect_url
     page = client.get(redirect_url)
     assert b'name="return_to" value="handoff"' in page.content
+    from efile.tests.helpers import loaded_case_snapshot
+
+    monkeypatch.setattr(
+        "efile.services.existing_cases.fetch_case", lambda draft, token: loaded_case_snapshot(draft, confirmed=False)
+    )
+
     with patch("efile.views.case_confirmation.draft_unavailable_message", return_value=""):
         confirmed = client.post(redirect_url, {"confirmed": "yes", "return_to": "handoff"})
     assert confirmed.url == reverse("handoff_review", args=[draft.pk])

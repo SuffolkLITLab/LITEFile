@@ -125,11 +125,14 @@ def parse_optional_services(services):
     return parsed
 
 
-def prepare_efile_payload(efile_data, jurisdiction_id, court_id):
+def prepare_efile_payload(efile_data, jurisdiction_id, court_id, *, draft=None):
     """Apply every server-side fixup an EFSP request needs. Mutates ``efile_data``.
 
     Raises ``PayloadValidationError`` when the payload is knowably invalid.
     """
+    from efile.services.existing_cases import reconcile_case_parties
+
+    reconcile_case_parties(efile_data, draft, jurisdiction_id, court_id)
     lookups = _EfspLookups()
     _clean_case_identifiers(efile_data)
     validate_party_formats(efile_data, jurisdiction_id, court_id)
@@ -153,6 +156,8 @@ def validate_party_formats(payload, jurisdiction, court):
             continue
         for index, party in enumerate(parties):
             if not isinstance(party, dict):
+                continue
+            if party.get("tyler_id") and party.get("is_new") is False:
                 continue
             address = party.get("address") or {}
             name = party.get("name") or {}

@@ -42,6 +42,9 @@ def party_details(request, jurisdiction):
         workflow_version=2,
     )
     party = get_object_or_404(FilingParty, draft=draft, role="other", pk=request.GET.get("party"))
+    if party.source == "court":
+        messages.error(request, "Party details already on the court case cannot be changed here.")
+        return redirect("parties", jurisdiction=jurisdiction)
     filer_row = FilingParty.objects.filter(draft=draft, role="filer").first()
     party_types = get_party_types(draft)
     party_type_names = {item["code"]: item["name"] for item in party_types}
