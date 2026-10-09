@@ -574,6 +574,10 @@ class DocumentExtraction(models.Model):
 class FilingParty(models.Model):
     """Person or organization associated with a filing draft."""
 
+    # Rows on an existing court case's roster: "court" rows came from the
+    # court and cannot be edited; "added" rows join the case in this filing.
+    CASE_ROSTER_SOURCES = ("court", "added")
+
     draft = models.ForeignKey(FilingDraft, on_delete=models.CASCADE, related_name="parties")
     role = models.CharField(max_length=50)
     sort_order = models.PositiveIntegerField(default=0)
@@ -643,6 +647,10 @@ class FilingParty(models.Model):
             ),
         ]
         verbose_name_plural = "Filing parties"
+
+    @property
+    def on_case_roster(self) -> bool:
+        return self.source in self.CASE_ROSTER_SOURCES
 
     def __str__(self):
         display_name = " ".join(part for part in [self.first_name, self.middle_name, self.last_name] if part)

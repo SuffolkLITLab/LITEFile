@@ -208,8 +208,7 @@ def write_case_data(
     """
 
     data = dict(case_data or {})
-    FilingDraft.objects.select_for_update().get(pk=draft.pk)
-    draft.refresh_from_db()
+    draft.refresh_from_db(from_queryset=FilingDraft.objects.select_for_update())
     old_identity = (draft.court_code, draft.previous_case_id, draft.existing_case)
     update_fields: list[str] = []
 
@@ -224,14 +223,15 @@ def write_case_data(
             setattr(draft, field, value)
             update_fields.append(field)
 
-    if old_identity != (draft.court_code, draft.previous_case_id, draft.existing_case):
-        from efile.services.existing_cases import clear_case_import
+    # existing_cases imports this module's draft statuses.
+    from efile.services.existing_cases import SNAPSHOT_CASE_FIELDS, clear_case_import
 
+    if old_identity != (draft.court_code, draft.previous_case_id, draft.existing_case):
         clear_case_import(draft)
 
     elif draft.existing_case_snapshot.get("status") == "loaded":
         snapshot = draft.existing_case_snapshot
-        for field in ("case_category_code", "case_type_code", "docket_number", "case_title"):
+        for field in SNAPSHOT_CASE_FIELDS:
             if getattr(draft, field) != snapshot[field]:
                 setattr(draft, field, snapshot[field])
                 update_fields.append(field)

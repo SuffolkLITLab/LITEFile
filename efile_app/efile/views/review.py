@@ -115,9 +115,7 @@ def case_review(request, jurisdiction):
         "fee_quote": fee_quote_summary(draft),
         "fee_inputs_token": fee_inputs_token(draft),
         "filer": filer,
-        "filer_court_party": next(
-            (party for party in other_parties if party.source in {"court", "added"} and party.is_self), None
-        ),
+        "filer_court_party": next((party for party in other_parties if party.on_case_roster and party.is_self), None),
         "existing_court_case": bool(draft.existing_case_snapshot),
         "parties": other_parties,
         # Who the filing is on behalf of, when that is not the filer. Worth

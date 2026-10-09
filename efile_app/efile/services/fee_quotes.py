@@ -58,7 +58,6 @@ def fee_inputs(draft: FilingDraft, *, payment_account_id: str | None = None) -> 
             party.role,
             party.party_type,
             bool(party.is_filing_party),
-            bool(party.organization_name),
             party.external_party_id,
             party.source_case_id,
             json.dumps(party.representation, sort_keys=True),
@@ -126,6 +125,9 @@ def fee_quote_is_usable(draft: FilingDraft) -> bool:
     return fee_quote_state(draft) in {FeeQuoteState.CURRENT, FeeQuoteState.WAIVED}
 
 
+FEE_QUOTE_FIELDS = ("quoted_fee_total", "quoted_fee_breakdown", "quoted_fee_fingerprint")
+
+
 def invalidate_fee_quote(draft: FilingDraft, *, save: bool = True) -> None:
     """Forget the quote outright, for changes that make it meaningless."""
 
@@ -133,7 +135,7 @@ def invalidate_fee_quote(draft: FilingDraft, *, save: bool = True) -> None:
     draft.quoted_fee_breakdown = []
     draft.quoted_fee_fingerprint = ""
     if save:
-        draft.save(update_fields=["quoted_fee_total", "quoted_fee_breakdown", "quoted_fee_fingerprint", "updated_at"])
+        draft.save(update_fields=[*FEE_QUOTE_FIELDS, "updated_at"])
 
 
 def quote_from_efsp_response(response: dict[str, Any]) -> tuple[str, list[dict[str, str]]] | None:
@@ -192,7 +194,7 @@ def _store_quote(draft, total, breakdown, payment_account_id):
     draft.quoted_fee_total = total
     draft.quoted_fee_breakdown = breakdown
     draft.quoted_fee_fingerprint = fee_fingerprint(draft, payment_account_id=payment_account_id)
-    draft.save(update_fields=["quoted_fee_total", "quoted_fee_breakdown", "quoted_fee_fingerprint", "updated_at"])
+    draft.save(update_fields=[*FEE_QUOTE_FIELDS, "updated_at"])
 
 
 def fee_quote_summary(draft: FilingDraft) -> dict[str, Any]:

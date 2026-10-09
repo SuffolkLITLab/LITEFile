@@ -23,7 +23,8 @@ from typing import Any
 from django.db import transaction
 
 from efile.models import FilingDocument, FilingDraft, FilingParty, sync_primary_filing_type
-from efile.services.fee_quotes import invalidate_fee_quote
+from efile.services.existing_cases import clear_case_import
+from efile.services.fee_quotes import FEE_QUOTE_FIELDS, invalidate_fee_quote
 from efile.workflow import ExistingCase, normalize_existing_case
 
 FILING_PATH_SOURCE_KEY = "_filing_path_source"
@@ -96,13 +97,9 @@ def change_filing_path(draft: FilingDraft, new_path: str) -> FilingPathChange:
 
     update_fields = ["existing_case", "updated_at"]
     draft.existing_case = current
-    from efile.services.existing_cases import clear_case_import
-
-    if draft.existing_case_snapshot or FilingParty.objects.filter(draft=draft, source="court").exists():
-        had_quote = bool(draft.quoted_fee_total or draft.quoted_fee_breakdown or draft.quoted_fee_fingerprint)
-        clear_case_import(draft)
-        if had_quote:
-            change.cleared.append("fees")
+    had_quote = bool(draft.quoted_fee_total or draft.quoted_fee_breakdown or draft.quoted_fee_fingerprint)
+    if clear_case_import(draft) and had_quote:
+        change.cleared.append("fees")
 
     if current != ExistingCase.EXISTING and (draft.previous_case_id or draft.docket_number or draft.case_title):
         # A new case has no number or title until the court opens it, and a
@@ -132,7 +129,7 @@ def change_filing_path(draft: FilingDraft, new_path: str) -> FilingPathChange:
         # The fingerprint would make it stale anyway; clearing it says outright
         # that the quote priced a different kind of filing.
         invalidate_fee_quote(draft, save=False)
-        update_fields += ["quoted_fee_total", "quoted_fee_breakdown", "quoted_fee_fingerprint"]
+        update_fields += FEE_QUOTE_FIELDS
         change.cleared.append("fees")
 
     draft.save(update_fields=update_fields)
@@ -163,8 +160,6 @@ def clear_changed_classification(draft, court_code, case_category_code, case_typ
         requested_optional_services=[],
         filing_requires_amount_in_controversy=False,
     )
-    from efile.services.existing_cases import clear_case_import
-
     clear_case_import(draft)
     FilingParty.objects.filter(draft=draft).exclude(source="court").update(party_type="", party_type_name="")
     draft.case_subtype_code = ""
@@ -184,9 +179,7 @@ def clear_changed_classification(draft, court_code, case_category_code, case_typ
             "previous_case_id",
             "case_title",
             "optional_services",
-            "quoted_fee_total",
-            "quoted_fee_breakdown",
-            "quoted_fee_fingerprint",
+            *FEE_QUOTE_FIELDS,
             "updated_at",
         ]
     )

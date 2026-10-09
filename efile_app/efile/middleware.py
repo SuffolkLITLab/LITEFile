@@ -1,12 +1,19 @@
+from django.contrib import messages
 from django.contrib.auth import logout
 from django.http import JsonResponse
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.utils.deprecation import MiddlewareMixin
 
 from efile.models import FilingDraft
-from efile.services.current_drafts import DraftIdentityError, resolve_explicit_draft
+from efile.services.current_drafts import DraftIdentityError, get_current_draft, resolve_explicit_draft
 from efile.services.draft_urls import draft_url
+from efile.services.existing_cases import import_ready
 from efile.utils.jurisdiction_stuff import get_jurisdiction_from_request
+from efile.workflow import ExistingCase
+
+# Steps that read or file the court roster. An existing case reaches them only
+# once its import is loaded and confirmed; this is the one place that says so.
+NEEDS_CONFIRMED_CASE = {"parties", "party_details", "case_questions", "payment", "case_review"}
 
 
 class DraftIdentityMiddleware(MiddlewareMixin):
@@ -21,22 +28,12 @@ class DraftIdentityMiddleware(MiddlewareMixin):
         if request.resolver_match.url_name == "filing_confirmation":
             statuses = (FilingDraft.Status.SUBMITTED,)
         try:
-            resolve_explicit_draft(request, jurisdiction=view_kwargs.get("jurisdiction"), statuses=statuses)
-            if request.resolver_match.url_name in {
-                "parties",
-                "party_details",
-                "case_questions",
-                "payment",
-                "case_review",
-            }:
-                from django.shortcuts import redirect
-
-                from efile.services.current_drafts import get_current_draft
-                from efile.services.existing_cases import import_ready
-                from efile.workflow import ExistingCase
-
-                draft = get_current_draft(request, jurisdiction=view_kwargs.get("jurisdiction"))
+            jurisdiction = view_kwargs.get("jurisdiction")
+            draft = resolve_explicit_draft(request, jurisdiction=jurisdiction, statuses=statuses)
+            if request.resolver_match.url_name in NEEDS_CONFIRMED_CASE:
+                draft = draft or get_current_draft(request, jurisdiction=jurisdiction)
                 if draft and draft.existing_case == ExistingCase.EXISTING and not import_ready(draft):
+                    messages.error(request, "Confirm the court case and load its parties before continuing.")
                     return redirect("case_confirmation", jurisdiction=draft.jurisdiction)
         except DraftIdentityError as error:
             return self.process_exception(request, error)

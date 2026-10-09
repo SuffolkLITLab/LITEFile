@@ -453,9 +453,11 @@ def test_fetch_uses_selected_uuid_authenticated_headers_and_full_role_catalog(im
     snapshot = fetch_case(imported, "test-token")
     assert snapshot["status"] == "loaded"
     assert snapshot["tracking_id"] == imported.previous_case_id
-    assert calls[0][0].endswith("/" + imported.previous_case_id)
-    assert calls[0][1]["headers"]["tyler-token-illinois"] == "test-token"
-    assert "/case_types/" not in calls[1][0]
+    # The two requests run concurrently, so find each by its URL.
+    case_call = next(call for call in calls if call[0].endswith("/" + imported.previous_case_id))
+    codes_call = next(call for call in calls if call[0].endswith("/party_types"))
+    assert case_call[1]["headers"]["tyler-token-illinois"] == "test-token"
+    assert "/case_types/" not in codes_call[0]
     assert snapshot["retrieved_at"]
 
 
@@ -561,3 +563,171 @@ def test_missing_required_role_requires_explicit_addition(imported, client, monk
     assert response.status_code == 200
     assert b"The court requires these roles" in response.content
     assert imported.parties.count() == before
+
+
+def _augmentation(raw):
+    return next(i["value"] for i in raw["value"]["rest"] if "caseParticipant" in i["value"])
+
+
+def _normalize(raw, snapshot):
+    return normalize_case(
+        raw,
+        court=snapshot["court"],
+        tracking_id=snapshot["tracking_id"],
+        party_types=json.loads((FIXTURES / "marion-party-types.json").read_text()),
+    )
+
+
+@pytest.mark.django_db
+def test_classification_change_keeps_new_case_filing_choices(django_user_model):
+    from efile.services.filing_path import clear_changed_classification
+
+    user = django_user_model.objects.create_user(username="new-case-owner", tyler_jurisdiction="illinois")
+    draft = FilingDraft.objects.create(
+        user=user, jurisdiction="illinois", existing_case=ExistingCase.NEW, court_code="old", case_type_code="1"
+    )
+    filer = FilingParty.objects.create(draft=draft, role="filer", first_name="Account", last_name="Owner")
+    other = FilingParty.objects.create(draft=draft, role="other", first_name="Someone", last_name="Else")
+    set_filing_parties(draft, [other])
+    filer.is_self = True
+    filer.save()
+    clear_changed_classification(draft, "new", "", "")
+    other.refresh_from_db()
+    filer.refresh_from_db()
+    assert other.is_filing_party
+    assert filer.is_self
+
+
+def test_wrapped_and_unreadable_lineage_entries_still_match():
+    raw = json.loads((FIXTURES / "2025SC5-raw.json").read_text())
+    snapshot = normalized()
+    holder = next(i["value"] for i in raw["value"]["rest"] if "caseLineageCase" in i["value"])
+    holder["caseLineageCase"] = ["unreadable", *({"value": entry} for entry in holder["caseLineageCase"])]
+    assert _normalize(raw, snapshot)["tracking_id"] == snapshot["tracking_id"]
+
+
+@pytest.mark.parametrize(("country", "expected"), [("USA", "US"), ("us", "US"), ("United Kingdom", "")])
+def test_country_is_normalized_rather_than_failing_the_import(country, expected):
+    raw = json.loads((FIXTURES / "2025SC5-raw.json").read_text())
+    snapshot = normalized()
+
+    def visit(value):
+        if isinstance(value, dict):
+            if "locationCountry" in value:
+                value["locationCountry"] = {"value": country}
+            for item in value.values():
+                visit(item)
+        elif isinstance(value, list):
+            for item in value:
+                visit(item)
+
+    visit(_augmentation(raw)["caseParticipant"])
+    countries = {p["country"] for p in _normalize(raw, snapshot)["parties"] if p["address_line_1"]}
+    assert countries == {expected}
+
+
+def test_unidentified_attorney_reference_is_not_shared_by_parties_without_ids():
+    raw = json.loads((FIXTURES / "2025SC5-raw.json").read_text())
+    snapshot = normalized()
+    augmentation = _augmentation(raw)
+    unrepresented = {p["external_party_id"] for p in snapshot["parties"] if p["representation"]["status"] == "unknown"}
+    for participant in augmentation["caseParticipant"]:
+        entity = participant["value"]["entityRepresentation"]["value"]
+        if entity_id(entity) in unrepresented:
+            entity["personOtherIdentification"] = []
+    augmentation["caseOtherEntityAttorney"][0]["caseRepresentedPartyReference"].append({"ref": {"personName": {}}})
+    result = _normalize(raw, snapshot)
+    assert all(p["representation"]["status"] == "unknown" for p in result["parties"] if not p["external_party_id"])
+
+
+@pytest.mark.django_db
+def test_linking_yourself_keeps_co_parties_already_chosen(imported):
+    mine, co_party = list(imported.parties.filter(source="court"))[:2]
+    set_filing_parties(imported, [mine, co_party])
+    claim_party_as_filer(imported, mine)
+    mine.refresh_from_db()
+    co_party.refresh_from_db()
+    assert mine.is_self and mine.is_filing_party
+    assert co_party.is_filing_party
+
+
+@pytest.mark.django_db
+def test_added_organization_name_wins_over_a_stale_first_name(imported):
+    added = FilingParty.objects.create(
+        draft=imported,
+        role="other",
+        sort_order=100,
+        source="added",
+        source_case_id=imported.previous_case_id,
+        first_name="Stale",
+        organization_name="Example LLC",
+        party_type=imported.parties.filter(source="court").first().party_type,
+    )
+    court = list(imported.parties.filter(source="court"))
+    set_filing_parties(imported, [court[0]])
+    imported.refresh_from_db()
+
+    def entry(party, **extra):
+        name = {"first": party.first_name, "middle": party.middle_name, "last": party.last_name, "suffix": party.suffix}
+        return {"name": name, "party_type": party.party_type, "tyler_id": party.external_party_id, "is_new": False}
+
+    added_entry = {
+        "name": {"first": "Example LLC", "middle": "", "last": "", "suffix": ""},
+        "party_type": added.party_type,
+        "is_new": True,
+        "_draft_party_id": added.pk,
+    }
+    payload = {
+        "previous_case_id": imported.previous_case_id,
+        "user_started_case": False,
+        "users": [entry(court[0])],
+        "other_parties": [*(entry(p) for p in court[1:]), added_entry],
+    }
+    reconcile_case_parties(payload, imported, "illinois", imported.court_code)
+    assert payload["other_parties"][-1]["name"]["first"] == "Example LLC"
+
+
+@pytest.mark.django_db
+def test_confirmation_reuses_a_recent_preview(imported, client, monkeypatch):
+    from django.utils import timezone
+
+    imported.parties.filter(source="court").delete()
+    imported.existing_case_snapshot = {}
+    imported.save()
+    snapshot = normalized()
+    snapshot.pop("confirmed")
+    calls = []
+
+    def fetch(*args):
+        calls.append(args)
+        return {**copy.deepcopy(snapshot), "retrieved_at": timezone.now().isoformat()}
+
+    monkeypatch.setattr("efile.services.existing_cases.fetch_case", fetch)
+    url = reverse("case_confirmation", kwargs={"jurisdiction": "illinois"})
+    assert client.get(url).status_code == 200
+    assert client.get(url).status_code == 200
+    assert client.post(url, {"confirmed": "yes"}).status_code == 302
+    assert len(calls) == 1
+    imported.refresh_from_db()
+    assert import_ready(imported)
+
+
+@pytest.mark.django_db
+def test_blocked_confirmation_still_shows_the_court_roster(imported, client, monkeypatch):
+    from django.utils import timezone
+
+    imported.existing_case_snapshot = {}
+    imported.save()
+    snapshot = normalized()
+    snapshot.pop("confirmed")
+    partial = {
+        **snapshot,
+        "status": "partial",
+        "problems": ["Party 1 has an unrecognized court role (X)."],
+        "retrieved_at": timezone.now().isoformat(),
+    }
+    monkeypatch.setattr("efile.services.existing_cases.fetch_case", lambda *args: copy.deepcopy(partial))
+    response = client.post(reverse("case_confirmation", kwargs={"jurisdiction": "illinois"}), {"confirmed": "yes"})
+    assert response.status_code == 422
+    assert b"unrecognized court role" in response.content
+    assert b"Already on the court case" in response.content

@@ -76,7 +76,9 @@ const FilingPayload = {
                 person_type: "business"
             } : {}),
             name: {
-                first: party.first_name || party.organization_name || "",
+                // Matches person_type above: an organization name wins over
+                // a person's first name left over from before the switch.
+                first: party.organization_name || party.first_name || "",
                 middle: party.middle_name || "",
                 last: party.last_name || "",
                 suffix: party.suffix || ""

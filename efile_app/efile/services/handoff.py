@@ -15,6 +15,7 @@ from django.utils import timezone
 from efile.models import FilingDocument, FilingDraft, FilingMetadataEvent, FilingParty, InterviewHandoff
 from efile.party_sides import side_for_party_type_name
 from efile.services.document_checklists import normalize_name
+from efile.services.existing_cases import import_ready
 from efile.services.filing_plans import _codes
 from efile.utils.config_loader import config_loader
 from efile.workflow import ExistingCase, WorkflowStepKey
@@ -495,8 +496,6 @@ def issues_for(draft):
     if draft.existing_case == ExistingCase.EXISTING:
         need("previous_case_id", draft.previous_case_id, "Find and confirm the existing court case.", "case_lookup")
         if draft.previous_case_id:
-            from efile.services.existing_cases import import_ready
-
             need(
                 "_court_case_import",
                 import_ready(draft),

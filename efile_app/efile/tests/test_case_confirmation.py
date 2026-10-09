@@ -83,7 +83,7 @@ def test_case_confirmation_accepts_case_and_converges_on_checklist(client, djang
     draft.save()
     monkeypatch.setattr(
         "efile.views.case_confirmation.load_case",
-        lambda draft, token, apply=False: apply_case(draft, {**snapshot, "confirmed": False}),
+        lambda draft, token: apply_case(draft, {**snapshot, "confirmed": False}),
     )
 
     response = client.post(

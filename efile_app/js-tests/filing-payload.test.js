@@ -730,3 +730,14 @@ test("explicit new parties have no existing ID", () => {
     assert.equal(party.is_new, true);
     assert.equal(Object.hasOwn(party, "tyler_id"), false);
 });
+test("an organization name wins over a stale first name", () => {
+    const party = makeHandler().partyFromDraft({
+        source: "added",
+        id: 7,
+        first_name: "Stale",
+        organization_name: "Example LLC",
+        party_type: "defendant"
+    });
+    assert.equal(party.person_type, "business");
+    assert.equal(party.name.first, "Example LLC");
+});

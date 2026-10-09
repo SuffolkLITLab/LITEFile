@@ -11,7 +11,6 @@ from efile.models import FilingParty
 from efile.party_sides import PARTY_SIDE_LABELS
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.drafts import draft_snapshot
-from efile.services.existing_cases import import_ready
 from efile.services.extracted_parties import party_display_name
 from efile.services.people import (
     NOT_A_PARTY,
@@ -29,6 +28,7 @@ from efile.services.people import (
     get_party_types,
     guess_filer_party_type,
     incomplete_parties,
+    missing_required_party_types,
     names_match,
     needs_amount_in_controversy,
     party_can_be_the_filer,
@@ -78,8 +78,7 @@ def _continue_from_parties(request, jurisdiction, draft, party_types, return_to)
     """Fill in the court's required parties, then move on or collect the gaps."""
 
     if draft.existing_case == ExistingCase.EXISTING:
-        covered = set(draft.parties.exclude(party_type="").values_list("party_type", flat=True))
-        missing = [item["name"] for item in party_types if item["required"] and item["code"] not in covered]
+        missing = [item["name"] for item in missing_required_party_types(draft, party_types)]
         if missing:
             messages.error(
                 request,
@@ -161,7 +160,7 @@ def _save_filer_role(request, draft, filer, party_types):
 
     if draft.existing_case == ExistingCase.EXISTING:
         chosen = _chosen_filing_parties(request, draft)
-        if not chosen or any(p.source not in {"court", "added"} for p in chosen):
+        if not chosen or not all(p.on_case_roster for p in chosen):
             messages.error(request, "Choose the existing party you are filing for.")
             return False
         notice_email = request.POST.get("notice_email", "").strip() or filer.email
@@ -219,9 +218,6 @@ def parties(request, jurisdiction):
         current_step=WorkflowStepKey.PARTIES,
         workflow_version=2,
     )
-    if draft.existing_case == ExistingCase.EXISTING and not import_ready(draft):
-        messages.error(request, "Confirm the court case and load its parties before continuing.")
-        return redirect("case_confirmation", jurisdiction=jurisdiction)
     filer = FilingParty.objects.filter(draft=draft, role="filer").first()
     if filer is None:
         return redirect("your_information", jurisdiction=jurisdiction)
@@ -242,12 +238,7 @@ def parties(request, jurisdiction):
     # two rows agree on the name; when they do not, replacing one name with
     # another is a question, and it is put below rather than done quietly.
     marked_self = self_claimed_party(draft)
-    if (
-        marked_self is not None
-        and marked_self.source not in {"court", "added"}
-        and party_can_be_the_filer(marked_self)
-        and names_match(filer, marked_self)
-    ):
+    if marked_self is not None and party_can_be_the_filer(marked_self) and names_match(filer, marked_self):
         claim_party_as_filer(draft, marked_self)
         filer.refresh_from_db()
 
@@ -261,11 +252,12 @@ def parties(request, jurisdiction):
                 .values_list("sort_order", flat=True)
                 .first()
             )
+            joins_court_case = draft.existing_case == ExistingCase.EXISTING
             party = FilingParty.objects.create(
                 draft=draft,
                 role="other",
-                source="added" if draft.existing_case == ExistingCase.EXISTING else "manual",
-                source_case_id=draft.previous_case_id if draft.existing_case == ExistingCase.EXISTING else "",
+                source="added" if joins_court_case else "manual",
+                source_case_id=draft.previous_case_id if joins_court_case else "",
                 sort_order=0 if last_order is None else last_order + 1,
             )
             draft.current_step = WorkflowStepKey.PARTY_DETAILS
@@ -285,11 +277,7 @@ def parties(request, jurisdiction):
                 )
                 return redirect(f"{_parties_url(jurisdiction, return_to)}#your-role")
             name_choice = request.POST.get("name_choice", "")
-            if (
-                party.source not in {"court", "added"}
-                and claim_replaces_a_name(filer, party)
-                and name_choice not in {"mine", "theirs"}
-            ):
+            if claim_replaces_a_name(filer, party) and name_choice not in {"mine", "theirs"}:
                 # Replacing a differently-named party changes who the court is
                 # told this case is about. Nobody should be able to do that by
                 # clicking one button, so the screen asks first and this is
@@ -301,7 +289,7 @@ def parties(request, jurisdiction):
                 return redirect(_parties_url(jurisdiction, return_to))
             claim_party_as_filer(draft, party, use_party_name=name_choice == "theirs")
             filer.refresh_from_db()
-            if party.source in {"court", "added"}:
+            if party.on_case_roster:
                 messages.success(
                     request, "You are linked to this party. Your account contact information stays separate."
                 )
@@ -340,7 +328,7 @@ def parties(request, jurisdiction):
             # Whether claiming this row is confirming who you are or replacing
             # somebody with a different name. The two are not the same action
             # and the screen does not call them the same thing.
-            "replaces_a_name": party.source not in {"court", "added"} and claim_replaces_a_name(filer, party),
+            "replaces_a_name": claim_replaces_a_name(filer, party),
             "claimable": party_can_be_the_filer(party),
         }
         for party in FilingParty.objects.filter(draft=draft)

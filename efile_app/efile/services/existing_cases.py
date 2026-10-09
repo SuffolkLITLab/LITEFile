@@ -6,6 +6,8 @@ enter the bounded snapshot; raw records and credentials are never persisted.
 """
 
 import re
+from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timedelta
 from urllib.parse import quote
 
 import requests
@@ -15,13 +17,41 @@ from django.utils import timezone
 
 from efile.models import FilingDraft, FilingParty
 from efile.party_sides import side_for_party_type_name
-from efile.services.fee_quotes import fee_inputs_token, invalidate_fee_quote
+from efile.services.drafts import ACTIVE_DRAFT_STATUSES
+from efile.services.fee_quotes import FEE_QUOTE_FIELDS, fee_inputs_token, invalidate_fee_quote
 from efile.utils.proxy_connection import get_headers
 from efile.workflow import ExistingCase
 
 
 class CaseImportError(ValueError):
     pass
+
+
+# Case fields the court's record decides; the draft mirrors them.
+SNAPSHOT_CASE_FIELDS = ("docket_number", "case_title", "case_category_code", "case_type_code")
+PARTY_FIELDS = (
+    "first_name",
+    "middle_name",
+    "last_name",
+    "suffix",
+    "organization_name",
+    "email",
+    "phone",
+    "address_line_1",
+    "address_line_2",
+    "city",
+    "state",
+    "zip_code",
+    "country",
+)
+PARTY_FIELD_LIMITS = {
+    key: FilingParty._meta.get_field(key).max_length
+    for key in (*PARTY_FIELDS, "external_party_id", "party_type", "party_type_name")
+}
+
+
+def docket_key(value):
+    return re.sub(r"[^a-z0-9]", "", value.lower())
 
 
 def unwrap(value):
@@ -47,6 +77,14 @@ def objects(value):
 
 def field(value, key):
     return next((text(item[key]) for item in objects(value) if item.get(key) is not None), "")
+
+
+def country_code(value):
+    value = value.upper()
+    if value in {"USA", "UNITED STATES", "UNITED STATES OF AMERICA"}:
+        return "US"
+    # FilingParty.country holds an ISO code; anything else is not identity.
+    return value if re.fullmatch(r"[A-Z]{2}", value) else ""
 
 
 def entity_id(entity, category="CASEPARTYID"):
@@ -82,7 +120,7 @@ def contacts(entity):
                     "city": text(address.get("locationCityName")),
                     "state": text(address.get("locationState")),
                     "zip_code": text(address.get("locationPostalCode")),
-                    "country": text(address.get("locationCountry")),
+                    "country": country_code(text(address.get("locationCountry"))),
                 }
             )
     return result
@@ -106,16 +144,15 @@ def entity_fields(entity):
 def normalize_case(raw, *, court, tracking_id, party_types, docket_number=""):
     case = unwrap(raw)
     lineage_ids = {
-        text(item.get("caseTrackingID"))
+        text(lineage.get("caseTrackingID"))
         for item in objects(case)
         if isinstance(item.get("caseLineageCase"), list)
-        for item in item["caseLineageCase"]
+        for lineage in map(unwrap, item["caseLineageCase"])
+        if isinstance(lineage, dict)
     }
     if not isinstance(case, dict) or tracking_id not in {text(case.get("caseTrackingID")), *lineage_ids}:
         raise CaseImportError("The court returned a different case. Search for your case again.")
-    if docket_number and re.sub(r"[^a-z0-9]", "", text(case.get("caseDocketID")).lower()) != re.sub(
-        r"[^a-z0-9]", "", docket_number.lower()
-    ):
+    if docket_number and docket_key(text(case.get("caseDocketID"))) != docket_key(docket_number):
         raise CaseImportError("The court returned a different case number. Search for your case again.")
     returned_court = field(
         next((x for x in objects(case) if "caseCourt" in x), {}).get("caseCourt"), "identificationID"
@@ -154,12 +191,10 @@ def normalize_case(raw, *, court, tracking_id, party_types, docket_number=""):
         entity = reference.get("ref")
         if not isinstance(entity, dict):
             continue
-        id_category = "CASEPARTYATTORNEYID"
-        attorney_id = entity_id(entity, id_category)
-        if not attorney_id:
-            id_category = "ATTORNEYID"
-            attorney_id = entity_id(entity, id_category)
-        if not attorney_id:
+        for id_category in ("CASEPARTYATTORNEYID", "ATTORNEYID"):
+            if attorney_id := entity_id(entity, id_category):
+                break
+        else:
             continue
         attorneys[attorney_id] = {
             "id": attorney_id,
@@ -169,8 +204,9 @@ def normalize_case(raw, *, court, tracking_id, party_types, docket_number=""):
         }
         for reference in references:
             ref = reference.get("ref")
-            if isinstance(ref, dict):
-                associations.setdefault(entity_id(ref), []).append(attorney_id)
+            # An unidentified reference would match every party without an ID.
+            if isinstance(ref, dict) and (represented_id := entity_id(ref)):
+                associations.setdefault(represented_id, []).append(attorney_id)
     parties, problems, seen = [], [], set()
     for index, wrapped in enumerate(augmentation["caseParticipant"]):
         participant = unwrap(wrapped)
@@ -186,28 +222,11 @@ def normalize_case(raw, *, court, tracking_id, party_types, docket_number=""):
         if party_id and party_id in seen:
             raise CaseImportError("The court returned conflicting party IDs. Retry loading the case.")
         seen.add(party_id)
-        values: dict[str, str] = {
-            key: ""
-            for key in (
-                "first_name",
-                "middle_name",
-                "last_name",
-                "suffix",
-                "organization_name",
-                "email",
-                "phone",
-                "address_line_1",
-                "address_line_2",
-                "city",
-                "state",
-                "zip_code",
-                "country",
-            )
-        }
+        values: dict[str, str] = {key: "" for key in PARTY_FIELDS}
         values.update(entity_fields(entity))
         values.update(external_party_id=party_id, party_type=role, party_type_name=types.get(role, ""))
         for key, value in values.items():
-            limit = FilingParty._meta.get_field(key).max_length
+            limit = PARTY_FIELD_LIMITS[key]
             if limit and len(value) > limit:
                 raise CaseImportError(
                     "The court returned party information that is too long to import. Contact support."
@@ -216,15 +235,12 @@ def normalize_case(raw, *, court, tracking_id, party_types, docket_number=""):
             problems.append(f"Party {index + 1} has no court party ID.")
         if role not in types:
             problems.append(f"Party {index + 1} has an unrecognized court role ({role or 'missing'}).")
-        if not (values.get("organization_name") or (values.get("first_name") and values.get("last_name"))):
+        if not (values["organization_name"] or (values["first_name"] and values["last_name"])):
             problems.append(f"Party {index + 1} has an incomplete court name.")
         attorney_ids = associations.get(party_id, [])
         parties.append(
             {
                 **values,
-                "external_party_id": party_id,
-                "party_type": role,
-                "party_type_name": types.get(role, ""),
                 "representation": {
                     "status": "represented" if attorney_ids else "unknown",
                     "attorneys": [attorneys[i] for i in attorney_ids],
@@ -263,8 +279,16 @@ def fetch_case(draft, token):
         f"{settings.EFSP_URL}/jurisdictions/{quote(draft.jurisdiction, safe='')}/cases/"
         f"courts/{quote(draft.court_code, safe='')}/cases/{quote(draft.previous_case_id, safe='')}"
     )
+    codes_url = (
+        f"{settings.EFSP_URL}/jurisdictions/{quote(draft.jurisdiction, safe='')}/codes/courts/"
+        f"{quote(draft.court_code, safe='')}/party_types"
+    )
     headers = get_headers()
     headers[f"tyler-token-{draft.jurisdiction}"] = token
+    # The role list does not depend on the case, so fetch both at once.
+    pool = ThreadPoolExecutor(max_workers=1)
+    pending_codes = pool.submit(requests.get, codes_url, headers=headers, timeout=15)
+    pool.shutdown(wait=False)
     try:
         response = requests.get(url, headers=headers, timeout=30)
         response.raise_for_status()
@@ -273,12 +297,7 @@ def fetch_case(draft, token):
         raise CaseImportError("We could not load the court's parties. Retry or sign in again.") from error
     # Classification and roles come from this response, not browser assertions.
     try:
-        codes = requests.get(
-            f"{settings.EFSP_URL}/jurisdictions/{draft.jurisdiction}/codes/courts/"
-            f"{quote(draft.court_code, safe='')}/party_types",
-            headers=headers,
-            timeout=15,
-        )
+        codes = pending_codes.result()
         codes.raise_for_status()
         types = codes.json()
         if not isinstance(types, list):
@@ -290,10 +309,13 @@ def fetch_case(draft, token):
             party_types=types,
             docket_number=draft.docket_number,
         )
+    except CaseImportError:
+        raise
     except (requests.RequestException, ValueError) as error:
-        if isinstance(error, CaseImportError):
-            raise
         raise CaseImportError("We could not verify the court's party roles. Retry loading the case.") from error
+    except (AttributeError, TypeError, KeyError) as error:
+        # The court's record had a shape normalize_case did not expect.
+        raise CaseImportError("We could not read the court's case. Retry loading the case.") from error
     snapshot.update(
         source_environment=settings.EFSP_URL, jurisdiction=draft.jurisdiction, retrieved_at=timezone.now().isoformat()
     )
@@ -302,37 +324,50 @@ def fetch_case(draft, token):
 
 @transaction.atomic
 def clear_case_import(draft):
-    draft.parties.filter(source__in=["court", "added"]).delete()
+    """Forget an imported court roster. Returns whether there was one.
+
+    New-case drafts are left alone: their filing-party and self choices
+    belong to the filer, not to an import.
+    """
+
+    roster = draft.parties.filter(source__in=FilingParty.CASE_ROSTER_SOURCES)
+    if not draft.existing_case_snapshot and not roster.exists():
+        return False
+    roster.delete()
     draft.parties.update(is_filing_party=False, is_self=False)
     draft.existing_case_snapshot = {}
     invalidate_fee_quote(draft, save=False)
-    draft.save(
-        update_fields=[
-            "existing_case_snapshot",
-            "quoted_fee_total",
-            "quoted_fee_breakdown",
-            "quoted_fee_fingerprint",
-            "updated_at",
-        ]
-    )
+    draft.save(update_fields=["existing_case_snapshot", *FEE_QUOTE_FIELDS, "updated_at"])
+    return True
+
+
+def _lock_case(draft, court, tracking_id):
+    """Lock the draft, which must be editable and still point at this case."""
+
+    current = FilingDraft.objects.select_for_update().get(pk=draft.pk)
+    if current.status not in ACTIVE_DRAFT_STATUSES:
+        raise CaseImportError("This filing can no longer be edited.")
+    if (current.court_code, current.previous_case_id, current.existing_case) != (
+        court,
+        tracking_id,
+        ExistingCase.EXISTING,
+    ):
+        raise CaseImportError("The selected case changed while loading. Reload your case.")
+    return current
 
 
 @transaction.atomic
 def apply_case(draft, snapshot):
-    current = FilingDraft.objects.select_for_update().get(pk=draft.pk)
-    if current.status not in {FilingDraft.Status.DRAFT, FilingDraft.Status.ERROR}:
-        raise CaseImportError("This filing can no longer be edited.")
-    if (current.court_code, current.previous_case_id, current.existing_case) != (
-        snapshot["court"],
-        snapshot["tracking_id"],
-        ExistingCase.EXISTING,
-    ):
-        raise CaseImportError("The selected case changed while loading. Reload your case.")
+    _apply_locked(_lock_case(draft, snapshot["court"], snapshot["tracking_id"]), snapshot)
+    draft.refresh_from_db()
+
+
+def _apply_locked(current, snapshot):
     if current.existing_case_snapshot.get("tracking_id") not in {None, snapshot["tracking_id"]}:
         clear_case_import(current)
     previous_fee_inputs = fee_inputs_token(current)
     # Extracted suggestions stay in extracted_guesses, not as duplicate parties.
-    current.parties.exclude(role="filer").exclude(source__in=["court", "added"]).delete()
+    current.parties.exclude(role="filer").exclude(source__in=FilingParty.CASE_ROSTER_SOURCES).delete()
     current.parties.filter(role="filer").update(party_type="", party_type_name="", is_filing_party=False)
     existing = {p.external_party_id: p for p in current.parties.filter(source="court") if p.external_party_id}
     keep = []
@@ -350,12 +385,11 @@ def apply_case(draft, snapshot):
         keep.append(party.pk)
     current.parties.filter(source="court").exclude(pk__in=keep).delete()
     current.existing_case_snapshot = snapshot
-    for key in ("docket_number", "case_title", "case_category_code", "case_type_code"):
+    for key in SNAPSHOT_CASE_FIELDS:
         setattr(current, key, snapshot[key])
     if fee_inputs_token(current) != previous_fee_inputs:
         invalidate_fee_quote(current, save=False)
     current.save()
-    draft.refresh_from_db()
 
 
 def import_ready(draft):
@@ -369,51 +403,56 @@ def import_ready(draft):
     )
 
 
-def load_case(draft, token, *, apply=True):
+SNAPSHOT_REUSE_WINDOW = timedelta(minutes=15)
+
+
+def reusable_snapshot(draft):
+    """An unconfirmed snapshot of this case recent enough to show or confirm."""
+
+    snapshot = draft.existing_case_snapshot or {}
+    if (
+        snapshot.get("status") not in {"loaded", "partial"}
+        or snapshot.get("court") != draft.court_code
+        or snapshot.get("tracking_id") != draft.previous_case_id
+        or snapshot.get("source_environment") != settings.EFSP_URL
+    ):
+        return False
+    try:
+        retrieved_at = datetime.fromisoformat(snapshot.get("retrieved_at", ""))
+    except (TypeError, ValueError):
+        return False
+    return timezone.now() - retrieved_at < SNAPSHOT_REUSE_WINDOW
+
+
+def load_case(draft, token):
+    """Fetch the court's case and store it as an unconfirmed preview."""
+
     try:
         snapshot = fetch_case(draft, token)
-        if apply:
-            apply_case(draft, snapshot)
-        else:
-            with transaction.atomic():
-                current = FilingDraft.objects.select_for_update().get(pk=draft.pk)
-                if (current.court_code, current.previous_case_id, current.existing_case) != (
-                    snapshot["court"],
-                    snapshot["tracking_id"],
-                    ExistingCase.EXISTING,
-                ) or current.status not in {FilingDraft.Status.DRAFT, FilingDraft.Status.ERROR}:
-                    raise CaseImportError("The selected case changed while loading. Reload your case.")
-                current.existing_case_snapshot = snapshot
-                current.save(update_fields=["existing_case_snapshot", "updated_at"])
-            draft.refresh_from_db()
-    except CaseImportError:
         with transaction.atomic():
-            current = FilingDraft.objects.select_for_update().get(pk=draft.pk)
-            if (current.court_code, current.previous_case_id, current.existing_case) == (
-                draft.court_code,
-                draft.previous_case_id,
-                ExistingCase.EXISTING,
-            ) and current.status in {FilingDraft.Status.DRAFT, FilingDraft.Status.ERROR}:
+            current = _lock_case(draft, snapshot["court"], snapshot["tracking_id"])
+            current.existing_case_snapshot = snapshot
+            current.save(update_fields=["existing_case_snapshot", "updated_at"])
+        draft.refresh_from_db()
+    except CaseImportError:
+        try:
+            with transaction.atomic():
+                current = _lock_case(draft, draft.court_code, draft.previous_case_id)
                 current.existing_case_snapshot = {
                     "status": "failed",
                     "court": current.court_code,
                     "tracking_id": current.previous_case_id,
                 }
                 invalidate_fee_quote(current, save=False)
-                current.save(
-                    update_fields=[
-                        "existing_case_snapshot",
-                        "quoted_fee_total",
-                        "quoted_fee_breakdown",
-                        "quoted_fee_fingerprint",
-                        "updated_at",
-                    ]
-                )
+                current.save(update_fields=["existing_case_snapshot", *FEE_QUOTE_FIELDS, "updated_at"])
+        except CaseImportError:
+            pass  # The draft moved on; there is no failed load of it to record.
         draft.refresh_from_db()
         raise
 
 
 def reconcile_case_parties(payload, draft, jurisdiction, court):
+    # efsp_payload imports this module; import its error lazily.
     from efile.services.efsp_payload import PayloadValidationError
 
     existing = bool(payload.get("previous_case_id")) or (draft and draft.existing_case == ExistingCase.EXISTING)
@@ -436,8 +475,11 @@ def reconcile_case_parties(payload, draft, jurisdiction, court):
         ("docket_number", "docket_number"),
     ):
         payload[wire] = getattr(draft, attr)
-    expected = {p.external_party_id: p for p in draft.parties.filter(source="court")}
-    expected.update({f"draft:{p.pk}": p for p in draft.parties.filter(source="added")})
+    expected = {
+        p.external_party_id if p.source == "court" else f"draft:{p.pk}": p
+        for p in draft.parties.filter(source__in=FilingParty.CASE_ROSTER_SOURCES)
+    }
+    verified_parties = {p["external_party_id"]: p for p in draft.existing_case_snapshot["parties"]}
     selected = {key for key, p in expected.items() if p.is_filing_party}
     if not selected:
         raise PayloadValidationError("Choose the existing party you are filing for.")
@@ -453,9 +495,7 @@ def reconcile_case_parties(payload, draft, jurisdiction, court):
                 )
             stored = expected[party_id]
             if stored.source == "court":
-                verified = next(
-                    (p for p in draft.existing_case_snapshot["parties"] if p["external_party_id"] == party_id), None
-                )
+                verified = verified_parties.get(party_id)
                 if verified is None or any(
                     getattr(stored, key) != verified.get(key, "")
                     for key in ("party_type", "first_name", "middle_name", "last_name", "suffix", "organization_name")
@@ -497,7 +537,7 @@ def reconcile_case_parties(payload, draft, jurisdiction, court):
                     "city": stored.city,
                     "state": stored.state,
                     "zip": stored.zip_code,
-                    "country": stored.country,
+                    "country": stored.country or "US",
                 }
             if collection == "users":
                 party["is_form_filler"] = False
@@ -512,13 +552,8 @@ def reconcile_case_parties(payload, draft, jurisdiction, court):
 
 @transaction.atomic
 def confirm_case(draft):
-    current = FilingDraft.objects.select_for_update().get(pk=draft.pk)
-    snapshot = current.existing_case_snapshot
-    if (current.court_code, current.previous_case_id, current.existing_case) != (
-        draft.court_code,
-        draft.previous_case_id,
-        ExistingCase.EXISTING,
-    ) or snapshot.get("status") != "loaded":
+    current = _lock_case(draft, draft.court_code, draft.previous_case_id)
+    if current.existing_case_snapshot.get("status") != "loaded":
         raise CaseImportError("The selected case changed while loading. Reload your case.")
-    apply_case(current, {**snapshot, "confirmed": True})
+    _apply_locked(current, {**current.existing_case_snapshot, "confirmed": True})
     draft.refresh_from_db()
