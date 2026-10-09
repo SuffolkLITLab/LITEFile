@@ -117,3 +117,60 @@ def test_case_confirmation_rejection_clears_result_and_returns_to_lookup(client,
     assert draft.docket_number == ""
     assert draft.case_title == ""
     assert draft.current_step == WorkflowStepKey.CASE_LOOKUP
+
+
+@pytest.mark.django_db
+def test_existing_case_confirmation_needs_no_classification_or_extra_parties(client, django_user_model):
+    from efile.tests.helpers import reviewed_document
+
+    draft = prepare_client(client, django_user_model)
+    reviewed_document(draft=draft, role="lead", name="motion.pdf")
+    response = client.post(
+        reverse("extraction_review", kwargs={"jurisdiction": "illinois"}),
+        {
+            "existing_case": "existing",
+            "case_category_code": "untrusted",
+            "case_type_code": "untrusted",
+            "filing_type_code": "untrusted",
+            "party_name": "Premature party",
+        },
+    )
+    assert response.status_code == 302
+    assert "case-lookup" in response.url
+    draft.refresh_from_db()
+    assert not draft.case_category_code
+    assert not draft.case_type_code
+    assert not draft.documents.get().filing_type_code
+    assert not draft.parties.exists()
+
+
+@pytest.mark.django_db
+def test_confirm_screen_cannot_edit_court_owned_identity(client, django_user_model):
+    from efile.tests.helpers import reviewed_document
+
+    draft = prepare_client(client, django_user_model)
+    draft.previous_case_id = "court-case"
+    draft.docket_number = "court-number"
+    draft.court_code = "court-code"
+    draft.case_category_code = "court-category"
+    draft.case_type_code = "court-type"
+    draft.save()
+    reviewed_document(draft=draft, role="lead", name="motion.pdf")
+    response = client.post(
+        reverse("extraction_review", kwargs={"jurisdiction": "illinois"}),
+        {
+            "existing_case": "existing",
+            "court_code": "tampered",
+            "docket_number": "tampered",
+            "case_category_code": "tampered",
+            "case_type_code": "tampered",
+        },
+    )
+    assert response.status_code == 302
+    draft.refresh_from_db()
+    assert (draft.court_code, draft.docket_number, draft.case_category_code, draft.case_type_code) == (
+        "court-code",
+        "court-number",
+        "court-category",
+        "court-type",
+    )
