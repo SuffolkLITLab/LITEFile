@@ -19,11 +19,10 @@ class DocumentReviewError(ValueError):
 
 
 def prepare_document_review(draft, handler):
-    """Prepare stored uploads and return the copies the filer can review."""
+    """Prepare stored uploads so the filer reviews the copies that will be filed."""
     from efile.services.document_uploads import prepare_stored_documents
 
     prepare_stored_documents(draft, handler)
-    return list(draft.documents.order_by("role", "sort_order", "pk"))
 
 
 def approve_document_review(draft, fingerprint):
