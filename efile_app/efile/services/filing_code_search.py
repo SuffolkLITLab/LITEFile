@@ -28,7 +28,7 @@ import snowballstemmer
 import yaml
 from django.conf import settings
 from django.contrib.postgres.search import SearchQuery, SearchVector
-from django.core.cache import cache
+from django.core.cache import cache, caches
 from django.db import connection, transaction
 from django.db.models import Case, Count, IntegerField, Max, Q, Value, When
 from django.db.models.expressions import RawSQL
@@ -37,8 +37,8 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from efile.db_expressions import CourtCode
-from efile.models import FilingCodeIndex, FilingCodePath
-from efile.services.case_location import locate
+from efile.models import FilingCodeIndex, FilingCodeLabel, FilingCodePath
+from efile.services.case_location import index_courts, locate
 from efile.services.case_type_guidance import (
     _money,
     case_guidance,
@@ -51,6 +51,7 @@ from efile.services.case_type_guidance import (
 from efile.services.case_type_guidance import case_topic as topic_of
 from efile.services.court_selection import heading_court_codes, is_non_filing_court
 from efile.services.filing_availability import filing_unavailable_message
+from efile.services.filing_code_labels import LabelCounts
 from efile.services.glossary import glossary_for
 
 FACETS = ("court", "case_category", "case_type", "filing_type")
@@ -453,8 +454,14 @@ def _refresh_index_legacy(jurisdiction, *, progress=None, cache_dir=None):
             if index.refreshed_at > started:
                 return 0
             index.paths.all().delete()
+            index.labels.all().delete()
+            labels = LabelCounts()
             saved = 0
-            while batch := [FilingCodePath(index=index, **json.loads(line)) for line in islice(snapshot, 500)]:
+            while entries := [json.loads(line) for line in islice(snapshot, 500)]:
+                batch = []
+                for entry in entries:
+                    labels.add(entry)
+                    batch.append(FilingCodePath(index=index, **entry))
                 FilingCodePath.objects.bulk_create(batch, batch_size=500)
                 saved += len(batch)
                 if progress and saved % 100000 == 0:
@@ -464,6 +471,8 @@ def _refresh_index_legacy(jurisdiction, *, progress=None, cache_dir=None):
             index.rules_digest = rules()[1]
             index.vocabulary = {"words": sorted(vocabulary), "tokens": sorted(indexed_terms), "courts": courts}
             index.court_snapshots = {}
+            labels.save(index)
+            index.labels_built_at = timezone.now()
             index.save()
     return count
 
@@ -646,6 +655,74 @@ def matching_paths(index, query, initial):
             scores[field] += Case(When(clause, then=Value(weight)), default=Value(0), output_field=IntegerField())
     paths = paths.annotate(name_score=scores["filing_terms"])
     return paths.annotate(score=scores["filing_terms"] + scores["case_terms"]), corrected
+
+
+def court_terms(index):
+    """Each court's search words, as its paths' search text holds them."""
+    key = (index.pk, index.refreshed_at)
+    if key not in _court_terms:
+        # One entry per jurisdiction's current index; older refreshes drop out.
+        for old in [old for old in _court_terms if old[0] == index.pk]:
+            del _court_terms[old]
+        _court_terms[key] = {
+            code: frozenset(search_tokens(name, index.jurisdiction)) | frozenset(stems(code))
+            for code, name in index_courts(index).items()
+        }
+    return _court_terms[key]
+
+
+_court_terms = {}
+
+
+def matching_labels(index, query, initial, courts=(), *, names=None, contexts=None):
+    """The labels of the paths matching_paths finds, each with its matching courts' path counts.
+
+    A path matches when every search word is in its label or its court's
+    name, so the courts a label counts depend on the words left for the
+    label to match. Most searches name no court: one query for every word.
+    """
+    resolved_query, corrected = corrected_search_query(index, query)
+    tokens = search_tokens(resolved_query, index.jurisdiction, query=True)
+    if not tokens:
+        return [], tokens, corrected
+    headings = heading_court_codes(index.jurisdiction)
+    required = {
+        code: frozenset(tokens) - words_in_name
+        for code, words_in_name in court_terms(index).items()
+        if code not in headings and (not courts or code in courts)
+    }
+    found = {}
+    for words_left in set(required.values()):
+        labels = FilingCodeLabel.objects.filter(index=index, initial=initial)
+        if names is not None:
+            labels = labels.filter(filing_type_name__in=names)
+        if contexts is not None:
+            labels = labels.filter(context_filter(contexts, ("case_category_name", "case_type_name")))
+        if not words_left:
+            # Only court words: every label of those courts.
+            labels = labels.filter(courts__has_any_keys=[code for code, left in required.items() if not left])
+        elif connection.vendor == "postgresql":
+            search = SearchQuery(" ".join(sorted(words_left)), config="simple")
+            labels = labels.alias(document=SearchVector("search_text", config="simple")).filter(document=search)
+        else:
+            for token in sorted(words_left):
+                labels = labels.filter(search_text__contains=f" {token} ")
+        for label in labels.iterator(chunk_size=2000):
+            if label.pk in found:
+                continue
+            label_words = set(label.search_text.split())
+            counts = {
+                code: count
+                for code, count in label.courts.items()
+                if code in required and required[code] <= label_words
+            }
+            if counts:
+                found[label.pk] = (label, counts)
+    return list(found.values()), tokens, corrected
+
+
+def label_score(terms, tokens, weight):
+    return sum(weight for token in tokens if f" {token} " in terms)
 
 
 def search_paths(index, query, *, initial=True, offset=0, limit=20, names=None, court=None, contexts=None, courts=()):
@@ -836,10 +913,10 @@ def case_context_key(category, case_type):
     return hashlib.sha256(json.dumps([words(category), words(case_type)]).encode()).hexdigest()[:24]
 
 
-def context_filter(labels):
+def context_filter(labels, fields=("case_category__name", "case_type__name")):
     condition = Q(pk__in=[])
     for category, case_type in {(label["category"], label["case_type"]) for label in labels}:
-        condition |= Q(case_category__name=category, case_type__name=case_type)
+        condition |= Q(**dict(zip(fields, (category, case_type), strict=True)))
     return condition
 
 
@@ -944,17 +1021,33 @@ def filing_groups(index, query, initial, courts=()):
     fingerprint = hashlib.sha256(
         f"{index.pk}:{index.refreshed_at}:{initial}:{query}:{courts}:{headings}".encode()
     ).hexdigest()
-    key = f"filing-groups-v9:{fingerprint}"
+    key = f"filing-groups-v10:{fingerprint}:{bool(index.labels_built_at)}"
+    # The court and case-type steps repeat the search that listed the groups,
+    # often in another worker or machine: keep results where all of them read.
     cached = cache.get(key)
+    if cached is None:
+        cached = caches["shared"].get(key)
+        if cached is not None:
+            cache.set(key, cached, timeout=300)
     if cached is not None:
         return cached
-    paths, corrected = matching_paths(index, query, initial)
-    if courts:
-        paths = paths.filter(court_code__in=courts)
-    labels = (
-        paths.order_by()
-        .values("filing_type__name", "case_category__name", "case_type__name")
-        .annotate(path_count=Count("pk"), rank=Max("score"), name_rank=Max("name_score"))
+    if index.labels_built_at:
+        labels, corrected = _label_rows(index, query, initial, courts)
+    else:
+        paths, corrected = matching_paths(index, query, initial)
+        if courts:
+            paths = paths.filter(court_code__in=courts)
+        labels = (
+            paths.order_by()
+            .values("filing_type__name", "case_category__name", "case_type__name")
+            .annotate(path_count=Count("pk"), rank=Max("score"), name_rank=Max("name_score"))
+        )
+    # Ties between case contexts keep this order, which neither query fixes.
+    labels = sorted(
+        labels,
+        key=lambda label: tuple(
+            str(label[field]) for field in ("filing_type__name", "case_category__name", "case_type__name")
+        ),
     )
     groups = {}
     for label in labels:
@@ -1002,7 +1095,27 @@ def filing_groups(index, query, initial, courts=()):
         corrected,
     )
     cache.set(key, result, timeout=300)
+    caches["shared"].set(key, result, timeout=300)
     return result
+
+
+def _label_rows(index, query, initial, courts):
+    """filing_groups' per-label rows, summed over the matching courts' paths."""
+    labels, tokens, corrected = matching_labels(index, query, initial, courts)
+    rows = []
+    for label, counts in labels:
+        name_rank = label_score(label.filing_terms, tokens, 8)
+        rows.append(
+            {
+                "filing_type__name": label.filing_type_name,
+                "case_category__name": label.case_category_name,
+                "case_type__name": label.case_type_name,
+                "path_count": sum(counts.values()),
+                "rank": name_rank + label_score(label.case_terms, tokens, 3),
+                "name_rank": name_rank,
+            }
+        )
+    return rows, corrected
 
 
 def count_groups(index, query, initial, courts, *, purpose, document, topic, case_filters, action, category):
@@ -1148,6 +1261,11 @@ def search_grouped_paths(
             contexts=contexts,
             courts=courts,
         )
+    if index.labels_built_at:
+        return {
+            "courts": _label_courts(index, query, initial, courts, group["_names"], contexts),
+            "corrected_terms": corrected,
+        }
     paths, _ = matching_paths(index, query, initial)
     if courts:
         paths = paths.filter(court_code__in=courts)
@@ -1163,6 +1281,16 @@ def search_grouped_paths(
         "courts": [{"code": str(row["court__code"]), "name": str(row["court__name"])} for row in courts],
         "corrected_terms": corrected,
     }
+
+
+def _label_courts(index, query, initial, courts, names, contexts):
+    labels = matching_labels(index, query, initial, courts, names=names, contexts=contexts)[0]
+    codes = {code for _, counts in labels for code in counts}
+    court_names = index_courts(index)
+    return sorted(
+        ({"code": code, "name": court_names.get(code, code)} for code in codes),
+        key=lambda court: (court["name"], court["code"]),
+    )
 
 
 def validate_path(path):

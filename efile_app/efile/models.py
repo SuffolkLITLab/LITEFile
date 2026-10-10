@@ -18,6 +18,9 @@ class FilingCodeIndex(models.Model):
     rules_digest = models.CharField(max_length=64)
     vocabulary = models.JSONField(default=dict)
     court_snapshots = models.JSONField(default=dict)
+    # Set once every court's labels are saved. Until then, search groups
+    # and courts are read from the paths table.
+    labels_built_at = models.DateTimeField(null=True, blank=True)
 
 
 class FilingCodePath(models.Model):
@@ -37,6 +40,33 @@ class FilingCodePath(models.Model):
 
     class Meta:
         indexes = [models.Index(models.F("index"), CourtCode("court"), name="filing_path_court")]
+
+
+class FilingCodeLabel(models.Model):
+    """One filing type, case category and case type by name, across every court that offers it.
+
+    Illinois repeats each label for 13 to 21 courts on average, as paths.
+    Searching labels first keeps the search off the much larger paths table
+    until a court is chosen.
+    """
+
+    # The unique (index, key) constraint serves lookups by index.
+    index = models.ForeignKey(FilingCodeIndex, on_delete=models.CASCADE, related_name="labels", db_index=False)
+    initial = models.BooleanField()
+    key = models.CharField(max_length=32)
+    filing_type_name = models.TextField()
+    case_category_name = models.TextField()
+    case_type_name = models.TextField()
+    # The words of the three names. A path's search text adds its court's words.
+    search_text = models.TextField()
+    filing_terms = models.TextField()
+    case_terms = models.TextField()
+    # Court code -> how many of its paths have this label. One map per label,
+    # not a row per court: Illinois has nearly a row per path that way.
+    courts = models.JSONField(default=dict)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["index", "key"], name="unique_filing_label_per_index")]
 
 
 class FilingCodeCourtCatalog(models.Model):

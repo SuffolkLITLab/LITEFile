@@ -6,14 +6,15 @@ from unittest.mock import Mock, patch
 
 import pytest
 import requests
-from django.core.cache import cache
+from django.core.cache import cache, caches
 from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.db import connection, transaction
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
+from django.utils import timezone
 
-from efile.models import FilingDocument, FilingDraft, FilingParty
+from efile.models import FilingCodeIndex, FilingDocument, FilingDraft, FilingParty
 from efile.services import court_selection
 from efile.services.filing_code_search import (
     CodeCatalog,
@@ -23,6 +24,7 @@ from efile.services.filing_code_search import (
     explanation_for,
     filing_facets,
     filing_group_key,
+    filing_groups,
     matching_paths,
     refresh_index,
     search_context,
@@ -1267,3 +1269,46 @@ def test_unreadable_court_lists_drop_nothing_and_are_not_refetched_per_search():
         assert court_selection.heading_court_codes("massachusetts") == frozenset()
     assert get.call_count == 1
     cache.clear()
+
+
+def test_labels_find_what_paths_find(catalog):
+    catalog.courts.return_value = [option(f"court-{i}", f"County {i}") for i in range(12)]
+    catalog.filings.side_effect = lambda court, category, case_type, initial: [
+        option(
+            f"filing-{court}", "Eviction Complaint" if int(court.split("-")[1]) % 2 else "Summary Process Complaint"
+        ),
+        option("motion", "Motion to Dismiss" if initial else "Motion to Vacate"),
+    ]
+    refresh_index("massachusetts")
+    index = current_index("massachusetts")
+
+    def results(labelled):
+        FilingCodeIndex.objects.filter(pk=index.pk).update(labels_built_at=timezone.now() if labelled else None)
+        cache.clear()
+        caches["shared"].clear()
+        current = current_index("massachusetts")
+        found = {}
+        for query in ("eviction", "County 7 eviction", "motion", "debt collection", "county", "zzzz"):
+            grouped = search_grouped_paths(current, query)
+            found[query] = (
+                grouped["groups"],
+                grouped["other_stage_total"],
+                [search_grouped_paths(current, query, group_key=g["key"])["courts"] for g in grouped["groups"]],
+                # A case ZIP limits the search to the courts serving it.
+                filing_groups(current, query, True, ("court-3", "court-7")),
+            )
+        return found
+
+    labelled = results(True)
+    assert labelled["County 7 eviction"][0][0]["path_count"] == 1
+    assert labelled["motion"][2][0]
+    assert results(False) == labelled
+
+
+def test_shared_cache_serves_another_worker(index):
+    search_grouped_paths(index, "eviction")
+    # Another worker's local cache is empty; the search is not repeated.
+    cache.clear()
+    with CaptureQueriesContext(connection) as queries:
+        search_grouped_paths(index, "eviction")
+    assert not [query for query in queries.captured_queries if "filingcodelabel" in query["sql"].lower()]
