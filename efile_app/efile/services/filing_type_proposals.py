@@ -15,9 +15,10 @@ def current_proposal(draft):
 
 def save_proposal(draft, name):
     previous = current_proposal(draft) or {}
+    name = str(name or "").strip()[:255]
     draft.filing_type_proposal = {
-        "name": str(name or "").strip()[:255],
-        "source": "user" if str(name or "").strip() != previous.get("name", "") else previous.get("source", "ai"),
+        "name": name,
+        "source": previous.get("source", "ai") if name == previous.get("name", "") else "user",
         "source_fingerprint": extraction_review_fingerprint(draft),
     }
     draft.save(update_fields=["filing_type_proposal", "updated_at"])

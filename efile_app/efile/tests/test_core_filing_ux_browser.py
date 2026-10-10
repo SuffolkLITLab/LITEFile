@@ -71,6 +71,10 @@ def test_existing_case_browser_matrix(live_server, django_user_model, tmp_path):
             "efile.services.court_selection.fetch_courts",
             return_value=[{"value": "336", "text": "Ayer District Court"}],
         ),
+        patch(
+            "efile.views.case_lookup.fetch_courts",
+            return_value=[{"value": "336", "text": "Ayer District Court"}],
+        ),
         patch("efile.views.case_confirmation.load_case", side_effect=load_case),
         patch("efile.views.case_filing_types.permitted_filing_types", return_value=choices),
         patch("efile.views.organize_documents.permitted_filing_types", return_value=choices),
