@@ -248,7 +248,7 @@ async function chooseFilingPath(page, value) {
  * Asking the selector endpoint for the route keeps state-specific court logic
  * out of the browser suite; the test still answers each rendered control.
  */
-async function selectGuidedCourt(page, jurisdiction, courtCode) {
+async function selectGuidedCourt(page, jurisdiction, courtCode, selectId = 'court_code') {
     const response = await page.request.get('/api/dropdowns/court-selector/', {
         params: {
             jurisdiction,
@@ -292,10 +292,12 @@ async function selectGuidedCourt(page, jurisdiction, courtCode) {
     const apply = selector.locator('[data-court-apply]');
     if (await apply.isVisible()) await apply.click();
 
-    await page.locator('#court_code').waitFor({
+    // The selector writes its answer into the page's own court <select>:
+    // court_code on Confirm information, court on Case lookup.
+    await page.locator(`#${selectId}`).waitFor({
         state: 'attached'
     });
-    await page.waitForFunction((expected) => document.getElementById('court_code')?.value === expected, courtCode, {
+    await page.waitForFunction(([id, expected]) => document.getElementById(id)?.value === expected, [selectId, courtCode], {
         timeout: 120000
     });
 }
