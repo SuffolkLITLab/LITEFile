@@ -52,7 +52,7 @@ def test_continue_records_preview_without_checkboxes_for_current_documents(clien
     doc = preview_draft.documents.get()
     redirect = client.get(url("extraction_review", preview_draft))
     assert redirect.status_code == 302 and "preview-documents" in redirect.url
-    with patch("efile.views.document_previews.prepare_stored_documents"):
+    with patch("efile.views.document_previews.prepare_document_review"):
         page = client.get(url("preview_documents", preview_draft))
     assert b'type="checkbox"' not in page.content
     assert b"check every page before you continue" in page.content
@@ -319,7 +319,7 @@ def test_accessibility_seed_starts_with_a_prepared_acknowledged_document(tmp_pat
 
 
 def test_change_files_keeps_where_the_filer_came_from(client, preview_draft):
-    with patch("efile.views.document_previews.prepare_stored_documents"):
+    with patch("efile.views.document_previews.prepare_document_review"):
         preview = client.get(url("preview_documents", preview_draft) + "&return_to=review").content.decode()
     assert 'upload-documents/?return_to=review"' in preview
     upload = client.get(url("upload_documents", preview_draft) + "&return_to=review").content.decode()
@@ -357,3 +357,22 @@ def test_handoff_detour_returns_to_its_list(client, preview_draft):
     organized(preview_draft)
     response = approve(client, preview_draft, return_to="handoff")
     assert response.url == reverse("handoff_review", args=[preview_draft.pk])
+
+
+@pytest.mark.parametrize("state", ["empty", "unprepared", "deleting", "stale"])
+def test_shared_review_rejects_unsafe_approval(preview_draft, state):
+    from efile.services.document_previews import DocumentReviewError, approve_document_review
+
+    fingerprint = preview_fingerprint(list(preview_draft.documents.all()))
+    if state == "empty":
+        preview_draft.documents.all().delete()
+    elif state == "unprepared":
+        preview_draft.documents.update(preparation="")
+    elif state == "deleting":
+        preview_draft.deletion_pending = True
+        preview_draft.save()
+    else:
+        preview_draft.documents.update(s3_key="replacement.pdf")
+    with pytest.raises(DocumentReviewError):
+        approve_document_review(preview_draft, fingerprint)
+    assert not preview_draft.documents.filter(preparation_reviewed_at__isnull=False).exists()
