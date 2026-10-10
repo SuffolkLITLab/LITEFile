@@ -64,7 +64,7 @@ def efile_payment(request, jurisdiction):
     documents = list(FilingDocument.objects.filter(draft=draft).order_by("role", "sort_order", "pk"))
     if any(not document.preparation for document in documents):
         # Legacy uploads need preparation before they can be checked inline.
-        # Preview handles preparation failures and offers replacement/retry.
+        # Confirm information handles preparation failures and offers replacement/retry.
         return redirect(with_return_to(get_step_url(WorkflowStepKey.EXTRACTION_REVIEW, jurisdiction), return_to))
     unchecked = [document for document in documents if document.preparation_reviewed_at is None]
     if request.method == "POST" and unchecked:

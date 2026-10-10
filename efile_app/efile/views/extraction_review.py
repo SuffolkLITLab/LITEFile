@@ -224,9 +224,7 @@ def extraction_review(request, jurisdiction):
         offered_roles = {role["id"] for role in _offered_filer_roles(request, jurisdiction)}
         filer_role = request.POST.get("filer_role", "")
 
-        if preview_error:
-            pass
-        elif availability_message:
+        if preview_error or availability_message:
             pass  # Show the persistent notice alongside the editable choices.
         elif needs_acknowledgement and request.POST.get("reviewed_extraction") != "yes":
             # Shown beside the checkbox rather than as a toast, so it stays put
