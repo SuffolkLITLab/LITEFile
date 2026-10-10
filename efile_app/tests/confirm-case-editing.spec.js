@@ -1682,7 +1682,8 @@ test.describe('guided court questions (Vermont-shaped)', () => {
         await page.locator('[data-change="unit"]').click();
         await page.locator('#court-step-unit').selectOption('vt:orange');
         await page.getByRole('button', {
-            name: /Confirm and continue/
+            name: 'Continue',
+            exact: true
         }).click();
 
         await expect(page).toHaveURL(new RegExp(`${PAGE}`));
@@ -1872,7 +1873,8 @@ test.describe('live filing availability', () => {
             await openSavedDraft(page);
             const notice = page.locator('#filing-availability-notice');
             const next = page.getByRole('button', {
-                name: 'Confirm and continue'
+                name: 'Continue',
+                exact: true
             });
             await expect(notice).toBeHidden();
             await field(page, name).edit.click();
@@ -1906,7 +1908,8 @@ test.describe('live filing availability', () => {
         await field(page, 'case_type').select.selectOption('987654');
         await expect(page.locator('#filing-availability-notice')).toHaveText(warning);
         await expect(page.getByRole('button', {
-            name: 'Confirm and continue'
+            name: 'Continue',
+            exact: true
         })).toBeDisabled();
     });
 
@@ -1946,7 +1949,8 @@ test.describe('live filing availability', () => {
         await expect.poll(() => lateDelivered).toBe(true);
         await expect(page.locator('#filing-availability-notice')).toHaveText(warning);
         await expect(page.getByRole('button', {
-            name: 'Confirm and continue'
+            name: 'Continue',
+            exact: true
         })).toBeDisabled();
     });
 

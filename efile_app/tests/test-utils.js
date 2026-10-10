@@ -192,7 +192,8 @@ async function continueFromExtractionReview(page, nextUrl = /\/(document-checkli
             timeout: 120000
         }),
         page.getByRole('button', {
-            name: /Confirm and continue/i
+            name: 'Continue',
+            exact: true
         }).click(),
     ]);
 }
