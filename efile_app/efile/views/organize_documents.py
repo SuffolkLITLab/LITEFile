@@ -104,14 +104,14 @@ def _save_document_details(draft, document_details, main_document_id, *, confirm
         document = documents[item["id"]]
         filing_type = str(item.get("filing_type") or "").strip()
         document_type = str(item.get("document_type") or "").strip()
+        if not filing_type:
+            raise ValueError(f"Choose a filing type for {document.name}.")
         if permitted is not None:
             if filing_type not in permitted:
                 raise ValueError(
                     "This filing type is not available for your confirmed case. Choose another filing type."
                 )
             item = {**item, "filing_type_name": permitted[filing_type]["text"]}
-        if not filing_type:
-            raise ValueError(f"Choose a filing type for {document.name}.")
         if not document_type:
             if filing_type not in document_types_by_filing_type:
                 document_types_by_filing_type[filing_type] = _court_document_types(draft, filing_type)

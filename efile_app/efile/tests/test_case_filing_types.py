@@ -51,7 +51,7 @@ def test_unverified_identity_does_not_query_filing_types(confirmed_case, state):
     get.assert_not_called()
 
 
-@pytest.mark.parametrize("selected,stale", [("initial-complaint", False), ("motion", True)])
+@pytest.mark.parametrize("selected,stale", [("initial-complaint", False), ("motion", True), ("", False)])
 def test_invalid_or_stale_choices_are_rejected_without_document_changes(confirmed_case, selected, stale):
     doc = confirmed_case.documents.get()
     with (
@@ -59,7 +59,7 @@ def test_invalid_or_stale_choices_are_rejected_without_document_changes(confirme
             "efile.views.organize_documents.permitted_filing_types",
             return_value=[{"value": "motion", "text": "Motion"}],
         ),
-        pytest.raises(ValueError),
+        pytest.raises(ValueError, match="Choose a filing type for" if not selected else None),
     ):
         _save_document_details(
             confirmed_case,
