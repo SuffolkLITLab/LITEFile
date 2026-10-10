@@ -221,7 +221,7 @@ async function selectByName(page, selector, name) {
     return value;
 }
 
-async function selectCourt(page, scenario) {
+async function selectCourt(page, scenario, selectId = 'court_code') {
     let courtCode = scenario.courtCode;
     if (!courtCode) {
         const response = await page.request.get('/api/dropdowns/courts/', {
@@ -234,7 +234,7 @@ async function selectCourt(page, scenario) {
         expect(payload.success).toBe(true);
         courtCode = resolveNamedOption(payload.data, scenario.courtName, `${JURISDICTION} courts`).value;
     }
-    await selectGuidedCourt(page, JURISDICTION, courtCode);
+    await selectGuidedCourt(page, JURISDICTION, courtCode, selectId);
     return courtCode;
 }
 
@@ -338,11 +338,15 @@ async function finishFiling(page, scenario, ordinal) {
     ]);
 
     console.log(`${scenario.label}: completing parties`);
+    // A new case asks the filer's own role; an existing one asks which of the
+    // court's recorded parties this filing is for.
     const filerRoles = page.locator('input[name="filer_party_type"]');
-    await expect(filerRoles).not.toHaveCount(0, {
+    const filingFor = page.locator('#filing-for:not([hidden]) input[name="filing_for"]');
+    await expect(filerRoles.or(filingFor).first()).toBeVisible({
         timeout: 120000
     });
-    await filerRoles.first().check();
+    if (await filerRoles.count()) await filerRoles.first().check();
+    else await filingFor.first().check();
     // Save keeps the filer on People to check the party list; only the
     // Continue button after that list moves on.
     await page.getByRole('button', {
@@ -482,7 +486,7 @@ async function runExistingCase(page, scenario, ordinal) {
     // An existing case's court is asked on Lookup, unless its number names it.
     await page.locator('#case-number').fill(scenario.caseNumber);
     if (!(await page.locator('#inferred-court:not([hidden])').isVisible())) {
-        const courtCode = await selectCourt(page, scenario);
+        const courtCode = await selectCourt(page, scenario, 'court');
         await expect(page.locator('#court')).toHaveValue(courtCode, {
             timeout: 120000
         });
