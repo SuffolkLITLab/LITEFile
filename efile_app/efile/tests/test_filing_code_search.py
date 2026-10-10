@@ -10,6 +10,7 @@ from django.core.cache import cache
 from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.db import connection, transaction
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 
 from efile.models import FilingDocument, FilingDraft, FilingParty
@@ -315,6 +316,23 @@ def test_sqlite_search_uses_full_text_index(index):
     assert 'search_text" LIKE' not in str(paths.query)
     # Neither SQL nor FTS query operators in user input can bypass scoping.
     assert search_paths(index, 'eviction OR "debt"')["total"] == 0
+
+
+def test_court_filters_use_the_indexed_court_code(catalog):
+    if connection.vendor != "sqlite":
+        pytest.skip("SQLite query text")
+    catalog.courts.return_value = [option("court-1", "County 1"), option("court-2", "County 2")]
+    refresh_index("massachusetts")
+    index = current_index("massachusetts")
+    group = search_grouped_paths(index, "eviction")["groups"][0]
+    with CaptureQueriesContext(connection) as queries:
+        detail = search_grouped_paths(index, "eviction", group_key=group["key"], court="court-1")
+    assert {path["court"]["code"] for path in detail["results"]} == {"court-1"}
+    sql = " ".join(query["sql"] for query in queries.captured_queries)
+    # A JSON key lookup (court__code) cannot use the (index, court code) index;
+    # on Postgres that read every path matching the words, in every jurisdiction.
+    assert "'$.code'" in sql
+    assert '$."code"' not in sql
 
 
 def test_sqlite_full_text_index_tracks_edits_deletes_and_rollback(index):

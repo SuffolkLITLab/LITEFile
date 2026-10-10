@@ -36,6 +36,7 @@ from django.utils import timezone
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
+from efile.db_expressions import CourtCode
 from efile.models import FilingCodeIndex, FilingCodePath
 from efile.services.case_location import locate
 from efile.services.case_type_guidance import (
@@ -605,10 +606,17 @@ def matching_paths(index, query, initial):
     resolved_query, corrected = corrected_search_query(index, query)
     tokens = search_tokens(resolved_query, index.jurisdiction, query=True)
     if not tokens:
-        return index.paths.none().annotate(score=Value(0)), []
+        return index.paths.none().alias(court_code=CourtCode("court")).annotate(score=Value(0)), []
     # A court that only heads the locations under it is refused by the e-filing
     # service, even when an older index imported filing codes for it.
-    paths = index.paths.filter(initial=initial).exclude(court__code__in=heading_court_codes(index.jurisdiction))
+    # Filter courts through court_code: court__code compiles to a jsonb
+    # comparison that the (index, court code) index cannot serve, and Postgres
+    # then reads every path that matches the words, in every jurisdiction.
+    paths = (
+        index.paths.filter(initial=initial)
+        .alias(court_code=CourtCode("court"))
+        .exclude(court_code__in=heading_court_codes(index.jurisdiction))
+    )
     if connection.vendor == "postgresql":
         search = SearchQuery(" ".join(sorted(tokens)), config="simple")
         paths = paths.annotate(document=SearchVector("search_text", config="simple")).filter(document=search)
@@ -646,9 +654,9 @@ def search_paths(index, query, *, initial=True, offset=0, limit=20, names=None, 
     if names is not None:
         paths = paths.filter(filing_type__name__in=names)
     if court:
-        paths = paths.filter(court__code=court)
+        paths = paths.filter(court_code=court)
     if courts:
-        paths = paths.filter(court__code__in=courts)
+        paths = paths.filter(court_code__in=courts)
     if contexts is not None:
         paths = paths.filter(context_filter(contexts))
     total = paths.count()
@@ -942,7 +950,7 @@ def filing_groups(index, query, initial, courts=()):
         return cached
     paths, corrected = matching_paths(index, query, initial)
     if courts:
-        paths = paths.filter(court__code__in=courts)
+        paths = paths.filter(court_code__in=courts)
     labels = (
         paths.order_by()
         .values("filing_type__name", "case_category__name", "case_type__name")
@@ -1142,7 +1150,7 @@ def search_grouped_paths(
         )
     paths, _ = matching_paths(index, query, initial)
     if courts:
-        paths = paths.filter(court__code__in=courts)
+        paths = paths.filter(court_code__in=courts)
     if contexts is not None:
         paths = paths.filter(context_filter(contexts))
     courts = (
