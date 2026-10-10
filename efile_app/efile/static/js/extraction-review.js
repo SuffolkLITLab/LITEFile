@@ -656,16 +656,10 @@
 
     }
 
-    // Only an existing case has a number: Tyler rejects one on a new case
-    // ("doesn't allow subsequent filing into non-indexed cases"), and a new
-    // case has none until the court opens it. The server drops it for a new
-    // case, so the value is kept here in case the filer switches back.
-    const docketField = document.getElementById("docket-number-field");
-
-    function updateDocketNumberVisibility() {
-        const existingCase = form.querySelector('input[name="existing_case"]:checked')?.value;
-        docketField.hidden = true;
-        const existing = existingCase === "existing";
+    // An existing case's court, classification and number come from the
+    // court's records on lookup, so only a new case is described here.
+    function updateCasePathSections() {
+        const existing = isExisting();
         const details = document.getElementById("new-case-details");
         details.hidden = existing;
         details.disabled = existing;
@@ -679,9 +673,9 @@
     }
 
     form.querySelectorAll('input[name="existing_case"]').forEach((radio) => {
-        radio.addEventListener("change", updateDocketNumberVisibility);
+        radio.addEventListener("change", updateCasePathSections);
     });
-    updateDocketNumberVisibility();
+    updateCasePathSections();
 
     // A choice changed on the page but never applied, or a list still on its
     // way, would reach the court as something the filer did not see.
