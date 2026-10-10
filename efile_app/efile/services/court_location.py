@@ -103,6 +103,11 @@ def _finder():
     return build_default_finder()
 
 
+def massachusetts_court_records():
+    """MACourts catalog rows, which map Trial Court identifiers to Tyler's."""
+    return _finder().catalog.records
+
+
 def _massachusetts_matches(place: str, court_types: list[str]) -> list[dict[str, Any]]:
     try:
         from macourts import Location

@@ -51,7 +51,7 @@ def test_unverified_identity_does_not_query_filing_types(confirmed_case, state):
     get.assert_not_called()
 
 
-@pytest.mark.parametrize("selected,stale", [("initial-complaint", False), ("motion", True)])
+@pytest.mark.parametrize("selected,stale", [("initial-complaint", False), ("motion", True), ("", False)])
 def test_invalid_or_stale_choices_are_rejected_without_document_changes(confirmed_case, selected, stale):
     doc = confirmed_case.documents.get()
     with (
@@ -59,7 +59,7 @@ def test_invalid_or_stale_choices_are_rejected_without_document_changes(confirme
             "efile.views.organize_documents.permitted_filing_types",
             return_value=[{"value": "motion", "text": "Motion"}],
         ),
-        pytest.raises(ValueError),
+        pytest.raises(ValueError, match="Choose a filing type for" if not selected else None),
     ):
         _save_document_details(
             confirmed_case,
@@ -95,3 +95,29 @@ def test_endpoint_uses_the_draft_instead_of_query_classification(client, confirm
         )
     assert response.status_code == 200
     assert choices.call_args.args[0].court_code == "court"
+
+
+def test_court_is_asked_before_the_draft_is_locked(confirmed_case):
+    doc = confirmed_case.documents.get()
+    events = []
+    lock = FilingDraft.objects.select_for_update
+
+    def choices(_draft):
+        events.append("court")
+        return [{"value": "motion", "text": "Motion"}]
+
+    def locking(*args, **kwargs):
+        events.append("lock")
+        return lock(*args, **kwargs)
+
+    with (
+        patch("efile.views.organize_documents.permitted_filing_types", side_effect=choices),
+        patch.object(FilingDraft.objects, "select_for_update", side_effect=locking),
+    ):
+        _save_document_details(
+            confirmed_case,
+            [{"id": doc.pk, "filing_type": "motion", "document_type": "public"}],
+            doc.pk,
+            confirmed_case_fingerprint=case_fingerprint(confirmed_case),
+        )
+    assert events[:2] == ["court", "lock"]

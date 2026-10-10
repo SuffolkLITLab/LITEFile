@@ -76,14 +76,31 @@ def _court_document_types(draft, filing_type):
     return choices
 
 
-@transaction.atomic
+def _check_case_unchanged(draft, confirmed_case_fingerprint):
+    if confirmed_case_fingerprint != case_fingerprint(draft):
+        raise ValueError("Your court case changed. Reload the filing types before continuing.")
+
+
 def _save_document_details(draft, document_details, main_document_id, *, confirmed_case_fingerprint=None):
-    draft = FilingDraft.objects.select_for_update().get(pk=draft.pk)
+    # The court is asked for this case's filing types before the draft is
+    # locked, so a slow response never holds the lock. The same check runs
+    # again under the lock, so the list still belongs to the case being saved.
     permitted = None
     if draft.existing_case == ExistingCase.EXISTING:
-        if confirmed_case_fingerprint != case_fingerprint(draft):
-            raise ValueError("Your court case changed. Reload the filing types before continuing.")
+        _check_case_unchanged(draft, confirmed_case_fingerprint)
         permitted = {option["value"]: option for option in permitted_filing_types(draft)}
+    _save_locked_document_details(draft, document_details, main_document_id, permitted, confirmed_case_fingerprint)
+
+
+@transaction.atomic
+def _save_locked_document_details(draft, document_details, main_document_id, permitted, confirmed_case_fingerprint):
+    draft = FilingDraft.objects.select_for_update().get(pk=draft.pk)
+    if draft.existing_case == ExistingCase.EXISTING:
+        if permitted is None:
+            raise ValueError("Your court case changed. Reload the filing types before continuing.")
+        _check_case_unchanged(draft, confirmed_case_fingerprint)
+    else:
+        permitted = None
     documents = {document.pk: document for document in FilingDocument.objects.select_for_update().filter(draft=draft)}
     if {item.get("id") for item in document_details} != set(documents):
         raise ValueError("The document list changed. Refresh the page and try again.")
@@ -104,14 +121,14 @@ def _save_document_details(draft, document_details, main_document_id, *, confirm
         document = documents[item["id"]]
         filing_type = str(item.get("filing_type") or "").strip()
         document_type = str(item.get("document_type") or "").strip()
+        if not filing_type:
+            raise ValueError(f"Choose a filing type for {document.name}.")
         if permitted is not None:
             if filing_type not in permitted:
                 raise ValueError(
                     "This filing type is not available for your confirmed case. Choose another filing type."
                 )
             item = {**item, "filing_type_name": permitted[filing_type]["text"]}
-        if not filing_type:
-            raise ValueError(f"Choose a filing type for {document.name}.")
         if not document_type:
             if filing_type not in document_types_by_filing_type:
                 document_types_by_filing_type[filing_type] = _court_document_types(draft, filing_type)

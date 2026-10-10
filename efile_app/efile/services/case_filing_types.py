@@ -42,7 +42,6 @@ def permitted_filing_types(draft):
                 "category_id": draft.case_category_code,
                 "type_id": draft.case_type_code,
             },
-            headers={},
             timeout=30,
         )
         response.raise_for_status()

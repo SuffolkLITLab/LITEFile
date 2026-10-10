@@ -7,7 +7,7 @@ we never assume the two systems use the same number.
 
 import re
 
-from efile.services.court_location import _finder, normalize_court_code
+from efile.services.court_location import massachusetts_court_records, normalize_court_code
 
 PROBATE_SITES = {
     "BA": "P72",
@@ -38,7 +38,7 @@ def infer_massachusetts_court(docket, courts, *, records=None):
         department = "Probate and Family Court"
     if not code:
         return None
-    records = _finder().catalog.records if records is None else records
+    records = massachusetts_court_records() if records is None else records
     candidates = {
         normalize_court_code(record.tyler_code)
         for record in records

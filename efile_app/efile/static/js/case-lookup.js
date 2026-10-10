@@ -75,6 +75,7 @@
     }
 
     const inferred = document.getElementById("inferred-court");
+    // The inferred court or the submit check asks for a court, not the browser.
     if (inferred) courtSelect.required = false;
     let inferenceGeneration = 0;
     let manualCourt = Boolean(selectedCourtCode);
@@ -93,7 +94,6 @@
             const court = result.success && result.court;
             inferred.hidden = !court;
             document.getElementById("manual-court-field").hidden = Boolean(court);
-            courtSelect.required = false;
             if (court) {
                 if (!Array.from(courtSelect.options).some(option => option.value === court.value)) {
                     courtSelect.add(new Option(court.text, court.value));
@@ -110,7 +110,6 @@
             if (generation !== inferenceGeneration) return;
             inferred.hidden = true;
             document.getElementById("manual-court-field").hidden = false;
-            courtSelect.required = false;
             if (inferredCode) courtSelect.value = "";
             inferredCode = "";
             availability.check();
@@ -122,7 +121,6 @@
             ++inferenceGeneration;
             inferred.hidden = true;
             document.getElementById("manual-court-field").hidden = false;
-            courtSelect.required = false;
             courtSelect.focus();
         });
         courtSelect.addEventListener("change", () => {
