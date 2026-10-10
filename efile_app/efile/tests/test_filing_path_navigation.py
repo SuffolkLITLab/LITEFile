@@ -293,7 +293,7 @@ def test_correcting_the_mistaken_new_case_keeps_the_draft_and_goes_to_case_looku
 
 
 @pytest.mark.django_db
-def test_a_filing_type_chosen_on_confirm_case_for_the_new_path_is_kept(signed_in):
+def test_a_premature_existing_case_filing_type_is_not_applied(signed_in):
     draft = start_from_menu(signed_in, ExistingCase.NEW)
     lead = lead_with_evidence(draft, phase="subsequent")
 
@@ -305,7 +305,7 @@ def test_a_filing_type_chosen_on_confirm_case_for_the_new_path_is_kept(signed_in
     )
 
     lead.refresh_from_db()
-    assert lead.filing_type_code == "answer-existing"
+    assert lead.filing_type_code == ""
 
 
 @pytest.mark.django_db

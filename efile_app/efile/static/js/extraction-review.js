@@ -5,6 +5,10 @@
 
     const context = JSON.parse(contextEl.textContent);
     const guesses = context.guesses || {};
+
+    function isExisting() {
+        return form.querySelector('input[name="existing_case"]:checked')?.value === "existing";
+    }
     const errorBox = document.getElementById("extraction-review-error");
     const acknowledgement = document.getElementById("reviewed_extraction");
     const acknowledgementError = document.getElementById("reviewed-extraction-error");
@@ -53,7 +57,9 @@
     const availability = window.filingAvailability.mount({
         form,
         notice: document.getElementById("filing-availability-notice"),
-        selection: () => ({
+        selection: () => isExisting() ? ({
+            jurisdiction: context.jurisdiction
+        }) : ({
             jurisdiction: context.jurisdiction,
             court: fields.court.select.value,
             case_category_name: apiUtils.selectedOptionText(fields.case_category.select),
@@ -580,7 +586,7 @@
     form.querySelectorAll('input[name="existing_case"]').forEach((radio) => {
         radio.addEventListener("change", () => {
             if (applyingSearch) return;
-            if (fields.court.select.value) loadList("case_category");
+            if (!isExisting() && fields.court.select.value) loadList("case_category");
         });
     });
 
@@ -649,21 +655,26 @@
         });
     }
 
-    // Only an existing case has a number: Tyler rejects one on a new case
-    // ("doesn't allow subsequent filing into non-indexed cases"), and a new
-    // case has none until the court opens it. The server drops it for a new
-    // case, so the value is kept here in case the filer switches back.
-    const docketField = document.getElementById("docket-number-field");
-
-    function updateDocketNumberVisibility() {
-        const existingCase = form.querySelector('input[name="existing_case"]:checked')?.value;
-        docketField.hidden = existingCase !== "existing";
+    // An existing case's court, classification and number come from the
+    // court's records on lookup, so only a new case is described here.
+    function updateCasePathSections() {
+        const existing = isExisting();
+        const details = document.getElementById("new-case-details");
+        details.hidden = existing;
+        details.disabled = existing;
+        const parties = document.getElementById("review-parties");
+        if (parties) {
+            parties.hidden = existing;
+            parties.disabled = existing;
+        }
+        document.getElementById("existing-case-next").hidden = !existing;
+        availability.check();
     }
 
     form.querySelectorAll('input[name="existing_case"]').forEach((radio) => {
-        radio.addEventListener("change", updateDocketNumberVisibility);
+        radio.addEventListener("change", updateCasePathSections);
     });
-    updateDocketNumberVisibility();
+    updateCasePathSections();
 
     // A choice changed on the page but never applied, or a list still on its
     // way, would reach the court as something the filer did not see.
@@ -693,6 +704,7 @@
     }
 
     form.addEventListener("submit", (event) => {
+        if (isExisting()) return;
         if (blockUnfinished(event)) return;
         const isNew = form.querySelector('input[name="existing_case"]:checked')?.value === "new";
         const missingCase = isNew && (!fields.court.select.value || !fields.case_category.select.value || !fields.case_type.select.value);
@@ -774,13 +786,25 @@
 
     // The guard blocks until a check runs. A guided selector with no court
     // chosen yet fires no change, so check once the courts are in place.
-    loadCourts().finally(() => {
-        availability.check();
-        window.filingCodeSearch?.mount({
-            jurisdiction: context.jurisdiction,
-            existingCase: existingCaseWire,
-            applyPath: applySearchPath,
-            zipShortcuts: context.zip_shortcuts || [],
+    let newCaseStarted = false;
+
+    function startNewCase() {
+        if (isExisting()) {
+            availability.check();
+            return;
+        }
+        if (newCaseStarted) return;
+        newCaseStarted = true;
+        loadCourts().finally(() => {
+            availability.check();
+            window.filingCodeSearch?.mount({
+                jurisdiction: context.jurisdiction,
+                existingCase: existingCaseWire,
+                applyPath: applySearchPath,
+                zipShortcuts: context.zip_shortcuts || [],
+            });
         });
-    });
+    }
+    form.querySelectorAll('input[name="existing_case"]').forEach(radio => radio.addEventListener("change", startNewCase));
+    startNewCase();
 })();

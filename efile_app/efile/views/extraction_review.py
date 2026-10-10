@@ -224,15 +224,23 @@ def extraction_review(request, jurisdiction):
         case_category_code = request.POST.get("case_category_code", "")
         case_type_code = request.POST.get("case_type_code", "")
 
-        availability_message = filing_unavailable_message(
-            jurisdiction,
-            court_code,
-            case_category=request.POST.get("case_category_name", ""),
-            case_type=request.POST.get("case_type_name", ""),
-            filing_types=[request.POST.get("filing_type_name", "")],
+        availability_message = (
+            ""
+            if existing_case == ExistingCase.EXISTING
+            else filing_unavailable_message(
+                jurisdiction,
+                court_code,
+                case_category=request.POST.get("case_category_name", ""),
+                case_type=request.POST.get("case_type_name", ""),
+                filing_types=[request.POST.get("filing_type_name", "")],
+            )
         )
 
-        offered_roles = {role["id"] for role in _offered_filer_roles(request, jurisdiction)}
+        offered_roles = (
+            {role["id"] for role in _offered_filer_roles(request, jurisdiction)}
+            if existing_case == ExistingCase.NEW
+            else set()
+        )
         filer_role = request.POST.get("filer_role", "")
 
         if availability_message:
@@ -267,32 +275,41 @@ def extraction_review(request, jurisdiction):
             path_change = change_filing_path(draft, existing_case)
             if path_change.changed and path_change.cleared:
                 messages.info(request, describe_path_change(path_change))
-            if clear_changed_classification(draft, court_code, case_category_code, case_type_code):
+            if existing_case == ExistingCase.NEW and clear_changed_classification(
+                draft, court_code, case_category_code, case_type_code
+            ):
                 messages.info(request, "Filing path changed. Check each document's filing options and fees again.")
-            write_case_data(
-                draft,
-                {
-                    "existing_case": existing_case,
-                    "court": court_code,
-                    "court_name": request.POST.get("court_name", ""),
-                    "case_category": case_category_code,
-                    "case_category_name": request.POST.get("case_category_name", ""),
-                    "case_type": case_type_code,
-                    "case_type_name": request.POST.get("case_type_name", ""),
-                    **_case_identity(existing_case, request.POST.get("docket_number", "")),
-                },
-                current_step=WorkflowStepKey.EXTRACTION_REVIEW,
-            )
-            _set_lead_filing_type(
-                draft,
-                request.POST.get("filing_type_code", ""),
-                request.POST.get("filing_type_name", ""),
-            )
+            if existing_case == ExistingCase.NEW:
+                write_case_data(
+                    draft,
+                    {
+                        "existing_case": existing_case,
+                        "court": court_code,
+                        "court_name": request.POST.get("court_name", ""),
+                        "case_category": case_category_code,
+                        "case_category_name": request.POST.get("case_category_name", ""),
+                        "case_type": case_type_code,
+                        "case_type_name": request.POST.get("case_type_name", ""),
+                        **_case_identity(existing_case, ""),
+                    },
+                    current_step=WorkflowStepKey.EXTRACTION_REVIEW,
+                )
+                _set_lead_filing_type(
+                    draft, request.POST.get("filing_type_code", ""), request.POST.get("filing_type_name", "")
+                )
+            else:
+                # Court-owned identity comes only from lookup/confirmation.
+                # Keep a number from an older Confirm form as a search term,
+                # but never allow that form to edit a confirmed court case.
+                values = {"existing_case": existing_case}
+                if not draft.previous_case_id:
+                    values["docket_number"] = request.POST.get("docket_number", draft.docket_number)
+                write_case_data(draft, values, current_step=WorkflowStepKey.EXTRACTION_REVIEW)
             # The people the document named, as the filer has now corrected
             # them. They are stored as sides here; the party screen turns each
             # side into this court's own party type once the case type it
             # depends on has been saved just above.
-            if show_party_editor:
+            if show_party_editor and existing_case == ExistingCase.NEW:
                 save_reviewed_parties(draft, party_rows)
             draft.extraction_review_fingerprint = extraction_review_fingerprint(draft)
             draft.save(update_fields=["extraction_review_fingerprint", "updated_at"])
