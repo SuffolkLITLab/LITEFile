@@ -653,7 +653,6 @@
             syncIsMeButtons();
             partyList.lastElementChild.querySelector('input[name="party_name"]').focus();
         });
-
     }
 
     // An existing case's court, classification and number come from the
