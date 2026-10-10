@@ -1,12 +1,15 @@
 import json
 
+import requests
 from django.contrib import messages
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
 
 from efile.api.suffolk_api_views import get_tyler_token
+from efile.services.court_selection import fetch_courts
 from efile.services.current_drafts import ensure_current_draft
+from efile.services.docket_courts import infer_massachusetts_court
 from efile.services.drafts import draft_snapshot, write_case_data
 from efile.workflow import (
     ExistingCase,
@@ -100,13 +103,8 @@ def docket_court(request, jurisdiction):
         return JsonResponse({"success": False}, status=401)
     if jurisdiction != "massachusetts":
         return JsonResponse({"success": True, "court": None})
-    import requests
-
-    from efile.services.court_selection import fetch_courts
-    from efile.services.docket_courts import infer_massachusetts_court
-
     try:
         court = infer_massachusetts_court(request.GET.get("docket_number", ""), fetch_courts(jurisdiction))
-    except (requests.RequestException, ValueError, ImportError):
+    except (requests.RequestException, ValueError):
         return JsonResponse({"success": False, "court": None}, status=503)
     return JsonResponse({"success": True, "court": court})

@@ -49,6 +49,6 @@ def test_inference_endpoint_requires_auth_and_returns_an_offered_court(client, d
     draft = FilingDraft.objects.create(user=user, jurisdiction="massachusetts")
     authorize(client, draft)
     offered = [{"value": "336", "text": "Ayer District Court"}]
-    with patch("efile.services.court_selection.fetch_courts", return_value=offered):
+    with patch("efile.views.case_lookup.fetch_courts", return_value=offered):
         response = client.get(url, {"docket_number": "1448CV001026"})
     assert response.json() == {"success": True, "court": offered[0]}
