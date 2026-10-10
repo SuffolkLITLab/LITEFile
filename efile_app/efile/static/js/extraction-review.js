@@ -647,7 +647,6 @@
             syncIsMeButtons();
             partyList.lastElementChild.querySelector('input[name="party_name"]').focus();
         });
-
     }
 
     // Only an existing case has a number: Tyler rejects one on a new case

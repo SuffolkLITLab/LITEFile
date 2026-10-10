@@ -204,8 +204,7 @@ def extraction_review(request, jurisdiction):
     # The acknowledgement is only asked for when the page shows something to
     # acknowledge, so the check below and the template both key off this.
     guesses = display_extracted_fields(draft.extracted_guesses or {})
-    already_confirmed = extraction_is_confirmed(draft)
-    needs_acknowledgement = bool(guesses) and not already_confirmed
+    needs_acknowledgement = bool(guesses) and not extraction_is_confirmed(draft)
     show_party_editor = bool(extracted_party_suggestions(draft.extracted_guesses)) or (
         request.method == "POST" and bool(party_rows)
     )
@@ -386,7 +385,6 @@ def extraction_review(request, jurisdiction):
         "lead_document": lead,
         "filing_draft": draft_snapshot(draft),
         "has_guesses": bool(guesses),
-        "already_confirmed": already_confirmed,
         "show_party_editor": show_party_editor,
         "document_summary_details": summary_details,
         "party_rows": party_rows,
