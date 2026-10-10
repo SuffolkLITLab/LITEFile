@@ -21,20 +21,37 @@
     });
     courtSelect.addEventListener("change", () => availability.check(courtSelect.closest(".form-field")));
 
-    async function mountCourtSelector() {
+    // Only Massachusetts shows this: its case numbers can name the court. The
+    // guided court questions wait until the number has not settled the court,
+    // so they never compete with an inferred one.
+    const inferred = document.getElementById("inferred-court");
+    const manualCourtField = document.getElementById("manual-court-field");
+    let selector = null;
+    let guidedCourt = false;
+    // A court published while the questions are being drawn is not the filer's
+    // own answer, so it does not stop the case number from settling the court.
+    let selectorStarting = false;
+
+    async function mountCourtSelector(courtCode) {
         const container = document.getElementById("court-selector");
-        if (apiUtils.getCurrentJurisdiction() === "massachusetts") return false;
         if (!container || !window.courtSelector) return false;
-        const selector = window.courtSelector.mount({
+        selector ||= window.courtSelector.mount({
             container,
             jurisdiction: apiUtils.getCurrentJurisdiction(),
             select: courtSelect,
         });
-        const started = await selector.start(selectedCourtCode || "", guessedCourt || "");
-        if (!started) {
-            container.remove();
-            return false;
+        selectorStarting = true;
+        let started;
+        try {
+            started = await selector.start(courtCode || "", guessedCourt || "");
+        } finally {
+            selectorStarting = false;
         }
+        if (!started) {
+            if (!guidedCourt) container.remove();
+            return guidedCourt;
+        }
+        guidedCourt = true;
         courtSelect.hidden = true;
         // Native validation cannot point at a hidden field, and the selector is
         // what asks for the court now, so the check moves into the submit below.
@@ -45,7 +62,7 @@
     async function loadCourts() {
         // Guided questions where the jurisdiction configures them, the flat
         // list everywhere else. Either way the answer lands in the same select.
-        if (await mountCourtSelector()) return;
+        if (!inferred && await mountCourtSelector(selectedCourtCode)) return;
         try {
             const response = await apiUtils.fetchJSON("/api/dropdowns/courts/", "GET", {
                 jurisdiction: apiUtils.getCurrentJurisdiction(),
@@ -74,13 +91,20 @@
         }
     }
 
-    const inferred = document.getElementById("inferred-court");
     // The inferred court or the submit check asks for a court, not the browser.
     if (inferred) courtSelect.required = false;
     let inferenceGeneration = 0;
     let manualCourt = Boolean(selectedCourtCode);
     let inferredCode = "";
     let inferenceTimer;
+
+    async function showManualCourt(courtCode = "") {
+        inferred.hidden = true;
+        if (!manualCourtField.hidden) return;
+        manualCourtField.hidden = false;
+        await mountCourtSelector(courtCode);
+    }
+
     async function inferCourt() {
         if (!inferred || manualCourt) return;
         const generation = ++inferenceGeneration;
@@ -92,47 +116,52 @@
             const result = await response.json();
             if (generation !== inferenceGeneration || manualCourt) return;
             const court = result.success && result.court;
-            inferred.hidden = !court;
-            document.getElementById("manual-court-field").hidden = Boolean(court);
             if (court) {
+                inferred.hidden = false;
+                manualCourtField.hidden = true;
                 if (!Array.from(courtSelect.options).some(option => option.value === court.value)) {
                     courtSelect.add(new Option(court.text, court.value));
                 }
                 courtSelect.value = court.value;
                 inferredCode = court.value;
                 document.getElementById("inferred-court-name").textContent = `${gettext("Court identified from your case number:")} ${court.text}`;
-            } else if (inferredCode) {
-                courtSelect.value = "";
+            } else {
+                if (inferredCode) courtSelect.value = "";
                 inferredCode = "";
+                await showManualCourt();
             }
             availability.check();
         } catch {
             if (generation !== inferenceGeneration) return;
-            inferred.hidden = true;
-            document.getElementById("manual-court-field").hidden = false;
             if (inferredCode) courtSelect.value = "";
             inferredCode = "";
+            await showManualCourt();
             availability.check();
         }
     }
     if (inferred) {
-        document.getElementById("change-inferred-court").addEventListener("click", () => {
+        document.getElementById("change-inferred-court").addEventListener("click", async () => {
             manualCourt = true;
             ++inferenceGeneration;
-            inferred.hidden = true;
-            document.getElementById("manual-court-field").hidden = false;
-            courtSelect.focus();
+            // The questions open on the inferred court, so changing it starts
+            // from what the filer was just shown.
+            await showManualCourt(inferredCode);
+            const firstQuestion = guidedCourt && manualCourtField.querySelector("#court-selector input, #court-selector select, #court-selector button");
+            (firstQuestion || courtSelect).focus();
         });
         courtSelect.addEventListener("change", () => {
+            if (selectorStarting) return;
             manualCourt = true;
             ++inferenceGeneration;
         });
         caseNumber.addEventListener("input", () => {
             ++inferenceGeneration;
             if (!manualCourt && inferredCode) {
+                // Wait for the new number to settle the court or not before
+                // asking for one.
                 courtSelect.value = "";
+                inferredCode = "";
                 inferred.hidden = true;
-                document.getElementById("manual-court-field").hidden = false;
             }
             clearTimeout(inferenceTimer);
             inferenceTimer = setTimeout(inferCourt, 250);
@@ -191,6 +220,7 @@
 
     loadCourts().then(() => {
         availability.check(courtSelect.closest(".form-field"));
-        inferCourt();
+        if (inferred && manualCourt) showManualCourt(selectedCourtCode);
+        else inferCourt();
     });
 })();
