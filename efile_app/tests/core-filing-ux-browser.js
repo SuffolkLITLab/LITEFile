@@ -40,8 +40,8 @@ async function main() {
                 });
                 let data = [];
                 if (endpoint.endsWith("courts/")) data = [{
-                    value: "336",
-                    text: "Ayer District Court"
+                    value: scenario.court,
+                    text: scenario.courtName
                 }];
                 if (endpoint.endsWith("document-types/")) data = [{
                     value: "public",
@@ -68,6 +68,15 @@ async function main() {
                     }
                 }
             }));
+            await page.route("**/api/get-filing-components/**", route => route.fulfill({
+                json: {
+                    success: true,
+                    data: []
+                }
+            }));
+            await page.route("**/your-information/**", route => route.fulfill({
+                body: "Saved synthetic filing"
+            }));
             await page.route("**/api/filing-availability/**", route => route.fulfill({
                 json: {
                     success: true,
@@ -79,6 +88,10 @@ async function main() {
                 await page.goto(config.baseUrl + scenario.url);
                 assert.equal(await page.locator("#new-case-details").isVisible(), false);
                 assert.equal(await page.locator("#review-parties").count(), 0);
+                await page.screenshot({
+                    path: path.join(config.evidence, `${scenario.name}-confirm.png`),
+                    fullPage: true
+                });
                 await page.locator("#reviewed_extraction").check();
                 await page.locator("#proposed-filing-type").fill(scenario.correction);
                 await page.getByRole("button", {
@@ -93,7 +106,7 @@ async function main() {
                         name: "Change court"
                     }).click();
                 }
-                await page.locator("#court").selectOption("336");
+                await page.locator("#court").selectOption(scenario.court);
                 await page.getByRole("button", {
                     name: "Find my case"
                 }).click();
@@ -119,10 +132,17 @@ async function main() {
                     assert.equal(await page.locator(".filing-type").inputValue(), "motion");
                 }
                 await page.locator(".filing-search").fill("motion");
-                await page.locator(".filing-search-results").getByRole("button", {
-                    name: "Motion",
-                    exact: true
-                }).click();
+                if (scenario.name === "modern") {
+                    await page.locator(".filing-search").press("Tab");
+                    await page.keyboard.press("Enter");
+                    assert.equal(await page.locator(".filing-type").evaluate(element => element === document.activeElement), true);
+                } else {
+                    await page.locator(".filing-search-results").getByRole("button", {
+                        name: "Motion",
+                        exact: true
+                    }).click();
+                }
+                assert.equal(await page.locator(".filing-suggestion-message").isVisible(), false);
                 await page.locator(".document-type-options input[value='public']").check();
                 const a11y = await new AxeBuilder({
                     page
@@ -138,6 +158,10 @@ async function main() {
                     name: "Save and continue"
                 }).click();
                 assert.equal((await saved).status(), 200);
+                await page.waitForURL(/your-information/);
+                await page.goto(config.baseUrl + scenario.url);
+                assert.equal(await page.locator("#reviewed_extraction").count(), 0);
+                assert.equal(await page.locator("#proposed-filing-type").inputValue(), scenario.correction);
                 assert.deepEqual(errors, []);
                 console.log(`${scenario.name} passed`);
             } catch (error) {

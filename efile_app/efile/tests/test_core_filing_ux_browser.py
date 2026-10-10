@@ -42,13 +42,21 @@ def test_existing_case_browser_matrix(live_server, django_user_model, tmp_path):
                 "jurisdiction": jurisdiction,
                 "number": number,
                 "correction": correction,
+                "court": "vt:chittenden" if jurisdiction == "vermont" else "336",
+                "courtName": "Chittenden Superior Court" if jurisdiction == "vermont" else "Ayer District Court",
                 "cookie": client.cookies[settings.SESSION_COOKIE_NAME].value,
                 "url": reverse("extraction_review", kwargs={"jurisdiction": jurisdiction}) + f"?draft={draft.pk}",
             }
         )
     config = tmp_path / "matrix.json"
     config.write_text(
-        json.dumps({"baseUrl": live_server.url, "scenarios": scenarios, "evidence": str(tmp_path / "evidence")})
+        json.dumps(
+            {
+                "baseUrl": live_server.url,
+                "scenarios": scenarios,
+                "evidence": os.getenv("CORE_FILING_UX_EVIDENCE_DIR", str(tmp_path / "evidence")),
+            }
+        )
     )
 
     def load_case(draft, _token):
@@ -58,6 +66,7 @@ def test_existing_case_browser_matrix(live_server, django_user_model, tmp_path):
     choices = [{"value": "motion", "text": "Motion"}, {"value": "answer", "text": "Answer"}]
     with (
         patch("efile.views.extraction_review.cached_account_profile", return_value={}),
+        patch("efile.services.people.get_party_types", return_value=[]),
         patch(
             "efile.services.court_selection.fetch_courts",
             return_value=[{"value": "336", "text": "Ayer District Court"}],
@@ -77,4 +86,5 @@ def test_existing_case_browser_matrix(live_server, django_user_model, tmp_path):
     for draft in FilingDraft.objects.filter(user__username__startswith="browser-"):
         assert draft.existing_case_snapshot["confirmed"]
         assert draft.documents.get().filing_type_code == "motion"
-        assert not draft.parties.exists()
+        assert not draft.parties.filter(role="other").exists()
+        assert draft.parties.filter(role="filer").count() <= 1

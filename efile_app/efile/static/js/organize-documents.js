@@ -410,6 +410,7 @@
             choices: filingTypes
         });
         filingType.addEventListener("change", async () => {
+            if (suggestionMessage && filingType.value) suggestionMessage.hidden = true;
             availability.check(filingType.closest(".form-field") || filingType.parentElement);
             card.dataset.documentType = "";
             card.dataset.filingComponent = "";
