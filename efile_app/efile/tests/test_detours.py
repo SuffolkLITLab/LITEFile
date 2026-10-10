@@ -11,6 +11,7 @@ import pytest
 from django.urls import reverse
 
 from efile.models import FilingDocument, FilingParty
+from efile.services.document_previews import preview_fingerprint
 from efile.services.drafts import read_upload_data, write_upload_data
 from efile.services.filing_path import change_filing_path
 from efile.tests.test_review_submit_flow import submission_draft as _submission_draft
@@ -150,8 +151,8 @@ def test_finding_a_case_on_a_handoff_detour_still_asks_to_confirm_it(client, dra
 def test_unchecked_files_on_a_detour_return_through_the_preview(client, draft):
     draft.documents.update(preparation_reviewed_at=None)
     response = client.get(step("extraction_review", draft, "handoff"))
-    assert path(response.url) == reverse("preview_documents", kwargs=J)
-    assert "return_to=handoff" in response.url
+    assert response.status_code == 200
+    assert response.context["return_to"] == "handoff"
 
 
 def test_switching_to_an_existing_case_from_review_finds_it_then_returns(client, draft):
@@ -168,6 +169,7 @@ def test_switching_to_an_existing_case_from_review_finds_it_then_returns(client,
                 "case_type_code": "contract",
                 "case_type_name": "Contract",
                 "reviewed_extraction": "yes",
+                "preview_fingerprint": preview_fingerprint(list(draft.documents.all())),
                 "return_to": "review",
             },
         )

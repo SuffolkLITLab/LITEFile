@@ -51,7 +51,7 @@ def case_review(request, jurisdiction):
     if message := draft_unavailable_message(draft):
         return unavailable_response(request, draft, message)
     if unreviewed_documents(draft).exists():
-        return redirect(with_return_to(get_step_url(WorkflowStepKey.PREVIEW_DOCUMENTS, jurisdiction), RETURN_TO_REVIEW))
+        return redirect(with_return_to(get_step_url(WorkflowStepKey.EXTRACTION_REVIEW, jurisdiction), RETURN_TO_REVIEW))
 
     if not appeal_answers_complete(draft):
         messages.error(request, "Complete the lower court information before reviewing your filing.")

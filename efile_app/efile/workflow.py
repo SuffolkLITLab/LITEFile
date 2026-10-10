@@ -120,7 +120,6 @@ FILING_WORKFLOW: tuple[WorkflowStep, ...] = (
         WorkflowStepKey.FILING_PATH, pgettext_lazy("workflow stage", "Start"), "filing_path", WorkflowStage.FILING
     ),
     WorkflowStep(WorkflowStepKey.UPLOAD_DOCUMENTS, _("Upload documents"), "upload_documents", WorkflowStage.UPLOAD),
-    WorkflowStep(WorkflowStepKey.PREVIEW_DOCUMENTS, _("Preview documents"), "preview_documents", WorkflowStage.UPLOAD),
     WorkflowStep(
         WorkflowStepKey.EXTRACTION_REVIEW,
         _("Confirm filing"),
@@ -163,6 +162,7 @@ FILING_WORKFLOW: tuple[WorkflowStep, ...] = (
 _STEPS_BY_KEY = {step.key: step for step in FILING_WORKFLOW}
 
 LEGACY_STEP_TARGETS = {
+    WorkflowStepKey.PREVIEW_DOCUMENTS: WorkflowStepKey.EXTRACTION_REVIEW,
     WorkflowStepKey.UPLOAD_FIRST: WorkflowStepKey.UPLOAD_DOCUMENTS,
     WorkflowStepKey.CASE_INFORMATION: WorkflowStepKey.EXTRACTION_REVIEW,
     WorkflowStepKey.DOCUMENTS: WorkflowStepKey.ORGANIZE_DOCUMENTS,
@@ -183,7 +183,8 @@ def get_workflow_step_choices() -> tuple[tuple[str, str | Promise], ...]:
 
 def get_step(step_key: WorkflowStepKey | str) -> WorkflowStep:
     try:
-        return _STEPS_BY_KEY[WorkflowStepKey(step_key)]
+        key = WorkflowStepKey(step_key)
+        return _STEPS_BY_KEY[LEGACY_STEP_TARGETS.get(key, key)]
     except (KeyError, ValueError) as exc:
         raise KeyError(f"Unknown workflow step: {step_key}") from exc
 

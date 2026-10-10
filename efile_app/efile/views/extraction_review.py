@@ -1,5 +1,6 @@
 import re
 
+from botocore.exceptions import BotoCoreError, ClientError
 from django.contrib import messages
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
@@ -11,7 +12,14 @@ from efile.services.account_profile import cached_account_profile
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.document_checklists import resolve_filer_roles
 from efile.services.document_extractions import extraction_for_document, extraction_is_waiting
-from efile.services.document_previews import unreviewed_documents
+from efile.services.document_preparation import PreparationError, PreparationUnavailable
+from efile.services.document_previews import (
+    DocumentReviewError,
+    approve_document_review,
+    prepare_document_review,
+    preview_fingerprint,
+    unreviewed_documents,
+)
 from efile.services.drafts import draft_snapshot, write_case_data
 from efile.services.extracted_parties import review_rows, save_reviewed_parties
 from efile.services.extraction_fields import display_extracted_fields, document_summary_details
@@ -22,6 +30,7 @@ from efile.services.filing_path import (
     describe_path_change,
     filing_path_conflict,
 )
+from efile.utils.s3_upload_handler import S3UploadHandler
 from efile.workflow import (
     ExistingCase,
     WorkflowStepKey,
@@ -146,6 +155,18 @@ def _case_identity(existing_case, docket_number):
     return {"docket_number": docket_number}
 
 
+def _document_approval_error(draft, request):
+    """Approve the displayed copies, or return the message and status saying why not."""
+    fingerprint = request.POST.get("preview_fingerprint")
+    if not fingerprint and not unreviewed_documents(draft).exists():
+        return None
+    try:
+        approve_document_review(draft, fingerprint)
+    except DocumentReviewError as exc:
+        return str(exc), exc.status
+    return None
+
+
 @require_http_methods(["GET", "POST"])
 def extraction_review(request, jurisdiction):
     if not request.user.is_authenticated or not get_tyler_token(request, jurisdiction):
@@ -161,12 +182,17 @@ def extraction_review(request, jurisdiction):
         messages.error(request, "Upload at least one document before reviewing the filing.")
         return redirect("upload_documents", jurisdiction=jurisdiction)
 
-    if unreviewed_documents(draft).exists():
-        # Checking files is a detour too: come back here, still on the way
-        # to wherever this screen was opened from.
-        return redirect(
-            with_return_to(get_step_url(WorkflowStepKey.PREVIEW_DOCUMENTS, jurisdiction), return_target(request))
-        )
+    preview_error = ""
+    status = 200
+    if request.method == "GET":
+        try:
+            prepare_document_review(draft, S3UploadHandler())
+        except PreparationUnavailable as exc:
+            preview_error, status = str(exc), 503
+        except PreparationError as exc:
+            preview_error, status = str(exc), 422
+        except (BotoCoreError, ClientError):
+            preview_error, status = "We could not load your files. Try again later.", 503
 
     lead = FilingDocument.objects.filter(draft=draft, role=FilingDocument.Role.LEAD).first()
     extraction = extraction_for_document(lead) if lead else None
@@ -223,6 +249,10 @@ def extraction_review(request, jurisdiction):
             # the side rather than the case, so there is nothing to show until
             # the filer says which side is theirs.
             messages.error(request, "Choose which side of this case you are on to continue.")
+        elif approval_error := _document_approval_error(draft, request):
+            # Last, so the files are only marked checked when the rest of the
+            # form is accepted along with them.
+            preview_error, status = approval_error
         else:
             if offered_roles and draft.filer_role != filer_role:
                 draft.filer_role = filer_role
@@ -346,7 +376,12 @@ def extraction_review(request, jurisdiction):
         document_title=guesses.get("document title", ""),
         chosen=chosen_existing_case,
     )
+    documents = list(FilingDocument.objects.filter(draft=draft).order_by("role", "sort_order", "pk"))
     context = {
+        "documents": documents,
+        "preview_fingerprint": preview_fingerprint(documents),
+        "preview_error": preview_error,
+        "preparation_pending": any(not doc.preparation for doc in documents),
         "is_logged_in": True,
         "availability_message": availability_message,
         "lead_document": lead,
@@ -378,4 +413,4 @@ def extraction_review(request, jurisdiction):
         "return_to": return_target(request),
     }
     context.update(get_workflow_context(WorkflowStepKey.EXTRACTION_REVIEW, jurisdiction, draft))
-    return render(request, "efile/extraction_review.html", context)
+    return render(request, "efile/extraction_review.html", context, status=status)

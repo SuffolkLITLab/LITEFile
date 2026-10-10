@@ -4,21 +4,14 @@ import logging
 from botocore.exceptions import BotoCoreError, ClientError
 from django.conf import settings
 from django.http import FileResponse, Http404, HttpResponse, HttpResponseBase
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect
 from django.views.decorators.http import require_http_methods
 
 from efile.api.suffolk_api_views import get_tyler_token
 from efile.models import FilingDocument
 from efile.services.current_drafts import ensure_current_draft, get_current_draft
-from efile.services.document_preparation import PreparationError, PreparationUnavailable
-from efile.services.document_previews import (
-    DocumentReviewError,
-    approve_document_review,
-    prepare_document_review,
-    preview_fingerprint,
-)
 from efile.utils.s3_upload_handler import S3UploadHandler
-from efile.workflow import WorkflowStepKey, continue_url, get_workflow_context, return_target
+from efile.workflow import WorkflowStepKey, get_step_url, return_target, with_return_to
 
 logger = logging.getLogger(__name__)
 
@@ -27,39 +20,10 @@ logger = logging.getLogger(__name__)
 def preview_documents(request, jurisdiction):
     if not request.user.is_authenticated or not get_tyler_token(request, jurisdiction):
         return redirect("efile_login", jurisdiction=jurisdiction)
-    draft = ensure_current_draft(request, jurisdiction, current_step=WorkflowStepKey.PREVIEW_DOCUMENTS)
-    if not FilingDocument.objects.filter(draft=draft).exists():
-        return redirect("upload_documents", jurisdiction=jurisdiction)
-    return_to = return_target(request)
-    error = ""
-    status = 200
-    if request.method == "GET":
-        try:
-            prepare_document_review(draft, S3UploadHandler())
-        except PreparationUnavailable as exc:
-            error, status = str(exc), 503
-        except PreparationError as exc:
-            error, status = str(exc), 422
-        except (BotoCoreError, ClientError):
-            error, status = "We could not load your files. Try again later.", 503
-    if request.method == "POST":
-        try:
-            approve_document_review(draft, request.POST.get("preview_fingerprint"))
-        except DocumentReviewError as exc:
-            error, status = str(exc), exc.status
-        else:
-            return redirect(continue_url(draft, jurisdiction, return_to, WorkflowStepKey.EXTRACTION_REVIEW))
-    documents = list(FilingDocument.objects.filter(draft=draft).order_by("role", "sort_order", "pk"))
-    context = {
-        "documents": documents,
-        "preview_fingerprint": preview_fingerprint(documents),
-        "preview_error": error,
-        "preparation_pending": any(not doc.preparation for doc in documents),
-        "return_to": return_to,
-        "is_logged_in": True,
-    }
-    context.update(get_workflow_context(WorkflowStepKey.PREVIEW_DOCUMENTS, jurisdiction, draft))
-    return render(request, "efile/preview_documents.html", context, status=status)
+    ensure_current_draft(request, jurisdiction, current_step=WorkflowStepKey.EXTRACTION_REVIEW)
+    return redirect(
+        with_return_to(get_step_url(WorkflowStepKey.EXTRACTION_REVIEW, jurisdiction), return_target(request))
+    )
 
 
 @require_http_methods(["GET"])

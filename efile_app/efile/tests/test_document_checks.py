@@ -133,7 +133,7 @@ def test_legacy_main_documents_recover_through_preparation(client, draft, page, 
     with patch("efile.views.document_checklist.draft_unavailable_message", return_value=""):
         response = getattr(client, method)(url)
     assert response.status_code == 302
-    assert response.url.partition("?")[0] == reverse("preview_documents", kwargs={"jurisdiction": draft.jurisdiction})
+    assert response.url.partition("?")[0] == reverse("extraction_review", kwargs={"jurisdiction": draft.jurisdiction})
     assert f"draft={draft.pk}" in response.url
     if return_to:
         assert f"return_to={return_to}" in response.url
@@ -143,7 +143,7 @@ def test_legacy_main_documents_recover_through_preparation(client, draft, page, 
     storage.s3_client.get_object.side_effect = lambda **_kwargs: {"Body": io.BytesIO(pdf_bytes())}
     storage.upload_file.return_value = {"success": True, "key": "prepared/filing.pdf"}
     storage.get_public_url.return_value = "https://synthetic.invalid/prepared.pdf"
-    with patch("efile.views.document_previews.S3UploadHandler", return_value=storage):
+    with patch("efile.views.extraction_review.S3UploadHandler", return_value=storage):
         prepared = client.get(response.url)
     assert prepared.status_code == 200
     lead.refresh_from_db()
@@ -151,7 +151,15 @@ def test_legacy_main_documents_recover_through_preparation(client, draft, page, 
     assert lead.preparation_reviewed_at is None
     approved = client.post(
         response.url,
-        {"preview_fingerprint": preview_fingerprint(list(draft.documents.all())), "return_to": return_to},
+        {
+            "preview_fingerprint": preview_fingerprint(list(draft.documents.all())),
+            "return_to": return_to,
+            "existing_case": draft.existing_case,
+            "court_code": draft.court_code,
+            "case_category_code": draft.case_category_code,
+            "case_type_code": draft.case_type_code,
+            "reviewed_extraction": "yes",
+        },
     )
     assert approved.status_code == 302
     lead.refresh_from_db()
