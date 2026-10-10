@@ -57,7 +57,7 @@ def test_continue_records_preview_without_checkboxes_for_current_documents(clien
     assert b"preview_fingerprint" in page.content
     doc.refresh_from_db()
     assert doc.preparation_reviewed_at is None
-    assert approve(client, preview_draft, preview_fingerprint="stale").status_code == 200
+    assert approve(client, preview_draft, preview_fingerprint="stale").status_code == 422
     doc.refresh_from_db()
     assert doc.preparation_reviewed_at is None
     assert approve(client, preview_draft).status_code == 302
@@ -197,7 +197,7 @@ def test_legacy_word_support_is_prepared_before_it_can_be_approved(client, previ
 
     write_upload_data(preview_draft, {"files": {"supporting": [{"s3_key": "legacy.docx", "name": "legacy.docx"}]}})
     supporting = preview_draft.documents.get(role="supporting")
-    assert approve(client, preview_draft).status_code == 200
+    assert approve(client, preview_draft).status_code == 422
     supporting.refresh_from_db()
     assert supporting.preparation_reviewed_at is None
     handler = MagicMock()
@@ -230,7 +230,7 @@ def test_legacy_rows_and_changed_preparation_cannot_bypass_submission(client, pr
     doc.original_s3_key = "new-original"
     doc.save()
     assert preview_fingerprint([doc]) != fingerprint
-    assert approve(client, preview_draft, preview_fingerprint=fingerprint).status_code == 200
+    assert approve(client, preview_draft, preview_fingerprint=fingerprint).status_code == 422
     doc.preparation = ""
     doc.save()
     with patch("efile.views.submission.forward_final_filing") as forward:
@@ -304,7 +304,7 @@ def test_legacy_pdf_is_flattened_and_cannot_be_acknowledged_after_preparation_fa
         response = client.get(url("extraction_review", preview_draft))
     assert response.status_code == 422
     assert b"Some answers are missing" in response.content
-    assert approve(client, preview_draft).status_code == 200
+    assert approve(client, preview_draft).status_code == 422
     doc.refresh_from_db()
     assert doc.preparation_reviewed_at is None
 
@@ -396,3 +396,9 @@ def test_all_documents_are_available_on_confirm(client, preview_draft):
     assert page.status_code == 200
     assert set(doc.pk for doc in page.context["documents"]) == set(preview_draft.documents.values_list("pk", flat=True))
     assert str(supporting.pk).encode() in page.content
+
+
+def test_a_rejected_form_leaves_the_files_unchecked(client, preview_draft):
+    response = approve(client, preview_draft, existing_case="")
+    assert response.status_code == 200
+    assert preview_draft.documents.get().preparation_reviewed_at is None

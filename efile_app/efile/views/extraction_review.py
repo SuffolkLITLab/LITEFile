@@ -155,6 +155,18 @@ def _case_identity(existing_case, docket_number):
     return {"docket_number": docket_number}
 
 
+def _document_approval_error(draft, request):
+    """Approve the displayed copies, or return the message and status saying why not."""
+    fingerprint = request.POST.get("preview_fingerprint")
+    if not fingerprint and not unreviewed_documents(draft).exists():
+        return None
+    try:
+        approve_document_review(draft, fingerprint)
+    except DocumentReviewError as exc:
+        return str(exc), exc.status
+    return None
+
+
 @require_http_methods(["GET", "POST"])
 def extraction_review(request, jurisdiction):
     if not request.user.is_authenticated or not get_tyler_token(request, jurisdiction):
@@ -181,11 +193,6 @@ def extraction_review(request, jurisdiction):
             preview_error, status = str(exc), 422
         except (BotoCoreError, ClientError):
             preview_error, status = "We could not load your files. Try again later.", 503
-    elif request.POST.get("preview_fingerprint") or unreviewed_documents(draft).exists():
-        try:
-            approve_document_review(draft, request.POST.get("preview_fingerprint"))
-        except DocumentReviewError as exc:
-            preview_error, status = str(exc), exc.status
 
     lead = FilingDocument.objects.filter(draft=draft, role=FilingDocument.Role.LEAD).first()
     extraction = extraction_for_document(lead) if lead else None
@@ -224,7 +231,7 @@ def extraction_review(request, jurisdiction):
         offered_roles = {role["id"] for role in _offered_filer_roles(request, jurisdiction)}
         filer_role = request.POST.get("filer_role", "")
 
-        if preview_error or availability_message:
+        if availability_message:
             pass  # Show the persistent notice alongside the editable choices.
         elif needs_acknowledgement and request.POST.get("reviewed_extraction") != "yes":
             # Shown beside the checkbox rather than as a toast, so it stays put
@@ -242,6 +249,10 @@ def extraction_review(request, jurisdiction):
             # the side rather than the case, so there is nothing to show until
             # the filer says which side is theirs.
             messages.error(request, "Choose which side of this case you are on to continue.")
+        elif approval_error := _document_approval_error(draft, request):
+            # Last, so the files are only marked checked when the rest of the
+            # form is accepted along with them.
+            preview_error, status = approval_error
         else:
             if offered_roles and draft.filer_role != filer_role:
                 draft.filer_role = filer_role

@@ -13,7 +13,7 @@ from efile.services.drafts import ACTIVE_DRAFT_STATUSES
 class DocumentReviewError(ValueError):
     """The displayed documents cannot be approved."""
 
-    def __init__(self, message, *, status=200):
+    def __init__(self, message, *, status=422):
         super().__init__(message)
         self.status = status
 
