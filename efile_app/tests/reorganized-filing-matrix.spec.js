@@ -22,8 +22,31 @@ const SAMPLE_PDF = path.resolve(__dirname, '../../testing/sample_test.pdf');
 
 test.skip(!process.env.RUN_FILING_MATRIX, 'Set RUN_FILING_MATRIX=1 to create filings in the test EFSP.');
 
+// One state per run; each state signs in with its own test account.
+const JURISDICTION = process.env.FILING_MATRIX_JURISDICTION || 'illinois';
+const ADDRESS = {
+    illinois: {
+        city: 'Springfield',
+        state: 'IL',
+        zip_code: '62701',
+        phone: '2175550100'
+    },
+    massachusetts: {
+        city: 'Boston',
+        state: 'MA',
+        zip_code: '02108',
+        phone: '6175550100'
+    },
+    vermont: {
+        city: 'Montpelier',
+        state: 'VT',
+        zip_code: '05602',
+        phone: '8025550100'
+    },
+} [JURISDICTION];
+
 // Match the names filers see; provider codes may change when a choice is re-created.
-const scenarios = [{
+const illinoisScenarios = [{
     label: 'Adams adoption complaint',
     courtName: 'Adams County',
     categoryName: 'Adoption',
@@ -145,7 +168,7 @@ const scenarios = [{
     filingTypeName: 'Complaint'
 }];
 
-const existingCaseScenarios = [{
+const illinoisExistingCaseScenarios = [{
     label: 'Existing Sangamon small-claims case',
     courtName: 'Sangamon County',
     caseNumber: '2019SC999999'
@@ -154,6 +177,25 @@ const existingCaseScenarios = [{
     courtName: 'Kankakee - Civil',
     caseNumber: '20250527-ITK-IL-2'
 }, ];
+
+// Courts are given by code where their names are long or repeated; the
+// filing type is left to the first one the court offers.
+const scenarios = {
+    illinois: illinoisScenarios,
+    massachusetts: [{
+        label: 'Ayer District Court small claim',
+        courtCode: '336',
+        categoryName: 'Small Claims',
+        caseTypeName: 'Small Claims $500 or less'
+    }],
+    vermont: [{
+        label: 'Chittenden civil collection',
+        courtCode: 'sc:chittendon',
+        categoryName: 'Civil',
+        caseTypeName: 'Collection - Non-Credit Card'
+    }],
+} [JURISDICTION];
+const existingCaseScenarios = JURISDICTION === 'illinois' ? illinoisExistingCaseScenarios : [];
 
 async function namedOptionValue(select, name) {
     await expect(select).toBeEnabled({
@@ -179,18 +221,21 @@ async function selectByName(page, selector, name) {
     return value;
 }
 
-async function selectCourtByName(page, name) {
-    const response = await page.request.get('/api/dropdowns/courts/', {
-        params: {
-            jurisdiction: 'illinois'
-        }
-    });
-    expect(response.ok()).toBe(true);
-    const payload = await response.json();
-    expect(payload.success).toBe(true);
-    const court = resolveNamedOption(payload.data, name, 'Illinois courts');
-    await selectGuidedCourt(page, 'illinois', court.value);
-    return court.value;
+async function selectCourt(page, scenario) {
+    let courtCode = scenario.courtCode;
+    if (!courtCode) {
+        const response = await page.request.get('/api/dropdowns/courts/', {
+            params: {
+                jurisdiction: JURISDICTION
+            }
+        });
+        expect(response.ok()).toBe(true);
+        const payload = await response.json();
+        expect(payload.success).toBe(true);
+        courtCode = resolveNamedOption(payload.data, scenario.courtName, `${JURISDICTION} courts`).value;
+    }
+    await selectGuidedCourt(page, JURISDICTION, courtCode);
+    return courtCode;
 }
 
 async function completeParty(page, ordinal) {
@@ -208,11 +253,8 @@ async function completeParty(page, ordinal) {
         first_name: `Alex${ordinal}`,
         last_name: `Respondent${ordinal}`,
         address_line_1: `${100 + ordinal} Test Avenue`,
-        city: 'Springfield',
-        state: 'IL',
-        zip_code: '62701',
+        ...ADDRESS,
         email: `party${ordinal}@example.com`,
-        phone: '2175550100',
     });
     await Promise.all([
         page.waitForURL(/\/(party-details|case-questions|payment)\//, {
@@ -285,11 +327,8 @@ async function finishFiling(page, scenario, ordinal) {
         first_name: 'Quinn',
         last_name: `Matrix${ordinal}`,
         address_line_1: `${ordinal} Regular Street`,
-        city: 'Springfield',
-        state: 'IL',
-        zip_code: '62701',
+        ...ADDRESS,
         email: 'efile-test@example.com',
-        phone: '2175550100',
     });
     await Promise.all([
         page.waitForURL(/\/parties\//),
@@ -391,7 +430,7 @@ async function finishFiling(page, scenario, ordinal) {
 async function startFiling(page, path) {
     // The options screen (and the header menu) start a filing that already
     // knows which kind it is, so there is no filing-path screen to answer.
-    await page.goto('/jurisdiction/illinois/options/');
+    await page.goto(`/jurisdiction/${JURISDICTION}/options/`);
     const form = page.locator(`form[action$="/start-filing/"]:has(input[name="existing_case"][value="${path}"])`);
     await Promise.all([
         page.waitForURL(/\/upload-documents\//),
@@ -416,11 +455,11 @@ async function runNewCase(page, scenario, ordinal) {
     await continueFromUpload(page);
 
     console.log(`${scenario.label}: selecting case codes`);
-    await selectCourtByName(page, scenario.courtName);
+    await chooseFilingPath(page, 'new');
+    await selectCourt(page, scenario);
     await selectByName(page, '#case_category_code', scenario.categoryName);
     await selectByName(page, '#case_type_code', scenario.caseTypeName);
-    await selectByName(page, '#filing_type_code', scenario.filingTypeName);
-    await chooseFilingPath(page, 'new');
+    if (scenario.filingTypeName) await selectByName(page, '#filing_type_code', scenario.filingTypeName);
     await continueFromExtractionReview(page, /\/document-checklist\//);
 
     await finishFiling(page, scenario, ordinal);
@@ -438,15 +477,16 @@ async function runExistingCase(page, scenario, ordinal) {
     });
     await continueFromUpload(page);
 
-    const courtCode = await selectCourtByName(page, scenario.courtName);
     await chooseFilingPath(page, 'existing');
     await continueFromExtractionReview(page, /\/case-lookup\//);
-    // Confirm case already saved the court. The guided picker on Lookup hides
-    // its backing select, so wait for the saved value rather than clicking it.
-    await expect(page.locator('#court')).toHaveValue(courtCode, {
-        timeout: 120000
-    });
+    // An existing case's court is asked on Lookup, unless its number names it.
     await page.locator('#case-number').fill(scenario.caseNumber);
+    if (!(await page.locator('#inferred-court:not([hidden])').isVisible())) {
+        const courtCode = await selectCourt(page, scenario);
+        await expect(page.locator('#court')).toHaveValue(courtCode, {
+            timeout: 120000
+        });
+    }
     const lookupOutcome = await Promise.race([
         page.waitForURL(/\/case-confirmation\//, {
             timeout: 180000
@@ -488,7 +528,7 @@ test.beforeEach(async ({
     page
 }) => {
     test.setTimeout(600000);
-    const config = getTestConfig();
+    const config = getTestConfig(JURISDICTION);
     await loginViaLoginPage(page, config);
     page.on('pageerror', error => console.error(`PAGE ERROR: ${error.message}`));
 });
