@@ -30,7 +30,9 @@
                 </p>
             {% endif %}
             <div class="lookup-fields">
-                <div class="form-field" id="manual-court-field">
+                <div class="form-field"
+                     id="manual-court-field"
+                     {% if jurisdiction == "massachusetts" %}hidden{% endif %}>
                     <span>{% translate "Court" %}</span>
                     {# Filled in by court-selector.js where the jurisdiction configures guided questions. The select below keeps carrying the answer either way. #}
                     <div class="court-selector" id="court-selector"></div>
