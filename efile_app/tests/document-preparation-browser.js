@@ -33,6 +33,12 @@ async function main() {
             }
         })
     );
+    await page.route("**/case-filing-types/**", route => route.fulfill({
+        json: {
+            success: true,
+            data: []
+        }
+    }));
     const errors = [];
     page.on("console", (message) => {
         if (["warning", "error"].includes(message.type())) console.log(message.text());
@@ -101,14 +107,13 @@ async function main() {
             )
         );
         assert.equal(await page.locator('input[type="checkbox"]').count(), 0);
-        await page.locator('input[name="existing_case"][value="existing"]').check();
         await page
             .getByRole("button", {
                 name: "Continue",
                 exact: true
             })
             .click();
-        await page.waitForURL(/case-lookup/);
+        await page.waitForURL(/case-(lookup|confirmation)/);
         await page.goto(config.baseUrl + config.organizeUrl);
         assert.match(page.url(), /organize-documents/);
         assert.equal(await page.locator("h1").innerText(), "Organize your documents");

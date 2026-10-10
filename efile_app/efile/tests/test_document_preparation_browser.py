@@ -34,9 +34,17 @@ def test_real_conversion_and_browser_previews(live_server, client, django_user_m
         jurisdiction="vermont",
         workflow_version=2,
         ai_assistance_opted_out=True,
+        existing_case="existing",
+        previous_case_id="synthetic-case-id",
+        docket_number="synthetic-number",
+        case_category_code="synthetic-category",
         court_code="synthetic-court",
         case_type_code="synthetic-case",
     )
+    from efile.tests.helpers import loaded_case_snapshot
+
+    draft.existing_case_snapshot = loaded_case_snapshot(draft)
+    draft.save()
     FilingParty.objects.create(
         draft=draft, role="filer", is_filing_party=True, first_name="Jordan", last_name="Example"
     )
@@ -88,6 +96,7 @@ def test_real_conversion_and_browser_previews(live_server, client, django_user_m
     with (
         patch("efile.services.document_uploads.S3UploadHandler", return_value=handler),
         patch("efile.views.document_previews.S3UploadHandler", return_value=handler),
+        patch("efile.views.extraction_review.S3UploadHandler", return_value=handler),
         patch("efile.services.document_uploads.queue_document_extraction"),
         patch("efile.services.people.get_party_types", return_value=[]),
         patch("efile.views.payment.estimate_fees", return_value={}),

@@ -666,6 +666,11 @@
         const existingCase = form.querySelector('input[name="existing_case"]:checked')?.value;
         docketField.hidden = true;
         const existing = existingCase === "existing";
+        const proposal = document.getElementById("filing-proposal");
+        if (proposal) {
+            proposal.hidden = !existing;
+            proposal.disabled = !existing;
+        }
         const details = document.getElementById("new-case-details");
         details.hidden = existing;
         details.disabled = existing;

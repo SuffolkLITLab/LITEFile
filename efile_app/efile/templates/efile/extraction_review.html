@@ -263,6 +263,21 @@
                     </button>
                 </fieldset>
             {% endif %}
+            {% if filing_type_proposal %}
+                <fieldset class="form-field"
+                          id="filing-proposal"
+                          {% if chosen_existing_case != "existing" %}hidden disabled{% endif %}>
+                    <legend class="visually-hidden">{% translate "Provisional suggestion" %}</legend>
+                    <label for="proposed-filing-type">{% translate "Suggested filing type (provisional)" %}</label>
+                    <input class="form-control"
+                           id="proposed-filing-type"
+                           name="proposed_filing_type"
+                           value="{{ filing_type_proposal.name }}"
+                           maxlength="255"
+                           aria-describedby="proposed-filing-type-help" />
+                    <p id="proposed-filing-type-help" class="form-help">{% translate "Correct this suggestion if needed. We will check it against the filing types allowed for your case. You can also choose a type when you organize your documents." %}</p>
+                </fieldset>
+            {% endif %}
             {% comment %}
             First, because the rest depends on it: the court lists different
             filing types for new and existing cases, and only an existing case

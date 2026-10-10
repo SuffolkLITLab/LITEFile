@@ -32,6 +32,7 @@
     // it -- see efile/utils/ui_text.py.
     const text = context.text || {};
     let filingTypes = null;
+    let filingSuggestion = null;
     const availability = window.filingAvailability.mount({
         form,
         notice: document.getElementById("filing-availability-notice"),
@@ -176,6 +177,7 @@
         if (!response.ok || !result.success) {
             throw new Error(result.error || "The court's document choices could not be loaded.");
         }
+        if (result.suggestion) filingSuggestion = result.suggestion;
         return result.data || [];
     }
 
@@ -380,7 +382,23 @@
 
     async function initializeCard(card) {
         const filingType = card.querySelector(".filing-type");
-        setOptions(filingType, await loadFilingTypes(), card.dataset.filingType, "Choose a filing type");
+        const options = await loadFilingTypes();
+        let selected = card.dataset.filingType;
+        const suggestionMessage = card.querySelector(".filing-suggestion-message");
+        if (suggestionMessage && !selected && filingSuggestion && filingSuggestion.status !== "none") {
+            suggestionMessage.hidden = false;
+            if (filingSuggestion.status === "matched") {
+                selected = filingSuggestion.value;
+                suggestionMessage.textContent = interpolate(gettext("Your suggestion matches an allowed filing type: %(name)s. You can change it below."), {
+                    name: filingSuggestion.name
+                }, true);
+            } else {
+                suggestionMessage.textContent = interpolate(gettext("The suggested type “%(name)s” is not an exact match for this court case's permitted filing types. Use Find my filing type or choose an available type below."), {
+                    name: filingSuggestion.name
+                }, true);
+            }
+        }
+        setOptions(filingType, options, selected, "Choose a filing type");
         card.dataset.filingTypesLoaded = "true";
         if (new URLSearchParams(window.location.search).get("find_filing_type") === "1" && card === cards()[0]) {
             const finder = card.querySelector(".filing-type-finder");

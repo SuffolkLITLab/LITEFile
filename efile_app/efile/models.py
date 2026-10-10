@@ -342,6 +342,7 @@ class FilingDraft(models.Model):
     optional_services = models.JSONField(default=list, blank=True)
     extracted_guesses = models.JSONField(default=dict, blank=True)
     extraction_review_fingerprint = models.CharField(max_length=64, blank=True)
+    filing_type_proposal = models.JSONField(default=dict, blank=True)
     # Whether the filer asked us not to send this filing's documents to an AI
     # model. Held per draft rather than per account: it is a choice about these
     # documents, and a filer may answer it differently for the next filing.
