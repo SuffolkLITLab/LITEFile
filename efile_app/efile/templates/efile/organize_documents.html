@@ -99,6 +99,7 @@
                                        maxlength="255"
                                        required />
                             </label>
+                            {% if document.role == "lead" %}<p class="filing-suggestion-message" role="status" hidden></p>{% endif %}
                             <label class="form-field">
                                 <span>{% translate "Filing type" %}</span>
                                 <select class="form-select filing-type" required>

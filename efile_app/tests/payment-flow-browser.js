@@ -79,6 +79,45 @@ async function main() {
             }
         });
     });
+    await context.route("**/api/dropdowns/**", route => {
+        const endpoint = new URL(route.request().url()).pathname;
+        const choices = {
+            "/api/dropdowns/courts/": [{
+                value: "cook:law1",
+                text: "Circuit Court of Cook County"
+            }],
+            "/api/dropdowns/case-categories/": [{
+                value: "civil",
+                text: "Civil"
+            }],
+            "/api/dropdowns/case-types/": [{
+                value: "contract",
+                text: "Contract"
+            }],
+            "/api/dropdowns/filing-types/": [{
+                value: "petition",
+                text: "Petition"
+            }, {
+                value: "waiver",
+                text: "Application to waive court fees"
+            }],
+        };
+        if (endpoint === "/api/dropdowns/court-selector/") return route.fulfill({
+            json: {
+                success: true,
+                data: {
+                    available: false
+                }
+            }
+        });
+        if (choices[endpoint]) return route.fulfill({
+            json: {
+                success: true,
+                data: choices[endpoint]
+            }
+        });
+        return route.continue();
+    });
     const page = await context.newPage();
     const errors = [];
     const visited = [];

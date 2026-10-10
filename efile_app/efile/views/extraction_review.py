@@ -31,6 +31,7 @@ from efile.services.filing_path import (
     describe_path_change,
     filing_path_conflict,
 )
+from efile.services.filing_type_proposals import current_proposal, save_proposal
 from efile.utils.s3_upload_handler import S3UploadHandler
 from efile.workflow import (
     ExistingCase,
@@ -311,6 +312,8 @@ def extraction_review(request, jurisdiction):
             # depends on has been saved just above.
             if show_party_editor and existing_case == ExistingCase.NEW:
                 save_reviewed_parties(draft, party_rows)
+            if not draft.ai_assistance_opted_out and "proposed_filing_type" in request.POST:
+                save_proposal(draft, request.POST.get("proposed_filing_type"))
             draft.extraction_review_fingerprint = extraction_review_fingerprint(draft)
             draft.save(update_fields=["extraction_review_fingerprint", "updated_at"])
             # A different kind of filing is not an edit Review can take back
@@ -402,6 +405,7 @@ def extraction_review(request, jurisdiction):
     )
     documents = list(FilingDocument.objects.filter(draft=draft).order_by("role", "sort_order", "pk"))
     context = {
+        "filing_type_proposal": current_proposal(draft),
         "documents": documents,
         "preview_fingerprint": preview_fingerprint(documents),
         "preview_error": preview_error,
@@ -437,5 +441,7 @@ def extraction_review(request, jurisdiction):
         "extraction_context": extraction_context,
         "return_to": return_target(request),
     }
+    if request.method == "POST" and "proposed_filing_type" in request.POST and not draft.ai_assistance_opted_out:
+        context["filing_type_proposal"] = {"name": request.POST.get("proposed_filing_type", "")}
     context.update(get_workflow_context(WorkflowStepKey.EXTRACTION_REVIEW, jurisdiction, draft))
     return render(request, "efile/extraction_review.html", context, status=status)

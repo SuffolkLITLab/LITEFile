@@ -659,6 +659,11 @@
     // court's records on lookup, so only a new case is described here.
     function updateCasePathSections() {
         const existing = isExisting();
+        const proposal = document.getElementById("filing-proposal");
+        if (proposal) {
+            proposal.hidden = !existing;
+            proposal.disabled = !existing;
+        }
         const details = document.getElementById("new-case-details");
         details.hidden = existing;
         details.disabled = existing;

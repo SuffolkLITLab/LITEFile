@@ -13,21 +13,24 @@ const {
  * Get test configuration from environment variables
  * @returns {Object} Test configuration object
  */
-function getTestConfig() {
+function getTestConfig(jurisdiction = 'illinois') {
     // Same Tyler test-EFM login the Python suite uses (efile/tests/) and that
     // CI supplies from secrets -- one name, so a working .env works everywhere.
-    const username = process.env.TESTS_TYLER_USERNAME;
-    const password = process.env.TESTS_TYLER_PASSWORD;
+    // Other states have their own test accounts, prefixed with the state.
+    const prefix = jurisdiction === 'illinois' ? '' : `${jurisdiction.toUpperCase()}_`;
+    const username = process.env[`${prefix}TESTS_TYLER_USERNAME`];
+    const password = process.env[`${prefix}TESTS_TYLER_PASSWORD`];
     const baseUrl = process.env.E2E_TEST_BASE_URL || 'http://localhost:8000';
 
     if (!username || !password) {
-        throw new Error('TESTS_TYLER_USERNAME and TESTS_TYLER_PASSWORD must be set in .env file');
+        throw new Error(`${prefix}TESTS_TYLER_USERNAME and ${prefix}TESTS_TYLER_PASSWORD must be set in .env file`);
     }
 
     return {
         username,
         password,
-        baseUrl
+        baseUrl,
+        jurisdiction
     };
 }
 
@@ -59,7 +62,7 @@ async function loginViaLogout(page, config = getTestConfig()) {
     await page.context().addCookies([]);
 
     // Navigate to logout page
-    await page.goto(`${config.baseUrl}/jurisdiction/illinois/logout`);
+    await page.goto(`${config.baseUrl}/jurisdiction/${config.jurisdiction || 'illinois'}/logout`);
 
     // Fill in login credentials
     await page.getByLabel('Email address').fill(config.username);
@@ -83,7 +86,7 @@ async function loginViaLoginPage(page, config = getTestConfig()) {
     console.log(`Logging in as ${config.username} to ${config.baseUrl}`);
 
     // Navigate to login page
-    await page.goto(`${config.baseUrl}/jurisdiction/illinois/login`);
+    await page.goto(`${config.baseUrl}/jurisdiction/${config.jurisdiction || 'illinois'}/login`);
 
     // Fill in login credentials
     await page.getByLabel('Email address').fill(config.username);
