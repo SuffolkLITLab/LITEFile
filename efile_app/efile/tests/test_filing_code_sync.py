@@ -1,12 +1,18 @@
 """Incremental imports preserve unchanged courts and roll back failed updates."""
 
+from collections import Counter
 from copy import deepcopy
+from io import StringIO
 from unittest.mock import patch
 
 import pytest
 import requests
+from django.core.cache import cache, caches
+from django.core.management import call_command
 
-from efile.services.filing_code_search import current_index, refresh_index, search_paths
+from efile.models import FilingCodeIndex, FilingCodeLabel
+from efile.services.filing_code_labels import build_labels
+from efile.services.filing_code_search import current_index, refresh_index, search_grouped_paths, search_paths
 from efile.services.filing_code_sync import export_entries
 
 pytestmark = pytest.mark.django_db
@@ -194,3 +200,67 @@ def test_court_emptied_by_a_partial_proxy_load_is_rejected_unless_forced(bulk):
     assert set(index.paths.values_list("pk", flat=True)) == ids
     assert refresh_index("massachusetts", force=["housing"]) == 0
     assert not index.paths.filter(court__code="housing").exists()
+
+
+def label_rows(index):
+    return sorted(
+        (label.initial, label.filing_type_name, label.case_category_name, label.case_type_name, court, count)
+        for label in FilingCodeLabel.objects.filter(index=index)
+        for court, count in label.courts.items()
+    )
+
+
+def path_rows(index):
+    counts = Counter(
+        (path.initial, path.filing_type["name"], path.case_category["name"], path.case_type["name"], path.court["code"])
+        for path in index.paths.all()
+    )
+    return sorted((*label, count) for label, count in counts.items())
+
+
+def test_labels_follow_changed_and_retired_courts(bulk):
+    data, _ = bulk
+    refresh_index("massachusetts")
+    index = current_index("massachusetts")
+    assert index.labels_built_at
+    assert label_rows(index) == path_rows(index)
+    data["housing"]["court"]["revision"] = "housing changed"
+    data["housing"]["filing_types"][0]["name"] = "New complaint"
+    refresh_index("massachusetts")
+    assert label_rows(index) == path_rows(index)
+    del data["district"]
+    refresh_index("massachusetts")
+    assert label_rows(index) == path_rows(index)
+    # The old "Complaint" label lost its last court and is gone.
+    assert not FilingCodeLabel.objects.filter(index=index, filing_type_name="Complaint").exists()
+
+
+def test_labels_for_an_index_saved_before_labels(bulk):
+    refresh_index("massachusetts")
+    index = current_index("massachusetts")
+    expected = label_rows(index)
+    FilingCodeLabel.objects.filter(index=index).delete()
+    FilingCodeIndex.objects.filter(pk=index.pk).update(labels_built_at=None)
+    # Until the worker saves labels, search reads paths and finds the same results.
+    index = current_index("massachusetts")
+    unlabelled = search_grouped_paths(index, "eviction")
+    build_labels(index)
+    index = current_index("massachusetts")
+    assert index.labels_built_at
+    assert label_rows(index) == expected
+    cache.clear()
+    caches["shared"].clear()
+    labelled = search_grouped_paths(index, "eviction")
+    assert labelled["groups"] == unlabelled["groups"]
+
+
+def test_worker_saves_missing_labels(bulk):
+    refresh_index("massachusetts")
+    index = current_index("massachusetts")
+    expected = label_rows(index)
+    FilingCodeLabel.objects.filter(index=index).delete()
+    FilingCodeIndex.objects.filter(pk=index.pk).update(labels_built_at=None)
+    call_command("refresh_filing_code_index", "--build-labels", stdout=StringIO())
+    index = current_index("massachusetts")
+    assert index.labels_built_at
+    assert label_rows(index) == expected

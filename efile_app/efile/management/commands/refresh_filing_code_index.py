@@ -14,6 +14,7 @@ from django.utils import timezone
 
 from efile.models import FilingCodeJob
 from efile.services.filing_code_copy import rebuild, run_jobs
+from efile.services.filing_code_labels import build_labels
 from efile.services.filing_code_search import current_index, refresh_index, rules
 
 # How often the daily worker checks for staff-requested jobs between runs.
@@ -46,6 +47,11 @@ class Command(BaseCommand):
             "--rebuild",
             action="store_true",
             help="Rebuild the search index from the local copy of the EFSP codes; contacts nothing.",
+        )
+        parser.add_argument(
+            "--build-labels",
+            action="store_true",
+            help="Save search labels for indexes saved before labels existed, from their paths; contacts nothing.",
         )
         parser.add_argument("--retry-interval", type=int, default=60, help="Seconds before retrying failed states.")
         parser.add_argument(
@@ -84,6 +90,10 @@ class Command(BaseCommand):
         jurisdictions = [options["jurisdiction"]] if options["jurisdiction"] else rules()[0]["jurisdictions"]
         if options["rebuild"]:
             return self.rebuild(jurisdictions)
+        if options["build_labels"]:
+            if failures := self.build_missing_labels(jurisdictions):
+                raise CommandError("Label build failed: " + ", ".join(failures))
+            return
         if options["daily"]:
             return self.daily(jurisdictions, options)
         while True:
@@ -163,6 +173,21 @@ class Command(BaseCommand):
         if failures:
             raise CommandError("Rebuild failed: " + ", ".join(failures))
 
+    def build_missing_labels(self, jurisdictions):
+        failures = []
+        for jurisdiction in jurisdictions:
+            index = current_index(jurisdiction)
+            if index is None or index.labels_built_at:
+                continue
+            try:
+                with override_settings(DEBUG=False):
+                    build_labels(index, progress=lambda line, state=jurisdiction: self.stdout.write(f"{state}: {line}"))
+                self.stdout.write(self.style.SUCCESS(f"{jurisdiction}: search labels saved"))
+            except DatabaseError as error:
+                failures.append(jurisdiction)
+                self.stderr.write(f"{jurisdiction}: label build failed; search keeps reading paths. {error}")
+        return failures
+
     def daily(self, jurisdictions, options):
         at, zone = settings.FILING_CODE_SYNC_TIME, settings.FILING_CODE_SYNC_TIMEZONE
         # A job a dead worker left running would otherwise stay "running" forever.
@@ -172,6 +197,8 @@ class Command(BaseCommand):
         # A fresh deployment, or one whose search rules changed, has nothing to
         # search until the first sync: don't wait for tonight's.
         pending = [j for j in jurisdictions if current_index(j) is None]
+        # Indexes saved before labels existed search their paths, slowly, until this runs.
+        self.build_missing_labels(jurisdictions)
         due = timezone.now() if pending else next_daily_run(timezone.now(), at, zone)
         while True:
             self.stdout.write(f"Next code sync at {due.astimezone(ZoneInfo(zone)):%Y-%m-%d %H:%M %Z}.")
