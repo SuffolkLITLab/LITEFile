@@ -6,6 +6,98 @@ const {
 } = require("@playwright/test");
 const AxeBuilder = require("@axe-core/playwright").default;
 
+// Massachusetts asks its guided court questions only when the case number
+// does not settle the court, and opens them on the inferred court when the
+// filer asks to change it.
+async function checkCourtLookup(browser, config) {
+    const errors = [];
+    async function open(scenario) {
+        const context = await browser.newContext({
+            viewport: {
+                width: 390,
+                height: 844
+            }
+        });
+        await context.addCookies([{
+            name: "sessionid",
+            value: scenario.cookie,
+            url: config.baseUrl
+        }]);
+        const page = await context.newPage();
+        page.on("pageerror", error => errors.push(`${scenario.name}: ${error.message}`));
+        await page.route("**/api/filing-availability/**", route => route.fulfill({
+            json: {
+                success: true,
+                available: true,
+                message: ""
+            }
+        }));
+        await page.goto(config.baseUrl + scenario.url);
+        return {
+            context,
+            page
+        };
+    }
+    const lookup = config.courtLookup;
+    const questions = "#court-selector .court-selector__steps";
+    const isVisible = (page, selector) => page.locator(selector).isVisible();
+    const screenshot = (page, name) => page.screenshot({
+        path: path.join(config.evidence, `court-lookup-${name}.png`),
+        fullPage: true
+    });
+
+    let {
+        context,
+        page
+    } = await open(lookup.blank);
+    try {
+        await page.locator(questions).waitFor();
+        assert.equal(await isVisible(page, "#court"), false);
+        assert.equal(await isVisible(page, "#inferred-court"), false);
+        await screenshot(page, "blank");
+        await page.locator("#case-number").fill("1448CV001026");
+        await page.locator("#inferred-court:not([hidden])").waitFor();
+        assert.equal(await isVisible(page, "#manual-court-field"), false);
+        assert.equal(await page.locator("#court").inputValue(), "336");
+        await page.getByRole("button", {
+            name: "Change court"
+        }).click();
+        await page.locator("#manual-court-field:not([hidden])").waitFor();
+        await page.waitForFunction(() => document.getElementById("court-selector").contains(document.activeElement));
+        assert.equal(await page.locator("#court").inputValue(), "336");
+        // A court the filer chose is not replaced by a later number.
+        await page.locator("#case-number").fill("ES15A0064AD");
+        await page.waitForTimeout(800);
+        assert.equal(await isVisible(page, "#inferred-court"), false);
+        assert.equal(await page.locator("#court").inputValue(), "336");
+        await screenshot(page, "changed");
+    } finally {
+        await context.close();
+    }
+
+    ({
+        context,
+        page
+    } = await open(lookup.verified));
+    try {
+        await page.locator("#inferred-court:not([hidden])").waitFor();
+        assert.equal(await page.locator(questions).count(), 0);
+        await page.locator("#case-number").fill("98-1234");
+        await page.locator(questions).waitFor();
+        assert.equal(await isVisible(page, "#inferred-court"), false);
+        assert.notEqual(await page.locator("#court").inputValue(), "336");
+        await page.locator("#case-number").fill("1473CV00213");
+        await page.locator("#inferred-court:not([hidden])").waitFor();
+        assert.equal(await page.locator("#court").inputValue(), "1126");
+        assert.equal(await isVisible(page, "#manual-court-field"), false);
+        await screenshot(page, "reinferred");
+    } finally {
+        await context.close();
+    }
+    assert.deepEqual(errors, []);
+    console.log("court lookup passed");
+}
+
 async function main() {
     const config = JSON.parse(fs.readFileSync(process.argv[2], "utf8"));
     const browser = await chromium.launch();
@@ -174,6 +266,7 @@ async function main() {
                 await context.close();
             }
         }
+        if (config.courtLookup) await checkCourtLookup(browser, config);
     } finally {
         await browser.close();
     }

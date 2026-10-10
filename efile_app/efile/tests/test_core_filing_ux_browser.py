@@ -92,3 +92,46 @@ def test_existing_case_browser_matrix(live_server, django_user_model, tmp_path):
         assert draft.documents.get().filing_type_code == "motion"
         assert not draft.parties.filter(role="other").exists()
         assert draft.parties.filter(role="filer").count() <= 1
+
+
+@pytest.mark.integration
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.skipif(not os.getenv("CORE_FILING_UX_BROWSER_TESTS"), reason="Opt-in: requires Chromium")
+def test_massachusetts_court_questions_browser(live_server, django_user_model, tmp_path):
+    """The real guided court questions, shown only when the case number cannot name the court."""
+    lookup = {}
+    for name, number in [("blank", ""), ("verified", "1448CV001026")]:
+        user = django_user_model.objects.create_user(username=f"court-{name}", tyler_jurisdiction="massachusetts")
+        draft = FilingDraft.objects.create(
+            user=user, jurisdiction="massachusetts", existing_case="existing", workflow_version=2, docket_number=number
+        )
+        client = Client()
+        authorize(client, draft)
+        lookup[name] = {
+            "name": name,
+            "cookie": client.cookies[settings.SESSION_COOKIE_NAME].value,
+            "url": reverse("case_lookup", kwargs={"jurisdiction": "massachusetts"}) + f"?draft={draft.pk}",
+        }
+    evidence = os.getenv("CORE_FILING_UX_EVIDENCE_DIR", str(tmp_path / "evidence"))
+    config = tmp_path / "court-lookup.json"
+    config.write_text(
+        json.dumps({"baseUrl": live_server.url, "scenarios": [], "courtLookup": lookup, "evidence": evidence})
+    )
+    courts = [
+        {"value": "336", "text": "Ayer District Court"},
+        {"value": "1126", "text": "Bristol County Superior Court"},
+        {"value": "352", "text": "Essex Probate and Family Court"},
+    ]
+    with (
+        patch("efile.services.court_selection.fetch_courts", return_value=courts),
+        patch("efile.api.court_selector_views.fetch_courts", return_value=courts),
+        patch("efile.views.case_lookup.fetch_courts", return_value=courts),
+    ):
+        result = subprocess.run(
+            ["node", "tests/core-filing-ux-browser.js", str(config)],
+            cwd=settings.BASE_DIR,
+            capture_output=True,
+            text=True,
+            timeout=180,
+        )
+    assert result.returncode == 0, result.stdout + result.stderr
