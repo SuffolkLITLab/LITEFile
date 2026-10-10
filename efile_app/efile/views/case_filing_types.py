@@ -2,7 +2,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 
 from efile.api.suffolk_api_views import get_tyler_token
-from efile.services.case_filing_types import case_fingerprint, permitted_filing_types
+from efile.services.case_filing_types import permitted_filing_types
 from efile.services.current_drafts import get_current_draft
 
 
@@ -17,4 +17,4 @@ def case_filing_types(request, jurisdiction):
         choices = permitted_filing_types(draft)
     except ValueError as exc:
         return JsonResponse({"success": False, "error": str(exc)}, status=409)
-    return JsonResponse({"success": True, "data": choices, "case_fingerprint": case_fingerprint(draft)})
+    return JsonResponse({"success": True, "data": choices})

@@ -95,3 +95,29 @@ def test_endpoint_uses_the_draft_instead_of_query_classification(client, confirm
         )
     assert response.status_code == 200
     assert choices.call_args.args[0].court_code == "court"
+
+
+def test_court_is_asked_before_the_draft_is_locked(confirmed_case):
+    doc = confirmed_case.documents.get()
+    events = []
+    lock = FilingDraft.objects.select_for_update
+
+    def choices(_draft):
+        events.append("court")
+        return [{"value": "motion", "text": "Motion"}]
+
+    def locking(*args, **kwargs):
+        events.append("lock")
+        return lock(*args, **kwargs)
+
+    with (
+        patch("efile.views.organize_documents.permitted_filing_types", side_effect=choices),
+        patch.object(FilingDraft.objects, "select_for_update", side_effect=locking),
+    ):
+        _save_document_details(
+            confirmed_case,
+            [{"id": doc.pk, "filing_type": "motion", "document_type": "public"}],
+            doc.pk,
+            confirmed_case_fingerprint=case_fingerprint(confirmed_case),
+        )
+    assert events[:2] == ["court", "lock"]
