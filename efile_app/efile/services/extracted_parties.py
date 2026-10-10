@@ -19,6 +19,7 @@ from typing import Any
 
 from efile.models import FilingDraft, FilingParty
 from efile.party_sides import PartySide, side_for_party_type_name
+from efile.services.extraction_confirmation import extraction_is_confirmed
 
 # The extraction fields that name people, and the side each one establishes.
 SIDE_BY_GUESS_KEY: dict[str, str] = {
@@ -262,6 +263,8 @@ def review_rows(draft: FilingDraft) -> list[dict[str, Any]]:
             }
             for party in saved
         ]
+    if extraction_is_confirmed(draft):
+        return []
     return [
         {
             "id": "",

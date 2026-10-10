@@ -262,7 +262,7 @@ async function main() {
         await page.locator("#continue-to-analysis").click();
         await page.waitForURL(/extraction-review\/\?.*return_to=review/);
         await Promise.all([page.waitForURL(/organize-documents\/\?.*return_to=review/), page.getByRole("button", {
-            name: "Confirm and continue"
+            name: "Continue"
         }).click()]);
         await screenshot("05-new-file-stops-at-organize.png");
         // Taking the new file back out leaves nothing to organize.
@@ -275,7 +275,7 @@ async function main() {
         }).click();
         await page.waitForURL(/extraction-review\/\?.*return_to=review/);
         await Promise.all([page.waitForURL(review), page.getByRole("button", {
-            name: "Confirm and continue"
+            name: "Continue"
         }).click()]);
         assert.ok(!visited.slice(-3).some((url) => url.includes("preview-documents")), `visited ${visited}`);
         await screenshot("06-back-to-review.png");

@@ -592,60 +592,62 @@
     const partyEmpty = document.getElementById("review-parties-empty");
     const addPartyButton = document.getElementById("add-review-party");
 
-    function syncPartyEmptyState() {
-        partyEmpty.hidden = partyList.children.length > 0;
-    }
+    if (partyList && partyTemplate && partyEmpty && addPartyButton) {
+        function syncPartyEmptyState() {
+            partyEmpty.hidden = partyList.children.length > 0;
+        }
 
-    // "This is me" on one of the people the document named. At most one of
-    // them can be, so choosing a row un-chooses whichever held it before.
-    // The answer rides on a hidden value rather than a checkbox, so every row
-    // posts one and the lists the view reads back stay index-aligned.
-    function setIsMe(row, isMe) {
-        const field = row.querySelector('input[name="party_is_self"]');
-        const toggle = row.querySelector(".review-party__is-me-toggle");
-        if (!field || !toggle) return;
-        field.value = isMe ? "true" : "false";
-        toggle.setAttribute("aria-pressed", isMe ? "true" : "false");
-        toggle.classList.toggle("btn-outline-secondary", !isMe);
-        toggle.classList.toggle("btn-primary", isMe);
-    }
-
-    function syncIsMeButtons() {
-        Array.from(partyList.querySelectorAll(".review-party")).forEach((row) => {
+        // "This is me" on one of the people the document named. At most one of
+        // them can be, so choosing a row un-chooses whichever held it before.
+        // The answer rides on a hidden value rather than a checkbox, so every row
+        // posts one and the lists the view reads back stay index-aligned.
+        function setIsMe(row, isMe) {
             const field = row.querySelector('input[name="party_is_self"]');
-            setIsMe(row, Boolean(field) && field.value === "true");
+            const toggle = row.querySelector(".review-party__is-me-toggle");
+            if (!field || !toggle) return;
+            field.value = isMe ? "true" : "false";
+            toggle.setAttribute("aria-pressed", isMe ? "true" : "false");
+            toggle.classList.toggle("btn-outline-secondary", !isMe);
+            toggle.classList.toggle("btn-primary", isMe);
+        }
+
+        function syncIsMeButtons() {
+            Array.from(partyList.querySelectorAll(".review-party")).forEach((row) => {
+                const field = row.querySelector('input[name="party_is_self"]');
+                setIsMe(row, Boolean(field) && field.value === "true");
+            });
+        }
+
+        partyList.addEventListener("click", (event) => {
+            const isMeToggle = event.target.closest(".review-party__is-me-toggle");
+            if (isMeToggle) {
+                const row = isMeToggle.closest(".review-party");
+                const field = row.querySelector('input[name="party_is_self"]');
+                const turningOn = !field || field.value !== "true";
+                Array.from(partyList.querySelectorAll(".review-party")).forEach((other) => {
+                    setIsMe(other, turningOn && other === row);
+                });
+                return;
+            }
+            const removeButton = event.target.closest(".review-party__remove");
+            if (!removeButton) return;
+            const row = removeButton.closest(".review-party");
+            // The button being clicked is inside the row about to disappear, so
+            // send focus somewhere that will still exist afterwards.
+            addPartyButton.focus();
+            row.remove();
+            syncPartyEmptyState();
+        });
+
+        syncIsMeButtons();
+
+        addPartyButton.addEventListener("click", () => {
+            partyList.appendChild(partyTemplate.content.cloneNode(true));
+            syncPartyEmptyState();
+            syncIsMeButtons();
+            partyList.lastElementChild.querySelector('input[name="party_name"]').focus();
         });
     }
-
-    partyList.addEventListener("click", (event) => {
-        const isMeToggle = event.target.closest(".review-party__is-me-toggle");
-        if (isMeToggle) {
-            const row = isMeToggle.closest(".review-party");
-            const field = row.querySelector('input[name="party_is_self"]');
-            const turningOn = !field || field.value !== "true";
-            Array.from(partyList.querySelectorAll(".review-party")).forEach((other) => {
-                setIsMe(other, turningOn && other === row);
-            });
-            return;
-        }
-        const removeButton = event.target.closest(".review-party__remove");
-        if (!removeButton) return;
-        const row = removeButton.closest(".review-party");
-        // The button being clicked is inside the row about to disappear, so
-        // send focus somewhere that will still exist afterwards.
-        addPartyButton.focus();
-        row.remove();
-        syncPartyEmptyState();
-    });
-
-    syncIsMeButtons();
-
-    addPartyButton.addEventListener("click", () => {
-        partyList.appendChild(partyTemplate.content.cloneNode(true));
-        syncPartyEmptyState();
-        syncIsMeButtons();
-        partyList.lastElementChild.querySelector('input[name="party_name"]').focus();
-    });
 
     // Only an existing case has a number: Tyler rejects one on a new case
     // ("doesn't allow subsequent filing into non-indexed cases"), and a new
