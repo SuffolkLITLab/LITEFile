@@ -12,6 +12,9 @@
         <p class="workflow-lede">
             {% translate "Review the files below. Add anything else you want the court to get with this filing." %}
         </p>
+        {% if filing_draft.existing_case == "existing" %}
+            <p><a href="{% url 'organize_documents' jurisdiction %}?find_filing_type=1{% if return_to %}&amp;return_to={{ return_to }}{% endif %}">{% translate "Find my filing type" %}</a></p>
+        {% endif %}
         {% if checklist_groups %}
             <div class="checklist-guidance" role="note">
                 <i class="fa-solid fa-circle-info" aria-hidden="true"></i>

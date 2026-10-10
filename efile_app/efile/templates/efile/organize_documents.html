@@ -105,6 +105,19 @@
                                     <option value="">{% translate "Loading filing types…" %}</option>
                                 </select>
                             </label>
+                            {% if organize_context.existing_case == "yes" %}
+                                <details class="filing-type-finder">
+                                    <summary>{% translate "Find my filing type" %}</summary>
+                                    <label for="filing-search-{{ document.pk }}">{% translate "Search this case's filing types" %}</label>
+                                    <input type="search"
+                                           class="form-control filing-search"
+                                           id="filing-search-{{ document.pk }}"
+                                           aria-controls="filing-results-{{ document.pk }}" />
+                                    <p class="filing-search-status" role="status"></p>
+                                    <ul class="filing-search-results" id="filing-results-{{ document.pk }}">
+                                    </ul>
+                                </details>
+                            {% endif %}
                             <fieldset class="form-field compact-choice-field">
                                 <legend>{% translate "Should this document be confidential?" %}</legend>
                                 <small class="form-help">{% ui_text "organize_documents.confidentiality_help" %}</small>
@@ -168,5 +181,6 @@
 {% endblock workflow_content %}
 {% block extra_js %}
     <script src="{% static 'js/filing-availability.js' %}"></script>
+    <script src="{% static 'js/filing-code-search.js' %}"></script>
     <script src="{% static 'js/organize-documents.js' %}"></script>
 {% endblock extra_js %}

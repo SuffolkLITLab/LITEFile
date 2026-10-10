@@ -1121,7 +1121,50 @@
             }
         });
     }
+
+    function mountFilingTypeOnly({
+        container,
+        select,
+        choices
+    }) {
+        if (!container) return;
+        const input = container.querySelector(".filing-search");
+        const results = container.querySelector(".filing-search-results");
+        const status = container.querySelector(".filing-search-status");
+
+        function search() {
+            const words = input.value.toLocaleLowerCase().trim().split(/\s+/).filter(Boolean);
+            const matches = [];
+            for (const option of choices) {
+                if (words.every(word => option.text.toLocaleLowerCase().includes(word))) matches.push(option);
+            }
+            results.replaceChildren();
+            status.textContent = matches.length ? interpolate(gettext("%(count)s matching filing types"), {
+                count: matches.length
+            }, true) : gettext("No matching filing types. Try another word or use the dropdown.");
+            for (const option of matches) {
+                const row = document.createElement("li");
+                const button = document.createElement("button");
+                button.type = "button";
+                button.className = "btn btn-link";
+                button.textContent = option.text;
+                button.addEventListener("click", () => {
+                    select.value = option.value;
+                    select.dispatchEvent(new Event("change", {
+                        bubbles: true
+                    }));
+                    container.open = false;
+                    select.focus();
+                });
+                row.append(button);
+                results.append(row);
+            }
+        }
+        input.addEventListener("input", search);
+        search();
+    }
     window.filingCodeSearch = {
+        mountFilingTypeOnly,
         mount
     };
 })();
