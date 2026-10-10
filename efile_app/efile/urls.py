@@ -9,7 +9,7 @@ from efile.utils.jurisdiction_stuff import has_jurisdiction_login
 
 from .views.api_views import get_case_data_api, get_filing_components
 from .views.case_confirmation import case_confirmation
-from .views.case_lookup import case_lookup
+from .views.case_lookup import case_lookup, docket_court
 from .views.case_questions import case_questions
 from .views.choose_jurisdiction import change_jurisdiction, choose_jurisdiction
 from .views.confirmation import filing_confirmation
@@ -107,6 +107,7 @@ urlpatterns = [
         name="document_extraction_status",
     ),
     path("jurisdiction/<jurisdiction>/extraction-review/", extraction_review, name="extraction_review"),
+    path("jurisdiction/<jurisdiction>/docket-court/", docket_court, name="docket_court"),
     path("jurisdiction/<jurisdiction>/case-lookup/", case_lookup, name="case_lookup"),
     path("jurisdiction/<jurisdiction>/case-confirmation/", case_confirmation, name="case_confirmation"),
     path("jurisdiction/<jurisdiction>/document-checklist/", document_checklist, name="document_checklist"),
