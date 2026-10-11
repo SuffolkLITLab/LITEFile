@@ -4,7 +4,9 @@ from string import Template
 
 from django.urls import reverse
 
+from efile.services.fee_quotes import WAIVER_ACCOUNT_TYPE
 from efile.services.filings import court_contact
+from efile.services.waiver_documents import has_waiver_document
 
 PROXY_EMAIL_FIELDS = (
     "email_confirmation_subject",
@@ -37,12 +39,8 @@ def submission_email_fields(request, draft, jurisdiction, config=None):
     ):
         return {}
 
-    tracker_url = request.build_absolute_uri(
-        reverse("submission_tracker", kwargs={"submission_reference": str(draft.pk)})
-    )
-    contact = court_contact(jurisdiction, getattr(draft, "court_code", ""))
-    if not contact.get("name") and notification_config.get("help_name"):
-        contact["name"] = notification_config["help_name"]
+    tracker_url = request.build_absolute_uri(reverse("submission_tracker", kwargs={"public_id": draft.public_id}))
+    contact = court_contact(jurisdiction, draft.court_code, config)
     waiver_url = (config.get("fee_waiver") or {}).get("source_url")
     values = {
         "tracker_url": _template_value(tracker_url),
@@ -80,5 +78,5 @@ def _waiver_line(draft, waiver_url):
 
 
 def _fee_waiver_requested(draft):
-    """Return true only when the saved filing has a waiver payment selection."""
-    return (getattr(draft, "selected_payment_account_type", "") or "").upper() in {"WV", "WAIVER"}
+    """Whether the filing asks for a waiver, by payment account or waiver document."""
+    return draft.selected_payment_account_type == WAIVER_ACCOUNT_TYPE or has_waiver_document(draft)

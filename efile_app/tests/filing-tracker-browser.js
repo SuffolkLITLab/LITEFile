@@ -26,9 +26,9 @@ async function main() {
         expect(trackerUrl).toBeTruthy();
         await page.goto(trackerUrl);
         await expect(page.getByLabel('Email address')).toBeVisible();
-        const submissionId = trackerUrl.match(/\/submissions\/(\d+)\//)?.[1];
+        const submissionId = trackerUrl.match(/\/submissions\/([0-9a-f-]{36})\//)?.[1];
         expect(submissionId).toBeTruthy();
-        expect(page.url()).toContain(encodeURIComponent(`/submissions/${submissionId}/`));
+        expect(new URL(page.url()).searchParams.get('next')).toBe(`/submissions/${submissionId}/`);
         await page.reload();
         await page.reload();
         await expect(page.getByLabel('Email address')).toBeVisible();

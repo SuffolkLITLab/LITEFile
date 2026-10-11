@@ -241,6 +241,21 @@ def test_an_unfamiliar_status_code_is_described_rather_than_dropped():
     assert status_presentation("something-tyler-added-yesterday")["label"] == "Status update from the court"
 
 
+def test_a_missing_status_does_not_claim_a_court_update():
+    assert status_presentation("")["label"] == "Sent to the court"
+    assert status_presentation(None)["label"] == "Sent to the court"
+    assert filing_tracker("")["summary"] == "The court has not sent a status update yet."
+
+
+def test_a_failed_filing_stands_out_from_a_cancelled_one():
+    assert status_presentation("failed") == {
+        "label": "Did not go through",
+        "icon": "fa-file-circle-xmark",
+        "tone": "rejected",
+    }
+    assert status_presentation("cancelled")["tone"] == "muted"
+
+
 @pytest.mark.parametrize(
     ("code", "state", "current_stage"),
     [

@@ -55,10 +55,13 @@ STATUS_PRESENTATION: dict[str, dict[str, str]] = {
     "receipted": {"label": "Received by the court", "icon": "fa-file", "tone": "pending"},
     "served": {"label": "Served", "icon": "fa-envelope-circle-check", "tone": "muted"},
     "cancelled": {"label": "Stopped", "icon": "fa-file-circle-xmark", "tone": "muted"},
-    "failed": {"label": "Stopped", "icon": "fa-file-circle-xmark", "tone": "muted"},
+    "failed": {"label": "Did not go through", "icon": "fa-file-circle-xmark", "tone": "rejected"},
 }
 
+# A code Tyler added that we don't know yet. The court did send it.
 UNKNOWN_STATUS = {"label": "Status update from the court", "icon": "fa-file", "tone": "muted"}
+# No status at all: a case with no filings listed, or a blank code.
+NO_STATUS = {"label": "Sent to the court", "icon": "fa-file", "tone": "pending"}
 
 TRACKER_STAGES = ("Sent", "Received", "Clerk review")
 
@@ -89,6 +92,13 @@ def filing_tracker(status_code: Any) -> dict[str, Any]:
             "state": "neutral",
             "label": "Served",
             "summary": "The filing was served. This does not show whether the court accepted it.",
+            "stages": [],
+        }
+    if not code:
+        return {
+            "state": "neutral",
+            "label": NO_STATUS["label"],
+            "summary": "The court has not sent a status update yet.",
             "stages": [],
         }
     current = stage_by_status.get(code)
@@ -122,7 +132,10 @@ def status_presentation(status_code: Any) -> dict[str, str]:
     wording instead of being dropped.
     """
 
-    return STATUS_PRESENTATION.get(str(status_code or "").strip().lower(), UNKNOWN_STATUS)
+    code = str(status_code or "").strip().lower()
+    if not code:
+        return NO_STATUS
+    return STATUS_PRESENTATION.get(code, UNKNOWN_STATUS)
 
 
 def _dig(node: Any, *keys: str) -> Any:
@@ -198,7 +211,7 @@ def court_names(jurisdiction: str) -> dict[str, str]:
     return names
 
 
-def court_contact(jurisdiction: str, court_code: str) -> dict[str, str]:
+def court_contact(jurisdiction: str, court_code: str, config: dict | None = None) -> dict[str, str]:
     """Who to ask about a filing at this court.
 
     A filer whose filing was rejected needs a person, not a status code. The
@@ -209,11 +222,14 @@ def court_contact(jurisdiction: str, court_code: str) -> dict[str, str]:
     no contact.
     """
 
-    config = config_loader.load_jurisdiction_config(jurisdiction) or {}
+    config = config or config_loader.load_jurisdiction_config(jurisdiction) or {}
     court = (config.get("court_specific_requirements") or {}).get(court_code) or {}
     contact = dict(court.get("contact") or {})
 
     jurisdiction_help = config.get("jurisdiction") or {}
+    if not contact:
+        # Name the help line only when it stands alone, not beside a clerk's details.
+        contact["name"] = jurisdiction_help.get("help_name", "")
     contact.setdefault("url", jurisdiction_help.get("help_url", ""))
     contact.setdefault("phone", jurisdiction_help.get("help_number", ""))
     return {key: str(value) for key, value in contact.items() if value}
@@ -334,7 +350,7 @@ def cases_for_user(
             key=lambda filing: filing["received_at"] or datetime.min.replace(tzinfo=timezone.utc), reverse=True
         )
         entry["filing_count"] = len(entry["filings"])
-        entry["latest_status"] = entry["filings"][0]["status_presentation"] if entry["filings"] else UNKNOWN_STATUS
+        entry["latest_status"] = entry["filings"][0]["status_presentation"] if entry["filings"] else NO_STATUS
 
     return sorted(cases.values(), key=_sort_key, reverse=True)
 

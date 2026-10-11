@@ -24,6 +24,7 @@ jurisdiction:
       alt: "Illinois Legal Aid Online logo"
       url: "https://www.illinoislegalaid.org/"
       role: "Project & Funding Partner"
+  help_name: "Illinois Court Help"
   help_url: "https://www.ilcourthelp.gov/"
   help_number: "833-411-1121"
   contact_email: "litlab@suffolk.edu"
@@ -33,20 +34,6 @@ jurisdiction:
 # partner wording have been verified in the live Illinois environment.
 submission_notifications:
   enabled: false
-  help_name: "Illinois Court Help"
-  templates:
-    email_confirmation_subject: "Your filing was submitted"
-    email_confirmation_contents: >-
-      The e-filing system received a filing in your submission. This is not court acceptance. Check its status and next steps here: $tracker_url$waiver_line$help_line
-    acceptance_subject: "Filing accepted"
-    acceptance_contents: >-
-      A filing in your submission was accepted by the court. Check its status and next steps here: $tracker_url$help_line
-    rejected_subject: "Filing returned for changes"
-    rejected_contents: >-
-      A filing in your submission was returned for changes. Review the clerk’s comments and next steps here: $tracker_url$help_line
-    neutral_subject: "Filing update"
-    neutral_contents: >-
-      {% if status|lower == "returned" or status|lower == "returned for changes" or status|lower == "returned to filer" %}A filing in your submission was returned for changes. Review the clerk’s comments and next steps here: $tracker_url$help_line{% else %}A filing in your submission changed status. Check its status and next steps here: $tracker_url$help_line{% endif %}
 
 # State metadata, for the address
 state:

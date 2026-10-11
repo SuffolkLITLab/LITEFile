@@ -39,6 +39,7 @@ jurisdiction:
       src: "img/logo-sji.png"
       alt: "State Justice Institute logo"
       url: "https://www.sji.gov/"
+  help_name: ""
   help_url: ""
   help_number: ""
   contact_email: "litlab@suffolk.edu"

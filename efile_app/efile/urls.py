@@ -68,7 +68,7 @@ def jurisdiction_homepage(request, jurisdiction):
 
 
 urlpatterns = [
-    path("submissions/<int:submission_reference>/", submission_tracker, name="submission_tracker"),
+    path("submissions/<uuid:public_id>/", submission_tracker, name="submission_tracker"),
     path(f"{settings.LITEFILE_STAFF_PATH}/", staff_site.urls),
     path("api/handoffs/v1/", external_handoff, name="external_handoff"),
     path("api/handoffs/v1/documents/", replace_documents, name="handoff_replace_documents"),

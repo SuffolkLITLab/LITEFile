@@ -1,4 +1,6 @@
+import uuid
 from unittest.mock import patch
+from urllib.parse import parse_qs
 
 import pytest
 from django.urls import reverse
@@ -30,14 +32,25 @@ def sign_in(client, user):
 
 
 def destination(draft):
-    return reverse("submission_tracker", kwargs={"submission_reference": draft.pk})
+    return reverse("submission_tracker", kwargs={"public_id": draft.public_id})
 
 
 def test_signed_out_preserves_destination(client, draft):
     response = client.get(destination(draft) + "?filing_id=returned-id")
     assert response.status_code == 302
-    assert "next=%2Fsubmissions%2F" in response.url
-    assert "returned-id" in response.url
+    login, query = response.url.split("?", 1)
+    assert login == reverse("efile_login", args=["illinois"])
+    assert parse_qs(query)["next"] == [destination(draft) + "?filing_id=returned-id"]
+
+
+def test_signed_out_unknown_submission_is_not_found(client):
+    response = client.get(reverse("submission_tracker", kwargs={"public_id": uuid.uuid4()}))
+    assert response.status_code == 404
+
+
+def test_submission_links_do_not_use_sequential_ids(client, draft):
+    assert str(draft.pk) not in destination(draft).split("/")
+    assert client.get(f"/submissions/{draft.pk}/").status_code == 404
 
 
 def test_other_owner_cannot_open_submission(client, draft, django_user_model):
@@ -72,7 +85,12 @@ def test_single_filing_and_envelope_only(client, draft):
 
 
 @pytest.mark.parametrize(
-    "next_path", ["/submissions/1/?filing_id=returned-id", "https://evil.example/", "//evil.example/"]
+    "next_path",
+    [
+        "/submissions/6b0f2a8e-6d0c-4f1e-9a51-0c2b9f3c1a7d/?filing_id=returned-id",
+        "https://evil.example/",
+        "//evil.example/",
+    ],
 )
 def test_login_preserves_only_safe_destination(client, draft, next_path):
     draft.user.backend = "django.contrib.auth.backends.ModelBackend"
@@ -97,3 +115,19 @@ def test_direct_detail_cannot_bypass_local_ownership(client, draft, django_user_
         response = client.get(reverse("filing_detail", args=["illinois", "cook:law1", "returned-id"]))
         assert response.status_code == 404
         fetch.assert_not_called()
+
+
+def test_same_tyler_account_under_another_local_user_can_open_detail(client, draft, django_user_model):
+    draft.user.tyler_username = "filer@example.com"
+    draft.user.save()
+    recreated = django_user_model.objects.create_user(
+        username="recreated", tyler_jurisdiction="illinois", tyler_username="FILER@example.com"
+    )
+    sign_in(client, recreated)
+    with (
+        patch("efile.views.my_cases.fetch_filing_detail", return_value=None) as fetch,
+        patch("efile.views.my_cases.court_names", return_value={}),
+    ):
+        response = client.get(reverse("filing_detail", args=["illinois", "cook:law1", "returned-id"]))
+    assert response.status_code == 200
+    fetch.assert_called_once()

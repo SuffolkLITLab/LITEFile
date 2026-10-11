@@ -7,6 +7,7 @@ from unittest.mock import patch
 import pytest
 from django.db import connection
 from django.db.migrations.executor import MigrationExecutor
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 
 from efile.models import FilingDraft, FilingIdentifier
@@ -113,3 +114,23 @@ def test_remote_only_detail_does_not_load_other_accounts_drafts(client, owner, d
         response = client.get(reverse("filing_detail", args=["illinois", "kane", "remote-only"]))
     assert response.status_code == 200
     fetch.assert_called_once()
+
+
+def test_saves_that_leave_the_response_alone_skip_the_index(owner):
+    draft = make_draft(owner, submission_response={"filing_id": "kept"})
+    draft = FilingDraft.objects.get(pk=draft.pk)
+    draft.case_title = "Renamed"
+    with CaptureQueriesContext(connection) as queries:
+        draft.save()
+    assert not [query for query in queries if "efile_filingidentifier" in query["sql"]]
+    draft.submission_response["filing_id"] = "changed-in-place"
+    draft.save()
+    assert list(draft.filing_identifiers.values_list("filing_id", flat=True)) == ["changed-in-place"]
+
+
+def test_indexing_an_id_another_save_already_indexed_is_not_an_error(owner):
+    draft = make_draft(owner, submission_response={"filing_id": "raced"})
+    stale = FilingDraft.objects.get(pk=draft.pk)
+    stale._indexed_filing_ids = set()
+    stale.save()
+    assert list(draft.filing_identifiers.values_list("filing_id", flat=True)) == ["raced"]

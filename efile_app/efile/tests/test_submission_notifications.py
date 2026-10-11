@@ -1,3 +1,4 @@
+import uuid
 from copy import deepcopy
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -7,6 +8,7 @@ from django.contrib.sessions.backends.signed_cookies import SessionStore
 from django.test import RequestFactory
 from django.urls import reverse
 
+from efile.models import FilingDocument
 from efile.services.submission_notifications import (
     PROXY_EMAIL_FIELDS,
     strip_client_email_fields,
@@ -14,10 +16,24 @@ from efile.services.submission_notifications import (
 )
 from efile.utils.config_loader import config_loader
 
+PUBLIC_ID = uuid.UUID("6b0f2a8e-6d0c-4f1e-9a51-0c2b9f3c1a7d")
+
+
+def fake_draft(**values):
+    """A submitted draft's notification inputs, with no uploaded documents."""
+    defaults = {
+        "pk": 12,
+        "public_id": PUBLIC_ID,
+        "court_code": "unknown",
+        "selected_payment_account_type": "CC",
+        "documents": FilingDocument.objects.none(),
+    }
+    return SimpleNamespace(**{**defaults, **values})
+
 
 def test_notification_fields_are_disabled_by_default_for_each_state():
     request = RequestFactory().get("/")
-    draft = SimpleNamespace(pk=12, selected_payment_account_type="WV", court_code="unknown")
+    draft = fake_draft(selected_payment_account_type="WV", court_code="unknown")
 
     for jurisdiction in ("illinois", "massachusetts", "vermont"):
         config = config_loader.load_jurisdiction_config(jurisdiction)
@@ -26,13 +42,13 @@ def test_notification_fields_are_disabled_by_default_for_each_state():
 
 def test_illinois_templates_are_plain_text_and_link_to_tracker_and_waiver_source():
     request = RequestFactory().get("/", HTTP_HOST="testserver")
-    draft = SimpleNamespace(pk=12, selected_payment_account_type="WV", court_code="unknown")
+    draft = fake_draft(selected_payment_account_type="WV", court_code="unknown")
     config = deepcopy(config_loader.load_jurisdiction_config("illinois"))
     config["submission_notifications"]["enabled"] = True
     config["fee_waiver"]["source_url"] = "https://example.test/waiver"
 
     fields = submission_email_fields(request, draft, "illinois", config)
-    tracker_url = request.build_absolute_uri(reverse("submission_tracker", kwargs={"submission_reference": "12"}))
+    tracker_url = request.build_absolute_uri(reverse("submission_tracker", kwargs={"public_id": PUBLIC_ID}))
 
     assert set(fields) == set(PROXY_EMAIL_FIELDS)
     assert tracker_url in fields["email_confirmation_contents"]
@@ -54,7 +70,7 @@ def test_illinois_templates_are_plain_text_and_link_to_tracker_and_waiver_source
 
 def test_waiver_note_is_omitted_when_no_waiver_was_selected():
     request = RequestFactory().get("/", HTTP_HOST="testserver")
-    draft = SimpleNamespace(pk=12, selected_payment_account_type="CC", court_code="unknown")
+    draft = fake_draft(selected_payment_account_type="CC", court_code="unknown")
     config = deepcopy(config_loader.load_jurisdiction_config("illinois"))
     config["submission_notifications"]["enabled"] = True
     config["fee_waiver"]["source_url"] = "https://example.test/waiver"
@@ -64,9 +80,20 @@ def test_waiver_note_is_omitted_when_no_waiver_was_selected():
     assert "waiver" not in fields["email_confirmation_contents"].lower()
 
 
+def test_waiver_document_counts_as_a_waiver_request():
+    request = RequestFactory().get("/", HTTP_HOST="testserver")
+    config = deepcopy(config_loader.load_jurisdiction_config("illinois"))
+    config["submission_notifications"]["enabled"] = True
+
+    with patch("efile.services.submission_notifications.has_waiver_document", return_value=True):
+        fields = submission_email_fields(request, fake_draft(), "illinois", config)
+
+    assert "If you requested a fee waiver" in fields["email_confirmation_contents"]
+
+
 def test_default_templates_are_available_for_another_enabled_jurisdiction():
     request = RequestFactory().get("/", HTTP_HOST="testserver")
-    draft = SimpleNamespace(pk=12, selected_payment_account_type="CC", court_code="unknown")
+    draft = fake_draft(selected_payment_account_type="CC", court_code="unknown")
     config = deepcopy(config_loader.load_jurisdiction_config("massachusetts"))
     config["submission_notifications"]["enabled"] = True
 
@@ -91,7 +118,7 @@ def test_client_cannot_supply_proxy_email_templates_or_change_other_data():
 
 def test_notification_copy_escapes_template_injection_in_configured_values():
     request = RequestFactory().get("/", HTTP_HOST="testserver")
-    draft = SimpleNamespace(pk=12, selected_payment_account_type="WV", court_code="unknown")
+    draft = fake_draft(selected_payment_account_type="WV", court_code="unknown")
     config = deepcopy(config_loader.load_jurisdiction_config("illinois"))
     config["submission_notifications"]["enabled"] = True
     config["fee_waiver"]["source_url"] = "https://example.test/{{name}}"
@@ -110,7 +137,7 @@ def test_forwarded_payload_strips_client_templates_and_preserves_lead_contact(en
     request = RequestFactory().post("/", HTTP_HOST="testserver")
     request.session = SessionStore()
     request.session.update({"jurisdiction": "illinois", "auth_tokens": {}})
-    draft = SimpleNamespace(pk=12, court_code="court-A", selected_payment_account_type="CC")
+    draft = fake_draft(court_code="court-A", selected_payment_account_type="CC")
     efile_data = {
         "al_court_bundle": [],
         "users": [{"is_form_filler": True, "email": "filer@example.test"}],
@@ -151,7 +178,7 @@ def test_notification_config_error_does_not_block_or_retry_filing():
     request = RequestFactory().post("/", HTTP_HOST="testserver")
     request.session = SessionStore()
     request.session.update({"jurisdiction": "illinois", "auth_tokens": {}})
-    draft = SimpleNamespace(pk=12, court_code="court-A", selected_payment_account_type="CC")
+    draft = fake_draft(court_code="court-A", selected_payment_account_type="CC")
     efile_data = {"al_court_bundle": [], "lead_contact": {"email": "lead@example.test"}}
     api_response = SimpleNamespace(status_code=201, json=lambda: {"envelopeId": "env-1"})
 
@@ -175,7 +202,7 @@ def test_missing_optional_contacts_and_waiver_url_leave_no_empty_labels():
     config["submission_notifications"]["enabled"] = True
     config.pop("fee_waiver", None)
     request = RequestFactory().get("/", HTTP_HOST="testserver")
-    draft = SimpleNamespace(pk=12, selected_payment_account_type="WV", court_code="unknown")
+    draft = fake_draft(selected_payment_account_type="WV", court_code="unknown")
     with patch("efile.services.submission_notifications.court_contact", return_value={}):
         fields = submission_email_fields(request, draft, "massachusetts", config)
     confirmation = fields["email_confirmation_contents"]
@@ -196,4 +223,4 @@ def test_missing_optional_contacts_and_waiver_url_leave_no_empty_labels():
 def test_incomplete_template_configuration_falls_back_to_proxy_defaults():
     request = RequestFactory().get("/")
     config = {"submission_notifications": {"enabled": True, "templates": {"acceptance_subject": "Accepted"}}}
-    assert submission_email_fields(request, SimpleNamespace(pk=12), "illinois", config) == {}
+    assert submission_email_fields(request, fake_draft(), "illinois", config) == {}

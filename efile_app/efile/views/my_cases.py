@@ -7,7 +7,6 @@ without losing the ability to go back and look.
 """
 
 import logging
-from urllib.parse import urlencode
 
 import requests
 from django.contrib import messages
@@ -29,7 +28,7 @@ from efile.services.filings import (
     unarchive_case,
 )
 from efile.services.handoff import local_submission
-from efile.utils.jurisdiction_stuff import has_jurisdiction_login
+from efile.utils.jurisdiction_stuff import has_jurisdiction_login, redirect_to_jurisdiction_login
 
 logger = logging.getLogger(__name__)
 
@@ -106,20 +105,24 @@ def filing_detail(request, jurisdiction, court_code, filing_id):
     """
 
     if not has_jurisdiction_login(request, jurisdiction):
-        return redirect(
-            reverse("efile_login", kwargs={"jurisdiction": jurisdiction})
-            + "?"
-            + urlencode({"next": request.get_full_path()})
-        )
+        return redirect_to_jurisdiction_login(request, jurisdiction)
 
     # A saved local submission must never be exposed through a guessed detail
     # URL belonging to another account. Older remote-only filings continue to
-    # use the upstream token-scoped record.
+    # use the upstream token-scoped record. Another local user signed in to the
+    # same Tyler account (re-created, say) is the same filer, not another account.
     local_draft = local_submission(request.user, jurisdiction, court_code, filing_id)
     if local_draft is None:
         others = FilingDraft.objects.filter(
             jurisdiction=jurisdiction, court_code=court_code, filing_identifiers__filing_id=str(filing_id)
         ).exclude(user=request.user)
+        if request.user.tyler_user_id:
+            others = others.exclude(user__tyler_user_id=request.user.tyler_user_id)
+        if request.user.tyler_username:
+            others = others.exclude(
+                user__tyler_jurisdiction__iexact=request.user.tyler_jurisdiction,
+                user__tyler_username__iexact=request.user.tyler_username,
+            )
         if others.exists():
             raise Http404
 

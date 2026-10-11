@@ -53,7 +53,7 @@ def test_filing_tracker_browser(live_server, client, django_user_model):
     notification_config["submission_notifications"]["enabled"] = True
     email_fields = submission_email_fields(email_request, draft, "illinois", notification_config)
     email_contents = email_fields["email_confirmation_contents"]
-    assert f"/submissions/{draft.pk}/" in email_contents
+    assert f"/submissions/{draft.public_id}/" in email_contents
 
     fetched_filing_ids = []
 
