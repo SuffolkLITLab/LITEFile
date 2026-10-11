@@ -22,6 +22,7 @@ from psycopg.types.json import Jsonb
 from efile.db_expressions import CourtCode
 from efile.models import FilingCodeIndex, FilingCodePath
 from efile.services.court_selection import is_non_filing_court
+from efile.services.filing_code_labels import LabelCounts, LabelSpool, forget_courts
 from efile.services.filing_code_search import (
     FACETS,
     CodeCatalog,
@@ -164,7 +165,7 @@ def _stage(data, jurisdiction, path):
     return {"count": count, "words": sorted(vocabulary), "tokens": sorted(tokens)}
 
 
-def _insert_paths(index, snapshot, count, progress):
+def _insert_paths(index, snapshot, count, progress, labels):
     """COPY on Postgres; bounded ORM batches on SQLite. IDs come from each database's sequence."""
     saved = 0
     if connection.vendor == "postgresql":
@@ -175,6 +176,7 @@ def _insert_paths(index, snapshot, count, progress):
         with Cursor(connection.connection) as cursor, cursor.copy(f"COPY {table} ({columns}) FROM STDIN") as copy:
             for line in snapshot:
                 entry = json.loads(line)
+                labels.add(entry)
                 entry["index"] = index.pk
                 copy.write_row(
                     [
@@ -186,7 +188,11 @@ def _insert_paths(index, snapshot, count, progress):
                 if progress and saved % 100000 == 0:
                     progress(f"Saved {saved} of {count} changed filing paths")
     else:
-        while batch := [FilingCodePath(index=index, **json.loads(line)) for line in islice(snapshot, 500)]:
+        while entries := [json.loads(line) for line in islice(snapshot, 500)]:
+            batch = []
+            for entry in entries:
+                labels.add(entry)
+                batch.append(FilingCodePath(index=index, **entry))
             FilingCodePath.objects.bulk_create(batch, batch_size=500)
             saved += len(batch)
             if progress and saved % 100000 == 0:
@@ -267,12 +273,27 @@ def synchronize_index(jurisdiction, *, progress=None, force=(), dry_run=False, c
             if previous is None or not snapshots:
                 # One-time bootstrap from legacy indexes, or a different source/rules revision.
                 index.paths.all().delete()
+                index.labels.all().delete()
+                # Every court is staged, so its labels will be complete.
+                index.labels_built_at = timezone.now()
             else:
-                for code in set(snapshots) - set(courts) | set(staged):
+                replaced = set(snapshots) - set(courts) | set(staged)
+                for code in replaced:
                     index.paths.alias(catalog_court_code=CourtCode("court")).filter(catalog_court_code=code).delete()
+                forget_courts(index, replaced)
+            # A few changed courts update their labels in place. Replacing every
+            # court writes each label once instead.
+            spool = None if snapshots else LabelSpool()
             for code, path in staged.items():
+                labels = LabelCounts()
                 with gzip.open(path, "rt", encoding="utf-8") as snapshot:
-                    _insert_paths(index, snapshot, next_snapshots[code]["count"], progress)
+                    _insert_paths(index, snapshot, next_snapshots[code]["count"], progress, labels)
+                if spool:
+                    spool.add(labels)
+                else:
+                    labels.save(index)
+            if spool:
+                spool.save(index)
             index.source_url = source_url()
             index.rules_digest = rules()[1]
             index.refreshed_at = started
