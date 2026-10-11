@@ -720,12 +720,13 @@ def submitted_filing_ids(response):
 
 
 def local_submission(user, jurisdiction, court_code, filing_id):
-    for draft in FilingDraft.objects.filter(
-        user=user, jurisdiction=jurisdiction, court_code=court_code, status=FilingDraft.Status.SUBMITTED
-    ):
-        if str(filing_id) in submitted_filing_ids(draft.submission_response):
-            return draft
-    return None
+    return FilingDraft.objects.filter(
+        user=user,
+        jurisdiction=jurisdiction,
+        court_code=court_code,
+        status=FilingDraft.Status.SUBMITTED,
+        filing_identifiers__filing_id=str(filing_id),
+    ).first()
 
 
 def matter_keys(user, jurisdiction, remote_filings):

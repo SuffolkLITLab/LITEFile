@@ -9,6 +9,7 @@ import logging
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.shortcuts import redirect, render
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext
 
 from efile.models import PendingActivation
@@ -44,6 +45,14 @@ def efile_login(request, jurisdiction):
     if jurisdiction not in config_loader.get_available_jurisdictions():
         return redirect("efile_choose_jurisdiction")
 
+    destination = request.POST.get("next") or request.GET.get("next", "")
+    if not (
+        destination.startswith("/")
+        and url_has_allowed_host_and_scheme(
+            destination, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+        )
+    ):
+        destination = ""
     login_form = EFileLoginForm()
     if request.method == "POST":
         if "login_submit" in request.POST:
@@ -64,6 +73,8 @@ def efile_login(request, jurisdiction):
                         request.session["jurisdiction"] = jurisdiction
                         PendingActivation.forget(email, jurisdiction)
                         messages.success(request, "Successfully logged in!")
+                        if destination:
+                            return redirect(destination)
                         if handoff_continue and handoff_continue.startswith("/handoff/claim/"):
                             return redirect(handoff_continue)
                         return redirect(f"/jurisdiction/{jurisdiction}/options/")
@@ -73,7 +84,7 @@ def efile_login(request, jurisdiction):
                     logger.exception("Login request failed")
                     messages.error(request, f"Login failed: {str(e)}")
     config = config_loader.load_jurisdiction_config(jurisdiction)
-    context = {"login_form": login_form, "config": config}
+    context = {"login_form": login_form, "config": config, "next": destination}
     return render(request, "efile/login.html", context)
 
 

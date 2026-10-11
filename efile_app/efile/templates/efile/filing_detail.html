@@ -13,6 +13,7 @@
         <link rel="stylesheet" href="{% static 'css/common.css' %}" />
         <link rel="stylesheet" href="{% static 'css/options.css' %}" />
         <link rel="stylesheet" href="{% static 'css/my_lists.css' %}" />
+        <link rel="stylesheet" href="{% static 'css/filing-tracker.css' %}" />
     </head>
     <body>
         {% include "efile/components/profile_header.html" %}
@@ -34,7 +35,8 @@
                                 {% translate "Filing details" %}
                             {% endif %}
                         </h1>
-                        <section class="option-card list-card">
+                        <section class="option-card filing-tracker"
+                                 aria-label="{% translate 'Filing status' %}">
                             <div class="list-card__head">
                                 <div>
                                     <p class="list-card__detail">
@@ -45,9 +47,7 @@
                                         {{ filing.court_name }}
                                     </p>
                                     <p class="list-card__detail">
-                                        {% if filing.submitted_at %}
-                                            {% blocktranslate with when=filing.submitted_at|date:"j F Y" %}Sent {{ when }}{% endblocktranslate %}
-                                        {% endif %}
+                                        {% if filing.submitted_at %}{% blocktranslate with when=filing.submitted_at|date:"j F Y" %}Sent {{ when }}{% endblocktranslate %}{% endif %}
                                         {% if filing.accepted_at %}
                                             · {% blocktranslate with when=filing.accepted_at|date:"j F Y" %}Accepted {{ when }}{% endblocktranslate %}
                                         {% endif %}
@@ -56,11 +56,39 @@
                                         {% endif %}
                                     </p>
                                 </div>
-                                <span class="list-card__status list-card__status--{{ filing.status_presentation.tone }}">
+                            </div>
+                            <div class="filing-tracker__current filing-tracker__current--{{ filing.status_presentation.tone }}"
+                                 role="status">
+                                <strong class="list-card__status list-card__status--{{ filing.status_presentation.tone }}">
                                     <i class="fas {{ filing.status_presentation.icon }}" aria-hidden="true"></i>
                                     {{ filing.status_presentation.label }}
-                                </span>
+                                </strong>
+                                <p>{{ filing.tracker.summary }}</p>
+                                {% if local_draft %}
+                                    {% if filing.can_correct %}
+                                        <a href="{% url 'correct_filing' local_draft.pk %}">{% translate "Correct and resubmit" %}</a>
+                                    {% endif %}
+                                {% endif %}
                             </div>
+                            {% if filing.tracker.stages %}
+                                <ol class="filing-tracker__stages"
+                                    aria-label="{% translate 'Filing progress' %}">
+                                    {% for stage in filing.tracker.stages %}
+                                        <li class="{% if stage.complete %}is-complete{% endif %}{% if stage.current %} is-current{% endif %}"
+                                            {% if stage.current %} aria-current="step"{% endif %}>
+                                            <span class="filing-tracker__marker" aria-hidden="true">{% if stage.complete %}✓{% endif %}</span>
+                                            <span>{{ stage.label }}</span>
+                                            {% if stage.complete %}
+                                                <span class="visually-hidden">{% translate "Completed" %}</span>
+                                            {% elif stage.current %}
+                                                <span class="visually-hidden">{% translate "Current" %}</span>
+                                            {% else %}
+                                                <span class="visually-hidden">{% translate "Upcoming" %}</span>
+                                            {% endif %}
+                                        </li>
+                                    {% endfor %}
+                                </ol>
+                            {% endif %}
                             {% if filing.submitter_name %}
                                 <p class="list-card__detail">
                                     {% blocktranslate with who=filing.submitter_name %}Filed by {{ who }}{% endblocktranslate %}
@@ -68,9 +96,6 @@
                                 </p>
                             {% endif %}
                         </section>
-                        {% if local_draft and filing.status_presentation.tone == 'rejected' %}
-                            <p><a href="{% url 'correct_filing' local_draft.pk %}">{% translate "Correct and resubmit" %}</a></p>
-                        {% endif %}
                         {% for comment in filing.comments %}
                             <section class="option-card clerk-comment clerk-comment--{{ comment.kind }}">
                                 <h2>{{ comment.heading }}</h2>
@@ -113,15 +138,13 @@
                         {% elif filing.fee_waiver %}
                             <section class="option-card">
                                 <h2>{% translate "What this filing cost" %}</h2>
-                                <p>{% translate "You filed this with a fee waiver, and the court charged you nothing." %}</p>
+                                <p>{% translate "A fee waiver was requested. Check the court’s decision for any next steps." %}</p>
                             </section>
                         {% endif %}
                         {% if court_contact %}
                             <section class="option-card">
                                 <h2>{% translate "Questions about this filing" %}</h2>
-                                <p>
-                                    {% translate "Only the court can explain what it did with your filing, or change it. Contact the clerk's office:" %}
-                                </p>
+                                <p>{% translate "For help with this filing:" %}</p>
                                 <ul class="court-contact">
                                     {% if court_contact.name %}<li>{{ court_contact.name }}</li>{% endif %}
                                     {% if court_contact.phone %}
@@ -136,7 +159,7 @@
                                     {% endif %}
                                     {% if court_contact.url %}
                                         <li>
-                                            <i class="fas fa-globe" aria-hidden="true"></i> <a href="{{ court_contact.url }}" rel="noopener" target="_blank">{% translate "Court website" %}</a>
+                                            <i class="fas fa-globe" aria-hidden="true"></i> <a href="{{ court_contact.url }}" rel="noopener" target="_blank">{% translate "Help website" %}</a>
                                         </li>
                                     {% endif %}
                                 </ul>

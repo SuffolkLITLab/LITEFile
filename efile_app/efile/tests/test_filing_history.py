@@ -20,6 +20,7 @@ from efile.services.filings import (
     cases_for_user,
     court_contact,
     describe_filing_detail,
+    filing_tracker,
     status_presentation,
 )
 
@@ -181,7 +182,7 @@ def sign_in(client, user):
 def test_rejection_comment_is_pulled_off_the_document():
     filing = described(rejected_detail())
 
-    assert filing["status_presentation"]["label"] == "Rejected"
+    assert filing["status_presentation"]["label"] == "Returned for changes"
     assert filing["comments"] == [
         {
             "kind": "rejection",
@@ -232,12 +233,85 @@ def test_a_payload_the_court_never_filled_in_still_describes_something():
 
     assert filing["documents"] == []
     assert filing["comments"] == []
-    assert filing["status_presentation"]["label"] == "Waiting on the court"
+    assert filing["status_presentation"]["label"] == "Received by the e-filing system"
     assert describe_filing_detail(None) is None
 
 
 def test_an_unfamiliar_status_code_is_described_rather_than_dropped():
-    assert status_presentation("something-tyler-added-yesterday")["label"] == "Sent to the court"
+    assert status_presentation("something-tyler-added-yesterday")["label"] == "Status update from the court"
+
+
+@pytest.mark.parametrize(
+    ("code", "state", "current_stage"),
+    [
+        ("submitting", "progress", 0),
+        ("submitted", "progress", 1),
+        ("receipted", "progress", 1),
+        ("under-review", "progress", 2),
+        ("reviewed", "progress", 2),
+        ("accepted", "decision", 3),
+        ("rejected", "decision", 3),
+        ("returned", "decision", 3),
+        ("failed", "stopped", None),
+        ("cancelled", "stopped", None),
+        ("served", "neutral", None),
+        ("future-code", "neutral", None),
+    ],
+)
+def test_tracker_covers_known_and_unknown_statuses(code, state, current_stage):
+    tracker = filing_tracker(code)
+    assert tracker["state"] == state
+    if current_stage is not None:
+        assert [i for i, stage in enumerate(tracker["stages"]) if stage["current"]] == [current_stage]
+        if code == "accepted":
+            assert tracker["stages"][-1]["label"] == "Accepted"
+        elif code in {"rejected", "returned"}:
+            assert tracker["stages"][-1]["label"] == "Returned for changes"
+    else:
+        assert tracker["stages"] == []
+
+
+def test_tracker_distinguishes_efsp_receipt_from_court_receipt_and_service():
+    assert "e-filing system" in filing_tracker("submitted")["summary"]
+    assert "court" in filing_tracker("receipted")["summary"]
+    assert "does not show whether the court accepted" in filing_tracker("served")["summary"]
+    assert filing_tracker("failed")["summary"] == "This filing did not go through."
+    assert filing_tracker("cancelled")["summary"] == "This filing was cancelled."
+
+
+@pytest.mark.django_db
+def test_filing_tracker_template_has_one_accessible_status_and_compact_progress(client, user):
+    sign_in(client, user)
+    url = reverse("filing_detail", kwargs={"jurisdiction": "illinois", "court_code": "kane", "filing_id": "filing-1"})
+    with patch("efile.views.my_cases.fetch_filing_detail", return_value=accepted_detail()):
+        response = client.get(url)
+    content = response.content.decode()
+    assert response.status_code == 200
+    assert content.count('role="status"') == 1
+    assert 'aria-label="Filing progress"' in content
+    assert 'aria-current="step"' in content
+    assert 'aria-hidden="true">✓</span>' in content
+    assert "Completed" in content and "Current" in content
+    pending = accepted_detail()
+    pending["filingStatus"] = {"filingStatusCode": "under-review", "statusDescriptionText": []}
+    with patch("efile.views.my_cases.fetch_filing_detail", return_value=pending):
+        pending_response = client.get(url)
+    assert "Upcoming" in pending_response.content.decode()
+    assert all(label in content for label in ("Sent", "Received", "Clerk review", "Accepted"))
+    assert "css/filing-tracker.css" in content
+
+
+@pytest.mark.django_db
+def test_fee_waiver_indicator_does_not_claim_the_court_waived_or_charged_fees(client, user):
+    sign_in(client, user)
+    url = reverse("filing_detail", kwargs={"jurisdiction": "illinois", "court_code": "kane", "filing_id": "filing-1"})
+    waiver_detail = accepted_detail()
+    waiver_detail["envelopeFees"] = []
+    with patch("efile.views.my_cases.fetch_filing_detail", return_value=waiver_detail):
+        response = client.get(url)
+    content = response.content.decode()
+    assert "A fee waiver was requested." in content
+    assert "charged you nothing" not in content
 
 
 def test_court_contact_falls_back_to_the_jurisdictions_help_line():
@@ -273,7 +347,7 @@ def test_filings_are_grouped_into_the_cases_they_belong_to(rf, user):
     assert first["court_name"] == "Kane County"
     # Newest filing first, and it is the one the case's status reflects.
     assert first["filings"][0]["filing_id"] == "filing-2"
-    assert first["latest_status"]["label"] == "Rejected"
+    assert first["latest_status"]["label"] == "Returned for changes"
 
 
 @pytest.mark.django_db

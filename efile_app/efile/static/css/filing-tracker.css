@@ -1,0 +1,116 @@
+.filing-tracker {
+    margin-bottom: 1rem;
+}
+
+.filing-tracker__current {
+    border-left: 4px solid #64748b;
+    margin-top: 0.85rem;
+    padding: 0.1rem 0 0.1rem 0.85rem;
+}
+
+.filing-tracker__current--accepted {
+    border-color: var(--success);
+}
+
+.filing-tracker .list-card__status--accepted {
+    color: #176b2c;
+}
+
+.filing-tracker__current--rejected {
+    border-color: var(--failure);
+}
+
+.filing-tracker .list-card__status--rejected {
+    color: #a61b29;
+}
+
+.filing-tracker__current p {
+    margin: 0.2rem 0 0;
+}
+
+.filing-tracker__current a {
+    display: inline-block;
+    margin-top: 0.4rem;
+}
+
+.filing-tracker__stages {
+    align-items: flex-start;
+    display: flex;
+    list-style: none;
+    margin: 1rem 0 0;
+    padding: 0;
+}
+
+.filing-tracker__stages li {
+    color: #596579;
+    flex: 1;
+    font-size: 0.85rem;
+    line-height: 1.25;
+    min-width: 0;
+    padding: 1.1rem 0.4rem 0;
+    position: relative;
+}
+
+.filing-tracker__marker {
+    align-items: center;
+    background: #fff;
+    border: 2px solid #7b8797;
+    border-radius: 50%;
+    color: #fff;
+    display: flex;
+    font-size: 0.55rem;
+    font-weight: 700;
+    height: 0.75rem;
+    left: 0.4rem;
+    position: absolute;
+    top: 0;
+    width: 0.75rem;
+    justify-content: center;
+}
+
+.filing-tracker__stages li::after {
+    background: #cbd5e1;
+    content: "";
+    height: 2px;
+    left: 1.15rem;
+    position: absolute;
+    right: -0.4rem;
+    top: 0.34rem;
+}
+
+.filing-tracker__stages li:last-child::after {
+    display: none;
+}
+
+.filing-tracker__stages li.is-complete .filing-tracker__marker,
+.filing-tracker__stages li.is-current .filing-tracker__marker {
+    background: var(--suffolk-blue);
+    border-color: var(--suffolk-blue);
+}
+
+.filing-tracker__stages li.is-complete::after {
+    background: var(--suffolk-blue);
+}
+
+.filing-tracker__stages li.is-current {
+    color: #172033;
+    font-weight: 700;
+}
+
+@media (max-width: 480px) {
+    .filing-tracker__stages li {
+        font-size: 0.72rem;
+        padding-left: 0.15rem;
+        padding-right: 0.15rem;
+        overflow-wrap: anywhere;
+    }
+
+    .filing-tracker__marker {
+        left: 0.15rem;
+    }
+
+    .filing-tracker__stages li::after {
+        left: 0.9rem;
+        right: -0.15rem;
+    }
+}

@@ -46,19 +46,72 @@ _court_name_cache: dict[str, tuple[float, dict[str, str]]] = {}
 
 STATUS_PRESENTATION: dict[str, dict[str, str]] = {
     "accepted": {"label": "Accepted", "icon": "fa-file-circle-check", "tone": "accepted"},
-    "rejected": {"label": "Rejected", "icon": "fa-file-circle-exclamation", "tone": "rejected"},
+    "rejected": {"label": "Returned for changes", "icon": "fa-file-circle-exclamation", "tone": "rejected"},
     "returned": {"label": "Returned for changes", "icon": "fa-file-circle-exclamation", "tone": "rejected"},
     "under-review": {"label": "Under review", "icon": "fa-file-pen", "tone": "pending"},
     "reviewed": {"label": "Reviewed", "icon": "fa-file-pen", "tone": "pending"},
-    "submitted": {"label": "Waiting on the court", "icon": "fa-file", "tone": "pending"},
-    "submitting": {"label": "Sending to the court", "icon": "fa-paper-plane", "tone": "pending"},
+    "submitted": {"label": "Received by the e-filing system", "icon": "fa-file", "tone": "pending"},
+    "submitting": {"label": "In progress", "icon": "fa-paper-plane", "tone": "pending"},
     "receipted": {"label": "Received by the court", "icon": "fa-file", "tone": "pending"},
-    "served": {"label": "Served", "icon": "fa-envelope-circle-check", "tone": "accepted"},
-    "cancelled": {"label": "Cancelled", "icon": "fa-file-circle-xmark", "tone": "muted"},
-    "failed": {"label": "Did not go through", "icon": "fa-file-circle-xmark", "tone": "rejected"},
+    "served": {"label": "Served", "icon": "fa-envelope-circle-check", "tone": "muted"},
+    "cancelled": {"label": "Stopped", "icon": "fa-file-circle-xmark", "tone": "muted"},
+    "failed": {"label": "Stopped", "icon": "fa-file-circle-xmark", "tone": "muted"},
 }
 
-UNKNOWN_STATUS = {"label": "Sent to the court", "icon": "fa-file", "tone": "pending"}
+UNKNOWN_STATUS = {"label": "Status update from the court", "icon": "fa-file", "tone": "muted"}
+
+TRACKER_STAGES = ("Sent", "Received", "Clerk review")
+
+
+def filing_tracker(status_code: Any) -> dict[str, Any]:
+    """Return a conservative filing progress summary for the detail screen."""
+    code = str(status_code or "").strip().lower()
+    stage_by_status = {
+        "submitting": (0, "Your filing is being sent to the court."),
+        "submitted": (1, "The e-filing system received your filing."),
+        "receipted": (1, "The court received your filing."),
+        "under-review": (2, "A court clerk is reviewing your filing."),
+        "reviewed": (2, "The clerk review is complete. The court has not shared a decision."),
+        "accepted": (3, "Download the court copy below if you need it."),
+        "rejected": (3, "Review the clerk's comments below."),
+        "returned": (3, "Review the clerk's comments below."),
+    }
+    if code in {"failed", "cancelled"}:
+        summary = "This filing did not go through." if code == "failed" else "This filing was cancelled."
+        return {
+            "state": "stopped",
+            "label": status_presentation(code)["label"],
+            "summary": summary,
+            "stages": [],
+        }
+    if code == "served":
+        return {
+            "state": "neutral",
+            "label": "Served",
+            "summary": "The filing was served. This does not show whether the court accepted it.",
+            "stages": [],
+        }
+    current = stage_by_status.get(code)
+    if current is None:
+        return {
+            "state": "neutral",
+            "label": UNKNOWN_STATUS["label"],
+            "summary": "The court sent a status update. Check the details below.",
+            "stages": [],
+        }
+    index, summary = current
+    outcome_label = {
+        "accepted": "Accepted",
+        "rejected": "Returned for changes",
+        "returned": "Returned for changes",
+    }.get(code, "Court decision")
+    stages = (*TRACKER_STAGES, outcome_label)
+    return {
+        "state": "decision" if index == 3 else "progress",
+        "label": status_presentation(code)["label"],
+        "summary": summary,
+        "stages": [{"label": stage, "complete": i < index, "current": i == index} for i, stage in enumerate(stages)],
+    }
 
 
 def status_presentation(status_code: Any) -> dict[str, str]:
@@ -441,7 +494,9 @@ def describe_filing_detail(
         "filing_id": identifiers.get("FILINGID", ""),
         "envelope_id": identifiers.get("ENVELOPEID", ""),
         "status": status_code,
+        "can_correct": str(status_code or "").strip().lower() in {"rejected", "returned"},
         "status_presentation": status_presentation(status_code),
+        "tracker": filing_tracker(status_code),
         "status_description": _text(next(iter(_dig(payload, "filingStatus", "statusDescriptionText") or []), None)),
         "court_code": court_code,
         "court_name": names.get(court_code, court_code),

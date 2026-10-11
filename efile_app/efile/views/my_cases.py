@@ -7,14 +7,17 @@ without losing the ability to go back and look.
 """
 
 import logging
+from urllib.parse import urlencode
 
 import requests
 from django.contrib import messages
+from django.http import Http404
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
 from efile.api.suffolk_api_views import get_tyler_token
+from efile.models import FilingDraft
 from efile.services.filings import (
     DOCUMENT_LINK_DAYS,
     archive_case,
@@ -26,6 +29,7 @@ from efile.services.filings import (
     unarchive_case,
 )
 from efile.services.handoff import local_submission
+from efile.utils.jurisdiction_stuff import has_jurisdiction_login
 
 logger = logging.getLogger(__name__)
 
@@ -101,8 +105,23 @@ def filing_detail(request, jurisdiction, court_code, filing_id):
     links rather than copied through this server.
     """
 
-    if not request.user.is_authenticated or not get_tyler_token(request, jurisdiction):
-        return redirect("efile_login", jurisdiction=jurisdiction)
+    if not has_jurisdiction_login(request, jurisdiction):
+        return redirect(
+            reverse("efile_login", kwargs={"jurisdiction": jurisdiction})
+            + "?"
+            + urlencode({"next": request.get_full_path()})
+        )
+
+    # A saved local submission must never be exposed through a guessed detail
+    # URL belonging to another account. Older remote-only filings continue to
+    # use the upstream token-scoped record.
+    local_draft = local_submission(request.user, jurisdiction, court_code, filing_id)
+    if local_draft is None:
+        others = FilingDraft.objects.filter(
+            jurisdiction=jurisdiction, court_code=court_code, filing_identifiers__filing_id=str(filing_id)
+        ).exclude(user=request.user)
+        if others.exists():
+            raise Http404
 
     detail = None
     try:
@@ -119,7 +138,7 @@ def filing_detail(request, jurisdiction, court_code, filing_id):
         {
             "is_logged_in": True,
             "filing": detail,
-            "local_draft": local_submission(request.user, jurisdiction, court_code, filing_id),
+            "local_draft": local_draft,
             "court_code": court_code,
             "filing_id": filing_id,
             "court_contact": court_contact(jurisdiction, court_code),

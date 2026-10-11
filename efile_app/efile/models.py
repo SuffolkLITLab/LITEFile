@@ -464,6 +464,27 @@ class FilingDraft(models.Model):
                 self.filing_type_code = lead.filing_type_code
                 self.filing_type_name = lead.filing_type_name
         super().save(*args, **kwargs)
+        if update_fields is None or "submission_response" in update_fields:
+            # Keep searchable identifiers atomic with the response. QuerySet.update
+            # and bulk writes must not be used to change submission_response.
+            from efile.services.handoff import submitted_filing_ids
+
+            filing_ids = submitted_filing_ids(self.submission_response)
+            self.filing_identifiers.exclude(filing_id__in=filing_ids).delete()
+            existing = set(self.filing_identifiers.values_list("filing_id", flat=True))
+            FilingIdentifier.objects.bulk_create(
+                [FilingIdentifier(draft=self, filing_id=value) for value in filing_ids - existing]
+            )
+
+
+class FilingIdentifier(models.Model):
+    """Search keys for a saved proxy response, not another filing status record."""
+
+    draft = models.ForeignKey(FilingDraft, on_delete=models.CASCADE, related_name="filing_identifiers")
+    filing_id = models.CharField(max_length=255, db_index=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["draft", "filing_id"], name="unique_draft_filing_id")]
 
 
 class FilingDocument(models.Model):
