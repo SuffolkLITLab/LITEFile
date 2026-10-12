@@ -1,13 +1,15 @@
 """Known filing times and sourced, jurisdiction-specific timing guidance."""
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from urllib.parse import urlsplit
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+
+import holidays
 
 from efile.utils.config_loader import config_loader
 
 
-def court_filing_timing(jurisdiction, court_code, config=None):
+def court_filing_timing(jurisdiction, court_code, config=None, *, now=None):
     config = config if config is not None else config_loader.load_jurisdiction_config(jurisdiction) or {}
     settings = dict(config.get("filing_timing") or {})
     court = (config.get("court_specific_requirements") or {}).get(court_code) or {}
@@ -24,7 +26,50 @@ def court_filing_timing(jurisdiction, court_code, config=None):
         label, source = str(item.get("label") or "").strip(), str(item.get("source_url") or "").strip()
         if label and urlsplit(source).scheme in {"https", "http"} and urlsplit(source).netloc:
             result[key] = {"label": label, "source_url": source}
+    if "review" in result:
+        result["review"]["closure_note"] = review_closure_note(settings, zone, now=now)
     return result
+
+
+def review_closure_note(settings, zone, *, now=None):
+    """Explain likely closures near today, without promising a decision date."""
+    calendar = settings.get("business_calendar") or {}
+    if not calendar:
+        return ""
+    today = (now or datetime.now(timezone.utc)).astimezone(zone).date()
+    try:
+        days = int(calendar.get("review_days", 2))
+        if not 1 <= days <= 14:
+            return ""
+        holiday_calendar = holidays.country_holidays(
+            calendar.get("country", "US"),
+            subdiv=calendar.get("subdivision"),
+            years=[today.year, today.year + 1],
+            observed=True,
+        )
+    except (NotImplementedError, ValueError, TypeError):
+        return ""
+    aliases = calendar.get("holiday_names") or {}
+    closed_weekdays = set(calendar.get("closed_weekdays", [5, 6]))
+    notes = []
+    day = today
+    remaining = days
+    # Include today's closure and the next N business days. Cap the search
+    # defensively if a configuration accidentally closes every weekday.
+    for _ in range(60):
+        if day.weekday() not in closed_weekdays:
+            name = holiday_calendar.get(day)
+            if name:
+                name = aliases.get(name, name)
+                notes.append(f"{name} may add 1 day.")
+            elif day > today:
+                remaining -= 1
+        if remaining == 0:
+            break
+        day += timedelta(days=1)
+    if closed_weekdays == {5, 6}:
+        notes.append("Courts are closed on Saturdays and Sundays.")
+    return " ".join(notes)
 
 
 def display_filing_time(value, zone_name="UTC"):
@@ -60,6 +105,7 @@ def add_tracker_timing(tracker, status_code, *, submitted_at=None, accepted_at=N
             stages[index]["timestamp_label"] = label
     if timing.get("review") and tracker["state"] == "progress":
         stages[2]["estimate"] = timing["review"]["label"]
+        stages[2]["estimate_source_url"] = timing["review"]["source_url"]
     tracker["missing_times"] = any(
         (stage["complete"] or stage["current"]) and not stage.get("timestamp") for stage in stages
     )

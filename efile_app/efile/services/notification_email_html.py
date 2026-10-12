@@ -35,6 +35,10 @@ def _neutral_progress(timing):
 
 
 def render_notification_email(field, contents, tracker_url, timing=None):
+    # Callback templates are saved at submission and may run days later.
+    # Only the immediate confirmation can use today's holiday guidance.
+    if timing and field != "email_confirmation_contents":
+        timing = {**timing, "review": {k: v for k, v in timing.get("review", {}).items() if k != "closure_note"}}
     status = {
         "email_confirmation_contents": "submitted",
         "acceptance_contents": "accepted",

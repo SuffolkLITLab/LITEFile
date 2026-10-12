@@ -114,12 +114,12 @@ def test_email_timing_has_sourced_estimates_and_hours_without_invented_event_tim
     config["submission_notifications"]["enabled"] = True
     fields = submission_email_fields(RequestFactory().get("/"), fake_draft(court_code="adams"), "illinois", config)
     body = fields["email_confirmation_contents"]
-    assert "24–48 business hours" in body
-    assert "8:15 a.m.–4:30 p.m." in body
-    assert "Review times are estimates, not deadlines" in body
-    assert "Review timing guidance" in body and "Check court hours" in body
-    assert "Stage times appear when available" in body
-    assert "Typical review:" not in fields["acceptance_contents"]
+    assert "1–2 days" in body
+    assert "8:15 a.m.–4:30 p.m." not in body
+    assert "Courts are closed on Saturdays and Sundays." in body
+    assert "Court hours" in body
+    assert "Stage times appear when available" not in body
+    assert "Typically" not in fields["acceptance_contents"]
 
 
 def test_email_timing_cannot_introduce_html_or_proxy_template_expressions():
@@ -281,3 +281,20 @@ def test_incomplete_template_configuration_falls_back_to_proxy_defaults():
     request = RequestFactory().get("/")
     config = {"submission_notifications": {"enabled": True, "templates": {"acceptance_subject": "Accepted"}}}
     assert submission_email_fields(request, fake_draft(), "illinois", config) == {}
+
+
+def test_saved_callback_templates_do_not_repeat_submission_day_holiday_guidance():
+    from efile.services.notification_email_html import render_notification_email
+
+    timing = {
+        "review": {
+            "label": "1–2 days",
+            "source_url": "https://court.example/timing",
+            "closure_note": "Indigenous Peoples’ Day may add 1 day.",
+        }
+    }
+    confirmation = render_notification_email("email_confirmation_contents", "Submitted", "https://example.test", timing)
+    callback = render_notification_email("neutral_contents", "Updated", "https://example.test", timing)
+    assert "Indigenous Peoples’ Day may add 1 day." in confirmation
+    assert "Indigenous Peoples’ Day" not in callback
+    assert timing["review"]["closure_note"]

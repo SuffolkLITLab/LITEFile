@@ -37,8 +37,16 @@ submission_notifications:
 
 filing_timing:
   timezone: America/Chicago
+  business_calendar:
+    country: US
+    subdivision: IL
+    review_days: 2
+    closed_weekdays: [5, 6]
+    holiday_names:
+      Columbus Day: "Indigenous Peoples’ Day / Columbus Day"
   review:
-    label: "24–48 business hours"
+    # Plain-language display of the published 24–48 business-hour guidance.
+    label: "1–2 days"
     source_url: "https://www.illinoiscourts.gov/News/656/12-Ways-to-Avoid-A-Rejected-EFiling-and-Other-Illinois-EFiling-Tips/news-detail/"
     checked_on: "2026-10-12"
 

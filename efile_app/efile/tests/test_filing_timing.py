@@ -68,7 +68,7 @@ def test_time_zone_respects_daylight_saving_and_does_not_guess_naive_times():
 
 def test_sourced_court_hours_and_jurisdiction_range_are_shared_without_leaking_between_states():
     adams = court_filing_timing("illinois", "adams")
-    assert adams["review"]["label"] == "24–48 business hours"
+    assert adams["review"]["label"] == "1–2 days"
     assert "8:15 a.m." in adams["office_hours"]["label"]
     other = court_filing_timing("illinois", "unknown")
     assert "office_hours" not in other
@@ -94,3 +94,31 @@ def test_court_overrides_and_missing_sources():
     timing = court_filing_timing("", "test", config)
     assert timing["review"]["label"] == "2–3 business days"
     assert filing_tracker("submitted", timing=timing)["stages"][2]["estimate"] == "2–3 business days"
+
+
+@pytest.mark.parametrize(
+    ("instant", "holiday", "absent"),
+    [
+        ("2026-10-12T14:00:00+00:00", "Indigenous Peoples’ Day / Columbus Day", "Veterans Day"),
+        ("2026-10-09T14:00:00+00:00", "Indigenous Peoples’ Day / Columbus Day", "Veterans Day"),
+        ("2026-10-14T14:00:00+00:00", None, "Columbus Day"),
+        ("2026-07-02T14:00:00+00:00", "Independence Day (observed)", "Columbus Day"),
+        ("2026-12-31T14:00:00+00:00", "New Year's Day", "Columbus Day"),
+        # Still Oct 12 in Chicago, although already Oct 13 in UTC.
+        ("2026-10-13T01:00:00+00:00", "Indigenous Peoples’ Day / Columbus Day", "Veterans Day"),
+    ],
+)
+def test_upcoming_closures_use_local_date_observed_holidays_and_year_rollover(instant, holiday, absent):
+    timing = court_filing_timing("illinois", "adams", now=datetime.fromisoformat(instant))
+    note = timing["review"]["closure_note"]
+    assert "Courts are closed on Saturdays and Sundays." in note
+    assert absent not in note
+    if holiday:
+        assert f"{holiday} may add 1 day." in note
+    else:
+        assert "may add" not in note
+
+
+def test_holiday_guidance_requires_configured_calendar():
+    config = {"filing_timing": {"review": {"label": "1–2 days", "source_url": "https://example.test"}}}
+    assert court_filing_timing("", "", config)["review"]["closure_note"] == ""

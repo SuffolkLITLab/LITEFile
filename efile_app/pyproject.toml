@@ -31,6 +31,7 @@ dependencies = [
     "suffolklitlab-vtcourts @ git+https://github.com/SuffolkLITLab/VTCourts@main",
     "django-otp>=1.7.0,<2",
     "snowballstemmer>=3,<4",
+    "holidays>=0.83,<1",
 ]
 
 [build-system]

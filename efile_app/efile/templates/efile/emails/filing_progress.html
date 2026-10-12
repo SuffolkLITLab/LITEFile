@@ -34,10 +34,10 @@
                     </p>
                 {% endif %}
                 {% if stage.estimate %}
-                    <p style="margin:8px 0 0;font-size:11px;line-height:1.4;color:#526176;">Typical review: {{ stage.estimate }}</p>
+                    <p style="margin:8px 0 0;font-size:11px;line-height:1.4;color:#526176;">Typically <a href="{{ stage.estimate_source_url }}" style="color:#003c71;">{{ stage.estimate }}</a></p>
                 {% endif %}
             </td>
         {% endfor %}
     </tr>
 </table>
-{% include "efile/includes/filing_timing.html" %}
+{% include "efile/includes/filing_timing.html" with email=True %}

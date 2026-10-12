@@ -88,7 +88,7 @@
                                                 </span>
                                             {% endif %}
                                             {% if stage.estimate %}
-                                                <span class="filing-tracker__time">{% translate "Typical review:" %} {{ stage.estimate }}</span>
+                                                <span class="filing-tracker__time">{% translate "Typically" %} <a href="{{ stage.estimate_source_url }}">{{ stage.estimate }}</a></span>
                                             {% endif %}
                                         </li>
                                     {% endfor %}
