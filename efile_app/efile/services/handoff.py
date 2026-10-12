@@ -719,6 +719,19 @@ def submitted_filing_ids(response):
     return ids
 
 
+def same_filer(user, owner):
+    """Whether ``user`` is ``owner`` or another local account for the same Tyler login."""
+    if user.pk == owner.pk:
+        return True
+    if user.tyler_user_id and user.tyler_user_id == owner.tyler_user_id:
+        return True
+    return bool(
+        user.tyler_username
+        and user.tyler_jurisdiction.casefold() == owner.tyler_jurisdiction.casefold()
+        and user.tyler_username.casefold() == owner.tyler_username.casefold()
+    )
+
+
 def local_submission(user, jurisdiction, court_code, filing_id):
     return FilingDraft.objects.filter(
         user=user,

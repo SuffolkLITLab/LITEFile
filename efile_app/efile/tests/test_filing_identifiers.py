@@ -122,15 +122,28 @@ def test_saves_that_leave_the_response_alone_skip_the_index(owner):
     draft.case_title = "Renamed"
     with CaptureQueriesContext(connection) as queries:
         draft.save()
-    assert not [query for query in queries if "efile_filingidentifier" in query["sql"]]
+    writes = [q for q in queries if "efile_filingidentifier" in q["sql"] and not q["sql"].startswith("SELECT")]
+    assert not writes
     draft.submission_response["filing_id"] = "changed-in-place"
     draft.save()
     assert list(draft.filing_identifiers.values_list("filing_id", flat=True)) == ["changed-in-place"]
 
 
-def test_indexing_an_id_another_save_already_indexed_is_not_an_error(owner):
-    draft = make_draft(owner, submission_response={"filing_id": "raced"})
+def test_stale_save_keeps_the_index_in_step_with_the_written_response(owner):
+    draft = make_draft(owner, submission_response={})
     stale = FilingDraft.objects.get(pk=draft.pk)
-    stale._indexed_filing_ids = set()
+    draft.submission_response = {"filing_id": "submitted-elsewhere"}
+    draft.save()
     stale.save()
-    assert list(draft.filing_identifiers.values_list("filing_id", flat=True)) == ["raced"]
+    assert stale.submission_response == {}
+    assert not stale.filing_identifiers.exists()
+
+
+def test_save_with_deferred_response_leaves_the_index_alone(owner):
+    draft = make_draft(owner, submission_response={"filing_id": "kept"})
+    deferred = FilingDraft.objects.only("pk", "case_title").get(pk=draft.pk)
+    deferred.case_title = "Renamed"
+    with CaptureQueriesContext(connection) as queries:
+        deferred.save()
+    assert not [q for q in queries if "efile_filingidentifier" in q["sql"] or "submission_response" in q["sql"]]
+    assert list(draft.filing_identifiers.values_list("filing_id", flat=True)) == ["kept"]

@@ -73,10 +73,11 @@ def efile_login(request, jurisdiction):
                         request.session["jurisdiction"] = jurisdiction
                         PendingActivation.forget(email, jurisdiction)
                         messages.success(request, "Successfully logged in!")
-                        if destination:
-                            return redirect(destination)
+                        # A pending claim is one-time session state; a ?next page can be revisited.
                         if handoff_continue and handoff_continue.startswith("/handoff/claim/"):
                             return redirect(handoff_continue)
+                        if destination:
+                            return redirect(destination)
                         return redirect(f"/jurisdiction/{jurisdiction}/options/")
                     else:
                         messages.error(request, _sign_in_failure_message(request, email, jurisdiction))
