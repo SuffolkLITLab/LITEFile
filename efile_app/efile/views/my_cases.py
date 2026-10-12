@@ -137,6 +137,11 @@ def filing_detail(request, jurisdiction, court_code, filing_id):
     except (requests.RequestException, TypeError, ValueError, KeyError, AttributeError):
         logger.exception("Could not load filing detail for %s in %s", filing_id, jurisdiction)
 
+    if local_draft is not None and detail is not None:
+        from efile.services.analytics import record_court_detail
+
+        record_court_detail(local_draft, filing_id, detail)
+
     return render(
         request,
         "efile/filing_detail.html",

@@ -7,6 +7,7 @@ which filing that is, or to throw away the one they started by mistake.
 """
 
 import logging
+import uuid
 
 from django.contrib import messages
 from django.shortcuts import redirect, render
@@ -67,12 +68,18 @@ def my_drafts(request, jurisdiction):
         if draft is None:
             messages.error(request, "That draft is no longer here.")
         elif action == "resume":
+            from efile.services.analytics import record_event
+
+            record_event(draft, "draft_resumed", operation=uuid.uuid4())
             adopt_draft(request, draft.pk, jurisdiction=jurisdiction)
             if receipt_for(draft) or draft.correction_of_id:
                 return redirect("handoff_review", draft_id=draft.pk)
             resume_url = get_resume_step_url(draft.current_step, jurisdiction, draft_id=draft.pk)
             return redirect(resume_url or reverse("efile_options", kwargs={"jurisdiction": jurisdiction}))
         elif action == "delete":
+            from efile.services.analytics import record_event
+
+            record_event(draft, "draft_discarded")
             # Abandoned, not deleted: it leaves every list the filer sees, and
             # a filer who deleted the wrong thing can still be helped.
             draft.status = FilingDraft.Status.ABANDONED

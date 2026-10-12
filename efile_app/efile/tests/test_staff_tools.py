@@ -21,6 +21,7 @@ from efile.models import (
     DocumentExtraction,
     FilingDocument,
     FilingDraft,
+    FilingIdentifier,
     FilingMetadataEvent,
     FilingParty,
     FilingPlan,
@@ -35,7 +36,15 @@ from efile.models import (
     UsageEvent,
     UsageMatter,
 )
-from efile.services.analytics import count_event, drain_events, record_event, record_matter, report_rows
+from efile.services.analytics import (
+    count_event,
+    drain_events,
+    record_court_detail,
+    record_court_statuses,
+    record_event,
+    record_matter,
+    report_rows,
+)
 from efile.services.document_extractions import claim_next_extraction, process_document_extraction
 from efile.services.document_uploads import upload_files
 from efile.services.privacy import create_request, preview, process_request, verify_request
@@ -612,3 +621,130 @@ def test_outbox_rejects_free_text_in_an_allowed_dimension(owner, settings):
     event.save()
     with pytest.raises(ValueError, match="Disallowed usage value"):
         count_event(event.pk)
+
+
+def test_submission_counts_documents_pages_guided_forms_and_source(owner, settings):
+    settings.LITEFILE_ANALYTICS_ENABLED = True
+    settings.LITEFILE_HANDOFF_SOURCES = {"vt_rfa": {}}
+    draft = FilingDraft.objects.create(
+        user=owner,
+        jurisdiction="vermont",
+        existing_case="new",
+        court_code="family",
+        filing_type_code="complaint",
+        selected_payment_account_type="WV",
+    )
+    InterviewHandoff.objects.create(
+        draft=draft,
+        source="vt_rfa",
+        source_id="source-1",
+        idempotency_key="request-1",
+        fingerprint="a" * 64,
+        payload={"documents": [{"form_name": "Complaint"}, {"form_name": "Affidavit"}]},
+    )
+    for index, pages in enumerate((4, 2)):
+        document = FilingDocument.objects.create(
+            draft=draft,
+            role="lead" if index == 0 else "supporting",
+            sort_order=0,
+            preparation="unchanged",
+            filing_type_code="complaint" if index == 0 else "affidavit",
+        )
+        DocumentExtraction.objects.create(document=document, status="complete", total_pages=pages)
+
+    draft.mark_submitted({})
+    transmitted = UsageEvent.objects.get(draft=draft, metric="transmitted")
+    assert (
+        transmitted.dimensions
+        | {
+            "interview_source": "vt_rfa",
+            "fee_waiver": "submitted",
+            "court": "family",
+            "filing_type": "complaint",
+        }
+        == transmitted.dimensions
+    )
+    assert UsageEvent.objects.get(draft=draft, metric="documents_transmitted").quantity == 2
+    assert UsageEvent.objects.get(draft=draft, metric="pages_transmitted").quantity == 6
+    assert UsageEvent.objects.get(draft=draft, metric="guided_forms_transmitted").quantity == 2
+    drain_events()
+    assert UsageCounter.objects.get(metric="documents_transmitted", granularity="day", dimension="all").count == 2
+    assert UsageCounter.objects.get(metric="pages_transmitted", granularity="day", dimension="all").count == 6
+
+
+def test_attorney_dimension_uses_states_the_workflow_persists(owner, settings):
+    settings.LITEFILE_ANALYTICS_ENABLED = True
+
+    self_represented = FilingDraft.objects.create(user=owner, jurisdiction="illinois", existing_case="new")
+    FilingParty.objects.create(
+        draft=self_represented,
+        role="filer",
+        party_type="plaintiff",
+        is_filing_party=True,
+    )
+    record_event(self_represented, "review")
+    assert UsageEvent.objects.get(draft=self_represented, metric="review").dimensions["has_attorney"] == "no"
+
+    represented = FilingDraft.objects.create(user=owner, jurisdiction="illinois", existing_case="existing")
+    FilingParty.objects.create(draft=represented, role="filer")
+    FilingParty.objects.create(
+        draft=represented,
+        role="other",
+        source="court",
+        source_case_id="case-1",
+        external_party_id="party-1",
+        is_self=True,
+        representation={"status": "represented", "attorneys": [{"id": "attorney-1"}]},
+    )
+    record_event(represented, "review")
+    assert UsageEvent.objects.get(draft=represented, metric="review").dimensions["has_attorney"] == "yes"
+
+    unknown = FilingDraft.objects.create(user=owner, jurisdiction="illinois", existing_case="existing")
+    FilingParty.objects.create(draft=unknown, role="filer")
+    FilingParty.objects.create(
+        draft=unknown,
+        role="other",
+        source="court",
+        source_case_id="case-2",
+        external_party_id="party-2",
+        is_self=True,
+        representation={"status": "unknown", "attorneys": []},
+    )
+    record_event(unknown, "review")
+    assert UsageEvent.objects.get(draft=unknown, metric="review").dimensions["has_attorney"] == "unknown"
+
+
+def test_court_outcomes_and_rejection_reasons_are_deduplicated_without_clerk_text(owner, settings):
+    settings.LITEFILE_ANALYTICS_ENABLED = True
+    draft = FilingDraft.objects.create(user=owner, jurisdiction="illinois", existing_case="existing")
+    FilingIdentifier.objects.create(draft=draft, filing_id="filing-1")
+    filings = [{"filing_id": "filing-1", "filing_status": "rejected"}]
+    record_court_statuses(owner, "illinois", filings)
+    record_court_statuses(owner, "illinois", filings)
+    detail = {
+        "status": "rejected",
+        "comments": [{"text": "Private names and facts: the required signature is missing."}],
+    }
+    record_court_detail(draft, "filing-1", detail)
+    record_court_detail(draft, "filing-1", detail)
+
+    assert UsageEvent.objects.filter(draft=draft, metric="court_returned").count() == 1
+    reason = UsageEvent.objects.get(draft=draft, metric="rejection_reason")
+    assert reason.dimensions["rejection_reason"] == "signature_or_notarization"
+    assert "Private names" not in json.dumps(reason.dimensions)
+
+
+def test_reports_include_distinct_contributing_account_count(settings, django_user_model):
+    settings.LITEFILE_ANALYTICS_ENABLED = True
+    at = datetime(2026, 9, 10, tzinfo=UTC)
+    for index in range(5):
+        user = django_user_model.objects.create_user(username=f"report-user-{index}", tyler_jurisdiction="illinois")
+        with patch("efile.services.analytics.timezone.now", return_value=at):
+            draft = FilingDraft.objects.create(user=user, jurisdiction="illinois", existing_case="new")
+            record_event(draft, "draft_resumed", operation=f"resume-{index}-1")
+            record_event(draft, "draft_resumed", operation=f"resume-{index}-2")
+    drain_events()
+    rows = report_rows(["illinois"], date(2026, 9, 1), date(2026, 9, 30))
+    resumed = next(row for row in rows if row["metric"] == "draft_resumed")
+    assert resumed["count"] == 10
+    assert resumed["contributors"] == 5

@@ -450,9 +450,10 @@ class FilingDraft(models.Model):
                 "updated_at",
             ]
         )
-        from efile.services.analytics import record_event, record_matter
+        from efile.services.analytics import record_event, record_matter, record_transmission_details
 
         record_event(self, "transmitted")
+        record_transmission_details(self)
         record_matter(self)
 
     def mark_error(self, response_data):

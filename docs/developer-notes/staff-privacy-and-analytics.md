@@ -297,14 +297,37 @@ filer changes an answer.
 | `submission_error` | Once per logical operation with a confirmed pre-call failure or API rejection; ambiguous outcomes excluded |
 | `document_uploaded` | Once per document row; includes preparation outcome and original PDF form-field presence |
 | `matter_first_used` | First confirmed transmission into a known matter for this local account |
+| `court_accepted` | Once per LITEFile filing ID when a current court status response reports acceptance |
+| `court_returned` | Once per LITEFile filing ID when a current court status response reports rejection or return |
+| `rejection_reason` | Once per returned filing whose detail is viewed; clerk text is reduced immediately to a fixed category and is never stored in analytics |
+| `draft_discarded` | Once when a filer explicitly discards an unfinished draft |
+| `draft_resumed` | Each time a filer resumes a saved draft from the drafts page |
+| `documents_transmitted` | Number of document rows in confirmed transmissions; documents are not assumed to be distinct court forms |
+| `pages_transmitted` | Number of pages in a confirmed transmission when every document has a known extraction page count; omitted otherwise |
+| `guided_forms_transmitted` | Number of guided-interview documents explicitly labeled with a form name in confirmed transmissions |
 
-Detailed monthly marginals cover configured case type, filer side, self versus
-someone else, five-digit filer ZIP, preparation outcome, original PDF form-field
-presence, and a first/2–5/6+ transmission frequency band. They are independent
-breakdowns, not a row combining ZIP with case details. Unknown answers stay
-unknown. `no_form_fields` includes both ordinary PDFs and PDFs already flattened;
-it is not a claim that every unchanged upload was previously flattened. Word
-files and legacy unknowns are separate from tested PDF input.
+Detailed monthly marginals cover configured case type, filing type code, court,
+filer side, attorney representation, self versus someone else, fee-waiver use,
+guided-interview source, workflow step, categorized return reason, five-digit
+filer ZIP, preparation outcome, original PDF form-field presence, and a
+first/2–5/6+ transmission frequency band. They are independent breakdowns, not
+a row combining ZIP with case details. Unknown answers stay unknown.
+`no_form_fields` includes both ordinary PDFs and PDFs already flattened; it is
+not a claim that every unchanged upload was previously flattened. Word files
+and legacy unknowns are separate from tested PDF input.
+
+Court outcomes are observation-based: LITEFile records them when an authenticated
+filer loads the court history or filing-detail screen. The counters do not poll
+the court or claim complete outcome coverage while statuses have not been viewed.
+Return comments are classified into a fixed category in memory; names, clerk
+text, and other free text never enter the usage outbox. Guided-interview source
+values are limited to deployment-configured source keys. Report contributor
+counts are distinct local accounts within a cell, not distinct natural people.
+Attorney representation is `yes` only when the imported court roster links the
+filer to a represented party. It is `no` only for a new-case filer who selected
+themselves as the filing party. Missing attorney associations on an existing
+case remain `unknown` because the court response does not establish that the
+party is unrepresented.
 
 Case types use deployment-owned configuration keys; unfamiliar court types are
 `other_or_unknown`. Extend configured matches to make those reports more useful.
