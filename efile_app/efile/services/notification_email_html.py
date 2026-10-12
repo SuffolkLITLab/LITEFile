@@ -8,11 +8,13 @@ from django.utils.safestring import mark_safe
 from efile.services.filings import filing_tracker
 
 
-def _progress(status):
-    return render_to_string("efile/emails/filing_progress.html", {"tracker": filing_tracker(status)}).strip()
+def _progress(status, timing):
+    return render_to_string(
+        "efile/emails/filing_progress.html", {"tracker": filing_tracker(status, timing=timing)}
+    ).strip()
 
 
-def _neutral_progress():
+def _neutral_progress(timing):
     # The callback provides a display label, not reliably a raw status code.
     # Only show progress for explicit known values; do not guess unknown stages.
     choices = {
@@ -27,18 +29,18 @@ def _neutral_progress():
     for index, (status, labels) in enumerate(choices.items()):
         condition = " or ".join(f'status|lower == "{label}"' for label in labels)
         parts.append("{% " + ("if" if index == 0 else "elif") + " " + condition + " %}")
-        parts.append(_progress(status))
+        parts.append(_progress(status, timing))
     parts.append("{% endif %}")
     return "".join(parts)
 
 
-def render_notification_email(field, contents, tracker_url):
+def render_notification_email(field, contents, tracker_url, timing=None):
     status = {
         "email_confirmation_contents": "submitted",
         "acceptance_contents": "accepted",
         "rejected_contents": "returned",
     }.get(field)
-    progress = _progress(status) if status else _neutral_progress()
+    progress = _progress(status, timing) if status else _neutral_progress(timing)
     # Text-node escaping leaves quotes intact for the server-owned Jinjava
     # conditions. Interpolated data has already had template delimiters encoded.
     # URL attributes are escaped separately, including quotes.

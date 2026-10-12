@@ -1,0 +1,18 @@
+{% load i18n %}
+{% if tracker.missing_times %}
+    <p style="margin:12px 0 0;font-size:13px;line-height:1.5;color:#526176;">{% translate "Stage times appear when available." %}</p>
+{% endif %}
+{% if tracker.state == "progress" and tracker.timing.review %}
+    <p style="margin:12px 0 0;font-size:13px;line-height:1.5;color:#526176;">
+        {% translate "Review times are estimates, not deadlines. Weekends, holidays, and closures may add time." %}
+        <a href="{{ tracker.timing.review.source_url }}" style="color:#003c71;">{% translate "Review timing guidance" %}</a>
+    </p>
+{% endif %}
+{% if tracker.timing.office_hours %}
+    <p style="margin:12px 0 0;font-size:13px;line-height:1.5;color:#526176;">
+        <strong>{% translate "Clerk’s office hours:" %}</strong> {{ tracker.timing.office_hours.label }}.
+        {% translate "Hours may change for holidays and closures." %}
+        <a href="{{ tracker.timing.office_hours.source_url }}"
+           style="color:#003c71">{% translate "Check court hours" %}</a>
+    </p>
+{% endif %}

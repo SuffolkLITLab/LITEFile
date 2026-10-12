@@ -27,6 +27,7 @@ from django.conf import settings
 
 from efile.api.filing_views import get_tyler_token, list_filing_data
 from efile.models import ArchivedCase
+from efile.services.filing_timing import add_tracker_timing
 from efile.utils.config_loader import config_loader
 from efile.utils.proxy_connection import get_headers
 
@@ -66,7 +67,9 @@ NO_STATUS = {"label": "Sent to the court", "icon": "fa-file", "tone": "pending"}
 TRACKER_STAGES = ("Sent", "Received", "Clerk review")
 
 
-def filing_tracker(status_code: Any) -> dict[str, Any]:
+def filing_tracker(
+    status_code: Any, *, submitted_at=None, accepted_at=None, status_at=None, timing=None
+) -> dict[str, Any]:
     """Return a conservative filing progress summary for the detail screen."""
     code = str(status_code or "").strip().lower()
     stage_by_status = {
@@ -116,12 +119,15 @@ def filing_tracker(status_code: Any) -> dict[str, Any]:
         "returned": "Returned for changes",
     }.get(code, "Court decision")
     stages = (*TRACKER_STAGES, outcome_label)
-    return {
+    tracker = {
         "state": "decision" if index == 3 else "progress",
         "label": status_presentation(code)["label"],
         "summary": summary,
         "stages": [{"label": stage, "complete": i < index, "current": i == index} for i, stage in enumerate(stages)],
     }
+    return add_tracker_timing(
+        tracker, code, submitted_at=submitted_at, accepted_at=accepted_at, status_at=status_at, timing=timing
+    )
 
 
 def status_presentation(status_code: Any) -> dict[str, str]:
@@ -169,6 +175,14 @@ def _timestamp(node: Any) -> datetime | None:
         return datetime.fromtimestamp(int(raw) / 1000, tz=timezone.utc)
     except (TypeError, ValueError, OSError, OverflowError):
         return None
+
+
+def _event_timestamp(node: Any) -> datetime | None:
+    # A date-only NIEM value does not establish the time a stage was reached.
+    representation = _dig(node, "dateRepresentation") or {}
+    if isinstance(representation, dict) and str(representation.get("name", "")).endswith("}Date"):
+        return None
+    return _timestamp(node)
 
 
 def history_start_date() -> str:
@@ -458,7 +472,7 @@ def _describe_fees(payload: dict[str, Any]) -> list[dict[str, str]]:
 
 
 def describe_filing_detail(
-    payload: dict[str, Any] | None, names: dict[str, str] | None = None
+    payload: dict[str, Any] | None, names: dict[str, str] | None = None, *, timing=None
 ) -> dict[str, Any] | None:
     """Flatten the EFSP's filing detail into what one screen needs.
 
@@ -512,7 +526,13 @@ def describe_filing_detail(
         "status": status_code,
         "can_correct": str(status_code or "").strip().lower() in {"rejected", "returned"},
         "status_presentation": status_presentation(status_code),
-        "tracker": filing_tracker(status_code),
+        "tracker": filing_tracker(
+            status_code,
+            submitted_at=_event_timestamp(payload.get("filingSubmissionDate")),
+            accepted_at=_event_timestamp(payload.get("filingAcceptDate")),
+            status_at=_event_timestamp(_dig(payload, "filingStatus", "statusDate")),
+            timing=timing,
+        ),
         "status_description": _text(next(iter(_dig(payload, "filingStatus", "statusDescriptionText") or []), None)),
         "court_code": court_code,
         "court_name": names.get(court_code, court_code),

@@ -17,6 +17,7 @@ from django.views.decorators.http import require_http_methods
 
 from efile.api.suffolk_api_views import get_tyler_token
 from efile.models import FilingDraft
+from efile.services.filing_timing import court_filing_timing
 from efile.services.filings import (
     DOCUMENT_LINK_DAYS,
     archive_case,
@@ -131,6 +132,7 @@ def filing_detail(request, jurisdiction, court_code, filing_id):
         detail = describe_filing_detail(
             fetch_filing_detail(request, jurisdiction, court_code, filing_id),
             court_names(jurisdiction),
+            timing=court_filing_timing(jurisdiction, court_code),
         )
     except (requests.RequestException, TypeError, ValueError, KeyError, AttributeError):
         logger.exception("Could not load filing detail for %s in %s", filing_id, jurisdiction)

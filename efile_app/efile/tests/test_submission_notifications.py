@@ -105,8 +105,36 @@ def test_html_notifications_include_progress_and_escape_contact_markup():
         assert len(stages) == 4
         current = [stage for stage in stages if "Current" in stage.get_text()]
         assert len(current) == 1 and outcome in current[0].get_text()
-        assert soup.find("a")["href"] == f"http://testserver/submissions/{PUBLIC_ID}/"
+        assert soup.find("a", href=f"http://testserver/submissions/{PUBLIC_ID}/")
     assert not fields["email_confirmation_subject"].startswith("<!DOCTYPE")
+
+
+def test_email_timing_has_sourced_estimates_and_hours_without_invented_event_times():
+    config = deepcopy(config_loader.load_jurisdiction_config("illinois"))
+    config["submission_notifications"]["enabled"] = True
+    fields = submission_email_fields(RequestFactory().get("/"), fake_draft(court_code="adams"), "illinois", config)
+    body = fields["email_confirmation_contents"]
+    assert "24–48 business hours" in body
+    assert "8:15 a.m.–4:30 p.m." in body
+    assert "Review times are estimates, not deadlines" in body
+    assert "Review timing guidance" in body and "Check court hours" in body
+    assert "Stage times appear when available" in body
+    assert "Typical review:" not in fields["acceptance_contents"]
+
+
+def test_email_timing_cannot_introduce_html_or_proxy_template_expressions():
+    config = deepcopy(config_loader.load_jurisdiction_config("illinois"))
+    config["submission_notifications"]["enabled"] = True
+    config["filing_timing"]["review"] = {
+        "label": "{{name}} <script>alert(1)</script>",
+        "source_url": 'https://example.test/{{status}}?q="test"',
+    }
+    fields = submission_email_fields(RequestFactory().get("/"), fake_draft(), "illinois", config)
+    body = fields["email_confirmation_contents"]
+    assert "{{name}}" not in body and "{{status}}" not in body
+    assert "<script>" not in body
+    assert "%7B%7Bname%7D%7D" in body and "&lt;script&gt;" in body
+    assert "&quot;test&quot;" in body
 
 
 def test_waiver_document_counts_as_a_waiver_request():

@@ -49,11 +49,18 @@ def submission_email_fields(request, draft, jurisdiction, config=None):
     }
     fields = {field: Template(templates[field]).safe_substitute(values).strip() for field in PROXY_EMAIL_FIELDS}
     if notification_config.get("format") == "html":
+        from efile.services.filing_timing import court_filing_timing
         from efile.services.notification_email_html import render_notification_email
 
+        timing = court_filing_timing(jurisdiction, draft.court_code, config)
+        # Timing text also crosses the proxy's second template-rendering pass.
+        timing = {
+            key: {name: _template_value(value) for name, value in item.items()} if isinstance(item, dict) else item
+            for key, item in timing.items()
+        }
         for field in PROXY_EMAIL_FIELDS:
             if field.endswith("_contents"):
-                fields[field] = render_notification_email(field, fields[field], _template_value(tracker_url))
+                fields[field] = render_notification_email(field, fields[field], _template_value(tracker_url), timing)
     return fields
 
 

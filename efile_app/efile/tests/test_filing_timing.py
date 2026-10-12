@@ -1,0 +1,96 @@
+from copy import deepcopy
+from datetime import datetime, timezone
+
+import pytest
+
+from efile.services.filing_timing import court_filing_timing, display_filing_time
+from efile.services.filings import describe_filing_detail, filing_tracker
+from efile.tests.test_filing_history import accepted_detail
+
+
+def test_tracker_only_assigns_timestamps_to_the_events_the_court_reported():
+    sent = datetime(2026, 10, 12, 14, 15, tzinfo=timezone.utc)
+    updated = datetime(2026, 10, 13, 15, 30, tzinfo=timezone.utc)
+    tracker = filing_tracker(
+        "under-review", submitted_at=sent, status_at=updated, timing={"timezone": "America/Chicago"}
+    )
+    assert tracker["stages"][0]["timestamp"]["label"] == "Oct 12, 2026, 9:15 AM CDT"
+    assert tracker["stages"][2]["timestamp"]["label"] == "Oct 13, 2026, 10:30 AM CDT"
+    assert tracker["stages"][2]["timestamp_label"] == "Review started"
+    assert "timestamp" not in tracker["stages"][1]
+    assert "timestamp" not in tracker["stages"][3]
+    assert tracker["missing_times"] is True
+
+
+@pytest.mark.parametrize(
+    ("code", "index", "label"),
+    [
+        ("submitted", 1, "System receipt"),
+        ("receipted", 1, "Court receipt"),
+        ("reviewed", 2, "Review completed"),
+        ("rejected", 3, "Returned"),
+        ("accepted", 3, "Accepted"),
+    ],
+)
+def test_status_timestamp_is_not_mistaken_for_an_earlier_stage(code, index, label):
+    tracker = filing_tracker(code, status_at=datetime(2026, 1, 2, tzinfo=timezone.utc))
+    assert tracker["stages"][index]["timestamp_label"] == label
+    assert sum("timestamp" in stage for stage in tracker["stages"]) == 1
+
+
+def test_detail_uses_submission_acceptance_and_current_status_dates():
+    payload = accepted_detail()
+    detail = describe_filing_detail(payload, timing={"timezone": "America/Chicago"})
+    assert detail is not None
+    tracker = detail["tracker"]
+    assert tracker["stages"][0]["timestamp"]["iso"]
+    assert tracker["stages"][3]["timestamp"]["iso"]
+    assert "timestamp" not in tracker["stages"][1]
+    assert "timestamp" not in tracker["stages"][2]
+    payload["filingStatus"]["filingStatusCode"] = "under-review"
+    payload["filingStatus"]["statusDate"] = deepcopy(payload["filingAcceptDate"])
+    detail = describe_filing_detail(payload)
+    assert detail is not None
+    tracker = detail["tracker"]
+    assert tracker["stages"][2]["timestamp"]["iso"]
+    assert "timestamp" not in tracker["stages"][3]
+    payload["filingSubmissionDate"]["dateRepresentation"]["name"] = "{http://niem.gov/niem/niem-core/2.0}Date"
+    detail = describe_filing_detail(payload)
+    assert detail is not None
+    assert "timestamp" not in detail["tracker"]["stages"][0]
+
+
+def test_time_zone_respects_daylight_saving_and_does_not_guess_naive_times():
+    winter = display_filing_time(datetime(2026, 1, 2, 16, tzinfo=timezone.utc), "America/Chicago")
+    assert winter["label"] == "Jan 2, 2026, 10:00 AM CST"
+    assert display_filing_time(datetime(2026, 1, 2)) is None
+
+
+def test_sourced_court_hours_and_jurisdiction_range_are_shared_without_leaking_between_states():
+    adams = court_filing_timing("illinois", "adams")
+    assert adams["review"]["label"] == "24–48 business hours"
+    assert "8:15 a.m." in adams["office_hours"]["label"]
+    other = court_filing_timing("illinois", "unknown")
+    assert "office_hours" not in other
+    for state in ["massachusetts", "vermont"]:
+        timing = court_filing_timing(state, "unknown")
+        assert timing["timezone"] == "America/New_York"
+        assert "review" not in timing and "office_hours" not in timing
+    assert filing_tracker("accepted", timing=adams)["stages"][2].get("estimate") is None
+
+
+def test_court_overrides_and_missing_sources():
+    config = {
+        "filing_timing": {"timezone": "invalid", "review": {"label": "1–2 business days"}},
+        "court_specific_requirements": {
+            "test": {
+                "filing_timing": {
+                    "review": {"label": "2–3 business days", "source_url": "https://court.example/timing"}
+                }
+            }
+        },
+    }
+    assert court_filing_timing("", "", config) == {"timezone": "UTC"}
+    timing = court_filing_timing("", "test", config)
+    assert timing["review"]["label"] == "2–3 business days"
+    assert filing_tracker("submitted", timing=timing)["stages"][2]["estimate"] == "2–3 business days"

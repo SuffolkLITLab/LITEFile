@@ -97,6 +97,14 @@
     font-weight: 700;
 }
 
+.filing-tracker__time {
+    display: block;
+    margin-top: 0.4rem;
+    font-size: 0.8rem;
+    font-weight: 400;
+    overflow-wrap: anywhere;
+}
+
 @media (max-width: 480px) {
     .filing-tracker__stages li {
         font-size: 0.72rem;

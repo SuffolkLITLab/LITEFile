@@ -35,6 +35,13 @@ jurisdiction:
 submission_notifications:
   enabled: false
 
+filing_timing:
+  timezone: America/Chicago
+  review:
+    label: "24–48 business hours"
+    source_url: "https://www.illinoiscourts.gov/News/656/12-Ways-to-Avoid-A-Rejected-EFiling-and-Other-Illinois-EFiling-Tips/news-detail/"
+    checked_on: "2026-10-12"
+
 # State metadata, for the address
 state:
   code: "IL"
@@ -492,6 +499,12 @@ case_categories:
 
 # Illinois-specific court mappings
 court_specific_requirements:
+  adams:
+    filing_timing:
+      office_hours:
+        label: "Monday–Friday, 8:15 a.m.–4:30 p.m. Central time"
+        source_url: "https://www.adamscountyil.gov/government/departments/circuit-clerk/services-provided"
+        checked_on: "2026-10-12"
   "cook:cd1":  # Cook County Circuit Court - County Division
     case_types:
       name_change:

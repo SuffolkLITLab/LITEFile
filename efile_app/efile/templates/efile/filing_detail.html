@@ -46,15 +46,11 @@
                                         {% endif %}
                                         {{ filing.court_name }}
                                     </p>
-                                    <p class="list-card__detail">
-                                        {% if filing.submitted_at %}{% blocktranslate with when=filing.submitted_at|date:"j F Y" %}Sent {{ when }}{% endblocktranslate %}{% endif %}
-                                        {% if filing.accepted_at %}
-                                            · {% blocktranslate with when=filing.accepted_at|date:"j F Y" %}Accepted {{ when }}{% endblocktranslate %}
-                                        {% endif %}
-                                        {% if filing.envelope_id %}
-                                            · {% blocktranslate with envelope=filing.envelope_id %}Envelope {{ envelope }}{% endblocktranslate %}
-                                        {% endif %}
-                                    </p>
+                                    {% if filing.envelope_id %}
+                                        <p class="list-card__detail">
+                                            {% blocktranslate with envelope=filing.envelope_id %}Envelope {{ envelope }}{% endblocktranslate %}
+                                        </p>
+                                    {% endif %}
                                 </div>
                             </div>
                             <div class="filing-tracker__current filing-tracker__current--{{ filing.status_presentation.tone }}"
@@ -85,9 +81,19 @@
                                             {% else %}
                                                 <span class="visually-hidden">{% translate "Upcoming" %}</span>
                                             {% endif %}
+                                            {% if stage.timestamp %}
+                                                <span class="filing-tracker__time">
+                                                    {% if stage.timestamp_label != stage.label %}{{ stage.timestamp_label }}{% endif %}
+                                                    <time datetime="{{ stage.timestamp.iso }}">{{ stage.timestamp.label }}</time>
+                                                </span>
+                                            {% endif %}
+                                            {% if stage.estimate %}
+                                                <span class="filing-tracker__time">{% translate "Typical review:" %} {{ stage.estimate }}</span>
+                                            {% endif %}
                                         </li>
                                     {% endfor %}
                                 </ol>
+                                {% include "efile/includes/filing_timing.html" with tracker=filing.tracker %}
                             {% endif %}
                             {% if filing.submitter_name %}
                                 <p class="list-card__detail">

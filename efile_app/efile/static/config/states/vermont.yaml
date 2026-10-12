@@ -1,3 +1,6 @@
+filing_timing:
+  timezone: America/New_York
+
 
 jurisdiction:
   name: "Vermont eFile"

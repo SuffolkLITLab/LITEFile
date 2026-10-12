@@ -27,7 +27,17 @@
                           font-weight:bold;
                           color:#172033">{{ stage.label }}</p>
                 <p style="margin:4px 0 0;font-size:11px;line-height:1.4;color:#526176;">{% if stage.complete %}Completed{% elif stage.current %}Current{% else %}Upcoming{% endif %}</p>
+                {% if stage.timestamp %}
+                    <p style="margin:8px 0 0;font-size:11px;line-height:1.4;color:#526176;">
+                        {% if stage.timestamp_label != stage.label %}{{ stage.timestamp_label }}{% endif %}
+                        {{ stage.timestamp.label }}
+                    </p>
+                {% endif %}
+                {% if stage.estimate %}
+                    <p style="margin:8px 0 0;font-size:11px;line-height:1.4;color:#526176;">Typical review: {{ stage.estimate }}</p>
+                {% endif %}
             </td>
         {% endfor %}
     </tr>
 </table>
+{% include "efile/includes/filing_timing.html" %}

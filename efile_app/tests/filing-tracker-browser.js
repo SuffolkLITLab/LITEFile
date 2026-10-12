@@ -22,7 +22,7 @@ async function main() {
     const page = await context.newPage();
     try {
         const detailUrl = (id) => `${config.base}/jurisdiction/illinois/filings/kane/${id}/`;
-        const trackerUrl = config.emailContents.match(/https?:\/\/[^\s"'<>]+/)?.[0];
+        const trackerUrl = config.emailContents.match(/https?:\/\/[^\s"'<>]*\/submissions\/[0-9a-f-]{36}\//)?.[0];
         expect(trackerUrl).toBeTruthy();
         await page.goto(trackerUrl);
         await expect(page.getByLabel('Email address')).toBeVisible();
@@ -69,6 +69,8 @@ async function main() {
             name: 'Correct and resubmit'
         })).toHaveCount(0);
         await expect(page.locator('.filing-tracker__stages li[aria-current="step"]')).toContainText('Accepted');
+        await expect(page.locator('.filing-tracker__stages time')).toHaveCount(2);
+        await expect(page.locator('.filing-tracker__stages time').first()).toContainText('CST');
         const acceptedOverflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
         expect(acceptedOverflow).toBe(false);
         await page.setViewportSize({
@@ -110,6 +112,7 @@ async function main() {
         for (const status of config.pendingStatuses) {
             await page.goto(detailUrl(status));
             await expect(page.getByRole('status')).toContainText('No action is needed');
+            await expect(page.locator('.filing-tracker__stages')).toContainText('24–48 business hours');
             await expect(page.locator('.filing-tracker__stages li[aria-current="step"]')).toHaveCount(1);
             await expect(page.getByRole('link', {
                 name: 'Correct and resubmit'
