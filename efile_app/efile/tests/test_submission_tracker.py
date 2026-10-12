@@ -131,3 +131,41 @@ def test_same_tyler_account_under_another_local_user_can_open_detail(client, dra
         response = client.get(reverse("filing_detail", args=["illinois", "cook:law1", "returned-id"]))
     assert response.status_code == 200
     fetch.assert_called_once()
+
+
+def test_signed_in_to_another_jurisdiction_is_offered_the_right_sign_in(client, draft, django_user_model):
+    elsewhere = django_user_model.objects.create_user(username="ma", tyler_jurisdiction="massachusetts")
+    client.force_login(elsewhere)
+    session = client.session
+    session["auth_tokens"] = {"TYLER-TOKEN-MASSACHUSETTS": "test-token"}
+    session.save()
+    response = client.get(destination(draft))
+    assert response.status_code == 302
+    login, query = response.url.split("?", 1)
+    assert login == reverse("efile_login", args=["illinois"])
+    assert parse_qs(query)["next"] == [destination(draft)]
+
+
+def test_same_tyler_account_under_another_local_user_can_open_tracker(client, draft, django_user_model):
+    draft.user.tyler_user_id = "tyler-123"
+    draft.user.save()
+    recreated = django_user_model.objects.create_user(
+        username="recreated", tyler_jurisdiction="illinois", tyler_user_id="tyler-123"
+    )
+    sign_in(client, recreated)
+    response = client.get(destination(draft))
+    assert response.status_code == 200
+    assert b"accepted-id" in response.content
+
+
+def test_pending_handoff_claim_wins_over_next(client, draft):
+    draft.user.backend = "django.contrib.auth.backends.ModelBackend"
+    session = client.session
+    session["handoff_continue"] = "/handoff/claim/abc/"
+    session.save()
+    with patch("efile.views.login.authenticate", return_value=draft.user):
+        response = client.post(
+            reverse("efile_login", args=["illinois"]),
+            {"login_submit": "1", "email": "owner@example.com", "password": "secret", "next": destination(draft)},
+        )
+    assert response.url == "/handoff/claim/abc/"

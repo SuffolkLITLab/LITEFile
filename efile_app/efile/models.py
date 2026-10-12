@@ -431,17 +431,6 @@ class FilingDraft(models.Model):
         """
         return self.existing_case == ExistingCase.EXISTING and bool(self.previous_case_id)
 
-    @classmethod
-    def from_db(cls, db, field_names, values):
-        instance = super().from_db(db, field_names, values)
-        # What the identifier index already holds, so saves that leave the
-        # response alone (every workflow autosave) skip resyncing it.
-        if "submission_response" in instance.__dict__:
-            from efile.services.handoff import submitted_filing_ids
-
-            instance._indexed_filing_ids = submitted_filing_ids(instance.submission_response)
-        return instance
-
     def mark_submitted(self, response_data):
         sync_primary_filing_type(self)
         from efile.services.handoff import full_snapshot
@@ -481,20 +470,25 @@ class FilingDraft(models.Model):
                 self.filing_type_name = lead.filing_type_name
         adding = self._state.adding
         super().save(*args, **kwargs)
-        if update_fields is None or "submission_response" in update_fields:
+        # A deferred response was not written, so the index needs no resync.
+        written = "submission_response" in self.__dict__ and (
+            update_fields is None or "submission_response" in update_fields
+        )
+        if written:
             # Keep searchable identifiers atomic with the response. QuerySet.update
             # and bulk writes must not be used to change submission_response.
             from efile.services.handoff import submitted_filing_ids
 
             filing_ids = submitted_filing_ids(self.submission_response)
-            indexed = set() if adding else getattr(self, "_indexed_filing_ids", None)
+            # Compare with the stored rows, not a load-time snapshot: another
+            # request may have reindexed this draft since it was loaded.
+            indexed = set() if adding else set(self.filing_identifiers.values_list("filing_id", flat=True))
             if filing_ids != indexed:
                 self.filing_identifiers.exclude(filing_id__in=filing_ids).delete()
                 # Another save of this draft may have indexed the same ID first.
                 FilingIdentifier.objects.bulk_create(
                     [FilingIdentifier(draft=self, filing_id=value) for value in filing_ids], ignore_conflicts=True
                 )
-            self._indexed_filing_ids = filing_ids
 
 
 class FilingIdentifier(models.Model):
