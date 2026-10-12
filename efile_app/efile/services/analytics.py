@@ -11,7 +11,7 @@ from django.db import transaction
 from django.db.models import F, Max
 from django.utils import timezone
 
-from efile.models import FilingDraft, UsageContributor, UsageCounter, UsageEvent, UsageMatter
+from efile.models import FilingDraft, FilingMetadataEvent, UsageContributor, UsageCounter, UsageEvent, UsageMatter
 from efile.party_sides import PartySide, side_for_party_type_name
 from efile.services.document_checklists import _find_match
 from efile.utils.config_loader import config_loader
@@ -108,7 +108,12 @@ def snapshot(draft, *, document=None):
     filer = draft.parties.filter(role="filer").first()
     side = (filer.party_side or side_for_party_type_name(filer.party_type_name)) if filer else ""
     zip_code = filer.zip_code.strip() if filer else ""
-    prior = draft.user.filing_drafts.filter(status="submitted").exclude(pk=draft.pk).count()
+    # Frequency is as of this filing's transmission, so a filing's later
+    # outcome events carry the same band as its transmitted event.
+    prior_drafts = draft.user.filing_drafts.filter(status="submitted").exclude(pk=draft.pk)
+    if draft.status == FilingDraft.Status.SUBMITTED and draft.submitted_at:
+        prior_drafts = prior_drafts.filter(submitted_at__lt=draft.submitted_at)
+    prior = prior_drafts.count()
     waiver_types = set((config.get("fee_estimates") or {}).get("surcharges", {}).get("waiver_account_types", []))
     try:
         source = draft.handoff.source
@@ -164,6 +169,9 @@ def _queue_event(draft, metric, operation, document=None, *, quantity=1, extra_d
     dimensions["filing_kind"] = {ExistingCase.NEW: "new", ExistingCase.EXISTING: "existing"}.get(
         locked.existing_case, "unknown"
     )
+    # Reject bad values here, where the caller logs and moves on, rather than
+    # leaving them for the rollup worker.
+    _validated(dimensions, locked.jurisdiction)
     UsageEvent.objects.create(
         draft=locked,
         metric=metric,
@@ -195,6 +203,61 @@ def record_event(draft, metric, *, operation="once", document=None, quantity=1, 
         logger.error("Usage event could not be queued; collection is degraded")
 
 
+def _validated(dimensions, jurisdiction, *, at_rollup=False):
+    """Return (filing_kind, other dimensions), or raise for disallowed data.
+
+    Case types, handoff sources and workflow steps come from configuration
+    that can change while an event waits in the outbox. At rollup a value
+    that was valid when queued but has since been removed is counted under
+    its fallback rather than stalling the queue.
+    """
+    values = dict(dimensions)
+    if set(values) - DIMENSIONS - {"filing_kind"} or "filing_kind" not in values:
+        raise ValueError("Disallowed usage data")
+    kind = values.pop("filing_kind")
+    if kind not in {"new", "existing", "unknown"}:
+        raise ValueError("Disallowed filing kind")
+    allowed = {
+        "filer_side": {str(side) for side in PartySide} | {"unknown"},
+        "filing_for": {"self", "someone_else", "unknown"},
+        "preparation": {"unchanged", "flattened", "converted", "converted_flattened", "unknown"},
+        "original_pdf_state": {"fillable", "no_form_fields", "not_pdf_or_unknown"},
+        "usage_frequency": {"first", "2_to_5", "6_or_more"},
+        "has_attorney": {"yes", "no", "unknown"},
+        "fee_waiver": {"submitted", "not_submitted", "unknown"},
+        "rejection_reason": REJECTION_REASONS,
+    }
+    configured = {
+        "case_type": (
+            set(config_loader.load_jurisdiction_config(jurisdiction).get("case_types", {})),
+            "other_or_unknown",
+        ),
+        "interview_source": (set(getattr(settings, "LITEFILE_HANDOFF_SOURCES", {})) | {"direct"}, "other_interview"),
+        "workflow_step": ({choice[0] for choice in FilingDraft._meta.get_field("current_step").choices}, "unknown"),
+    }
+    for dimension, value in values.items():
+        if not isinstance(value, str) or len(value) > 80:
+            raise ValueError("Disallowed usage value")
+        if dimension == "zip_code":
+            valid = value == "unknown" or re.fullmatch(r"[0-9]{5}", value)
+        elif dimension in {"filing_type", "court"}:
+            valid = value == "unknown" or bool(re.fullmatch(r"[A-Za-z0-9_.:/ -]{1,80}", value))
+        elif dimension in configured:
+            known, fallback = configured[dimension]
+            valid = value in known or value == fallback
+            if not valid and at_rollup and _CONFIG_KEY.fullmatch(value):
+                values[dimension], valid = fallback, True
+        else:
+            valid = value in allowed[dimension]
+        if not valid:
+            raise ValueError("Disallowed usage value")
+    return kind, values
+
+
+# Shape of a configuration key; free text with spaces or an email never fits.
+_CONFIG_KEY = re.compile(r"[A-Za-z0-9_.-]{1,80}")
+
+
 @transaction.atomic
 def count_event(event_id):
     event = (
@@ -205,37 +268,9 @@ def count_event(event_id):
     )
     if event is None:
         return
-    values = dict(event.dimensions)
-    if set(values) - DIMENSIONS - {"filing_kind"} or event.metric not in METRICS:
+    if event.metric not in METRICS:
         raise ValueError("Disallowed usage data")
-    kind = values.pop("filing_kind")
-    if kind not in {"new", "existing", "unknown"}:
-        raise ValueError("Disallowed filing kind")
-    allowed = {
-        "case_type": set(config_loader.load_jurisdiction_config(event.draft.jurisdiction).get("case_types", {}))
-        | {"other_or_unknown"},
-        "filer_side": {str(side) for side in PartySide} | {"unknown"},
-        "filing_for": {"self", "someone_else", "unknown"},
-        "preparation": {"unchanged", "flattened", "converted", "converted_flattened", "unknown"},
-        "original_pdf_state": {"fillable", "no_form_fields", "not_pdf_or_unknown"},
-        "usage_frequency": {"first", "2_to_5", "6_or_more"},
-        "has_attorney": {"yes", "no", "unknown"},
-        "fee_waiver": {"submitted", "not_submitted", "unknown"},
-        "interview_source": set(getattr(settings, "LITEFILE_HANDOFF_SOURCES", {})) | {"direct", "other_interview"},
-        "workflow_step": {choice[0] for choice in FilingDraft._meta.get_field("current_step").choices} | {"unknown"},
-        "rejection_reason": REJECTION_REASONS,
-    }
-    for dimension, value in values.items():
-        if not isinstance(value, str) or len(value) > 80:
-            raise ValueError("Disallowed usage value")
-        if dimension == "zip_code":
-            valid = value == "unknown" or re.fullmatch(r"[0-9]{5}", value)
-        elif dimension in {"filing_type", "court"}:
-            valid = value == "unknown" or bool(re.fullmatch(r"[A-Za-z0-9_.:/ -]{1,100}", value))
-        else:
-            valid = value in allowed[dimension]
-        if not valid:
-            raise ValueError("Disallowed usage value")
+    kind, values = _validated(event.dimensions, event.draft.jurisdiction, at_rollup=True)
     day = event.occurred_at.astimezone(UTC).date()
     cells = [(day, "day", "all", "all"), (day.replace(day=1), "month", "all", "all")]
     cells.extend((day.replace(day=1), "month", dimension, value) for dimension, value in sorted(values.items()))
@@ -266,7 +301,15 @@ def drain_events(draft_ids=None, *, limit=1000):
     if draft_ids is not None:
         events = events.filter(draft_id__in=draft_ids)
     for event_id in events.values_list("pk", flat=True)[:limit]:
-        count_event(event_id)
+        try:
+            count_event(event_id)
+        except ValueError:
+            # One disallowed event must not block every later one. Clear it
+            # uncounted; its dimensions are what failed the privacy checks.
+            logger.error("Usage event %s failed validation and was discarded uncounted", event_id)
+            UsageEvent.objects.filter(pk=event_id, counted_at__isnull=True).update(
+                counted_at=timezone.now(), dimensions={}
+            )
 
 
 def record_matter(draft):
@@ -311,30 +354,48 @@ def record_transmission_details(draft):
         ]
         if len(page_counts) == len(documents) and page_counts:
             record_event(draft, "pages_transmitted", quantity=sum(page_counts))
-        try:
-            source_documents = draft.handoff.payload.get("documents", [])
-        except ObjectDoesNotExist:
-            source_documents = []
-        guided_forms = sum(bool(document.get("form_name")) for document in source_documents)
+        # Count transmitted documents a guided interview supplied with a form
+        # name. Provenance follows a document whose row was rebuilt, so
+        # removed forms drop out and replaced rows keep their origin.
+        suggestions = FilingMetadataEvent.objects.filter(
+            draft=draft,
+            kind="source_suggestion",
+            path__in=[f"documents.{document.pk}" for document in documents],
+        ).values_list("path", "value")
+        guided_forms = len({path for path, value in suggestions if isinstance(value, dict) and value.get("form_name")})
         if guided_forms:
             record_event(draft, "guided_forms_transmitted", quantity=guided_forms)
     except Exception:
         logger.error("Transmission usage details could not be queued; collection is degraded")
 
 
+# Terms match at word starts, so "information" is not "format" and
+# "assigned" is not "signed". Earlier categories win when several match.
+_REJECTION_RULES = tuple(
+    (category, re.compile(r"\b(?:" + "|".join(terms) + r")"))
+    for category, terms in (
+        ("fees_or_waiver", (r"fees?\b", "payment", "waiver", "indigen")),
+        ("signature_or_notarization", ("signature", r"(?:un)?signed\b", r"sign\b", "notar")),
+        ("filing_type", ("filing type", "document type", "event code")),
+        ("missing_document", ("missing", "required document", "attach")),
+        ("party_information", (r"part(?:y|ies)\b", "plaintiff", "petitioner", "defendant", "respondent", "address")),
+        ("document_format", ("format", r"pdf", "scan", "legib", r"pages?\b", "margin")),
+        ("service", (r"service\b", "summons", r"served?\b")),
+    )
+)
+
+
 def categorize_rejection(detail):
     """Map clerk comments to a fixed reporting category without retaining text."""
     text = " ".join(str(comment.get("text") or "") for comment in detail.get("comments") or []).casefold()
-    rules = (
-        ("fees_or_waiver", ("fee", "payment", "waiver", "indigen")),
-        ("signature_or_notarization", ("signature", "signed", "notary", "notar")),
-        ("filing_type", ("filing type", "document type", "event code")),
-        ("missing_document", ("missing", "required document", "attach")),
-        ("document_format", ("format", "pdf", "scan", "legible", "page", "margin")),
-        ("service", ("service", "summons", "serve")),
-        ("party_information", ("party", "plaintiff", "petitioner", "defendant", "respondent", "address")),
+    return next((category for category, pattern in _REJECTION_RULES if pattern.search(text)), "other_or_unknown")
+
+
+def _outcome_metric(status):
+    status = str(status or "").strip().lower()
+    return (
+        "court_accepted" if status == "accepted" else "court_returned" if status in {"rejected", "returned"} else None
     )
-    return next((category for category, terms in rules if any(term in text for term in terms)), "other_or_unknown")
 
 
 def record_court_statuses(user, jurisdiction, filings):
@@ -342,26 +403,31 @@ def record_court_statuses(user, jurisdiction, filings):
     from efile.models import FilingIdentifier
 
     try:
-        by_id = {
-            str(row.get("filing_id") or ""): str(row.get("filing_status") or "").strip().lower()
-            for row in filings
-            if row.get("filing_id")
-        }
+        by_id = {str(row.get("filing_id") or ""): _outcome_metric(row.get("filing_status")) for row in filings}
+        by_id = {filing_id: metric for filing_id, metric in by_id.items() if filing_id and metric}
         if not by_id:
             return
-        identifiers = FilingIdentifier.objects.select_related("draft").filter(
-            filing_id__in=by_id, draft__user=user, draft__jurisdiction=jurisdiction
+        # Same drafts as the filing detail page (local_submission).
+        identifiers = list(
+            FilingIdentifier.objects.select_related("draft__user").filter(
+                filing_id__in=by_id,
+                draft__user=user,
+                draft__jurisdiction=jurisdiction,
+                draft__status=FilingDraft.Status.SUBMITTED,
+            )
+        )
+        # This runs on every My cases load; skip outcomes already queued so
+        # decided filings do not lock their drafts again each time.
+        recorded = set(
+            UsageEvent.objects.filter(
+                draft_id__in={identifier.draft_id for identifier in identifiers},
+                metric__in={"court_accepted", "court_returned"},
+                operation__in=by_id,
+            ).values_list("draft_id", "metric", "operation")
         )
         for identifier in identifiers:
-            status = by_id[identifier.filing_id]
-            metric = (
-                "court_accepted"
-                if status == "accepted"
-                else "court_returned"
-                if status in {"rejected", "returned"}
-                else None
-            )
-            if metric:
+            metric = by_id[identifier.filing_id]
+            if (identifier.draft_id, metric, identifier.filing_id) not in recorded:
                 record_event(identifier.draft, metric, operation=identifier.filing_id)
     except Exception:
         logger.error("Court outcome usage could not be queued; collection is degraded")
@@ -369,11 +435,11 @@ def record_court_statuses(user, jurisdiction, filings):
 
 def record_court_detail(draft, filing_id, detail):
     try:
-        status = str((detail or {}).get("status") or "").strip().lower()
-        if status == "accepted":
-            record_event(draft, "court_accepted", operation=filing_id)
-        elif status in {"rejected", "returned"}:
-            record_event(draft, "court_returned", operation=filing_id)
+        detail = detail or {}
+        metric = _outcome_metric(detail.get("status"))
+        if metric:
+            record_event(draft, metric, operation=filing_id)
+        if metric == "court_returned":
             record_event(
                 draft,
                 "rejection_reason",

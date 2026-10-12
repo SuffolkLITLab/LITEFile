@@ -304,7 +304,7 @@ filer changes an answer.
 | `draft_resumed` | Each time a filer resumes a saved draft from the drafts page |
 | `documents_transmitted` | Number of document rows in confirmed transmissions; documents are not assumed to be distinct court forms |
 | `pages_transmitted` | Number of pages in a confirmed transmission when every document has a known extraction page count; omitted otherwise |
-| `guided_forms_transmitted` | Number of guided-interview documents explicitly labeled with a form name in confirmed transmissions |
+| `guided_forms_transmitted` | Number of transmitted documents that a guided interview supplied with a form name; forms the filer removed before sending are not counted |
 
 Detailed monthly marginals cover configured case type, filing type code, court,
 filer side, attorney representation, self versus someone else, fee-waiver use,
@@ -312,6 +312,8 @@ guided-interview source, workflow step, categorized return reason, five-digit
 filer ZIP, preparation outcome, original PDF form-field presence, and a
 first/2–5/6+ transmission frequency band. They are independent breakdowns, not
 a row combining ZIP with case details. Unknown answers stay unknown.
+The frequency band on a court outcome is the band at that filing's
+transmission, so outcomes line up with the `transmitted` count.
 `no_form_fields` includes both ordinary PDFs and PDFs already flattened; it is
 not a claim that every unchanged upload was previously flattened. Word files
 and legacy unknowns are separate from tested PDF input.
@@ -321,7 +323,9 @@ filer loads the court history or filing-detail screen. The counters do not poll
 the court or claim complete outcome coverage while statuses have not been viewed.
 Return comments are classified into a fixed category in memory; names, clerk
 text, and other free text never enter the usage outbox. Guided-interview source
-values are limited to deployment-configured source keys. Report contributor
+values are limited to deployment-configured source keys. Court outcomes count
+only drafts still marked submitted, the same drafts the filing-detail screen
+treats as LITEFile's own. Report contributor
 counts are distinct local accounts within a cell, not distinct natural people.
 Attorney representation is `yes` only when the imported court roster links the
 filer to a represented party. It is `no` only for a new-case filer who selected
@@ -363,6 +367,12 @@ usage rollups once a minute, including while a PDF child is running. It catches
 analytics failures independently so extraction continues. An additional usage
 worker is optional; concurrent rollups are idempotent. The standalone command
 is useful for draining a backlog and for deployments without that supervisor.
+
+Dimension values are checked when an event is queued and again at rollup. If a
+case type, handoff source or workflow step is removed from configuration while
+an event is pending, rollup counts it under `other_or_unknown`,
+`other_interview` or `unknown`. An event that still fails the checks is logged
+and cleared uncounted, so it cannot block the events behind it.
 
 ```bash
 uv run python manage.py process_usage_events              # every minute; batches of 1,000
