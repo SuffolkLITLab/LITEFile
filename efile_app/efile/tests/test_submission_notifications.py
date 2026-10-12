@@ -40,11 +40,12 @@ def test_notification_fields_are_disabled_by_default_for_each_state():
         assert submission_email_fields(request, draft, jurisdiction, config) == {}
 
 
-def test_illinois_templates_are_plain_text_and_link_to_tracker_and_waiver_source():
+def test_plain_text_fallback_links_to_tracker_and_waiver_source():
     request = RequestFactory().get("/", HTTP_HOST="testserver")
     draft = fake_draft(selected_payment_account_type="WV", court_code="unknown")
     config = deepcopy(config_loader.load_jurisdiction_config("illinois"))
     config["submission_notifications"]["enabled"] = True
+    config["submission_notifications"]["format"] = "plain_text"
     config["fee_waiver"]["source_url"] = "https://example.test/waiver"
 
     fields = submission_email_fields(request, draft, "illinois", config)
@@ -78,6 +79,34 @@ def test_waiver_note_is_omitted_when_no_waiver_was_selected():
     fields = submission_email_fields(request, draft, "illinois", config)
 
     assert "waiver" not in fields["email_confirmation_contents"].lower()
+
+
+def test_html_notifications_include_progress_and_escape_contact_markup():
+    from bs4 import BeautifulSoup
+
+    request = RequestFactory().get("/", HTTP_HOST="testserver")
+    config = deepcopy(config_loader.load_jurisdiction_config("illinois"))
+    config["submission_notifications"]["enabled"] = True
+    with patch(
+        "efile.services.submission_notifications.court_contact",
+        return_value={"name": '<img src=x onerror="alert(1)"> {{name}} & help'},
+    ):
+        fields = submission_email_fields(request, fake_draft(), "illinois", config)
+    for field, outcome in (
+        ("email_confirmation_contents", "Received"),
+        ("acceptance_contents", "Accepted"),
+        ("rejected_contents", "Returned for changes"),
+    ):
+        assert fields[field].startswith("<!DOCTYPE html>")
+        soup = BeautifulSoup(fields[field], "html.parser")
+        assert not soup.find("img")
+        assert '<img src=x onerror="alert(1)">' in soup.get_text()
+        stages = soup.select('table[aria-label="Filing progress"] td')
+        assert len(stages) == 4
+        current = [stage for stage in stages if "Current" in stage.get_text()]
+        assert len(current) == 1 and outcome in current[0].get_text()
+        assert soup.find("a")["href"] == f"http://testserver/submissions/{PUBLIC_ID}/"
+    assert not fields["email_confirmation_subject"].startswith("<!DOCTYPE")
 
 
 def test_waiver_document_counts_as_a_waiver_request():

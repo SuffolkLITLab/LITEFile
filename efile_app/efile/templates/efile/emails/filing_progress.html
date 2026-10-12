@@ -1,0 +1,33 @@
+<table role="presentation"
+       aria-label="Filing progress"
+       width="100%"
+       cellspacing="0"
+       cellpadding="0"
+       border="0"
+       style="table-layout:fixed">
+    <tr>
+        {% for stage in tracker.stages %}
+            <td width="25%"
+                align="center"
+                valign="top"
+                style="padding:0 3px;
+                       border-top:4px solid {% if stage.complete or stage.current %}#003c71{% else %}#d3dbe5{% endif %}">
+                <p style="margin:10px auto 8px;
+                          width:28px;
+                          height:28px;
+                          line-height:28px;
+                          border-radius:50%;
+                          background-color:{% if stage.complete or stage.current %}#003c71{% else %}#e8edf3{% endif %};
+                          color:{% if stage.complete or stage.current %}#ffffff{% else %}#526176{% endif %};
+                          font-size:16px;
+                          font-weight:bold">{% if stage.complete %}✓{% else %}{{ forloop.counter }}{% endif %}</p>
+                <p style="margin:0;
+                          font-size:13px;
+                          line-height:1.4;
+                          font-weight:bold;
+                          color:#172033">{{ stage.label }}</p>
+                <p style="margin:4px 0 0;font-size:11px;line-height:1.4;color:#526176;">{% if stage.complete %}Completed{% elif stage.current %}Current{% else %}Upcoming{% endif %}</p>
+            </td>
+        {% endfor %}
+    </tr>
+</table>

@@ -27,7 +27,7 @@ def strip_client_email_fields(efile_data):
 
 
 def submission_email_fields(request, draft, jurisdiction, config=None):
-    """Build plain-text notification fields from jurisdiction-owned templates."""
+    """Build jurisdiction-owned copy, optionally with an HTML progress tracker."""
     config = config or {}
     notification_config = config.get("submission_notifications", {})
     if not isinstance(notification_config, dict) or notification_config.get("enabled") is not True:
@@ -47,7 +47,14 @@ def submission_email_fields(request, draft, jurisdiction, config=None):
         "help_line": _help_line(contact),
         "waiver_line": _waiver_line(draft, waiver_url),
     }
-    return {field: Template(templates[field]).safe_substitute(values).strip() for field in PROXY_EMAIL_FIELDS}
+    fields = {field: Template(templates[field]).safe_substitute(values).strip() for field in PROXY_EMAIL_FIELDS}
+    if notification_config.get("format") == "html":
+        from efile.services.notification_email_html import render_notification_email
+
+        for field in PROXY_EMAIL_FIELDS:
+            if field.endswith("_contents"):
+                fields[field] = render_notification_email(field, fields[field], _template_value(tracker_url))
+    return fields
 
 
 def _template_value(value):

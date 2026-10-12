@@ -64,6 +64,9 @@ public class RenderContract {
         unchangedSubjects.put(field, value);
       } else {
         String rendered = jinjava.render(value, context).strip();
+        if (!rendered.startsWith("<!DOCTYPE html>") || !rendered.contains("aria-label=\"Filing progress\"")) {
+          throw new AssertionError("Missing HTML email progress graphic in " + field);
+        }
         if (!rendered.contains("/submissions/6b0f2a8e-6d0c-4f1e-9a51-0c2b9f3c1a7d/")) {
           throw new AssertionError("Missing UUID tracker link in " + field);
         }
@@ -101,6 +104,17 @@ public class RenderContract {
     if (!unknown.contains("changed status") || unknown.contains("returned for changes")) {
       throw new AssertionError("Unknown status did not keep generic copy: " + unknown);
     }
+    if (unknown.contains("aria-label=\"Filing progress\"")) {
+      throw new AssertionError("Unknown status must not invent a progress stage");
+    }
+    Map<String, String> pendingOutputs = new LinkedHashMap<>();
+    for (String status : List.of("submitting", "submitted", "receipted", "under-review", "reviewed")) {
+      String rendered = jinjava.render(neutralBody, Map.of("status", status)).strip();
+      if (!rendered.contains("aria-label=\"Filing progress\"")) {
+        throw new AssertionError("Missing pending progress graphic for " + status);
+      }
+      pendingOutputs.put(status, rendered);
+    }
 
     Map<String, String> categories = new LinkedHashMap<>();
     for (String raw : List.of("accepted", "rejected", "returned", "future-status")) {
@@ -133,6 +147,7 @@ public class RenderContract {
             "rendered_bodies", renderedBodies,
             "returned_status_outputs", returnedOutputs,
             "unknown_status_output", unknown,
+            "pending_status_outputs", pendingOutputs,
             "callback_categories", categories,
             "optional_message_url", Map.of("with_value", urlWithValue, "without_value", ""));
     output.toAbsolutePath().getParent().toFile().mkdirs();

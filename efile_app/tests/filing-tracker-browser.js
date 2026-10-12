@@ -22,7 +22,7 @@ async function main() {
     const page = await context.newPage();
     try {
         const detailUrl = (id) => `${config.base}/jurisdiction/illinois/filings/kane/${id}/`;
-        const trackerUrl = config.emailContents.match(/https?:\/\/\S+/)?.[0];
+        const trackerUrl = config.emailContents.match(/https?:\/\/[^\s"'<>]+/)?.[0];
         expect(trackerUrl).toBeTruthy();
         await page.goto(trackerUrl);
         await expect(page.getByLabel('Email address')).toBeVisible();
