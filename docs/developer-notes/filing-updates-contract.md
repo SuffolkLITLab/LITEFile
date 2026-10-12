@@ -63,22 +63,29 @@ Correction links use a normalized returned/rejected status, including mixed-case
 To run the harness, use the `efspserver-with-deps.jar` from an EfileProxyServer build and pass its location through `EFSP_PROXY_JAR`. Run these commands from `efile_app/`:
 
 ```sh
+set -eu
 export EFSP_PROXY_JAR=/path/to/EfileProxyServer/proxyserver/target/efspserver-with-deps.jar
 proxy_contract_dir="$(mktemp -d)"
 UV_CACHE_DIR="${TMPDIR:-/tmp}/litefile-uv-cache" uv run python tests/notification-proxy-contract/generate_payload.py --output "$proxy_contract_dir/input.json"
 java -cp "$EFSP_PROXY_JAR" tests/notification-proxy-contract/RenderContract.java --input "$proxy_contract_dir/input.json" --output "$proxy_contract_dir/report.json"
 ```
 
-The harness was exercised with OpenJDK 21.0.12.1 and the existing local `EfileProxyServer/proxyserver/target/efspserver-with-deps.jar`; the JAR was not rebuilt because Maven and javac are unavailable.
+The original pass recorded here was stale: the generator failed with `AttributeError` because its synthetic draft lacked `public_id`, before Java ran. The review fix adds a deterministic UUID and checks that every rendered body retains the corresponding tracker link. The commands above now stop on failure and use a fresh directory so a failed generator cannot feed an older payload to Java.
+
+The repaired harness was rerun on October 11, 2026 (America/New_York), with OpenJDK 21.0.12.1 and the existing local `EfileProxyServer/proxyserver/target/efspserver-with-deps.jar`. The JAR was not rebuilt; its SHA-256 was `94c8f36925c202d10ae1626929d2391bcb8df9fd1479ce4eaaade8272e26579d`. Generation and Java rendering both exited successfully. Temporary payload and report: `/tmp/litefile-contract-review/input.json` and `/tmp/litefile-contract-review/report.json`.
+
+Current review validation:
 
 | Check | Result |
 | --- | --- |
-| Full backend regression suite (`uv run pytest -q`) | 1,841 passed; 4 skipped |
-| Notification Django tests | 11 passed |
-| Sprint focused checks | 51 passed |
-| Integrated browser check | Passed |
-| Proxy Jinjava contract harness | Passed with existing proxy JAR; no email provider called |
-| End-to-end email delivery | Not performed |
+| Full backend regression suite (`uv run pytest -q`) | 1,849 passed; 4 skipped in 313.93 seconds |
+| Notification, submission tracker, filing history, review/submit, and browser tests | 78 passed |
+| Integrated browser check | Passed with synthetic court data: email tracker URL → signed-out login → filing selection → accepted, returned, failed, and all five pending states; pending summaries explicitly say no action is needed |
+| Proxy Jinjava contract harness | Passed after regenerating the payload; UUID links, body rendering, subject pass-through, returned/unknown categories, and optional URLs checked; no provider called by this harness |
+| Live Tyler test submission and tracker | Passed: real Illinois login, fee quote, one submission, confirmation page, signed-out UUID tracker link, login redirect, and live filing detail at mobile width |
+| End-to-end email delivery | Submission succeeded; manual receipt confirmation pending; do not merge until delivery is verified |
 
-Repository-wide Ruff and `ty check` passed. The new tracker stylesheet passed Stylelint, and `git diff --check` passed.
+The live check used `efile-test.suffolklitlab.org` with the configured Illinois test account and an isolated database at `/tmp/litefile-contract-review/live.sqlite3`. Notification templates were enabled only in a temporary settings wrapper, with `[LITEFile test PR 316]` prepended to subjects and notices addressed to `qsteenhuis@suffolk.edu`. Repository notification flags remain disabled. The local development stand-in PDF was active. The first fee calculation timed out; a read-only retry succeeded. Exactly one submission was attempted and succeeded. The generated tracker link opened the returned filing ID after real login, showing `submitting` and “No action is needed right now.” This verifies the live submission/tracker path, but does not establish inbox delivery or live accepted/rejected callbacks. Those callback categories are covered by the synthetic browser and Jinjava checks above. The recipient has been asked to confirm the submission message with subject `[LITEFile test PR 316] Your filing was submitted`.
+
+Repository-wide Ruff, `ty check`, ESLint for the changed browser script, and `git diff --check` passed for the review fix. The unchanged tracker stylesheet passed Stylelint in the earlier validation.
 - GitHub issues #297, #229, #157, and EfileProxyServer #375, read on 2026-10-11.

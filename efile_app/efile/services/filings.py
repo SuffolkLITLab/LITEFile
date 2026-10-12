@@ -70,11 +70,11 @@ def filing_tracker(status_code: Any) -> dict[str, Any]:
     """Return a conservative filing progress summary for the detail screen."""
     code = str(status_code or "").strip().lower()
     stage_by_status = {
-        "submitting": (0, "Your filing is being sent to the court."),
-        "submitted": (1, "The e-filing system received your filing."),
-        "receipted": (1, "The court received your filing."),
-        "under-review": (2, "A court clerk is reviewing your filing."),
-        "reviewed": (2, "The clerk review is complete. The court has not shared a decision."),
+        "submitting": (0, "Your filing is being sent to the court. No action is needed right now."),
+        "submitted": (1, "The e-filing system received your filing. No action is needed right now."),
+        "receipted": (1, "The court received your filing. No action is needed while it waits for clerk review."),
+        "under-review": (2, "A court clerk is reviewing your filing. No action is needed right now."),
+        "reviewed": (2, "Clerk review is complete. No action is needed while you wait for the court's decision."),
         "accepted": (3, "Download the court copy below if you need it."),
         "rejected": (3, "Review the clerk's comments below."),
         "returned": (3, "Review the clerk's comments below."),

@@ -107,6 +107,15 @@ async function main() {
         })).toHaveCount(0);
         await expect(page.locator('.filing-tracker__stages')).toHaveCount(0);
 
+        for (const status of config.pendingStatuses) {
+            await page.goto(detailUrl(status));
+            await expect(page.getByRole('status')).toContainText('No action is needed');
+            await expect(page.locator('.filing-tracker__stages li[aria-current="step"]')).toHaveCount(1);
+            await expect(page.getByRole('link', {
+                name: 'Correct and resubmit'
+            })).toHaveCount(0);
+        }
+
         await page.goto(detailUrl('accepted-1'));
         await page.getByRole('heading', {
             level: 1

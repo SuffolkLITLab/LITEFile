@@ -37,6 +37,11 @@ def test_filing_tracker_browser(live_server, client, django_user_model):
     failed = copy.deepcopy(accepted)
     failed["filingStatus"] = {"filingStatusCode": "failed", "statusDescriptionText": []}
     payloads = {"accepted-1": accepted, "returned-1": returned, "failed-1": failed}
+    pending_statuses = ["submitting", "submitted", "receipted", "under-review", "reviewed"]
+    for status in pending_statuses:
+        pending = copy.deepcopy(accepted)
+        pending["filingStatus"] = {"filingStatusCode": status, "statusDescriptionText": []}
+        payloads[status] = pending
     draft = FilingDraft.objects.create(
         user=user,
         jurisdiction="illinois",
@@ -76,7 +81,7 @@ def test_filing_tracker_browser(live_server, client, django_user_model):
         patch("efile.views.login.authenticate", side_effect=synthetic_auth),
         patch("requests.post") as post,
     ):
-        config = {"base": live_server.url, "emailContents": email_contents}
+        config = {"base": live_server.url, "emailContents": email_contents, "pendingStatuses": pending_statuses}
         result = subprocess.run(
             ["node", str(app / "tests/filing-tracker-browser.js")],
             env={**os.environ, "FILING_TRACKER_BROWSER_CONFIG": json.dumps(config)},
@@ -88,4 +93,4 @@ def test_filing_tracker_browser(live_server, client, django_user_model):
         post.assert_not_called()
 
     assert result.returncode == 0, result.stdout + result.stderr
-    assert fetched_filing_ids == ["returned-1", "accepted-1", "returned-1", "failed-1", "accepted-1"]
+    assert fetched_filing_ids == ["returned-1", "accepted-1", "returned-1", "failed-1", *pending_statuses, "accepted-1"]

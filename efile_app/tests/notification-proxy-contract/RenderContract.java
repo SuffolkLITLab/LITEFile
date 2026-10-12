@@ -64,6 +64,9 @@ public class RenderContract {
         unchangedSubjects.put(field, value);
       } else {
         String rendered = jinjava.render(value, context).strip();
+        if (!rendered.contains("/submissions/6b0f2a8e-6d0c-4f1e-9a51-0c2b9f3c1a7d/")) {
+          throw new AssertionError("Missing UUID tracker link in " + field);
+        }
         if (rendered.contains("ATTACKED")) {
           throw new AssertionError("A configured value became template syntax in " + field);
         }

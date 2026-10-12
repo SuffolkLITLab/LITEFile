@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
+from uuid import UUID
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "efile.settings")
 
@@ -41,6 +42,7 @@ def main() -> None:
     request = RequestFactory().get("/", HTTP_HOST=args.host)
     draft = SimpleNamespace(
         pk=args.draft_id,
+        public_id=UUID("6b0f2a8e-6d0c-4f1e-9a51-0c2b9f3c1a7d"),
         selected_payment_account_type="WV",
         court_code="notification-contract-test-court",
     )
