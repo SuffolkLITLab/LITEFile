@@ -1,0 +1,60 @@
+"""Email-safe progress graphics for the proxy's HTML-capable SendGrid transport."""
+
+from html import escape
+
+from django.template.loader import render_to_string
+from django.utils.safestring import mark_safe
+
+from efile.services.filings import filing_tracker
+
+
+def _progress(status, timing):
+    return render_to_string(
+        "efile/emails/filing_progress.html", {"tracker": filing_tracker(status, timing=timing)}
+    ).strip()
+
+
+def _neutral_progress(timing):
+    # The callback provides a display label, not reliably a raw status code.
+    # Only show progress for explicit known values; do not guess unknown stages.
+    choices = {
+        "submitting": ("submitting", "in progress"),
+        "submitted": ("submitted", "received by the e-filing system"),
+        "receipted": ("receipted", "received by the court"),
+        "under-review": ("under-review", "under review"),
+        "reviewed": ("reviewed",),
+        "returned": ("returned", "returned for changes", "returned to filer"),
+    }
+    parts = []
+    for index, (status, labels) in enumerate(choices.items()):
+        condition = " or ".join(f'status|lower == "{label}"' for label in labels)
+        parts.append("{% " + ("if" if index == 0 else "elif") + " " + condition + " %}")
+        parts.append(_progress(status, timing))
+    parts.append("{% endif %}")
+    return "".join(parts)
+
+
+def render_notification_email(field, contents, tracker_url, timing=None):
+    # Callback templates are saved at submission and may run days later.
+    # Only the immediate confirmation can use today's holiday guidance.
+    if timing and field != "email_confirmation_contents":
+        timing = {**timing, "review": {k: v for k, v in timing.get("review", {}).items() if k != "closure_note"}}
+    status = {
+        "email_confirmation_contents": "submitted",
+        "acceptance_contents": "accepted",
+        "rejected_contents": "returned",
+    }.get(field)
+    progress = _progress(status, timing) if status else _neutral_progress(timing)
+    # Text-node escaping leaves quotes intact for the server-owned Jinjava
+    # conditions. Interpolated data has already had template delimiters encoded.
+    # URL attributes are escaped separately, including quotes.
+    body = escape(contents, quote=False).replace("\n", "<br>")
+    link = f'<a href="{escape(tracker_url, quote=True)}" style="color:#003c71;text-decoration:underline;">View filing status and next steps</a>'
+    body = body.replace(escape(tracker_url, quote=False), link)
+    # Both fragments are escaped text or rendered, repository-owned markup.
+    safe_body = mark_safe(body)  # nosec
+    safe_progress = mark_safe(progress)  # nosec
+    return render_to_string(
+        "efile/emails/filing_notification.html",
+        {"body": safe_body, "progress": safe_progress},
+    ).strip()

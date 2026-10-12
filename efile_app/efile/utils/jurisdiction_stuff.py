@@ -1,3 +1,7 @@
+from django.contrib.auth.views import redirect_to_login
+from django.urls import reverse
+
+
 def get_jurisdiction_from_request(request):
     jurisdiction = request.GET.get("jurisdiction")
     if jurisdiction:
@@ -32,3 +36,9 @@ def has_jurisdiction_login(request, jurisdiction):
         and getattr(user, "tyler_jurisdiction", "").casefold() == jurisdiction.casefold()
         and get_jurisdiction_token(request, jurisdiction)
     )
+
+
+def redirect_to_jurisdiction_login(request, jurisdiction):
+    """Send the visitor to sign in to ``jurisdiction``, then back to this page."""
+
+    return redirect_to_login(request.get_full_path(), reverse("efile_login", kwargs={"jurisdiction": jurisdiction}))

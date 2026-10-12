@@ -49,6 +49,7 @@ from .views.session_api import (
     save_party_type_to_session,
 )
 from .views.submission import submit_final_filing
+from .views.submission_tracker import submission_tracker
 from .views.upload_documents import document_extraction_status, upload_documents
 from .views.waiver_documents import waiver_documents
 from .views.your_information import your_information
@@ -67,6 +68,7 @@ def jurisdiction_homepage(request, jurisdiction):
 
 
 urlpatterns = [
+    path("submissions/<uuid:public_id>/", submission_tracker, name="submission_tracker"),
     path(f"{settings.LITEFILE_STAFF_PATH}/", staff_site.urls),
     path("api/handoffs/v1/", external_handoff, name="external_handoff"),
     path("api/handoffs/v1/documents/", replace_documents, name="handoff_replace_documents"),

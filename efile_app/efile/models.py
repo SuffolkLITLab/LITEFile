@@ -1,4 +1,6 @@
 # models.py - Optional extension to store additional user information
+import uuid
+
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models, transaction
@@ -400,6 +402,9 @@ class FilingDraft(models.Model):
     submission_response = models.JSONField(default=dict, blank=True)
 
     submitted_at = models.DateTimeField(blank=True, null=True)
+    # The submission's address in notification links. Unguessable, unlike the
+    # primary key, so a link reveals nothing about which submissions exist.
+    public_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     submission_operation = models.UUIDField(null=True, blank=True, editable=False)
     deletion_pending = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -425,6 +430,17 @@ class FilingDraft(models.Model):
         lookup has matched it to a court record.
         """
         return self.existing_case == ExistingCase.EXISTING and bool(self.previous_case_id)
+
+    @classmethod
+    def from_db(cls, db, field_names, values):
+        instance = super().from_db(db, field_names, values)
+        # What the identifier index already holds, so saves that leave the
+        # response alone (every workflow autosave) skip resyncing it.
+        if "submission_response" in instance.__dict__:
+            from efile.services.handoff import submitted_filing_ids
+
+            instance._indexed_filing_ids = submitted_filing_ids(instance.submission_response)
+        return instance
 
     def mark_submitted(self, response_data):
         sync_primary_filing_type(self)
@@ -463,7 +479,32 @@ class FilingDraft(models.Model):
             if lead is not None:
                 self.filing_type_code = lead.filing_type_code
                 self.filing_type_name = lead.filing_type_name
+        adding = self._state.adding
         super().save(*args, **kwargs)
+        if update_fields is None or "submission_response" in update_fields:
+            # Keep searchable identifiers atomic with the response. QuerySet.update
+            # and bulk writes must not be used to change submission_response.
+            from efile.services.handoff import submitted_filing_ids
+
+            filing_ids = submitted_filing_ids(self.submission_response)
+            indexed = set() if adding else getattr(self, "_indexed_filing_ids", None)
+            if filing_ids != indexed:
+                self.filing_identifiers.exclude(filing_id__in=filing_ids).delete()
+                # Another save of this draft may have indexed the same ID first.
+                FilingIdentifier.objects.bulk_create(
+                    [FilingIdentifier(draft=self, filing_id=value) for value in filing_ids], ignore_conflicts=True
+                )
+            self._indexed_filing_ids = filing_ids
+
+
+class FilingIdentifier(models.Model):
+    """Search keys for a saved proxy response, not another filing status record."""
+
+    draft = models.ForeignKey(FilingDraft, on_delete=models.CASCADE, related_name="filing_identifiers")
+    filing_id = models.CharField(max_length=255, db_index=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["draft", "filing_id"], name="unique_draft_filing_id")]
 
 
 class FilingDocument(models.Model):

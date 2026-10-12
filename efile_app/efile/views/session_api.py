@@ -12,7 +12,9 @@ from ..services.efsp_payload import PayloadValidationError, prepare_efile_payloa
 from ..services.extraction_fields import EXTRACTION_FIELDS, EXTRACTION_HINTS
 from ..services.filing_availability import outgoing_unavailable_message
 from ..services.submission_errors import SubmissionErrorCode
+from ..services.submission_notifications import strip_client_email_fields, submission_email_fields
 from ..utils.case_data_utils import get_case_data, get_upload_data, update_case_data
+from ..utils.config_loader import config_loader
 from ..utils.proxy_connection import get_party_type_code_from_api
 
 logger = logging.getLogger(__name__)
@@ -139,6 +141,11 @@ def forward_final_filing(request, data):
                 status=400,
             )
 
+        # Notification copy is server-owned. Ignore all browser-supplied values
+        # even while the jurisdiction's email feature flag is disabled.
+        if isinstance(efile_data, dict):
+            strip_client_email_fields(efile_data)
+
         # Validate required fields in efile_data
         required_fields = ["al_court_bundle"]  # Based on typical Suffolk API requirements
         missing_fields = [field for field in required_fields if field not in efile_data]
@@ -191,6 +198,14 @@ def forward_final_filing(request, data):
                 },
                 status=400,
             )
+
+        try:
+            jurisdiction_config = config_loader.load_jurisdiction_config(jurisdiction_id)
+            efile_data.update(submission_email_fields(request, draft, jurisdiction_id, jurisdiction_config))
+        except Exception:
+            # Email copy is optional. A missing config or bad public host must
+            # never prevent the filing from reaching the court.
+            logger.exception("Could not prepare submission email copy for %s", jurisdiction_id)
 
         # Construct the Suffolk LIT Lab API endpoint
         api_url = f"{settings.EFSP_URL}/jurisdictions/{jurisdiction_id}/filingreview/courts/{court_id}/filings"

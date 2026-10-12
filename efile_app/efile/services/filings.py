@@ -27,6 +27,7 @@ from django.conf import settings
 
 from efile.api.filing_views import get_tyler_token, list_filing_data
 from efile.models import ArchivedCase
+from efile.services.filing_timing import add_tracker_timing
 from efile.utils.config_loader import config_loader
 from efile.utils.proxy_connection import get_headers
 
@@ -46,19 +47,87 @@ _court_name_cache: dict[str, tuple[float, dict[str, str]]] = {}
 
 STATUS_PRESENTATION: dict[str, dict[str, str]] = {
     "accepted": {"label": "Accepted", "icon": "fa-file-circle-check", "tone": "accepted"},
-    "rejected": {"label": "Rejected", "icon": "fa-file-circle-exclamation", "tone": "rejected"},
+    "rejected": {"label": "Returned for changes", "icon": "fa-file-circle-exclamation", "tone": "rejected"},
     "returned": {"label": "Returned for changes", "icon": "fa-file-circle-exclamation", "tone": "rejected"},
     "under-review": {"label": "Under review", "icon": "fa-file-pen", "tone": "pending"},
     "reviewed": {"label": "Reviewed", "icon": "fa-file-pen", "tone": "pending"},
-    "submitted": {"label": "Waiting on the court", "icon": "fa-file", "tone": "pending"},
-    "submitting": {"label": "Sending to the court", "icon": "fa-paper-plane", "tone": "pending"},
+    "submitted": {"label": "Received by the e-filing system", "icon": "fa-file", "tone": "pending"},
+    "submitting": {"label": "In progress", "icon": "fa-paper-plane", "tone": "pending"},
     "receipted": {"label": "Received by the court", "icon": "fa-file", "tone": "pending"},
-    "served": {"label": "Served", "icon": "fa-envelope-circle-check", "tone": "accepted"},
-    "cancelled": {"label": "Cancelled", "icon": "fa-file-circle-xmark", "tone": "muted"},
+    "served": {"label": "Served", "icon": "fa-envelope-circle-check", "tone": "muted"},
+    "cancelled": {"label": "Stopped", "icon": "fa-file-circle-xmark", "tone": "muted"},
     "failed": {"label": "Did not go through", "icon": "fa-file-circle-xmark", "tone": "rejected"},
 }
 
-UNKNOWN_STATUS = {"label": "Sent to the court", "icon": "fa-file", "tone": "pending"}
+# A code Tyler added that we don't know yet. The court did send it.
+UNKNOWN_STATUS = {"label": "Status update from the court", "icon": "fa-file", "tone": "muted"}
+# No status at all: a case with no filings listed, or a blank code.
+NO_STATUS = {"label": "Sent to the court", "icon": "fa-file", "tone": "pending"}
+
+TRACKER_STAGES = ("Sent", "Received", "Clerk review")
+
+
+def filing_tracker(
+    status_code: Any, *, submitted_at=None, accepted_at=None, status_at=None, timing=None
+) -> dict[str, Any]:
+    """Return a conservative filing progress summary for the detail screen."""
+    code = str(status_code or "").strip().lower()
+    stage_by_status = {
+        "submitting": (0, "Your filing is being sent to the court. No action is needed right now."),
+        "submitted": (1, "The e-filing system received your filing. No action is needed right now."),
+        "receipted": (1, "The court received your filing. No action is needed while it waits for clerk review."),
+        "under-review": (2, "A court clerk is reviewing your filing. No action is needed right now."),
+        "reviewed": (2, "Clerk review is complete. No action is needed while you wait for the court's decision."),
+        "accepted": (3, "Download the court copy below if you need it."),
+        "rejected": (3, "Review the clerk's comments below."),
+        "returned": (3, "Review the clerk's comments below."),
+    }
+    if code in {"failed", "cancelled"}:
+        summary = "This filing did not go through." if code == "failed" else "This filing was cancelled."
+        return {
+            "state": "stopped",
+            "label": status_presentation(code)["label"],
+            "summary": summary,
+            "stages": [],
+        }
+    if code == "served":
+        return {
+            "state": "neutral",
+            "label": "Served",
+            "summary": "The filing was served. This does not show whether the court accepted it.",
+            "stages": [],
+        }
+    if not code:
+        return {
+            "state": "neutral",
+            "label": NO_STATUS["label"],
+            "summary": "The court has not sent a status update yet.",
+            "stages": [],
+        }
+    current = stage_by_status.get(code)
+    if current is None:
+        return {
+            "state": "neutral",
+            "label": UNKNOWN_STATUS["label"],
+            "summary": "The court sent a status update. Check the details below.",
+            "stages": [],
+        }
+    index, summary = current
+    outcome_label = {
+        "accepted": "Accepted",
+        "rejected": "Returned for changes",
+        "returned": "Returned for changes",
+    }.get(code, "Court decision")
+    stages = (*TRACKER_STAGES, outcome_label)
+    tracker = {
+        "state": "decision" if index == 3 else "progress",
+        "label": status_presentation(code)["label"],
+        "summary": summary,
+        "stages": [{"label": stage, "complete": i < index, "current": i == index} for i, stage in enumerate(stages)],
+    }
+    return add_tracker_timing(
+        tracker, code, submitted_at=submitted_at, accepted_at=accepted_at, status_at=status_at, timing=timing
+    )
 
 
 def status_presentation(status_code: Any) -> dict[str, str]:
@@ -69,7 +138,10 @@ def status_presentation(status_code: Any) -> dict[str, str]:
     wording instead of being dropped.
     """
 
-    return STATUS_PRESENTATION.get(str(status_code or "").strip().lower(), UNKNOWN_STATUS)
+    code = str(status_code or "").strip().lower()
+    if not code:
+        return NO_STATUS
+    return STATUS_PRESENTATION.get(code, UNKNOWN_STATUS)
 
 
 def _dig(node: Any, *keys: str) -> Any:
@@ -103,6 +175,14 @@ def _timestamp(node: Any) -> datetime | None:
         return datetime.fromtimestamp(int(raw) / 1000, tz=timezone.utc)
     except (TypeError, ValueError, OSError, OverflowError):
         return None
+
+
+def _event_timestamp(node: Any) -> datetime | None:
+    # A date-only NIEM value does not establish the time a stage was reached.
+    representation = _dig(node, "dateRepresentation") or {}
+    if isinstance(representation, dict) and str(representation.get("name", "")).endswith("}Date"):
+        return None
+    return _timestamp(node)
 
 
 def history_start_date() -> str:
@@ -145,7 +225,7 @@ def court_names(jurisdiction: str) -> dict[str, str]:
     return names
 
 
-def court_contact(jurisdiction: str, court_code: str) -> dict[str, str]:
+def court_contact(jurisdiction: str, court_code: str, config: dict | None = None) -> dict[str, str]:
     """Who to ask about a filing at this court.
 
     A filer whose filing was rejected needs a person, not a status code. The
@@ -156,11 +236,14 @@ def court_contact(jurisdiction: str, court_code: str) -> dict[str, str]:
     no contact.
     """
 
-    config = config_loader.load_jurisdiction_config(jurisdiction) or {}
+    config = config or config_loader.load_jurisdiction_config(jurisdiction) or {}
     court = (config.get("court_specific_requirements") or {}).get(court_code) or {}
     contact = dict(court.get("contact") or {})
 
     jurisdiction_help = config.get("jurisdiction") or {}
+    if not contact:
+        # Name the help line only when it stands alone, not beside a clerk's details.
+        contact["name"] = jurisdiction_help.get("help_name", "")
     contact.setdefault("url", jurisdiction_help.get("help_url", ""))
     contact.setdefault("phone", jurisdiction_help.get("help_number", ""))
     return {key: str(value) for key, value in contact.items() if value}
@@ -281,7 +364,7 @@ def cases_for_user(
             key=lambda filing: filing["received_at"] or datetime.min.replace(tzinfo=timezone.utc), reverse=True
         )
         entry["filing_count"] = len(entry["filings"])
-        entry["latest_status"] = entry["filings"][0]["status_presentation"] if entry["filings"] else UNKNOWN_STATUS
+        entry["latest_status"] = entry["filings"][0]["status_presentation"] if entry["filings"] else NO_STATUS
 
     return sorted(cases.values(), key=_sort_key, reverse=True)
 
@@ -389,7 +472,7 @@ def _describe_fees(payload: dict[str, Any]) -> list[dict[str, str]]:
 
 
 def describe_filing_detail(
-    payload: dict[str, Any] | None, names: dict[str, str] | None = None
+    payload: dict[str, Any] | None, names: dict[str, str] | None = None, *, timing=None
 ) -> dict[str, Any] | None:
     """Flatten the EFSP's filing detail into what one screen needs.
 
@@ -441,7 +524,15 @@ def describe_filing_detail(
         "filing_id": identifiers.get("FILINGID", ""),
         "envelope_id": identifiers.get("ENVELOPEID", ""),
         "status": status_code,
+        "can_correct": str(status_code or "").strip().lower() in {"rejected", "returned"},
         "status_presentation": status_presentation(status_code),
+        "tracker": filing_tracker(
+            status_code,
+            submitted_at=_event_timestamp(payload.get("filingSubmissionDate")),
+            accepted_at=_event_timestamp(payload.get("filingAcceptDate")),
+            status_at=_event_timestamp(_dig(payload, "filingStatus", "statusDate")),
+            timing=timing,
+        ),
         "status_description": _text(next(iter(_dig(payload, "filingStatus", "statusDescriptionText") or []), None)),
         "court_code": court_code,
         "court_name": names.get(court_code, court_code),

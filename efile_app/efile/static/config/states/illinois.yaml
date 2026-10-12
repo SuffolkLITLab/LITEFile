@@ -24,10 +24,31 @@ jurisdiction:
       alt: "Illinois Legal Aid Online logo"
       url: "https://www.illinoislegalaid.org/"
       role: "Project & Funding Partner"
+  help_name: "Illinois Court Help"
   help_url: "https://www.ilcourthelp.gov/"
   help_number: "833-411-1121"
   contact_email: "litlab@suffolk.edu"
   contact_address: "Suffolk University Law School LIT Lab, 120 Tremont Street, Boston, MA"
+
+# Keep proxy email notifications disabled until delivery, sender, recipient, and
+# partner wording have been verified in the live Illinois environment.
+submission_notifications:
+  enabled: false
+
+filing_timing:
+  timezone: America/Chicago
+  business_calendar:
+    country: US
+    subdivision: IL
+    review_days: 2
+    closed_weekdays: [5, 6]
+    holiday_names:
+      Columbus Day: "Indigenous Peoples’ Day / Columbus Day"
+  review:
+    # Plain-language display of the published 24–48 business-hour guidance.
+    label: "1–2 days"
+    source_url: "https://www.illinoiscourts.gov/News/656/12-Ways-to-Avoid-A-Rejected-EFiling-and-Other-Illinois-EFiling-Tips/news-detail/"
+    checked_on: "2026-10-12"
 
 # State metadata, for the address
 state:
@@ -486,6 +507,12 @@ case_categories:
 
 # Illinois-specific court mappings
 court_specific_requirements:
+  adams:
+    filing_timing:
+      office_hours:
+        label: "Monday–Friday, 8:15 a.m.–4:30 p.m. Central time"
+        source_url: "https://www.adamscountyil.gov/government/departments/circuit-clerk/services-provided"
+        checked_on: "2026-10-12"
   "cook:cd1":  # Cook County Circuit Court - County Division
     case_types:
       name_change:

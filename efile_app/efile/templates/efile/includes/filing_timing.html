@@ -1,0 +1,17 @@
+{% load i18n %}
+{% if tracker.state == "progress" and tracker.timing.review.closure_note %}
+    <p style="margin:12px 0 0;font-size:13px;line-height:1.5;color:#526176;">{{ tracker.timing.review.closure_note }}</p>
+{% endif %}
+{% if tracker.timing.office_hours %}
+    {% if email %}
+        <p style="margin:8px 0 0;font-size:13px;line-height:1.5;">
+            <a href="{{ tracker.timing.office_hours.source_url }}"
+               style="color:#003c71">{% translate "Court hours" %}</a>
+        </p>
+    {% else %}
+        <details style="margin:12px 0 0;font-size:13px;line-height:1.5;color:#526176;">
+            <summary>{% translate "Court hours" %}</summary>
+            <p>{{ tracker.timing.office_hours.label }}. <a href="{{ tracker.timing.office_hours.source_url }}">{% translate "Check court hours" %}</a></p>
+        </details>
+    {% endif %}
+{% endif %}

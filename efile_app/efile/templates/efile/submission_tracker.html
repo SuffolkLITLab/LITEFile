@@ -1,0 +1,25 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>{% translate "Your filing" %}</title>
+    </head>
+    <body>
+        <main>
+            <h1>{% translate "Your filing" %}</h1>
+            {% if filing_ids %}
+                <p>{% translate "Each filing can have a different outcome. Choose a filing to see its latest status." %}</p>
+                <ul>
+                    {% for filing_id in filing_ids %}
+                        <li><a href="{% url 'filing_detail' jurisdiction draft.court_code filing_id %}">{% translate "View filing" %} {{ filing_id }}</a></li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>{% translate "Filing details are not available yet. Check your filing list for updates." %}</p>
+                <a href="{% url 'filing_statuses' jurisdiction %}">{% translate "View filings" %}</a>
+            {% endif %}
+        </main>
+    </body>
+</html>
