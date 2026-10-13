@@ -554,3 +554,26 @@ def test_generic_waiver_provenance_follows_correction_copy(payment_draft):
     copied.save()
     assert not has_waiver_document(revision)
     assert has_waiver_document(payment_draft)
+
+
+def test_generic_waiver_notification_requires_explicit_purpose(payment_draft):
+    from copy import deepcopy
+
+    from django.test import RequestFactory
+
+    from efile.services.submission_notifications import submission_email_fields
+    from efile.services.waiver_documents import record_waiver_upload
+    from efile.utils.config_loader import config_loader
+
+    document = payment_draft.documents.get()
+    document.filing_type_name = "Application"
+    document.save()
+    payment_draft.selected_payment_account_type = "CC"
+    config = deepcopy(config_loader.load_jurisdiction_config("illinois"))
+    config["submission_notifications"]["enabled"] = True
+    request = RequestFactory().get("/", HTTP_HOST="testserver")
+    before = submission_email_fields(request, payment_draft, "illinois", config)
+    assert "If you requested a fee waiver" not in before["email_confirmation_contents"]
+    record_waiver_upload(document)
+    after = submission_email_fields(request, payment_draft, "illinois", config)
+    assert "If you requested a fee waiver" in after["email_confirmation_contents"]

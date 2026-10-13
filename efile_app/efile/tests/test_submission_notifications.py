@@ -8,7 +8,7 @@ from django.contrib.sessions.backends.signed_cookies import SessionStore
 from django.test import RequestFactory
 from django.urls import reverse
 
-from efile.models import FilingDocument
+from efile.models import FilingDocument, FilingMetadataEvent
 from efile.services.submission_notifications import (
     PROXY_EMAIL_FIELDS,
     strip_client_email_fields,
@@ -25,8 +25,10 @@ def fake_draft(**values):
         "pk": 12,
         "public_id": PUBLIC_ID,
         "court_code": "unknown",
+        "jurisdiction": "illinois",
         "selected_payment_account_type": "CC",
         "documents": FilingDocument.objects.none(),
+        "metadata_events": FilingMetadataEvent.objects.none(),
     }
     return SimpleNamespace(**{**defaults, **values})
 
