@@ -54,9 +54,10 @@ async function main() {
         await expect(page.getByText('Please refile with the case number on page 1.', {
             exact: true
         })).toBeVisible();
-        await expect(page.getByRole('link', {
-            name: 'Correct and resubmit'
-        })).toBeVisible();
+        // This fixture is a mixed accepted/returned/pending envelope.
+        await expect(page.getByRole('button', {
+            name: 'Copy and review filing'
+        })).toHaveCount(0);
         await page.goto(trackerUrl);
         await page.getByRole('link', {
             name: 'View filing accepted-1'
@@ -65,8 +66,8 @@ async function main() {
         await expect(page.getByRole('link', {
             name: "The court's file-stamped copy"
         })).toHaveAttribute('href', 'https://example.test/stamped.pdf');
-        await expect(page.getByRole('link', {
-            name: 'Correct and resubmit'
+        await expect(page.getByRole('button', {
+            name: 'Copy and review filing'
         })).toHaveCount(0);
         await expect(page.locator('.filing-tracker__stages li[aria-current="step"]')).toContainText('Accepted');
         await expect(page.locator('.filing-tracker__stages time')).toHaveCount(2);
@@ -96,16 +97,17 @@ async function main() {
         await expect(page.getByText('Please refile with the case number on page 1.', {
             exact: true
         })).toBeVisible();
-        await expect(page.getByRole('link', {
-            name: 'Correct and resubmit'
-        })).toBeVisible();
+        // This fixture is a mixed accepted/returned/pending envelope.
+        await expect(page.getByRole('button', {
+            name: 'Copy and review filing'
+        })).toHaveCount(0);
         await expect(page.locator('.filing-tracker__stages li[aria-current="step"]')).toContainText('Returned for changes');
         await expect(page.getByRole('status')).not.toContainText('Accepted');
 
         await page.goto(detailUrl('failed-1'));
         await expect(page.getByRole('status')).toContainText('This filing did not go through.');
-        await expect(page.getByRole('link', {
-            name: 'Correct and resubmit'
+        await expect(page.getByRole('button', {
+            name: 'Copy and review filing'
         })).toHaveCount(0);
         await expect(page.locator('.filing-tracker__stages')).toHaveCount(0);
 
@@ -114,8 +116,8 @@ async function main() {
             await expect(page.getByRole('status')).toContainText('No action is needed');
             await expect(page.locator('.filing-tracker__stages')).toContainText('1–2 days');
             await expect(page.locator('.filing-tracker__stages li[aria-current="step"]')).toHaveCount(1);
-            await expect(page.getByRole('link', {
-                name: 'Correct and resubmit'
+            await expect(page.getByRole('button', {
+                name: 'Copy and review filing'
             })).toHaveCount(0);
         }
 

@@ -50,14 +50,14 @@ def case_review(request, jurisdiction):
     )
     if message := draft_unavailable_message(draft):
         return unavailable_response(request, draft, message)
-    if unreviewed_documents(draft).exists():
+    if not draft.correction_of_id and unreviewed_documents(draft).exists():
         return redirect(with_return_to(get_step_url(WorkflowStepKey.EXTRACTION_REVIEW, jurisdiction), RETURN_TO_REVIEW))
 
-    if not appeal_answers_complete(draft):
+    if not draft.correction_of_id and not appeal_answers_complete(draft):
         messages.error(request, "Complete the lower court information before reviewing your filing.")
         return redirect(with_return_to(get_step_url(WorkflowStepKey.CASE_QUESTIONS, jurisdiction), RETURN_TO_REVIEW))
 
-    if not draft.selected_payment_account_id:
+    if not draft.correction_of_id and not draft.selected_payment_account_id:
         messages.error(request, "Choose a payment method before reviewing your filing.")
         return redirect("payment", jurisdiction=jurisdiction)
 
@@ -134,6 +134,14 @@ def case_review(request, jurisdiction):
         # what the filer's own plan expects and this envelope does not have.
         "plan_missing_documents": documents_missing_from_envelope(draft.plan, draft),
     }
+    if draft.correction_of_id:
+        from efile.services.corrections import correction_readiness, submission_url
+
+        context.update(
+            correction_issues=correction_readiness(draft),
+            original_filing_url=submission_url(draft.correction_of),
+            clerk_return=draft.clerk_return,
+        )
     context.update(disclaimer_context(draft))
     context.update(get_workflow_context(WorkflowStepKey.REVIEW, jurisdiction, draft))
     return render(request, "efile/review.html", context)

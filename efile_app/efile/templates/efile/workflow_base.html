@@ -31,7 +31,7 @@
             {% include "efile/components/workflow_progress.html" %}
             {% include "efile/components/inline_messages.html" %}
             {% if handoff_draft_id %}
-                <p><a href="{% url 'handoff_review' handoff_draft_id %}">{% translate "Return to saved interview answers and corrections" %}</a></p>
+                <p><a href="{% url 'handoff_review' handoff_draft_id %}">{% translate "Edit saved interview answers" %}</a></p>
             {% endif %}
             {% block workflow_content %}
             {% endblock workflow_content %}

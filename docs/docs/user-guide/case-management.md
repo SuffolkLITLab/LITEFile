@@ -64,14 +64,31 @@ Read the clerk's actual comments and contact the clerk if the requested changes
 are unclear. Do not assume every return has the same cause or that every filing
 in a mixed submission should be sent again.
 
-Where offered for a LITEFile-owned returned/rejected filing, **Correct and
-resubmit** can create a correction draft after checking its current court status.
-It does not itself correct a PDF or submit another filing. If a document needs
-changes, use the available interview return link or replace it, then review the
-new PDF, filing choices and fees. Remote-only history entries may have no local
-draft to copy. The remaining correction-to-Review workflow is still being
-improved; follow the screens actually offered and use support if the path is
-unclear. Failed or uncertain filings are not automatically eligible for a correction.
+Where offered for a LITEFile-owned returned/rejected submission, choose **Copy
+and review filing**. LITEFile checks the current court status of every filing
+in the submission; all must be confirmed returned or rejected before it creates
+a copy. Mixed outcomes, failed transmissions and uncertain updates cannot be
+copied automatically. Contact the clerk before trying to send those filings again.
+
+The action opens a linked correction draft at Review, keeping your saved answers
+and available documents. The original submission and clerk comments stay
+available. Missing files appear as items that need replacement; the copy action
+does not itself correct a PDF or send another filing.
+
+1. Use the section **Edit** links to make the requested changes. They return to
+   the same correction draft's Review screen.
+2. To replace a PDF, choose the saved document on Upload and upload one replacement.
+   Check the new filing PDF, its filing type and any other affected choices.
+   Use an available interview return link if the document must be changed there.
+3. Reconfirm payment or a waiver, check the current fees, and read and accept the
+   court requirements before submitting again. Review explains any items that
+   still prevent submission.
+4. Use **Continue correction** to resume a saved correction. After sending,
+   **View corrected submission** opens the new filing; the original remains linked.
+   Sending it does not mean the court has accepted it.
+
+Remote-only history entries may have no local draft to copy. For an uncertain
+outcome, use support rather than assuming the filing failed or sending it again.
 
 For help with rules/forms, use [state court and legal-help contacts](./state-help.md).
 For technical problems, contact your deployment's support contact or the

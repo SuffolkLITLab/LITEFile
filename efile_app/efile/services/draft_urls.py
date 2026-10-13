@@ -53,7 +53,7 @@ def browser_draft_context(request):
     from efile.services.handoff import receipt_for
 
     return {
-        "handoff_draft_id": draft.pk if draft.correction_of_id or receipt_for(draft) else None,
+        "handoff_draft_id": draft.pk if receipt_for(draft) else None,
         "draft_scope": {
             "id": draft.pk,
             "paths": [reverse(name, kwargs={"jurisdiction": draft.jurisdiction}) for name in sorted(WORKFLOW_VIEWS)],

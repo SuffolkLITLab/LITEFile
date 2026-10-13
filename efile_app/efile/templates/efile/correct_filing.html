@@ -1,19 +1,16 @@
 {% extends "efile/site_base.html" %}
-{% block title %}Correct and resubmit{% endblock title %}
+{% block title %}Copy and review filing{% endblock title %}
 {% block public_content %}
-    <h1>Correct and resubmit</h1>
+    <h1>Copy and review filing</h1>
     {% if error %}
-        <p>{{ error }}</p>
+        <p role="alert">{{ error }}</p>
+        {% if draft %}<a href="{% url 'correct_filing' draft.pk %}">Check status again</a>{% endif %}
     {% else %}
-        <p>The court returned this filing. Choose what the clerk asked you to fix. Your other answers and files stay saved.</p>
-        {% for comment in detail.comments %}<p>{{ comment.text }}</p>{% endfor %}
+        <p>We will create a draft using this filing's answers and available documents. You can make changes before sending it.</p>
+        {% include "efile/partials/correction_feedback.html" with clerk_return=detail %}
         <form method="post">
             {% csrf_token %}
-            <fieldset>
-                <legend>What needs a correction?</legend>
-                {% for value, label in choices %}<div><label><input type="checkbox" name="fields" value="{{ value }}"> {{ label }}</label></div>{% endfor %}
-            </fieldset>
-            <button type="submit" class="btn btn-primary">Create correction draft</button>
+            <button type="submit" class="btn btn-primary">Copy and review filing</button>
         </form>
     {% endif %}
 {% endblock public_content %}

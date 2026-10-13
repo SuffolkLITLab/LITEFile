@@ -172,17 +172,6 @@ def forward_final_filing(request, data):
                 status=400,
             )
 
-        # Resolve the outgoing IDs to authoritative names before applying rules.
-        try:
-            message, status = outgoing_unavailable_message(jurisdiction_id, court_id, case_data, efile_data), 403
-        except ValueError as error:
-            message, status = str(error), 412
-        if message:
-            return JsonResponse(
-                {"success": False, "error_code": SubmissionErrorCode.FILING_UNAVAILABLE, "error": message},
-                status=status,
-            )
-
         draft = get_current_draft(request, jurisdiction=jurisdiction_id, resume_latest=False)
 
         # Same fixups the fee quote applied, so the filing matches the quote.
@@ -197,6 +186,17 @@ def forward_final_filing(request, data):
                     "error": str(error),
                 },
                 status=400,
+            )
+
+        # Resolve the outgoing IDs to authoritative names before applying rules.
+        try:
+            message, status = outgoing_unavailable_message(jurisdiction_id, court_id, case_data, efile_data), 403
+        except ValueError as error:
+            message, status = str(error), 412
+        if message:
+            return JsonResponse(
+                {"success": False, "error_code": SubmissionErrorCode.FILING_UNAVAILABLE, "error": message},
+                status=status,
             )
 
         try:

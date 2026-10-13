@@ -20,6 +20,21 @@
         <div class="container">
             <div class="row justify-content-center">
                 <div class="col-xl-7">
+                    {% if correction_action %}
+                        <section class="option-card" aria-label="Correct this filing">
+                            {% if correction_action.create %}
+                                <p>We will create a draft using this filing's answers and available documents. You can make changes before sending it.</p>
+                                <form method="post" action="{% url 'correct_filing' local_draft.pk %}">
+                                    {% csrf_token %}
+                                    <button class="btn btn-primary" type="submit">{{ correction_action.label }}</button>
+                                </form>
+                            {% else %}
+                                <a href="{{ correction_action.url }}">{{ correction_action.label }}</a>
+                            {% endif %}
+                        </section>
+                    {% elif correction_reason %}
+                        <p>{{ correction_reason }} <a href="">Check status again</a></p>
+                    {% endif %}
                     {% if not filing %}
                         <h1>{% translate "Filing details" %}</h1>
                         <div class="alert alert-danger" role="alert">
@@ -60,11 +75,6 @@
                                     {{ filing.status_presentation.label }}
                                 </strong>
                                 <p>{{ filing.tracker.summary }}</p>
-                                {% if local_draft %}
-                                    {% if filing.can_correct %}
-                                        <a href="{% url 'correct_filing' local_draft.pk %}">{% translate "Correct and resubmit" %}</a>
-                                    {% endif %}
-                                {% endif %}
                             </div>
                             {% if filing.tracker.stages %}
                                 <ol class="filing-tracker__stages"
@@ -106,6 +116,7 @@
                             <section class="option-card clerk-comment clerk-comment--{{ comment.kind }}">
                                 <h2>{{ comment.heading }}</h2>
                                 <p>{{ comment.text }}</p>
+                                {% if comment.document_name %}<p>{{ comment.document_name }}</p>{% endif %}
                             </section>
                         {% endfor %}
                         <section class="option-card">

@@ -163,7 +163,7 @@ const FilingHandler = {
             });
             this.handleSubmissionResult(result);
         } catch (error) {
-            if (error?.status === 412 && error?.errorCode !== "payment_account_unavailable") {
+            if (error?.status === 412 && !["payment_account_unavailable", "correction_not_ready"].includes(error?.errorCode)) {
                 // Something changed in another tab since this page loaded.
                 await this.refreshFeeQuote();
             }
@@ -178,7 +178,7 @@ document.addEventListener("DOMContentLoaded", () => {
     FilingHandler.initFreeFilingPopover();
     const confirmation = document.getElementById("confirm-filing");
     FilingHandler.feeQuoteState = reviewJSON("fee-quote-state");
-    if (!USABLE_FEE_STATES.includes(FilingHandler.feeQuoteState)) FilingHandler.refreshFeeQuote();
+    if (!document.getElementById("correction-issues-heading") && !USABLE_FEE_STATES.includes(FilingHandler.feeQuoteState)) FilingHandler.refreshFeeQuote();
     confirmation.addEventListener("change", () => FilingHandler.setSubmissionState(false));
     document.getElementById("submitButton").addEventListener("click", () => FilingHandler.submitFiling());
 });

@@ -624,7 +624,7 @@ def read_upload_data(draft: FilingDraft | None) -> dict[str, Any]:
 
     lead = FilingDocument.objects.filter(draft=draft, role=FilingDocument.Role.LEAD).first()
     supporting = list(
-        FilingDocument.objects.filter(draft=draft, role=FilingDocument.Role.SUPPORTING).order_by("sort_order")
+        FilingDocument.objects.filter(draft=draft, role=FilingDocument.Role.SUPPORTING).order_by("sort_order", "pk")
     )
 
     # Imported PDFs must remain usable after the handoff link's original
@@ -633,10 +633,20 @@ def read_upload_data(draft: FilingDraft | None) -> dict[str, Any]:
     from efile.utils.s3_upload_handler import S3UploadHandler
 
     urls = {}
-    if receipt_for(draft):
+    if draft.correction_of_id or receipt_for(draft):
+        from botocore.exceptions import BotoCoreError, ClientError
+
         handler = S3UploadHandler()
-        if handler._ensure_initialized():
-            urls = {doc.pk: handler.get_public_url(doc.s3_key) for doc in [lead, *supporting] if doc and doc.s3_key}
+        # Never fall back to an expired source URL on a correction. Missing
+        # storage remains visible and is explained by correction readiness.
+        if draft.correction_of_id:
+            urls = {doc.pk: "" for doc in [lead, *supporting] if doc}
+        try:
+            if handler._ensure_initialized():
+                urls = {doc.pk: handler.get_public_url(doc.s3_key) for doc in [lead, *supporting] if doc and doc.s3_key}
+        except (BotoCoreError, ClientError, RuntimeError):
+            if not draft.correction_of_id:
+                raise
     files: dict[str, Any] = {}
     if lead is not None:
         files["lead"] = _document_file(lead, urls)

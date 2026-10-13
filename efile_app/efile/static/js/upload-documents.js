@@ -255,6 +255,8 @@
             stateDetail.textContent = result.extraction_pending ?
                 pendingDetail :
                 "Review what we found before you continue.";
+            const replacement = form.querySelector('[name="replace_document_id"]');
+            if (replacement) replacement.value = "";
             window.setTimeout(() => window.location.reload(), 300);
         } catch (error) {
             uploading = false;

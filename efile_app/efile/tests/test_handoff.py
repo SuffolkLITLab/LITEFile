@@ -408,12 +408,13 @@ def test_correction_api_rejects_partly_accepted_submission(client, django_user_m
     with (
         patch("efile.views.handoff.fetch_filing_detail", return_value={}),
         patch(
-            "efile.views.handoff.describe_filing_detail", side_effect=[{"filing_id": "accepted", "status": "accepted"}]
+            "efile.services.corrections.describe_filing_detail",
+            side_effect=[{"filing_id": "accepted", "status": "accepted"}],
         ),
     ):
         response = client.post(reverse("correct_filing", args=[draft.pk]), {"fields": ["documents"]})
     assert response.status_code == 409
-    assert b"The court has not confirmed a clerk return for every filing in this submission." in response.content
+    assert b"The court must confirm every filing as returned or rejected before it can be copied." in response.content
     assert b"What needs a correction?" not in response.content
     assert not FilingDraft.objects.filter(correction_of=draft).exists()
 

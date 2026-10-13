@@ -17,6 +17,7 @@
         </div>
         <h1>{% translate "Your filing was sent to the court" %}</h1>
         {% include "efile/partials/filing_guidance.html" %}
+        {% if original_filing_url %}<p>This corrected filing is a new submission for court review. <a href="{{ original_filing_url }}">View the original filing</a></p>{% endif %}
         <p class="workflow-lede">
             {% translate "We will email you when the court accepts, returns, or asks for changes to this filing." %}
         </p>

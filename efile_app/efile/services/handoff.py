@@ -475,10 +475,11 @@ def documents_replaced(draft):
     if not draft.correction_of_id:
         return False
     returned = set(draft.correction_of.documents.values_list("s3_key", flat=True))
-    return any(key not in returned for key in draft.documents.values_list("s3_key", flat=True))
+    current = set(draft.documents.values_list("s3_key", flat=True))
+    return bool((returned - current) and (current - returned - {""}))
 
 
-def issues_for(draft):
+def issues_for(draft, *, current_metadata=False):
     """Editable requirements, not a claim that the final EFSP payload is valid."""
     issues = []
 
@@ -509,6 +510,12 @@ def issues_for(draft):
             ("document_type_code", "document type"),
             ("filing_component_code", "filing component"),
         ):
+            if (
+                current_metadata
+                and field != "filing_type_code"
+                and f"documents.{doc.pk}.{field}" not in draft.correction_fields
+            ):
+                continue
             need(
                 f"documents.{doc.pk}.{field}",
                 getattr(doc, field),
@@ -522,7 +529,9 @@ def issues_for(draft):
         "filing_party", draft.parties.filter(is_filing_party=True).exists(), "Choose who you are filing for.", "parties"
     )
     for party in draft.parties.all():
-        if party.role != "filer" or party.is_self or party.is_filing_party:
+        if (party.role != "filer" or party.is_self or party.is_filing_party) and (
+            not current_metadata or f"parties.{party.pk}.party_type" in draft.correction_fields
+        ):
             need(
                 f"parties.{party.pk}.party_type",
                 party.party_type,
@@ -564,13 +573,14 @@ def issues_for(draft):
 
 def full_snapshot(draft):
     data = model_to_dict(draft, exclude=["submission_snapshot"])
-    data["documents"] = [model_to_dict(doc) for doc in draft.documents.all()]
-    data["parties"] = [model_to_dict(party) for party in draft.parties.all()]
+    data["snapshot_version"] = 1
+    data["documents"] = [model_to_dict(doc) for doc in draft.documents.order_by("role", "sort_order", "pk")]
+    data["parties"] = [model_to_dict(party) for party in draft.parties.order_by("role", "sort_order", "pk")]
     return json.loads(json.dumps(data, cls=DjangoJSONEncoder))
 
 
 @transaction.atomic
-def create_correction(draft, detail, fields):
+def create_correction(draft, detail, fields=()):
     from efile.models import UserProfile
 
     UserProfile.objects.select_for_update().get(pk=draft.user_id)
@@ -585,8 +595,6 @@ def create_correction(draft, detail, fields):
     existing = FilingDraft.objects.filter(correction_of=original).first()
     if existing:
         return existing
-    if not fields:
-        raise HandoffError("Choose what the clerk asked you to correct.")
     allowed = {"court_code", "case_category_code", "case_type_code", "documents"}
     allowed.update(
         f"documents.{doc.pk}.{field}"
@@ -600,17 +608,10 @@ def create_correction(draft, detail, fields):
     # copying; never update the original answers or response.
     if not original.submission_snapshot:
         FilingDraft.objects.filter(pk=original.pk).update(submission_snapshot=full_snapshot(original))
-    values = model_to_dict(
-        original,
-        exclude=[
-            "id",
-            "correction_of",
-            "submission_snapshot",
-            "clerk_return",
-            "correction_fields",
-            "disclaimer_acceptance",
-        ],
-    )
+    # Allowlist: new model fields must have their copy/reset policy reviewed.
+    from efile.services.corrections import COPY_DOCUMENT_FIELDS, COPY_DRAFT_FIELDS, COPY_PARTY_FIELDS
+
+    values = model_to_dict(original, fields=COPY_DRAFT_FIELDS)
     values["user_id"] = values.pop("user")
     values["plan_id"] = values.pop("plan")
     values.update(
@@ -630,11 +631,12 @@ def create_correction(draft, detail, fields):
     revision._metadata_kind = "clerk_correction"
     mapping = {}
     for relation in ("documents", "parties"):
-        for row in getattr(original, relation).all():
+        for row in getattr(original, relation).order_by("role", "sort_order", "pk"):
             old_id = row.pk
-            row.pk = None
-            row.draft = revision
-            row.save()
+            row = type(row).objects.create(
+                draft=revision,
+                **model_to_dict(row, fields=COPY_DOCUMENT_FIELDS if relation == "documents" else COPY_PARTY_FIELDS),
+            )
             mapping[f"{relation}.{old_id}"] = f"{relation}.{row.pk}"
     for event in original.metadata_events.all():
         path = event.path
@@ -688,6 +690,15 @@ def create_correction(draft, detail, fields):
             party.party_type_name = ""
             party.save()
         revision.optional_services = []
+    from efile.services.extraction_confirmation import extraction_is_confirmed, extraction_review_fingerprint
+
+    if extraction_is_confirmed(original):
+        revision.extraction_review_fingerprint = extraction_review_fingerprint(revision)
+    if revision.filing_type_proposal:
+        revision.filing_type_proposal = {
+            **revision.filing_type_proposal,
+            "source_fingerprint": extraction_review_fingerprint(revision),
+        }
     revision.correction_fields = revised_fields
     # FilingDraft.save() copies the (now cleared) lead filing type into the summary.
     revision.save()

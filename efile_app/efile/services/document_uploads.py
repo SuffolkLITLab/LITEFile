@@ -20,7 +20,9 @@ from efile.utils.s3_upload_handler import S3UploadHandler
 from efile.workflow import WorkflowStepKey
 
 
-def upload_files(draft, uploaded_files, jurisdiction, *, current_step=WorkflowStepKey.UPLOAD_DOCUMENTS):
+def upload_files(
+    draft, uploaded_files, jurisdiction, *, current_step=WorkflowStepKey.UPLOAD_DOCUMENTS, replace_document_id=None
+):
     """Prepare and store a whole batch, then queue analysis of the filing copy."""
     handler = S3UploadHandler()
     keys = []
@@ -35,6 +37,17 @@ def upload_files(draft, uploaded_files, jurisdiction, *, current_step=WorkflowSt
             with transaction.atomic():
                 if not handler._ensure_initialized():
                     raise ValueError("Document storage is not configured. Please try again later.")
+                replacement = None
+                old_keys = []
+                if replace_document_id:
+                    try:
+                        replacement_id = int(replace_document_id)
+                    except (ValueError, TypeError) as error:
+                        raise ValueError("Choose a document in this draft to replace.") from error
+                    replacement = draft.documents.filter(pk=replacement_id).first()
+                    if replacement is None or len(uploaded_files) != 1:
+                        raise ValueError("Choose one file to replace a document in this draft.")
+                    old_keys = [replacement.s3_key, replacement.original_s3_key]
                 prepared = []
                 for file in uploaded_files:
                     try:
@@ -47,6 +60,22 @@ def upload_files(draft, uploaded_files, jurisdiction, *, current_step=WorkflowSt
                 )["order"]
                 order = 0 if highest is None else highest + 1
                 for values in prepared:
+                    if replacement is not None:
+                        from efile.models import DocumentExtraction
+                        from efile.services.handoff import record
+
+                        DocumentExtraction.objects.filter(document=replacement).delete()
+                        for field, value in values.items():
+                            setattr(replacement, field, value)
+                        replacement.preparation_reviewed_at = None
+                        replacement.save()
+                        record(draft, f"documents.{replacement.pk}", "document_replacement", {"source": "upload"})
+                        if replacement.role == FilingDocument.Role.LEAD:
+                            draft.extracted_guesses = {}
+                            draft.extraction_review_fingerprint = ""
+                            draft.filing_type_proposal = {}
+                            transaction.on_commit(partial(queue_document_extraction, replacement), robust=True)
+                        continue
                     is_lead = not has_lead
                     document = FilingDocument.objects.create(
                         draft=draft,
@@ -63,6 +92,7 @@ def upload_files(draft, uploaded_files, jurisdiction, *, current_step=WorkflowSt
                 draft.current_step = str(current_step)
                 invalidate_fee_quote(draft, save=False)
                 draft.save()
+                transaction.on_commit(partial(cleanup_unreferenced_uploads, old_keys, handler), robust=True)
         except Exception as error:
             cleanup_uploads(handler, keys)
             # Commit ownership even after the batch savepoint rolled back. A

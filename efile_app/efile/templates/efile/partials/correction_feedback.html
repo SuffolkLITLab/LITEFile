@@ -1,0 +1,13 @@
+<section class="option-card" aria-label="Clerk feedback">
+    <h2>Clerk feedback</h2>
+    {% for comment in clerk_return.comments %}
+        <div class="clerk-comment">
+            {% if comment.heading %}<h3>{{ comment.heading }}</h3>{% endif %}
+            <p>{{ comment.text|linebreaksbr }}</p>
+            {% if comment.document_name %}<p>{{ comment.document_name }}</p>{% endif %}
+            {% if comment.filing_id %}<p>Filing {{ comment.filing_id }}</p>{% endif %}
+        </div>
+    {% empty %}
+        <p>No clerk comments were provided.</p>
+    {% endfor %}
+</section>

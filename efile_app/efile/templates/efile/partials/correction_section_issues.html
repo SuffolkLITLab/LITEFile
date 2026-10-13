@@ -1,0 +1,3 @@
+{% for issue in correction_issues %}
+    {% if issue.section == section %}<p><a href="{{ issue.url }}">{{ issue.message }}</a></p>{% endif %}
+{% endfor %}
