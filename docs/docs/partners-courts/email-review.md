@@ -15,6 +15,143 @@ The [filing updates contract](https://github.com/SuffolkLITLab/LITEFile/blob/mai
 is the technical authority, including inspected proxy behavior and limited live
 test evidence. It remains an internal repository note.
 
+
+## Partner copy packet for issue #335: what to send
+
+**You do not need to edit YAML, write HTML or write Jinja2.** Please send a
+Google Doc, Markdown comment or spreadsheet with the following four
+**subject-and-body pairs for each jurisdiction**. Drafts can be incomplete;
+record who can approve each version.
+
+| Event | Exact subject key | Exact body key | Meaning |
+| --- | --- | --- | --- |
+| Submission received by e-filing system | \`email_confirmation_subject\` | \`email_confirmation_contents\` | Not court acceptance |
+| An individual filing was accepted | \`acceptance_subject\` | \`acceptance_contents\` | Do not say all documents/envelope filings were accepted |
+| An individual filing was rejected | \`rejected_subject\` | \`rejected_contents\` | Explain where to read clerk comments and fix/resubmit |
+| Other/unknown update | \`neutral_subject\` | \`neutral_contents\` | Do not guess an outcome; literal \`returned\` callbacks currently use this category |
+
+For **every row**, supply exact one-line subject, body text (ideally 1–3
+short paragraphs), where a tracker link and local help should go, jurisdiction
+and any court restriction, any wording that should only appear for a waiver or
+other condition, court/rule source when relevant, reviewer's role/date, and
+\`draft | needs court review | approved\` status. Specify which sender display
+name/domain should be approved, who owns that decision, what separate emails
+Tyler sends, and the desired explanation of Tyler's account activation email.
+
+Copy-and-fill format:
+
+\`\`\`text
+Jurisdiction / courts covered:
+Email event: Submitted | Accepted | Rejected | Other
+Subject (exact words):
+Body (exact words):
+  ...
+  [Filing-status link here]
+  [Court-specific help contact here]
+Conditional sentence, if any:
+  Show this sentence IF ...; otherwise omit / instead say ...
+Policy or official wording source:
+Reviewer and date:
+Decision: draft | needs court review | approved
+\`\`\`
+
+In the copy packet, **describe conditions in English**, such as "include this
+paragraph only if the filer requested a waiver." Do **not** add arbitrary
+\`{% if ... %}\` or \`{{ ... }}\` expressions as a partner-submitted contract.
+Programmers can translate approved conditions into supported configuration or
+record a missing hook in [#328](https://github.com/SuffolkLITLab/LITEFile/issues/328).
+
+### How an implementer translates the packet to YAML
+
+The default templates live in
+\`efile_app/efile/static/config/base-case-types.yaml\`; state YAML inherits
+them. Each overridden subject/body is a **plain string**, not a file containing
+Jinja2. The server expands three supported Python \`string.Template\` values:
+\`$tracker_url\` (a sign-in-safe tracker link), \`$help_line\` (court-specific
+contact with fallback), and \`$waiver_line\` (a fixed optional **request**
+notice, not waiver approval). \`$\` represents a literal dollar sign.
+The HTML tracker presentation is supplied by code. For example:
+
+\`\`\`yaml
+submission_notifications:
+  enabled: false  # stay disabled until delivery, copy and sender signoff
+  format: html     # choose plain_text for the current SMTP transport
+  templates:
+    email_confirmation_subject: "Your filing was submitted"
+    email_confirmation_contents: |-
+      The e-filing system received a filing in your submission.
+      This does not mean the court has accepted it.
+      Check the filing's status: $tracker_url$waiver_line$help_line
+    acceptance_subject: "Filing accepted"
+    acceptance_contents: |-
+      A filing in your submission was accepted by the court.
+      See its status and next steps: $tracker_url$help_line
+    rejected_subject: "Filing returned for changes"
+    rejected_contents: |-
+      A filing in your submission was returned for changes.
+      Read the clerk's comments and next steps: $tracker_url$help_line
+    neutral_subject: "Filing update"
+    neutral_contents: |-
+      A filing in your submission has an update.
+      Check its status before taking action: $tracker_url$help_line
+\`\`\`
+
+This is **illustrative copy only**, not partner-approved language. The
+combined/merged configuration must have all eight nonblank fields; inheriting
+the base fields is allowed. Do not assume that adding a body expression makes
+it work in the subject: the upstream proxy performs its second, Jinjava
+rendering **only on bodies**, not subjects. The upstream \`status\` is also a
+display value, not always the message category. The exact status and multiple
+filings in an envelope must be tested against the approved wording.
+
+### Local court contacts: requested data format for #329 and #331
+
+Please provide an official directory or a CSV/sheet containing:
+
+\`\`\`text
+jurisdiction | exact Tyler court code (if known) | court/division name |
+contact display name | public phone | public email | official contact URL |
+when to show local contact vs statewide help | source URL |
+verified-on date | reviewer/approver | exceptions
+\`\`\`
+
+The resolver reads \`court_specific_requirements.<exact court code>.contact\`
+(\`name\`, \`phone\`, \`email\`, \`url\`); \`$help_line\` can use it in every
+email category, and the status/detail page uses the same resolver. **A
+partial contact entry is unsafe under current fallback behavior:** the
+resolver fills missing \`phone\`/\`url\` from statewide help even when the local
+clerk's \`name\` is present, potentially presenting a statewide number as if
+it belonged to a specific court. Require full entries with intentional
+fallback or implement a tested display policy separating local and statewide
+help. The jurisdiction's \`contact\` data must be maintained and validated;
+it is not auto-populated from Tyler's court list.
+
+### Customization gap summary (issues #328 and #329)
+
+| Partner need | Currently supported? | Remaining work |
+| --- | --- | --- |
+| Four jurisdiction-specific subject/body pairs | **Yes** via \`submission_notifications.templates\` | Partner-reviewed content, sender/release checks |
+| Tracker link in body | **Yes** via \`$tracker_url\` | Rendering and authorization verification |
+| Court-specific help contact | **Yes**, provided exact court-code contact is configured and \`$help_line\` is included | Approved contact directory; safe partial-contact fallback; local/statewide preview tests |
+| Fixed fee-waiver **request** note | **Yes** via \`$waiver_line\`; it is omitted absent the selected WV account/detected waiver document | Partner approval of the wording and scope |
+| Arbitrary partner-authored \`if / else\` paragraphs or statutory-exemption-specific wording | **Not a documented/tested config hook** | Define safe explicit condition inputs and conditional content, or introduce a structured \`when\` renderer, then test |
+| Dynamic conditional **subjects**, including upstream \`{{ status }}\` | **No** proxy second-pass rendering | Do not promise; would need an explicit upstream/app contract change |
+| Per-court different email prose or sender domain | **Not shown by the current state-level template/sender config** | Scope separately if partners request it; contact interpolation alone is not per-court prose or sender branding |
+
+For any new condition, the partner should provide:
+\`event | when true | exact true sentence | false/omit sentence | state/courts/forms | legal source | reviewer\`.
+Engineering must not conflate a **requested** waiver with a court's
+**approved** waiver, or an income-based waiver with a statutory fee exemption.
+The existing app knows submission-time waiver intent; a later court decision
+would require independently verified upstream callback data.
+
+These findings describe the inspected configuration and server path, **not**
+an end-to-end acceptance test of every proposed partner variation. See
+[#335](https://github.com/SuffolkLITLab/LITEFile/issues/335),
+[#328](https://github.com/SuffolkLITLab/LITEFile/issues/328),
+[#329](https://github.com/SuffolkLITLab/LITEFile/issues/329), and
+[#331](https://github.com/SuffolkLITLab/LITEFile/issues/331).
+
 ## Locate and propose the change
 
 Defaults are inherited from `efile_app/efile/static/config/base-case-types.yaml`.
