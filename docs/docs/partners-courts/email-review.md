@@ -104,27 +104,53 @@ rendering **only on bodies**, not subjects. The upstream `status` is also a
 display value, not always the message category. The exact status and multiple
 filings in an envelope must be tested against the approved wording.
 
-### Local court contacts: requested data format for #329 and #331
+### Local court contacts: reuse the ILAO directory first (#329 and #331)
 
-Please provide an official directory or a CSV/sheet containing:
+**Do not ask Illinois partners to construct a new statewide contact spreadsheet
+before checking the data we already have.** The
+[ILAO Appearance with e-filing interview](https://github.com/IllinoisLegalAidOnline/docassemble-AppearanceEfile/blob/main/docassemble/AppearanceEfile/data/questions/appearance.yml)
+loads
+[`docassemble.ILAO:data/sources/il_courts.xlsx`](https://github.com/IllinoisLegalAidOnline/docassemble-ILAO/blob/main/docassemble/ILAO/data/sources/il_courts.xlsx)
+through `ALCourtLoader`, resolves `trial_court`, and places
+`trial_court.phone` in its help text and status emails. The court list is
+shared across other ILAO interviews.
 
-```text
-jurisdiction | exact Tyler court code (if known) | court/division name |
-contact display name | public phone | public email | official contact URL |
-when to show local contact vs statewide help | source URL |
-verified-on date | reviewer/approver | exceptions
-```
+**Engineering first:** inspect the versioned ILAO spreadsheet, its freshness and
+reuse terms, and compare it with the
+[Illinois Courts' official directory](https://www.illinoiscourts.gov/courts-directory/).
+Map ILAO court/county entries to LITEFile's **actual Tyler/EFSP court codes**;
+the Appearance interview's court selection is not itself a Tyler-code
+crosswalk. Record unmatched courts, Cook County divisions, trial versus
+appellate courts, and conflicting numbers for review instead of silently
+guessing. The
+[current EFSPProxy CourtLocationInfo model](https://github.com/SuffolkLITLab/EfileProxyServer/blob/main/proxyserver/src/main/java/edu/suffolk/litlab/efsp/tyler/ecfcodes/CourtLocationInfo.java)
+has court codes/names and filing configuration but no clerk-phone field; this
+does not rule out some **other** Tyler endpoint. Search that possibility, but
+do not treat it as a prerequisite for reusing the known ILAO directory.
 
-The resolver reads `court_specific_requirements.<exact court code>.contact`
-(`name`, `phone`, `email`, `url`); `$help_line` can use it in every
-email category, and the status/detail page uses the same resolver. **A
-partial contact entry is unsafe under current fallback behavior:** the
-resolver fills missing `phone`/`url` from statewide help even when the local
-clerk's `name` is present, potentially presenting a statewide number as if
-it belonged to a specific court. Require full entries with intentional
-fallback or implement a tested display policy separating local and statewide
-help. The jurisdiction's `contact` data must be maintained and validated;
-it is not auto-populated from Tyler's court list.
+The existing LITEFile resolver reads
+`court_specific_requirements.<exact court code>.contact` (`name`,
+`phone`, `email`, `url`). `$help_line` can include it in all email
+categories and the filing-detail screen uses the same resolver. **A partial
+contact entry is unsafe in the current fallback:** the resolver can label a
+statewide help number as though it belonged to the local clerk when it merges
+missing phone/URL fields with a local name. Implement or verify a clearly
+labeled local-versus-statewide fallback before enabling this.
+
+ILAO has also [documented a separate court-info lookup](https://github.com/IllinoisLegalAidOnline/website-docs/blob/main/docs/source/dhi_helpful_functions.rst)
+that distinguishes `clerk_phone_number` from `court_phone_number`, falling
+back to Illinois Court Help. Investigate whether that directory is maintained,
+accessible, and suitable for reuse; **do not assume it is the same dataset as
+the Appearance interview or a guaranteed production service.**
+
+**Targeted partner review only where needed:** ask ILAO/AOIC who maintains the
+source, which clerk/general number should appear, and to confirm ambiguous or
+outdated court mappings. If partners propose a replacement source, collect
+`court | exact Tyler code if known | public clerk/help phone and name |
+official URL | source | last verified | reviewer | exception`, but do not
+require them to re-create an existing statewide list. The primary work is
+data-source assessment, court-code mapping, and UI/email tests—not a blanket
+partner-data blocker.
 
 ### Customization gap summary (issues #328 and #329)
 
@@ -132,7 +158,7 @@ it is not auto-populated from Tyler's court list.
 | --- | --- | --- |
 | Four jurisdiction-specific subject/body pairs | **Yes** via `submission_notifications.templates` | Partner-reviewed content, sender/release checks |
 | Tracker link in body | **Yes** via `$tracker_url` | Rendering and authorization verification |
-| Court-specific help contact | **Yes**, provided exact court-code contact is configured and `$help_line` is included | Approved contact directory; safe partial-contact fallback; local/statewide preview tests |
+| Court-specific help contact | **Yes**, provided exact court-code contact is configured and `$help_line` is included | Reuse/validate ILAO shared court list first; build Tyler-code crosswalk; safe fallback and preview tests; targeted partner exceptions only |
 | Fixed fee-waiver **request** note | **Yes** via `$waiver_line`; it is omitted absent the selected WV account/detected waiver document | Partner approval of the wording and scope |
 | Arbitrary partner-authored `if / else` paragraphs or statutory-exemption-specific wording | **Not a documented/tested config hook** | Define safe explicit condition inputs and conditional content, or introduce a structured `when` renderer, then test |
 | Dynamic conditional **subjects**, including upstream `{{ status }}` | **No** proxy second-pass rendering | Do not promise; would need an explicit upstream/app contract change |
