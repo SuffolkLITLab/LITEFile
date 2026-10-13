@@ -607,6 +607,15 @@ def filing_type_for_item(draft: FilingDraft, item_id: str) -> tuple[str, str]:
 
     plan = draft.plan
     item = (plan.checklist or {}).get(item_id) if plan is not None else None
+    if item is not None and item_id == "fee_waiver" and draft.court_code and draft.case_type_code:
+        # Use current statewide preferences even for plans saved before an
+        # updated hierarchy. Other checklist items keep their configured names.
+        from efile.services.waiver_documents import waiver_filing_types
+
+        matches = waiver_filing_types(draft)
+        if not matches:
+            logger.info("No fee waiver filing type found for court %s", draft.court_code)
+        return (str(matches[0]["code"]), matches[0]["name"]) if matches else ("", "")
     wanted = (item or {}).get("filing_type_names") or []
     if not wanted or not (draft.court_code and draft.case_type_code):
         return "", ""

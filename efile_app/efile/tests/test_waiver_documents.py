@@ -389,3 +389,191 @@ def test_review_sends_an_unchecked_copy_to_preview_and_back(client, payment_draf
     )
     assert approved.status_code == 302
     assert "/review/" in approved.url
+
+
+@pytest.mark.parametrize(
+    "names,expected",
+    [
+        (
+            ["Application", "Waiver", "Application Waiver of Court Fees (Civil)"],
+            ["Application Waiver of Court Fees (Civil)", "Waiver", "Application"],
+        ),
+        (["Application", "Waiver"], ["Waiver", "Application"]),
+        (["Application"], ["Application"]),
+        (["Application", "Affidavit of indigency", "Waiver"], ["Affidavit of indigency", "Waiver", "Application"]),
+    ],
+)
+@pytest.mark.parametrize("existing_case,initial", [("new", "true"), ("existing", "false")])
+def test_illinois_waiver_hierarchy(payment_draft, names, expected, existing_case, initial):
+    payment_draft.existing_case = existing_case
+    catalog = [{"code": str(index), "name": name} for index, name in enumerate(names)]
+    with patch("efile.services.waiver_documents._codes", return_value=catalog) as lookup:
+        assert [item["name"] for item in waiver_filing_types(payment_draft)] == expected
+    assert lookup.call_args.kwargs["initial"] == initial
+    assert lookup.call_args.kwargs["category_id"] == payment_draft.case_category_code
+    assert lookup.call_args.kwargs["type_id"] == payment_draft.case_type_code
+
+
+@pytest.mark.parametrize("jurisdiction", ["massachusetts", "vermont"])
+def test_generic_fallbacks_are_illinois_only(payment_draft, jurisdiction):
+    payment_draft.jurisdiction = jurisdiction
+    catalog = [{"code": name, "name": name} for name in ["Application", "Waiver", "Fee waiver"]]
+    with patch("efile.services.waiver_documents._codes", return_value=catalog):
+        assert [item["name"] for item in waiver_filing_types(payment_draft)] == ["Fee waiver"]
+
+
+def test_fallbacks_are_exact_names_and_exclude_court_only_codes(payment_draft):
+    names = [
+        "Waiver of Service",
+        "Waiver of Counsel",
+        "Application for a permit",
+        "Order on fee waiver",
+        "Waiver denial",
+        "Objection to fee waiver",
+    ]
+    catalog = [{"code": str(index), "name": name} for index, name in enumerate(names)]
+    catalog += [
+        {"code": "court-waiver", "name": "Waiver", "iscourtuseonly": "True"},
+        {"code": "court-application", "name": "Application", "iscourtuseonly": True},
+        {"code": "", "name": "Fee waiver"},
+        {"code": "valid", "name": "  APPLICATION  "},
+    ]
+    with patch("efile.services.waiver_documents._codes", return_value=catalog):
+        assert [item["code"] for item in waiver_filing_types(payment_draft)] == ["valid"]
+
+
+@pytest.mark.parametrize("name", ["Waiver", "Application"])
+def test_generic_document_requires_explicit_waiver_purpose(payment_draft, name):
+    document = payment_draft.documents.get()
+    document.filing_type_name = name
+    document.save()
+    assert not has_waiver_document(payment_draft)
+    document.checklist_item_id = "fee_waiver"
+    document.save()
+    assert has_waiver_document(payment_draft)
+    document.filing_type_name = "Waiver of Service"
+    document.save()
+    assert not has_waiver_document(payment_draft)
+
+
+@pytest.mark.parametrize("name", ["Waiver", "Application"])
+def test_fallback_upload_survives_payment_reload(client, payment_draft, storage, name):
+    def fallback_codes(state, path, **params):
+        if path.endswith("/filing_types/"):
+            return [{"code": "fallback", "name": name}]
+        return codes(state, path, **params)
+
+    with patch("efile.services.waiver_documents._codes", side_effect=fallback_codes):
+        choices = client.get(endpoint(payment_draft)).json()
+        assert choices["selected"] == "fallback"
+        result = client.post(endpoint(payment_draft), upload_data(payment_draft, filing_type="fallback"))
+    assert result.status_code == 200
+    uploaded = payment_draft.documents.get(role="supporting")
+    assert payment_draft.metadata_events.filter(path=f"documents.{uploaded.pk}", kind="document_purpose").exists()
+    assert uploaded.filing_type_name == name
+    with patch("efile.views.payment.estimate_fees", return_value={}):
+        page = client.get(reverse("payment", kwargs={"jurisdiction": "illinois"}))
+    assert re.search(r'id="waiver-upload-required"\s+hidden', page.content.decode())
+    uploaded.delete()
+    assert not has_waiver_document(payment_draft)
+
+
+def test_two_fallback_waiver_uploads_keep_their_individual_purpose(client, payment_draft, storage):
+    def fallback_codes(state, path, **params):
+        if path.endswith("/filing_types/"):
+            return [{"code": "generic", "name": "Application"}]
+        return codes(state, path, **params)
+
+    with patch("efile.services.waiver_documents._codes", side_effect=fallback_codes):
+        for _ in range(2):
+            payment_draft.refresh_from_db()
+            assert (
+                client.post(endpoint(payment_draft), upload_data(payment_draft, filing_type="generic")).status_code
+                == 200
+            )
+    latest = payment_draft.documents.filter(role="supporting").latest("pk")
+    latest.delete()
+    assert has_waiver_document(payment_draft)
+
+
+@pytest.mark.parametrize("action", ["attach", "detach", "rebuild"])
+def test_waiver_upload_purpose_survives_checklist_edits_and_row_rebuilds(client, payment_draft, storage, action):
+    from efile.services.drafts import read_upload_data, write_upload_data
+    from efile.services.filing_plans import attach_document_to_item, detach_item
+
+    def fallback_codes(state, path, **params):
+        if path.endswith("/filing_types/"):
+            return [{"code": "generic", "name": "Application"}]
+        return codes(state, path, **params)
+
+    with patch("efile.services.waiver_documents._codes", side_effect=fallback_codes):
+        assert (
+            client.post(endpoint(payment_draft), upload_data(payment_draft, filing_type="generic")).status_code == 200
+        )
+    uploaded = payment_draft.documents.get(role="supporting")
+    assert uploaded.checklist_item_id == ""
+    if action == "attach":
+        attach_document_to_item(payment_draft, "fee_waiver", payment_draft.documents.get(role="lead"))
+    elif action == "detach":
+        detach_item(payment_draft, "fee_waiver")
+    else:
+        write_upload_data(payment_draft, read_upload_data(payment_draft))
+    assert has_waiver_document(payment_draft)
+    # The historical event does not count once the actual document is gone.
+    payment_draft.documents.filter(role="supporting").delete()
+    assert not has_waiver_document(payment_draft)
+
+
+def test_generic_waiver_reassigned_to_another_checklist_item_stops_counting(payment_draft):
+    from efile.services.filing_plans import attach_document_to_item
+    from efile.services.waiver_documents import record_waiver_upload
+
+    document = payment_draft.documents.get()
+    document.filing_type_name = "Application"
+    document.save()
+    record_waiver_upload(document)
+    assert has_waiver_document(payment_draft)
+    attach_document_to_item(payment_draft, "proposed_order", document)
+    assert not has_waiver_document(payment_draft)
+
+
+def test_generic_waiver_provenance_follows_correction_copy(payment_draft):
+    from efile.services.handoff import create_correction
+    from efile.services.waiver_documents import record_waiver_upload
+
+    document = payment_draft.documents.get()
+    document.filing_type_name = "Application"
+    document.save()
+    record_waiver_upload(document)
+    payment_draft.mark_submitted({"filing_id": "synthetic-303"})
+    revision = create_correction(payment_draft, {"status": "rejected"}, ["documents"])
+    assert has_waiver_document(revision)
+    copied = revision.documents.get()
+    assert revision.metadata_events.filter(path=f"documents.{copied.pk}", kind="document_purpose").exists()
+    copied.filing_type_name = "Petition"
+    copied.save()
+    assert not has_waiver_document(revision)
+    assert has_waiver_document(payment_draft)
+
+
+def test_generic_waiver_notification_requires_explicit_purpose(payment_draft):
+    from copy import deepcopy
+
+    from django.test import RequestFactory
+
+    from efile.services.submission_notifications import submission_email_fields
+    from efile.services.waiver_documents import record_waiver_upload
+    from efile.utils.config_loader import config_loader
+
+    document = payment_draft.documents.get()
+    document.filing_type_name = "Application"
+    document.save()
+    payment_draft.selected_payment_account_type = "CC"
+    config = deepcopy(config_loader.load_jurisdiction_config("illinois"))
+    config["submission_notifications"]["enabled"] = True
+    request = RequestFactory().get("/", HTTP_HOST="testserver")
+    before = submission_email_fields(request, payment_draft, "illinois", config)
+    assert "If you requested a fee waiver" not in before["email_confirmation_contents"]
+    record_waiver_upload(document)
+    after = submission_email_fields(request, payment_draft, "illinois", config)
+    assert "If you requested a fee waiver" in after["email_confirmation_contents"]

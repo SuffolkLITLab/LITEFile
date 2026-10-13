@@ -9,7 +9,7 @@ from efile.services.current_drafts import explicit_draft_id, get_current_draft
 from efile.services.document_preparation import cleanup_uploads, store_prepared_document
 from efile.services.drafts import ACTIVE_DRAFT_STATUSES
 from efile.services.fee_quotes import fee_inputs_token, invalidate_fee_quote
-from efile.services.waiver_documents import waiver_document_choices, waiver_filing_types
+from efile.services.waiver_documents import record_waiver_upload, waiver_document_choices, waiver_filing_types
 from efile.utils.s3_upload_handler import S3UploadHandler
 from efile.views.document_checks import document_check_html
 
@@ -79,6 +79,7 @@ def waiver_documents(request, jurisdiction):
                 filing_component_code=str(component["code"]),
                 filing_component_name=component["name"],
             )
+            record_waiver_upload(document)
             invalidate_fee_quote(draft)
             return JsonResponse(
                 {

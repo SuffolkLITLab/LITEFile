@@ -478,3 +478,27 @@ def test_an_item_with_no_configured_names_asks_the_court_nothing(user):
     with court_publishes(KANE_FILING_TYPES) as request:
         assert filing_type_for_item(draft, "county_division_cover_sheet") == ("", "")
         assert request.call_count == 0
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "names,expected",
+    [
+        (
+            ["Application", "Waiver", "Application Waiver of Court Fees (Civil)"],
+            "Application Waiver of Court Fees (Civil)",
+        ),
+        (["Application", "Waiver"], "Waiver"),
+        (["Application"], "Application"),
+    ],
+)
+def test_fee_waiver_checklist_uses_current_hierarchy_even_for_saved_plans(user, names, expected):
+    draft = make_draft(user)
+    ensure_plan_for_draft(draft)
+    # Simulate a plan persisted before statewide generic fallback support.
+    plan = draft.plan
+    plan.checklist["fee_waiver"]["filing_type_names"] = ["Waiver"]
+    plan.save()
+    catalog = [{"code": str(index + 1), "name": name} for index, name in enumerate(names)]
+    with court_publishes(catalog):
+        assert filing_type_for_item(draft, "fee_waiver")[1] == expected
