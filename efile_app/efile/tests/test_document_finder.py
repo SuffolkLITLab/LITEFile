@@ -6,6 +6,7 @@ Illinois index, and the last drives the pages.
 """
 
 from unittest.mock import patch
+from urllib.parse import quote
 
 import pytest
 import yaml
@@ -408,6 +409,35 @@ def test_intent_page_shows_checklist_and_labelled_external_links(client):
     assert "These sites do not file anything for you." in content
     assert "This list is a guide, not legal advice." in content
     assert "Sign in to file" in content
+
+
+@pytest.mark.django_db
+def test_sign_in_returns_to_selected_guide(client, user):
+    guide_url = _intent_url("respond_to_an_eviction") + "?q=eviction&source=finder"
+    login_url = reverse("efile_login", kwargs={"jurisdiction": "illinois"})
+    content = client.get(guide_url).content.decode()
+    sign_in_url = f"{login_url}?next={quote(guide_url, safe='/')}"
+    assert f'href="{sign_in_url}"' in content
+
+    login_page = client.get(sign_in_url)
+    assert login_page.context["next"] == guide_url
+
+    def authenticate(request, **kwargs):
+        user.backend = "efile.authentication.SuffolkEFileBackend"
+        request.session["auth_tokens"] = {"TYLER-TOKEN-ILLINOIS": "token"}
+        return user
+
+    with patch("efile.views.login.authenticate", side_effect=authenticate):
+        response = client.post(
+            login_url,
+            {"login_submit": "1", "email": "finder@example.com", "password": "password", "next": guide_url},
+        )
+
+    assert response.status_code == 302
+    assert response.url == guide_url
+    content = client.get(response.url).content.decode()
+    assert 'name="existing_case" value="existing"' in content
+    assert "File into my case" in content
 
 
 @pytest.mark.django_db
