@@ -43,6 +43,15 @@
                 {% ui_text "upload_documents.preparation_help_unflattened" %}
             {% endif %}
         </p>
+        {% if has_document_finder %}
+            <p class="finder-invitation">
+                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                <span>
+                    {% translate "Not sure which documents you need?" %}
+                    <a href="{% url 'find_documents' jurisdiction %}?from=upload&amp;filing={{ filing_draft.id }}">{% translate "Find forms and instructions" %}</a>
+                </span>
+            </p>
+        {% endif %}
         <form id="document-upload-form"
               enctype="multipart/form-data"
               data-extraction-status-url="{% url 'document_extraction_status' jurisdiction %}"

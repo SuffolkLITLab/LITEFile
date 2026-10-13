@@ -1,0 +1,29 @@
+{% load i18n %}
+{% comment %}
+Partner-reviewed links for preparing documents. Each one says what kind of
+thing it is, so a guided interview is never mistaken for a blank form, and
+every one opens in a new tab so the filer keeps their place here. Expects
+`resources` from efile.services.document_finder.
+{% endcomment %}
+<ul class="finder-resources">
+    {% for resource in resources %}
+        <li class="finder-resource finder-resource--{{ resource.kind }}">
+            <span class="finder-resource__kind">
+                {% if resource.kind == "interview" %}
+                    <i class="fa-solid fa-comments" aria-hidden="true"></i> {% translate "Guided interview" %}
+                {% elif resource.kind == "form" %}
+                    <i class="fa-solid fa-file-pdf" aria-hidden="true"></i> {% translate "Blank form" %}
+                {% elif resource.kind == "instructions" %}
+                    <i class="fa-solid fa-book-open" aria-hidden="true"></i> {% translate "Instructions" %}
+                {% else %}
+                    <i class="fa-solid fa-circle-info" aria-hidden="true"></i> {% translate "Help page" %}
+                {% endif %}
+            </span>
+            <a href="{{ resource.url }}" target="_blank" rel="noopener noreferrer">
+                {{ resource.label }}<span class="visually-hidden"> {% translate "(opens in a new tab)" %}</span>
+                <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+            </a>
+            {% if resource.source %}<small>{{ resource.source }}</small>{% endif %}
+        </li>
+    {% endfor %}
+</ul>

@@ -196,6 +196,23 @@
                         </div>
                     </section>
                 {% endif %}
+                {% if has_document_finder %}
+                    <section class="option-card" aria-labelledby="find-documents-heading">
+                        <div class="option-card__header">
+                            <div class="option-icon">
+                                <i class="fas fa-magnifying-glass" aria-hidden="true"></i>
+                            </div>
+                            <div class="option-content">
+                                <h2 id="find-documents-heading">{% translate "Find the documents you need" %}</h2>
+                                <p>{% translate "See which forms are often filed for what you want to do, and where to get them." %}</p>
+                            </div>
+                        </div>
+                        <div class="option-actions">
+                            <a href="{% url 'find_documents' jurisdiction %}"
+                               class="btn btn-outline-primary">{% translate "Find documents" %}</a>
+                        </div>
+                    </section>
+                {% endif %}
                 {% if config.jurisdiction.copyedit.post_action_text %}
                     <div class="options-afterword">{{ config.jurisdiction.copyedit.post_action_text | md_to_html }}</div>
                 {% endif %}

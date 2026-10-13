@@ -501,6 +501,350 @@ case_categories:
         label: "Request to waive court fees"
         requirement: sometimes
 
+# What a filer wants to do, in their words, mapped to a checklist above.
+#
+# Read by the "Find the documents you need" pages, which a filer can reach
+# before they have uploaded anything -- or signed in. Each intent points at an
+# existing case_types or case_categories entry by its key, so the list shown is
+# exactly the one Check documents shows later. Intents never name Tyler codes.
+#
+# Links must be https and must be pages a partner has reviewed. Kinds:
+#   interview     a guided interview that fills in the forms (for example, an
+#                 ILAO Easy Form). Filling one in does not file anything.
+#   form          an official blank or fillable form
+#   instructions  official instructions for completing the forms
+#   help          a court or legal-help page about this kind of case
+# document_resources attaches links to one checklist item, by its item ID.
+# Court PDF addresses change when a form is revised; run
+# `manage.py check_document_finder_links` to find links that stopped working.
+document_finder:
+  links_checked_on: "2026-10-13"
+  intents:
+    adult_name_change:
+      title: "Change my name"
+      summary: "Ask a judge to make a new name official for an adult."
+      keywords: [name change, new name, legal name, change my last name, change my first name, adult name change]
+      filing_path: new
+      checklist:
+        case_type: name_change
+      resources:
+        - kind: interview
+          label: "Name change for an adult (Easy Form)"
+          source: "Illinois Legal Aid Online"
+          url: "https://www.illinoislegalaid.org/legal-information/name-change-adult"
+        - kind: form
+          label: "Name change forms"
+          source: "Illinois Courts"
+          url: "https://www.illinoiscourts.gov/documents-and-forms/approved-forms/circuit-court-standardized-forms-suites/name-change/"
+        - kind: instructions
+          label: "How to change your name"
+          source: "Illinois Courts"
+          url: "https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/b7a5b9eb-93a1-4889-b81d-641afa444a13/NC-A%20Instructions.pdf"
+        - kind: help
+          label: "Starting a case to change the name of an adult"
+          source: "Illinois Legal Aid Online"
+          url: "https://www.illinoislegalaid.org/legal-information/changing-your-name"
+      document_resources:
+        petition:
+          - kind: form
+            label: "Request for Name Change"
+            source: "Illinois Courts"
+            url: "https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/74f342af-7d93-4f93-b5b7-fbb92635d45a/NC-A%20Request%20for%20Name%20Change.pdf"
+        proposed_order:
+          - kind: form
+            label: "Order for Name Change"
+            source: "Illinois Courts"
+            url: "https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/4297bafa-f259-4d32-9a27-585d9bd348f4/NC-A%20Order%20for%20Name%20Change.pdf"
+        fee_waiver: &fee_waiver_resources
+          - kind: interview
+            label: "Fee waiver (Easy Form)"
+            source: "Illinois Legal Aid Online"
+            url: "https://www.illinoislegalaid.org/legal-information/fee-waiver"
+          - kind: form
+            label: "Application for Waiver of Court Fees"
+            source: "Illinois Courts"
+            url: "https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/52beec8c-25fc-4d0f-bc56-82a93b68d395/FW-CIV%20Application.pdf"
+          - kind: instructions
+            label: "How to request a fee waiver"
+            source: "Illinois Courts"
+            url: "https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/aeaa0685-7d85-47e4-b113-7492ee0de256/FW-CIV%20Instructions.pdf"
+
+    child_name_change:
+      title: "Change my child's name"
+      summary: "Ask a judge to change the name of a child under 18."
+      keywords: [child name change, minor name change, change my son's name, change my daughter's name, change my kid's last name]
+      filing_path: new
+      checklist:
+        case_type: name_change
+      # Shows the items Illinois lists only for the minor-name-change form.
+      lead_filing_type_name: "Request for Name Change (Minor Children)"
+      resources:
+        - kind: interview
+          label: "Name change for a child (Easy Form)"
+          source: "Illinois Legal Aid Online"
+          url: "https://www.illinoislegalaid.org/legal-information/name-change-child"
+        - kind: form
+          label: "Name change forms"
+          source: "Illinois Courts"
+          url: "https://www.illinoiscourts.gov/documents-and-forms/approved-forms/circuit-court-standardized-forms-suites/name-change/"
+        - kind: instructions
+          label: "How to change children's names"
+          source: "Illinois Courts"
+          url: "https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/16f815a6-c2b3-4a20-bbee-75ed1c325654/NC-M%20Instructions.pdf"
+        - kind: help
+          label: "Starting a case to change a child's name"
+          source: "Illinois Legal Aid Online"
+          url: "https://www.illinoislegalaid.org/legal-information/changing-childs-name"
+      document_resources:
+        petition:
+          - kind: form
+            label: "Request for Name Change (Minor Children)"
+            source: "Illinois Courts"
+            url: "https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/76ab40ea-58b3-420b-84de-dd4a1a8662c1/NC-M%20Request%20for%20Name%20Change.pdf"
+          - kind: form
+            label: "Request for Name Change - Child Information"
+            source: "Illinois Courts"
+            url: "https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/2e9231f7-fbb8-4b96-af93-692750debf13/NC-M%20Request%20for%20Name%20Change%20Child%20Information.pdf"
+        proposed_order:
+          - kind: form
+            label: "Order for Name Change (Minor Children)"
+            source: "Illinois Courts"
+            url: "https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/a10cd8ee-4ed6-45c8-92ca-fcb3d81b7b2f/NC-M%20Order%20for%20Name%20Change.pdf"
+        notice_of_court_date:
+          - kind: form
+            label: "Notice of Court Date for Request for Name Change"
+            source: "Illinois Courts"
+            url: "https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/2a9c1999-5b66-4553-98cc-860a8b33d1ca/NC-M%20Notice%20of%20Court%20Date.pdf"
+        notice_to_other_parent:
+          - kind: form
+            label: "Statement on Trying to Provide Notice"
+            source: "Illinois Courts"
+            url: "https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/50a55dfb-f981-4b8b-ad00-43fdb01378f6/NC-M%20Statement%20to%20Provide%20Notice.pdf"
+        fee_waiver: *fee_waiver_resources
+
+    divorce:
+      title: "Get a divorce"
+      summary: "Ask the court to end a marriage or civil union, with or without children."
+      keywords: [divorce, end my marriage, dissolution of marriage, end my civil union, separate from my spouse, split up]
+      filing_path: new
+      checklist:
+        case_type: divorce
+      resources:
+        - kind: interview
+          label: "Divorce (Easy Form)"
+          source: "Illinois Legal Aid Online"
+          url: "https://www.illinoislegalaid.org/legal-information/divorce"
+        - kind: form
+          label: "Divorce, child support, and maintenance forms"
+          source: "Illinois Courts"
+          url: "https://www.illinoiscourts.gov/forms/approved-forms/forms-circuit-court/divorce-child-support-maintenance/"
+        - kind: instructions
+          label: "How to get a divorce with children"
+          source: "Illinois Courts"
+          url: "https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/c726f307-43ca-46da-ac09-97f309b6850b/DWC%20Instructions.pdf"
+        - kind: instructions
+          label: "How to get a divorce (no children)"
+          source: "Illinois Courts"
+          url: "https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/e61e1bd7-ec39-429e-b5e3-61ce47551f90/DNC%20Instructions.pdf"
+      document_resources:
+        petition:
+          - kind: form
+            label: "Petition for Divorce with Children"
+            source: "Illinois Courts"
+            url: "https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/29fc2ee4-ddda-47f4-af12-f3f4d38f6a70/DWC%20Petition.pdf"
+          - kind: form
+            label: "Petition for Divorce (no children)"
+            source: "Illinois Courts"
+            url: "https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/f41da79e-f087-483e-9dd8-d71d2739d231/DNC%20Petition.pdf"
+        summons:
+          - kind: form
+            label: "Divorce Summons"
+            source: "Illinois Courts"
+            url: "https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/2b052cc8-5066-4ffb-a678-e17edd400ef6/DIV%20Summons.pdf"
+        financial_affidavit:
+          - kind: interview
+            label: "Financial affidavit (Easy Form)"
+            source: "Illinois Legal Aid Online"
+            url: "https://www.illinoislegalaid.org/legal-information/financial-affidavit"
+        certificate_of_dissolution:
+          - kind: form
+            label: "Certificate of Dissolution of Marriage/Civil Union"
+            source: "Illinois Courts"
+            url: "https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/6561a67a-2667-435e-b94a-5bac4f53c635/IDPH%20Dissolution%20of%20Marriage%20Civil%20Union.pdf"
+          - kind: instructions
+            label: "How to fill out the certificate of dissolution"
+            source: "Illinois Courts"
+            url: "https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/867042ba-3dfe-4748-ab29-102f1e431ec2/IDPH%20Instructions.pdf"
+        parenting_plan:
+          - kind: form
+            label: "Parenting Plan"
+            source: "Illinois Courts"
+            url: "https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/a601856a-12e7-44fe-9076-88a8e150c3a7/DWC%20Parenting%20Plan.pdf"
+        proposed_judgment:
+          - kind: form
+            label: "Judgment of Dissolution with Children"
+            source: "Illinois Courts"
+            url: "https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/28a17a49-16ea-415f-9642-6c186e387d94/DWC%20Judgment%20for%20Dissolution.pdf"
+          - kind: form
+            label: "Judgment of Dissolution (no children)"
+            source: "Illinois Courts"
+            url: "https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/ee611252-2582-4546-9426-72234f6582af/DNC%20Judgment%20for%20Dissolution.pdf"
+        fee_waiver: *fee_waiver_resources
+
+    evict_a_tenant:
+      title: "Evict a tenant"
+      summary: "Start a case to get possession of a home you rent out, and any rent owed."
+      keywords: [evict, eviction, landlord, tenant will not leave, unpaid rent, possession, remove a tenant]
+      filing_path: new
+      checklist:
+        case_type: eviction
+      filer_role: landlord
+      resources:
+        - kind: interview
+          label: "Evict a tenant (Easy Form)"
+          source: "Illinois Legal Aid Online"
+          url: "https://www.illinoislegalaid.org/legal-information/evict-tenant"
+        - kind: form
+          label: "Eviction forms"
+          source: "Illinois Courts"
+          url: "https://www.illinoiscourts.gov/documents-and-forms/approved-forms/circuit-court-standardized-forms-suites/eviction/"
+        - kind: instructions
+          label: "How to file and present an eviction complaint"
+          source: "Illinois Courts"
+          url: "https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/0654528b-77e3-4e16-831f-bdbd9c6dfb88/EVC_HowtoFileandPresentanEvictionCase.pdf"
+      document_resources:
+        complaint:
+          - kind: form
+            label: "Eviction Complaint"
+            source: "Illinois Courts"
+            url: "https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/c0f4598e-b251-4939-821c-fd7e72d68b27/EVC_EvictionComplaint.pdf"
+        landlord_notice:
+          - kind: form
+            label: "Notice of Termination for Non-Payment of Rent"
+            source: "Illinois Courts"
+            url: "https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/bc1766c4-7433-448e-8839-a0072de7d9fb/EVC_NoticeTerminationNonpaymentRent.pdf"
+          - kind: form
+            label: "Notice of Termination for Lease Violation"
+            source: "Illinois Courts"
+            url: "https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/63e3b331-dbf0-420d-80f7-1f40aa31799c/EVC_NoticeTerminationLeaseViolation.pdf"
+          - kind: form
+            label: "Notice of Non-Renewal of Lease or Termination of Tenancy"
+            source: "Illinois Courts"
+            url: "https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/e885d8f9-faa4-44cc-9eb5-cb031e68ca48/EVC_NoticeNonRenewalOrTermination.pdf"
+        jury_demand: &jury_request_resources
+          - kind: form
+            label: "Jury Request"
+            source: "Illinois Courts"
+            url: "https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/725a1808-7dde-4417-aed0-490b9a1ea1df/AP%20Jury%20Request.pdf"
+        fee_waiver: *fee_waiver_resources
+
+    respond_to_an_eviction:
+      title: "Respond to an eviction"
+      summary: "Your landlord has started a case to make you leave, and you want to take part."
+      keywords: [eviction, evicted, being evicted, tenant, kicked out, kicking me out, landlord wants me to leave, eviction notice, appearance, answer]
+      filing_path: existing
+      checklist:
+        case_type: eviction
+      filer_role: tenant
+      resources:
+        - kind: interview
+          label: "Respond to an eviction (Easy Form)"
+          source: "Illinois Legal Aid Online"
+          url: "https://www.illinoislegalaid.org/legal-information/respond-eviction"
+        - kind: form
+          label: "Eviction forms"
+          source: "Illinois Courts"
+          url: "https://www.illinoiscourts.gov/documents-and-forms/approved-forms/circuit-court-standardized-forms-suites/eviction/"
+        - kind: instructions
+          label: "How to respond to an eviction complaint"
+          source: "Illinois Courts"
+          url: "https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/62ae53f5-f162-45ba-8a51-30fdddce9824/REC%20Instructions.pdf"
+        - kind: help
+          label: "Going to court for an eviction case"
+          source: "Illinois Legal Aid Online"
+          url: "https://www.illinoislegalaid.org/legal-information/understanding-eviction-tenant"
+      document_resources:
+        appearance:
+          - kind: form
+            label: "Appearance"
+            source: "Illinois Courts"
+            url: "https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/cee07dd8-1346-404e-a3de-04d2a877767c/AP%20Appearance.pdf"
+        answer:
+          - kind: form
+            label: "Eviction Answer, Defenses, and Counterclaims"
+            source: "Illinois Courts"
+            url: "https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/045ac7ef-e99c-4128-9eae-c71dd6b81cb8/REC%20Eviction%20Answer.pdf"
+        proof_of_service: &proof_of_delivery_resources
+          - kind: form
+            label: "Proof of Delivery"
+            source: "Illinois Courts"
+            url: "https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/3f0fe267-e8c6-46dc-9d69-517ce4df9e22/CC%20Proof%20of%20Delivery.pdf"
+        jury_demand: *jury_request_resources
+        fee_waiver: *fee_waiver_resources
+
+    start_small_claims:
+      title: "Sue someone in small claims court"
+      summary: "Ask the court to order someone to pay you money they owe, up to the small claims limit."
+      keywords: [small claims, sue, owe me money, get my money back, security deposit, unpaid bill, damage to my car]
+      filing_path: new
+      checklist:
+        case_category: small_claims
+      resources:
+        - kind: interview
+          label: "Small claims complaint (Easy Form)"
+          source: "Illinois Legal Aid Online"
+          url: "https://www.illinoislegalaid.org/legal-information/small-claims-complaint"
+        - kind: form
+          label: "Small claims complaint forms"
+          source: "Illinois Courts"
+          url: "https://www.illinoiscourts.gov/documents-and-forms/approved-forms/circuit-court-standardized-forms-suites/small-claims-complaint/"
+        - kind: form
+          label: "Small Claims Complaint"
+          source: "Illinois Courts"
+          url: "https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/5156dafd-8e60-4afb-ba88-e5b188b73dfd/SMC%20Complaint.pdf"
+        - kind: instructions
+          label: "How to file and serve a small claims complaint"
+          source: "Illinois Courts"
+          url: "https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/8f0f79db-5797-4fb3-a1ca-cf9c8602a2a0/SMC%20Instructions.pdf"
+        - kind: help
+          label: "Small claims resources"
+          source: "Illinois Legal Aid Online"
+          url: "https://www.illinoislegalaid.org/legal-information/small-claims"
+      document_resources:
+        fee_waiver: *fee_waiver_resources
+
+    respond_to_small_claims:
+      title: "Respond to a small claims case"
+      summary: "Someone has sued you in small claims court, and you want to take part."
+      keywords: [small claims, sued, being sued, someone is suing me, respond, defend, appearance, answer, summons]
+      filing_path: existing
+      checklist:
+        case_category: small_claims
+      resources:
+        - kind: interview
+          label: "Respond to a lawsuit (Easy Form)"
+          source: "Illinois Legal Aid Online"
+          url: "https://www.illinoislegalaid.org/legal-information/respond-lawsuit"
+        - kind: form
+          label: "Appearance and jury request forms"
+          source: "Illinois Courts"
+          url: "https://www.illinoiscourts.gov/documents-and-forms/approved-forms/circuit-court-standardized-forms-suites/forms-appearance/"
+        - kind: form
+          label: "Answer or response forms"
+          source: "Illinois Courts"
+          url: "https://www.illinoiscourts.gov/documents-and-forms/approved-forms/circuit-court-standardized-forms-suites/answer-response/"
+        - kind: form
+          label: "Appearance"
+          source: "Illinois Courts"
+          url: "https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/cee07dd8-1346-404e-a3de-04d2a877767c/AP%20Appearance.pdf"
+        - kind: help
+          label: "Small claims resources"
+          source: "Illinois Legal Aid Online"
+          url: "https://www.illinoislegalaid.org/legal-information/small-claims"
+      document_resources:
+        proof_of_service: *proof_of_delivery_resources
+        fee_waiver: *fee_waiver_resources
+
 # Illinois-specific court mappings
 court_specific_requirements:
   adams:

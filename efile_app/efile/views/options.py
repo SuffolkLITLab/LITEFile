@@ -4,6 +4,7 @@ from django.urls import reverse
 
 from efile.api.suffolk_api_views import get_tyler_token
 from efile.services.current_drafts import get_current_draft
+from efile.services.document_finder import has_document_finder
 from efile.services.drafts import active_drafts_for, draft_snapshot
 from efile.services.filing_plans import plans_for
 
@@ -50,6 +51,7 @@ def efile_options(request, jurisdiction):
         # further on, rather than turning this page into a list of everything.
         "plans": plans[:3],
         "plan_count": len(plans),
+        "has_document_finder": has_document_finder(jurisdiction),
     }
     context.update(get_workflow_context(WorkflowStepKey.OPTIONS, jurisdiction, active_draft))
 

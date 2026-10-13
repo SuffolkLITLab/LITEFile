@@ -17,6 +17,10 @@ const publicScreens = [
     ['sign in', '/jurisdiction/illinois/login/'],
     ['register', '/jurisdiction/illinois/register/'],
     ['password reset', '/jurisdiction/illinois/password_reset/'],
+    ['find documents', '/jurisdiction/illinois/find-documents/'],
+    ['find documents with no match', '/jurisdiction/illinois/find-documents/?q=xyzzy'],
+    ['find documents guide', '/jurisdiction/illinois/find-documents/respond_to_an_eviction/'],
+    ['find documents without a guide', '/jurisdiction/vermont/find-documents/'],
 ];
 const signedInScreens = [
     ['filing options', '/jurisdiction/illinois/options/'],
