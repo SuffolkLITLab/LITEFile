@@ -320,6 +320,9 @@ def cases_for_user(
     """
 
     filings = list_filing_data(request, jurisdiction, start_date=start_date or history_start_date())
+    from efile.services.analytics import record_court_statuses
+
+    record_court_statuses(request.user, jurisdiction, filings)
     names = court_names(jurisdiction)
     archived = archived_case_ids(request.user, jurisdiction)
 

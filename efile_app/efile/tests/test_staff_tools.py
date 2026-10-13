@@ -21,6 +21,7 @@ from efile.models import (
     DocumentExtraction,
     FilingDocument,
     FilingDraft,
+    FilingIdentifier,
     FilingMetadataEvent,
     FilingParty,
     FilingPlan,
@@ -35,7 +36,15 @@ from efile.models import (
     UsageEvent,
     UsageMatter,
 )
-from efile.services.analytics import count_event, drain_events, record_event, record_matter, report_rows
+from efile.services.analytics import (
+    count_event,
+    drain_events,
+    record_court_detail,
+    record_court_statuses,
+    record_event,
+    record_matter,
+    report_rows,
+)
 from efile.services.document_extractions import claim_next_extraction, process_document_extraction
 from efile.services.document_uploads import upload_files
 from efile.services.privacy import create_request, preview, process_request, verify_request
@@ -612,3 +621,211 @@ def test_outbox_rejects_free_text_in_an_allowed_dimension(owner, settings):
     event.save()
     with pytest.raises(ValueError, match="Disallowed usage value"):
         count_event(event.pk)
+
+
+def test_submission_counts_documents_pages_guided_forms_and_source(owner, settings):
+    settings.LITEFILE_ANALYTICS_ENABLED = True
+    settings.LITEFILE_HANDOFF_SOURCES = {"vt_rfa": {}}
+    draft = FilingDraft.objects.create(
+        user=owner,
+        jurisdiction="vermont",
+        existing_case="new",
+        court_code="family",
+        filing_type_code="complaint",
+        selected_payment_account_type="WV",
+    )
+    InterviewHandoff.objects.create(
+        draft=draft,
+        source="vt_rfa",
+        source_id="source-1",
+        idempotency_key="request-1",
+        fingerprint="a" * 64,
+        payload={"documents": [{"form_name": "Complaint"}, {"form_name": "Affidavit"}, {"form_name": "Notice"}]},
+    )
+    for index, pages in enumerate((4, 2)):
+        document = FilingDocument.objects.create(
+            draft=draft,
+            role="lead" if index == 0 else "supporting",
+            sort_order=0,
+            preparation="unchanged",
+            filing_type_code="complaint" if index == 0 else "affidavit",
+        )
+        DocumentExtraction.objects.create(document=document, status="complete", total_pages=pages)
+        FilingMetadataEvent.objects.create(
+            draft=draft, path=f"documents.{document.pk}", kind="source_suggestion", value={"form_name": "Form"}
+        )
+    # The filer removed the third guided form before submitting.
+    removed = FilingDocument.objects.create(draft=draft, role="supporting", sort_order=1)
+    FilingMetadataEvent.objects.create(
+        draft=draft, path=f"documents.{removed.pk}", kind="source_suggestion", value={"form_name": "Notice"}
+    )
+    removed.delete()
+
+    draft.mark_submitted({})
+    transmitted = UsageEvent.objects.get(draft=draft, metric="transmitted")
+    assert (
+        transmitted.dimensions
+        | {
+            "interview_source": "vt_rfa",
+            "fee_waiver": "submitted",
+            "court": "family",
+            "filing_type": "complaint",
+        }
+        == transmitted.dimensions
+    )
+    assert UsageEvent.objects.get(draft=draft, metric="documents_transmitted").quantity == 2
+    assert UsageEvent.objects.get(draft=draft, metric="pages_transmitted").quantity == 6
+    assert UsageEvent.objects.get(draft=draft, metric="guided_forms_transmitted").quantity == 2
+    drain_events()
+    assert UsageCounter.objects.get(metric="documents_transmitted", granularity="day", dimension="all").count == 2
+    assert UsageCounter.objects.get(metric="pages_transmitted", granularity="day", dimension="all").count == 6
+
+
+def test_attorney_dimension_uses_states_the_workflow_persists(owner, settings):
+    settings.LITEFILE_ANALYTICS_ENABLED = True
+
+    self_represented = FilingDraft.objects.create(user=owner, jurisdiction="illinois", existing_case="new")
+    FilingParty.objects.create(
+        draft=self_represented,
+        role="filer",
+        party_type="plaintiff",
+        is_filing_party=True,
+    )
+    record_event(self_represented, "review")
+    assert UsageEvent.objects.get(draft=self_represented, metric="review").dimensions["has_attorney"] == "no"
+
+    represented = FilingDraft.objects.create(user=owner, jurisdiction="illinois", existing_case="existing")
+    FilingParty.objects.create(draft=represented, role="filer")
+    FilingParty.objects.create(
+        draft=represented,
+        role="other",
+        source="court",
+        source_case_id="case-1",
+        external_party_id="party-1",
+        is_self=True,
+        representation={"status": "represented", "attorneys": [{"id": "attorney-1"}]},
+    )
+    record_event(represented, "review")
+    assert UsageEvent.objects.get(draft=represented, metric="review").dimensions["has_attorney"] == "yes"
+
+    unknown = FilingDraft.objects.create(user=owner, jurisdiction="illinois", existing_case="existing")
+    FilingParty.objects.create(draft=unknown, role="filer")
+    FilingParty.objects.create(
+        draft=unknown,
+        role="other",
+        source="court",
+        source_case_id="case-2",
+        external_party_id="party-2",
+        is_self=True,
+        representation={"status": "unknown", "attorneys": []},
+    )
+    record_event(unknown, "review")
+    assert UsageEvent.objects.get(draft=unknown, metric="review").dimensions["has_attorney"] == "unknown"
+
+
+def test_court_outcomes_and_rejection_reasons_are_deduplicated_without_clerk_text(owner, settings):
+    settings.LITEFILE_ANALYTICS_ENABLED = True
+    draft = FilingDraft.objects.create(user=owner, jurisdiction="illinois", existing_case="existing")
+    draft.mark_submitted({})
+    FilingIdentifier.objects.create(draft=draft, filing_id="filing-1")
+    unsubmitted = FilingDraft.objects.create(user=owner, jurisdiction="illinois")
+    FilingIdentifier.objects.create(draft=unsubmitted, filing_id="filing-2")
+    filings = [
+        {"filing_id": "filing-1", "filing_status": "rejected"},
+        {"filing_id": "filing-2", "filing_status": "accepted"},
+    ]
+    record_court_statuses(owner, "illinois", filings)
+    # Later loads of My cases do not lock or re-check decided filings.
+    with patch("efile.services.analytics.record_event") as again:
+        record_court_statuses(owner, "illinois", filings)
+    again.assert_not_called()
+    assert not UsageEvent.objects.filter(draft=unsubmitted, metric__startswith="court_").exists()
+    detail = {
+        "status": "rejected",
+        "comments": [{"text": "Private names and facts: the required signature is missing."}],
+    }
+    record_court_detail(draft, "filing-1", detail)
+    record_court_detail(draft, "filing-1", detail)
+
+    assert UsageEvent.objects.filter(draft=draft, metric="court_returned").count() == 1
+    reason = UsageEvent.objects.get(draft=draft, metric="rejection_reason")
+    assert reason.dimensions["rejection_reason"] == "signature_or_notarization"
+    assert "Private names" not in json.dumps(reason.dimensions)
+
+
+def test_reports_include_distinct_contributing_account_count(settings, django_user_model):
+    settings.LITEFILE_ANALYTICS_ENABLED = True
+    at = datetime(2026, 9, 10, tzinfo=UTC)
+    for index in range(5):
+        user = django_user_model.objects.create_user(username=f"report-user-{index}", tyler_jurisdiction="illinois")
+        with patch("efile.services.analytics.timezone.now", return_value=at):
+            draft = FilingDraft.objects.create(user=user, jurisdiction="illinois", existing_case="new")
+            record_event(draft, "draft_resumed", operation=f"resume-{index}-1")
+            record_event(draft, "draft_resumed", operation=f"resume-{index}-2")
+    drain_events()
+    rows = report_rows(["illinois"], date(2026, 9, 1), date(2026, 9, 30))
+    resumed = next(row for row in rows if row["metric"] == "draft_resumed")
+    assert resumed["count"] == 10
+    assert resumed["contributors"] == 5
+
+
+@pytest.mark.parametrize(
+    ("comment", "category"),
+    [
+        ("Please correct the party information.", "party_information"),
+        ("Case assigned to the wrong division.", "other_or_unknown"),
+        ("The order was designed for another court.", "other_or_unknown"),
+        ("The affidavit is unsigned.", "signature_or_notarization"),
+        ("Wrong formatting of the margins.", "document_format"),
+        ("Feedback on the filing type: use a motion.", "filing_type"),
+        ("The filing fee was not paid.", "fees_or_waiver"),
+    ],
+)
+def test_rejection_categories_match_whole_words(comment, category):
+    from efile.services.analytics import categorize_rejection
+
+    assert categorize_rejection({"comments": [{"text": comment}]}) == category
+
+
+def test_outcome_frequency_band_matches_transmission(owner, settings):
+    settings.LITEFILE_ANALYTICS_ENABLED = True
+    first = FilingDraft.objects.create(user=owner, jurisdiction="illinois")
+    first.mark_submitted({})
+    for _ in range(3):
+        FilingDraft.objects.create(user=owner, jurisdiction="illinois").mark_submitted({})
+    record_court_detail(first, "filing-1", {"status": "accepted"})
+    assert UsageEvent.objects.get(draft=first, metric="transmitted").dimensions["usage_frequency"] == "first"
+    assert UsageEvent.objects.get(draft=first, metric="court_accepted").dimensions["usage_frequency"] == "first"
+
+
+def test_configuration_change_does_not_stall_the_outbox(owner, settings):
+    settings.LITEFILE_ANALYTICS_ENABLED = True
+    settings.LITEFILE_HANDOFF_SOURCES = {"vt_rfa": {}}
+    draft = FilingDraft.objects.create(user=owner, jurisdiction="vermont")
+    InterviewHandoff.objects.create(
+        draft=draft, source="vt_rfa", source_id="s", idempotency_key="k", fingerprint="b" * 64, payload={}
+    )
+    record_event(draft, "review")
+    bad = UsageEvent.objects.get(draft=draft, metric="started")
+    bad.dimensions["case_type"] = owner.email
+    bad.save()
+    # The source is removed from configuration while the event is pending.
+    settings.LITEFILE_HANDOFF_SOURCES = {}
+    drain_events()
+    assert (
+        UsageCounter.objects.get(
+            metric="review", granularity="month", dimension="interview_source", value="other_interview"
+        ).count
+        == 1
+    )
+    bad.refresh_from_db()
+    assert bad.counted_at is not None and bad.dimensions == {}
+    assert not UsageCounter.objects.filter(metric="started").exists()
+    assert not UsageEvent.objects.filter(counted_at__isnull=True).exists()
+
+
+def test_disallowed_values_are_refused_when_queued(owner, settings):
+    settings.LITEFILE_ANALYTICS_ENABLED = True
+    draft = FilingDraft.objects.create(user=owner, jurisdiction="illinois", court_code="c" * 90)
+    record_event(draft, "review")
+    assert not UsageEvent.objects.filter(draft=draft, metric="review").exists()

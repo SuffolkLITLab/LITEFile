@@ -68,6 +68,13 @@ class ReportForm(forms.Form):
             ("preparation", "Document preparation"),
             ("original_pdf_state", "Original PDF form fields"),
             ("usage_frequency", "Use frequency"),
+            ("filing_type", "Filing type"),
+            ("court", "Court division or location"),
+            ("has_attorney", "Attorney representation"),
+            ("fee_waiver", "Fee waiver submitted"),
+            ("interview_source", "Guided interview source"),
+            ("workflow_step", "Workflow step"),
+            ("rejection_reason", "Court return reason"),
         ]
     )
 
@@ -333,7 +340,16 @@ class StaffSite(OTPAdminSite):
                 response["Content-Disposition"] = 'attachment; filename="litefile-usage.csv"'
                 writer = csv.DictWriter(
                     response,
-                    fieldnames=["period", "jurisdiction", "metric", "filing_kind", "dimension", "value", "count"],
+                    fieldnames=[
+                        "period",
+                        "jurisdiction",
+                        "metric",
+                        "filing_kind",
+                        "dimension",
+                        "value",
+                        "count",
+                        "contributors",
+                    ],
                 )
                 writer.writeheader()
                 for row in rows:

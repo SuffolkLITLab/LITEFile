@@ -115,6 +115,7 @@ class UsageEvent(models.Model):
     metric = models.CharField(max_length=40)
     operation = models.CharField(max_length=80, default="once")
     dimensions = models.JSONField(default=dict)
+    quantity = models.PositiveIntegerField(default=1)
     occurred_at = models.DateTimeField()
     counted_at = models.DateTimeField(null=True)
 
