@@ -1,0 +1,2821 @@
+{
+  "version": 1,
+  "state": "vermont",
+  "checked_at": "2026-10-13",
+  "repositories": [
+    {
+      "repo": "LSVermont/docassemble-FinancialForm",
+      "commit": "4aca261ca0572c66efdad650ef52325de3ec4a49",
+      "source_url": "https://github.com/LSVermont/docassemble-FinancialForm.git",
+      "status": "interview_source",
+      "reason": "Repository contains a court-related interview or reusable output; publication status not confirmed from root page.",
+      "entrypoints": [
+        {
+          "path": "docassemble/FinancialForm/data/questions/financial_affidavit.yml",
+          "title": "Financial affidavit",
+          "public_url": null,
+          "publication_status": "uncertain"
+        }
+      ]
+    },
+    {
+      "repo": "LSVermont/docassemble-RFApackage",
+      "commit": "734f2d97d951c2034d76950cc49f9fa621b7282f",
+      "source_url": "https://github.com/LSVermont/docassemble-RFApackage.git",
+      "status": "interview_source",
+      "reason": "Repository contains a court-related interview or reusable output; publication status not confirmed from root page.",
+      "entrypoints": [
+        {
+          "path": "docassemble/RFApackage/data/questions/RFApackage.yml",
+          "title": "Asking for a Relief from Abuse order (RFA) in Vermont",
+          "public_url": "https://apps.vtcourtforms.org/start/rfa/",
+          "publication_status": "linked_from_root"
+        }
+      ]
+    },
+    {
+      "repo": "LSVermont/docassemble-VT813",
+      "commit": "ccd5ee5c0ef8540e5ce887c2d8de6557ee769e3e",
+      "source_url": "https://github.com/LSVermont/docassemble-VT813.git",
+      "status": "interview_source",
+      "reason": "Repository contains a court-related interview or reusable output; publication status not confirmed from root page.",
+      "entrypoints": [
+        {
+          "path": "docassemble/VT813/data/questions/VT_813.yml",
+          "title": "Financial Affidavit 813A",
+          "public_url": "https://apps.vtcourtforms.org/start/VT813A/",
+          "publication_status": "linked_from_root"
+        }
+      ]
+    },
+    {
+      "repo": "LSVermont/docassemble-VT813B",
+      "commit": "a9f31f686cbf24490056994a412fa3c515326b4c",
+      "source_url": "https://github.com/LSVermont/docassemble-VT813B.git",
+      "status": "interview_source",
+      "reason": "Repository contains a court-related interview or reusable output; publication status not confirmed from root page.",
+      "entrypoints": [
+        {
+          "path": "docassemble/VT813B/data/questions/VT_813B.yml",
+          "title": "Financial Affidavit 813B",
+          "public_url": null,
+          "publication_status": "uncertain"
+        }
+      ]
+    },
+    {
+      "repo": "LSVermont/docassemble-VTAnswerToEviction",
+      "commit": "662275e9bcfabaef1c0e0ae1c6902100ae3ff09f",
+      "source_url": "https://github.com/LSVermont/docassemble-VTAnswerToEviction.git",
+      "status": "interview_source",
+      "reason": "Repository contains a court-related interview or reusable output; publication status not confirmed from root page.",
+      "entrypoints": [
+        {
+          "path": "docassemble/VTAnswerToEviction/data/questions/VTEvictionProject.yml",
+          "title": "Respond to an Eviction",
+          "public_url": null,
+          "publication_status": "uncertain"
+        },
+        {
+          "path": "docassemble/VTAnswerToEviction/data/questions/letter_to_request_repairs.yml",
+          "title": "Ask your landlord to fix your home",
+          "public_url": null,
+          "publication_status": "uncertain"
+        },
+        {
+          "path": "docassemble/VTAnswerToEviction/data/questions/feedback.yml",
+          "title": "User Feedback",
+          "public_url": null,
+          "publication_status": "uncertain"
+        },
+        {
+          "path": "docassemble/VTAnswerToEviction/data/questions/file_a_motion.yml",
+          "title": "File a Motion",
+          "public_url": null,
+          "publication_status": "uncertain"
+        },
+        {
+          "path": "docassemble/VTAnswerToEviction/data/questions/MotionToContinue.yml",
+          "title": "File A Motion to Continue in Your Eviction Case",
+          "public_url": null,
+          "publication_status": "uncertain"
+        },
+        {
+          "path": "docassemble/VTAnswerToEviction/data/questions/legalaidlocator.yml",
+          "title": "Legal Aid Locator",
+          "public_url": null,
+          "publication_status": "uncertain"
+        },
+        {
+          "path": "docassemble/VTAnswerToEviction/data/questions/eviction_motion_to_continue.yml",
+          "title": "Postpone your eviction hearing",
+          "public_url": null,
+          "publication_status": "uncertain"
+        }
+      ]
+    },
+    {
+      "repo": "LSVermont/docassemble-VTCertificateOfService",
+      "commit": "65dce3e35670ef079201ca2ec6c3ecbece5d7328",
+      "source_url": "https://github.com/LSVermont/docassemble-VTCertificateOfService.git",
+      "status": "interview_source",
+      "reason": "Repository contains a court-related interview or reusable output; publication status not confirmed from root page.",
+      "entrypoints": [
+        {
+          "path": "docassemble/VTCertificateOfService/data/questions/VTCertificateOfService.yml",
+          "title": "Certificate of Service",
+          "public_url": null,
+          "publication_status": "uncertain"
+        }
+      ]
+    },
+    {
+      "repo": "LSVermont/docassemble-VTCertificateOfServiceGeneral",
+      "commit": "12bb9fef1452275a042f501df9cf1119d265de2e",
+      "source_url": "https://github.com/LSVermont/docassemble-VTCertificateOfServiceGeneral.git",
+      "status": "interview_source",
+      "reason": "Repository contains a court-related interview or reusable output; publication status not confirmed from root page.",
+      "entrypoints": [
+        {
+          "path": "docassemble/VTCertificateOfServiceGeneral/data/questions/general_certificate_of_service_main.yml",
+          "title": "Certificate of Service - General",
+          "public_url": null,
+          "publication_status": "uncertain"
+        }
+      ]
+    },
+    {
+      "repo": "LSVermont/docassemble-VTCourtFormsBranding",
+      "commit": "bbb68a7096b0221f32f90acaf8b58800abc2e441",
+      "source_url": "https://github.com/LSVermont/docassemble-VTCourtFormsBranding.git",
+      "status": "infrastructure",
+      "reason": "Branding/assets package; no guided interview output.",
+      "entrypoints": []
+    },
+    {
+      "repo": "LSVermont/docassemble-VTCourtFormsInterviewUnderMaintenance",
+      "commit": "9e8a1d3d2ea380dcbc8e3045b93cec0431ae9b85",
+      "source_url": "https://github.com/LSVermont/docassemble-VTCourtFormsInterviewUnderMaintenance.git",
+      "status": "maintenance_page",
+      "reason": "Maintenance gate only; no court form output.",
+      "entrypoints": []
+    },
+    {
+      "repo": "LSVermont/docassemble-VTCourtFormsRootPage",
+      "commit": "954926871bef53c8daa381f29e86fd3bb7bb5342",
+      "source_url": "https://github.com/LSVermont/docassemble-VTCourtFormsRootPage.git",
+      "status": "navigation",
+      "reason": "Navigation/root page only; linked interviews inventoried separately.",
+      "entrypoints": [
+        {
+          "path": "docassemble/VTCourtFormsRootPage/data/questions/VTCourtFormsRootPage.yml",
+          "title": "Vermont Court Forms Online root page",
+          "public_url": "https://apps.vtcourtforms.org/",
+          "publication_status": "published"
+        }
+      ]
+    },
+    {
+      "repo": "LSVermont/docassemble-VTDisclosureOfExemptIncome",
+      "commit": "a8b979c0798189ef2269c1dce6ac45ca9bbc16fe",
+      "source_url": "https://github.com/LSVermont/docassemble-VTDisclosureOfExemptIncome.git",
+      "status": "interview_source",
+      "reason": "Repository contains a court-related interview or reusable output; publication status not confirmed from root page.",
+      "entrypoints": [
+        {
+          "path": "docassemble/VTDisclosureOfExemptIncome/data/questions/disclosure_of_exempt_income.yml",
+          "title": "Disclosure of exempt income",
+          "public_url": null,
+          "publication_status": "uncertain"
+        }
+      ]
+    },
+    {
+      "repo": "LSVermont/docassemble-VTDivorce",
+      "commit": "bcfdea4fd703a4dc2ff84fd4ea92220955308082",
+      "source_url": "https://github.com/LSVermont/docassemble-VTDivorce.git",
+      "status": "interview_source",
+      "reason": "Repository contains a court-related interview or reusable output; publication status not confirmed from root page.",
+      "entrypoints": [
+        {
+          "path": "docassemble/VTDivorce/data/questions/divorce.yml",
+          "title": "Divorce / separation / dissolution",
+          "public_url": "https://apps.vtcourtforms.org/start/VTDivorce/",
+          "publication_status": "linked_from_root"
+        },
+        {
+          "path": "docassemble/VTDivorce/data/questions/Health_record.yml",
+          "title": "Health record",
+          "public_url": null,
+          "publication_status": "uncertain"
+        }
+      ]
+    },
+    {
+      "repo": "LSVermont/docassemble-VTFamilyCourtInfoSheet",
+      "commit": "74b88a16cb5ce26344ead68fc04c2838525e191b",
+      "source_url": "https://github.com/LSVermont/docassemble-VTFamilyCourtInfoSheet.git",
+      "status": "interview_source",
+      "reason": "Repository contains a court-related interview or reusable output; publication status not confirmed from root page.",
+      "entrypoints": [
+        {
+          "path": "docassemble/VTFamilyCourtInfoSheet/data/questions/family_court_info_sheet.yml",
+          "title": "Family court information sheet",
+          "public_url": null,
+          "publication_status": "uncertain"
+        }
+      ]
+    },
+    {
+      "repo": "LSVermont/docassemble-VTFeeWaiver",
+      "commit": "2e18ea6a5d86c2d38ad31571649d8f8ddb154ae5",
+      "source_url": "https://github.com/LSVermont/docassemble-VTFeeWaiver.git",
+      "status": "interview_source",
+      "reason": "Repository contains a court-related interview or reusable output; publication status not confirmed from root page.",
+      "entrypoints": [
+        {
+          "path": "docassemble/VTFeeWaiver/data/questions/VT_fee_waiver.yml",
+          "title": "Ask to waive court filing and service fees",
+          "public_url": "https://apps.vtcourtforms.org/start/VTFeeWaiver/",
+          "publication_status": "linked_from_root"
+        }
+      ]
+    },
+    {
+      "repo": "LSVermont/docassemble-VTFeeWaiverWithIncludeYMLFile",
+      "commit": "95dcd7eb1cb1b5ab9397c97c95a1e6d5a0f96c0d",
+      "source_url": "https://github.com/LSVermont/docassemble-VTFeeWaiverWithIncludeYMLFile.git",
+      "status": "shared_include",
+      "reason": "Demonstration/shared include variant; standalone fee-waiver interview is in docassemble-VTFeeWaiver.",
+      "entrypoints": []
+    },
+    {
+      "repo": "LSVermont/docassemble-VTFeedback",
+      "commit": "1ce4eba5904a7af8b31006e65399d9925f5d2f0c",
+      "source_url": "https://github.com/LSVermont/docassemble-VTFeedback.git",
+      "status": "support",
+      "reason": "Feedback survey package; no court filing output.",
+      "entrypoints": [
+        {
+          "path": "docassemble/VTFeedback/data/questions/VTfeedback.yml",
+          "title": "User Feedback",
+          "public_url": null,
+          "publication_status": "uncertain"
+        }
+      ]
+    },
+    {
+      "repo": "LSVermont/docassemble-VTFinAffSelfEmplPart",
+      "commit": "4ef915d225c159153560423585f2a6865f4f53e9",
+      "source_url": "https://github.com/LSVermont/docassemble-VTFinAffSelfEmplPart.git",
+      "status": "interview_source",
+      "reason": "Repository contains a court-related interview or reusable output; publication status not confirmed from root page.",
+      "entrypoints": [
+        {
+          "path": "docassemble/VTFinAffSelfEmplPart/data/questions/VTFinAffSelfEmplPart.yml",
+          "title": "813A Self-employment worksheet",
+          "public_url": null,
+          "publication_status": "uncertain"
+        }
+      ]
+    },
+    {
+      "repo": "LSVermont/docassemble-VTFinancialDisclosure",
+      "commit": "e7f48b9e10ef5d65907c785102697ae4bf4eca70",
+      "source_url": "https://github.com/LSVermont/docassemble-VTFinancialDisclosure.git",
+      "status": "interview_source",
+      "reason": "Repository contains a court-related interview or reusable output; publication status not confirmed from root page.",
+      "entrypoints": [
+        {
+          "path": "docassemble/VTFinancialDisclosure/data/questions/VT_financial_disclosure.yml",
+          "title": "Financial Disclosure - form 100-00127",
+          "public_url": null,
+          "publication_status": "uncertain"
+        }
+      ]
+    },
+    {
+      "repo": "LSVermont/docassemble-VTHousingRA",
+      "commit": "2765c847c318e0c13a005b768354858ba8c6822e",
+      "source_url": "https://github.com/LSVermont/docassemble-VTHousingRA.git",
+      "status": "interview_source",
+      "reason": "Repository contains a court-related interview or reusable output; publication status not confirmed from root page.",
+      "entrypoints": [
+        {
+          "path": "vthousingra.yml",
+          "title": "Tenant accommodations request letter",
+          "public_url": null,
+          "publication_status": "uncertain"
+        },
+        {
+          "path": "docassemble/VTHousingRA/data/questions/vthousingra.yml",
+          "title": "Tenant accommodations request letter",
+          "public_url": null,
+          "publication_status": "uncertain"
+        }
+      ]
+    },
+    {
+      "repo": "LSVermont/docassemble-VTNoticeOfAppearance",
+      "commit": "9f161f4ff02e5b4591c6b7d6529b1a37a5ec8f99",
+      "source_url": "https://github.com/LSVermont/docassemble-VTNoticeOfAppearance.git",
+      "status": "interview_source",
+      "reason": "Repository contains a court-related interview or reusable output; publication status not confirmed from root page.",
+      "entrypoints": [
+        {
+          "path": "docassemble/VTNoticeOfAppearance/data/questions/VTNoticeOfAppearance.yml",
+          "title": "Notice of Appearance for Vermont Family Court",
+          "public_url": null,
+          "publication_status": "uncertain"
+        }
+      ]
+    },
+    {
+      "repo": "LSVermont/docassemble-VTSharedYMLFile",
+      "commit": "fdf7e4e1d24290118b3b37bd35b2372c4230b140",
+      "source_url": "https://github.com/LSVermont/docassemble-VTSharedYMLFile.git",
+      "status": "shared_include",
+      "reason": "Reusable interview fragments; not a standalone published filing interview.",
+      "entrypoints": [
+        {
+          "path": "docassemble/VTSharedYMLFile/data/questions/VTSharedYMLFile.yml",
+          "title": "VTSharedYMLFile",
+          "public_url": null,
+          "publication_status": "uncertain"
+        }
+      ]
+    },
+    {
+      "repo": "LSVermont/docassemble-VTSmallClaimsAnswer",
+      "commit": "8671c90cdd79b367ef168ec68337fae4df868ad1",
+      "source_url": "https://github.com/LSVermont/docassemble-VTSmallClaimsAnswer.git",
+      "status": "interview_source",
+      "reason": "Repository contains a court-related interview or reusable output; publication status not confirmed from root page.",
+      "entrypoints": [
+        {
+          "path": "docassemble/VTSmallClaimsAnswer/data/questions/small_claims_answer.yml",
+          "title": "Small claims answer",
+          "public_url": "https://apps.vtcourtforms.org/start/VTSmallClaimsAnswer/",
+          "publication_status": "linked_from_root"
+        }
+      ]
+    },
+    {
+      "repo": "LSVermont/docassemble-VTSmallClaimsCertificateOfService",
+      "commit": "d1098d0fb0e882a32fa676fc241f044736d35207",
+      "source_url": "https://github.com/LSVermont/docassemble-VTSmallClaimsCertificateOfService.git",
+      "status": "shared_include",
+      "reason": "YAML begins with instruction to include this file in another guided interview; no standalone interview flow or publication link.",
+      "entrypoints": []
+    },
+    {
+      "repo": "LSVermont/docassemble-VTSmallClaimsComplaint",
+      "commit": "dcf2ff7916e62683fdf7a30e0b671649e5d27ff1",
+      "source_url": "https://github.com/LSVermont/docassemble-VTSmallClaimsComplaint.git",
+      "status": "interview_source",
+      "reason": "Repository contains a court-related interview or reusable output; publication status not confirmed from root page.",
+      "entrypoints": [
+        {
+          "path": "docassemble/VTSmallClaimsComplaint/data/questions/small_claims.yml",
+          "title": "Start a small claims case",
+          "public_url": "https://apps.vtcourtforms.org/start/VTSmallClaims/",
+          "publication_status": "linked_from_root"
+        }
+      ]
+    },
+    {
+      "repo": "LSVermont/docassemble-VTSuperiorCourtDebtAnswer",
+      "commit": "8c84493103f9a80166b23d0f693b82744482c80b",
+      "source_url": "https://github.com/LSVermont/docassemble-VTSuperiorCourtDebtAnswer.git",
+      "status": "interview_source",
+      "reason": "Repository contains a court-related interview or reusable output; publication status not confirmed from root page.",
+      "entrypoints": [
+        {
+          "path": "docassemble/VTSuperiorCourtDebtAnswer/data/questions/superior_court_debt_answer.yml",
+          "title": "Superior Court debt answer",
+          "public_url": null,
+          "publication_status": "uncertain"
+        }
+      ]
+    },
+    {
+      "repo": "LSVermont/docassemble-VTUnderMaintenance",
+      "commit": "ec45d081b4c34deb638cc76b9cc5809e0caa5675",
+      "source_url": "https://github.com/LSVermont/docassemble-VTUnderMaintenance.git",
+      "status": "maintenance_page",
+      "reason": "Maintenance page only; no court form output.",
+      "entrypoints": []
+    }
+  ],
+  "documents": [
+    {
+      "id": "docassemble-financialform-financial-affidavit-attachment-financial-affidavit",
+      "repo": "LSVermont/docassemble-FinancialForm",
+      "entrypoint": "docassemble/FinancialForm/data/questions/financial_affidavit.yml",
+      "attachment_variable": "financial_affidavit_attachment",
+      "title": "Financial Affidavit 813B",
+      "form_id": "400-00813B",
+      "template_paths": [
+        "docassemble/FinancialForm/data/templates/financial_affidavit.pdf"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-FinancialForm/blob/4aca261ca0572c66efdad650ef52325de3ec4a49/docassemble/FinancialForm/data/templates/financial_affidavit.pdf",
+        "https://www.vtcourts.gov/sites/default/files/documents/400-00813B_2.pdf"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "court_filing",
+      "exclusion_reason": null,
+      "stage": "unknown",
+      "filer_role": "party",
+      "case_categories": [
+        "Family"
+      ],
+      "case_types": [],
+      "filing_type_labels": [],
+      "search_queries": [
+        "financial affidavit 813b",
+        "400-00813B",
+        "financial affidavit"
+      ],
+      "mapping_status": "candidate",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-rfapackage-rfapackage-post-interview-instructions-rfapackage-next-steps-docx",
+      "repo": "LSVermont/docassemble-RFApackage",
+      "entrypoint": "docassemble/RFApackage/data/questions/RFApackage.yml",
+      "attachment_variable": "RFApackage_Post_interview_instructions",
+      "title": "NEXT STEPS - Instructions for filing these forms with the court",
+      "form_id": null,
+      "template_paths": [
+        "docassemble/RFApackage/data/templates/RFApackage_next_steps.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-RFApackage/blob/734f2d97d951c2034d76950cc49f9fa621b7282f/docassemble/RFApackage/data/templates/RFApackage_next_steps.docx"
+      ],
+      "publication_status": "linked_from_root",
+      "filing_status": "noncourt",
+      "exclusion_reason": "Instructions or post-interview guidance, not a court filing.",
+      "stage": "initial",
+      "filer_role": "applicant/petitioner",
+      "case_categories": [
+        "Family"
+      ],
+      "case_types": [
+        "Relief from Abuse",
+        "Relief from Abuse on Behalf of a Minor"
+      ],
+      "filing_type_labels": [],
+      "search_queries": [
+        "next steps - instructions for filing these forms with the court"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-rfapackage-rfacomplaint-1-rfa-complaint",
+      "repo": "LSVermont/docassemble-RFApackage",
+      "entrypoint": "docassemble/RFApackage/data/questions/RFApackage.yml",
+      "attachment_variable": "RFAcomplaint",
+      "title": "Complaint for Relief from Abuse",
+      "form_id": "400-00150C",
+      "template_paths": [
+        "docassemble/RFApackage/data/templates/RFAcomplaint_addendum.docx",
+        "docassemble/RFApackage/data/templates/1_RFA-complaint.pdf"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-RFApackage/blob/734f2d97d951c2034d76950cc49f9fa621b7282f/docassemble/RFApackage/data/templates/RFAcomplaint_addendum.docx",
+        "https://github.com/LSVermont/docassemble-RFApackage/blob/734f2d97d951c2034d76950cc49f9fa621b7282f/docassemble/RFApackage/data/templates/1_RFA-complaint.pdf",
+        "https://www.vtcourts.gov/family/relief-abuse"
+      ],
+      "publication_status": "linked_from_root",
+      "filing_status": "court_filing",
+      "exclusion_reason": null,
+      "stage": "initial",
+      "filer_role": "applicant/petitioner",
+      "case_categories": [
+        "Family"
+      ],
+      "case_types": [
+        "Relief from Abuse"
+      ],
+      "filing_type_labels": [
+        "Initial Filing"
+      ],
+      "search_queries": [
+        "complaint for relief from abuse",
+        "400-00150C"
+      ],
+      "mapping_status": "verified_label",
+      "mapping_evidence": [
+        "Case-start complaint; Vermont judiciary FAQ uses Initial Filing for new Civil/Family/Probate matters, and dated live catalog confirms code 9563 Small Claims or 9564 Family RFA for county units."
+      ]
+    },
+    {
+      "id": "docassemble-rfapackage-rfacomplaintonbehalfofminor-5-rfa-complaint-on-behalf-of-minor",
+      "repo": "LSVermont/docassemble-RFApackage",
+      "entrypoint": "docassemble/RFApackage/data/questions/RFApackage.yml",
+      "attachment_variable": "RFAcomplaintonbehalfofminor",
+      "title": "Complaint for Relief from Abuse on Behalf of a Child",
+      "form_id": "400-00150CC",
+      "template_paths": [
+        "docassemble/RFApackage/data/templates/RFAcomplaint_addendum.docx",
+        "docassemble/RFApackage/data/templates/5_RFA-complaint-on-behalf-of-minor.pdf"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-RFApackage/blob/734f2d97d951c2034d76950cc49f9fa621b7282f/docassemble/RFApackage/data/templates/RFAcomplaint_addendum.docx",
+        "https://github.com/LSVermont/docassemble-RFApackage/blob/734f2d97d951c2034d76950cc49f9fa621b7282f/docassemble/RFApackage/data/templates/5_RFA-complaint-on-behalf-of-minor.pdf",
+        "https://www.vtcourts.gov/family/relief-abuse"
+      ],
+      "publication_status": "linked_from_root",
+      "filing_status": "court_filing",
+      "exclusion_reason": null,
+      "stage": "initial",
+      "filer_role": "applicant/petitioner",
+      "case_categories": [
+        "Family"
+      ],
+      "case_types": [
+        "Relief from Abuse on Behalf of a Minor"
+      ],
+      "filing_type_labels": [
+        "Initial Filing"
+      ],
+      "search_queries": [
+        "complaint for relief from abuse on behalf of a child",
+        "400-00150CC"
+      ],
+      "mapping_status": "verified_label",
+      "mapping_evidence": [
+        "Case-start complaint; Vermont judiciary FAQ uses Initial Filing for new Civil/Family/Probate matters, and dated live catalog confirms code 9563 Small Claims or 9564 Family RFA for county units."
+      ]
+    },
+    {
+      "id": "docassemble-rfapackage-rfaaffidavit-3-rfa-affidavit",
+      "repo": "LSVermont/docassemble-RFApackage",
+      "entrypoint": "docassemble/RFApackage/data/questions/RFApackage.yml",
+      "attachment_variable": "RFAaffidavit",
+      "title": "Affidavit in Support of Relief from Abuse Complaint",
+      "form_id": "400-00151",
+      "template_paths": [
+        "docassemble/RFApackage/data/templates/RFAaffidavit_addendum.docx",
+        "docassemble/RFApackage/data/templates/3_RFA-affidavit.pdf"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-RFApackage/blob/734f2d97d951c2034d76950cc49f9fa621b7282f/docassemble/RFApackage/data/templates/RFAaffidavit_addendum.docx",
+        "https://github.com/LSVermont/docassemble-RFApackage/blob/734f2d97d951c2034d76950cc49f9fa621b7282f/docassemble/RFApackage/data/templates/3_RFA-affidavit.pdf",
+        "https://www.vtcourts.gov/family/relief-abuse"
+      ],
+      "publication_status": "linked_from_root",
+      "filing_status": "court_filing",
+      "exclusion_reason": null,
+      "stage": "initial",
+      "filer_role": "applicant/petitioner",
+      "case_categories": [
+        "Family"
+      ],
+      "case_types": [
+        "Relief from Abuse",
+        "Relief from Abuse on Behalf of a Minor"
+      ],
+      "filing_type_labels": [],
+      "search_queries": [
+        "affidavit in support of relief from abuse complaint",
+        "400-00151N"
+      ],
+      "mapping_status": "candidate",
+      "mapping_evidence": [
+        "The repository PDF itself prints 400-00151 (07/2024); current Judiciary RFA page lists 400-00151N. Preserve the printed source ID and treat suffix/version variance as unresolved."
+      ]
+    },
+    {
+      "id": "docassemble-rfapackage-rfaaffidavitonbehalfofminor-6-rfa-affidavit-on-behalf-of-minor",
+      "repo": "LSVermont/docassemble-RFApackage",
+      "entrypoint": "docassemble/RFApackage/data/questions/RFApackage.yml",
+      "attachment_variable": "RFAaffidavitonbehalfofminor",
+      "title": "Affidavit in Support of Relief from Abuse Complaint for Child",
+      "form_id": "400-00151M",
+      "template_paths": [
+        "docassemble/RFApackage/data/templates/RFAaffidavit_addendum.docx",
+        "docassemble/RFApackage/data/templates/6_RFA-affidavit-on-behalf-of-minor.pdf"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-RFApackage/blob/734f2d97d951c2034d76950cc49f9fa621b7282f/docassemble/RFApackage/data/templates/RFAaffidavit_addendum.docx",
+        "https://github.com/LSVermont/docassemble-RFApackage/blob/734f2d97d951c2034d76950cc49f9fa621b7282f/docassemble/RFApackage/data/templates/6_RFA-affidavit-on-behalf-of-minor.pdf",
+        "https://www.vtcourts.gov/family/relief-abuse"
+      ],
+      "publication_status": "linked_from_root",
+      "filing_status": "court_filing",
+      "exclusion_reason": null,
+      "stage": "initial",
+      "filer_role": "applicant/petitioner",
+      "case_categories": [
+        "Family"
+      ],
+      "case_types": [
+        "Relief from Abuse on Behalf of a Minor"
+      ],
+      "filing_type_labels": [],
+      "search_queries": [
+        "affidavit in support of relief from abuse complaint for child",
+        "400-00151M"
+      ],
+      "mapping_status": "candidate",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-rfapackage-rfaconfidentialcontactinfo-4-rfa-confidential-contact-info",
+      "repo": "LSVermont/docassemble-RFApackage",
+      "entrypoint": "docassemble/RFApackage/data/questions/RFApackage.yml",
+      "attachment_variable": "RFAconfidentialcontactinfo",
+      "title": "Confidential Notification for Relief from Abuse",
+      "form_id": "400-00156",
+      "template_paths": [
+        "docassemble/RFApackage/data/templates/4_RFA-confidential-contact-info.pdf"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-RFApackage/blob/734f2d97d951c2034d76950cc49f9fa621b7282f/docassemble/RFApackage/data/templates/4_RFA-confidential-contact-info.pdf",
+        "https://www.vtcourts.gov/family/relief-abuse"
+      ],
+      "publication_status": "linked_from_root",
+      "filing_status": "court_filing",
+      "exclusion_reason": null,
+      "stage": "initial",
+      "filer_role": "applicant/petitioner",
+      "case_categories": [
+        "Family"
+      ],
+      "case_types": [
+        "Relief from Abuse",
+        "Relief from Abuse on Behalf of a Minor"
+      ],
+      "filing_type_labels": [],
+      "search_queries": [
+        "confidential notification for relief from abuse",
+        "400-00156"
+      ],
+      "mapping_status": "candidate",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-rfapackage-rfaserviceinfo-2-rfa-service-info",
+      "repo": "LSVermont/docassemble-RFApackage",
+      "entrypoint": "docassemble/RFApackage/data/questions/RFApackage.yml",
+      "attachment_variable": "RFAserviceinfo",
+      "title": "Protection Order Service Information",
+      "form_id": "DPS-132",
+      "template_paths": [
+        "docassemble/RFApackage/data/templates/2_RFA-service-info.pdf"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-RFApackage/blob/734f2d97d951c2034d76950cc49f9fa621b7282f/docassemble/RFApackage/data/templates/2_RFA-service-info.pdf",
+        "https://www.vtcourts.gov/family/relief-abuse"
+      ],
+      "publication_status": "linked_from_root",
+      "filing_status": "court_filing",
+      "exclusion_reason": null,
+      "stage": "initial",
+      "filer_role": "applicant/petitioner",
+      "case_categories": [
+        "Family"
+      ],
+      "case_types": [
+        "Relief from Abuse",
+        "Relief from Abuse on Behalf of a Minor"
+      ],
+      "filing_type_labels": [],
+      "search_queries": [
+        "protection order service information",
+        "DPS-132"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vt813-vt-financial-form-813a-post-interview-instructions-vt-813a-next-steps-docx",
+      "repo": "LSVermont/docassemble-VT813",
+      "entrypoint": "docassemble/VT813/data/questions/VT_813.yml",
+      "attachment_variable": "VT_financial_form_813a_post_interview_instructions",
+      "title": "FINANCIAL AFFIDAVIT",
+      "form_id": null,
+      "template_paths": [
+        "docassemble/VT813/data/templates/VT_813A_next_steps.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VT813/blob/ccd5ee5c0ef8540e5ce887c2d8de6557ee769e3e/docassemble/VT813/data/templates/VT_813A_next_steps.docx"
+      ],
+      "publication_status": "linked_from_root",
+      "filing_status": "noncourt",
+      "exclusion_reason": "Instructions or post-interview guidance, not a court filing.",
+      "stage": "unknown",
+      "filer_role": "party",
+      "case_categories": [],
+      "case_types": [],
+      "filing_type_labels": [],
+      "search_queries": [
+        "financial affidavit",
+        "400-813A"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vt813-vt-financial-form-813a-attachment-vt-financial-form-813a-pdf",
+      "repo": "LSVermont/docassemble-VT813",
+      "entrypoint": "docassemble/VT813/data/questions/VT_813.yml",
+      "attachment_variable": "vt_financial_form_813A_attachment",
+      "title": "Financial Affidavit 813A",
+      "form_id": "400-00813A",
+      "template_paths": [
+        "docassemble/VT813/data/templates/VT_813A_addendum.docx",
+        "docassemble/VT813/data/templates/VT_financial_form_813A.pdf"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VT813/blob/ccd5ee5c0ef8540e5ce887c2d8de6557ee769e3e/docassemble/VT813/data/templates/VT_813A_addendum.docx",
+        "https://github.com/LSVermont/docassemble-VT813/blob/ccd5ee5c0ef8540e5ce887c2d8de6557ee769e3e/docassemble/VT813/data/templates/VT_financial_form_813A.pdf",
+        "https://www.vtcourts.gov/sites/default/files/documents/400-00813A.pdf"
+      ],
+      "publication_status": "linked_from_root",
+      "filing_status": "court_filing",
+      "exclusion_reason": null,
+      "stage": "unknown",
+      "filer_role": "party",
+      "case_categories": [
+        "Family"
+      ],
+      "case_types": [],
+      "filing_type_labels": [
+        "813A Financial Affidavit"
+      ],
+      "search_queries": [
+        "financial affidavit 813a",
+        "400-00813A",
+        "financial affidavit"
+      ],
+      "mapping_status": "candidate",
+      "mapping_evidence": [
+        "Live provider label-index 2026-10-13: exact normalized filing label “813A Financial Affidavit” found. initial and subsequent stages; live catalog contains exact label. Scope/type evidence should be validated before court-level eligibility."
+      ]
+    },
+    {
+      "id": "docassemble-vt813-vtfinaffselfemplpart-attachment-vtfinaffselfemplpart",
+      "repo": "LSVermont/docassemble-VT813",
+      "entrypoint": "docassemble/VT813/data/questions/VTFinAffSelfEmplPart.yml",
+      "attachment_variable": "vtfinaffselfemplpart_attachment",
+      "title": "813A Financial - self-employment worksheet",
+      "form_id": null,
+      "template_paths": [
+        "EXTERNAL:docassemble-VTFinAffSelfEmplPart/docassemble/VTFinAffSelfEmplPart/data/templates/a6finaffweaverselfemplpart.pdf"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTFinAffSelfEmplPart/blob/4ef915d225c159153560423585f2a6865f4f53e9/docassemble/VTFinAffSelfEmplPart/data/templates/a6finaffweaverselfemplpart.pdf"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "court_filing",
+      "exclusion_reason": null,
+      "stage": "unknown",
+      "filer_role": "party",
+      "case_categories": [
+        "Family"
+      ],
+      "case_types": [],
+      "filing_type_labels": [],
+      "search_queries": [
+        "813a financial - self-employment worksheet"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vt813b-vt-813b-post-interview-instructions-vt-813b-next-steps-docx",
+      "repo": "LSVermont/docassemble-VT813B",
+      "entrypoint": "docassemble/VT813B/data/questions/VT_813B.yml",
+      "attachment_variable": "VT_813B_post_interview_instructions",
+      "title": "Financial Affidavit 813B",
+      "form_id": null,
+      "template_paths": [
+        "docassemble/VT813B/data/templates/VT_813B_next_steps.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VT813B/blob/a9f31f686cbf24490056994a412fa3c515326b4c/docassemble/VT813B/data/templates/VT_813B_next_steps.docx"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "noncourt",
+      "exclusion_reason": "Instructions or post-interview guidance, not a court filing.",
+      "stage": "unknown",
+      "filer_role": "party",
+      "case_categories": [],
+      "case_types": [],
+      "filing_type_labels": [],
+      "search_queries": [
+        "financial affidavit 813b",
+        "400-00813B"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vt813b-vt-813b-attachment-vt-813b-pdf",
+      "repo": "LSVermont/docassemble-VT813B",
+      "entrypoint": "docassemble/VT813B/data/questions/VT_813B.yml",
+      "attachment_variable": "VT_813B_attachment",
+      "title": "Financial Affidavit 813B",
+      "form_id": "400-00813B",
+      "template_paths": [
+        "docassemble/VT813B/data/templates/VT_813B.pdf",
+        "EXTERNAL:docassemble-VTFeeWaiver/docassemble/VTFeeWaiver/data/templates/VT_fee_waiver_addendum.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VT813B/blob/a9f31f686cbf24490056994a412fa3c515326b4c/docassemble/VT813B/data/templates/VT_813B.pdf",
+        "https://www.vtcourts.gov/sites/default/files/documents/400-00813B_2.pdf",
+        "https://github.com/LSVermont/docassemble-VTFeeWaiver/blob/2e18ea6a5d86c2d38ad31571649d8f8ddb154ae5/docassemble/VTFeeWaiver/data/templates/VT_fee_waiver_addendum.docx"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "court_filing",
+      "exclusion_reason": null,
+      "stage": "unknown",
+      "filer_role": "party",
+      "case_categories": [
+        "Family"
+      ],
+      "case_types": [],
+      "filing_type_labels": [
+        "813B Financial Affidavit"
+      ],
+      "search_queries": [
+        "financial affidavit 813b",
+        "400-00813B",
+        "financial affidavit"
+      ],
+      "mapping_status": "candidate",
+      "mapping_evidence": [
+        "Live provider label-index 2026-10-13: exact normalized filing label “813B Financial Affidavit” found. initial and subsequent stages; live catalog contains exact label. Scope/type evidence should be validated before court-level eligibility.",
+        "Source anomaly: VT_813B.yml points its overflow addendum to the fee-waiver DOCX (whose content references VT_fee_waiver_attachment), not an 813B addendum. The main 813B PDF is valid; addendum output is uncertain."
+      ]
+    },
+    {
+      "id": "docassemble-vtanswertoeviction-eviction-defender-post-interview-instructions-eviction-helper-next-steps-docx",
+      "repo": "LSVermont/docassemble-VTAnswerToEviction",
+      "entrypoint": "docassemble/VTAnswerToEviction/data/questions/shared.yml",
+      "attachment_variable": "eviction_defender_post_interview_instructions",
+      "title": "NEXT STEPS - Instructions for filing these forms with the court and other party",
+      "form_id": null,
+      "template_paths": [
+        "docassemble/VTAnswerToEviction/data/templates/eviction_helper_next_steps.docx",
+        "docassemble/VTAnswerToEviction/data/templates/motion_to_continue.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTAnswerToEviction/blob/662275e9bcfabaef1c0e0ae1c6902100ae3ff09f/docassemble/VTAnswerToEviction/data/templates/eviction_helper_next_steps.docx",
+        "https://github.com/LSVermont/docassemble-VTAnswerToEviction/blob/662275e9bcfabaef1c0e0ae1c6902100ae3ff09f/docassemble/VTAnswerToEviction/data/templates/motion_to_continue.docx"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "noncourt",
+      "exclusion_reason": "Instructions or post-interview guidance, not a court filing.",
+      "stage": "subsequent",
+      "filer_role": "tenant/defendant",
+      "case_categories": [],
+      "case_types": [],
+      "filing_type_labels": [],
+      "search_queries": [
+        "next steps - instructions for filing these forms with the court and other party"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vtanswertoeviction-eviction-motion-to-continue-attachment-eviction-motion-to-continue-docx",
+      "repo": "LSVermont/docassemble-VTAnswerToEviction",
+      "entrypoint": "docassemble/VTAnswerToEviction/data/questions/shared.yml",
+      "attachment_variable": "eviction_motion_to_continue_attachment",
+      "title": "Postpone your eviction hearing",
+      "form_id": null,
+      "template_paths": [
+        "docassemble/VTAnswerToEviction/data/templates/eviction_helper_next_steps.docx",
+        "docassemble/VTAnswerToEviction/data/templates/motion_to_continue.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTAnswerToEviction/blob/662275e9bcfabaef1c0e0ae1c6902100ae3ff09f/docassemble/VTAnswerToEviction/data/templates/eviction_helper_next_steps.docx",
+        "https://github.com/LSVermont/docassemble-VTAnswerToEviction/blob/662275e9bcfabaef1c0e0ae1c6902100ae3ff09f/docassemble/VTAnswerToEviction/data/templates/motion_to_continue.docx"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "court_filing",
+      "exclusion_reason": null,
+      "stage": "subsequent",
+      "filer_role": "tenant/defendant",
+      "case_categories": [],
+      "case_types": [],
+      "filing_type_labels": [],
+      "search_queries": [
+        "postpone your eviction hearing"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vtanswertoeviction-eviction-answer-attachment-answer-defenses-docx",
+      "repo": "LSVermont/docassemble-VTAnswerToEviction",
+      "entrypoint": "docassemble/VTAnswerToEviction/data/questions/shared.yml",
+      "attachment_variable": "eviction_answer_attachment",
+      "title": "Answer",
+      "form_id": null,
+      "template_paths": [
+        "docassemble/VTAnswerToEviction/data/templates/answer_defenses.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTAnswerToEviction/blob/662275e9bcfabaef1c0e0ae1c6902100ae3ff09f/docassemble/VTAnswerToEviction/data/templates/answer_defenses.docx"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "court_filing",
+      "exclusion_reason": null,
+      "stage": "subsequent",
+      "filer_role": "tenant/defendant",
+      "case_categories": [
+        "Civil"
+      ],
+      "case_types": [
+        "Eviction"
+      ],
+      "filing_type_labels": [],
+      "search_queries": [
+        "answer"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vtanswertoeviction-eviction-motion-for-leave-attachment-motion-for-leave-to-file-docx",
+      "repo": "LSVermont/docassemble-VTAnswerToEviction",
+      "entrypoint": "docassemble/VTAnswerToEviction/data/questions/shared.yml",
+      "attachment_variable": "eviction_motion_for_leave_attachment",
+      "title": "Motion for Leave to File Responsive Pleadings",
+      "form_id": null,
+      "template_paths": [
+        "docassemble/VTAnswerToEviction/data/templates/motion_for_leave_to_file.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTAnswerToEviction/blob/662275e9bcfabaef1c0e0ae1c6902100ae3ff09f/docassemble/VTAnswerToEviction/data/templates/motion_for_leave_to_file.docx"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "court_filing",
+      "exclusion_reason": null,
+      "stage": "subsequent",
+      "filer_role": "tenant/defendant",
+      "case_categories": [
+        "Civil"
+      ],
+      "case_types": [
+        "Eviction"
+      ],
+      "filing_type_labels": [],
+      "search_queries": [
+        "motion for leave to file responsive pleadings"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vtanswertoeviction-eviction-discovery-attachment-discovery-docx",
+      "repo": "LSVermont/docassemble-VTAnswerToEviction",
+      "entrypoint": "docassemble/VTAnswerToEviction/data/questions/shared.yml",
+      "attachment_variable": "eviction_discovery_attachment",
+      "title": "Discovery",
+      "form_id": null,
+      "template_paths": [
+        "docassemble/VTAnswerToEviction/data/templates/Discovery.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTAnswerToEviction/blob/662275e9bcfabaef1c0e0ae1c6902100ae3ff09f/docassemble/VTAnswerToEviction/data/templates/Discovery.docx"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "court_filing",
+      "exclusion_reason": null,
+      "stage": "subsequent",
+      "filer_role": "tenant/defendant",
+      "case_categories": [
+        "Civil"
+      ],
+      "case_types": [
+        "Eviction"
+      ],
+      "filing_type_labels": [],
+      "search_queries": [
+        "discovery"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vtanswertoeviction-motion-to-shorten-time-attachment-motion-to-shorten-time-docx",
+      "repo": "LSVermont/docassemble-VTAnswerToEviction",
+      "entrypoint": "docassemble/VTAnswerToEviction/data/questions/shared.yml",
+      "attachment_variable": "motion_to_shorten_time_attachment",
+      "title": "File a Motion to Shorten Time",
+      "form_id": null,
+      "template_paths": [
+        "docassemble/VTAnswerToEviction/data/templates/motion_to_shorten_time.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTAnswerToEviction/blob/662275e9bcfabaef1c0e0ae1c6902100ae3ff09f/docassemble/VTAnswerToEviction/data/templates/motion_to_shorten_time.docx"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "court_filing",
+      "exclusion_reason": null,
+      "stage": "subsequent",
+      "filer_role": "tenant/defendant",
+      "case_categories": [
+        "Civil"
+      ],
+      "case_types": [
+        "Eviction"
+      ],
+      "filing_type_labels": [],
+      "search_queries": [
+        "file a motion to shorten time"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vtanswertoeviction-motion-to-dismiss-attachment-motion-to-dismiss-docx",
+      "repo": "LSVermont/docassemble-VTAnswerToEviction",
+      "entrypoint": "docassemble/VTAnswerToEviction/data/questions/shared.yml",
+      "attachment_variable": "motion_to_dismiss_attachment",
+      "title": "Motion to Dismiss",
+      "form_id": null,
+      "template_paths": [
+        "docassemble/VTAnswerToEviction/data/templates/motion_to_dismiss.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTAnswerToEviction/blob/662275e9bcfabaef1c0e0ae1c6902100ae3ff09f/docassemble/VTAnswerToEviction/data/templates/motion_to_dismiss.docx"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "court_filing",
+      "exclusion_reason": null,
+      "stage": "subsequent",
+      "filer_role": "tenant/defendant",
+      "case_categories": [
+        "Civil"
+      ],
+      "case_types": [
+        "Eviction"
+      ],
+      "filing_type_labels": [],
+      "search_queries": [
+        "motion to dismiss"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vtanswertoeviction-notice-of-hearing-attachment-notice-of-hearing-docx",
+      "repo": "LSVermont/docassemble-VTAnswerToEviction",
+      "entrypoint": "docassemble/VTAnswerToEviction/data/questions/shared.yml",
+      "attachment_variable": "notice_of_hearing_attachment",
+      "title": "File a Notice of Hearing",
+      "form_id": null,
+      "template_paths": [
+        "docassemble/VTAnswerToEviction/data/templates/notice_of_hearing.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTAnswerToEviction/blob/662275e9bcfabaef1c0e0ae1c6902100ae3ff09f/docassemble/VTAnswerToEviction/data/templates/notice_of_hearing.docx"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "court_filing",
+      "exclusion_reason": null,
+      "stage": "subsequent",
+      "filer_role": "tenant/defendant",
+      "case_categories": [
+        "Civil"
+      ],
+      "case_types": [
+        "Eviction"
+      ],
+      "filing_type_labels": [],
+      "search_queries": [
+        "file a notice of hearing"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vtanswertoeviction-motion-to-set-aside-attachment-motion-to-set-aside-docx",
+      "repo": "LSVermont/docassemble-VTAnswerToEviction",
+      "entrypoint": "docassemble/VTAnswerToEviction/data/questions/shared.yml",
+      "attachment_variable": "motion_to_set_aside_attachment",
+      "title": "File a Motion to Set Aside Judgment",
+      "form_id": null,
+      "template_paths": [
+        "docassemble/VTAnswerToEviction/data/templates/motion_to_set_aside.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTAnswerToEviction/blob/662275e9bcfabaef1c0e0ae1c6902100ae3ff09f/docassemble/VTAnswerToEviction/data/templates/motion_to_set_aside.docx"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "court_filing",
+      "exclusion_reason": null,
+      "stage": "subsequent",
+      "filer_role": "tenant/defendant",
+      "case_categories": [
+        "Civil"
+      ],
+      "case_types": [
+        "Eviction"
+      ],
+      "filing_type_labels": [],
+      "search_queries": [
+        "file a motion to set aside judgment"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vtanswertoeviction-letter-to-request-repairs-attachment-letter-to-request-repairs",
+      "repo": "LSVermont/docassemble-VTAnswerToEviction",
+      "entrypoint": "docassemble/VTAnswerToEviction/data/questions/letter_to_request_repairs.yml",
+      "attachment_variable": "letter_to_request_repairs_attachment",
+      "title": "Letter to request repairs",
+      "form_id": null,
+      "template_paths": [
+        "docassemble/VTAnswerToEviction/data/templates/letter_to_request_repairs.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTAnswerToEviction/blob/662275e9bcfabaef1c0e0ae1c6902100ae3ff09f/docassemble/VTAnswerToEviction/data/templates/letter_to_request_repairs.docx"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "noncourt",
+      "exclusion_reason": "Private landlord request letter, not a court filing.",
+      "stage": "subsequent",
+      "filer_role": "tenant/defendant",
+      "case_categories": [],
+      "case_types": [],
+      "filing_type_labels": [],
+      "search_queries": [
+        "letter to request repairs"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vtanswertoeviction-motion-for-leave-to-file-attachment-motion-for-leave-to-file-answer-docx",
+      "repo": "LSVermont/docassemble-VTAnswerToEviction",
+      "entrypoint": "docassemble/VTAnswerToEviction/data/questions/file_a_motion.yml",
+      "attachment_variable": "motion_for_leave_to_file_attachment",
+      "title": "File a Motion for Leave to File Responsive Pleadings",
+      "form_id": null,
+      "template_paths": [
+        "docassemble/VTAnswerToEviction/data/templates/motion_for_leave_to_file.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTAnswerToEviction/blob/662275e9bcfabaef1c0e0ae1c6902100ae3ff09f/docassemble/VTAnswerToEviction/data/templates/motion_for_leave_to_file.docx"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "court_filing",
+      "exclusion_reason": null,
+      "stage": "subsequent",
+      "filer_role": "tenant/defendant",
+      "case_categories": [
+        "Civil"
+      ],
+      "case_types": [
+        "Eviction"
+      ],
+      "filing_type_labels": [],
+      "search_queries": [
+        "file a motion for leave to file responsive pleadings"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vtanswertoeviction-motion-to-elevate-security-attachment-motion-to-elevate-security-docx",
+      "repo": "LSVermont/docassemble-VTAnswerToEviction",
+      "entrypoint": "docassemble/VTAnswerToEviction/data/questions/file_a_motion.yml",
+      "attachment_variable": "motion_to_elevate_security_attachment",
+      "title": "File a Motion to Elevate Security",
+      "form_id": null,
+      "template_paths": [
+        "docassemble/VTAnswerToEviction/data/templates/motion_to_elevate_security.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTAnswerToEviction/blob/662275e9bcfabaef1c0e0ae1c6902100ae3ff09f/docassemble/VTAnswerToEviction/data/templates/motion_to_elevate_security.docx"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "court_filing",
+      "exclusion_reason": null,
+      "stage": "subsequent",
+      "filer_role": "tenant/defendant",
+      "case_categories": [
+        "Civil"
+      ],
+      "case_types": [
+        "Eviction"
+      ],
+      "filing_type_labels": [],
+      "search_queries": [
+        "file a motion to elevate security"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vtanswertoeviction-file-a-motion-helper-next-steps-attachment-next-steps-docx",
+      "repo": "LSVermont/docassemble-VTAnswerToEviction",
+      "entrypoint": "docassemble/VTAnswerToEviction/data/questions/file_a_motion.yml",
+      "attachment_variable": "file_a_motion_helper_next_steps_attachment",
+      "title": "Next Steps to File a Motion",
+      "form_id": null,
+      "template_paths": [
+        "docassemble/VTAnswerToEviction/data/templates/file_a_motion_helper_next_steps.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTAnswerToEviction/blob/662275e9bcfabaef1c0e0ae1c6902100ae3ff09f/docassemble/VTAnswerToEviction/data/templates/file_a_motion_helper_next_steps.docx"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "noncourt",
+      "exclusion_reason": "Instructions or post-interview guidance, not a court filing.",
+      "stage": "subsequent",
+      "filer_role": "tenant/defendant",
+      "case_categories": [],
+      "case_types": [],
+      "filing_type_labels": [],
+      "search_queries": [
+        "next steps to file a motion"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vtcertificateofservice-vtcertificateofservice-post-interview-instructions-vtcertificateofservice-next-steps-docx",
+      "repo": "LSVermont/docassemble-VTCertificateOfService",
+      "entrypoint": "docassemble/VTCertificateOfService/data/questions/VTCertificateOfService_to_include.yml",
+      "attachment_variable": "VTCertificateOfService_Post_interview_instructions",
+      "title": "Instructions",
+      "form_id": null,
+      "template_paths": [
+        "docassemble/VTCertificateOfService/data/templates/VTCertificateOfService_next_steps.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTCertificateOfService/blob/65dce3e35670ef079201ca2ec6c3ecbece5d7328/docassemble/VTCertificateOfService/data/templates/VTCertificateOfService_next_steps.docx"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "noncourt",
+      "exclusion_reason": "Instructions or post-interview guidance, not a court filing.",
+      "stage": "subsequent",
+      "filer_role": "serving party",
+      "case_categories": [],
+      "case_types": [],
+      "filing_type_labels": [],
+      "search_queries": [
+        "instructions"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vtcertificateofservice-vtcertificateofservice-attachment-vtcertificateofservice",
+      "repo": "LSVermont/docassemble-VTCertificateOfService",
+      "entrypoint": "docassemble/VTCertificateOfService/data/questions/VTCertificateOfService.yml",
+      "attachment_variable": "VTCertificateOfService_attachment",
+      "title": "CERTIFICATE OF SERVICE",
+      "form_id": "600-00264",
+      "template_paths": [
+        "docassemble/VTCertificateOfService/data/templates/G_certificate_of_service.pdf",
+        "docassemble/VTCertificateOfService/data/templates/VTCertificateOfService_addendum.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTCertificateOfService/blob/65dce3e35670ef079201ca2ec6c3ecbece5d7328/docassemble/VTCertificateOfService/data/templates/G_certificate_of_service.pdf",
+        "https://github.com/LSVermont/docassemble-VTCertificateOfService/blob/65dce3e35670ef079201ca2ec6c3ecbece5d7328/docassemble/VTCertificateOfService/data/templates/VTCertificateOfService_addendum.docx",
+        "https://github.com/LSVermont/docassemble-VTCertificateOfService/blob/65dce3e35670ef079201ca2ec6c3ecbece5d7328/docassemble/VTCertificateOfService/data/questions/VTCertificateOfService_to_include.yml"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "court_filing",
+      "exclusion_reason": null,
+      "stage": "both",
+      "filer_role": "serving party",
+      "case_categories": [
+        "Multiple"
+      ],
+      "case_types": [
+        "Multiple case types"
+      ],
+      "filing_type_labels": [
+        "Certificate of Service"
+      ],
+      "search_queries": [
+        "certificate of service",
+        "proof I mailed court papers",
+        "600-00264"
+      ],
+      "mapping_status": "candidate",
+      "mapping_evidence": [
+        "Live provider label-index 2026-10-13: exact normalized filing label “Certificate of Service” found. Live catalog contains Certificate of Service in both stages; exact court/type choice varies."
+      ]
+    },
+    {
+      "id": "docassemble-vtcertificateofservicegeneral-certificate-of-service-attachment-certificate-of-service-pdf",
+      "repo": "LSVermont/docassemble-VTCertificateOfServiceGeneral",
+      "entrypoint": "docassemble/VTCertificateOfServiceGeneral/data/questions/general_certificate_of_service_main.yml",
+      "attachment_variable": "certificate_of_service_attachment",
+      "title": "CERTIFICATE OF SERVICE",
+      "form_id": "600-00264",
+      "template_paths": [
+        "docassemble/VTCertificateOfServiceGeneral/data/templates/general_certificate_of_service_600_00264.pdf",
+        "docassemble/VTCertificateOfServiceGeneral/data/templates/certificate_of_service_addendum.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTCertificateOfServiceGeneral/blob/12bb9fef1452275a042f501df9cf1119d265de2e/docassemble/VTCertificateOfServiceGeneral/data/templates/general_certificate_of_service_600_00264.pdf",
+        "https://github.com/LSVermont/docassemble-VTCertificateOfServiceGeneral/blob/12bb9fef1452275a042f501df9cf1119d265de2e/docassemble/VTCertificateOfServiceGeneral/data/templates/certificate_of_service_addendum.docx",
+        "https://github.com/LSVermont/docassemble-VTCertificateOfServiceGeneral/blob/12bb9fef1452275a042f501df9cf1119d265de2e/docassemble/VTCertificateOfServiceGeneral/data/questions/general_certificate_of_service_to_include.yml"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "court_filing",
+      "exclusion_reason": null,
+      "stage": "both",
+      "filer_role": "serving party",
+      "case_categories": [
+        "Multiple"
+      ],
+      "case_types": [
+        "Multiple case types"
+      ],
+      "filing_type_labels": [
+        "Certificate of Service"
+      ],
+      "search_queries": [
+        "certificate of service",
+        "proof of service",
+        "600-00264"
+      ],
+      "mapping_status": "candidate",
+      "mapping_evidence": [
+        "Live provider label-index 2026-10-13: exact normalized filing label “Certificate of Service” found. Live catalog contains Certificate of Service in both stages; exact court/type choice varies."
+      ]
+    },
+    {
+      "id": "docassemble-vtcertificateofservicegeneral-certificate-of-service-post-interview-instructions-general-certificate-of-service-next-steps-docx",
+      "repo": "LSVermont/docassemble-VTCertificateOfServiceGeneral",
+      "entrypoint": "docassemble/VTCertificateOfServiceGeneral/data/questions/general_certificate_of_service_main.yml",
+      "attachment_variable": "certificate_of_service_post_interview_instructions",
+      "title": "NEXT STEPS - Instructions for filing this form with the court",
+      "form_id": null,
+      "template_paths": [
+        "docassemble/VTCertificateOfServiceGeneral/data/templates/general_certificate_of_service_next_steps.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTCertificateOfServiceGeneral/blob/12bb9fef1452275a042f501df9cf1119d265de2e/docassemble/VTCertificateOfServiceGeneral/data/templates/general_certificate_of_service_next_steps.docx"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "noncourt",
+      "exclusion_reason": "Instructions or post-interview guidance, not a court filing.",
+      "stage": "subsequent",
+      "filer_role": "serving party",
+      "case_categories": [],
+      "case_types": [],
+      "filing_type_labels": [],
+      "search_queries": [
+        "next steps - instructions for filing this form with the court"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vtdisclosureofexemptincome-disclosure-of-exempt-income-post-interview-instructions-disclosure-of-exempt-income-next-steps-docx",
+      "repo": "LSVermont/docassemble-VTDisclosureOfExemptIncome",
+      "entrypoint": "docassemble/VTDisclosureOfExemptIncome/data/questions/disclosure_of_exempt_income.yml",
+      "attachment_variable": "disclosure_of_exempt_income_Post_interview_instructions",
+      "title": "Instructions",
+      "form_id": null,
+      "template_paths": [
+        "docassemble/VTDisclosureOfExemptIncome/data/templates/disclosure_of_exempt_income_next_steps.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTDisclosureOfExemptIncome/blob/a8b979c0798189ef2269c1dce6ac45ca9bbc16fe/docassemble/VTDisclosureOfExemptIncome/data/templates/disclosure_of_exempt_income_next_steps.docx"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "noncourt",
+      "exclusion_reason": "Instructions or post-interview guidance, not a court filing.",
+      "stage": "subsequent",
+      "filer_role": "judgment debtor",
+      "case_categories": [],
+      "case_types": [],
+      "filing_type_labels": [],
+      "search_queries": [
+        "instructions"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vtdisclosureofexemptincome-disclosure-of-exempt-income-attachment-disclosure-of-exempt-income",
+      "repo": "LSVermont/docassemble-VTDisclosureOfExemptIncome",
+      "entrypoint": "docassemble/VTDisclosureOfExemptIncome/data/questions/disclosure_of_exempt_income.yml",
+      "attachment_variable": "disclosure_of_exempt_income_attachment",
+      "title": "Disclosure of Exempt Income",
+      "form_id": "100-00128",
+      "template_paths": [
+        "docassemble/VTDisclosureOfExemptIncome/data/templates/disclosure_of_exempt_income.pdf"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTDisclosureOfExemptIncome/blob/a8b979c0798189ef2269c1dce6ac45ca9bbc16fe/docassemble/VTDisclosureOfExemptIncome/data/templates/disclosure_of_exempt_income.pdf"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "court_filing",
+      "exclusion_reason": null,
+      "stage": "subsequent",
+      "filer_role": "judgment debtor",
+      "case_categories": [
+        "Civil"
+      ],
+      "case_types": [
+        "Civil debt collection"
+      ],
+      "filing_type_labels": [
+        "Small Claims - Disclosure of Exempt Income"
+      ],
+      "search_queries": [
+        "disclosure of exempt income",
+        "protect income from collection",
+        "100-00128"
+      ],
+      "mapping_status": "candidate",
+      "mapping_evidence": [
+        "Live provider label-index 2026-10-13: exact normalized filing label “Small Claims - Disclosure of Exempt Income” found. Live catalog has this exact label in subsequent-stage catalog."
+      ]
+    },
+    {
+      "id": "docassemble-vtdivorce-divorce-post-interview-instructions-es-divorce-next-steps-es-docx",
+      "repo": "LSVermont/docassemble-VTDivorce",
+      "entrypoint": "docassemble/VTDivorce/data/questions/language.yml",
+      "attachment_variable": "divorce_Post_interview_instructions_es",
+      "title": "PRÓXIMOS PASOS - Instrucciones para presentar estos formularios ante el tribunal",
+      "form_id": null,
+      "template_paths": [
+        "docassemble/VTDivorce/data/templates/divorce_next_steps_es.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTDivorce/blob/bcfdea4fd703a4dc2ff84fd4ea92220955308082/docassemble/VTDivorce/data/templates/divorce_next_steps_es.docx"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "noncourt",
+      "exclusion_reason": "Instructions or post-interview guidance, not a court filing.",
+      "stage": "initial",
+      "filer_role": "plaintiff/petitioner",
+      "case_categories": [],
+      "case_types": [],
+      "filing_type_labels": [],
+      "search_queries": [
+        "próximos pasos - instrucciones para presentar estos formularios ante el tribunal"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vtdivorce-divorce-no-kids-next-steps-es-divorce-no-kids-next-steps-es-docx",
+      "repo": "LSVermont/docassemble-VTDivorce",
+      "entrypoint": "docassemble/VTDivorce/data/questions/language.yml",
+      "attachment_variable": "divorce_no_kids_next_steps_es",
+      "title": "Próximos pasos para el divorcio (sin hijos)",
+      "form_id": null,
+      "template_paths": [
+        "docassemble/VTDivorce/data/templates/divorce_no_kids_next_steps_es.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTDivorce/blob/bcfdea4fd703a4dc2ff84fd4ea92220955308082/docassemble/VTDivorce/data/templates/divorce_no_kids_next_steps_es.docx"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "noncourt",
+      "exclusion_reason": "Instructions or post-interview guidance, not a court filing.",
+      "stage": "initial",
+      "filer_role": "plaintiff/petitioner",
+      "case_categories": [],
+      "case_types": [],
+      "filing_type_labels": [],
+      "search_queries": [
+        "próximos pasos para el divorcio (sin hijos)"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vtdivorce-divorce-post-interview-instructions-fr-divorce-next-steps-fr-docx",
+      "repo": "LSVermont/docassemble-VTDivorce",
+      "entrypoint": "docassemble/VTDivorce/data/questions/language.yml",
+      "attachment_variable": "divorce_Post_interview_instructions_fr",
+      "title": "PROCHAINES ÉTAPES - Instructions pour déposer ces formulaires auprès du tribunal",
+      "form_id": null,
+      "template_paths": [
+        "docassemble/VTDivorce/data/templates/divorce_next_steps_fr.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTDivorce/blob/bcfdea4fd703a4dc2ff84fd4ea92220955308082/docassemble/VTDivorce/data/templates/divorce_next_steps_fr.docx"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "noncourt",
+      "exclusion_reason": "Instructions or post-interview guidance, not a court filing.",
+      "stage": "initial",
+      "filer_role": "plaintiff/petitioner",
+      "case_categories": [],
+      "case_types": [],
+      "filing_type_labels": [],
+      "search_queries": [
+        "prochaines étapes - instructions pour déposer ces formulaires auprès du tribunal"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vtdivorce-divorce-no-kids-next-steps-fr-divorce-no-kids-next-steps-fr-docx",
+      "repo": "LSVermont/docassemble-VTDivorce",
+      "entrypoint": "docassemble/VTDivorce/data/questions/language.yml",
+      "attachment_variable": "divorce_no_kids_next_steps_fr",
+      "title": "Étapes suivantes pour le divorce (sans enfants)",
+      "form_id": null,
+      "template_paths": [
+        "docassemble/VTDivorce/data/templates/divorce_no_kids_next_steps_fr.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTDivorce/blob/bcfdea4fd703a4dc2ff84fd4ea92220955308082/docassemble/VTDivorce/data/templates/divorce_no_kids_next_steps_fr.docx"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "noncourt",
+      "exclusion_reason": "Instructions or post-interview guidance, not a court filing.",
+      "stage": "initial",
+      "filer_role": "plaintiff/petitioner",
+      "case_categories": [],
+      "case_types": [],
+      "filing_type_labels": [],
+      "search_queries": [
+        "étapes suivantes pour le divorce (sans enfants)"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vtdivorce-divorce-post-interview-instructions-ar-divorce-next-steps-ar-docx",
+      "repo": "LSVermont/docassemble-VTDivorce",
+      "entrypoint": "docassemble/VTDivorce/data/questions/language.yml",
+      "attachment_variable": "divorce_Post_interview_instructions_ar",
+      "title": "الخطوات التالية - تعليمات تقديم هذه النماذج إلى المحكمة",
+      "form_id": null,
+      "template_paths": [
+        "docassemble/VTDivorce/data/templates/divorce_next_steps_ar.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTDivorce/blob/bcfdea4fd703a4dc2ff84fd4ea92220955308082/docassemble/VTDivorce/data/templates/divorce_next_steps_ar.docx"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "noncourt",
+      "exclusion_reason": "Instructions or post-interview guidance, not a court filing.",
+      "stage": "initial",
+      "filer_role": "plaintiff/petitioner",
+      "case_categories": [],
+      "case_types": [],
+      "filing_type_labels": [],
+      "search_queries": [
+        "الخطوات التالية - تعليمات تقديم هذه النماذج إلى المحكمة"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vtdivorce-divorce-no-kids-next-steps-ar-divorce-no-kids-next-steps-ar-docx",
+      "repo": "LSVermont/docassemble-VTDivorce",
+      "entrypoint": "docassemble/VTDivorce/data/questions/language.yml",
+      "attachment_variable": "divorce_no_kids_next_steps_ar",
+      "title": "الخطوات التالية لقضية الطلاق (بدون أطفال)",
+      "form_id": null,
+      "template_paths": [
+        "docassemble/VTDivorce/data/templates/divorce_no_kids_next_steps_ar.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTDivorce/blob/bcfdea4fd703a4dc2ff84fd4ea92220955308082/docassemble/VTDivorce/data/templates/divorce_no_kids_next_steps_ar.docx"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "noncourt",
+      "exclusion_reason": "Instructions or post-interview guidance, not a court filing.",
+      "stage": "initial",
+      "filer_role": "plaintiff/petitioner",
+      "case_categories": [],
+      "case_types": [],
+      "filing_type_labels": [],
+      "search_queries": [
+        "الخطوات التالية لقضية الطلاق (بدون أطفال)"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vtdivorce-divorce-post-interview-instructions-ne-divorce-next-steps-ne-docx",
+      "repo": "LSVermont/docassemble-VTDivorce",
+      "entrypoint": "docassemble/VTDivorce/data/questions/language.yml",
+      "attachment_variable": "divorce_Post_interview_instructions_ne",
+      "title": "अर्को चरणहरू - अदालतमा यी फारमहरू दायर गर्ने निर्देशनहरू",
+      "form_id": null,
+      "template_paths": [
+        "docassemble/VTDivorce/data/templates/divorce_next_steps_ne.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTDivorce/blob/bcfdea4fd703a4dc2ff84fd4ea92220955308082/docassemble/VTDivorce/data/templates/divorce_next_steps_ne.docx"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "noncourt",
+      "exclusion_reason": "Instructions or post-interview guidance, not a court filing.",
+      "stage": "initial",
+      "filer_role": "plaintiff/petitioner",
+      "case_categories": [],
+      "case_types": [],
+      "filing_type_labels": [],
+      "search_queries": [
+        "अर्को चरणहरू - अदालतमा यी फारमहरू दायर गर्ने निर्देशनहरू"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vtdivorce-divorce-no-kids-next-steps-ne-divorce-no-kids-next-steps-ne-docx",
+      "repo": "LSVermont/docassemble-VTDivorce",
+      "entrypoint": "docassemble/VTDivorce/data/questions/language.yml",
+      "attachment_variable": "divorce_no_kids_next_steps_ne",
+      "title": "तलाकका लागि आगामी चरणहरू (बालबच्चा नभएमा)",
+      "form_id": null,
+      "template_paths": [
+        "docassemble/VTDivorce/data/templates/divorce_no_kids_next_steps_ne.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTDivorce/blob/bcfdea4fd703a4dc2ff84fd4ea92220955308082/docassemble/VTDivorce/data/templates/divorce_no_kids_next_steps_ne.docx"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "noncourt",
+      "exclusion_reason": "Instructions or post-interview guidance, not a court filing.",
+      "stage": "initial",
+      "filer_role": "plaintiff/petitioner",
+      "case_categories": [],
+      "case_types": [],
+      "filing_type_labels": [],
+      "search_queries": [
+        "तलाकका लागि आगामी चरणहरू (बालबच्चा नभएमा)"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vtdivorce-divorce-post-interview-instructions-divorce-next-steps-docx",
+      "repo": "LSVermont/docassemble-VTDivorce",
+      "entrypoint": "docassemble/VTDivorce/data/questions/divorce.yml",
+      "attachment_variable": "divorce_Post_interview_instructions",
+      "title": "NEXT STEPS - Instructions for filing these forms with the court",
+      "form_id": null,
+      "template_paths": [
+        "docassemble/VTDivorce/data/templates/divorce_next_steps.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTDivorce/blob/bcfdea4fd703a4dc2ff84fd4ea92220955308082/docassemble/VTDivorce/data/templates/divorce_next_steps.docx"
+      ],
+      "publication_status": "linked_from_root",
+      "filing_status": "noncourt",
+      "exclusion_reason": "Instructions or post-interview guidance, not a court filing.",
+      "stage": "initial",
+      "filer_role": "plaintiff/petitioner",
+      "case_categories": [],
+      "case_types": [],
+      "filing_type_labels": [],
+      "search_queries": [
+        "next steps - instructions for filing these forms with the court"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vtdivorce-divorce-no-kids-attachment-divorce-no-kids",
+      "repo": "LSVermont/docassemble-VTDivorce",
+      "entrypoint": "docassemble/VTDivorce/data/questions/divorce.yml",
+      "attachment_variable": "divorce_no_kids_attachment",
+      "title": "Complaint for Divorce, Legal Separation, or Dissolution No Children",
+      "form_id": "400-00836NoChildren",
+      "template_paths": [
+        "docassemble/VTDivorce/data/templates/divorce_no_kids_addendum.docx",
+        "docassemble/VTDivorce/data/templates/divorce_no_kids.pdf"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTDivorce/blob/bcfdea4fd703a4dc2ff84fd4ea92220955308082/docassemble/VTDivorce/data/templates/divorce_no_kids_addendum.docx",
+        "https://github.com/LSVermont/docassemble-VTDivorce/blob/bcfdea4fd703a4dc2ff84fd4ea92220955308082/docassemble/VTDivorce/data/templates/divorce_no_kids.pdf"
+      ],
+      "publication_status": "linked_from_root",
+      "filing_status": "court_filing",
+      "exclusion_reason": null,
+      "stage": "initial",
+      "filer_role": "plaintiff/petitioner",
+      "case_categories": [
+        "Family"
+      ],
+      "case_types": [
+        "Divorce"
+      ],
+      "filing_type_labels": [],
+      "search_queries": [
+        "400-00836NoChildren",
+        "complaint for divorce legal separation dissolution no children"
+      ],
+      "mapping_status": "candidate",
+      "mapping_evidence": [
+        "Inspected PDF footer: 400-00836NoChildren – Complaint for Divorce/Legal Separation/Dissolution No Children (04/2026)."
+      ]
+    },
+    {
+      "id": "docassemble-vtdivorce-divorce-with-kids-attachment-divorce-with-kids",
+      "repo": "LSVermont/docassemble-VTDivorce",
+      "entrypoint": "docassemble/VTDivorce/data/questions/divorce.yml",
+      "attachment_variable": "divorce_with_kids_attachment",
+      "title": "Complaint for Divorce, Legal Separation, or Dissolution with Children",
+      "form_id": "400-00836Children",
+      "template_paths": [
+        "docassemble/VTDivorce/data/templates/divorce_with_kids_addendum.docx",
+        "docassemble/VTDivorce/data/templates/divorce_with_kids.pdf"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTDivorce/blob/bcfdea4fd703a4dc2ff84fd4ea92220955308082/docassemble/VTDivorce/data/templates/divorce_with_kids_addendum.docx",
+        "https://github.com/LSVermont/docassemble-VTDivorce/blob/bcfdea4fd703a4dc2ff84fd4ea92220955308082/docassemble/VTDivorce/data/templates/divorce_with_kids.pdf"
+      ],
+      "publication_status": "linked_from_root",
+      "filing_status": "court_filing",
+      "exclusion_reason": null,
+      "stage": "initial",
+      "filer_role": "plaintiff/petitioner",
+      "case_categories": [
+        "Family"
+      ],
+      "case_types": [
+        "Divorce"
+      ],
+      "filing_type_labels": [],
+      "search_queries": [
+        "400-00836Children",
+        "complaint for divorce legal separation dissolution with children"
+      ],
+      "mapping_status": "candidate",
+      "mapping_evidence": [
+        "Inspected PDF footer: 400-00836Children – Complaint for Divorce/Legal Separation/Dissolution with Children (04/2026)."
+      ]
+    },
+    {
+      "id": "docassemble-vtdivorce-health-record-divorce-annulment-attachment-health-record-divorce-annulment",
+      "repo": "LSVermont/docassemble-VTDivorce",
+      "entrypoint": "docassemble/VTDivorce/data/questions/divorce.yml",
+      "attachment_variable": "Health_record_divorce_annulment_attachment",
+      "title": "Vermont Record of Divorce or Annulment",
+      "form_id": "VDH-VR-DIV-9/2009",
+      "template_paths": [
+        "docassemble/VTDivorce/data/templates/Health_record_divorce_annulment.pdf"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTDivorce/blob/bcfdea4fd703a4dc2ff84fd4ea92220955308082/docassemble/VTDivorce/data/templates/Health_record_divorce_annulment.pdf",
+        "https://www.vtcourts.gov/family/divorce/divorce-process",
+        "https://www.healthvermont.gov/stats/vital-records"
+      ],
+      "publication_status": "linked_from_root",
+      "filing_status": "court_filing",
+      "exclusion_reason": null,
+      "stage": "initial",
+      "filer_role": "plaintiff/petitioner",
+      "case_categories": [
+        "Family"
+      ],
+      "case_types": [
+        "Divorce"
+      ],
+      "filing_type_labels": [],
+      "search_queries": [
+        "VDH-VR-DIV-9/2009",
+        "Vermont record of divorce or annulment"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": [
+        "Vermont Judiciary lists the Department of Health Record of Divorce or Annulment (VDH-VR-DIV) among the forms to complete and file to start a divorce. Vermont Department of Health states the initiating party completes the record, files it with the court as part of the divorce proceeding, and the court clerk sends it to the Health Department after the decree becomes final. The form is therefore a court filing even though the clerk later forwards it to Vital Records."
+      ]
+    },
+    {
+      "id": "docassemble-vtdivorce-health-record-civil-union-attachment-health-record-civil-union",
+      "repo": "LSVermont/docassemble-VTDivorce",
+      "entrypoint": "docassemble/VTDivorce/data/questions/divorce.yml",
+      "attachment_variable": "Health_record_civil_union_attachment",
+      "title": "Vermont Record of Civil Union Dissolution or Annulment",
+      "form_id": "VDH-VR-DISS-2/2007",
+      "template_paths": [
+        "docassemble/VTDivorce/data/templates/Health_record_civil_union.pdf"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTDivorce/blob/bcfdea4fd703a4dc2ff84fd4ea92220955308082/docassemble/VTDivorce/data/templates/Health_record_civil_union.pdf",
+        "https://www.vtcourts.gov/family/divorce/civil-union-and-dissolution",
+        "https://www.healthvermont.gov/stats/vital-records"
+      ],
+      "publication_status": "linked_from_root",
+      "filing_status": "court_filing",
+      "exclusion_reason": null,
+      "stage": "initial",
+      "filer_role": "plaintiff/petitioner",
+      "case_categories": [
+        "Family"
+      ],
+      "case_types": [
+        "Divorce"
+      ],
+      "filing_type_labels": [],
+      "search_queries": [
+        "VDH-VR-DISS-2/2007",
+        "Vermont record of civil union dissolution or annulment"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": [
+        "Vermont Department of Health states the initiating party completes the Record of Civil Union Dissolution, files it with the court as part of the dissolution proceeding, and the court clerk sends it to the Health Department after the decree becomes final. The form is therefore a court filing even though the clerk later forwards it to Vital Records."
+      ]
+    },
+    {
+      "id": "docassemble-vtdivorce-confidential-info-form-attachment-confidential-info-form",
+      "repo": "LSVermont/docassemble-VTDivorce",
+      "entrypoint": "docassemble/VTDivorce/data/questions/divorce.yml",
+      "attachment_variable": "confidential_info_form_attachment",
+      "title": "Statement of Confidential Information",
+      "form_id": "400-00849",
+      "template_paths": [
+        "docassemble/VTDivorce/data/templates/confidential_info_form.pdf"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTDivorce/blob/bcfdea4fd703a4dc2ff84fd4ea92220955308082/docassemble/VTDivorce/data/templates/confidential_info_form.pdf",
+        "https://www.vtcourts.gov/sites/default/files/documents/400-00849.pdf"
+      ],
+      "publication_status": "linked_from_root",
+      "filing_status": "court_filing",
+      "exclusion_reason": null,
+      "stage": "initial",
+      "filer_role": "plaintiff/petitioner",
+      "case_categories": [
+        "Family"
+      ],
+      "case_types": [
+        "Divorce"
+      ],
+      "filing_type_labels": [],
+      "search_queries": [
+        "statement of confidential information",
+        "400-00832"
+      ],
+      "mapping_status": "candidate",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vtfamilycourtinfosheet-b-info-sheet-family-court-post-interview-instructions-b-info-sheet-family-court-next-steps-docx",
+      "repo": "LSVermont/docassemble-VTFamilyCourtInfoSheet",
+      "entrypoint": "docassemble/VTFamilyCourtInfoSheet/data/questions/family_court_info_sheet_to_include.yml",
+      "attachment_variable": "b_info_sheet_family_court_Post_interview_instructions",
+      "title": "Instructions",
+      "form_id": null,
+      "template_paths": [
+        "docassemble/VTFamilyCourtInfoSheet/data/templates/b_info_sheet_family_court_next_steps.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTFamilyCourtInfoSheet/blob/74b88a16cb5ce26344ead68fc04c2838525e191b/docassemble/VTFamilyCourtInfoSheet/data/templates/b_info_sheet_family_court_next_steps.docx"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "noncourt",
+      "exclusion_reason": "Instructions or post-interview guidance, not a court filing.",
+      "stage": "unknown",
+      "filer_role": "party",
+      "case_categories": [],
+      "case_types": [],
+      "filing_type_labels": [],
+      "search_queries": [
+        "instructions"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vtfamilycourtinfosheet-b-info-sheet-family-court-attachment-b-info-sheet-family-court",
+      "repo": "LSVermont/docassemble-VTFamilyCourtInfoSheet",
+      "entrypoint": "docassemble/VTFamilyCourtInfoSheet/data/questions/family_court_info_sheet_to_include.yml",
+      "attachment_variable": "b_info_sheet_family_court_attachment",
+      "title": "Family court information sheet",
+      "form_id": "400-00800",
+      "template_paths": [
+        "docassemble/VTFamilyCourtInfoSheet/data/templates/B_info_sheet_family_court.pdf"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTFamilyCourtInfoSheet/blob/74b88a16cb5ce26344ead68fc04c2838525e191b/docassemble/VTFamilyCourtInfoSheet/data/templates/B_info_sheet_family_court.pdf"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "court_filing",
+      "exclusion_reason": null,
+      "stage": "unknown",
+      "filer_role": "party",
+      "case_categories": [
+        "Family"
+      ],
+      "case_types": [
+        "Divorce / family case"
+      ],
+      "filing_type_labels": [],
+      "search_queries": [
+        "family court information sheet",
+        "400-00800"
+      ],
+      "mapping_status": "candidate",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vtfeewaiver-vt-fee-waiver-attachment-vt-fee-waiver-to-include-pdf",
+      "repo": "LSVermont/docassemble-VTFeeWaiver",
+      "entrypoint": "docassemble/VTFeeWaiver/data/questions/VT_fee_waiver.yml",
+      "attachment_variable": "VT_fee_waiver_attachment",
+      "title": "Application to Waive Filing Fees and Service Costs",
+      "form_id": "600-00228",
+      "template_paths": [
+        "docassemble/VTFeeWaiver/data/templates/VT_fee_waiver.pdf",
+        "docassemble/VTFeeWaiver/data/templates/VT_fee_waiver_addendum.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTFeeWaiver/blob/2e18ea6a5d86c2d38ad31571649d8f8ddb154ae5/docassemble/VTFeeWaiver/data/templates/VT_fee_waiver.pdf",
+        "https://github.com/LSVermont/docassemble-VTFeeWaiver/blob/2e18ea6a5d86c2d38ad31571649d8f8ddb154ae5/docassemble/VTFeeWaiver/data/templates/VT_fee_waiver_addendum.docx",
+        "https://www.vtcourts.gov/sites/default/files/documents/600-00228%20%E2%80%93%20Application%20to%20Waive%20Filing%20Fees%20%26%20Service%20Costs.pdf"
+      ],
+      "publication_status": "linked_from_root",
+      "filing_status": "court_filing",
+      "exclusion_reason": null,
+      "stage": "both",
+      "filer_role": "party applying for fee waiver",
+      "case_categories": [
+        "Multiple"
+      ],
+      "case_types": [
+        "Multiple case types"
+      ],
+      "filing_type_labels": [
+        "Application to waive filing and service fees"
+      ],
+      "search_queries": [
+        "application to waive filing fees and service costs",
+        "fee waiver",
+        "waive court filing fees",
+        "waive filing and service fees",
+        "600-00228"
+      ],
+      "mapping_status": "candidate",
+      "mapping_evidence": [
+        "Live provider label-index 2026-10-13: exact normalized filing label “Application to waive filing and service fees” found. Live catalog contains exact matching waiver concept in both stages; court and case-type scope varies."
+      ],
+      "public_url": "https://apps.vtcourtforms.org/start/VTFeeWaiver/"
+    },
+    {
+      "id": "docassemble-vtfeewaiver-vt-fee-waiver-post-interview-instructions-vt-fee-waiver-next-steps-docx",
+      "repo": "LSVermont/docassemble-VTFeeWaiver",
+      "entrypoint": "docassemble/VTFeeWaiver/data/questions/VT_fee_waiver.yml",
+      "attachment_variable": "VT_fee_waiver_post_interview_instructions",
+      "title": "Application to Waive Filing Fees and Service Costs",
+      "form_id": null,
+      "template_paths": [
+        "docassemble/VTFeeWaiver/data/templates/VT_fee_waiver_next_steps.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTFeeWaiver/blob/2e18ea6a5d86c2d38ad31571649d8f8ddb154ae5/docassemble/VTFeeWaiver/data/templates/VT_fee_waiver_next_steps.docx"
+      ],
+      "publication_status": "linked_from_root",
+      "filing_status": "noncourt",
+      "exclusion_reason": "Instructions or post-interview guidance, not a court filing.",
+      "stage": "unknown",
+      "filer_role": "party applying for fee waiver",
+      "case_categories": [],
+      "case_types": [],
+      "filing_type_labels": [],
+      "search_queries": [
+        "application to waive filing fees and service costs",
+        "600-00228"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vtfeewaiverwithincludeymlfile-vt-fee-waiver-attachment-vt-fee-waiver-pdf",
+      "repo": "LSVermont/docassemble-VTFeeWaiverWithIncludeYMLFile",
+      "entrypoint": "docassemble/VTFeeWaiverWithIncludeYMLFile/data/questions/VT_fee_waiver_to_include.yml",
+      "attachment_variable": "VT_fee_waiver_attachment",
+      "title": "Vermont fee waiver form 600-00228",
+      "form_id": null,
+      "template_paths": [
+        "docassemble/VTFeeWaiverWithIncludeYMLFile/data/templates/VT_fee_waiver.pdf",
+        "docassemble/VTFeeWaiverWithIncludeYMLFile/data/templates/VT_fee_waiver_addendum.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTFeeWaiverWithIncludeYMLFile/blob/95dcd7eb1cb1b5ab9397c97c95a1e6d5a0f96c0d/docassemble/VTFeeWaiverWithIncludeYMLFile/data/templates/VT_fee_waiver.pdf",
+        "https://github.com/LSVermont/docassemble-VTFeeWaiverWithIncludeYMLFile/blob/95dcd7eb1cb1b5ab9397c97c95a1e6d5a0f96c0d/docassemble/VTFeeWaiverWithIncludeYMLFile/data/templates/VT_fee_waiver_addendum.docx"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "court_filing",
+      "exclusion_reason": null,
+      "stage": "both",
+      "filer_role": "party applying for fee waiver",
+      "case_categories": [
+        "Multiple"
+      ],
+      "case_types": [
+        "Multiple case types"
+      ],
+      "filing_type_labels": [
+        "Application to waive filing and service fees"
+      ],
+      "search_queries": [
+        "vermont fee waiver form 600-00228",
+        "fee waiver",
+        "waive court filing fees",
+        "600-00228"
+      ],
+      "mapping_status": "candidate",
+      "mapping_evidence": [
+        "Live provider label-index 2026-10-13: exact normalized filing label “Application to waive filing and service fees” found. Live catalog contains exact matching waiver concept in both stages; reusable include only, not standalone entrypoint."
+      ]
+    },
+    {
+      "id": "docassemble-vtfinaffselfemplpart-vtfinaffselfemplpart-post-interview-instructions-a6finaffweaverselfemplpart-next-steps-docx",
+      "repo": "LSVermont/docassemble-VTFinAffSelfEmplPart",
+      "entrypoint": "docassemble/VTFinAffSelfEmplPart/data/questions/VTFinAffSelfEmplPart.yml",
+      "attachment_variable": "vtfinaffselfemplpart_Post_interview_instructions",
+      "title": "Instructions",
+      "form_id": null,
+      "template_paths": [
+        "docassemble/VTFinAffSelfEmplPart/data/templates/a6finaffweaverselfemplpart_next_steps.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTFinAffSelfEmplPart/blob/4ef915d225c159153560423585f2a6865f4f53e9/docassemble/VTFinAffSelfEmplPart/data/templates/a6finaffweaverselfemplpart_next_steps.docx"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "noncourt",
+      "exclusion_reason": "Instructions or post-interview guidance, not a court filing.",
+      "stage": "unknown",
+      "filer_role": "party",
+      "case_categories": [],
+      "case_types": [],
+      "filing_type_labels": [],
+      "search_queries": [
+        "instructions"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vtfinaffselfemplpart-vtfinaffselfemplpart-attachment-vtfinaffselfemplpart",
+      "repo": "LSVermont/docassemble-VTFinAffSelfEmplPart",
+      "entrypoint": "docassemble/VTFinAffSelfEmplPart/data/questions/VTFinAffSelfEmplPart.yml",
+      "attachment_variable": "vtfinaffselfemplpart_attachment",
+      "title": "Financial Affidavit 813A",
+      "form_id": "400-00813A",
+      "template_paths": [
+        "docassemble/VTFinAffSelfEmplPart/data/templates/a6finaffweaverselfemplpart.pdf"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTFinAffSelfEmplPart/blob/4ef915d225c159153560423585f2a6865f4f53e9/docassemble/VTFinAffSelfEmplPart/data/templates/a6finaffweaverselfemplpart.pdf",
+        "https://www.vtcourts.gov/sites/default/files/documents/400-00813A.pdf"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "court_filing",
+      "exclusion_reason": null,
+      "stage": "unknown",
+      "filer_role": "party",
+      "case_categories": [
+        "Family"
+      ],
+      "case_types": [],
+      "filing_type_labels": [],
+      "search_queries": [
+        "financial affidavit 813a",
+        "400-00813A",
+        "financial affidavit"
+      ],
+      "mapping_status": "candidate",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vtfinancialdisclosure-financial-disclosure-post-interview-instructions-financial-disclosure-next-steps-docx-54",
+      "repo": "LSVermont/docassemble-VTFinancialDisclosure",
+      "entrypoint": "docassemble/VTFinancialDisclosure/data/questions/VT_financial_disclosure.yml",
+      "attachment_variable": "financial_disclosure_Post_interview_instructions",
+      "title": "NEXT STEPS - Instructions for filing this form with the court",
+      "form_id": null,
+      "template_paths": [
+        "docassemble/VTFinancialDisclosure/data/templates/financial_disclosure_next_steps.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTFinancialDisclosure/blob/e7f48b9e10ef5d65907c785102697ae4bf4eca70/docassemble/VTFinancialDisclosure/data/templates/financial_disclosure_next_steps.docx"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "noncourt",
+      "exclusion_reason": "Instructions or post-interview guidance, not a court filing.",
+      "stage": "unknown",
+      "filer_role": "judgment debtor",
+      "case_categories": [],
+      "case_types": [],
+      "filing_type_labels": [],
+      "search_queries": [
+        "next steps - instructions for filing this form with the court"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vtfinancialdisclosure-financial-disclosure-attachment-financial-disclosure",
+      "repo": "LSVermont/docassemble-VTFinancialDisclosure",
+      "entrypoint": "docassemble/VTFinancialDisclosure/data/questions/VT_financial_disclosure.yml",
+      "attachment_variable": "financial_disclosure_attachment",
+      "title": "Financial Disclosure",
+      "form_id": "100-00127",
+      "template_paths": [
+        "docassemble/VTFinancialDisclosure/data/templates/financial_disclosure.pdf",
+        "docassemble/VTFinancialDisclosure/data/templates/financial_disclosure_addendum.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTFinancialDisclosure/blob/e7f48b9e10ef5d65907c785102697ae4bf4eca70/docassemble/VTFinancialDisclosure/data/templates/financial_disclosure.pdf",
+        "https://github.com/LSVermont/docassemble-VTFinancialDisclosure/blob/e7f48b9e10ef5d65907c785102697ae4bf4eca70/docassemble/VTFinancialDisclosure/data/templates/financial_disclosure_addendum.docx",
+        "https://www.vtcourts.gov/sites/default/files/documents/100-00127%20%E2%80%93%20Financial%20Disclosure.pdf"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "court_filing",
+      "exclusion_reason": null,
+      "stage": "unknown",
+      "filer_role": "judgment debtor",
+      "case_categories": [
+        "Civil"
+      ],
+      "case_types": [
+        "Civil debt collection"
+      ],
+      "filing_type_labels": [
+        "Small Claims - Financial Disclosure Affidavit"
+      ],
+      "search_queries": [
+        "financial disclosure",
+        "financial disclosure affidavit",
+        "small claims financial disclosure",
+        "100-00127"
+      ],
+      "mapping_status": "candidate",
+      "mapping_evidence": [
+        "Live provider label-index 2026-10-13: exact normalized filing label “Small Claims - Financial Disclosure Affidavit” found. Live catalog has this exact label in subsequent-stage catalog; consistent with judgment-debtor financial disclosure."
+      ]
+    },
+    {
+      "id": "docassemble-vtfinancialdisclosure-financial-disclosure-post-interview-instructions-financial-disclosure-next-steps-docx",
+      "repo": "LSVermont/docassemble-VTFinancialDisclosure",
+      "entrypoint": "docassemble/VTFinancialDisclosure/data/questions/VT_financial_disclosure_to_include.yml",
+      "attachment_variable": "financial_disclosure_Post_interview_instructions",
+      "title": "NEXT STEPS - Instructions for filing this form with the court",
+      "form_id": null,
+      "template_paths": [
+        "docassemble/VTFinancialDisclosure/data/templates/financial_disclosure_next_steps.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTFinancialDisclosure/blob/e7f48b9e10ef5d65907c785102697ae4bf4eca70/docassemble/VTFinancialDisclosure/data/templates/financial_disclosure_addendum.docx",
+        "https://github.com/LSVermont/docassemble-VTFinancialDisclosure/blob/e7f48b9e10ef5d65907c785102697ae4bf4eca70/docassemble/VTFinancialDisclosure/data/templates/financial_disclosure_next_steps.docx"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "noncourt",
+      "exclusion_reason": "Instructions or post-interview guidance, not a court filing.",
+      "stage": "unknown",
+      "filer_role": "judgment debtor",
+      "case_categories": [],
+      "case_types": [],
+      "filing_type_labels": [],
+      "search_queries": [
+        "next steps - instructions for filing this form with the court"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vthousingra-reasonableaccommodationsrequesttola-post-interview-instructions-reasonableaccommodationsrequesttola-next-steps-docx",
+      "repo": "LSVermont/docassemble-VTHousingRA",
+      "entrypoint": "vthousingra.yml",
+      "attachment_variable": "reasonableaccommodationsrequesttola_Post_interview_instructions",
+      "title": "Instructions",
+      "form_id": null,
+      "template_paths": [
+        "docassemble/VTHousingRA/data/templates/accommodationrequestletter_next_steps.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTHousingRA/blob/2765c847c318e0c13a005b768354858ba8c6822e/docassemble/VTHousingRA/data/templates/accommodationrequestletter_next_steps.docx"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "noncourt",
+      "exclusion_reason": "Instructions or post-interview guidance, not a court filing.",
+      "stage": "unknown",
+      "filer_role": "tenant",
+      "case_categories": [],
+      "case_types": [],
+      "filing_type_labels": [],
+      "search_queries": [
+        "instructions"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vthousingra-reasonableaccommodationsrequesttola-attachment-reasonableaccommodationsrequesttola",
+      "repo": "LSVermont/docassemble-VTHousingRA",
+      "entrypoint": "vthousingra.yml",
+      "attachment_variable": "reasonableaccommodationsrequesttola_attachment",
+      "title": "Reasonable Accommodations Request to Landlord",
+      "form_id": null,
+      "template_paths": [
+        "docassemble/VTHousingRA/data/templates/reasonable-accomodation-request-letter-to-landlord.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTHousingRA/blob/2765c847c318e0c13a005b768354858ba8c6822e/docassemble/VTHousingRA/data/templates/reasonable-accomodation-request-letter-to-landlord.docx"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "noncourt",
+      "exclusion_reason": "Private landlord request letter, not a court filing.",
+      "stage": "unknown",
+      "filer_role": "tenant",
+      "case_categories": [],
+      "case_types": [],
+      "filing_type_labels": [],
+      "search_queries": [
+        "reasonable accommodations request to landlord"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vtnoticeofappearance-a-notice-of-appearance-self-rep-post-interview-instructions-a-notice-of-appearance-self-rep-next-steps-docx",
+      "repo": "LSVermont/docassemble-VTNoticeOfAppearance",
+      "entrypoint": "docassemble/VTNoticeOfAppearance/data/questions/VTNoticeOfAppearance_to_include.yml",
+      "attachment_variable": "a_notice_of_appearance_self_rep_Post_interview_instructions",
+      "title": "Instructions",
+      "form_id": null,
+      "template_paths": [
+        "docassemble/VTNoticeOfAppearance/data/templates/a_notice_of_appearance_self_rep_next_steps.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTNoticeOfAppearance/blob/9f161f4ff02e5b4591c6b7d6529b1a37a5ec8f99/docassemble/VTNoticeOfAppearance/data/templates/a_notice_of_appearance_self_rep_next_steps.docx"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "noncourt",
+      "exclusion_reason": "Instructions or post-interview guidance, not a court filing.",
+      "stage": "subsequent",
+      "filer_role": "self-represented party",
+      "case_categories": [],
+      "case_types": [],
+      "filing_type_labels": [],
+      "search_queries": [
+        "instructions"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vtnoticeofappearance-a-notice-of-appearance-self-rep-attachment-a-notice-of-appearance-self-rep",
+      "repo": "LSVermont/docassemble-VTNoticeOfAppearance",
+      "entrypoint": "docassemble/VTNoticeOfAppearance/data/questions/VTNoticeOfAppearance_to_include.yml",
+      "attachment_variable": "a_notice_of_appearance_self_rep_attachment",
+      "title": "Notice of Appearance for Self-Represented Party",
+      "form_id": "400-00831",
+      "template_paths": [
+        "docassemble/VTNoticeOfAppearance/data/templates/a_notice_of_appearance_self_rep.pdf"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTNoticeOfAppearance/blob/9f161f4ff02e5b4591c6b7d6529b1a37a5ec8f99/docassemble/VTNoticeOfAppearance/data/templates/a_notice_of_appearance_self_rep.pdf"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "court_filing",
+      "exclusion_reason": null,
+      "stage": "subsequent",
+      "filer_role": "self-represented party",
+      "case_categories": [
+        "Family"
+      ],
+      "case_types": [],
+      "filing_type_labels": [
+        "Notice of Pro Se Appearance"
+      ],
+      "search_queries": [
+        "notice of appearance for self-represented party",
+        "notice of appearance",
+        "tell court I am self represented",
+        "400-00831"
+      ],
+      "mapping_status": "verified_label",
+      "mapping_evidence": [
+        "Actual PDF footer identifies form 400-00831, Notice of Appearance for Self-Represented Party (09/2022); the interview is for Family Court.",
+        "Read-only CodeCatalog selected-path request on 2026-10-13: Addison Unit (sc:addison), Family category 210, Relief from Abuse case type 6177, subsequent timing offered exact label Notice of Pro Se Appearance, provider code 7380."
+      ]
+    },
+    {
+      "id": "docassemble-vtnoticeofappearance-a-civil-notice-of-appearance-self-rep-attachment-a-notice-of-appearance-self-rep",
+      "repo": "LSVermont/docassemble-VTNoticeOfAppearance",
+      "entrypoint": "docassemble/VTNoticeOfAppearance/data/questions/VTNoticeOfAppearance_Civil_to_include.yml",
+      "attachment_variable": "a_civil_notice_of_appearance_self_rep_attachment",
+      "title": "Notice of Appearance for Self-Represented Party",
+      "form_id": "100-00265",
+      "template_paths": [
+        "docassemble/VTNoticeOfAppearance/data/templates/a_civil_notice_of_appearance_self_rep.pdf"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTNoticeOfAppearance/blob/9f161f4ff02e5b4591c6b7d6529b1a37a5ec8f99/docassemble/VTNoticeOfAppearance/data/templates/a_civil_notice_of_appearance_self_rep.pdf"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "court_filing",
+      "exclusion_reason": null,
+      "stage": "subsequent",
+      "filer_role": "self-represented party",
+      "case_categories": [
+        "Civil"
+      ],
+      "case_types": [],
+      "filing_type_labels": [
+        "Notice of Pro Se Appearance"
+      ],
+      "search_queries": [
+        "notice of appearance for self-represented party",
+        "notice of appearance",
+        "100-00265"
+      ],
+      "mapping_status": "verified_label",
+      "mapping_evidence": [
+        "Inspected the actual PDF: printed title is NOTICE OF APPEARANCE FOR SELF-REPRESENTED PARTY; footer identifies form 100-00265 (02/2025). The form text tells the filer to separately file a certificate of service; this PDF itself is not that certificate.",
+        "Read-only CodeCatalog selected-path request on 2026-10-13: Addison Unit (sc:addison), Civil category 7, Collection - Non-Credit Card case type 6092, subsequent timing offered exact filing label Notice of Pro Se Appearance, provider code 7834."
+      ]
+    },
+    {
+      "id": "docassemble-vtsmallclaimsanswer-small-claims-answer-post-interview-instructions-small-claims-answer-next-steps-docx",
+      "repo": "LSVermont/docassemble-VTSmallClaimsAnswer",
+      "entrypoint": "docassemble/VTSmallClaimsAnswer/data/questions/small_claims_answer.yml",
+      "attachment_variable": "small_claims_answer_Post_interview_instructions",
+      "title": "NEXT STEPS - Instructions for filing these forms with the court",
+      "form_id": null,
+      "template_paths": [
+        "docassemble/VTSmallClaimsAnswer/data/templates/small_claims_answer_next_steps.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTSmallClaimsAnswer/blob/8671c90cdd79b367ef168ec68337fae4df868ad1/docassemble/VTSmallClaimsAnswer/data/templates/small_claims_answer_next_steps.docx"
+      ],
+      "publication_status": "linked_from_root",
+      "filing_status": "noncourt",
+      "exclusion_reason": "Instructions or post-interview guidance, not a court filing.",
+      "stage": "subsequent",
+      "filer_role": "defendant or serving party",
+      "case_categories": [],
+      "case_types": [],
+      "filing_type_labels": [],
+      "search_queries": [
+        "next steps - instructions for filing these forms with the court"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vtsmallclaimsanswer-small-claims-answer-attachment-small-claims-answer",
+      "repo": "LSVermont/docassemble-VTSmallClaimsAnswer",
+      "entrypoint": "docassemble/VTSmallClaimsAnswer/data/questions/small_claims_answer.yml",
+      "attachment_variable": "small_claims_answer_attachment",
+      "title": "Small Claims Answer",
+      "form_id": "100-00126",
+      "template_paths": [
+        "docassemble/VTSmallClaimsAnswer/data/templates/small_claims_answer.pdf",
+        "docassemble/VTSmallClaimsAnswer/data/templates/small_claims_answer_addendum.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTSmallClaimsAnswer/blob/8671c90cdd79b367ef168ec68337fae4df868ad1/docassemble/VTSmallClaimsAnswer/data/templates/small_claims_answer.pdf",
+        "https://github.com/LSVermont/docassemble-VTSmallClaimsAnswer/blob/8671c90cdd79b367ef168ec68337fae4df868ad1/docassemble/VTSmallClaimsAnswer/data/templates/small_claims_answer_addendum.docx",
+        "https://www.vtcourts.gov/sites/default/files/documents/100-00126%20%E2%80%93%20Small%20Claims%20Answer_0.pdf"
+      ],
+      "publication_status": "linked_from_root",
+      "filing_status": "court_filing",
+      "exclusion_reason": null,
+      "stage": "subsequent",
+      "filer_role": "defendant or serving party",
+      "case_categories": [
+        "Civil"
+      ],
+      "case_types": [
+        "Small Claims"
+      ],
+      "filing_type_labels": [],
+      "search_queries": [
+        "small claims answer",
+        "100-00126"
+      ],
+      "mapping_status": "candidate",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vtsmallclaimscertificateofservice-vt-small-claims-certificate-of-service-attachment-small-claims-certificate-of-service-100-00260-pdf",
+      "repo": "LSVermont/docassemble-VTSmallClaimsCertificateOfService",
+      "entrypoint": "docassemble/VTSmallClaimsCertificateOfService/data/questions/small_claims_certificate_of_service.yml",
+      "attachment_variable": "VT_small_claims_certificate_of_service_attachment",
+      "title": "Certificate of Service (Small Claims)",
+      "form_id": "100-00260",
+      "template_paths": [
+        "docassemble/VTSmallClaimsCertificateOfService/data/templates/small_claims_certificate_of_service_100_00260.pdf"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTSmallClaimsCertificateOfService/blob/d1098d0fb0e882a32fa676fc241f044736d35207/docassemble/VTSmallClaimsCertificateOfService/data/templates/small_claims_certificate_of_service_100_00260.pdf",
+        "https://www.vtcourts.gov/sites/default/files/documents/100-00260.pdf"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "court_filing",
+      "exclusion_reason": null,
+      "stage": "subsequent",
+      "filer_role": "defendant or serving party",
+      "case_categories": [
+        "Civil"
+      ],
+      "case_types": [
+        "Small Claims"
+      ],
+      "filing_type_labels": [
+        "Certificate of Service"
+      ],
+      "search_queries": [
+        "100-00260",
+        "small claims certificate of service"
+      ],
+      "mapping_status": "verified_label",
+      "mapping_evidence": [
+        "Inspected PDF footer: 100-00260 Certificate of Service (Small Claims) (06/2026)."
+      ]
+    },
+    {
+      "id": "docassemble-vtsmallclaimscomplaint-vt-small-claims-complaint-attachment-small-claims-complaint-with-info-100-00257-pdf",
+      "repo": "LSVermont/docassemble-VTSmallClaimsComplaint",
+      "entrypoint": "docassemble/VTSmallClaimsComplaint/data/questions/small_claims.yml",
+      "attachment_variable": "VT_small_claims_complaint_attachment",
+      "title": "Complaint & Notice to Plaintiff",
+      "form_id": "100-00257",
+      "template_paths": [
+        "docassemble/VTSmallClaimsComplaint/data/templates/VT_small_claims_complaint_addendum.docx",
+        "docassemble/VTSmallClaimsComplaint/data/templates/small_claims_complaint_with_info_100_00257.pdf"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTSmallClaimsComplaint/blob/dcf2ff7916e62683fdf7a30e0b671649e5d27ff1/docassemble/VTSmallClaimsComplaint/data/templates/VT_small_claims_complaint_addendum.docx",
+        "https://github.com/LSVermont/docassemble-VTSmallClaimsComplaint/blob/dcf2ff7916e62683fdf7a30e0b671649e5d27ff1/docassemble/VTSmallClaimsComplaint/data/templates/small_claims_complaint_with_info_100_00257.pdf",
+        "https://www.vtcourts.gov/civil/suing-and-being-sued-small-claims"
+      ],
+      "publication_status": "linked_from_root",
+      "filing_status": "court_filing",
+      "exclusion_reason": null,
+      "stage": "initial",
+      "filer_role": "plaintiff",
+      "case_categories": [
+        "Civil"
+      ],
+      "case_types": [
+        "Small Claims"
+      ],
+      "filing_type_labels": [
+        "Initial Filing"
+      ],
+      "search_queries": [
+        "100-00257",
+        "Small Claims Complaint",
+        "Complaint & Notice to Plaintiff"
+      ],
+      "mapping_status": "verified_label",
+      "mapping_evidence": [
+        "Inspected PDF footer: 100-00257 - Complaint & Notice to Plaintiff (03/2025); the combined PDF contains the completed Small Claims Complaint starting on page 3."
+      ]
+    },
+    {
+      "id": "docassemble-vtsmallclaimscomplaint-vt-small-claims-certificate-of-service-attachment-small-claims-certificate-of-service-100-00260-pdf",
+      "repo": "LSVermont/docassemble-VTSmallClaimsComplaint",
+      "entrypoint": "docassemble/VTSmallClaimsComplaint/data/questions/small_claims.yml",
+      "attachment_variable": "VT_small_claims_certificate_of_service_attachment",
+      "title": "Certificate of Service (Small Claims)",
+      "form_id": "100-00260",
+      "template_paths": [
+        "docassemble/VTSmallClaimsComplaint/data/templates/small_claims_certificate_of_service_100_00260.pdf"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTSmallClaimsComplaint/blob/dcf2ff7916e62683fdf7a30e0b671649e5d27ff1/docassemble/VTSmallClaimsComplaint/data/templates/small_claims_certificate_of_service_100_00260.pdf",
+        "https://www.vtcourts.gov/sites/default/files/documents/100-00260.pdf",
+        "https://www.vtcourts.gov/civil/suing-and-being-sued-small-claims"
+      ],
+      "publication_status": "linked_from_root",
+      "filing_status": "court_filing",
+      "exclusion_reason": null,
+      "stage": "subsequent",
+      "filer_role": "plaintiff / serving party",
+      "case_categories": [
+        "Civil"
+      ],
+      "case_types": [
+        "Small Claims"
+      ],
+      "filing_type_labels": [
+        "Certificate of Service"
+      ],
+      "search_queries": [
+        "100-00260",
+        "small claims certificate of service"
+      ],
+      "mapping_status": "verified_label",
+      "mapping_evidence": [
+        "Inspected PDF footer: 100-00260 Certificate of Service (Small Claims) (06/2026)."
+      ]
+    },
+    {
+      "id": "docassemble-vtsmallclaimscomplaint-vt-small-claims-information-and-instructions-for-defendant-attachment-small-claims-information-and-instructions-for-defendant-100-00259-pdf",
+      "repo": "LSVermont/docassemble-VTSmallClaimsComplaint",
+      "entrypoint": "docassemble/VTSmallClaimsComplaint/data/questions/small_claims.yml",
+      "attachment_variable": "VT_small_claims_information_and_instructions_for_defendant_attachment",
+      "title": "Information & Instructions for the Defendant",
+      "form_id": "100-00259",
+      "template_paths": [
+        "docassemble/VTSmallClaimsComplaint/data/templates/Small_Claims_Information_and_Instructions_for_Defendant_100_00259.pdf"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTSmallClaimsComplaint/blob/dcf2ff7916e62683fdf7a30e0b671649e5d27ff1/docassemble/VTSmallClaimsComplaint/data/templates/Small_Claims_Information_and_Instructions_for_Defendant_100_00259.pdf",
+        "https://www.vtcourts.gov/civil/suing-and-being-sued-small-claims"
+      ],
+      "publication_status": "linked_from_root",
+      "filing_status": "noncourt",
+      "exclusion_reason": "Instructions served on the defendant; this is not a filing to the court.",
+      "stage": "subsequent",
+      "filer_role": "plaintiff / serving party",
+      "case_categories": [
+        "Civil"
+      ],
+      "case_types": [
+        "Small Claims"
+      ],
+      "filing_type_labels": [],
+      "search_queries": [
+        "100-00259",
+        "Small Claims Information and Instructions for Defendant"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": [
+        "Inspected PDF footer: 100-00259 Information & Instructions for the Defendant (07/2023). Document says include in packet served on defendant."
+      ]
+    },
+    {
+      "id": "docassemble-vtsmallclaimscomplaint-vt-small-claims-disclosure-of-exempt-income-attachment-disclosure-of-exempt-income-100-00128-pdf",
+      "repo": "LSVermont/docassemble-VTSmallClaimsComplaint",
+      "entrypoint": "docassemble/VTSmallClaimsComplaint/data/questions/small_claims.yml",
+      "attachment_variable": "VT_small_claims_disclosure_of_exempt_income_attachment",
+      "title": "Disclosure of Exempt Income",
+      "form_id": "100-00128",
+      "template_paths": [
+        "docassemble/VTSmallClaimsComplaint/data/templates/Disclosure_of_Exempt_Income_100_00128.pdf"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTSmallClaimsComplaint/blob/dcf2ff7916e62683fdf7a30e0b671649e5d27ff1/docassemble/VTSmallClaimsComplaint/data/templates/Disclosure_of_Exempt_Income_100_00128.pdf",
+        "https://www.vtcourts.gov/civil/suing-and-being-sued-small-claims"
+      ],
+      "publication_status": "linked_from_root",
+      "filing_status": "court_filing",
+      "exclusion_reason": null,
+      "stage": "subsequent",
+      "filer_role": "defendant (blank packet forms)",
+      "case_categories": [
+        "Civil"
+      ],
+      "case_types": [
+        "Small Claims"
+      ],
+      "filing_type_labels": [
+        "Small Claims - Disclosure of Exempt Income"
+      ],
+      "search_queries": [
+        "disclosure of exempt income",
+        "100-00128"
+      ],
+      "mapping_status": "candidate",
+      "mapping_evidence": [
+        "Live provider label-index 2026-10-13: exact normalized filing label “Small Claims - Disclosure of Exempt Income” found. Blank defendant packet attachment; not a filing by the plaintiff; live exact label applies to defendant subsequent filing."
+      ]
+    },
+    {
+      "id": "docassemble-vtsmallclaimscomplaint-vt-small-claims-answer-attachment-100-00126-small-claims-answer-pdf",
+      "repo": "LSVermont/docassemble-VTSmallClaimsComplaint",
+      "entrypoint": "docassemble/VTSmallClaimsComplaint/data/questions/small_claims.yml",
+      "attachment_variable": "VT_small_claims_answer_attachment",
+      "title": "Small Claims Answer",
+      "form_id": "100-00126",
+      "template_paths": [
+        "docassemble/VTSmallClaimsComplaint/data/templates/100-00126_Small_Claims_Answer.pdf"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTSmallClaimsComplaint/blob/dcf2ff7916e62683fdf7a30e0b671649e5d27ff1/docassemble/VTSmallClaimsComplaint/data/templates/100-00126_Small_Claims_Answer.pdf",
+        "https://www.vtcourts.gov/civil/suing-and-being-sued-small-claims",
+        "https://www.vtcourts.gov/sites/default/files/documents/100-00126%20%E2%80%93%20Small%20Claims%20Answer_0.pdf"
+      ],
+      "publication_status": "linked_from_root",
+      "filing_status": "court_filing",
+      "exclusion_reason": null,
+      "stage": "subsequent",
+      "filer_role": "defendant (blank packet forms)",
+      "case_categories": [
+        "Civil"
+      ],
+      "case_types": [
+        "Small Claims"
+      ],
+      "filing_type_labels": [],
+      "search_queries": [
+        "small claims answer",
+        "100-00126"
+      ],
+      "mapping_status": "candidate",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vtsmallclaimscomplaint-vt-blank-small-claims-certificate-of-service-attachment-100-00260-certificate-of-service-small-claims-pdf",
+      "repo": "LSVermont/docassemble-VTSmallClaimsComplaint",
+      "entrypoint": "docassemble/VTSmallClaimsComplaint/data/questions/small_claims.yml",
+      "attachment_variable": "VT_blank_small_claims_certificate_of_service_attachment",
+      "title": "Certificate of Service (Small Claims)",
+      "form_id": "100-00260",
+      "template_paths": [
+        "docassemble/VTSmallClaimsComplaint/data/templates/100-00260_Certificate_of_Service_Small_Claims.pdf"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTSmallClaimsComplaint/blob/dcf2ff7916e62683fdf7a30e0b671649e5d27ff1/docassemble/VTSmallClaimsComplaint/data/templates/100-00260_Certificate_of_Service_Small_Claims.pdf",
+        "https://www.vtcourts.gov/sites/default/files/documents/100-00260.pdf",
+        "https://www.vtcourts.gov/civil/suing-and-being-sued-small-claims"
+      ],
+      "publication_status": "linked_from_root",
+      "filing_status": "court_filing",
+      "exclusion_reason": null,
+      "stage": "subsequent",
+      "filer_role": "defendant (blank service packet form)",
+      "case_categories": [
+        "Civil"
+      ],
+      "case_types": [
+        "Small Claims"
+      ],
+      "filing_type_labels": [
+        "Certificate of Service"
+      ],
+      "search_queries": [
+        "100-00260",
+        "small claims certificate of service"
+      ],
+      "mapping_status": "verified_label",
+      "mapping_evidence": [
+        "Inspected PDF footer: 100-00260 Certificate of Service (Small Claims) (06/2026)."
+      ]
+    },
+    {
+      "id": "docassemble-vtsmallclaimscomplaint-vt-small-claims-complaint-post-interview-instructions-small-claims-complaint-next-steps-docx",
+      "repo": "LSVermont/docassemble-VTSmallClaimsComplaint",
+      "entrypoint": "docassemble/VTSmallClaimsComplaint/data/questions/small_claims.yml",
+      "attachment_variable": "VT_small_claims_complaint_Post_interview_instructions",
+      "title": "Small Claims Complaint",
+      "form_id": null,
+      "template_paths": [
+        "docassemble/VTSmallClaimsComplaint/data/templates/small_claims_complaint_next_steps.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTSmallClaimsComplaint/blob/dcf2ff7916e62683fdf7a30e0b671649e5d27ff1/docassemble/VTSmallClaimsComplaint/data/templates/small_claims_complaint_next_steps.docx"
+      ],
+      "publication_status": "linked_from_root",
+      "filing_status": "noncourt",
+      "exclusion_reason": "Instructions or post-interview guidance, not a court filing.",
+      "stage": "unknown",
+      "filer_role": "plaintiff / serving party",
+      "case_categories": [],
+      "case_types": [],
+      "filing_type_labels": [],
+      "search_queries": [
+        "small claims complaint",
+        "100-00257"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vtsuperiorcourtdebtanswer-superior-court-debt-answer-attachment-superior-court-debt-answer",
+      "repo": "LSVermont/docassemble-VTSuperiorCourtDebtAnswer",
+      "entrypoint": "docassemble/VTSuperiorCourtDebtAnswer/data/questions/superior_court_debt_answer.yml",
+      "attachment_variable": "superior_court_debt_answer_attachment",
+      "title": "Answer",
+      "form_id": null,
+      "template_paths": [
+        "docassemble/VTSuperiorCourtDebtAnswer/data/templates/superior_court_debt_answer.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTSuperiorCourtDebtAnswer/blob/8c84493103f9a80166b23d0f693b82744482c80b/docassemble/VTSuperiorCourtDebtAnswer/data/templates/superior_court_debt_answer.docx"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "court_filing",
+      "exclusion_reason": null,
+      "stage": "subsequent",
+      "filer_role": "defendant",
+      "case_categories": [
+        "Civil"
+      ],
+      "case_types": [
+        "Debt collection"
+      ],
+      "filing_type_labels": [],
+      "search_queries": [
+        "answer"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vtsuperiorcourtdebtanswer-superior-court-debt-counterclaim-attachment-superior-court-debt-counterclaim",
+      "repo": "LSVermont/docassemble-VTSuperiorCourtDebtAnswer",
+      "entrypoint": "docassemble/VTSuperiorCourtDebtAnswer/data/questions/superior_court_debt_answer.yml",
+      "attachment_variable": "superior_court_debt_counterclaim_attachment",
+      "title": "Counterclaim",
+      "form_id": null,
+      "template_paths": [
+        "docassemble/VTSuperiorCourtDebtAnswer/data/templates/superior_court_debt_counterclaim.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTSuperiorCourtDebtAnswer/blob/8c84493103f9a80166b23d0f693b82744482c80b/docassemble/VTSuperiorCourtDebtAnswer/data/templates/superior_court_debt_counterclaim.docx"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "court_filing",
+      "exclusion_reason": null,
+      "stage": "subsequent",
+      "filer_role": "defendant",
+      "case_categories": [
+        "Civil"
+      ],
+      "case_types": [
+        "Debt collection"
+      ],
+      "filing_type_labels": [],
+      "search_queries": [
+        "counterclaim"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": []
+    },
+    {
+      "id": "docassemble-vtsuperiorcourtdebtanswer-superior-court-debt-next-steps-superior-court-debt-next-steps",
+      "repo": "LSVermont/docassemble-VTSuperiorCourtDebtAnswer",
+      "entrypoint": "docassemble/VTSuperiorCourtDebtAnswer/data/questions/superior_court_debt_answer.yml",
+      "attachment_variable": "superior_court_debt_next_steps",
+      "title": "NEXT STEPS - Instructions for filing these forms with the court",
+      "form_id": null,
+      "template_paths": [
+        "docassemble/VTSuperiorCourtDebtAnswer/data/templates/superior_court_debt_next_steps.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTSuperiorCourtDebtAnswer/blob/8c84493103f9a80166b23d0f693b82744482c80b/docassemble/VTSuperiorCourtDebtAnswer/data/templates/superior_court_debt_next_steps.docx"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "noncourt",
+      "exclusion_reason": "Instructions or post-interview guidance, not a court filing.",
+      "stage": "subsequent",
+      "filer_role": "defendant",
+      "case_categories": [],
+      "case_types": [],
+      "filing_type_labels": [],
+      "search_queries": [
+        "next steps - instructions for filing these forms with the court"
+      ],
+      "mapping_status": "unmapped",
+      "mapping_evidence": []
+    },
+    {
+      "id": "vt-fee-waiver-include-600-00228",
+      "repo": "LSVermont/docassemble-VTFeeWaiver",
+      "entrypoint": "docassemble/VTFeeWaiver/data/questions/VT_fee_waiver_to_include.yml",
+      "attachment_variable": "VT_fee_waiver_attachment",
+      "title": "Application to Waive Filing Fees and Service Costs",
+      "form_id": "600-00228",
+      "template_paths": [
+        "docassemble/VTFeeWaiver/data/templates/VT_fee_waiver_to_include.pdf",
+        "docassemble/VTFeeWaiver/data/templates/VT_fee_waiver_to_include_addendum.docx"
+      ],
+      "source_urls": [
+        "https://github.com/LSVermont/docassemble-VTFeeWaiver/blob/2e18ea6a5d86c2d38ad31571649d8f8ddb154ae5/docassemble/VTFeeWaiver/data/templates/VT_fee_waiver_to_include.pdf",
+        "https://www.vtcourts.gov/sites/default/files/documents/600-00228%20%E2%80%93%20Application%20to%20Waive%20Filing%20Fees%20%26%20Service%20Costs.pdf"
+      ],
+      "publication_status": "uncertain",
+      "filing_status": "court_filing",
+      "exclusion_reason": null,
+      "stage": "both",
+      "filer_role": "party applying for fee waiver",
+      "case_categories": [
+        "Multiple"
+      ],
+      "case_types": [],
+      "filing_type_labels": [
+        "Application to Waive Filing and Service Fees"
+      ],
+      "search_queries": [
+        "fee waiver",
+        "waive court fees",
+        "waive filing fees",
+        "600-00228"
+      ],
+      "mapping_status": "candidate",
+      "mapping_evidence": [
+        "Live catalog exact normalized label, codes 7280/7493/7633/7764; stage/court/type offerings vary. See /tmp/guided-live-catalog/label-index-fast.json."
+      ]
+    }
+  ]
+}

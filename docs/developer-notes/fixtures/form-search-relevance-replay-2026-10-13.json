@@ -1,0 +1,723 @@
+{
+  "version": 1,
+  "captured_at": "2026-10-13",
+  "description": "Frozen curated replay using captured provider filing labels and synthetic assembled court/category/type contexts; not a full catalog. Synthetic non-court facet codes are opaque numeric values and are not derived from fixture IDs or semantic facet names. The exact-label fee-waiver collision paths exercise an observed Vermont label across Civil, Family, and Probate categories; those synthetic full paths do not assert live case-type coverage.",
+  "paths": [
+    {
+      "id": "vt_rfa_adult_initial",
+      "state": "vermont",
+      "court": {
+        "code": "sc:addison",
+        "name": "Addison Unit"
+      },
+      "category": {
+        "code": "210",
+        "name": "Family"
+      },
+      "type": {
+        "code": "6177",
+        "name": "Relief from Abuse"
+      },
+      "filing": {
+        "code": "9564",
+        "name": "Initial Filing"
+      },
+      "initial": true
+    },
+    {
+      "id": "vt_rfa_child_initial",
+      "state": "vermont",
+      "court": {
+        "code": "sc:addison",
+        "name": "Addison Unit"
+      },
+      "category": {
+        "code": "210",
+        "name": "Family"
+      },
+      "type": {
+        "code": "6178",
+        "name": "Relief from Abuse on Behalf of a Minor"
+      },
+      "filing": {
+        "code": "9564",
+        "name": "Initial Filing"
+      },
+      "initial": true
+    },
+    {
+      "id": "vt_affidavit_adult_initial",
+      "state": "vermont",
+      "court": {
+        "code": "sc:addison",
+        "name": "Addison Unit"
+      },
+      "category": {
+        "code": "210",
+        "name": "Family"
+      },
+      "type": {
+        "code": "6177",
+        "name": "Relief from Abuse"
+      },
+      "filing": {
+        "code": "7752",
+        "name": "Affidavit"
+      },
+      "initial": true
+    },
+    {
+      "id": "vt_affidavit_child_initial",
+      "state": "vermont",
+      "court": {
+        "code": "sc:addison",
+        "name": "Addison Unit"
+      },
+      "category": {
+        "code": "210",
+        "name": "Family"
+      },
+      "type": {
+        "code": "6178",
+        "name": "Relief from Abuse on Behalf of a Minor"
+      },
+      "filing": {
+        "code": "7752",
+        "name": "Affidavit"
+      },
+      "initial": true
+    },
+    {
+      "id": "vt_notice_family_subsequent",
+      "state": "vermont",
+      "court": {
+        "code": "sc:addison",
+        "name": "Addison Unit"
+      },
+      "category": {
+        "code": "210",
+        "name": "Family"
+      },
+      "type": {
+        "code": "6177",
+        "name": "Relief from Abuse"
+      },
+      "filing": {
+        "code": "7380",
+        "name": "Notice of Pro Se Appearance"
+      },
+      "initial": false
+    },
+    {
+      "id": "vt_notice_civil_subsequent",
+      "state": "vermont",
+      "court": {
+        "code": "sc:addison",
+        "name": "Addison Unit"
+      },
+      "category": {
+        "code": "7",
+        "name": "Civil"
+      },
+      "type": {
+        "code": "6092",
+        "name": "Collection - Non-Credit Card"
+      },
+      "filing": {
+        "code": "7834",
+        "name": "Notice of Pro Se Appearance"
+      },
+      "initial": false
+    },
+    {
+      "id": "vt_notice_civil_initial_negative",
+      "state": "vermont",
+      "court": {
+        "code": "sc:addison",
+        "name": "Addison Unit"
+      },
+      "category": {
+        "code": "7",
+        "name": "Civil"
+      },
+      "type": {
+        "code": "6092",
+        "name": "Collection - Non-Credit Card"
+      },
+      "filing": {
+        "code": "7834",
+        "name": "Notice of Pro Se Appearance"
+      },
+      "initial": true
+    },
+    {
+      "id": "vt_answer_smallclaims_subsequent",
+      "state": "vermont",
+      "court": {
+        "code": "sc:addison",
+        "name": "Addison Unit"
+      },
+      "category": {
+        "code": "7",
+        "name": "Civil"
+      },
+      "type": {
+        "code": "13864",
+        "name": "Small Claims $1,000 or less"
+      },
+      "filing": {
+        "code": "7631",
+        "name": "Answer"
+      },
+      "initial": false
+    },
+    {
+      "id": "vt_answer_collection_negative",
+      "state": "vermont",
+      "court": {
+        "code": "sc:addison",
+        "name": "Addison Unit"
+      },
+      "category": {
+        "code": "7",
+        "name": "Civil"
+      },
+      "type": {
+        "code": "6091",
+        "name": "Collection - Credit Card"
+      },
+      "filing": {
+        "code": "7491",
+        "name": "Small Claims Answer Admitted"
+      },
+      "initial": false
+    },
+    {
+      "id": "vt_certificate_civil",
+      "state": "vermont",
+      "court": {
+        "code": "sc:addison",
+        "name": "Addison Unit"
+      },
+      "category": {
+        "code": "7",
+        "name": "Civil"
+      },
+      "type": {
+        "code": "13864",
+        "name": "Small Claims $1,000 or less"
+      },
+      "filing": {
+        "code": "7766",
+        "name": "Certificate of Service"
+      },
+      "initial": false
+    },
+    {
+      "id": "il_proof_delivery_dupage",
+      "state": "illinois",
+      "court": {
+        "code": "dupage",
+        "name": "DuPage County"
+      },
+      "category": {
+        "code": "97000001",
+        "name": "Civil"
+      },
+      "type": {
+        "code": "98000001",
+        "name": "Residential - Eviction"
+      },
+      "filing": {
+        "code": "99000001",
+        "name": "Proof of Delivery"
+      },
+      "initial": false
+    },
+    {
+      "id": "il_family_appearance_cook",
+      "state": "illinois",
+      "court": {
+        "code": "cook:dr1",
+        "name": "Cook County - Domestic Relations 1"
+      },
+      "category": {
+        "code": "97000002",
+        "name": "Family"
+      },
+      "type": {
+        "code": "98000002",
+        "name": "Dissolution with Children"
+      },
+      "filing": {
+        "code": "99000002",
+        "name": "Appearance"
+      },
+      "initial": false
+    },
+    {
+      "id": "il_family_appearance_civil_negative",
+      "state": "illinois",
+      "court": {
+        "code": "dupage",
+        "name": "DuPage County"
+      },
+      "category": {
+        "code": "97000001",
+        "name": "Civil"
+      },
+      "type": {
+        "code": "98000001",
+        "name": "Residential - Eviction"
+      },
+      "filing": {
+        "code": "99000002",
+        "name": "Appearance"
+      },
+      "initial": false
+    },
+    {
+      "id": "il_support_info_family",
+      "state": "illinois",
+      "court": {
+        "code": "cook:dr1",
+        "name": "Cook County - Domestic Relations 1"
+      },
+      "category": {
+        "code": "97000002",
+        "name": "Family"
+      },
+      "type": {
+        "code": "98000002",
+        "name": "Dissolution with Children"
+      },
+      "filing": {
+        "code": "99000003",
+        "name": "Support Information Sheet"
+      },
+      "initial": true
+    },
+    {
+      "id": "il_support_info_civil_negative",
+      "state": "illinois",
+      "court": {
+        "code": "dupage",
+        "name": "DuPage County"
+      },
+      "category": {
+        "code": "97000001",
+        "name": "Civil"
+      },
+      "type": {
+        "code": "98000001",
+        "name": "Residential - Eviction"
+      },
+      "filing": {
+        "code": "99000003",
+        "name": "Support Information Sheet"
+      },
+      "initial": true
+    },
+    {
+      "id": "il_cook_appearance_fee",
+      "state": "illinois",
+      "court": {
+        "code": "cook:cvd2",
+        "name": "Cook County - Civil Division 2"
+      },
+      "category": {
+        "code": "97000001",
+        "name": "Civil"
+      },
+      "type": {
+        "code": "98000001",
+        "name": "Residential - Eviction"
+      },
+      "filing": {
+        "code": "99000004",
+        "name": "Appearance Filed - Fee"
+      },
+      "initial": false
+    },
+    {
+      "id": "il_cook_appearance_other_allowed_cook",
+      "state": "illinois",
+      "court": {
+        "code": "cook:cvd1",
+        "name": "Cook County - Civil Division 1"
+      },
+      "category": {
+        "code": "97000001",
+        "name": "Civil"
+      },
+      "type": {
+        "code": "98000001",
+        "name": "Residential - Eviction"
+      },
+      "filing": {
+        "code": "99000004",
+        "name": "Appearance Filed - Fee"
+      },
+      "initial": false
+    },
+    {
+      "id": "il_cook_appearance_dupage_negative",
+      "state": "illinois",
+      "court": {
+        "code": "dupage",
+        "name": "DuPage County"
+      },
+      "category": {
+        "code": "97000001",
+        "name": "Civil"
+      },
+      "type": {
+        "code": "98000001",
+        "name": "Residential - Eviction"
+      },
+      "filing": {
+        "code": "99000004",
+        "name": "Appearance Filed - Fee"
+      },
+      "initial": false
+    },
+    {
+      "id": "vt_fee_waiver_civil_exact_label",
+      "state": "vermont",
+      "court": {
+        "code": "sc:addison",
+        "name": "Addison Unit"
+      },
+      "category": {
+        "code": "97000011",
+        "name": "Civil"
+      },
+      "type": {
+        "code": "98000091",
+        "name": "Synthetic fee-waiver test path"
+      },
+      "filing": {
+        "code": "99000091",
+        "name": "Application to Waive Filing and Service Fees"
+      },
+      "initial": false,
+      "synthetic_context": true
+    },
+    {
+      "id": "vt_fee_waiver_family_exact_label",
+      "state": "vermont",
+      "court": {
+        "code": "sc:addison",
+        "name": "Addison Unit"
+      },
+      "category": {
+        "code": "97000012",
+        "name": "Family"
+      },
+      "type": {
+        "code": "98000091",
+        "name": "Synthetic fee-waiver test path"
+      },
+      "filing": {
+        "code": "99000091",
+        "name": "Application to Waive Filing and Service Fees"
+      },
+      "initial": false,
+      "synthetic_context": true
+    },
+    {
+      "id": "vt_fee_waiver_probate_exact_label",
+      "state": "vermont",
+      "court": {
+        "code": "sc:addison",
+        "name": "Addison Unit"
+      },
+      "category": {
+        "code": "97000013",
+        "name": "Probate or Mental Health"
+      },
+      "type": {
+        "code": "98000091",
+        "name": "Synthetic fee-waiver test path"
+      },
+      "filing": {
+        "code": "99000091",
+        "name": "Application to Waive Filing and Service Fees"
+      },
+      "initial": false,
+      "synthetic_context": true
+    },
+    {
+      "id": "vt_fee_waiver_civil_exact_label_initial",
+      "state": "vermont",
+      "court": {
+        "code": "sc:addison",
+        "name": "Addison Unit"
+      },
+      "category": {
+        "code": "97000011",
+        "name": "Civil"
+      },
+      "type": {
+        "code": "98000091",
+        "name": "Synthetic fee-waiver test path"
+      },
+      "filing": {
+        "code": "99000091",
+        "name": "Application to Waive Filing and Service Fees"
+      },
+      "initial": true,
+      "synthetic_context": true
+    },
+    {
+      "id": "vt_fee_waiver_family_exact_label_initial",
+      "state": "vermont",
+      "court": {
+        "code": "sc:addison",
+        "name": "Addison Unit"
+      },
+      "category": {
+        "code": "97000012",
+        "name": "Family"
+      },
+      "type": {
+        "code": "98000091",
+        "name": "Synthetic fee-waiver test path"
+      },
+      "filing": {
+        "code": "99000091",
+        "name": "Application to Waive Filing and Service Fees"
+      },
+      "initial": true,
+      "synthetic_context": true
+    },
+    {
+      "id": "vt_fee_waiver_probate_exact_label_initial",
+      "state": "vermont",
+      "court": {
+        "code": "sc:addison",
+        "name": "Addison Unit"
+      },
+      "category": {
+        "code": "97000013",
+        "name": "Probate or Mental Health"
+      },
+      "type": {
+        "code": "98000091",
+        "name": "Synthetic fee-waiver test path"
+      },
+      "filing": {
+        "code": "99000091",
+        "name": "Application to Waive Filing and Service Fees"
+      },
+      "initial": true,
+      "synthetic_context": true
+    }
+  ],
+  "queries": [
+    {
+      "id": "vt_rfa_adult_initial_id",
+      "state": "vermont",
+      "query": "400-00150C",
+      "initial": true,
+      "relevant_ids": [
+        "vt_rfa_adult_initial"
+      ]
+    },
+    {
+      "id": "vt_rfa_child_initial_id",
+      "state": "vermont",
+      "query": "400-00150CC",
+      "initial": true,
+      "relevant_ids": [
+        "vt_rfa_child_initial"
+      ]
+    },
+    {
+      "id": "vt_affidavit_adult_id",
+      "state": "vermont",
+      "query": "400-00151",
+      "initial": true,
+      "relevant_ids": [
+        "vt_affidavit_adult_initial"
+      ]
+    },
+    {
+      "id": "vt_affidavit_minor_id",
+      "state": "vermont",
+      "query": "400-00151M",
+      "initial": true,
+      "relevant_ids": [
+        "vt_affidavit_child_initial"
+      ]
+    },
+    {
+      "id": "vt_notice_civil_id",
+      "state": "vermont",
+      "query": "100-00265",
+      "initial": false,
+      "relevant_ids": [
+        "vt_notice_civil_subsequent"
+      ]
+    },
+    {
+      "id": "vt_notice_civil_wrong_stage",
+      "state": "vermont",
+      "query": "100-00265",
+      "initial": true,
+      "relevant_ids": []
+    },
+    {
+      "id": "vt_family_notice_id",
+      "state": "vermont",
+      "query": "400-00831",
+      "initial": false,
+      "relevant_ids": [
+        "vt_notice_family_subsequent"
+      ]
+    },
+    {
+      "id": "vt_small_claims_answer_id",
+      "state": "vermont",
+      "query": "100-00126",
+      "initial": false,
+      "relevant_ids": [
+        "vt_answer_smallclaims_subsequent"
+      ]
+    },
+    {
+      "id": "vt_certificate_service_id",
+      "state": "vermont",
+      "query": "600-00264",
+      "initial": false,
+      "relevant_ids": [
+        "vt_certificate_civil"
+      ]
+    },
+    {
+      "id": "vt_unmapped_number_no_results",
+      "state": "vermont",
+      "query": "999-99888",
+      "initial": false,
+      "relevant_ids": []
+    },
+    {
+      "id": "il_atj_851_7",
+      "state": "illinois",
+      "query": "ATJ 851.7",
+      "initial": false,
+      "relevant_ids": [
+        "il_proof_delivery_dupage"
+      ]
+    },
+    {
+      "id": "il_atj_111_5_family_only",
+      "state": "illinois",
+      "query": "ATJ 111.5",
+      "initial": false,
+      "relevant_ids": [
+        "il_family_appearance_cook"
+      ]
+    },
+    {
+      "id": "il_atj_128_4_family_category",
+      "state": "illinois",
+      "query": "ATJ 128.4",
+      "initial": true,
+      "relevant_ids": [
+        "il_support_info_family"
+      ]
+    },
+    {
+      "id": "il_cook_atj_503_11_scoped",
+      "state": "illinois",
+      "query": "ATJ 503.11 Appearance Filed Fee",
+      "initial": false,
+      "relevant_ids": [
+        "il_cook_appearance_fee",
+        "il_cook_appearance_other_allowed_cook"
+      ]
+    },
+    {
+      "id": "il_unknown_number_no_results",
+      "state": "illinois",
+      "query": "xqzvbnm-99999",
+      "initial": false,
+      "relevant_ids": []
+    },
+    {
+      "id": "il_vt_id_cross_state_no_results",
+      "state": "illinois",
+      "query": "400-00150C",
+      "initial": true,
+      "relevant_ids": []
+    },
+    {
+      "id": "vt_exact_label_control",
+      "state": "vermont",
+      "query": "Certificate of Service",
+      "initial": false,
+      "relevant_ids": [
+        "vt_certificate_civil"
+      ]
+    },
+    {
+      "id": "vt_rfa_complaint_plain_language",
+      "state": "vermont",
+      "query": "complaint",
+      "initial": true,
+      "relevant_ids": [
+        "vt_rfa_adult_initial",
+        "vt_rfa_child_initial"
+      ]
+    },
+    {
+      "id": "vt_rfa_complaint_phrase",
+      "state": "vermont",
+      "query": "relief from abuse complaint",
+      "initial": true,
+      "relevant_ids": [
+        "vt_rfa_adult_initial",
+        "vt_rfa_child_initial"
+      ]
+    },
+    {
+      "id": "vt_rfa_start_case_phrase",
+      "state": "vermont",
+      "query": "start relief from abuse case",
+      "initial": true,
+      "relevant_ids": [
+        "vt_rfa_adult_initial",
+        "vt_rfa_child_initial"
+      ]
+    },
+    {
+      "id": "vt_fee_waiver_exact_label_keeps_probate_path",
+      "state": "vermont",
+      "query": "Application to Waive Filing and Service Fees",
+      "initial": false,
+      "relevant_ids": [
+        "vt_fee_waiver_civil_exact_label",
+        "vt_fee_waiver_family_exact_label",
+        "vt_fee_waiver_probate_exact_label"
+      ]
+    },
+    {
+      "id": "vt_fee_waiver_exact_label_initial_keeps_probate_path",
+      "state": "vermont",
+      "query": "Application to Waive Filing and Service Fees",
+      "initial": true,
+      "relevant_ids": [
+        "vt_fee_waiver_civil_exact_label_initial",
+        "vt_fee_waiver_family_exact_label_initial",
+        "vt_fee_waiver_probate_exact_label_initial"
+      ]
+    }
+  ],
+  "limitations": [
+    "Curated replay paths use captured provider filing labels and synthetic assembled court/category/type contexts; they do not establish that each complete path is offered by a live court catalog.",
+    "Synthetic codes are opaque numeric identifiers. Expected relevance is mapped separately by fixture ID and does not enter indexed code text.",
+    "The fee-waiver exact-label collision test uses one captured exact provider label in synthetic Civil, Family, and Probate contexts to guard against scoped concepts hiding the same label outside their alias scope; it does not assert selected live case-type paths in Probate.",
+    "Search-path retrieval and relevance are measured; response latency and user decision quality are not measured."
+  ]
+}

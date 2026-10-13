@@ -8,6 +8,132 @@ county_courts:
       names: [Cook County]
       prefixes: ["Cook County - "]
 concepts:
+  vt_form_400_00150c:
+    label: Complaint for Relief from Abuse
+    jurisdictions:
+      vermont:
+        text: Vermont form 400-00150C is the complaint that starts a Relief from Abuse case.
+        source: https://www.vtcourts.gov/family/relief-abuse
+  vt_form_400_00150cc:
+    label: Complaint for Relief from Abuse on behalf of a child
+    jurisdictions:
+      vermont:
+        text: Vermont form 400-00150CC is the complaint that starts a Relief from Abuse case on behalf of a child.
+        source: https://www.vtcourts.gov/family/relief-abuse
+  vt_form_100_00257:
+    label: Small Claims complaint
+    jurisdictions:
+      vermont:
+        text: Vermont form 100-00257 is the Small Claims complaint.
+        source: https://www.vtcourts.gov/civil/suing-and-being-sued-small-claims
+  vt_form_400_00151:
+    label: Adult Relief from Abuse supporting affidavit
+    jurisdictions:
+      vermont:
+        text: Vermont form 400-00151 is the affidavit supporting an adult Relief from Abuse complaint.
+        source: https://www.vtcourts.gov/family/relief-abuse
+  vt_form_400_00151m:
+    label: Child Relief from Abuse supporting affidavit
+    jurisdictions:
+      vermont:
+        text: Vermont form 400-00151M is the affidavit supporting a Relief from Abuse complaint on behalf of a child.
+        source: https://www.vtcourts.gov/family/relief-abuse
+  vt_form_dps_132:
+    label: Protection Order Service Information
+    jurisdictions:
+      vermont:
+        text: Vermont Department of Public Safety form DPS 132 provides protection-order service information.
+        source: https://www.vtcourts.gov/family/relief-abuse
+  vt_form_400_00156:
+    label: Litigants Address for Notification
+    jurisdictions:
+      vermont:
+        text: Vermont form 400-00156 provides address information for notification in a Relief from Abuse matter.
+        source: https://www.vtcourts.gov/family/relief-abuse
+  vt_form_400_00813a:
+    label: 813A Financial Affidavit
+    jurisdictions:
+      vermont:
+        text: Vermont form 400-00813A is the 813A Financial Affidavit.
+        source: https://www.vtcourts.gov/sites/default/files/documents/400-00813A.pdf
+  vt_form_400_00813b:
+    label: 813B Financial Affidavit
+    jurisdictions:
+      vermont:
+        text: Vermont form 400-00813B is the 813B Financial Affidavit.
+        source: https://www.vtcourts.gov/sites/default/files/documents/400-00813B_2.pdf
+  vt_form_400_00831:
+    label: Notice of Appearance for Self-Represented Party
+    jurisdictions:
+      vermont:
+        text: Vermont form 400-00831 is a self-represented party's notice of appearance.
+        source: https://github.com/LSVermont/docassemble-VTNoticeOfAppearance
+  vt_form_100_00265:
+    label: Civil Notice of Appearance for Self-Represented Party
+    jurisdictions:
+      vermont:
+        text: Vermont form 100-00265 is the Civil Division Notice of Appearance for Self-Represented Party. It instructs the filer to submit a separate certificate of service.
+        source: https://github.com/LSVermont/docassemble-VTNoticeOfAppearance
+  vt_form_self_rep_notice_title:
+    label: Notice of Appearance for Self-Represented Party
+    jurisdictions:
+      vermont:
+        text: Vermont has Family and Civil versions of this notice; the form ID and court path distinguish them.
+        source: https://github.com/LSVermont/docassemble-VTNoticeOfAppearance
+  vt_form_400_00800:
+    label: Family Court Information Sheet
+    jurisdictions:
+      vermont:
+        text: Vermont form 400-00800 is the Family Court Information Sheet (form 800).
+        source: https://github.com/LSVermont/docassemble-VTFamilyCourtInfoSheet
+  vt_form_400_00849:
+    label: Statement of Confidential Information
+    jurisdictions:
+      vermont:
+        text: Vermont form 400-00849 is the Statement of Confidential Information.
+        source: https://github.com/LSVermont/docassemble-VTDivorce
+  vt_form_600_00228:
+    label: Application to Waive Filing and Service Fees
+    jurisdictions:
+      vermont:
+        text: Vermont form 600-00228 requests a waiver of qualifying filing fees and service costs.
+        source: https://www.vtcourts.gov/self-help/application-waive-filing-fees-and-service-costs
+  vt_form_100_00260:
+    label: Small Claims Certificate of Service
+    jurisdictions:
+      vermont:
+        text: Vermont form 100-00260 is the Small Claims Certificate of Service.
+        source: https://www.vtcourts.gov/sites/default/files/documents/100-00260.pdf
+  vt_form_600_00264:
+    label: Certificate of Service
+    jurisdictions:
+      vermont:
+        text: Vermont form 600-00264 is a Certificate of Service.
+        source: https://github.com/LSVermont/docassemble-VTCertificateOfServiceGeneral
+  vt_form_100_00127:
+    label: Small Claims Financial Disclosure Affidavit
+    jurisdictions:
+      vermont:
+        text: Vermont form 100-00127 is the Small Claims Financial Disclosure Affidavit, offered as a subsequent filing choice.
+        source: https://www.vtcourts.gov/sites/default/files/documents/100-00127%20%E2%80%93%20Financial%20Disclosure.pdf
+  vt_form_100_00128:
+    label: Small Claims Disclosure of Exempt Income
+    jurisdictions:
+      vermont:
+        text: Vermont form 100-00128 is the Small Claims Disclosure of Exempt Income, offered as a subsequent filing choice.
+        source: https://github.com/LSVermont/docassemble-VTDisclosureOfExemptIncome
+  vt_form_100_00126:
+    label: Small Claims Answer
+    jurisdictions:
+      vermont:
+        text: Vermont form 100-00126 is the Small Claims Answer. The interview generates it for an existing Small Claims case; the alias is limited to Small Claims case types and the Answer filing label.
+        source: https://github.com/LSVermont/docassemble-VTSmallClaimsAnswer
+  eviction_record_sealing:
+    label: Eviction record sealing
+    jurisdictions:
+      illinois:
+        text: A request to seal an existing eviction court file. Illinois calls the standardized form “Motion to Remove Eviction Court File from Public Record.” This is different from criminal record sealing or redacting information in a document.
+        source: https://www.illinoiscourts.gov/documents-and-forms/approved-forms/eviction/
   eviction:
     label: Eviction
     default:
@@ -86,6 +212,10 @@ concepts:
     default:
       text: Court permission not to pay certain court fees because of financial hardship.
       source: https://www.vtcourts.gov/fees
+    jurisdictions:
+      vermont:
+        text: Vermont's application asks the court to waive qualifying filing fees and service costs.
+        source: https://www.vtcourts.gov/self-help/application-waive-filing-fees-and-service-costs
   name_change:
     label: Name change
     default:
@@ -96,6 +226,10 @@ concepts:
     default:
       text: A simplified court process for certain disputes about money.
       source: https://www.vtcourts.gov/civil/suing-and-being-sued-small-claims
+    jurisdictions:
+      vermont:
+        text: Vermont Small Claims is a Civil Division process. Its financial disclosure and exempt-income forms are distinct subsequent filing choices.
+        source: https://www.vtcourts.gov/civil/suing-and-being-sued-small-claims
   expungement:
     label: Expungement
     default:

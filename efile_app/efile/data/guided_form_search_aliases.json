@@ -1,0 +1,1681 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-13",
+  "concepts": {
+    "guided_il_atj8517": {
+      "path_only": true,
+      "jurisdictions": [
+        "illinois"
+      ],
+      "terms": [
+        "ATJ 851.7"
+      ]
+    },
+    "guided_il_atj1284": {
+      "path_only": true,
+      "jurisdictions": [
+        "illinois"
+      ],
+      "terms": [
+        "ATJ 128.4"
+      ]
+    },
+    "guided_il_pdasl8053": {
+      "path_only": true,
+      "jurisdictions": [
+        "illinois"
+      ],
+      "terms": [
+        "PD-ASL 805.3"
+      ]
+    },
+    "guided_il_atj1115": {
+      "path_only": true,
+      "jurisdictions": [
+        "illinois"
+      ],
+      "terms": [
+        "ATJ 111.5"
+      ]
+    },
+    "guided_il_atj2563": {
+      "path_only": true,
+      "jurisdictions": [
+        "illinois"
+      ],
+      "terms": [
+        "ATJ 256.3"
+      ]
+    },
+    "guided_il_dvcf1232": {
+      "path_only": true,
+      "jurisdictions": [
+        "illinois"
+      ],
+      "terms": [
+        "DV-CF 123.2"
+      ]
+    },
+    "guided_il_dvv1332": {
+      "path_only": true,
+      "jurisdictions": [
+        "illinois"
+      ],
+      "terms": [
+        "DV-V 133.2"
+      ]
+    },
+    "guided_il_atj2553": {
+      "path_only": true,
+      "jurisdictions": [
+        "illinois"
+      ],
+      "terms": [
+        "ATJ 255.3"
+      ]
+    },
+    "guided_il_atj2613": {
+      "path_only": true,
+      "jurisdictions": [
+        "illinois"
+      ],
+      "terms": [
+        "ATJ 261.3"
+      ]
+    },
+    "guided_il_dvc1242": {
+      "path_only": true,
+      "jurisdictions": [
+        "illinois"
+      ],
+      "terms": [
+        "DV-C 124.2"
+      ]
+    },
+    "guided_il_atj2603": {
+      "path_only": true,
+      "jurisdictions": [
+        "illinois"
+      ],
+      "terms": [
+        "ATJ 260.3"
+      ]
+    },
+    "guided_il_dvb1262": {
+      "path_only": true,
+      "jurisdictions": [
+        "illinois"
+      ],
+      "terms": [
+        "DV-B 126.2"
+      ]
+    },
+    "guided_il_dvre1272": {
+      "path_only": true,
+      "jurisdictions": [
+        "illinois"
+      ],
+      "terms": [
+        "DV-RE 127.2"
+      ]
+    },
+    "guided_il_atj2515": {
+      "path_only": true,
+      "jurisdictions": [
+        "illinois"
+      ],
+      "terms": [
+        "ATJ 251.5"
+      ]
+    },
+    "guided_il_atj2543": {
+      "path_only": true,
+      "jurisdictions": [
+        "illinois"
+      ],
+      "terms": [
+        "ATJ 254.3"
+      ]
+    },
+    "guided_il_app5035": {
+      "path_only": true,
+      "jurisdictions": [
+        "illinois"
+      ],
+      "terms": [
+        "AP-P 503.5"
+      ]
+    },
+    "guided_il_atj4054": {
+      "path_only": true,
+      "jurisdictions": [
+        "illinois"
+      ],
+      "terms": [
+        "ATJ 405.4"
+      ]
+    },
+    "guided_il_atj1344": {
+      "path_only": true,
+      "jurisdictions": [
+        "illinois"
+      ],
+      "terms": [
+        "ATJ 134.4"
+      ]
+    },
+    "guided_il_atj1084": {
+      "path_only": true,
+      "jurisdictions": [
+        "illinois"
+      ],
+      "terms": [
+        "ATJ 108.4"
+      ]
+    },
+    "guided_il_atj14052": {
+      "path_only": true,
+      "jurisdictions": [
+        "illinois"
+      ],
+      "terms": [
+        "ATJ 1405.2"
+      ]
+    },
+    "guided_il_excm47022": {
+      "path_only": true,
+      "jurisdictions": [
+        "illinois"
+      ],
+      "terms": [
+        "EXC-M 4702.2"
+      ]
+    },
+    "guided_il_atj50311": {
+      "path_only": true,
+      "jurisdictions": [
+        "illinois"
+      ],
+      "terms": [
+        "ATJ 503.11"
+      ]
+    },
+    "guided_il_atj5044": {
+      "path_only": true,
+      "jurisdictions": [
+        "illinois"
+      ],
+      "terms": [
+        "ATJ 504.4"
+      ]
+    },
+    "guided_il_atj5205": {
+      "path_only": true,
+      "jurisdictions": [
+        "illinois"
+      ],
+      "terms": [
+        "ATJ 520.5"
+      ]
+    },
+    "guided_il_atj6019": {
+      "path_only": true,
+      "jurisdictions": [
+        "illinois"
+      ],
+      "terms": [
+        "ATJ 601.9"
+      ]
+    },
+    "guided_il_atj6028": {
+      "path_only": true,
+      "jurisdictions": [
+        "illinois"
+      ],
+      "terms": [
+        "ATJ 602.8"
+      ]
+    }
+  },
+  "definitions": {
+    "guided_il_atj8517": {
+      "label": "Form ATJ 851.7",
+      "default": {
+        "text": "Form ATJ 851.7: Proof of Delivery. Available filing options depend on your court and case.",
+        "source": "https://github.com/IllinoisLegalAidOnline/docassemble-MinorGuardianshipDischarge/blob/336ec5f68579db6875638954dedd7cc47f220b4a/docassemble/MinorGuardianshipDischarge/data/questions/minor_guardianship_discharge.yml"
+      }
+    },
+    "guided_il_atj1284": {
+      "label": "Form ATJ 128.4",
+      "default": {
+        "text": "Form ATJ 128.4: Support Information Sheet. Available filing options depend on your court and case.",
+        "source": "https://github.com/IllinoisLegalAidOnline/docassemble-Divorce/blob/f61af0abdd57beb7aadcaf81ac9fc813681e2b01/docassemble/Divorce/data/templates/support_information_sheet.pdf"
+      }
+    },
+    "guided_il_pdasl8053": {
+      "label": "Form PD-ASL 805.3",
+      "default": {
+        "text": "Form PD-ASL 805.3: Proof of Delivery. Available filing options depend on your court and case.",
+        "source": "https://github.com/IllinoisLegalAidOnline/docassemble-VacateDefaultForeclosure/blob/ea8c4fe3b02590c06fa1a61a04ff87a562fac621/docassemble/VacateDefaultForeclosure/data/templates/vacate_foreclosure_proof_of_delivery.pdf"
+      }
+    },
+    "guided_il_atj1115": {
+      "label": "Form ATJ 111.5",
+      "default": {
+        "text": "Form ATJ 111.5: Appearance. Available filing options depend on your court and case.",
+        "source": "https://github.com/IllinoisLegalAidOnline/docassemble-Divorce/blob/f61af0abdd57beb7aadcaf81ac9fc813681e2b01/docassemble/Divorce/data/templates/divorce_appearance.pdf"
+      }
+    },
+    "guided_il_atj2563": {
+      "label": "Form ATJ 256.3",
+      "default": {
+        "text": "Form ATJ 256.3: Additional Cash and Cash Equivalents. Available filing options depend on your court and case.",
+        "source": "https://github.com/IllinoisLegalAidOnline/docassemble-FinancialAffidavit/blob/8d8fc1fc96074fc8cb0b707657272751a265cd4f/docassemble/FinancialAffidavit/data/templates/FA_additional_cash.pdf"
+      }
+    },
+    "guided_il_dvcf1232": {
+      "label": "Form DV-CF 123.2",
+      "default": {
+        "text": "Form DV-CF 123.2: Additional Certificates of Deposit. Available filing options depend on your court and case.",
+        "source": "https://github.com/IllinoisLegalAidOnline/docassemble-FinancialAffidavit/blob/8d8fc1fc96074fc8cb0b707657272751a265cd4f/docassemble/FinancialAffidavit/data/templates/FA_additional_cd.pdf"
+      }
+    },
+    "guided_il_dvv1332": {
+      "label": "Form DV-V 133.2",
+      "default": {
+        "text": "Form DV-V 133.2: Additional Valuable Collectibles. Available filing options depend on your court and case.",
+        "source": "https://github.com/IllinoisLegalAidOnline/docassemble-FinancialAffidavit/blob/8d8fc1fc96074fc8cb0b707657272751a265cd4f/docassemble/FinancialAffidavit/data/templates/FA_additional_collectibles.pdf"
+      }
+    },
+    "guided_il_atj2553": {
+      "label": "Form ATJ 255.3",
+      "default": {
+        "text": "Form ATJ 255.3: Additional My Debts. Available filing options depend on your court and case.",
+        "source": "https://github.com/IllinoisLegalAidOnline/docassemble-FinancialAffidavit/blob/8d8fc1fc96074fc8cb0b707657272751a265cd4f/docassemble/FinancialAffidavit/data/templates/FA_additional_debts.pdf"
+      }
+    },
+    "guided_il_atj2613": {
+      "label": "Form ATJ 261.3",
+      "default": {
+        "text": "Form ATJ 261.3: Additional Lawsuits and Claims. Available filing options depend on your court and case.",
+        "source": "https://github.com/IllinoisLegalAidOnline/docassemble-FinancialAffidavit/blob/8d8fc1fc96074fc8cb0b707657272751a265cd4f/docassemble/FinancialAffidavit/data/templates/FA_additional_lawsuits.pdf"
+      }
+    },
+    "guided_il_dvc1242": {
+      "label": "Form DV-C 124.2",
+      "default": {
+        "text": "Form DV-C 124.2: Additional Cash and Prepaid Debit Card. Available filing options depend on your court and case.",
+        "source": "https://github.com/IllinoisLegalAidOnline/docassemble-FinancialAffidavit/blob/8d8fc1fc96074fc8cb0b707657272751a265cd4f/docassemble/FinancialAffidavit/data/templates/FA_additional_money.pdf"
+      }
+    },
+    "guided_il_atj2603": {
+      "label": "Form ATJ 260.3",
+      "default": {
+        "text": "Form ATJ 260.3: Additional Motor Vehicles. Available filing options depend on your court and case.",
+        "source": "https://github.com/IllinoisLegalAidOnline/docassemble-FinancialAffidavit/blob/8d8fc1fc96074fc8cb0b707657272751a265cd4f/docassemble/FinancialAffidavit/data/templates/FA_additional_motor_vehicles.pdf"
+      }
+    },
+    "guided_il_dvb1262": {
+      "label": "Form DV-B 126.2",
+      "default": {
+        "text": "Form DV-B 126.2: Additional Investment/Brokerage Accounts, Mutual Funds, and Secured or Unsecured Notes. Available filing options depend on your court and case.",
+        "source": "https://github.com/IllinoisLegalAidOnline/docassemble-FinancialAffidavit/blob/8d8fc1fc96074fc8cb0b707657272751a265cd4f/docassemble/FinancialAffidavit/data/templates/FA_additional_other_investments.pdf"
+      }
+    },
+    "guided_il_dvre1272": {
+      "label": "Form DV-RE 127.2",
+      "default": {
+        "text": "Form DV-RE 127.2: Additional Real Estate. Available filing options depend on your court and case.",
+        "source": "https://github.com/IllinoisLegalAidOnline/docassemble-FinancialAffidavit/blob/8d8fc1fc96074fc8cb0b707657272751a265cd4f/docassemble/FinancialAffidavit/data/templates/FA_additional_real_estate.pdf"
+      }
+    },
+    "guided_il_atj2515": {
+      "label": "Form ATJ 251.5",
+      "default": {
+        "text": "Form ATJ 251.5: FINANCIAL AFFIDAVIT. Filing labels vary by court; choose the option for your court and case.",
+        "source": "https://github.com/IllinoisLegalAidOnline/docassemble-FinancialAffidavit/blob/8d8fc1fc96074fc8cb0b707657272751a265cd4f/docassemble/FinancialAffidavit/data/templates/fa_primary.pdf"
+      }
+    },
+    "guided_il_atj2543": {
+      "label": "Form ATJ 254.3",
+      "default": {
+        "text": "Form ATJ 254.3: Additional Health Insurance. Available filing options depend on your court and case.",
+        "source": "https://github.com/IllinoisLegalAidOnline/docassemble-FinancialAffidavit/blob/8d8fc1fc96074fc8cb0b707657272751a265cd4f/docassemble/FinancialAffidavit/data/templates/FA_additional_health_insurance.pdf"
+      }
+    },
+    "guided_il_app5035": {
+      "label": "Form AP-P 503.5",
+      "default": {
+        "text": "Form AP-P 503.5: Appearance. Available filing options depend on your court and case.",
+        "source": "https://github.com/IllinoisLegalAidOnline/docassemble-ILAOAppearance/blob/efd01b68260a7601f5643bb124bf704edff54edb/docassemble/ILAOAppearance/data/templates/appearance_acrobat_pro_edit_4.pdf"
+      }
+    },
+    "guided_il_atj4054": {
+      "label": "Form ATJ 405.4",
+      "default": {
+        "text": "Form ATJ 405.4: Order of Protection. Available filing options depend on your court and case.",
+        "source": "https://github.com/IllinoisLegalAidOnline/docassemble-OrderOfProtection/blob/2703abf4ef22d1510cb12e894428a8cd0b6772a0/docassemble/OrderOfProtection/data/templates/plenary_op.pdf"
+      }
+    },
+    "guided_il_atj1344": {
+      "label": "Form ATJ 134.4",
+      "default": {
+        "text": "Form ATJ 134.4: Additional Parenting Time. Available filing options depend on your court and case.",
+        "source": "https://github.com/IllinoisLegalAidOnline/docassemble-ParentingPlan/blob/c0e12e4ac8dd8ef4a20adc5b8abf186dac72d21f/docassemble/ParentingPlan/data/templates/additional_parenting_time.pdf"
+      }
+    },
+    "guided_il_atj1084": {
+      "label": "Form ATJ 108.4",
+      "default": {
+        "text": "Form ATJ 108.4: Parenting Plan. Available filing options depend on your court and case.",
+        "source": "https://github.com/IllinoisLegalAidOnline/docassemble-ParentingPlan/blob/c0e12e4ac8dd8ef4a20adc5b8abf186dac72d21f/docassemble/ParentingPlan/data/templates/parenting_plan.pdf"
+      }
+    },
+    "guided_il_atj14052": {
+      "label": "Form ATJ 1405.2",
+      "default": {
+        "text": "Form ATJ 1405.2: Affirmative Defenses. Available filing options depend on your court and case.",
+        "source": "https://github.com/IllinoisLegalAidOnline/docassemble-RespondToALawsuit/blob/9960df74194a6124f325538d60d69d0881100ad7/docassemble/RespondToALawsuit/data/templates/affirmative_defenses.pdf"
+      }
+    },
+    "guided_il_excm47022": {
+      "label": "Form EXC-M 4702.2",
+      "default": {
+        "text": "Form EXC-M 4702.2: Motion to Vacate & Expunge Eligible Cannabis Convictions. Available filing options depend on your court and case.",
+        "source": "https://github.com/IllinoisLegalAidOnline/docassemble-CannabisExpungement/blob/bf9ce851b34335b8b9e724e43cf4d2cad83ba8a1/docassemble/CannabisExpungement/data/questions/cannabis_expungement.yml"
+      }
+    },
+    "guided_il_atj50311": {
+      "label": "Form ATJ 503.11",
+      "default": {
+        "text": "Form ATJ 503.11: APPEARANCE (CIVIL). Filing labels vary by court; choose the option for your court and case.",
+        "source": "https://github.com/IllinoisLegalAidOnline/docassemble-RespondToALawsuit/blob/9960df74194a6124f325538d60d69d0881100ad7/docassemble/RespondToALawsuit/data/templates/appearance.pdf"
+      }
+    },
+    "guided_il_atj5044": {
+      "label": "Form ATJ 504.4",
+      "default": {
+        "text": "Form ATJ 504.4: JURY REQUEST (CIVIL). Filing labels vary by court; choose the option for your court and case.",
+        "source": "https://github.com/IllinoisLegalAidOnline/docassemble-Appearance/blob/2aa42c93cdafde3a83d7fa7c1e2ab83d262d1af1/docassemble/Appearance/data/templates/jury_request.pdf"
+      }
+    },
+    "guided_il_atj5205": {
+      "label": "Form ATJ 520.5",
+      "default": {
+        "text": "Form ATJ 520.5: CERTIFICATION FOR EXEMPTION. Filing labels vary by court; choose the option for your court and case.",
+        "source": "https://github.com/IllinoisLegalAidOnline/docassemble-OrderOfProtection/blob/2703abf4ef22d1510cb12e894428a8cd0b6772a0/docassemble/OrderOfProtection/data/templates/efiling_exemption.pdf"
+      }
+    },
+    "guided_il_atj6019": {
+      "label": "Form ATJ 601.9",
+      "default": {
+        "text": "Form ATJ 601.9: APPLICATION FOR WAIVER OF COURT FEES (CIVIL). Filing labels vary by court; choose the option for your court and case.",
+        "source": "https://github.com/IllinoisLegalAidOnline/docassemble-FeeWaiver/blob/cd0c5e8fe4028b0881d20281dddb2409f0ed6730/docassemble/FeeWaiver/data/templates/FeeWaiver_Civil_Application.pdf"
+      }
+    },
+    "guided_il_atj6028": {
+      "label": "Form ATJ 602.8",
+      "default": {
+        "text": "Form ATJ 602.8: ORDER ON APPLICATION FOR WAIVER OF COURT FEES (CIVIL). Filing labels vary by court; choose the option for your court and case.",
+        "source": "https://github.com/IllinoisLegalAidOnline/docassemble-FeeWaiver/blob/cd0c5e8fe4028b0881d20281dddb2409f0ed6730/docassemble/FeeWaiver/data/templates/FW-CIV-Order.pdf"
+      }
+    }
+  },
+  "path_aliases": [
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Proof of Delivery"
+      ],
+      "concepts": [
+        "guided_il_atj8517"
+      ],
+      "source_output": "Appearance:x.additional_proof",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-Appearance/blob/2aa42c93cdafde3a83d7fa7c1e2ab83d262d1af1/docassemble/Appearance/data/templates/additional_proof_of_delivery.pdf",
+        "https://www.illinoislegalaid.org/legal-information/appearance"
+      ],
+      "evidence_status": "source_title_and_provider_label; selected_path_not_audited"
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Proof of Delivery"
+      ],
+      "concepts": [
+        "guided_il_atj8517"
+      ],
+      "source_output": "AppearanceEfile:x.additional_proof",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-AppearanceEfile/blob/1a14263417e33f6092709c0399fd00e43c6ad11b/docassemble/AppearanceEfile/data/templates/additional_proof_of_delivery.pdf",
+        "https://www.illinoislegalaid.org/legal-information/appearance-e-filing"
+      ],
+      "evidence_status": "source_title_and_provider_label; selected_path_not_audited"
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Support Information Sheet"
+      ],
+      "concepts": [
+        "guided_il_atj1284"
+      ],
+      "source_output": "ChildSupportModification:support_information_sheet",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-ChildSupportModification/blob/1043e5531e62171305792d4b25baf97f36714540/docassemble/ChildSupportModification/data/templates/support_information_sheet.pdf",
+        "https://www.illinoislegalaid.org/legal-information/child-support-modification"
+      ],
+      "evidence_status": "source_title_and_provider_label; selected_path_not_audited",
+      "case_category": [
+        "Family"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Proof of Delivery"
+      ],
+      "concepts": [
+        "guided_il_atj8517"
+      ],
+      "source_output": "ChildSupportModification:x.additional_proof",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-ChildSupportModification/blob/1043e5531e62171305792d4b25baf97f36714540/docassemble/ChildSupportModification/data/templates/additional_proof_of_delivery.pdf",
+        "https://www.illinoislegalaid.org/legal-information/child-support-modification"
+      ],
+      "evidence_status": "source_title_and_provider_label; selected_path_not_audited",
+      "case_category": [
+        "Family"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Proof of Delivery"
+      ],
+      "concepts": [
+        "guided_il_pdasl8053"
+      ],
+      "source_output": "DelayAForeclosureSale:x.additional_proof",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-DelayAForeclosureSale/blob/731d487d3c217f10492114e6c25a98d589cf7ddc/docassemble/DelayAForeclosureSale/data/templates/delay_foreclosure_sale_proof_of_delivery.pdf",
+        "https://www.illinoislegalaid.org/legal-information/delay-foreclosure-sale"
+      ],
+      "evidence_status": "source_title_and_provider_label; selected_path_not_audited",
+      "case_category": [
+        "Civil",
+        "Mortgage Foreclosure"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Appearance"
+      ],
+      "concepts": [
+        "guided_il_atj1115"
+      ],
+      "source_output": "Divorce:divorce_appearance",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-Divorce/blob/f61af0abdd57beb7aadcaf81ac9fc813681e2b01/docassemble/Divorce/data/templates/divorce_appearance.pdf",
+        "https://www.illinoislegalaid.org/legal-information/divorce"
+      ],
+      "evidence_status": "source_title_and_provider_label; selected_path_not_audited",
+      "case_category": [
+        "Family"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": true,
+      "filing_type": [
+        "Support Information Sheet"
+      ],
+      "concepts": [
+        "guided_il_atj1284"
+      ],
+      "source_output": "Divorce:support_information_sheet",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-Divorce/blob/f61af0abdd57beb7aadcaf81ac9fc813681e2b01/docassemble/Divorce/data/templates/support_information_sheet.pdf",
+        "https://www.illinoislegalaid.org/legal-information/divorce"
+      ],
+      "evidence_status": "source_title_and_provider_label; selected_path_not_audited",
+      "case_category": [
+        "Family"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Proof of Delivery"
+      ],
+      "concepts": [
+        "guided_il_atj8517"
+      ],
+      "source_output": "EmergencyMotionClaimExemption:additional_proof",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-EmergencyMotionClaimExemption/blob/2b0cbe6eb9b203c04ef343a4c3ad2f90d2ea9d05/docassemble/EmergencyMotionClaimExemption/data/templates/additional_proof_of_delivery.pdf",
+        "https://www.illinoislegalaid.org/legal-information/emergency-motion-claim-exemption"
+      ],
+      "evidence_status": "source_title_and_provider_label; selected_path_not_audited",
+      "case_category": [
+        "Civil"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Proof of Delivery"
+      ],
+      "concepts": [
+        "guided_il_atj8517"
+      ],
+      "source_output": "ExtendTimeOfEviction:x.additional_proof",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-ExtendTimeOfEviction/blob/7703f0ecb66dc4e0020d40c7d3095591e904e312/docassemble/ExtendTimeOfEviction/data/templates/additional_proof_of_delivery.pdf",
+        "https://www.illinoislegalaid.org/legal-information/extend-time-eviction"
+      ],
+      "evidence_status": "source_title_and_provider_label; selected_path_not_audited",
+      "case_category": [
+        "Civil",
+        "Eviction"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Additional Cash and Cash Equivalents"
+      ],
+      "concepts": [
+        "guided_il_atj2563"
+      ],
+      "source_output": "FinancialAffidavit:additional_cash",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-FinancialAffidavit/blob/8d8fc1fc96074fc8cb0b707657272751a265cd4f/docassemble/FinancialAffidavit/data/templates/FA_additional_cash.pdf"
+      ],
+      "evidence_status": "source_title_and_provider_label; selected_path_not_audited",
+      "case_category": [
+        "Family"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Additional Certificates of Deposit"
+      ],
+      "concepts": [
+        "guided_il_dvcf1232"
+      ],
+      "source_output": "FinancialAffidavit:additional_cd",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-FinancialAffidavit/blob/8d8fc1fc96074fc8cb0b707657272751a265cd4f/docassemble/FinancialAffidavit/data/templates/FA_additional_cd.pdf"
+      ],
+      "evidence_status": "source_title_and_provider_label; selected_path_not_audited",
+      "case_category": [
+        "Family"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Additional Valuable Collectibles"
+      ],
+      "concepts": [
+        "guided_il_dvv1332"
+      ],
+      "source_output": "FinancialAffidavit:additional_collectibles",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-FinancialAffidavit/blob/8d8fc1fc96074fc8cb0b707657272751a265cd4f/docassemble/FinancialAffidavit/data/templates/FA_additional_collectibles.pdf"
+      ],
+      "evidence_status": "source_title_and_provider_label; selected_path_not_audited",
+      "case_category": [
+        "Family"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Additional My Debts"
+      ],
+      "concepts": [
+        "guided_il_atj2553"
+      ],
+      "source_output": "FinancialAffidavit:additional_debts",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-FinancialAffidavit/blob/8d8fc1fc96074fc8cb0b707657272751a265cd4f/docassemble/FinancialAffidavit/data/templates/FA_additional_debts.pdf"
+      ],
+      "evidence_status": "source_title_and_provider_label; selected_path_not_audited",
+      "case_category": [
+        "Family"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Additional Lawsuits and Claims"
+      ],
+      "concepts": [
+        "guided_il_atj2613"
+      ],
+      "source_output": "FinancialAffidavit:additional_lawsuits",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-FinancialAffidavit/blob/8d8fc1fc96074fc8cb0b707657272751a265cd4f/docassemble/FinancialAffidavit/data/templates/FA_additional_lawsuits.pdf"
+      ],
+      "evidence_status": "source_title_and_provider_label; selected_path_not_audited",
+      "case_category": [
+        "Family"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Additional Cash and Prepaid Debit Card"
+      ],
+      "concepts": [
+        "guided_il_dvc1242"
+      ],
+      "source_output": "FinancialAffidavit:additional_money",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-FinancialAffidavit/blob/8d8fc1fc96074fc8cb0b707657272751a265cd4f/docassemble/FinancialAffidavit/data/templates/FA_additional_money.pdf"
+      ],
+      "evidence_status": "source_title_and_provider_label; selected_path_not_audited",
+      "case_category": [
+        "Family"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Additional Motor Vehicles"
+      ],
+      "concepts": [
+        "guided_il_atj2603"
+      ],
+      "source_output": "FinancialAffidavit:additional_motor_vehicle",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-FinancialAffidavit/blob/8d8fc1fc96074fc8cb0b707657272751a265cd4f/docassemble/FinancialAffidavit/data/templates/FA_additional_motor_vehicles.pdf"
+      ],
+      "evidence_status": "source_title_and_provider_label; selected_path_not_audited",
+      "case_category": [
+        "Family"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Additional Investment/Brokerage Accounts, Mutual Funds, and Secured or Unsecured Notes"
+      ],
+      "concepts": [
+        "guided_il_dvb1262"
+      ],
+      "source_output": "FinancialAffidavit:additional_other_investments",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-FinancialAffidavit/blob/8d8fc1fc96074fc8cb0b707657272751a265cd4f/docassemble/FinancialAffidavit/data/templates/FA_additional_other_investments.pdf"
+      ],
+      "evidence_status": "source_title_and_provider_label; selected_path_not_audited",
+      "case_category": [
+        "Family"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Additional Real Estate"
+      ],
+      "concepts": [
+        "guided_il_dvre1272"
+      ],
+      "source_output": "FinancialAffidavit:additional_real_estate",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-FinancialAffidavit/blob/8d8fc1fc96074fc8cb0b707657272751a265cd4f/docassemble/FinancialAffidavit/data/templates/FA_additional_real_estate.pdf"
+      ],
+      "evidence_status": "source_title_and_provider_label; selected_path_not_audited",
+      "case_category": [
+        "Family"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Financial Affidavit"
+      ],
+      "concepts": [
+        "guided_il_atj2515"
+      ],
+      "source_output": "FinancialAffidavit:fa_primary",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-FinancialAffidavit/blob/8d8fc1fc96074fc8cb0b707657272751a265cd4f/docassemble/FinancialAffidavit/data/templates/fa_primary.pdf",
+        "https://www.illinoislegalaid.org/legal-information/financial-affidavit"
+      ],
+      "evidence_status": "source_title_and_provider_label; selected_path_not_audited",
+      "case_category": [
+        "Family"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Additional Health Insurance"
+      ],
+      "concepts": [
+        "guided_il_atj2543"
+      ],
+      "source_output": "FinancialAffidavit:insurance",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-FinancialAffidavit/blob/8d8fc1fc96074fc8cb0b707657272751a265cd4f/docassemble/FinancialAffidavit/data/templates/FA_additional_health_insurance.pdf"
+      ],
+      "evidence_status": "source_title_and_provider_label; selected_path_not_audited",
+      "case_category": [
+        "Family"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Appearance"
+      ],
+      "concepts": [
+        "guided_il_app5035"
+      ],
+      "source_output": "ILAOAppearance:illinois_appearance_attachment",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-ILAOAppearance/blob/efd01b68260a7601f5643bb124bf704edff54edb/docassemble/ILAOAppearance/data/templates/appearance_acrobat_pro_edit_4.pdf",
+        "https://www.illinoislegalaid.org/legal-information/appearance"
+      ],
+      "evidence_status": "source_title_and_provider_label; selected_path_not_audited"
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Proof of Delivery"
+      ],
+      "concepts": [
+        "guided_il_atj8517"
+      ],
+      "source_output": "Motion:x.additional_proof",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-Motion/blob/fe0e3518e19cefc5ccedb8c7b1aaae5224fff7a8/docassemble/Motion/data/templates/additional_proof_of_delivery.pdf",
+        "https://www.illinoislegalaid.org/legal-information/motion"
+      ],
+      "evidence_status": "source_title_and_provider_label; selected_path_not_audited"
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Proof of Delivery"
+      ],
+      "concepts": [
+        "guided_il_atj8517"
+      ],
+      "source_output": "MotionProcessServer:x.additional_proof",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-MotionProcessServer/blob/7d6da33df709f24c6b3f2e29fb1b0df51daf3b52/docassemble/MotionProcessServer/data/templates/additional_proof_of_delivery.pdf",
+        "https://www.illinoislegalaid.org/legal-information/special-process-server-request"
+      ],
+      "evidence_status": "source_title_and_provider_label; selected_path_not_audited",
+      "case_category": [
+        "Civil"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": true,
+      "filing_type": [
+        "Order of Protection"
+      ],
+      "concepts": [
+        "guided_il_atj4054"
+      ],
+      "source_output": "OrderOfProtection:plenary_op",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-OrderOfProtection/blob/2703abf4ef22d1510cb12e894428a8cd0b6772a0/docassemble/OrderOfProtection/data/templates/plenary_op.pdf",
+        "https://www.illinoislegalaid.org/legal-information/order-protection"
+      ],
+      "evidence_status": "source_title_and_provider_label; selected_path_not_audited",
+      "case_category": [
+        "Family",
+        "Order of Protection"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Additional Parenting Time"
+      ],
+      "concepts": [
+        "guided_il_atj1344"
+      ],
+      "source_output": "ParentingPlan:additional_parenting_time",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-ParentingPlan/blob/c0e12e4ac8dd8ef4a20adc5b8abf186dac72d21f/docassemble/ParentingPlan/data/templates/additional_parenting_time.pdf",
+        "https://www.illinoislegalaid.org/legal-information/parenting-plan"
+      ],
+      "evidence_status": "source_title_and_provider_label; selected_path_not_audited",
+      "case_category": [
+        "Family"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Parenting Plan"
+      ],
+      "concepts": [
+        "guided_il_atj1084"
+      ],
+      "source_output": "ParentingPlan:parenting_plan",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-ParentingPlan/blob/c0e12e4ac8dd8ef4a20adc5b8abf186dac72d21f/docassemble/ParentingPlan/data/templates/parenting_plan.pdf",
+        "https://www.illinoislegalaid.org/legal-information/parenting-plan"
+      ],
+      "evidence_status": "source_title_and_provider_label; selected_path_not_audited",
+      "case_category": [
+        "Family"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Proof of Delivery"
+      ],
+      "concepts": [
+        "guided_il_atj8517"
+      ],
+      "source_output": "ParentingTimeSchedule:proof_of_delivery",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-ParentingTimeSchedule/blob/eb25cc7d9294bb8f6d3a8bfb1dc690f7e83b7829/docassemble/ParentingTimeSchedule/data/templates/proof_of_delivery.pdf",
+        "https://www.illinoislegalaid.org/legal-information/make-or-change-parenting-time-schedule"
+      ],
+      "evidence_status": "source_title_and_provider_label; selected_path_not_audited",
+      "case_category": [
+        "Family"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Proof of Delivery"
+      ],
+      "concepts": [
+        "guided_il_atj8517"
+      ],
+      "source_output": "ParentingTimeSchedule:x.additional_proof",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-ParentingTimeSchedule/blob/eb25cc7d9294bb8f6d3a8bfb1dc690f7e83b7829/docassemble/ParentingTimeSchedule/data/templates/proof_of_delivery.pdf",
+        "https://www.illinoislegalaid.org/legal-information/make-or-change-parenting-time-schedule"
+      ],
+      "evidence_status": "source_title_and_provider_label; selected_path_not_audited",
+      "case_category": [
+        "Family"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Proof of Delivery"
+      ],
+      "concepts": [
+        "guided_il_atj8517"
+      ],
+      "source_output": "PetitionForRuleToShowCauseFamily:proof_of_delivery",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-PetitionForRuleToShowCauseFamily/blob/377e75e477d811e7035da5947b6b3c30e9d9b8f4/docassemble/PetitionForRuleToShowCauseFamily/data/templates/aoic_proof_of_delivery.pdf",
+        "https://www.illinoislegalaid.org/legal-information/petition-rule-show-cause-family-law-cases"
+      ],
+      "evidence_status": "source_title_and_provider_label; selected_path_not_audited",
+      "case_category": [
+        "Family"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Proof of Delivery"
+      ],
+      "concepts": [
+        "guided_il_atj8517"
+      ],
+      "source_output": "PetitionForRuleToShowCauseFamily:proof_of_delivery_lawyer",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-PetitionForRuleToShowCauseFamily/blob/377e75e477d811e7035da5947b6b3c30e9d9b8f4/docassemble/PetitionForRuleToShowCauseFamily/data/templates/aoic_proof_of_delivery.pdf",
+        "https://www.illinoislegalaid.org/legal-information/petition-rule-show-cause-family-law-cases"
+      ],
+      "evidence_status": "source_title_and_provider_label; selected_path_not_audited",
+      "case_category": [
+        "Family"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Proof of Delivery"
+      ],
+      "concepts": [
+        "guided_il_atj8517"
+      ],
+      "source_output": "ProofOfDelivery:proof_of_delivery",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-ProofOfDelivery/blob/1c4a0b3e9a9ba5dc61a4025afe5af0ae74c78337/docassemble/ProofOfDelivery/data/templates/proof_of_delivery.pdf",
+        "https://www.illinoislegalaid.org/legal-information/proof-delivery"
+      ],
+      "evidence_status": "source_title_and_provider_label; selected_path_not_audited"
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Proof of Delivery"
+      ],
+      "concepts": [
+        "guided_il_atj8517"
+      ],
+      "source_output": "ProofOfDelivery:x.additional_proof",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-ProofOfDelivery/blob/1c4a0b3e9a9ba5dc61a4025afe5af0ae74c78337/docassemble/ProofOfDelivery/data/templates/additional_proof_of_delivery.pdf",
+        "https://www.illinoislegalaid.org/legal-information/proof-delivery"
+      ],
+      "evidence_status": "source_title_and_provider_label; selected_path_not_audited"
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Proof of Delivery"
+      ],
+      "concepts": [
+        "guided_il_pdasl8053"
+      ],
+      "source_output": "RemoveEvictionFromPublicRecord:x.additional_proof",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-RemoveEvictionFromPublicRecord/blob/5c2e7799b9576d704930b674349c68c4d52078d9/docassemble/RemoveEvictionFromPublicRecord/data/templates/additional_proof_of_delivery.pdf",
+        "https://www.illinoislegalaid.org/legal-information/remove-eviction-public-record"
+      ],
+      "evidence_status": "source_title_and_provider_label; selected_path_not_audited",
+      "case_category": [
+        "Civil",
+        "Eviction"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Affirmative Defenses"
+      ],
+      "concepts": [
+        "guided_il_atj14052"
+      ],
+      "source_output": "RespondToALawsuit:affirmative_defenses",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-RespondToALawsuit/blob/9960df74194a6124f325538d60d69d0881100ad7/docassemble/RespondToALawsuit/data/templates/affirmative_defenses.pdf",
+        "https://www.illinoislegalaid.org/legal-information/respond-lawsuit"
+      ],
+      "evidence_status": "source_title_and_provider_label; selected_path_not_audited",
+      "case_category": [
+        "Civil"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Proof of Delivery"
+      ],
+      "concepts": [
+        "guided_il_atj8517"
+      ],
+      "source_output": "RespondToALawsuit:x.additional_proof",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-RespondToALawsuit/blob/9960df74194a6124f325538d60d69d0881100ad7/docassemble/RespondToALawsuit/data/templates/additional_proof_of_delivery.pdf",
+        "https://www.illinoislegalaid.org/legal-information/respond-lawsuit"
+      ],
+      "evidence_status": "source_title_and_provider_label; selected_path_not_audited",
+      "case_category": [
+        "Civil"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Proof of Delivery"
+      ],
+      "concepts": [
+        "guided_il_pdasl8053"
+      ],
+      "source_output": "RespondToAnEviction:x.additional_proof",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-RespondToAnEviction/blob/b8dbe5127e035543402d6f28b0cc544700932106/docassemble/RespondToAnEviction/data/templates/additional_proof_of_delivery.pdf",
+        "https://www.illinoislegalaid.org/legal-information/respond-eviction"
+      ],
+      "evidence_status": "source_title_and_provider_label; selected_path_not_audited",
+      "case_category": [
+        "Civil",
+        "Eviction"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Proof of Delivery"
+      ],
+      "concepts": [
+        "guided_il_pdasl8053"
+      ],
+      "source_output": "RespondToAnEviction:x.answer_additional_proof",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-RespondToAnEviction/blob/b8dbe5127e035543402d6f28b0cc544700932106/docassemble/RespondToAnEviction/data/templates/additional_proof_of_delivery.pdf",
+        "https://www.illinoislegalaid.org/legal-information/respond-eviction"
+      ],
+      "evidence_status": "source_title_and_provider_label; selected_path_not_audited",
+      "case_category": [
+        "Civil",
+        "Eviction"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Proof of Delivery"
+      ],
+      "concepts": [
+        "guided_il_pdasl8053"
+      ],
+      "source_output": "RespondToForeclosureComplaint:x.additional_proof",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-RespondToForeclosureComplaint/blob/756e6880d99f7d3ecd9ac57fd6f14389e64d250a/docassemble/RespondToForeclosureComplaint/data/templates/foreclosure_additional_delivery.pdf",
+        "https://www.illinoislegalaid.org/legal-information/respond-mortgage-foreclosure-complaint"
+      ],
+      "evidence_status": "source_title_and_provider_label; selected_path_not_audited",
+      "case_category": [
+        "Civil",
+        "Mortgage Foreclosure"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Proof of Delivery"
+      ],
+      "concepts": [
+        "guided_il_atj8517"
+      ],
+      "source_output": "SmallClaimsComplaint:x.additional_proof",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-SmallClaimsComplaint/blob/311319b7007d033197b2dc62c029f56465a93b48/docassemble/SmallClaimsComplaint/data/templates/additional_proof_of_delivery.pdf",
+        "https://www.illinoislegalaid.org/legal-information/small-claims-complaint"
+      ],
+      "evidence_status": "source_title_and_provider_label; selected_path_not_audited",
+      "case_category": [
+        "Civil"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Proof of Delivery"
+      ],
+      "concepts": [
+        "guided_il_pdasl8053"
+      ],
+      "source_output": "VacateDefaultForeclosure:x.additional_proof",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-VacateDefaultForeclosure/blob/ea8c4fe3b02590c06fa1a61a04ff87a562fac621/docassemble/VacateDefaultForeclosure/data/templates/vacate_foreclosure_proof_of_delivery.pdf",
+        "https://www.illinoislegalaid.org/legal-information/vacate-default-judgment-foreclosure"
+      ],
+      "evidence_status": "source_title_and_provider_label; selected_path_not_audited",
+      "case_category": [
+        "Civil",
+        "Mortgage Foreclosure"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Proof of Delivery"
+      ],
+      "concepts": [
+        "guided_il_atj8517"
+      ],
+      "source_output": "VacateDefaultJudgment:x.additional_proof",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-VacateDefaultJudgment/blob/b9087883577e4db6bea7646b918435a55815864d/docassemble/VacateDefaultJudgment/data/templates/additional_proof_of_delivery.pdf",
+        "https://www.illinoislegalaid.org/legal-information/vacate-default-judgment-within-30-days"
+      ],
+      "evidence_status": "source_title_and_provider_label; selected_path_not_audited",
+      "case_category": [
+        "Civil"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Motion to Vacate & Expunge Eligible Cannabis Convictions"
+      ],
+      "concepts": [
+        "guided_il_excm47022"
+      ],
+      "source_output": "il-cannabisexpungement-cxp-motion-to-vacate-and-expunge-cannabis-expungement",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-CannabisExpungement/blob/bf9ce851b34335b8b9e724e43cf4d2cad83ba8a1/docassemble/CannabisExpungement/data/questions/cannabis_expungement.yml",
+        "https://github.com/IllinoisLegalAidOnline/docassemble-CannabisExpungement/blob/bf9ce851b34335b8b9e724e43cf4d2cad83ba8a1/docassemble/CannabisExpungement/data/templates/CXP_Motion_to_Vacate_and_Expunge.pdf"
+      ],
+      "evidence_status": "source_title_and_provider_label; selected_path_not_audited"
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": true,
+      "filing_type": [
+        "Proof of Delivery"
+      ],
+      "concepts": [
+        "guided_il_atj8517"
+      ],
+      "source_output": "il-minorguardianshipdischarge-aoic-proof-of-delivery-minor-guardianship-discharge",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-MinorGuardianshipDischarge/blob/336ec5f68579db6875638954dedd7cc47f220b4a/docassemble/MinorGuardianshipDischarge/data/questions/minor_guardianship_discharge.yml",
+        "https://github.com/IllinoisLegalAidOnline/docassemble-MinorGuardianshipDischarge/blob/336ec5f68579db6875638954dedd7cc47f220b4a/docassemble/MinorGuardianshipDischarge/data/templates/aoic_proof_of_delivery.pdf"
+      ],
+      "evidence_status": "source_title_and_provider_label; selected_path_not_audited"
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Appearance"
+      ],
+      "concepts": [
+        "guided_il_atj50311"
+      ],
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-Appearance/blob/2aa42c93cdafde3a83d7fa7c1e2ab83d262d1af1/docassemble/Appearance/data/templates/appearance.pdf",
+        "https://www.illinoislegalaid.org/legal-information/appearance"
+      ],
+      "evidence_status": "reviewed_source_association",
+      "case_category": [
+        "Civil"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Jury Demand/Request"
+      ],
+      "concepts": [
+        "guided_il_atj5044"
+      ],
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-Appearance/blob/2aa42c93cdafde3a83d7fa7c1e2ab83d262d1af1/docassemble/Appearance/data/templates/jury_request.pdf",
+        "https://www.illinoislegalaid.org/legal-information/appearance"
+      ],
+      "evidence_status": "reviewed_source_association",
+      "case_category": [
+        "Civil"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": true,
+      "filing_type": [
+        "Certificate of Exemption from eFiling"
+      ],
+      "concepts": [
+        "guided_il_atj5205"
+      ],
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-OrderOfProtection/blob/2703abf4ef22d1510cb12e894428a8cd0b6772a0/docassemble/OrderOfProtection/data/templates/efiling_exemption.pdf",
+        "https://www.illinoislegalaid.org/legal-information/order-protection"
+      ],
+      "evidence_status": "reviewed_source_association"
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Application Waiver of Court Fees (Civil)"
+      ],
+      "concepts": [
+        "guided_il_atj6019"
+      ],
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-FeeWaiver/blob/cd0c5e8fe4028b0881d20281dddb2409f0ed6730/docassemble/FeeWaiver/data/templates/FeeWaiver_Civil_Application.pdf",
+        "https://www.illinoislegalaid.org/legal-information/fee-waiver"
+      ],
+      "evidence_status": "reviewed_source_association",
+      "case_category": [
+        "Civil"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Order for Waiver of Fees/Assessments"
+      ],
+      "concepts": [
+        "guided_il_atj6028"
+      ],
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-FeeWaiver/blob/cd0c5e8fe4028b0881d20281dddb2409f0ed6730/docassemble/FeeWaiver/data/templates/FW-CIV-Order.pdf",
+        "https://www.illinoislegalaid.org/legal-information/fee-waiver"
+      ],
+      "evidence_status": "reviewed_source_association",
+      "case_category": [
+        "Civil"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Appearance Filed"
+      ],
+      "concepts": [
+        "guided_il_atj50311"
+      ],
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-RespondToALawsuit/blob/9960df74194a6124f325538d60d69d0881100ad7/docassemble/RespondToALawsuit/data/templates/appearance.pdf"
+      ],
+      "evidence_status": "reviewed_source_association",
+      "court_codes": [
+        "cook:cvd2",
+        "cook:cvd3",
+        "cook:cvd4",
+        "cook:cvd5",
+        "cook:cvd6",
+        "cook:dr1",
+        "cook:dr2",
+        "cook:dr3",
+        "cook:dr4",
+        "cook:dr5",
+        "cook:dr6"
+      ],
+      "terms": [
+        "appearance"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Appearance Filed - Fee"
+      ],
+      "concepts": [
+        "guided_il_atj50311"
+      ],
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-RespondToALawsuit/blob/9960df74194a6124f325538d60d69d0881100ad7/docassemble/RespondToALawsuit/data/templates/appearance.pdf"
+      ],
+      "evidence_status": "reviewed_source_association",
+      "court_codes": [
+        "cook:chd1",
+        "cook:cvd1",
+        "cook:cvd2",
+        "cook:cvd3",
+        "cook:cvd4",
+        "cook:cvd5",
+        "cook:cvd6",
+        "cook:dr1",
+        "cook:dr2",
+        "cook:dr3",
+        "cook:dr4",
+        "cook:dr5",
+        "cook:dr6",
+        "cook:eld1",
+        "cook:eld2",
+        "cook:eld3",
+        "cook:eld4",
+        "cook:eld5",
+        "cook:eld6",
+        "cook:law1",
+        "cook:law2",
+        "cook:law3",
+        "cook:law4",
+        "cook:law5",
+        "cook:law6"
+      ],
+      "terms": [
+        "appearance"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Appearance Filed - No Fee"
+      ],
+      "concepts": [
+        "guided_il_atj50311"
+      ],
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-RespondToALawsuit/blob/9960df74194a6124f325538d60d69d0881100ad7/docassemble/RespondToALawsuit/data/templates/appearance.pdf"
+      ],
+      "evidence_status": "reviewed_source_association",
+      "court_codes": [
+        "cook:chd1",
+        "cook:dr1",
+        "cook:dr2",
+        "cook:dr3",
+        "cook:dr4",
+        "cook:dr5",
+        "cook:dr6",
+        "cook:law1",
+        "cook:law2",
+        "cook:law3",
+        "cook:law4",
+        "cook:law5",
+        "cook:law6"
+      ],
+      "terms": [
+        "appearance"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Appearance Filed - Fee Waiver"
+      ],
+      "concepts": [
+        "guided_il_atj50311"
+      ],
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-RespondToALawsuit/blob/9960df74194a6124f325538d60d69d0881100ad7/docassemble/RespondToALawsuit/data/templates/appearance.pdf"
+      ],
+      "evidence_status": "reviewed_source_association",
+      "court_codes": [
+        "cook:chd1"
+      ],
+      "terms": [
+        "appearance"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Appearance Filed - Fee Waived"
+      ],
+      "concepts": [
+        "guided_il_atj50311"
+      ],
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-RespondToALawsuit/blob/9960df74194a6124f325538d60d69d0881100ad7/docassemble/RespondToALawsuit/data/templates/appearance.pdf"
+      ],
+      "evidence_status": "reviewed_source_association",
+      "court_codes": [
+        "cook:eld1",
+        "cook:eld2",
+        "cook:eld3",
+        "cook:eld4",
+        "cook:eld5",
+        "cook:eld6",
+        "cook:law1",
+        "cook:law2",
+        "cook:law3",
+        "cook:law4",
+        "cook:law5",
+        "cook:law6"
+      ],
+      "terms": [
+        "appearance"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Appearance Filed - No Fee Paid"
+      ],
+      "concepts": [
+        "guided_il_atj50311"
+      ],
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-RespondToALawsuit/blob/9960df74194a6124f325538d60d69d0881100ad7/docassemble/RespondToALawsuit/data/templates/appearance.pdf"
+      ],
+      "evidence_status": "reviewed_source_association",
+      "court_codes": [
+        "cook:eld1",
+        "cook:eld2",
+        "cook:eld3",
+        "cook:eld4",
+        "cook:eld5",
+        "cook:eld6"
+      ],
+      "terms": [
+        "appearance"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Jury Demand Filed - Fee"
+      ],
+      "concepts": [
+        "guided_il_atj5044"
+      ],
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-Appearance/blob/2aa42c93cdafde3a83d7fa7c1e2ab83d262d1af1/docassemble/Appearance/data/templates/jury_request.pdf"
+      ],
+      "evidence_status": "reviewed_source_association",
+      "court_codes": [
+        "cook:cvd1",
+        "cook:cvd2",
+        "cook:cvd3",
+        "cook:cvd4",
+        "cook:cvd5",
+        "cook:cvd6"
+      ],
+      "terms": [
+        "jury request"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Jury Demand Filed - No Fee"
+      ],
+      "concepts": [
+        "guided_il_atj5044"
+      ],
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-Appearance/blob/2aa42c93cdafde3a83d7fa7c1e2ab83d262d1af1/docassemble/Appearance/data/templates/jury_request.pdf"
+      ],
+      "evidence_status": "reviewed_source_association",
+      "court_codes": [
+        "cook:cvd1",
+        "cook:cvd2",
+        "cook:cvd3",
+        "cook:cvd4",
+        "cook:cvd5",
+        "cook:cvd6",
+        "cook:law1",
+        "cook:law2",
+        "cook:law3",
+        "cook:law4",
+        "cook:law5",
+        "cook:law6"
+      ],
+      "terms": [
+        "jury request"
+      ]
+    },
+    {
+      "jurisdictions": [
+        "illinois"
+      ],
+      "initial": false,
+      "filing_type": [
+        "Financial Affidavit Filed"
+      ],
+      "concepts": [
+        "guided_il_atj2515"
+      ],
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-FinancialAffidavit/blob/8d8fc1fc96074fc8cb0b707657272751a265cd4f/docassemble/FinancialAffidavit/data/templates/fa_primary.pdf"
+      ],
+      "evidence_status": "reviewed_source_association",
+      "court_codes": [
+        "cook:dr1",
+        "cook:dr2",
+        "cook:dr3",
+        "cook:dr4",
+        "cook:dr5",
+        "cook:dr6"
+      ],
+      "terms": [
+        "financial affidavit"
+      ]
+    }
+  ]
+}

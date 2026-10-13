@@ -26,12 +26,9 @@ from efile.services.filing_code_labels import LabelCounts, LabelSpool, forget_co
 from efile.services.filing_code_search import (
     FACETS,
     CodeCatalog,
-    explanation_for,
-    packed,
+    indexed_path,
     rules,
-    search_tokens,
     source_url,
-    stems,
     words,
 )
 
@@ -139,19 +136,7 @@ def export_entries(data, jurisdiction):
             for filing in filings.values():
                 path = dict(zip(FACETS, (court, category, case_type, filing), strict=True))
                 path = {facet: {key: value[key] for key in ("code", "name")} for facet, value in path.items()}
-                terms = {facet: search_tokens(path[facet]["name"], jurisdiction) for facet in FACETS}
-                all_terms = set.union(*terms.values())
-                all_terms.update(token for facet in FACETS for token in stems(path[facet]["code"]))
-                explanation, source = explanation_for(jurisdiction, path, initial)
-                yield dict(
-                    **path,
-                    initial=initial,
-                    search_text=packed(all_terms),
-                    filing_terms=packed(terms["filing_type"]),
-                    case_terms=packed(terms["case_category"] | terms["case_type"]),
-                    explanation=explanation,
-                    explanation_source=source,
-                )
+                yield indexed_path(jurisdiction, path, initial)
 
 
 def _stage(data, jurisdiction, path):

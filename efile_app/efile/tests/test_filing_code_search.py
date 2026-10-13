@@ -198,8 +198,8 @@ def test_local_definition_is_applied_after_court_selection_and_without_reindex(i
 def test_every_search_concept_has_a_short_sourced_definition():
     from efile.services.filing_code_search import rules
 
-    for concept in rules()[0]["concepts"]:
-        for state in rules()[0]["jurisdictions"]:
+    for concept, config in rules()[0]["concepts"].items():
+        for state in config.get("jurisdictions", rules()[0]["jurisdictions"]):
             meaning = concept_meaning(concept, state)
             assert meaning["text"] and meaning["source"].startswith("https://")
 
@@ -1312,3 +1312,181 @@ def test_shared_cache_serves_another_worker(index):
     with CaptureQueriesContext(connection) as queries:
         search_grouped_paths(index, "eviction")
     assert not [query for query in queries.captured_queries if "filingcodelabel" in query["sql"].lower()]
+
+
+@pytest.mark.parametrize("transport", ["legacy", "bulk"])
+def test_vermont_initial_complaint_aliases_keep_stage_and_division(catalog, transport):
+    """VT Judiciary Civil/Family guides + issue 325 workbook rows 4–5, 24–31."""
+    catalog.courts.return_value = [option("vt", "Vermont Superior Court")]
+    catalog.categories.return_value = [
+        option("family", "Family"),
+        option("civil", "Civil"),
+        option("env", "Environmental"),
+    ]
+    catalog.types.side_effect = lambda court, category, initial: {
+        "family": [
+            option("rfa", "Relief from Abuse"),
+            option("foreign", "Registration of a Foreign Order"),
+            option("divorce", "Dissolution Contested with No Minor Children"),
+        ],
+        "civil": [
+            option("small", "Small Claims $1,000 or less"),
+            option("admin", "Administrative Document - Answer No Complaint Filed"),
+        ],
+        "env": [option("appeal", "Environmental Appeal")],
+    }[category]
+    catalog.filings.side_effect = None
+    catalog.filings.return_value = [option("initial", "Initial Filing"), option("answer", "Answer to Complaint")]
+    if transport == "bulk":
+        from efile.services.filing_code_sync import export_entries
+
+        data = {
+            "court": catalog.courts.return_value[0],
+            "categories": catalog.categories.return_value,
+            "case_types": [
+                {**row, "case_category": category["code"], "initial": initial}
+                for category in catalog.categories.return_value
+                for initial in (True, False)
+                for row in catalog.types("vt", category["code"], initial)
+            ],
+            "filing_types": [
+                {**row, "case_category": "", "case_type": "", "timing": "Both"} for row in catalog.filings.return_value
+            ],
+        }
+        # Bulk catalogs store one timing flag per type; retain the initial
+        # types and add a separate existing type to enable subsequent paths.
+        data["case_types"] = [row for row in data["case_types"] if row["initial"]]
+        data["case_types"].extend(
+            {
+                "code": "existing-" + row["code"],
+                "name": row["name"],
+                "case_category": row["case_category"],
+                "initial": False,
+            }
+            for row in list(data["case_types"])
+        )
+        with patch("efile.services.filing_code_search.catalog_entries", return_value=export_entries(data, "vermont")):
+            refresh_index("vermont")
+    else:
+        refresh_index("vermont")
+    index = current_index("vermont")
+    for query in (
+        "complaint",
+        "file a complaint",
+        "small claims complaint",
+        "divorce complaint",
+        "end marriage",
+        "relief from abuse complaint",
+        "RFA",
+        "start relief from abuse case",
+    ):
+        result = search_paths(index, query)
+        initial = [row for row in result["results"] if row["filing_type"]["code"] == "initial"]
+        assert initial, query
+        assert initial[0]["case_type"]["code"] in {"rfa", "small", "divorce"}
+        assert "complaint that starts" in initial[0]["explanation"]
+        grouped = search_grouped_paths(index, query)
+        assert "Initial Filing" in [group["name"] for group in grouped["groups"][:5]]
+    assert not any(
+        row["filing_type"]["code"] == "initial"
+        for row in search_paths(index, "relief from abuse complaint", initial=False)["results"]
+    )
+    admin = index.paths.get(initial=True, case_type__code="admin", filing_type__code="initial")
+    assert " complaint " not in admin.filing_terms
+    assert admin.explanation == ""
+    path = index.paths.get(initial=True, case_type__code="rfa", filing_type__code="initial")
+    validated = validate_path(path)
+    assert validated["filing_type"] == option("initial", "Initial Filing")
+
+
+def test_illinois_eviction_sealing_requires_specific_existing_motion_and_case(catalog):
+    """Illinois Courts' standardized motion; DuPage snapshot label 309683."""
+    catalog.courts.return_value = [option("dupage", "DuPage County")]
+    catalog.categories.return_value = [option("civil", "Civil")]
+    catalog.types.return_value = [option("eviction", "Residential - Eviction"), option("criminal", "Criminal")]
+    title = "Motion to Remove Eviction Court File from Public Record"
+    catalog.filings.side_effect = None
+    catalog.filings.return_value = [
+        option("remove", title),
+        option("redact", "Motion for Redaction"),
+        option("seal", "Motion to Seal"),
+        option("expunge", "Expungement"),
+        option("order", "Order to Remove Eviction Court File from Public Record"),
+    ]
+    refresh_index("illinois")
+    index = current_index("illinois")
+    for query in (
+        "seal eviction",
+        "seal my eviction",
+        "eviction record sealing",
+        "hide eviction case",
+        "remove eviction from public record",
+    ):
+        data = search_paths(index, query, initial=False)
+        assert data["total"] == 1, query
+        path = data["results"][0]
+        assert path["filing_type"] == option("remove", title)
+        assert path["case_type"]["code"] == "eviction"
+        if query.startswith(("seal", "hide")):
+            assert path["match_reason"]["concepts"] == ["eviction_record_sealing"]
+        assert search_paths(index, query, initial=True)["total"] == 0
+        groups = search_grouped_paths(index, query, initial=False)["groups"]
+        assert [group["name"] for group in groups] == [title]
+    # Generic language elsewhere and document-finder tokenization stay separate.
+    assert "conceptevictionrecordsealing" not in search_tokens(
+        "seal eviction", "massachusetts", query=True, path_query=True
+    )
+    assert "conceptevictionrecordsealing" not in search_tokens("seal eviction", "illinois", query=True)
+    assert "conceptevictionrecordsealing" not in search_tokens("public record", "illinois", query=True, path_query=True)
+
+
+def test_captured_vermont_paths_are_discoverable_in_each_audited_court(catalog):
+    """Replay the dated 154-path capture; this does not measure a full live index."""
+    import json
+    from pathlib import Path
+
+    from efile.services.filing_code_search import indexed_path
+
+    fixture = (
+        Path(__file__).resolve().parents[3]
+        / "docs/developer-notes/fixtures/vermont-initial-filing-audit-2026-10-13.json"
+    )
+    audit = json.loads(fixture.read_text())
+    entries = []
+    county_codes = []
+    for court in audit["courts"]:
+        if not court["rfa"]:
+            continue
+        county_codes.append(court["court_code"])
+        for family, category in (("rfa", option("210", "Family")), ("small_claims", option("7", "Civil"))):
+            for row in court[family]:
+                for filing in row["filing_options"]:
+                    entries.append(
+                        indexed_path(
+                            "vermont",
+                            {
+                                "court": option(court["court_code"], court["court_name"]),
+                                "case_category": category,
+                                "case_type": option(row["case_type_id"], row["case_type_name"]),
+                                "filing_type": filing,
+                            },
+                            True,
+                        )
+                    )
+    assert len(county_codes) == 14
+    assert len(entries) == 154
+    with patch("efile.services.filing_code_search.catalog_entries", return_value=iter(entries)):
+        refresh_index("vermont")
+    index = current_index("vermont")
+    for query, expected_count, expected_code in (
+        ("relief from abuse complaint", 3, "9564"),
+        ("RFA", 3, "9564"),
+        ("small claims complaint", 8, "9563"),
+    ):
+        groups = search_grouped_paths(index, query)["groups"]
+        assert groups[0]["name"] == "Initial Filing"
+        for court_code in county_codes:
+            found = search_paths(index, query, court=court_code)
+            assert found["total"] == expected_count
+            assert {row["filing_type"]["code"] for row in found["results"]} == {expected_code}
+            assert {row["court"]["code"] for row in found["results"]} == {court_code}

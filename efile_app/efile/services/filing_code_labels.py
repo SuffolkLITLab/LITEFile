@@ -1,4 +1,4 @@
-"""Filing labels: each filing/category/case-type name combination once, with its courts.
+"""Filing labels: each name and scoped-search-vocabulary combination, with its courts.
 
 Search groups and court lists are read from labels. Every write to the paths
 table also updates the labels of the courts it wrote, so the two agree.
@@ -25,8 +25,16 @@ FACETS = ("filing_type", "case_category", "case_type")
 BATCH = 1000
 
 
-def label_key(initial, filing, category, case_type):
-    return hashlib.sha256(json.dumps([initial, filing, category, case_type]).encode()).hexdigest()[:32]
+def label_key(initial, filing, category, case_type, filing_terms, case_terms):
+    """Key a label by its names and its scoped search vocabulary.
+
+    Two courts can expose identical provider labels while a jurisdiction's
+    search rules add different court-scoped synonyms. Keeping those vocabularies
+    in the identity prevents one court's aliases from matching another court.
+    """
+    return hashlib.sha256(
+        json.dumps([initial, filing, category, case_type, filing_terms, case_terms]).encode()
+    ).hexdigest()[:32]
 
 
 class LabelCounts:
@@ -37,12 +45,17 @@ class LabelCounts:
         self.terms = {}
 
     def add(self, entry):
-        label = (bool(entry["initial"]), *(str(entry[facet]["name"]) for facet in FACETS))
+        label = (
+            bool(entry["initial"]),
+            *(str(entry[facet]["name"]) for facet in FACETS),
+            entry["filing_terms"],
+            entry["case_terms"],
+        )
         self.courts.setdefault(label, Counter())[entry["court"]["code"]] += 1
         self.terms.setdefault(label, (entry["filing_terms"], entry["case_terms"]))
 
     def new_label(self, index, key, label, courts):
-        filing, case = self.terms[label]
+        filing, case = label[4], label[5]
         return FilingCodeLabel(
             index=index,
             key=key,

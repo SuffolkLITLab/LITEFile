@@ -2,11 +2,18 @@
 # different remedies interchangeable. Only paths supplied by the EFSP appear.
 version: 1
 jurisdictions: [illinois, massachusetts, vermont]
+guided_form_aliases_file: guided_form_search_aliases.json
 stemming: english
 stop_words: [a, an, and, are, for, how, i, in, is, it, my, of, "on", or, the, to, want, with]
 concepts:
   eviction:
     terms: [eviction, evict, evicted, unlawful detainer, forcible entry and detainer, forcible detainer, summary process, ejectment]
+  eviction_record_sealing:
+    jurisdictions: [illinois]
+    # Only scoped, existing-case motion paths receive this token. In particular,
+    # an eviction case label plus a generic redaction/sealing code is insufficient.
+    path_only: true
+    terms: [seal eviction, seal my eviction, seal eviction case, seal eviction court file, eviction sealing, eviction record sealing, remove eviction from public record, remove eviction court file from public record, hide eviction case, hide eviction case from public record, eviction background check]
   divorce:
     terms: [divorce, dissolution of marriage, dissolve marriage]
   custody:
@@ -43,12 +50,240 @@ concepts:
     terms: [contempt, violation of court order]
   appeal:
     terms: [appeal, appellate]
+  vt_form_400_00150c:
+    path_only: true
+    jurisdictions: [vermont]
+    terms:
+      - "400-00150C"
+      - "Complaint for Relief from Abuse"
+  vt_form_400_00150cc:
+    path_only: true
+    jurisdictions: [vermont]
+    terms:
+      - "400-00150CC"
+      - "Complaint for Relief from Abuse on Behalf of Child"
+  vt_form_100_00257:
+    path_only: true
+    jurisdictions: [vermont]
+    terms:
+      - "100-00257"
+      - "Small Claims Complaint"
+  vt_form_400_00151:
+    path_only: true
+    jurisdictions: [vermont]
+    terms:
+      - "400-00151"
+      - "400-00151N"
+      - "Affidavit in Support of Relief from Abuse Complaint"
+  vt_form_400_00151m:
+    path_only: true
+    jurisdictions: [vermont]
+    terms:
+      - "400-00151M"
+      - "Affidavit in Support of Relief from Abuse Complaint for Child"
+  vt_form_dps_132:
+    path_only: true
+    jurisdictions: [vermont]
+    terms:
+      - "DPS-132"
+      - "Protection Order Service Information DPS #132"
+  vt_form_400_00156:
+    path_only: true
+    jurisdictions: [vermont]
+    terms:
+      - "400-00156"
+      - "Litigants Address for Notification"
+  vt_form_400_00813a:
+    path_only: true
+    jurisdictions: [vermont]
+    terms:
+      - "400-00813A"
+      - "813A Financial Affidavit"
+  vt_form_400_00813b:
+    path_only: true
+    jurisdictions: [vermont]
+    terms:
+      - "400-00813B"
+      - "813B Financial Affidavit"
+  vt_form_400_00831:
+    path_only: true
+    jurisdictions: [vermont]
+    terms:
+      - "400-00831"
+  vt_form_100_00265:
+    path_only: true
+    jurisdictions: [vermont]
+    terms:
+      - "100-00265"
+  vt_form_self_rep_notice_title:
+    path_only: true
+    jurisdictions: [vermont]
+    terms:
+      - "Notice of Appearance for Self-Represented Party"
+  vt_form_400_00800:
+    path_only: true
+    jurisdictions: [vermont]
+    terms:
+      - "400-00800"
+      - "Family Court Information Sheet Form 800"
+  vt_form_400_00849:
+    path_only: true
+    jurisdictions: [vermont]
+    terms:
+      - "400-00849"
+      - "Statement of Confidential Information"
+  vt_form_600_00228:
+    path_only: true
+    jurisdictions: [vermont]
+    terms:
+      - "600-00228"
+      - "Application to Waive Filing and Service Fees"
+      - "Application to Waive Filing Fees and Service Costs"
+  vt_form_100_00260:
+    path_only: true
+    jurisdictions: [vermont]
+    terms:
+      - "100-00260"
+      - "Small Claims Certificate of Service"
+  vt_form_600_00264:
+    path_only: true
+    jurisdictions: [vermont]
+    terms:
+      - "600-00264"
+  vt_form_100_00127:
+    path_only: true
+    jurisdictions: [vermont]
+    terms:
+      - "100-00127"
+      - "Small Claims Financial Disclosure Affidavit"
+      - "Financial Disclosure Form 100-00127"
+  vt_form_100_00128:
+    path_only: true
+    jurisdictions: [vermont]
+    terms:
+      - "100-00128"
+      - "Small Claims Disclosure of Exempt Income"
+  vt_form_100_00126:
+    path_only: true
+    jurisdictions: [vermont]
+    terms:
+      - "100-00126"
+      - "Small Claims Answer"
+
 # Whole normalized filing names only. Never infer a document's purpose just
 # because its case type mentions eviction, or because its label contains
 # "complaint" (which would also match an answer or a motion to dismiss).
 # Rules can also constrain court, case_category, case_type, and initial.
 # Add jurisdiction-specific terms to a concept with `jurisdictions: [...]`.
 explanations:
+  - jurisdictions:
+    - illinois
+    initial: false
+    case_concepts: [eviction]
+    filing_type:
+    - Motion to Remove Eviction Court File from Public Record
+    source: https://www.illinoiscourts.gov/documents-and-forms/approved-forms/eviction/
+    text: A motion asking the court to seal an eviction court file so it is no longer
+      public. File it in the existing eviction case.
+  - jurisdictions:
+    - vermont
+    initial: true
+    case_category:
+    - Family
+    case_type:
+    - Relief from Abuse
+    - Relief from Abuse on Behalf of a Minor
+    - Relief from Abuse/Neglect/Exploitation
+    - Dissolution Contested with Minor Children
+    - Dissolution Contested with No Minor Children
+    - Dissolution Stipulated with Minor Children
+    - Dissolution Stipulated with No Minor Children
+    - Divorce
+    - Separation
+    - Civil Union Dissolution
+    - Dissolution Civil Union Nonresident
+    filing_type:
+    - Initial Filing
+    source: https://www.vtcourts.gov/media/12013
+    text: Use this for the complaint that starts a new case. Supporting documents may
+      need their own filing codes.
+  - jurisdictions:
+    - vermont
+    initial: true
+    case_category:
+    - Civil
+    case_type: [Landlord/Tenant - Eviction, "Small Claims over $1,001", "Small Claims up to $1,000.00", Small Claims for Conversion, "Small Claims $1,000 or less", "Small Claims Medical Debt $1,000 or less", "Small Claims Consumer Credit Debt $1,000 or less", "Small Claims $1,001 - $10,000", "Small Claims Medical Debt $1,001 - $5,000", "Small Claims Consumer Credit Debt $1,001 - $5,000"]
+    filing_type:
+    - Initial Filing
+    source: https://www.vtcourts.gov/media/12012
+    text: Use this for the complaint that starts a new case. Supporting documents may
+      need their own filing codes.
+  - jurisdictions: [vermont]
+    case_category: [Family]
+    case_type: [Relief from Abuse, Relief from Abuse on Behalf of a Minor]
+    filing_type: [Affidavit]
+    source: https://www.vtcourts.gov/family/relief-abuse
+    text: This is the affidavit supporting a Relief from Abuse complaint. Choose the
+      filing code that matches the document; it is separate from the complaint.
+  - jurisdictions: [vermont]
+    case_category: [Family]
+    case_type: [Relief from Abuse, Relief from Abuse on Behalf of a Minor]
+    filing_type: ["Protection Order Service Information DPS #132"]
+    source: https://www.vtcourts.gov/family/relief-abuse
+    text: This is the Protection Order Service Information form for a Relief from Abuse
+      matter.
+  - jurisdictions: [vermont]
+    case_category: [Family]
+    case_type: [Relief from Abuse, Relief from Abuse on Behalf of a Minor]
+    filing_type: [Relief from Abuse Litigant Address Form]
+    source: https://www.vtcourts.gov/family/relief-abuse
+    text: This form provides notification information in a Relief from Abuse matter.
+  - jurisdictions: [vermont]
+    case_category: [Family]
+    filing_type: [813A Financial Affidavit]
+    source: https://www.vtcourts.gov/sites/default/files/documents/400-00813A.pdf
+    text: Vermont form 400-00813A is the 813A Financial Affidavit.
+  - jurisdictions: [vermont]
+    case_category: [Family]
+    filing_type: [813B Financial Affidavit]
+    source: https://www.vtcourts.gov/sites/default/files/documents/400-00813B_2.pdf
+    text: Vermont form 400-00813B is the 813B Financial Affidavit.
+  - jurisdictions: [vermont]
+    case_category: [Family]
+    filing_type: [Notice of Pro Se Appearance]
+    source: https://github.com/LSVermont/docassemble-VTNoticeOfAppearance
+    text: This code is for a self-represented party's notice of appearance.
+  - jurisdictions: [vermont]
+    case_category: [Family]
+    filing_type: [Information Sheet]
+    source: https://github.com/LSVermont/docassemble-VTFamilyCourtInfoSheet
+    text: This code is for the Vermont Family Court Information Sheet (form 800).
+  - jurisdictions: [vermont]
+    case_category: [Family]
+    filing_type: [Statement of Confidential Information]
+    source: https://github.com/LSVermont/docassemble-VTDivorce
+    text: This code is for the Statement of Confidential Information, form 400-00849.
+  - jurisdictions: [vermont]
+    case_category: [Civil, Family]
+    filing_type: [Application to Waive Filing and Service Fees]
+    source: https://www.vtcourts.gov/self-help/application-waive-filing-fees-and-service-costs
+    text: This filing requests a waiver of qualifying filing and service fees.
+  - jurisdictions: [vermont]
+    case_category: [Civil]
+    case_type: ["Small Claims over $1,001", "Small Claims up to $1,000.00", "Small Claims $1,000 or less", "Small Claims Medical Debt $1,000 or less", "Small Claims Consumer Credit Debt $1,000 or less", "Small Claims $1,001 - $10,000", "Small Claims Medical Debt $1,001 - $5,000", "Small Claims Consumer Credit Debt $1,001 - $5,000"]
+    initial: false
+    filing_type: [Small Claims - Financial Disclosure Affidavit]
+    source: https://www.vtcourts.gov/sites/default/files/documents/100-00127%20%E2%80%93%20Financial%20Disclosure.pdf
+    text: This is the Small Claims financial disclosure affidavit (form 100-00127),
+      offered as a subsequent filing code.
+  - jurisdictions: [vermont]
+    case_category: [Civil]
+    case_type: ["Small Claims over $1,001", "Small Claims up to $1,000.00", "Small Claims $1,000 or less", "Small Claims Medical Debt $1,000 or less", "Small Claims Consumer Credit Debt $1,000 or less", "Small Claims $1,001 - $10,000", "Small Claims Medical Debt $1,001 - $5,000", "Small Claims Consumer Credit Debt $1,001 - $5,000"]
+    initial: false
+    filing_type: [Small Claims - Disclosure of Exempt Income]
+    source: https://github.com/LSVermont/docassemble-VTDisclosureOfExemptIncome
+    text: This is the Small Claims disclosure of exempt income (form 100-00128),
+      offered as a subsequent filing code.
   - jurisdictions: [illinois, massachusetts, vermont]
     filing_type: [Motion, Motion to the Court]
     text: A request for the court to make an order or decision in a case.
@@ -77,3 +312,256 @@ explanations:
     filing_type: [Eviction Complaint, Complaint for Eviction]
     text: A complaint asking the court to decide an eviction case.
     source: https://www.vtcourts.gov/civil/eviction-process
+
+# Whole normalized labels and explicit stage only. These add search vocabulary
+# to provider-supplied paths; they never create or rename codes. Court-specific
+# rules use provider court_codes or court_code_prefixes; grouped labels preserve
+# differences in indexed vocabulary to prevent aliases leaking across courts.
+path_aliases:
+  - jurisdictions: [illinois]
+    facet: case_category
+    initial: true
+    court_code_prefixes: ["cook:dr"]
+    case_category: [Domestic Relations - Parentage/Child Support, Domestic Relations - States Attorney Filed Cases, Domestic Relations - General Proceedings]
+    terms: [family]
+    source: https://www.cookcountycourtil.gov/division/domestic-relations-division
+  - jurisdictions: [illinois]
+    facet: case_category
+    initial: false
+    court_code_prefixes: ["cook:dr"]
+    case_category: [Domestic Relations - Parentage/Child Support, Domestic Relations - States Attorney Filed Cases, Domestic Relations - General Proceedings]
+    terms: [family]
+    source: https://www.cookcountycourtil.gov/division/domestic-relations-division
+  # Path-only form concepts use exact phrase matches as scoped alias tokens. This
+  # keeps form IDs and document titles from adding generic words such as
+  # "affidavit" or "complaint" to unrelated filing paths.
+  - jurisdictions: [vermont]
+    initial: true
+    case_category: [Family]
+    case_type: [Relief from Abuse]
+    filing_type: [Initial Filing]
+    concepts: [vt_form_400_00150c]
+    source: https://www.vtcourts.gov/family/relief-abuse
+  - jurisdictions: [vermont]
+    initial: true
+    case_category: [Family]
+    case_type: [Relief from Abuse on Behalf of a Minor]
+    filing_type: [Initial Filing]
+    concepts: [vt_form_400_00150cc]
+    source: https://www.vtcourts.gov/family/relief-abuse
+  - jurisdictions: [vermont]
+    initial: true
+    case_category: [Civil]
+    case_type: ["Small Claims over $1,001", "Small Claims up to $1,000.00", "Small Claims $1,000 or less", "Small Claims Medical Debt $1,000 or less", "Small Claims Consumer Credit Debt $1,000 or less", "Small Claims $1,001 - $10,000", "Small Claims Medical Debt $1,001 - $5,000", "Small Claims Consumer Credit Debt $1,001 - $5,000"]
+    filing_type: [Initial Filing]
+    concepts: [vt_form_100_00257]
+    source: https://www.vtcourts.gov/media/12012
+  - jurisdictions: [vermont]
+    initial: true
+    case_category: [Family]
+    case_type: [Relief from Abuse]
+    filing_type: [Affidavit]
+    concepts: [vt_form_400_00151]
+    source: https://www.vtcourts.gov/family/relief-abuse
+  - jurisdictions: [vermont]
+    initial: false
+    case_category: [Family]
+    case_type: [Relief from Abuse]
+    filing_type: [Affidavit]
+    concepts: [vt_form_400_00151]
+    source: https://www.vtcourts.gov/family/relief-abuse
+  - jurisdictions: [vermont]
+    initial: true
+    case_category: [Family]
+    case_type: [Relief from Abuse on Behalf of a Minor]
+    filing_type: [Affidavit]
+    concepts: [vt_form_400_00151m]
+    source: https://www.vtcourts.gov/family/relief-abuse
+  - jurisdictions: [vermont]
+    initial: false
+    case_category: [Family]
+    case_type: [Relief from Abuse on Behalf of a Minor]
+    filing_type: [Affidavit]
+    concepts: [vt_form_400_00151m]
+    source: https://www.vtcourts.gov/family/relief-abuse
+  - jurisdictions: [vermont]
+    initial: true
+    case_category: [Family]
+    case_type: [Relief from Abuse, Relief from Abuse on Behalf of a Minor]
+    filing_type: ["Protection Order Service Information DPS #132"]
+    concepts: [vt_form_dps_132]
+    source: https://www.vtcourts.gov/family/relief-abuse
+  - jurisdictions: [vermont]
+    initial: false
+    case_category: [Family]
+    case_type: [Relief from Abuse, Relief from Abuse on Behalf of a Minor]
+    filing_type: ["Protection Order Service Information DPS #132"]
+    concepts: [vt_form_dps_132]
+    source: https://www.vtcourts.gov/family/relief-abuse
+  - jurisdictions: [vermont]
+    initial: true
+    case_category: [Family]
+    case_type: [Relief from Abuse, Relief from Abuse on Behalf of a Minor]
+    filing_type: [Relief from Abuse Litigant Address Form]
+    concepts: [vt_form_400_00156]
+    source: https://www.vtcourts.gov/family/relief-abuse
+  - jurisdictions: [vermont]
+    initial: false
+    case_category: [Family]
+    case_type: [Relief from Abuse, Relief from Abuse on Behalf of a Minor]
+    filing_type: [Relief from Abuse Litigant Address Form]
+    concepts: [vt_form_400_00156]
+    source: https://www.vtcourts.gov/family/relief-abuse
+  - jurisdictions: [vermont]
+    initial: true
+    case_category: [Family]
+    filing_type: [813A Financial Affidavit]
+    concepts: [vt_form_400_00813a]
+    source: https://www.vtcourts.gov/sites/default/files/documents/400-00813A.pdf
+  - jurisdictions: [vermont]
+    initial: false
+    case_category: [Family]
+    filing_type: [813A Financial Affidavit]
+    concepts: [vt_form_400_00813a]
+    source: https://www.vtcourts.gov/sites/default/files/documents/400-00813A.pdf
+  - jurisdictions: [vermont]
+    initial: true
+    case_category: [Family]
+    filing_type: [813B Financial Affidavit]
+    concepts: [vt_form_400_00813b]
+    source: https://www.vtcourts.gov/sites/default/files/documents/400-00813B_2.pdf
+  - jurisdictions: [vermont]
+    initial: false
+    case_category: [Family]
+    filing_type: [813B Financial Affidavit]
+    concepts: [vt_form_400_00813b]
+    source: https://www.vtcourts.gov/sites/default/files/documents/400-00813B_2.pdf
+  - jurisdictions: [vermont]
+    initial: false
+    case_category: [Family]
+    filing_type: [Notice of Pro Se Appearance]
+    concepts: [vt_form_400_00831, vt_form_self_rep_notice_title]
+    source: https://github.com/LSVermont/docassemble-VTNoticeOfAppearance
+  - jurisdictions: [vermont]
+    initial: false
+    case_category: [Civil]
+    filing_type: [Notice of Pro Se Appearance]
+    concepts: [vt_form_100_00265, vt_form_self_rep_notice_title]
+    source: https://github.com/LSVermont/docassemble-VTNoticeOfAppearance
+  - jurisdictions: [vermont]
+    initial: true
+    case_category: [Family]
+    filing_type: [Information Sheet]
+    concepts: [vt_form_400_00800]
+    source: https://github.com/LSVermont/docassemble-VTFamilyCourtInfoSheet
+  - jurisdictions: [vermont]
+    initial: false
+    case_category: [Family]
+    filing_type: [Information Sheet]
+    concepts: [vt_form_400_00800]
+    source: https://github.com/LSVermont/docassemble-VTFamilyCourtInfoSheet
+  - jurisdictions: [vermont]
+    initial: true
+    case_category: [Family]
+    filing_type: [Statement of Confidential Information]
+    concepts: [vt_form_400_00849]
+    source: https://github.com/LSVermont/docassemble-VTDivorce
+  - jurisdictions: [vermont]
+    initial: false
+    case_category: [Family]
+    filing_type: [Statement of Confidential Information]
+    concepts: [vt_form_400_00849]
+    source: https://github.com/LSVermont/docassemble-VTDivorce
+  - jurisdictions: [vermont]
+    initial: true
+    case_category: [Civil, Family]
+    filing_type: [Application to Waive Filing and Service Fees]
+    concepts: [vt_form_600_00228]
+    source: https://www.vtcourts.gov/self-help/application-waive-filing-fees-and-service-costs
+  - jurisdictions: [vermont]
+    initial: false
+    case_category: [Civil, Family]
+    filing_type: [Application to Waive Filing and Service Fees]
+    concepts: [vt_form_600_00228]
+    source: https://www.vtcourts.gov/self-help/application-waive-filing-fees-and-service-costs
+  - jurisdictions: [vermont]
+    initial: true
+    case_category: [Civil]
+    case_type: ["Small Claims over $1,001", "Small Claims up to $1,000.00", "Small Claims $1,000 or less", "Small Claims Medical Debt $1,000 or less", "Small Claims Consumer Credit Debt $1,000 or less", "Small Claims $1,001 - $10,000", "Small Claims Medical Debt $1,001 - $5,000", "Small Claims Consumer Credit Debt $1,001 - $5,000"]
+    filing_type: [Certificate of Service]
+    concepts: [vt_form_100_00260]
+    source: https://www.vtcourts.gov/sites/default/files/documents/100-00260.pdf
+  - jurisdictions: [vermont]
+    initial: false
+    case_category: [Civil]
+    case_type: ["Small Claims over $1,001", "Small Claims up to $1,000.00", "Small Claims $1,000 or less", "Small Claims Medical Debt $1,000 or less", "Small Claims Consumer Credit Debt $1,000 or less", "Small Claims $1,001 - $10,000", "Small Claims Medical Debt $1,001 - $5,000", "Small Claims Consumer Credit Debt $1,001 - $5,000"]
+    filing_type: [Certificate of Service]
+    concepts: [vt_form_100_00260]
+    source: https://www.vtcourts.gov/sites/default/files/documents/100-00260.pdf
+  - jurisdictions: [vermont]
+    initial: true
+    case_category: [Civil, Family]
+    filing_type: [Certificate of Service]
+    concepts: [vt_form_600_00264]
+    source: https://www.vtcourts.gov/family
+  - jurisdictions: [vermont]
+    initial: false
+    case_category: [Civil, Family]
+    filing_type: [Certificate of Service]
+    concepts: [vt_form_600_00264]
+    source: https://www.vtcourts.gov/family
+  - jurisdictions: [vermont]
+    initial: false
+    case_category: [Civil]
+    case_type: ["Small Claims over $1,001", "Small Claims up to $1,000.00", "Small Claims $1,000 or less", "Small Claims Medical Debt $1,000 or less", "Small Claims Consumer Credit Debt $1,000 or less", "Small Claims $1,001 - $10,000", "Small Claims Medical Debt $1,001 - $5,000", "Small Claims Consumer Credit Debt $1,001 - $5,000"]
+    filing_type: [Small Claims - Financial Disclosure Affidavit]
+    concepts: [vt_form_100_00127]
+    source: https://www.vtcourts.gov/sites/default/files/documents/100-00127%20%E2%80%93%20Financial%20Disclosure.pdf
+  - jurisdictions: [vermont]
+    initial: false
+    case_category: [Civil]
+    case_type: ["Small Claims over $1,001", "Small Claims up to $1,000.00", "Small Claims $1,000 or less", "Small Claims Medical Debt $1,000 or less", "Small Claims Consumer Credit Debt $1,000 or less", "Small Claims $1,001 - $10,000", "Small Claims Medical Debt $1,001 - $5,000", "Small Claims Consumer Credit Debt $1,001 - $5,000"]
+    filing_type: [Small Claims - Disclosure of Exempt Income]
+    concepts: [vt_form_100_00128]
+    source: https://github.com/LSVermont/docassemble-VTDisclosureOfExemptIncome
+  - jurisdictions: [vermont]
+    initial: false
+    case_category: [Civil]
+    case_type: ["Small Claims over $1,001", "Small Claims up to $1,000.00", "Small Claims $1,000 or less", "Small Claims Medical Debt $1,000 or less", "Small Claims Consumer Credit Debt $1,000 or less", "Small Claims $1,001 - $10,000", "Small Claims Medical Debt $1,001 - $5,000", "Small Claims Consumer Credit Debt $1,001 - $5,000"]
+    filing_type: [Answer]
+    concepts: [vt_form_100_00126]
+    source: https://github.com/LSVermont/docassemble-VTSmallClaimsAnswer
+  - jurisdictions: [vermont]
+    initial: true
+    case_category: [Civil]
+    case_type: [Landlord/Tenant - Eviction, "Small Claims over $1,001", "Small Claims up to $1,000.00", Small Claims for Conversion, "Small Claims $1,000 or less", "Small Claims Medical Debt $1,000 or less", "Small Claims Consumer Credit Debt $1,000 or less", "Small Claims $1,001 - $10,000", "Small Claims Medical Debt $1,001 - $5,000", "Small Claims Consumer Credit Debt $1,001 - $5,000"]
+    filing_type: [Initial Filing]
+    terms: [complaint, file a complaint, start case]
+    source: https://www.vtcourts.gov/media/12012
+  - jurisdictions: [vermont]
+    initial: true
+    case_category: [Family]
+    case_type: [Relief from Abuse, Relief from Abuse on Behalf of a Minor, Relief from Abuse/Neglect/Exploitation, Dissolution Contested with Minor Children, Dissolution Contested with No Minor Children, Dissolution Stipulated with Minor Children, Dissolution Stipulated with No Minor Children, Divorce, Separation, Civil Union Dissolution, Dissolution Civil Union Nonresident]
+    filing_type: [Initial Filing]
+    terms: [complaint, file a complaint, start case]
+    source: https://www.vtcourts.gov/media/12013
+  - jurisdictions: [vermont]
+    initial: true
+    case_category: [Family]
+    case_type: [Relief from Abuse, Relief from Abuse on Behalf of a Minor, Relief from Abuse/Neglect/Exploitation]
+    filing_type: [Initial Filing]
+    terms: [RFA, start relief from abuse case]
+    source: https://www.vtcourts.gov/media/12013
+  - jurisdictions: [illinois]
+    initial: false
+    case_concepts: [eviction]
+    filing_type: [Motion to Remove Eviction Court File from Public Record]
+    concepts: [eviction_record_sealing]
+    source: https://www.illinoiscourts.gov/documents-and-forms/approved-forms/eviction/
+  - jurisdictions: [vermont]
+    initial: true
+    case_category: [Family]
+    case_type: [Dissolution Contested with Minor Children, Dissolution Contested with No Minor Children, Dissolution Stipulated with Minor Children, Dissolution Stipulated with No Minor Children, Divorce]
+    filing_type: [Initial Filing]
+    terms: [divorce, file divorce, end marriage]
+    source: https://www.vtcourts.gov/media/12013

@@ -1,7 +1,7 @@
 repos:
   # Ruff: format + lint (fast)
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.5.7
+    rev: v0.12.10
     hooks:
       - id: ruff-format
       - id: ruff
