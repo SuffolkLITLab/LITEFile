@@ -164,11 +164,7 @@ case_types:
         label: "Request to waive court fees"
         requirement: sometimes
         description: "File this if you cannot afford the filing fee."
-        filing_type_names:
-          - "Fee Waiver Petition Filed"                  # Cook County
-          - "Application for Waiver of Court Fees"
-          - "Fee Waiver"
-          - "Waiver"                                     # Kane
+        # All fee_waiver items use the statewide fee_waiver hierarchy below.
       minor_consent:
         # Only meaningful when the lead document is the minor-name-change form,
         # so it is tied to the filing type names Illinois courts use for it.
@@ -891,6 +887,13 @@ fee_estimates:
 
 # Eligibility guidance, not an automatic eligibility determination.
 fee_waiver:
+  # #303: use the specific fee-waiver type before either generic fallback.
+  # These names cover both a waiver application and an approved waiver order.
+  preferred_filing_type_names:
+    - "Application Waiver of Court Fees (Civil)"
+  fallback_filing_type_names:
+    - "Waiver"
+    - "Application"
   source_url: "https://www.illinoislegalaid.org/legal-information/court-fees-and-fee-waivers"
   benefits: "Benefits that may qualify include SSI, SNAP, TANF, and other income-based benefits."
   income_bands:

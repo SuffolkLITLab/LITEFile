@@ -472,6 +472,34 @@ change, so `proposed_order` is deliberately left unresolved there.
 Only ever fills a blank: a filing type the filer picked themselves is never
 overwritten.
 
+### Fee waiver filing types
+
+The `fee_waiver` checklist item and the waiver upload on Fees share the current
+jurisdiction-wide hierarchy, including for saved plans. They do not use the
+item's snapshotted `filing_type_names`. In Illinois:
+
+```yaml
+fee_waiver:
+  preferred_filing_type_names:
+    - "Application Waiver of Court Fees (Civil)"
+  fallback_filing_type_names:
+    - "Waiver"
+    - "Application"
+```
+
+Preferred names come first, followed by other explicit fee-waiver types, then
+the fallback names in order. Names are matched exactly after ignoring case and
+extra whitespace. Generic fallbacks apply only to jurisdictions that configure
+them; "Waiver of Service" and unrelated application types do not match. Court-only
+and order/denial/objection filing types remain excluded. The same Illinois
+choices can be used to upload an application or an approved waiver order.
+
+A generic filing type alone does not identify a waiver document. Uploading
+through the waiver control records its purpose in document provenance; a file
+explicitly attached to the fee-waiver checklist item also counts. Provenance
+survives checklist edits and document-row rebuilds. Deleting the document or
+changing it to an unrelated filing type makes it stop counting.
+
 ### Explaining the list
 
 A list of documents raises a fair question — "is this everything?" — and the
