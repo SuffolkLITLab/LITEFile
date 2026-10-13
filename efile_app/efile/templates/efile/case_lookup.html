@@ -8,13 +8,11 @@
     <section class="workflow-card workflow-card--narrow">
         <h1>{% translate "Find your court case" %}</h1>
         {% include "efile/partials/filing_guidance.html" %}
-        <p class="workflow-lede">
-            {% translate "Choose the court and enter the case number exactly as it appears on your documents." %}
-        </p>
+        <p class="workflow-lede">{% translate "Use the case number on your court documents." %}</p>
         {% if guessed_court %}
             {# Revealed by case-lookup.js only once a court in the list actually carries the marker. #}
             <div class="extraction-page-help" id="court-extraction-help" hidden>
-                <span>{% translate "Your document gave us a suggested court, marked with an asterisk." %}</span>
+                <span>{% translate "A * marks the court suggested from your document." %}</span>
                 {% include "efile/components/extraction_marker_help.html" %}
             </div>
         {% endif %}
@@ -62,7 +60,7 @@
             </div>
             <div class="lookup-state" id="lookup-state" hidden aria-live="polite">
                 <div class="spinner-border spinner-border-sm" aria-hidden="true"></div>
-                <span><strong>{% translate "Searching court records…" %}</strong><small>{% translate "This may take a moment." %}</small></span>
+                <span><strong>{% translate "Searching court records…" %}</strong></span>
             </div>
             <div class="alert alert-warning" id="lookup-error" role="alert" hidden></div>
             <div class="workflow-actions">

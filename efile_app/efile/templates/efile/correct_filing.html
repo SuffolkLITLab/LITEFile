@@ -5,7 +5,7 @@
     {% if error %}
         <p>{{ error }}</p>
     {% else %}
-        <p>The court returned this filing. Select the details the clerk asked you to correct. Your other answers and documents will stay in the same matter.</p>
+        <p>The court returned this filing. Choose what the clerk asked you to fix. Your other answers and files stay saved.</p>
         {% for comment in detail.comments %}<p>{{ comment.text }}</p>{% endfor %}
         <form method="post">
             {% csrf_token %}

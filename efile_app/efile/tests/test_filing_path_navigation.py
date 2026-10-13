@@ -256,8 +256,8 @@ def test_an_answer_filed_as_a_new_case_is_pointed_out_without_changing_anything(
     assert 'id="path-conflict"' in content
     assert "Small Claims Answer" in content
     assert "reads like a filing in a case that is already open" in content
-    assert "not legal advice" in content
-    assert "If the case is already open with the court, change your answer." in content
+    assert "Check your paperwork." in content
+    assert "If the case is already open, change your answer." in content
     assert 'data-value="existing"' in content
     draft.refresh_from_db()
     assert draft.existing_case == ExistingCase.NEW

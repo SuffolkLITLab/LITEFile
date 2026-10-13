@@ -33,15 +33,14 @@ class EFileRegistrationForm(forms.Form):
         choices, source = state_choices(jurisdiction, "0")
         self.fields["state"].choices = [("", "Select a state"), *choices]
         if source == "efsp":
-            self.fields["state"].help_text = (
-                "Only locations accepted by the filing service are listed. If your address is not listed, "
-                "contact the court for filing instructions. Do not choose a different state."
-            )
+            self.fields[
+                "state"
+            ].help_text = "If your state is missing, contact the court for help. Do not choose a different state."
 
     # Legal Name
     first_name = forms.CharField(
         max_length=100,
-        label="First or Given Name",
+        label="First name",
         widget=forms.TextInput(attrs={"class": "form-control", "id": "firstName", "required": "required"}),
     )
     middle_name = forms.CharField(
@@ -49,7 +48,7 @@ class EFileRegistrationForm(forms.Form):
     )
     last_name = forms.CharField(
         max_length=100,
-        label="Last or Family Name",
+        label="Last name",
         widget=forms.TextInput(attrs={"class": "form-control", "id": "lastName", "required": "required"}),
     )
     # Physical Address

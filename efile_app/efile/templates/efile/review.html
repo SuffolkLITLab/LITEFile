@@ -11,12 +11,9 @@
     <section class="workflow-card review-workflow-card">
         <h1>{% translate "Review your filing" %}</h1>
         {% include "efile/partials/filing_guidance.html" %}
-        <p class="workflow-lede">
-            {% translate "Check each section carefully. Use Edit to go back to the screen where you entered it." %}
-        </p>
         {% if extracted_markers.has_any %}
             <div class="extraction-page-help">
-                <span>{% translate "Some values may be marked with an asterisk because they came from your document." %}</span>
+                <span>{% translate "A * marks an answer from your document." %}</span>
                 {% include "efile/components/extraction_marker_help.html" %}
             </div>
         {% endif %}
@@ -296,9 +293,7 @@
                             </li>
                         {% endfor %}
                     </ul>
-                    <p>
-                        {% translate "You can review your plan and add any documents that apply to you, or continue with your filing as it is." %}
-                    </p>
+                    <p>{% translate "Add any documents you need, or continue with this filing." %}</p>
                     <div class="plan-alert__actions">
                         <a class="btn btn-outline-primary btn-sm"
                            href="{% url 'document_checklist' jurisdiction %}?return_to=review">{% translate "Review your plan" %}</a>

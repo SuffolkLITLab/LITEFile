@@ -108,7 +108,7 @@ def test_final_review_marks_extracted_values_and_explains_the_marker(client, sub
 
     assert response.status_code == 200
     assert "Circuit Court of Cook County *" in content
-    assert "A * marks a value that matches what we automatically detected in your document." in content
+    assert "A * marks an answer found in your document." in content
     assert 'data-bs-target="#extraction-marker-modal"' in content
 
 

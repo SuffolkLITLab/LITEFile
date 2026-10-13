@@ -482,7 +482,7 @@ def test_filing_detail_says_so_when_the_court_will_not_answer(client, user):
         response = client.get(url)
 
     assert response.status_code == 200
-    assert "could not get this filing" in response.content.decode()
+    assert "could not load this filing" in response.content.decode()
 
 
 @pytest.mark.django_db

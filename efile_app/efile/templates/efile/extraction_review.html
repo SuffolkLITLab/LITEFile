@@ -25,9 +25,9 @@
             {% endif %}
             <p class="workflow-lede">
                 {% if ai_opted_out %}
-                    {% translate "You turned AI off, so we searched the text of your document for a form number and a case number instead. These are clues from the document, not answers you gave us, and the search can be wrong. Correct anything that is." %}
+                    {% translate "AI is off. We used form and case numbers to suggest answers. Check them against your document and fix any mistakes." %}
                 {% else %}
-                    {% translate "These are clues from the document, not answers you gave us, and the system can make mistakes. Correct anything that is wrong." %}
+                    {% translate "These answers are suggested from your document and may be wrong. Check them and fix any mistakes." %}
                 {% endif %}
             </p>
             <section class="extracted-details" aria-labelledby="extracted-details-heading">
@@ -47,9 +47,7 @@
                         {% endfor %}
                     </dl>
                 {% else %}
-                    <p class="extracted-details__note">
-                        {% translate "We could not tell what kind of document this is. The details below are still worth checking." %}
-                    </p>
+                    <p class="extracted-details__note">{% translate "We could not identify this document. Check the details below." %}</p>
                 {% endif %}
                 {% if extraction_total_pages > extraction_pages_analyzed %}
                     <p class="extracted-details__note">
@@ -74,7 +72,7 @@
                                    {% if acknowledgement_error %}aria-invalid="true" aria-describedby="reviewed-extraction-error"{% endif %}
                                    {% if reviewed_extraction %}checked{% endif %}
                                    required />
-                            <span>{% translate "I checked this against my document and will correct anything wrong below." %}</span>
+                            <span>{% translate "I checked these details against my document." %}</span>
                         </label>
                         {% comment %}
                     The checkbox only points at this while it is showing: a hidden
@@ -84,22 +82,11 @@
                         <p class="field-error"
                            id="reviewed-extraction-error"
                            {% if not acknowledgement_error %}hidden{% endif %}>
-                            {% translate "Check the box to confirm you compared these details with your document. Then continue." %}
+                            {% translate "Check these details against your document, then check the box." %}
                         </p>
                     </div>
-                {% else %}
-                    <p>{% translate "You have confirmed these findings. Your corrections are saved below." %}</p>
                 {% endif %}
             </section>
-            {% if classification %}
-                <p class="workflow-help">
-                    {% translate "The choices below were matched against the court's current filing lists. Please confirm each one; you can edit any match." %}
-                </p>
-            {% elif ai_opted_out %}
-                <p class="workflow-help">
-                    {% translate "Any choice already filled in below comes from the form number printed on your document. Check each one against your own case: the same form can be used for more than one kind of case, and you can change any of them." %}
-                </p>
-            {% endif %}
         {% else %}
             <h1>{% translate "Confirm information" %}</h1>
             {% if filing_guidance %}
@@ -110,13 +97,13 @@
             {% endif %}
             <div class="alert alert-info">
                 {% if extraction_failed %}
-                    {% translate "Our system could not pull details from your document. You can enter the details below, or" %}
+                    {% translate "We could not read the details. Enter them below, or" %}
                 {% elif ai_opted_out %}
-                    {% translate "You turned AI off, and searching your PDF's text did not turn up a form number we recognize. You can enter the details below, or" %}
+                    {% translate "AI is off, and we did not find a known form number. Enter the details below, or" %}
                 {% else %}
-                    {% translate "Our system did not pull details from your document. You can enter the details below, or" %}
+                    {% translate "Enter the details below, or" %}
                 {% endif %}
-                <a href="{% url 'upload_documents' jurisdiction %}">{% translate "go back and try a different document" %}</a>.
+                <a href="{% url 'upload_documents' jurisdiction %}">{% translate "try a different document" %}</a>.
             </div>
         {% endif %}
         {% if preview_error %}<p class="alert alert-danger" role="alert">{{ preview_error }}</p>{% endif %}
@@ -146,9 +133,9 @@
                     <legend>{% translate "People named in your document" %}</legend>
                     <p class="review-parties__lede">
                         {% if party_rows %}
-                            {% translate "Fix any name we got wrong, and say which side each person is on. If one of them is you, say so here and we will not ask you to enter yourself again. You will add addresses later." %}
+                            {% translate "Check each name and side of the case. If you are listed, choose “This is me”." %}
                         {% else %}
-                            {% translate "Add the people involved in this case, and say which side each one is on. If one of them is you, say so here and we will not ask you to enter yourself again. You will add addresses later." %}
+                            {% translate "Add each person and their side of the case. For yourself, choose “This is me”." %}
                         {% endif %}
                     </p>
                     <ol class="review-parties__list" id="review-parties-list">
@@ -266,15 +253,15 @@
                 <fieldset class="form-field"
                           id="filing-proposal"
                           {% if chosen_existing_case != "existing" %}hidden disabled{% endif %}>
-                    <legend class="visually-hidden">{% translate "Provisional suggestion" %}</legend>
-                    <label for="proposed-filing-type">{% translate "Suggested filing type (provisional)" %}</label>
+                    <legend class="visually-hidden">{% translate "Suggested filing type" %}</legend>
+                    <label for="proposed-filing-type">{% translate "Suggested filing type" %}</label>
                     <input class="form-control"
                            id="proposed-filing-type"
                            name="proposed_filing_type"
                            value="{{ filing_type_proposal.name }}"
                            maxlength="255"
                            aria-describedby="proposed-filing-type-help" />
-                    <p id="proposed-filing-type-help" class="form-help">{% translate "Correct this suggestion if needed. We will check it against the filing types allowed for your case. You can also choose a type when you organize your documents." %}</p>
+                    <p id="proposed-filing-type-help" class="form-help">{% translate "Edit if needed. We still need to check whether your court allows this filing type." %}</p>
                 </fieldset>
             {% endif %}
             {% comment %}
@@ -302,7 +289,6 @@
                                     {% translate "File in an existing case" %}
                                 {% endif %}
                             </strong>
-                            <small>{% translate "You chose this when you started." %}</small>
                         </div>
                         <button class="btn btn-link path-summary__change"
                                 type="button"
@@ -341,9 +327,9 @@
                             </p>
                             <p>
                                 {% if path_conflict.suggested == "existing" %}
-                                    {% translate "This is only how the document reads to us, not legal advice, so check your paperwork. If the case is already open with the court, change your answer. Your uploaded documents stay as they are." %}
+                                    {% translate "Check your paperwork. If the case is already open, change your answer." %}
                                 {% else %}
-                                    {% translate "This is only how the document reads to us, not legal advice, so check your paperwork. If this filing starts the case, change your answer. Your uploaded documents stay as they are." %}
+                                    {% translate "Check your paperwork. If this filing starts the case, change your answer." %}
                                 {% endif %}
                             </p>
                             <button class="btn btn-sm btn-outline-primary"
@@ -365,7 +351,7 @@
                     <legend>{% translate "Is this for a new or existing court case?" %}</legend>
                     {% if saved_path %}
                         <p class="path-confirmation__note">
-                            {% translate "Changing this keeps your uploaded documents. Filing types and fees are chosen again, and an existing case is looked up in the court's records." %}
+                            {% translate "Your files stay saved. You will need to check filing types and fees again." %}
                         </p>
                     {% endif %}
                     <label>
@@ -411,11 +397,11 @@
                            id="docket_number"
                            value="{{ docket_number|default:'' }}"
                            aria-describedby="docket-number-hint" />
-                    <small id="docket-number-hint">{% translate "We will use this to find your case in the court's records." %}</small>
+                    <small id="docket-number-hint">{% translate "Include any letters, numbers, and dashes." %}</small>
                 </div>
             </div>
             <p id="existing-case-next"
-               {% if chosen_existing_case != "existing" %}hidden{% endif %}>{% translate "Next, find and confirm your case in the court's records. We will use the court's case details for your filing." %}</p>
+               {% if chosen_existing_case != "existing" %}hidden{% endif %}>{% translate "Next, find your case in the court's records." %}</p>
             <fieldset id="new-case-details"
                       {% if chosen_existing_case == "existing" %}hidden disabled{% endif %}>
                 <legend class="visually-hidden">{% translate "New case details" %}</legend>
@@ -524,7 +510,7 @@
                                 <option value="">{% translate "Choose a case type first" %}</option>
                             </select>
                             <input type="hidden" name="filing_type_name" id="filing_type_name" />
-                            <small class="review-field__hint" id="filing_type_code-hint">{% translate "We will use this choice when you organize your documents." %}</small>
+                            <small class="review-field__hint" id="filing_type_code-hint">{% translate "Choose the type that describes your document." %}</small>
                         </div>
                     </div>
                 </div>
@@ -536,9 +522,6 @@
                 {% endcomment %}
                 <fieldset class="path-confirmation filer-role" id="filer-role-field" hidden>
                     <legend>{% translate "Which side of this case are you on?" %}</legend>
-                    <p class="filer-role__lede">
-                        {% translate "Each side files different documents, so we need to know yours before we can list them." %}
-                    </p>
                     <div class="filer-role__options" id="filer-role-options"></div>
                 </fieldset>
             </fieldset>

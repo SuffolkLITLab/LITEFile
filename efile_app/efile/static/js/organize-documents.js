@@ -389,11 +389,11 @@
             suggestionMessage.hidden = false;
             if (filingSuggestion.status === "matched") {
                 selected = filingSuggestion.value;
-                suggestionMessage.textContent = interpolate(gettext("Your suggestion matches an allowed filing type: %(name)s. You can change it below."), {
+                suggestionMessage.textContent = interpolate(gettext("Suggested filing type: %(name)s. Change it if needed."), {
                     name: filingSuggestion.name
                 }, true);
             } else {
-                suggestionMessage.textContent = interpolate(gettext("The suggested type “%(name)s” is not an exact match for this court case's permitted filing types. Use Find my filing type or choose an available type below."), {
+                suggestionMessage.textContent = interpolate(gettext("“%(name)s” is not on the court’s list. Choose a type below or use Find my filing type."), {
                     name: filingSuggestion.name
                 }, true);
             }

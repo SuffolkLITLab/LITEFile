@@ -9,12 +9,10 @@
     <section class="workflow-card">
         <h1>{% translate "Organize your documents" %}</h1>
         {% include "efile/partials/filing_guidance.html" %}
-        <p class="workflow-lede">
-            {% translate "Tell the court what each PDF is and if it should be public or confidential. You can also rename and reorder additional documents." %}
-        </p>
+        <p class="workflow-lede">{% translate "Choose a filing type for each document." %}</p>
         {% if organize_context.guessed_filing_type %}
             <div class="extraction-page-help">
-                <span>{% translate "Some choices may be marked with an asterisk." %}</span>
+                <span>{% translate "A * marks a choice suggested from your document." %}</span>
                 {% include "efile/components/extraction_marker_help.html" %}
             </div>
         {% endif %}

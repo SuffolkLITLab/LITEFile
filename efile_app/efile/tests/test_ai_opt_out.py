@@ -236,8 +236,8 @@ def test_review_screen_credits_the_keyword_search_rather_than_a_reading(client, 
 
     page = response.content.decode()
     assert response.status_code == 200
-    assert "You turned AI off" in page
-    assert "form number printed on your document" in page
+    assert "AI is off." in page
+    assert "We used form and case numbers to suggest answers." in page
 
 
 @pytest.mark.django_db

@@ -23,9 +23,7 @@
             <div class="row justify-content-center">
                 <div class="col-xl-7">
                     {% include "efile/components/inline_messages.html" %}
-                    <p>
-                        {% translate "A plan is everything you are gathering for one court matter. It stays here between filings, so you can pick up where you left off." %}
-                    </p>
+                    <p>{% translate "Each plan lists the documents you are gathering for a case." %}</p>
                     {% for entry in plans %}
                         <section class="option-card plan-card"
                                  aria-labelledby="plan-{{ entry.plan.pk }}-title">
@@ -61,7 +59,7 @@
                                 <div class="plan-card__link-case">
                                     <p>
                                         <i class="fas fa-circle-info" aria-hidden="true"></i>
-                                        {% translate "Link this plan to one of your court cases, and your next filing goes straight into that case." %}
+                                        {% translate "Link a case to use it for your next filing." %}
                                     </p>
                                     <div class="plan-case-picker"
                                          data-plan-id="{{ entry.plan.pk }}"
@@ -137,18 +135,14 @@
                                     {% csrf_token %}
                                     <input type="hidden" name="plan_id" value="{{ entry.plan.pk }}" />
                                     <input type="hidden" name="action" value="delete" />
-                                    <p class="text-muted">
-                                        {% translate "This throws away the document list you have been keeping for this matter. It does not touch anything you have already filed." %}
-                                    </p>
+                                    <p class="text-muted">{% translate "This deletes the plan and its list. Your past filings stay saved." %}</p>
                                     <button class="btn btn-outline-danger btn-sm" type="submit">{% translate "Delete this plan" %}</button>
                                 </form>
                             </details>
                         </section>
                     {% empty %}
                         <div class="option-card">
-                            <p>
-                                {% translate "You do not have a filing plan yet. We make one for you when you start a filing in a kind of case we have a document list for." %}
-                            </p>
+                            <p>{% translate "You have no plans yet. When a document list is available for your case, we save it here." %}</p>
                             <a href="{% url 'efile_options' jurisdiction %}" class="btn btn-primary">{% translate "Start a filing" %}</a>
                         </div>
                     {% endfor %}
