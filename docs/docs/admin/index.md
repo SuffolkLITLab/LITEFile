@@ -33,3 +33,20 @@ LITEFile is built as a lightweight, production-grade Django ASGI web application
 - [**Configuration & environment variables**](./configuration.md): Complete reference of all required and optional environment variables.
 - [**Deployment guide**](./deployment.md): Step-by-step instructions for deploying to Fly.io, configuring AWS S3, and managing database migrations.
 - [**Local development & testing**](./development.md): Setting up your local development environment, running Pytest, executing Playwright end-to-end filing tests, and linting.
+
+
+## Operations and support handover
+
+- [Filing-code operations](./filing-code-operations.md): daily freshness/worker
+  checks, resync versus rebuild/backfill, reader grants and capacity prerequisites.
+- [Staff onboarding](./staff-onboarding.md): separate support and analyst paths,
+  scoped roles, TOTP/recovery and policy gates.
+- [Service maintenance index](./service-maintenance.md): existing handoff,
+  preparation/security references with ownership and evidence requirements.
+- [Documentation and screenshot review](./documentation-review.md): current
+  evidence, publication checks and partner handover exercise.
+- [Shared maintenance register](../partners-courts/maintenance.md): content,
+  technical and approval owners, enabled state, evidence and review triggers.
+
+Internal developer notes stay in the repository and are linked where needed;
+these public entry points do not publish their contents as Docusaurus pages.

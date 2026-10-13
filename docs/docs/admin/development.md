@@ -59,7 +59,7 @@ pytest --cov=efile_app --cov-report=term-missing
 ```
 
 ### Playwright (end-to-end filing matrix tests)
-Playwright tests in `efile_app/tests/` verify the complete 14-step user workflow against the Tyler test EFSP.
+Playwright tests in `efile_app/tests/` cover new- and existing-case paths, conditional details, document review and correction detours. Synthetic browser tests use local court/storage fixtures; the opt-in filing matrix exercises the Tyler test EFSP. A browser test pass does not establish live-court acceptance or release signoff.
 
 ```bash
 cd efile_app

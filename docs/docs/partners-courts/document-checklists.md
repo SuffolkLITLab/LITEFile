@@ -7,7 +7,9 @@ sidebar_position: 3
 
 # Document checklists & filing plans <span className="wip-badge">WIP</span>
 
-Document checklists give self-represented filers clear, plain-language guidance about what documents are required for their specific case type. Checklists are informative guides and do not block a filer from proceeding.
+Document checklists give filers plain-language guidance about documents that
+often go with a case type. They do not decide which documents an individual
+must file and do not block a filer from proceeding.
 
 ---
 
@@ -126,3 +128,22 @@ case_types:
             label: "Proof that you sent a copy of your answer to the landlord"
             requirement: always
 ```
+
+
+## Approval and maintenance
+
+Examples above illustrate the schema; their local rule statements require
+current partner/court review before reuse. The document finder and filing-plan
+checklists share `efile/services/document_checklists.py`, including role and
+lead-document conditions. Keep both non-blocking when reviewing wording.
+
+Use the [shared maintenance register](./maintenance.md) and the
+[per-guide approval table](./document-finder.md#approval-and-recurring-review)
+instead of treating a YAML merge as legal approval. For each checklist record
+case family/court/stage, intent wording, filer side, lead-document variants,
+requirement labels, linked interview/form/help versions, local supplements,
+authoritative sources, content/technical owners, approver/date/scope and next
+review. Review both sides and child/adult or other lead variants in staging.
+Recheck when forms, local rules or court case/filing names change. HTTP link dates
+are separate from substantive approval. The Illinois starter guides are pending
+partner review; Massachusetts/Vermont finder coverage is not populated.

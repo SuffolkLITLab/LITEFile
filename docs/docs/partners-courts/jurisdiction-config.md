@@ -105,6 +105,9 @@ Set `required: true` when every other party in that layer needs an address. The 
 
 ## 3. Wording that differs by state
 
+Start with the [change-location map and supported UI catalog](./customization.md)
+for a specific screen edit, reviewer workflow and incomplete field-hook coverage.
+
 Courts do not use the same words for the same thing. The document that opens a case is a *petition* in Illinois and a *complaint* in Vermont, and telling a Vermont filer to look for a petition is wrong information, not a stylistic difference.
 
 The `text` section holds the strings this state says differently. Every key has an English default in `efile_app/efile/utils/ui_text.py`; anything you do not list keeps that default.
