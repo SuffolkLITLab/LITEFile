@@ -5,9 +5,9 @@ import { themes as prismThemes } from 'prism-react-renderer';
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'LITEFile',
+  title: 'LITEfile',
   tagline: 'Streamlined, plain-language electronic court filing and platform',
-  favicon: 'img/favicon.ico',
+  favicon: 'img/favicon.svg',
 
   // Set the production url of your site here
   url: 'https://litefile-docs.suffolklitlab.org',
@@ -54,11 +54,11 @@ const config = {
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
       navbar: {
-        title: 'LITEFile',
+        title: '',
         logo: {
-          alt: 'Suffolk LIT Lab Logo',
-          src: 'img/lit-lab-logo-small-inverted.svg',
-          srcDark: 'img/lit-lab-logo-small-inverted.svg',
+          alt: 'LITEfile logo',
+          src: 'img/litefile-logo.svg',
+          srcDark: 'img/litefile-logo.svg',
         },
         items: [
           {

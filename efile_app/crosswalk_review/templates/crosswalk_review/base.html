@@ -1,11 +1,13 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}" />
         <title>
             {% block title %}
-                Crosswalk review – LITEFile
+                Crosswalk review – LITEfile
             {% endblock title %}
         </title>
         <style>
@@ -238,7 +240,7 @@
     </head>
     <body>
         <header class="top-nav">
-            <a class="brand" href="{% url 'crosswalk_review:index' %}">LITEFile · Crosswalk review</a>
+            <a class="brand" href="{% url 'crosswalk_review:index' %}">LITEfile · Crosswalk review</a>
             <nav>
                 <a href="{% url 'crosswalk_review:index' %}"
                    {% if request.resolver_match.url_name == 'index' %}class="active"{% endif %}>Home</a>

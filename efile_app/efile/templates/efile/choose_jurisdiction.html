@@ -6,6 +6,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}" />
         <title>{{ the_title }}</title>
         <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
               rel="stylesheet" />
@@ -23,7 +24,7 @@
                         <a class="brand-link" href="{% url 'home' %}">
                             <img class="brand-logo"
                                  src="{% static 'img/litefile-logo.svg' %}"
-                                 alt="LITEFile logo" />
+                                 alt="LITEfile logo" />
                             <span class="brand-title">{% translate "e-Filing" %}</span>
                         </a>
                     </div>
