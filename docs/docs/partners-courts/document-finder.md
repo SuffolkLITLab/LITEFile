@@ -102,7 +102,9 @@ keyed by the checklist item ID for one document:
 
 Rules:
 
-- Only add links a partner has reviewed. Never guess an address.
+- New or replacement links need scoped partner review. The shipped Illinois
+  starter set has HTTP checks but still needs substantive approval (see below).
+  Never guess an address or treat HTTP success as approval of a form.
 - Links must start with `https://`. Others are dropped and logged. Write spaces
   in an address as `%20`.
 - Every link opens in a new tab. The page tells filers that these sites do not
@@ -120,13 +122,63 @@ uv run python manage.py check_document_finder_links
 ```
 
 It lists each link that does not open and exits with an error if any fail.
-Update `links_checked_on` when you have checked them.
+Assign an operator to run it, with a backup and escalation contact in the
+[maintenance register](./maintenance.md). Weekly link-failure triage is proposed,
+not an already scheduled job. Save dated command results in the agreed review
+record/issue; the forms editor replaces or removes broken/obsolete destinations
+after content review. Update `document_finder.links_checked_on` in State YAML
+after a completed reachability check and record failures still awaiting repair.
+Do not set the date merely because the command was started.
+
+Also open destination pages and PDFs: check jurisdiction, filer side, form version,
+instructions, accessible presentation and whether an interview still produces
+the intended forms. A redirect or HTTP 200 can lead to obsolete content. Keep
+substantive approval scope/date separate from `links_checked_on`.
 
 ## 5. What the finder does not do
 
-- It does not choose a court, case type, or filing type. "Start this filing"
-  starts an ordinary filing that only knows whether it starts a case or joins
-  one. Codes are still chosen against the court's live lists.
+- It does not choose a court, case type, or filing type. Signing in from a guide
+  returns to that selected guide (the #323 behavior), then "Start this filing"
+  or "File into my case" starts an ordinary filing carrying only new/existing.
+  Filer side, checklist selections and provider codes are not copied into the
+  draft by this action. Codes are chosen against the court's live lists.
 - It does not make a checklist item required. The list stays a guide.
 - A state with no `document_finder` section shows a short "no guides yet" page
   with the state's court-help contact, and the Upload step does not link to it.
+
+## Approval and recurring review
+
+The Illinois set shipped in [#322](https://github.com/SuffolkLITLab/LITEFile/pull/322)
+contains **seven guides and 52 links**, all HTTP-checked on October 13, 2026.
+**Partner review before release is still pending.** The source PR's HTTP result
+is not substantive approval. The finder and filing-plan checklist use the same
+resolver and remain non-blocking.
+
+| Intent key | Substantive approval status | Review scope |
+| --- | --- | --- |
+| `adult_name_change` | Pending; reviewer unassigned | Adult intent, petition/order/notice variants and current resources |
+| `child_name_change` | Pending; reviewer unassigned | Child lead variant, consent/notice items and current resources |
+| `divorce` | Pending; reviewer unassigned | Filer side, child-related conditions and current resources |
+| `evict_a_tenant` | Pending; reviewer unassigned | Landlord scope, lead/notice/service items and local supplements |
+| `respond_to_an_eviction` | Pending; reviewer unassigned | Tenant scope, appearance/answer and service resources |
+| `start_small_claims` | Pending; reviewer unassigned | Claimant scope, complaint/service and amount guidance |
+| `respond_to_small_claims` | Pending; reviewer unassigned | Responding side, appearance/answer and local instructions |
+
+For each guide add content owner, technical owner, court/legal approver, source
+and form versions, last substantive review, next date/event trigger, evidence,
+enabled/deployed scope and escalation issue to the shared register. Review intent
+wording, `filer_role`, `lead_filing_type_name`, every linked interview/form/help
+resource and `court_specific_requirements` supplements. Monthly content review
+and review after form/rule/link changes are proposed, subject to owner acceptance.
+
+Massachusetts and Vermont have no populated finder at this snapshot. To add
+coverage, partners supply an approved checklist/case-family match, clear intent
+wording and search examples, new/existing path, side/lead variants, authoritative
+resources, local supplements and an accepted review owner. Do not imply that
+creating a route supplies those resources. Test no-guide and no-match states,
+ambiguous search, shared checklist output, guide → sign-in → same guide, start
+path and Upload → guide → same owned draft.
+
+```bash
+uv run pytest -q efile/tests/test_document_finder.py
+```

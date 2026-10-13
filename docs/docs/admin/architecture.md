@@ -55,7 +55,7 @@ graph TB
 
 ### 1. Application layer (`efile_app/`)
 - **Django 5.2 ASGI core**: Runs using Gunicorn with Uvicorn worker threads (`uvicorn.workers.UvicornWorker`) for asynchronous performance and scalability.
-- **Workflow state engine (`efile/workflow.py`)**: Manages the linear progression of the 14-step filing workflow, tracks draft state, and ensures filers cannot skip required steps.
+- **Workflow state engine (`efile/workflow.py`)**: Tracks draft state and selects the new- or existing-case path, conditional person details and case questions, and returns from Review edits. Server validation checks required answers and documents before submission.
 - **Custom authentication backend (`efile/authentication.py`)**: Integrates directly with the Tyler E-Filing authentication endpoint, validating credentials against the state EFSP and creating local user profiles dynamically.
 
 ### 2. Document handling & S3 storage

@@ -81,7 +81,7 @@ export default function Home(): React.JSX.Element {
               <div className={styles.featureIcon}>📋</div>
               <h3>Guided filing workflow</h3>
               <p>
-                A progressive 14-step journey guiding users from document upload and case lookup to party details, filing fee calculation, and direct EFSP submission.
+                A filing journey that adapts to new and existing cases, guiding users through document upload, case confirmation, people, fees, review, and submission.
               </p>
               <Link to="/docs/user-guide/walkthrough" className="button button--link">
                 View step-by-step walkthrough →
@@ -92,7 +92,7 @@ export default function Home(): React.JSX.Element {
               <div className={styles.featureIcon}>🤖</div>
               <h3>AI document extraction</h3>
               <p>
-                OpenAI-compatible LLM and OCR pipeline that inspects uploaded PDF forms to suggest court jurisdictions, case types, categories, and docket numbers automatically.
+                Optional AI reading of PDF or Word documents suggests case details for filers to check. Filers can opt out and enter the details manually.
               </p>
               <Link to="/docs/partners-courts/ai-customization" className="button button--link">
                 Customize AI prompts →
@@ -103,7 +103,7 @@ export default function Home(): React.JSX.Element {
               <div className={styles.featureIcon}>🏛️</div>
               <h3>Document checklists & plans</h3>
               <p>
-                State and court-specific guidance that shows filers what documents are always, usually, or conditionally needed (e.g., Landlord vs. Tenant role requirements).
+                State and court guidance groups documents as commonly included, often included, or may apply. Checklists can depend on the filer’s side and remain optional guidance.
               </p>
               <Link to="/docs/partners-courts/document-checklists" className="button button--link">
                 Checklist configuration →
@@ -114,7 +114,7 @@ export default function Home(): React.JSX.Element {
               <div className={styles.featureIcon}>⚙️</div>
               <h3>Jurisdiction YAML configs</h3>
               <p>
-                Declarative YAML configuration files allowing court partners to configure case types, filing fee waivers, court logos, clerk contact info, and local rules without code changes.
+                YAML settings let partners configure case guidance, waiver help, court logos, contacts, and supported wording. Other field labels and behaviors may require code changes.
               </p>
               <Link to="/docs/partners-courts/jurisdiction-config" className="button button--link">
                 Jurisdiction specs →
@@ -125,7 +125,7 @@ export default function Home(): React.JSX.Element {
               <div className={styles.featureIcon}>🚀</div>
               <h3>Modern cloud deployment</h3>
               <p>
-                Containerized Python 3.12 / Django ASGI stack with UV package management, Gunicorn/Uvicorn, WhiteNoise static delivery, and AWS S3 secure document handling.
+                Containerized Python 3.12 / Django ASGI stack with uv package management, Gunicorn/Uvicorn, WhiteNoise static delivery, and AWS S3 secure document handling.
               </p>
               <Link to="/docs/admin/deployment" className="button button--link">
                 Deployment guide →

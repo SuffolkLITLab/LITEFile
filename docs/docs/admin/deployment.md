@@ -61,7 +61,11 @@ primary_region = 'lax'
 
 [env]
   DJANGO_SETTINGS_MODULE = "efile.settings_staging"
-  FILING_CODE_SYNC_MODE = "legacy"
+  PYTHONUNBUFFERED = "1"
+  FILING_CODE_SYNC_MODE = "database"
+  # Staging uses the test proxy; production should copy after its own refresh.
+  FILING_CODE_SYNC_TIME = "21:30"
+  FILING_CODE_SYNC_TIMEZONE = "America/New_York"
 
 [deploy]
   # Run database migrations before each release
@@ -69,9 +73,9 @@ primary_region = 'lax'
   release_command_timeout = "30m"
 
 [processes]
-  app = "uv run gunicorn efile.asgi:application -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --workers 2 --timeout 60"
+  app = "uv run gunicorn efile.asgi:application -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --workers 2 --timeout 60 --access-logfile - --error-logfile - --log-level debug"
   extraction_worker = "uv run python manage.py process_document_extractions"
-  code_index_worker = "uv run python manage.py refresh_filing_code_index --interval 86400"
+  code_index_worker = "uv run python manage.py refresh_filing_code_index --daily --retry-interval 900"
 
 [http_service]
   internal_port = 8000
@@ -94,6 +98,10 @@ Document analysis runs outside the web request in the `extraction_worker` proces
 By default, LITEFile sends only the first 20 PDF pages for analysis. Set `DOCUMENT_EXTRACTION_MAX_PAGES` to a positive integer to change that cap. DOCX text is limited to the first 100,000 characters with `DOCUMENT_EXTRACTION_MAX_TEXT_CHARS`; Word files have no reliable page boundaries. Review identifies when either limit omitted part of a document. `DOCUMENT_EXTRACTION_MAX_ATTEMPTS` controls how many times a failed job is tried before the filer is sent to manual review.
 
 ### Filing code search index
+
+For routine health checks, recovery choices, ownership and escalation, use the
+[filing-code operating checklist](./filing-code-operations.md). The setup details
+below remain the reference for provisioning.
 
 Filing codes come straight from the EFSP proxy's codes database. The proxy
 updates its codes from Tyler once a day (production at 02:13, test at 19:35
