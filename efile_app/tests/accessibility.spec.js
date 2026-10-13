@@ -138,7 +138,7 @@ test.describe('confirm-filing acknowledgement error', () => {
     async function expectErrorShownAndFocused(page, checkbox) {
         const error = page.locator('#reviewed-extraction-error');
         await expect(error).toBeVisible();
-        await expect(error).toContainText('Check the box');
+        await expect(error).toHaveText('Check these details against your document, then check the box.');
         await expect(checkbox).toBeFocused();
         await expect(checkbox).toHaveAttribute('aria-invalid', 'true');
         await expect(checkbox).toHaveAttribute('aria-describedby', 'reviewed-extraction-error');
