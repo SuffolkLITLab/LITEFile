@@ -1,8 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 160" role="img" aria-labelledby="title desc">
-  <title id="title">LITEFile</title>
-  <desc id="desc">A document with a blue checkmark beside the word LITEFile</desc>
-  <path d="M52 30h70l35 35v65H52z" fill="#fff"/>
-  <path d="M122 30v35h35" fill="#cbdcf1"/>
-  <path d="m69 96 18 18 38-43" fill="none" stroke="#2c7a62" stroke-linecap="round" stroke-linejoin="round" stroke-width="12"/>
-  <text x="185" y="102" fill="#fff" font-family="Arial, Helvetica, sans-serif" font-size="58" font-weight="700" letter-spacing="-2">LITEFile</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="160" viewBox="0 0 520 160" role="img" aria-labelledby="logo-title logo-desc">
+  <title id="logo-title">LITEfile — Gold Check</title>
+  <desc id="logo-desc">White LITEfile wordmark with a Suffolk gold underline and checkmark accent. Mixed-case wordmark spelling: L I T E uppercase followed by f i l e lowercase.</desc>
+  <path d="M124 0H1079V229H388V1490H124Z" transform="translate(70.669 119.000) scale(0.0551758 -0.0551758)" fill="#FFFFFF"/><path d="M388 1490H124V0H388Z" transform="translate(131.297 119.000) scale(0.0551758 -0.0551758)" fill="#FFFFFF"/><path d="M46 1261H510V0H775V1261H1237V1490H46Z" transform="translate(158.047 119.000) scale(0.0551758 -0.0551758)" fill="#FFFFFF"/><path d="M124 0H1159V229H388V644H1101V869H388V1261H1159V1490H124Z" transform="translate(227.393 119.000) scale(0.0551758 -0.0551758)" fill="#FFFFFF"/>
+  <path d="M675 1056H460V1168C460 1254 492 1287 578 1287H675V1490H528C319 1490 207 1392 207 1210V1056H17V853H207V0H460V853H675Z" transform="translate(299.038 119.000) scale(0.0551758 -0.0551758)" fill="#FFFFFF"/><path d="M112 0H364V1056H112ZM238 1213C324 1213 389 1275 389 1357C389 1438 324 1500 238 1500C152 1500 87 1438 87 1357C87 1275 152 1213 238 1213Z" transform="translate(337.089 119.000) scale(0.0551758 -0.0551758)" fill="#FFFFFF"/><path d="M364 1490H112V0H364Z" transform="translate(361.953 119.000) scale(0.0551758 -0.0551758)" fill="#FFFFFF"/><path d="M578 -24C825 -24 1021 119 1061 326H825C796 236 711 175 584 175C414 175 316 290 310 462H1074V531C1074 855 872 1080 568 1080C272 1080 63 848 63 527C63 207 261 -24 578 -24ZM312 636C329 787 426 880 572 880C718 880 816 787 832 636Z" transform="translate(386.817 119.000) scale(0.0551758 -0.0551758)" fill="#FFFFFF"/>
+  <path d="M311.04 134 H403.33" stroke="#FDB714" stroke-width="5.5" stroke-linecap="round" fill="none"/>
+  <path d="M410.33 132 l10 9 22 -25" stroke="#FDB714" stroke-width="6.3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
 </svg>

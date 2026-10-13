@@ -11,7 +11,7 @@
                    href="{% if jurisdiction %}{% url 'efile_options' jurisdiction %}{% else %}{% url 'home' %}{% endif %}">
                     <img class="brand-logo"
                          src="{% static config.jurisdiction.logo|default:'img/litefile-logo.svg' %}"
-                         alt="{{ config.jurisdiction.logo_alt|default:'LITEFile logo' }}"
+                         alt="{{ config.jurisdiction.logo_alt|default:'LITEfile logo' }}"
                          width="136"
                          height="42" />
                     <span class="brand-title">

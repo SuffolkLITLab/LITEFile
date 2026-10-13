@@ -53,9 +53,9 @@ html[data-theme="dark"] {
 }
 
 .navbar__logo {
-  border-right: 3px solid var(--suffolk-light-gold);
+  /* The new wordmark is the complete navbar brand; no separator needed. */
   margin-right: var(--ifm-spacing-horizontal);
-  padding-right: var(--ifm-spacing-horizontal);
+  padding-right: 0;
   height: 2rem;
 }
 
