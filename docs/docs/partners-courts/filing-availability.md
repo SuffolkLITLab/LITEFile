@@ -391,3 +391,27 @@ The shared matcher and final name resolution live in
 is `efile_app/efile/static/js/filing-availability.js`. Regression coverage lives
 in `efile_app/efile/tests/test_filing_availability.py` and the live-availability
 cases in `efile_app/tests/confirm-case-editing.spec.js`.
+
+
+## Release-scope register
+
+Extend the [shared maintenance register](./maintenance.md) with one row per
+jurisdiction/court/type scope before enabling a service or removing a restriction:
+
+| Jurisdiction/environment | Court route and type names/patterns | Enabled/disabled and reason | Content/technical owner and approver | Verification evidence | Removal/recheck conditions |
+| --- | --- | --- | --- | --- | --- |
+| Illinois / target environment to record | Cook `cook:cvd1` Contract example | Example is commented out; no active block from it | Unassigned; no scope approval recorded | Matcher example yields no block; live scheduling not established | Confirm actual scheduling requirement and supported service before activating a scoped rule |
+| Massachusetts / target environment to record | Court/type list to supply | Unverified release scope; absence of a block is not approval | Unassigned | New/existing, supporting-document and saved-draft evidence required | Court/provider/service change and each release |
+| Vermont / target environment to record | Court/type list to supply | Unverified release scope; absence of a block is not approval | Unassigned | New/existing, supporting-document and saved-draft evidence required | Court/provider/service change and each release |
+
+Record reason, source/date, accepted owner, approver/decision, deployed version,
+allowed and blocked examples, saved-draft behavior and conditions to remove the
+restriction. The restriction engine does not implement hearing scheduling;
+[#199](https://github.com/SuffolkLITLab/LITEFile/issues/199) remains separate.
+
+Informational `filing_guidance` uses exact **saved provider codes**, while
+availability uses authoritative **names or explicit patterns**. After a code
+sync, review code-bound guidance, renamed availability selectors and checklist
+matches. Test an affected supporting document and a reopened saved draft, as
+well as both case paths. Keep scheduling limitations, fee exemptions, payment
+restrictions and confidentiality decisions in their own scoped approval records.

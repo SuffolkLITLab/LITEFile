@@ -27,7 +27,7 @@ efile_app/efile/static/config/
 ├── README.md                    # Technical documentation
 ├── base-case-types.yaml         # Base configuration (shared across states)
 └── states/
-    ├── illinois.yaml            # Complete Illinois court configuration
+    ├── illinois.yaml            # Illinois configuration
     ├── massachusetts.yaml       # Massachusetts Trial Court configuration
     └── vermont.yaml             # Vermont Judiciary configuration
 ```
@@ -44,3 +44,23 @@ efile_app/efile/static/config/
 3. [**Document finder**](./document-finder.md): Letting filers search by what they want to do, and linking guided interviews, blank forms, and help pages.
 4. [**Customizing AI extraction & prompts**](./ai-customization.md): Fine-tuning LLM extraction prompts and field dictionaries for court documents.
 5. [**Docassemble & AssemblyLine integration**](./interview-integration.md): Connecting automated interview workflows to e-file directly.
+
+
+## Partner handover tasks
+
+- [Change wording and local guidance](./customization.md): one change-location
+  map, supported text keys, markup, translation and the current YAML/PR workflow.
+- [Review emails and tracker guidance](./email-review.md): four message categories,
+  sender/delivery gates and sourced estimates; customized emails remain disabled
+  pending signoff.
+- [Maintain reference data](./maintained-data.md): distinguish automatic catalogs
+  from curated terms, definitions, geography and court mappings.
+- [Content approval and maintenance register](./maintenance.md): accepted owners,
+  source reviews, approval scope, deployed enablement and next checks.
+- [Interpret usage reports](./reporting.md): metrics, observation boundaries,
+  suppression and account-versus-person limits.
+
+The October 13, 2026 audit covers implemented features, not a declaration of RC1
+readiness. Use the register for unassigned/pending reviews and related decision
+issues. Operators and support staff can start with [role-specific onboarding](../admin/staff-onboarding.md)
+and [service maintenance](../admin/service-maintenance.md).

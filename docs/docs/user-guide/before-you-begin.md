@@ -11,21 +11,21 @@ Before you start filing online, taking two minutes to gather your documents and 
 
 ---
 
-## 1. Have your completed forms as PDFs
+## 1. Have your completed PDF or Word forms
 
-All electronic court filing systems require documents in **PDF format** (`.pdf`).
+LITEFile accepts PDF (`.pdf`) and Word (`.doc`, `.docx`) files up to **10 MB per file** and prepares PDF copies for court. It preserves originals. Check the filing copy on **Confirm information** before sending, and recheck any replaced or changed document.
 
 :::tip Where to get free, approved court forms
-If you don't have your court forms filled out yet, you can find approved forms and free guided form tools:
+If your forms are not ready, use **Find forms and instructions** where offered, or check these resources for your jurisdiction. A guide or link is preparation help, not a court approval of your filing:
 - **[State-by-state court help & forms](./state-help.md)**: Direct links to official court form libraries and legal aid self-help centers for your state.
 - **[Suffolk LIT Lab Document Assembly Line](https://assemblyline.suffolklitlab.org)**: Free, mobile-friendly online form preparation interviews for self-represented litigants.
 - **[LawHelp.org](https://www.lawhelp.org)**: Nationwide directory of free legal aid tools and state court forms.
 :::
 
-### Quick document checklist:
-- [ ] **Saved as PDF**: Export your document from Word, Google Docs, or your phone scanning app as a `.pdf`.
+### Quick document checklist
+- [ ] **Supported format**: Save as PDF, DOC or DOCX. Export images or Apple Pages files to PDF.
 - [ ] **Signed and dated**: Make sure your signature is on the signature lines.
-- [ ] **Under 10 MB in size**: Standard PDF documents and scans easily fit under this limit.
+- [ ] **Up to 10 MB per file**: Check each upload and prepared copy.
 - [ ] **No passwords**: Ensure the PDF is not encrypted or password-protected.
 
 ---
@@ -43,8 +43,8 @@ LITEFile connects directly to the official statewide court e-filing system.
 
 Depending on the type of case you are filing, the court may charge a filing fee.
 
-- **Paying by card or bank account**: Have your credit/debit card or account details ready.
-- **Applying for a fee waiver**: If you receive public assistance (like SNAP, Medicaid, or SSI) or have low income, you do not have to pay court fees. Simply fill out an *Application for Waiver of Court Fees* and upload it with your filing.
+- **Paying by card or bank account**: Have your credit/debit card or account details ready. Some courts restrict bank payments; use an option allowed for your selected court.
+- **Applying for a fee waiver**: Check your state's eligibility rules and required forms/orders. On Fees, open **Who qualifies for a fee waiver?**, then select **I think I qualify for a fee waiver** under **Payment method** and upload the required document. If a configured case exemption applies, the option says **Claim the fee exemption for this case** instead. A selection is not approval; follow the court's decision and any payment instructions.
 
 ---
 

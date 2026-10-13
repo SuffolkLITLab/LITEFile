@@ -7,291 +7,226 @@ sidebar_position: 3
 
 # Step-by-step filing walkthrough
 
-This guide takes you through the complete 14-step e-filing journey in LITEFile, from initial document upload to final court clerk submission and receipt confirmation.
+Your screens depend on whether you are starting a case, joining an existing case,
+and which details the court needs. You may skip screens or return to an earlier
+screen to make a change. The stages are Start, Upload, Confirm case, Check
+documents, Organize documents, People, Fees and Review.
 
----
+This guide follows the October 13, 2026 interface. Your court's available choices
+and local instructions may differ. [Find help for your state](./state-help.md)
+if you are unsure which court, documents or filing types apply.
 
-## Step 1: Choose your filing path
+## Choose your filing path or find documents
 
-<div className="workflow-step-badge">Step 1 of 14: Filing path</div>
+Choose **Start a new case** if this filing opens a case. Choose **File into an
+existing case** if the court already has the case. Starting from that menu can
+skip the separate path question; Back from Upload returns to where you started.
 
-When you start a new filing, LITEFile asks you whether you are **starting a brand-new court case** or **adding documents to an existing case**.
-
-<img
-  src="/img/screenshots/01-filing-path.png"
-  alt="Step 1: Choose your filing path"
-  className="doc-screenshot"
-/>
-<p className="screenshot-caption">Figure 1: Choosing between starting a new case or filing into an existing case.</p>
-
-- **Start a new case**: Choose this if you are filing an initial petition or complaint that does not yet have a case number.
-- **File into an existing case**: Choose this if you are filing a response, appearance, motion, or additional papers for a case that already exists.
-
-Click **Continue** to proceed.
-
-If you chose **Start a new case** or **File into an existing case** from the menu, LITEFile already has your answer and skips this question. **Back** from the upload screen then returns you to where you started, not to this question.
-
----
-
-## Step 2: Upload your documents
-
-<div className="workflow-step-badge">Step 2 of 14: Upload documents</div>
-
-Next, upload your completed PDF documents. You can drag and drop files directly onto the upload area or browse your computer.
+If you do not know which forms to prepare, use **Find forms and instructions**
+where offered. Describe what you want to do and choose a guide. Its checklist
+and external interviews/forms are preparation help; opening them does not file
+anything. Illinois has guides at this snapshot; Massachusetts and Vermont do
+not yet have populated guides. You can still use your state's court/help resources.
+Signing in from a selected guide returns you to that guide. Starting a filing
+carries the new/existing path; you still choose and confirm live court codes.
 
 <img
-  src="/img/screenshots/02-upload-documents.png"
-  alt="Step 2: Upload documents"
+  src="https://gist.githubusercontent.com/nonprofittechy/e88c3fce4148bc53c4a425d0fa3f67cc/raw/2e5361133e55619bd23793733fa1ab26306f4189/01-finder-search-mobile.png"
+  alt="Illinois document finder showing adult and child name-change guides for one search"
+  width="390"
+  loading="lazy"
   className="doc-screenshot"
 />
-<p className="screenshot-caption">Figure 2: Document upload screen for adding your lead document and any attachments.</p>
+<p className="screenshot-caption">Synthetic finder example, October 13, 2026. Choose the guide that fits; linked resources still need partner review.</p>
 
-### Key guidelines for uploading:
-- **Lead Document**: The first PDF you upload will be designated as your **Lead Document** (e.g., your *Petition for Name Change* or *Eviction Complaint*).
-- **Supporting Documents**: You can upload additional attachments (e.g., *Proposed Order*, *Notice of Hearing*, or *Fee Waiver*).
-- **Format**: All files must be in `.pdf` format and under **10 MB** each.
+[View the current finder screenshots](https://gist.github.com/nonprofittechy/e88c3fce4148bc53c4a425d0fa3f67cc)
+(Illinois search/guide and Massachusetts no-guide state, desktop/mobile).
 
-Click **Upload and Continue**.
+## Upload your court documents
 
----
+Upload PDF (`.pdf`) or Word (`.doc`, `.docx`) files, up to **10 MB per file**.
+LITEFile prepares PDF copies for court and preserves the originals. By default,
+fillable PDFs are flattened to keep their visible answers; jurisdiction settings
+can disable this preparation. All three configured states use the default.
+Check the prepared copy next: conversion can change layout, fonts or form fields.
+Images or Apple Pages files need to be exported to a supported format first.
 
-## Step 3: AI document extraction review
+Your **main document** is the document this filing is built around. The court's
+per-document “Lead Document” component is a separate choice and may apply to
+more than one PDF. Additional uploads may include supporting papers or waiver
+forms. Complete required signatures and make the text readable before uploading.
 
-<div className="workflow-step-badge">Step 3 of 14: Extraction review</div>
+Read any **Information from the court about filing rules**. Those notices can
+be general; the selected court's requirements appear again before submission.
+You may choose **Do not use AI to read my documents** and enter the details
+manually. If analysis fails or has no usable answer, check the documents and
+complete missing answers manually. A failed PDF preparation needs a usable file
+before you can send it.
 
-LITEFile automatically inspects your lead document using secure, privacy-preserving AI and text extraction. It reads the caption and title of your document to deduce:
-- **Court Location** (County and Court Division)
-- **Case Category** (e.g., *Miscellaneous Remedy*, *Family*, *Civil*)
-- **Case Type** (e.g., *Adult Name Change*, *Eviction*)
-- **Docket / Case Number** (if present on an existing case document)
+## Confirm information and check each filing PDF
+
+Open **Confirm information** after uploading. Check the PDF that will be sent:
+all pages, signatures, checkboxes, filled answers and readable layout. If the
+file changed or was replaced, review the new copy again. Document preview is
+part of this screen; there is no separate Preview step in the current path.
+
+Review suggested answers rather than treating them as court decisions. Analysis
+may omit pages/text beyond its limits; the screen identifies that limitation.
+An asterisk marks information read from your document where shown.
+
+For a **new case**, confirm the court, case category, case type and filing type
+shown. Use Edit to change a suggested court/category; dependent choices may need
+to be selected again. Guided court questions and filing-code search help you
+find the court's choices, but cannot decide legal eligibility. Some case types
+ask **Which side of this case are you on?** to tailor their document guidance.
+This checklist side is separate from your court-party role in People.
+
+For an **existing case**, confirm the path and case number if shown, then find
+the case in the court's records. The case title/category/type come from the
+court lookup rather than becoming editable guesses from your document.
+
+A saved path appears with **Change**. If the document seems to conflict with
+it, LITEFile asks you to check; it does not change the path automatically.
+Changing new/existing keeps the draft and uploads but requires checking filing
+types and fees again. Switching to existing goes through lookup.
 
 <img
-  src="/img/screenshots/03-extraction-review.png"
-  alt="Step 3: AI extraction review"
+  src="https://gist.githubusercontent.com/nonprofittechy/e88c3fce4148bc53c4a425d0fa3f67cc/raw/3c72d5d04c35a725be5b4eff2ab960c30bf54019/02-confirm-information-mobile.png"
+  alt="Confirm information for a synthetic Massachusetts existing-case filing, with Change files and a PDF preview"
+  width="390"
+  loading="lazy"
   className="doc-screenshot"
 />
-<p className="screenshot-caption">Figure 3: Reviewing AI-extracted case details and court classifications.</p>
+<p className="screenshot-caption">Synthetic Massachusetts example, October 13, 2026. Check the actual document and court choices; this image does not recommend a filing type.</p>
 
-:::info Human-in-the-loop verification
-The AI extraction provides recommendations to save you time, but **you remain in full control**. Always double-check that the detected court, case category, and case type accurately match your legal paperwork. If anything differs, you can select the correct option from the dropdown menu.
-:::
+[View Confirm information and existing-case screenshots](https://gist.github.com/nonprofittechy/b855c1c8c3a69e8cd694f8ee3909b5a3#file-01-case-flow-html)
+(synthetic Massachusetts/Vermont examples, October 13).
 
-### Changing new or existing case
+## Find and confirm an existing case
 
-If you already said whether this is a new or existing case, the screen shows your answer with a **Change** button instead of asking again. If your document reads like the other kind of filing (for example, an answer when you chose to start a new case), LITEFile points this out. It never changes your answer for you.
+On **Find your court case**, choose the court and enter the case number as it appears
+on the paperwork. Confirm **Is this your court case?** against the returned
+court record. If it is wrong, return to lookup; changing court for an existing
+case requires finding and confirming the case again.
 
-Changing the answer keeps the same filing and your uploaded documents. You will choose each document's filing type again, because courts list different filing types for new and existing cases. Fees are calculated again. A filing moved to an existing case goes through case lookup next.
+Court-owned case/party details are shown as court records. Confirm the correct
+case before choosing a filing type from its current court list. Existing-case
+filing-type search happens after case confirmation; it does not ask you to
+reclassify the court's case. Your party association and who you file for are
+handled in People, rather than a role question on this confirmation screen.
 
-Click **Confirm and Continue**.
+## Check documents
 
----
+Where a checklist is configured, **Check your documents** shows what filings like
+yours often include. It can depend on case type, filer side, main filing type
+and local court supplements. Groups are **Commonly included**, **Often included**
+and **May apply**. You can mark what you have, already filed or will file later.
+If the checklist needs your side and you have not answered yet, it asks
+**Which side of this case are you on?** here. You can add documents on this screen;
+existing cases also offer **Find my filing type** after case confirmation.
 
-## Step 4: Case lookup (existing cases only)
+The checklist is non-blocking guidance. It does not establish that your filing
+is complete, and you do not have to tick every item. Verify forms and local rules
+using the court or a legal-help service.
 
-<div className="workflow-step-badge">Step 4 of 14: Case lookup</div>
+## Organize documents
 
-If you are filing into an existing court matter, LITEFile searches the state court repository using your court location and case/docket number.
+Choose each document's **filing type** from the court's choices and check the
+main document. Some courts require a particular filing component; more than one
+PDF can have the court's “Lead Document” component.
+
+For confidentiality, follow the **applicable court rule or court order**. Do not
+choose confidential solely because a document contains sensitive information.
+If unsure, ask the court about its rules and any required redaction or request
+before submitting. Confidentiality choices and instructions differ by court.
+
+Optional services, such as a certified copy or courtesy email, may appear here.
+A changed filing type/service can change the fee. A court or document restriction
+may stop the path; read its message rather than choosing an inaccurate type to
+continue.
+
+## Check your information and people in the filing
+
+On **Your information**, check your contact details and where notices go.
+On **Who is involved in this case?**, choose your role/party association and who you are
+filing for. **Save role** stays on the page so you can check the result; use
+Continue when the list is ready. Missing person details can lead to **Add the next party** or **Check this party’s
+details**; court-specific questions appear only when needed.
+
+Existing cases use the imported court roster. You cannot freely rewrite a
+court-owned party entry. Follow the available association/add-person options;
+contact the court if its record is wrong. Check the notice address separately
+from party names, especially when filing for someone else.
+
+## Fees, payment and waiver requests
+
+On the Fees stage, **Choose how to pay court fees** shows the court’s quote. Available payment methods depend on
+the court; a bank account may be unavailable even if saved on your profile.
+Some free filings still require a payment method. The displayed confirmed total
+explains what is due now.
+
+Open **Who qualifies for a fee waiver?** for the local help. Under **Payment
+method**, choose **I think I qualify for a fee waiver** when requesting one,
+and include the required form or order. Where a configured case exemption applies,
+the option reads **Claim the fee exemption for this case**; read its instructions
+instead of assuming an income-based waiver is needed. Selecting either option
+does not approve a court waiver or decide eligibility.
+
+When the upload is needed, **Add fee waiver document** opens an in-place upload; check the PDF
+and complete its filing choices. A waiver check stays on the current screen;
+read any message that needs attention. A request is not court approval, and the
+court may later ask you to pay. Eligibility and exemption rules vary by state.
+
+If a fee quote becomes stale or fails, retry as instructed or return to Fees.
+Do not submit while the current fee/payment details remain unresolved.
 
 <img
-  src="/img/screenshots/04-case-lookup.png"
-  alt="Step 4: Case lookup"
+  src="https://gist.githubusercontent.com/nonprofittechy/e88c3fce4148bc53c4a425d0fa3f67cc/raw/e4506dd8d6aa90ed63552108a160bfdf5ac9a605/03-check-waiver-desktop.png"
+  alt="Illinois Fees screen showing the selected waiver option and an in-place PDF check for a synthetic waiver form"
+  width="700"
+  loading="lazy"
   className="doc-screenshot"
 />
-<p className="screenshot-caption">Figure 4: Case lookup tool for retrieving docket details and party records from the court.</p>
-
-Enter your Case Number (e.g., `2026-MR-001234`) and click **Find Case**. LITEFile connects to the court repository and pulls in the official case title, judge, filing date, and registered parties.
-
----
-
-## Step 5: Case confirmation & role selection
-
-<div className="workflow-step-badge">Step 5 of 14: Case confirmation</div>
-
-Once your case is identified, verify that the case summary is correct. For cases with two sides (such as eviction, divorce, or civil lawsuits), LITEFile asks you to confirm **which side of the case you represent**.
-
-<img
-  src="/img/screenshots/05-case-confirmation.png"
-  alt="Step 5: Case confirmation"
-  className="doc-screenshot"
-/>
-<p className="screenshot-caption">Figure 5: Confirming case details and selecting your party role.</p>
-
-Selecting your role (e.g., *Petitioner/Plaintiff* vs. *Respondent/Defendant*, or *Landlord* vs. *Tenant*) customizes the subsequent document checklists and court questions so that you only see rules relevant to your legal position.
-
----
-
-## Step 6: Document checklist (filing plan)
-
-<div className="workflow-step-badge">Step 6 of 14: Document checklist</div>
-
-LITEFile generates a **customized document checklist** based on your specific court and case type.
-
-<img
-  src="/img/screenshots/06-document-checklist.png"
-  alt="Step 6: Document checklist"
-  className="doc-screenshot"
-/>
-<p className="screenshot-caption">Figure 6: Checklist of documents that are commonly included, often included, or may apply.</p>
-
-The checklist is a guide to documents that often go with filings like yours. It groups them into categories:
-- **Commonly included**: Documents most filings like this include (e.g., *Request for Name Change*).
-- **Often included**: Standard documents included in many filings of this type (e.g., *Proposed Order*, *Notice of Hearing*).
-- **May apply**: Documents that depend on your situation (e.g., *Publication Notice*, *Fee Waiver Application*).
-
-Depending on your situation, you may need other documents, or some of these may not apply. You don't have to check anything off to continue.
-
-If it helps, you can mark each item:
-- *I have it now*
-- *I already filed this*
-- *I will file it later*
-
----
-
-## Step 7: Organize documents & classifications
-
-<div className="workflow-step-badge">Step 7 of 14: Organize documents</div>
-
-In this step, you organize your uploaded documents, assign the formal court **Filing Type**, and set document security levels.
-
-<img
-  src="/img/screenshots/07-organize-documents.png"
-  alt="Step 7: Organize documents"
-  className="doc-screenshot"
-/>
-<p className="screenshot-caption">Figure 7: Organizing documents, setting filing types, and specifying document security.</p>
-
-### Setting document properties:
-1. **Filing Type**: Select the official court name for each document from the dropdown menu (e.g., *Petition*, *Appearance*, *Motion*).
-2. **Document Role**: Ensure your lead document is designated as **Lead Document** and other files are **Supporting Documents**.
-3. **Document Security**: Select **Public Document** or **Confidential / Sealed Document** if the filing contains sensitive or impounded information.
-
----
-
-## Step 8: Your contact information
-
-<div className="workflow-step-badge">Step 8 of 14: Your information</div>
-
-Review and confirm your contact information as the filer.
-
-<img
-  src="/img/screenshots/08-your-information.png"
-  alt="Step 8: Your information"
-  className="doc-screenshot"
-/>
-<p className="screenshot-caption">Figure 8: Confirming filer contact details and party association.</p>
-
-LITEFile pre-populates your name, street address, telephone number, and email from your e-filing profile. Verify that your mailing address and email address are current, as the court clerk will send notices to this email.
-
----
-
-## Step 9: Case parties overview
-
-<div className="workflow-step-badge">Step 9 of 14: Parties overview</div>
-
-Review the list of all parties associated with the case.
-
-<img
-  src="/img/screenshots/09-parties.png"
-  alt="Step 9: Parties overview"
-  className="doc-screenshot"
-/>
-<p className="screenshot-caption">Figure 9: Reviewing required parties (Petitioner, Respondent, etc.).</p>
-
-For a name change petition, you are typically the sole Petitioner. For other case types (such as civil lawsuits or divorces), you can verify both the Petitioner/Plaintiff and Respondent/Defendant entries.
-
-Choose your own role and click **Save role**. You stay on this screen so you can check the party list with your role in it. When the list is right, click **Continue** below it. The button tells you when it will ask next for details that are still missing.
-
----
-
-## Step 10: Party details & addresses
-
-<div className="workflow-step-badge">Step 10 of 14: Party details</div>
-
-Click on any party to view or update detailed information, including legal name, address, representation status, and party type code.
-
-<img
-  src="/img/screenshots/10-party-details.png"
-  alt="Step 10: Party details"
-  className="doc-screenshot"
-/>
-<p className="screenshot-caption">Figure 10: Editing detailed party information and legal status.</p>
-
----
-
-## Step 11: Case questions & optional services
-
-<div className="workflow-step-badge">Step 11 of 14: Case questions</div>
-
-Some courts or case types require answering specific jurisdiction questions or offer optional court services (such as certified copies, special process service, or sheriff delivery).
-
-<img
-  src="/img/screenshots/11-case-questions.png"
-  alt="Step 11: Case questions"
-  className="doc-screenshot"
-/>
-<p className="screenshot-caption">Figure 11: Answering court-specific case questions and selecting optional services.</p>
-
----
-
-## Step 12: Payment & fee waivers
-
-<div className="workflow-step-badge">Step 12 of 14: Payment options</div>
-
-Select your payment method for any court filing fees.
-
-<img
-  src="/img/screenshots/12-payment.png"
-  alt="Step 12: Payment"
-  className="doc-screenshot"
-/>
-<p className="screenshot-caption">Figure 12: Selecting a payment account or applying for a court fee waiver.</p>
-
-- **Payment Account**: Choose a credit card or bank account registered with your eFile profile.
-- **Fee Waiver**: If you submitted an *Application for Waiver of Court Fees*, select **Fee Waiver** from the account dropdown.
-
----
-
-## Step 13: Final review
-
-<div className="workflow-step-badge">Step 13 of 14: Review filing</div>
-
-Before submitting, LITEFile presents a comprehensive summary of your entire envelope.
-
-<img
-  src="/img/screenshots/13-review.png"
-  alt="Step 13: Review filing"
-  className="doc-screenshot"
-/>
-<p className="screenshot-caption">Figure 13: Comprehensive pre-submission review screen.</p>
-
-Take a moment to verify:
-- Court location and case category
-- All attached PDF documents
-- Party names and addresses
-- Selected payment account or fee waiver status
-
-If you changed anything that affects the court's fees after the Payment step, such as the court, a filing type or an optional service, Review calculates the fees again and shows the new total before you can submit.
-
-When you are ready, click **Submit Filing**.
-
----
-
-## Step 14: Submission confirmation & receipt
-
-<div className="workflow-step-badge">Step 14 of 14: Confirmation</div>
-
-Congratulations! Your envelope has been transmitted directly to the court clerk's office.
-
-<img
-  src="/img/screenshots/14-confirmation.png"
-  alt="Step 14: Submission confirmation"
-  className="doc-screenshot"
-/>
-<p className="screenshot-caption">Figure 14: Submission confirmation with envelope ID and tracking reference.</p>
-
-### What to do with your confirmation:
-- **Save your Envelope ID**: Keep a record of the Envelope ID shown on screen.
-- **Email Notifications**: You will receive an automated email confirmation from the e-filing system.
-- **Clerk Review**: Court clerks typically review filings within 1–3 business days.
-
-Proceed to the [case management guide](./case-management.md) to learn how to track the status of your filing.
+<p className="screenshot-caption">Synthetic Illinois example, October 13, 2026. The form and amount illustrate the controls; no court waiver or payment was approved.</p>
+
+[View in-place waiver and Review screenshots](https://gist.github.com/nonprofittechy/b855c1c8c3a69e8cd694f8ee3909b5a3#file-02-fees-and-review-html)
+(synthetic Illinois examples, October 13; no actual payment or waiver approval).
+
+## Review your filing and submit
+
+Check the court/case, every filing PDF and type, people, notice address, optional
+services and current total. Use **Edit** for a change. Completing the edit usually
+returns to Review; a change that leaves document choices incomplete first returns
+to Organize. A replaced PDF needs another review. Court, filing type or service
+changes cause the fees to be checked again.
+
+Read the selected court's requirements and acknowledgment. Requirements are
+rechecked at submission; if they changed, review the new text. Use **Submit
+filing** or **Submit and pay**, as shown, once the filing is ready. While it is
+sending, keep the page open and avoid repeated submission attempts.
+
+## Confirmation and the live tracker
+
+Save the submission reference/receipt. **Sent** or **Received** does not mean
+**Accepted**. The tracker shows the available court update and any known event
+times; missing times are not a complete event history. A submission can contain
+several filings with different outcomes.
+
+Email availability depends on the service configuration. Tyler may send separate
+notices; customized LITEFile/proxy mail is disabled pending signoff at this
+snapshot. An email graphic shows the status when sent. Follow the tracker link
+and sign in to see current details; a submission link may ask you to choose a
+filing. Local review estimates/office hours, where sourced, do not promise a
+decision date.
+
+See [tracking and support guidance](./case-management.md) for missing updates,
+returned filings and correction limits.
+
+## Screenshot evidence
+
+The earlier numbered walkthrough screenshots predate this interface and are no
+longer shown as current instructions. The [screenshot register](../admin/documentation-review.md)
+records version, capture date, jurisdiction, scenario, scope and source links.
+Selected current images appear above with alt text and fallback source links.
+Older preparation images can illustrate a PDF result, but not the current screen
+sequence. Screenshots are stored in a gist; the obsolete static images were removed.
