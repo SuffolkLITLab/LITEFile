@@ -2009,3 +2009,16 @@
 .path-section>.form-field {
     margin-top: 1rem;
 }
+
+/* Upload: a way out for a filer who has no documents yet. */
+.finder-invitation {
+    align-items: baseline;
+    color: var(--text-body);
+    display: flex;
+    gap: 0.5rem;
+    margin: 0 0 1rem;
+}
+
+.finder-invitation i {
+    color: var(--better-blue);
+}

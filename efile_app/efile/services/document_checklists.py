@@ -270,6 +270,67 @@ def _resolve_entry(
     return None
 
 
+CHECKLIST_SECTIONS: tuple[str, ...] = ("case_types", "case_categories")
+
+
+def configured_entry(jurisdiction: str, section: str, key: str, court_code: str = "") -> dict[str, Any] | None:
+    """Find a checklist entry by its own configuration key, not a court's name.
+
+    Everything above starts from a name the court supplied with a filing. A
+    filer who has not started one yet has no court name to offer, so the
+    document finder names the entry it wants directly.
+    """
+
+    if not jurisdiction or section not in CHECKLIST_SECTIONS:
+        return None
+    sections = config_loader.get_document_checklist_config(jurisdiction, court=court_code or None)
+    entry = (sections.get(section) or {}).get(key)
+    if not isinstance(entry, dict) or not entry.get("documents"):
+        return None
+    return entry
+
+
+def checklist_for_entry(
+    entry: dict[str, Any] | None,
+    lead_filing_type_name: str = "",
+    filer_role: str = "",
+) -> dict[str, dict[str, Any]]:
+    """The same list ``resolve_document_checklist`` gives, for an entry in hand."""
+
+    if entry is None:
+        return {}
+    roles = entry.get("filer_roles")
+    if isinstance(roles, dict) and roles and filer_role not in roles:
+        return {}
+    return _checklist_items(entry, lead_filing_type_name, filer_role)
+
+
+def guidance_for_entry(entry: dict[str, Any] | None, filer_role: str = "") -> dict[str, str]:
+    """The same narrative ``resolve_plan_guidance`` gives, for an entry in hand."""
+
+    about = (entry or {}).get("about")
+    if not isinstance(about, dict):
+        return {}
+    about = _worded_for_role(about, filer_role, _ABOUT_OVERRIDABLE)
+    guidance = {
+        "summary": str(about.get("summary") or ""),
+        "learn_more_url": str(about.get("learn_more_url") or ""),
+        "learn_more_label": str(about.get("learn_more_label") or ""),
+    }
+    if guidance["learn_more_url"] and not _is_web_link(guidance["learn_more_url"]):
+        # A "learn more" link that runs script or opens a file is not a link to
+        # a website, whatever the configuration meant by it.
+        logger.warning("Ignoring checklist learn_more_url that is not a web address: %r", guidance["learn_more_url"])
+        guidance["learn_more_url"] = ""
+    return {key: value for key, value in guidance.items() if value}
+
+
+def entry_court_names(entry: dict[str, Any] | None) -> list[str]:
+    """The court-published names an entry matches, for searching by them."""
+
+    return _configured_names(entry or {})
+
+
 def resolve_filer_roles(
     jurisdiction: str,
     court_code: str = "",
@@ -322,22 +383,7 @@ def resolve_plan_guidance(
     caption, so it is a short narrative plus somewhere to read more.
     """
 
-    entry = _resolve_entry(jurisdiction, court_code, case_category_name, case_type_name)
-    about = (entry or {}).get("about")
-    if not isinstance(about, dict):
-        return {}
-    about = _worded_for_role(about, filer_role, _ABOUT_OVERRIDABLE)
-    guidance = {
-        "summary": str(about.get("summary") or ""),
-        "learn_more_url": str(about.get("learn_more_url") or ""),
-        "learn_more_label": str(about.get("learn_more_label") or ""),
-    }
-    if guidance["learn_more_url"] and not _is_web_link(guidance["learn_more_url"]):
-        # A "learn more" link that runs script or opens a file is not a link to
-        # a website, whatever the configuration meant by it.
-        logger.warning("Ignoring checklist learn_more_url that is not a web address: %r", guidance["learn_more_url"])
-        guidance["learn_more_url"] = ""
-    return {key: value for key, value in guidance.items() if value}
+    return guidance_for_entry(_resolve_entry(jurisdiction, court_code, case_category_name, case_type_name), filer_role)
 
 
 def party_type_keywords_for_role(
@@ -377,10 +423,8 @@ def resolve_document_checklist(
     levels, and optional descriptions. No court codes leak into it.
     """
 
-    entry = _resolve_entry(jurisdiction, court_code, case_category_name, case_type_name)
-    if entry is None:
-        return {}
-    roles = entry.get("filer_roles")
-    if isinstance(roles, dict) and roles and filer_role not in roles:
-        return {}
-    return _checklist_items(entry, lead_filing_type_name, filer_role)
+    return checklist_for_entry(
+        _resolve_entry(jurisdiction, court_code, case_category_name, case_type_name),
+        lead_filing_type_name,
+        filer_role,
+    )

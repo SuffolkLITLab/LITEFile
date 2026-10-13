@@ -16,6 +16,7 @@ from .views.choose_jurisdiction import change_jurisdiction, choose_jurisdiction
 from .views.confirmation import filing_confirmation
 from .views.document_checklist import document_checklist
 from .views.document_checks import document_checks
+from .views.document_finder import find_documents, find_documents_intent
 from .views.document_previews import document_content, preview_documents
 from .views.draft_views import get_current_draft_view, start_filing, start_filing_from_plan
 from .views.extraction_review import extraction_review
@@ -121,6 +122,12 @@ urlpatterns = [
     path("jurisdiction/<jurisdiction>/party-details/", party_details, name="party_details"),
     path("jurisdiction/<jurisdiction>/case-questions/", case_questions, name="case_questions"),
     path("jurisdiction/<jurisdiction>/plans/", filing_plans, name="filing_plans"),
+    path("jurisdiction/<jurisdiction>/find-documents/", find_documents, name="find_documents"),
+    path(
+        "jurisdiction/<jurisdiction>/find-documents/<slug:intent_id>/",
+        find_documents_intent,
+        name="find_documents_intent",
+    ),
     path(
         "jurisdiction/<jurisdiction>/plans/<int:plan_id>/filings/",
         start_filing_from_plan,

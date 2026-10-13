@@ -1,0 +1,14 @@
+{% load i18n %}
+{% comment %}The jurisdiction's own court-help contact, for when a guide cannot help.{% endcomment %}
+{% if help.url %}
+    <p class="finder-help">
+        <i class="fa-solid fa-life-ring" aria-hidden="true"></i>
+        <span>
+            {% translate "For help finding the right forms, contact" %}
+            <a href="{{ help.url }}" target="_blank" rel="noopener noreferrer">{% firstof help.name _("court help") %}<span class="visually-hidden"> {% translate "(opens in a new tab)" %}</span></a>
+            {% if help.number %}
+                {% blocktranslate with number=help.number %}or call {{ number }}{% endblocktranslate %}
+            {% endif %}
+        </span>
+    </p>
+{% endif %}

@@ -633,6 +633,13 @@ Only the first two count as sorted out. A document they have but have not
 attached is what the review step warns about; one they have already filed, or
 have deliberately left for later, is not a gap and is not raised again.
 
+### Finding a checklist before filing
+
+The `document_finder` section lets a filer search for a checklist by what they
+want to do, before they have any documents, and links guided interviews, blank
+forms, and help pages. Each intent points at a checklist entry by its key. See
+`docs/docs/partners-courts/document-finder.md`.
+
 ## Wording that differs by state
 
 Courts do not use the same words for the same thing. The document that opens a

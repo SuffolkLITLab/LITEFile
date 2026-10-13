@@ -1,0 +1,104 @@
+{% extends "efile/site_base.html" %}
+{% load static %}
+{% load i18n %}
+{% block title %}
+    {{ intent.title }}
+{% endblock title %}
+{% block extra_css %}
+    {# The checklist styling is shared with Check documents and My filing plans. #}
+    <link rel="stylesheet" href="{% static 'css/reorganized-flow.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/find_documents.css' %}" />
+{% endblock extra_css %}
+{% block public_content %}
+    <p class="finder-back">
+        {% if return_url %}
+            <a href="{{ return_url }}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {% translate "Back to my filing" %}</a>
+            <span aria-hidden="true">·</span>
+        {% endif %}
+        <a href="{% url 'find_documents' page_jurisdiction %}{% if return_query %}?{{ return_query }}{% endif %}">{% translate "All guides" %}</a>
+    </p>
+    <h1>{{ intent.title }}</h1>
+    {% if intent.summary %}<p class="public-page-intro">{{ intent.summary }}</p>{% endif %}
+    {% include "efile/components/finder_tags.html" with intent=intent %}
+    <ol class="finder-steps" aria-label="{% translate 'How this works' %}">
+        <li>
+            <strong>{% translate "Prepare your documents" %}</strong>
+            <span>{% translate "Fill in the forms yourself, or use a guided interview. These sites do not file anything for you." %}</span>
+        </li>
+        <li>
+            <strong>{% translate "File them" %}</strong>
+            <span>{% translate "Upload the finished documents to LITEFile to send them to the court." %}</span>
+        </li>
+    </ol>
+    {% if intent.resources %}
+        <section aria-labelledby="finder-resources-heading">
+            <h2 id="finder-resources-heading">{% translate "Get the forms" %}</h2>
+            {% include "efile/components/finder_resources.html" with resources=intent.resources %}
+        </section>
+    {% endif %}
+    <section class="document-plan finder-checklist"
+             aria-labelledby="finder-checklist-heading">
+        <h2 id="finder-checklist-heading">{% translate "Documents filings like this often include" %}</h2>
+        {% if intent.groups %}
+            <p class="document-plan__lede">{% translate "Your case may need more or fewer. Nothing here is required to start a filing." %}</p>
+            {% include "efile/components/plan_about.html" with guidance=intent.guidance panel_id="finder-about" %}
+            {% for group in intent.groups %}
+                <section class="document-plan__group"
+                         aria-labelledby="finder-level-{{ group.requirement }}">
+                    <h3 class="document-plan__level document-plan__level--{{ group.requirement }}"
+                        id="finder-level-{{ group.requirement }}">{{ group.label }}</h3>
+                    <ul class="finder-items">
+                        {% for item in group.items %}
+                            <li class="document-plan__item finder-item">
+                                <span>
+                                    <strong>{{ item.label }}</strong>
+                                    {% if item.description %}<small>{{ item.description }}</small>{% endif %}
+                                    {% if item.resources %}
+                                        {% include "efile/components/finder_resources.html" with resources=item.resources %}
+                                    {% endif %}
+                                </span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </section>
+            {% endfor %}
+            {% if intent.court_variants %}
+                <div class="finder-variants">
+                    <h3>{% translate "Some courts also ask for" %}</h3>
+                    <ul>
+                        {% for item in intent.court_variants %}
+                            <li>
+                                <strong>{{ item.label }}</strong>
+                                {% if item.description %}<small>{{ item.description }}</small>{% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+        {% else %}
+            <p>{% translate "We do not have a document list for this yet." %}</p>
+            {% include "efile/components/finder_help.html" %}
+        {% endif %}
+    </section>
+    <section class="finder-next" aria-labelledby="finder-next-heading">
+        <h2 id="finder-next-heading">{% translate "Ready to file?" %}</h2>
+        {% if return_url %}
+            <a class="btn btn-primary" href="{{ return_url }}">{% translate "Back to my filing" %}</a>
+        {% elif is_logged_in %}
+            <form method="post" action="{% url 'start_filing' page_jurisdiction %}">
+                {% csrf_token %}
+                <input type="hidden" name="existing_case" value="{{ intent.filing_path }}" />
+                <button class="btn btn-primary" type="submit">
+                    {% if intent.filing_path == "existing" %}
+                        {% translate "File into my case" %}
+                    {% else %}
+                        {% translate "Start this filing" %}
+                    {% endif %}
+                </button>
+            </form>
+        {% else %}
+            <a class="btn btn-primary"
+               href="{% url 'efile_login' page_jurisdiction %}">{% translate "Sign in to file" %}</a>
+        {% endif %}
+    </section>
+{% endblock public_content %}

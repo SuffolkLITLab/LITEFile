@@ -1,0 +1,16 @@
+{% load i18n %}
+{% comment %}
+Which kind of filing a guide is for, and which side of the case. Both matter
+for telling apart two guides that share a case type, like starting an
+eviction and responding to one.
+{% endcomment %}
+<p class="finder-tags">
+    {% if intent.filing_path == "new" %}
+        <span class="finder-tag"><i class="fa-solid fa-file-circle-plus" aria-hidden="true"></i> {% translate "Starts a new case" %}</span>
+    {% elif intent.filing_path == "existing" %}
+        <span class="finder-tag"><i class="fa-solid fa-folder-open" aria-hidden="true"></i> {% translate "For a case that already exists" %}</span>
+    {% endif %}
+    {% if intent.role_label %}
+        <span class="finder-tag"><i class="fa-solid fa-user" aria-hidden="true"></i> {% blocktranslate with side=intent.role_label %}For: {{ side }}{% endblocktranslate %}</span>
+    {% endif %}
+</p>

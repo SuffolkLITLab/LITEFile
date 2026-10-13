@@ -1,0 +1,88 @@
+{% extends "efile/site_base.html" %}
+{% load static %}
+{% load i18n %}
+{% block title %}
+    {% translate "Find the documents you need" %}
+{% endblock title %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/find_documents.css' %}" />
+{% endblock extra_css %}
+{% block public_content %}
+    {% if return_url %}
+        <p class="finder-back">
+            <a href="{{ return_url }}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {% translate "Back to my filing" %}</a>
+        </p>
+    {% endif %}
+    <h1>{% translate "Find the documents you need" %}</h1>
+    {% if not available %}
+        <p class="public-page-intro">
+            {% blocktranslate with state=state_name %}We do not have document guides for {{ state }} yet.{% endblocktranslate %}
+        </p>
+        {% include "efile/components/finder_help.html" %}
+    {% else %}
+        <p class="public-page-intro">
+            {% translate "Tell us what you want to do. We will show the documents filings like it often include, and where to get the forms." %}
+        </p>
+        <form method="get" class="finder-search" role="search">
+            {% if return_query %}
+                <input type="hidden" name="from" value="upload" />
+                {% if return_draft %}<input type="hidden" name="filing" value="{{ return_draft }}" />{% endif %}
+            {% endif %}
+            <div class="finder-search__query">
+                <label for="finder-query" class="form-label">{% translate "What do you want to do?" %}</label>
+                <input type="search"
+                       id="finder-query"
+                       name="q"
+                       class="form-control"
+                       value="{{ query }}"
+                       maxlength="160"
+                       autocomplete="off"
+                       placeholder="{% translate 'For example: change my name' %}" />
+            </div>
+            <div class="finder-search__path">
+                <label for="finder-path" class="form-label">{% translate "Kind of filing" %}</label>
+                <select id="finder-path" name="path" class="form-select">
+                    <option value="" {% if not filing_path %}selected{% endif %}>{% translate "Any" %}</option>
+                    <option value="new" {% if filing_path == "new" %}selected{% endif %}>{% translate "Start a new case" %}</option>
+                    <option value="existing"
+                            {% if filing_path == "existing" %}selected{% endif %}>
+                        {% translate "A case that already exists" %}
+                    </option>
+                </select>
+            </div>
+            <button class="btn btn-primary finder-search__submit" type="submit">{% translate "Search" %}</button>
+        </form>
+        <p id="finder-status" class="finder-status" role="status">
+            {% if searched %}
+                {% blocktranslate count counter=results|length with query=query %}1 guide matches “{{ query }}”.{% plural %}{{ counter }} guides match “{{ query }}”.{% endblocktranslate %}
+            {% endif %}
+        </p>
+        {% if results %}
+            {% if searched and results|length > 1 %}
+                <p class="finder-hint">{% translate "Choose the one that sounds most like your situation." %}</p>
+            {% endif %}
+            <ul class="finder-results">
+                {% for result in results %}
+                    <li class="finder-result">
+                        <h2 class="finder-result__title">
+                            <a href="{% url 'find_documents_intent' page_jurisdiction result.id %}{% if return_query %}?{{ return_query }}{% endif %}">{{ result.title }}</a>
+                        </h2>
+                        {% if result.summary %}<p>{{ result.summary }}</p>{% endif %}
+                        {% include "efile/components/finder_tags.html" with intent=result %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="finder-empty">
+                <p>
+                    <strong>{% translate "We do not have a guide for that yet." %}</strong>
+                    {% translate "Try other words, or see every guide." %}
+                </p>
+                <p>
+                    <a href="{% url 'find_documents' page_jurisdiction %}{% if return_query %}?{{ return_query }}{% endif %}">{% translate "See every guide" %}</a>
+                </p>
+                {% include "efile/components/finder_help.html" %}
+            </div>
+        {% endif %}
+    {% endif %}
+{% endblock public_content %}

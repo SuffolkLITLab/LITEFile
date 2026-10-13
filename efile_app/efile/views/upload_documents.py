@@ -17,6 +17,7 @@ from efile.services.document_extractions import (
     extraction_is_waiting,
     queue_document_extraction,
 )
+from efile.services.document_finder import has_document_finder
 from efile.services.document_preparation import requires_flattening
 from efile.services.document_previews import document_storage_keys
 from efile.services.document_uploads import upload_files
@@ -207,6 +208,7 @@ def upload_documents(request, jurisdiction):
         "return_to": return_target(request),
     }
     context["upload_disclaimers"] = config_loader.get_upload_disclaimers(jurisdiction)
+    context["has_document_finder"] = has_document_finder(jurisdiction)
     context.update(get_workflow_context(WorkflowStepKey.UPLOAD_DOCUMENTS, jurisdiction, draft))
     return render(request, "efile/upload_documents.html", context)
 
