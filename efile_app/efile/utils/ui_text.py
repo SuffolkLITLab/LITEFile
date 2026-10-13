@@ -124,12 +124,12 @@ UI_STRINGS: dict[str, UIString] = {
         default="Which PDF is the {main_document}?",
     ),
     "organize_documents.main_document_help": UIString(
-        default="Choose the document that starts this filing, like a {starting_document_example}. Upload order does not matter.",
+        default="Choose the document that starts this filing, like a {starting_document_example}.",
         description="Names the kind of document that opens a case, which differs by state.",
         links=True,
     ),
     "organize_documents.single_document_note": UIString(
-        default="This is the only document in this filing, so it is the {main_document}.",
+        default="This is your {main_document}.",
     ),
     "organize_documents.filing_component_label": UIString(
         default="Court filing component",
@@ -139,11 +139,7 @@ UI_STRINGS: dict[str, UIString] = {
         ),
     ),
     "organize_documents.filing_component_help": UIString(
-        default=(
-            "The court receives each PDF as its own filing, so more than one PDF can carry a "
-            "court component named “Lead Document”. That is separate from the one "
-            "{main_document} you chose above."
-        ),
+        default="The court may call more than one PDF a “Lead Document”. This is separate from your {main_document}.",
         description=(
             "Explains why several PDFs can each say “Lead Document” here. Reword it if the "
             "court in this state names its components differently."
@@ -151,7 +147,7 @@ UI_STRINGS: dict[str, UIString] = {
         links=True,
     ),
     "organize_documents.filing_component_fixed_note": UIString(
-        default="The court requires this component for this filing type, so there is nothing to choose.",
+        default="Required by the court.",
     ),
     "organize_documents.filing_component_required_note": UIString(
         default="Required by the court for this filing type.",
@@ -168,11 +164,8 @@ UI_STRINGS: dict[str, UIString] = {
         default="Certified copy and courtesy email (optional)",
     ),
     "organize_documents.optional_services_help": UIString(
-        default=(
-            "If you want a certified copy of this document, or an email copy when it is filed, "
-            "ask for it here. Neither one is required."
-        ),
-        description="Says plainly that these are requests the filer may make, not steps they must complete.",
+        default="A certified copy is a copy the court marks as official.",
+        description="Explains the unfamiliar term certified copy; the section heading marks these services optional.",
         links=True,
     ),
     # Placeholders the organize-documents page renders from JavaScript once the
@@ -210,8 +203,8 @@ UI_STRINGS: dict[str, UIString] = {
     ),
     # -- Your information ----------------------------------------------------
     "your_information.lede": UIString(
-        default="Confirm how the court can contact you. We filled in what we could from your {brand_name} account.",
-        description="Names the account the filer signed in with. Uses the jurisdiction's brand name.",
+        default="Check your name and contact information.",
+        description="Reminder to check the contact information used for this filing.",
         links=True,
     ),
     # -- People / parties ----------------------------------------------------
@@ -219,10 +212,7 @@ UI_STRINGS: dict[str, UIString] = {
         default="What is your role in this case?",
     ),
     "parties.role_help": UIString(
-        default=(
-            "Choose the role that describes you, and the court will list you as a party in this case. "
-            "You do not have to be one: if you are filing for someone else, say so and we will ask who."
-        ),
+        default="Look for your role next to your name on the court documents.",
         links=True,
     ),
     # -- Public pages --------------------------------------------------------

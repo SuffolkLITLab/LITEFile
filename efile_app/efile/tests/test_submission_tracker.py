@@ -64,7 +64,7 @@ def test_mixed_envelope_and_refresh_never_submit(client, draft):
         for _ in range(2):
             response = client.get(destination(draft))
             assert response.status_code == 200
-            assert b"Each filing can have a different outcome" in response.content
+            assert b"Choose a filing to check its status." in response.content
             assert b"accepted-id" in response.content and b"returned-id" in response.content
         post.assert_not_called()
     assert client.get(destination(draft) + "?filing_id=unowned").status_code == 404

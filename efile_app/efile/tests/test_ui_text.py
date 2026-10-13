@@ -34,7 +34,13 @@ def test_a_term_reaches_the_sentences_that_use_it():
 
 
 def test_jurisdiction_values_fill_placeholders():
-    lede = get_text("your_information.lede", jurisdiction="vermont")
+    lede = get_text(
+        "your_information.lede",
+        config={
+            "jurisdiction": {"brand_name": "LITEFile"},
+            "text": {"your_information": {"lede": "Check your {brand_name} account details."}},
+        },
+    )
 
     assert "LITEFile account" in lede
     assert "eFile account" not in lede
@@ -157,7 +163,11 @@ def test_a_placeholder_value_cannot_become_a_link():
     """A value filled in at render time -- which can be a filer's own name -- is
     shown as typed, never read as Markdown or HTML."""
 
-    rendered = get_html("your_information.lede", jurisdiction="illinois", brand_name="[x](https://evil.example) <b>")
+    rendered = get_html(
+        "your_information.lede",
+        config={"text": {"your_information": {"lede": "Check your {brand_name} account details."}}},
+        brand_name="[x](https://evil.example) <b>",
+    )
 
     assert "<a" not in rendered
     assert "<b>" not in rendered
@@ -266,7 +276,7 @@ def test_organize_documents_separates_the_main_document_from_court_components(cl
 
     assert "Document role" not in content
     assert "Court filing component" in content
-    assert "That is separate from the one main document you chose above" in content
+    assert "This is separate from your main document" in content
     # The card header says the same thing the question above it said.
     assert "Lead document" not in content
 
@@ -278,7 +288,7 @@ def test_organize_documents_says_certified_copies_are_optional(client, django_us
     content = client.get(reverse("organize_documents", kwargs={"jurisdiction": "illinois"})).content.decode()
 
     assert "Certified copy and courtesy email (optional)" in content
-    assert "Neither one is required" in content
+    assert "A certified copy is a copy the court marks as official." in content
 
 
 @pytest.mark.django_db

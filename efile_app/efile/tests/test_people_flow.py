@@ -765,12 +765,12 @@ def test_your_information_defaults_the_state_to_this_jurisdiction(client, django
 
 
 @pytest.mark.django_db
-def test_your_information_names_the_product_not_a_generic_efile_account(client, people_draft):
+def test_your_information_asks_to_check_contact_details(client, people_draft):
     with patch("efile.views.your_information.cached_account_profile", return_value=None):
         response = client.get(reverse("your_information", kwargs={"jurisdiction": "illinois"}))
 
     content = response.content.decode()
-    assert "LITEFile account" in content
+    assert "Check your name and contact information." in content
     assert "eFile account" not in content
 
 
@@ -787,8 +787,8 @@ def test_the_role_question_is_asked_the_way_other_primary_questions_are(client, 
     content = response.content.decode()
     assert 'class="form-field primary-question"' in content
     assert "What is your role in this case?" in content
-    assert "list you as a party" in content
-    assert "if you are filing for someone else" in content
+    assert "Look for your role next to your name on the court documents." in content
+    assert "I am not one of the parties — I am filing for someone else" in content
 
 
 def _filer_and_other(draft, *, filer_type="plaintiff", other_type=""):

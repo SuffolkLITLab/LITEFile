@@ -28,13 +28,9 @@ jurisdiction:
   contact_address: "Suffolk University Law School LIT Lab, 120 Tremont Street, Boston, MA"
   copyedit:
     landing_text: |
-      Welcome to LITEFile for Massachusetts. Use this tool to prepare and submit electronic court filings to the Massachusetts Trial Court.
-    post_action_text: |
-      Your filing has been submitted to the Massachusetts Trial Court for processing. Check your filing status for updates. If you have questions about a specific filing, contact the court.
+      File court documents online in Massachusetts.
     filing_statuses: |
-      These are filings that you have already sent to the courts, either through this website or elsewhere.
-
-      If you have questions about why the court didn't accept a specific filing, you should contact the court.
+      These filings were sent from your court account, including from other websites.
 
 # State metadata
 state:

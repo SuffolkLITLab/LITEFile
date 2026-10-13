@@ -558,7 +558,7 @@ def test_the_review_screen_offers_the_tick_on_every_person_it_found(client, revi
     assert listing is not None
     assert listing.group(1).count('name="party_is_self"') == 3
     assert "This is me" in content
-    assert "If one of them is you, say so here" in content
+    assert "If you are listed, choose “This is me”." in content
 
 
 @pytest.mark.django_db

@@ -15,7 +15,7 @@ Populated from the clicked row by claim-party.js, which also submits it.
         <p id="claim-party-lede"></p>
         <div id="claim-party-helping" class="alert alert-warning" hidden>
             <p>
-                <strong>{% translate "Are you helping this person file, rather than being them?" %}</strong>
+                <strong>{% translate "Are you filing for this person?" %}</strong>
             </p>
             <p id="claim-party-helping-detail"></p>
             <button class="btn btn-sm btn-outline-secondary"
@@ -24,9 +24,7 @@ Populated from the clicked row by claim-party.js, which also submits it.
         </div>
         <fieldset id="claim-party-name-choice" class="form-field" hidden>
             <legend>{% translate "Which name should the court see for this party?" %}</legend>
-            <p class="form-text">
-                {% translate "The case lists one name and your account has another. Only you know which is right." %}
-            </p>
+            <p class="form-text">{% translate "Your account and the case list different names." %}</p>
             <div class="compact-choice-list">
                 <label>
                     <input class="form-check-input"

@@ -131,9 +131,7 @@
                             {% if showing_archived %}
                                 <p>{% translate "You have not archived any cases." %}</p>
                             {% elif not lookup_failed %}
-                                <p>
-                                    {% translate "The court has no filings for your account yet. Anything you file here will show up on this page." %}
-                                </p>
+                                <p>{% translate "You have no filings with the court yet." %}</p>
                             {% endif %}
                         </div>
                     {% endfor %}

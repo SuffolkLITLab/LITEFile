@@ -9,7 +9,7 @@
         <p>Sign in with the account you used to claim the draft.</p>
     {% else %}
         <h1>Continue your filing</h1>
-        <p>{{ source }} sent your answers and documents to LITEFile. Add this draft to your signed-in account to check the filing details and send it to court.</p>
+        <p>{{ source }} sent your answers and documents. Add them to your account to continue filing.</p>
         <form method="post">{% csrf_token %}<button class="btn btn-primary" type="submit">Add this draft to my account</button></form>
     {% endif %}
 {% endblock public_content %}

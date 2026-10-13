@@ -51,19 +51,19 @@
         }, true);
         lede.textContent = role ?
             interpolate(
-                gettext("This filing lists %(name)s as the %(role)s. We will list you in that role instead, and take %(name)s off the filing."), {
+                gettext("You will replace %(name)s as the %(role)s in this filing."), {
                     name: partyName,
                     role: role
                 }, true) :
             interpolate(
-                gettext("We will list you in this case in place of %(name)s, and take them off the filing."), {
+                gettext("You will replace %(name)s in this filing."), {
                     name: partyName
                 }, true);
 
         helping.hidden = !replacesAName;
         if (replacesAName) {
             helpingDetail.textContent = interpolate(
-                gettext("Only do this if %(name)s is you, written differently. If %(name)s is someone else and you are filing on their behalf, they should stay on the filing and you should tell us you are filing for them."), {
+                gettext("Only replace %(name)s if this is you. If you are helping someone else, choose “I am filing for them instead”."), {
                     name: partyName
                 }, true);
         }

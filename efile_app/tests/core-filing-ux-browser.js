@@ -218,7 +218,7 @@ async function main() {
                     state: "attached"
                 });
                 if (scenario.name === "modern") {
-                    assert.match(await page.locator(".filing-suggestion-message").innerText(), /not an exact match/);
+                    assert.match(await page.locator(".filing-suggestion-message").innerText(), /not on the court’s list/);
                     assert.equal(await page.locator(".filing-type").inputValue(), "");
                 } else {
                     assert.equal(await page.locator(".filing-type").inputValue(), "motion");

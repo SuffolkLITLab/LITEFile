@@ -393,7 +393,7 @@ def test_the_notice_address_is_offered_filled_in_with_the_filers_own(client, dra
     with patch("efile.views.parties.get_party_types", return_value=PARTY_TYPES):
         content = client.get(PARTIES_URL).content.decode()
 
-    assert "Where should notices about this case go?" in content
+    assert "Email for court notices" in content
     assert re.search(r'name="notice_email"[^>]*value="helper@example\.com"', content) is not None
 
 
@@ -616,7 +616,7 @@ def test_every_listed_party_can_be_claimed_as_you(client, draft):
     assert str(landlord.pk) not in claimable
     assert content.count("Replace with me") == 1
     # And the list says so, for a filer who would otherwise add themselves again.
-    assert "If one of them is you" in content
+    assert "If you are listed, choose “This is me”." in content
 
 
 @pytest.mark.django_db
@@ -760,8 +760,8 @@ def test_the_two_actions_are_not_offered_under_the_same_words(client, draft):
     with patch("efile.views.parties.get_party_types", return_value=PARTY_TYPES):
         content = client.get(PARTIES_URL).content.decode()
 
-    assert content.count("This is me") == 1
-    assert content.count("Replace with me") == 1
+    assert len(re.findall(r">\s*This is me\s*</button>", content)) == 1
+    assert len(re.findall(r">\s*Replace with me\s*</button>", content)) == 1
 
 
 @pytest.mark.django_db
@@ -779,7 +779,7 @@ def test_the_confirmation_carries_what_it_needs_to_ask_about(client, draft):
     assert 'data-party-name="Real Tenant"' in content
     assert 'data-filer-name="Q Steenhuis"' in content
     assert 'data-replaces-a-name="true"' in content
-    assert "Are you helping this person file, rather than being them?" in content
+    assert "Are you filing for this person?" in content
 
 
 # --- Saying "this is me" while reading the document --------------------------
@@ -862,7 +862,7 @@ def test_the_screen_says_it_is_checking_work_already_done(client, draft):
     with patch("efile.views.parties.get_party_types", return_value=PARTY_TYPES):
         content = client.get(PARTIES_URL).content.decode()
 
-    assert "You already told us who is in this case" in content
+    assert "Check the list and choose your role." in content
 
 
 @pytest.mark.django_db
@@ -882,9 +882,9 @@ def test_the_screen_credits_the_document_only_when_the_document_named_anyone(cli
     with patch("efile.views.parties.get_party_types", return_value=PARTY_TYPES):
         read_off = client.get(PARTIES_URL).content.decode()
 
-    assert "These are the people you told us about" in typed_in
-    assert "we read from your document" not in typed_in
-    assert "These are the people we read from your document" in read_off
+    assert "Check the names below." in typed_in
+    assert "Check the names from your document." not in typed_in
+    assert "Check the names from your document." in read_off
 
 
 @pytest.mark.django_db

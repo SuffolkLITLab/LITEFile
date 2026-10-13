@@ -21,9 +21,7 @@
             <div class="row justify-content-center">
                 <div class="col-xl-7">
                     {% include "efile/components/inline_messages.html" %}
-                    <p>
-                        {% translate "These are filings you have started but not sent to the court. Pick one up where you left off, or throw away one you no longer want." %}
-                    </p>
+                    <p>{% translate "These filings have not been sent to the court." %}</p>
                     {% for entry in drafts %}
                         <section class="option-card list-card"
                                  aria-labelledby="draft-{{ entry.draft.pk }}-title">
@@ -80,7 +78,7 @@
                         </section>
                     {% empty %}
                         <div class="option-card">
-                            <p>{% translate "You have no filings in progress. Everything you started has been sent or thrown away." %}</p>
+                            <p>{% translate "You have no filings in progress." %}</p>
                             <form method="post" action="{% url 'start_filing' jurisdiction %}">
                                 {% csrf_token %}
                                 <button class="btn btn-primary" type="submit">{% translate "Start a filing" %}</button>

@@ -7,17 +7,15 @@
 {% endblock title %}
 {% block workflow_content %}
     <section class="workflow-card">
-        <div class="workflow-eyebrow">{% translate "Upload" %}</div>
         <h1>{% translate "Upload your court documents" %}</h1>
         {% include "efile/partials/filing_guidance.html" %}
         {% if saved_path %}
             <p class="path-summary path-summary--inline">
-                <span class="path-summary__label">{% translate "New or existing case" %}</span>
                 <strong>
                     {% if saved_path == "new" %}
-                        {% translate "Start a new case" %}
+                        {% translate "Starting a new case" %}
                     {% else %}
-                        {% translate "File in an existing case" %}
+                        {% translate "Adding a document to an existing case" %}
                     {% endif %}
                 </strong>
                 <a href="{% url 'filing_path' jurisdiction %}"
@@ -26,10 +24,10 @@
         {% endif %}
         {% if upload_disclaimers %}
             <details class="border rounded p-3 mb-3">
-                <summary>{% translate "Before you upload your documents" %}</summary>
+                <summary>{% translate "Information from the court about filing rules" %}</summary>
                 <div class="mt-3">
+                    <p>{% translate "Before you upload your documents, please read the following rules that apply to all courts. The court you file into may have more rules that we will show you before you send your documents to the court." %}</p>
                     {% include "efile/partials/court_disclaimers.html" with court_disclaimers=upload_disclaimers only %}
-                    <p>{% translate "These are standard notices for filing in this state. Before you submit, you will review and accept the requirements for your court." %}</p>
                 </div>
             </details>
         {% endif %}
@@ -137,17 +135,11 @@
             translated string rather than something JavaScript assembles. The
             script shows whichever matches the checkbox.
             {% endcomment %}
-            <p class="ai-choice__note"
-               id="ai-note-on"
-               {% if ai_opted_out %}hidden{% endif %}>
-                <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>
-                {% translate "AI helps fill in answers. Your files are not used to train AI." %}
-            </p>
             <p class="ai-choice__note ai-choice__note--off"
                id="ai-note-off"
                {% if not ai_opted_out %}hidden{% endif %}>
                 <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
-                {% translate "AI is off. We will look for form and case numbers. You can change any answer." %}
+                {% translate "AI is off. We will only use rules like matching exact text to fill in answers." %}
             </p>
             {% comment %}
             The account-wide answer has no other screen, so the page it is set

@@ -27,9 +27,6 @@
             <a class="btn btn-sm btn-outline-secondary"
                href="{% url 'efile_choose_jurisdiction' %}">{% translate "Change state" %}</a>
         </div>
-        <p class="auth-lede">
-            {% blocktranslate with name=config.jurisdiction.display_name %}Create the court account you will use to file in {{ name }}.{% endblocktranslate %}
-        </p>
         {% include "efile/components/inline_messages.html" %}
         {% if form.non_field_errors %}
             <div class="page-feedback" aria-label="{% translate "Form errors" %}">
@@ -42,13 +39,7 @@
                 {% endfor %}
             </div>
         {% endif %}
-        <!-- Important Notice -->
-        <div class="alert-warning">
-            <strong>{% translate "Important note" %}</strong>
-            <p>
-                {% translate "The information you enter here is used when you efile your documents. Please use your full correct legal name and address to avoid issues with your filing." %}
-            </p>
-        </div>
+        <p>{% translate "Use your full legal name and current address." %}</p>
         <form id="registrationForm" method="post">
             {% csrf_token %}
             <!-- Your legal name -->

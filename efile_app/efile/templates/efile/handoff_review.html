@@ -14,9 +14,9 @@
         <p>This filing is {{ draft.get_status_display|lower }}.</p>
         {% if draft.status == 'submitted' %}<a href="{% url 'correct_filing' draft.pk %}">Check for a clerk return and correct this filing</a>{% endif %}
     {% else %}
-        {% if draft.correction_of_id %}<p>You are correcting the same matter. Your previous submission and documents are preserved.</p>{% endif %}
+        {% if draft.correction_of_id %}<p>Your previous filing and documents stay saved.</p>{% endif %}
         {% for comment in draft.clerk_return.comments %}<p>{{ comment.text }}</p>{% endfor %}
-        <p>Your interview answers and documents are saved. Complete the missing details below. You can edit any answer that needs a correction.</p>
+        <p>Complete the missing details and fix any mistakes.</p>
         <form method="post">{% csrf_token %}<button type="submit" name="action" value="resolve" class="btn btn-secondary">Look up current court choices</button></form>
         <h2>Details to complete</h2>
         <ul>{% for issue in issues %}<li><a href="{{ issue.url }}">{{ issue.message }}</a></li>{% empty %}<li>Your draft is ready for the final filing checks.</li>{% endfor %}</ul>

@@ -7,7 +7,6 @@
 {% endblock title %}
 {% block workflow_content %}
     <section class="workflow-card">
-        <div class="workflow-eyebrow">{% translate "People" %}</div>
         <h1>
             {% if party.first_name or party.organization_name %}
                 {% translate "Check this party's details" %}
@@ -16,9 +15,6 @@
             {% endif %}
         </h1>
         {% include "efile/partials/filing_guidance.html" %}
-        <p class="workflow-lede">
-            {% translate "Enter this party's court role and name. Add a mailing address if you know it or the court requires it." %}
-        </p>
         <form method="post" id="party-details-form" data-court="{{ court_code }}">
             {% csrf_token %}
             <input type="hidden" name="return_to" value="{{ return_to }}" />
@@ -54,7 +50,7 @@
                      data-filer-party-type="{{ filer_party_type }}"
                      {% if party.party_type != filer_party_type %}hidden{% endif %}>
                     <p id="same-role-help">
-                        {% blocktranslate with role=filer_party_type_name %}You are the {{ role }} in this case too. Choose this role only if this person is on your side, like someone filing with you.{% endblocktranslate %}
+                        {% blocktranslate with role=filer_party_type_name %}You are also the {{ role }}. Is this person on your side of the case?{% endblocktranslate %}
                     </p>
                     <label>
                         <input class="form-check-input"
@@ -288,9 +284,7 @@
                         {% translate "This party is me" %}
                     {% endif %}
                 </button>
-                <span class="form-text">
-                    {% translate "We will list you in the case in this role. We already have your name and address, so there is nothing more to fill in here." %}
-                </span>
+                <span class="form-text">{% translate "We will use your name and address for this role." %}</span>
             </form>
         {% endif %}
     </section>

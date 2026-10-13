@@ -4,10 +4,7 @@
      data-document-id="{{ document.pk }}"
      data-fingerprint="{{ fingerprint }}"
      tabindex="-1">
-    <p>
-        <strong>{% translate "Check this copy before you continue." %}</strong>
-        {% translate "The court will get this PDF. Open it and check every page." %}
-    </p>
+    <p>{% translate "The court will get this PDF. Check every page before you continue." %}</p>
     {% if not document.preparation %}
         <p>{% translate "Not ready. Remove this file and upload it again." %}</p>
     {% endif %}

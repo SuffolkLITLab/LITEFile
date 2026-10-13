@@ -5,12 +5,10 @@
 {% endblock title %}
 {% block workflow_content %}
     <section class="workflow-card workflow-card--narrow">
-        <div class="workflow-eyebrow">{% translate "Confirm case" %}</div>
         <div class="found-heading">
             <span class="found-heading__icon"><i class="fa-solid fa-check" aria-hidden="true"></i></span>
             <div>
                 <h1>{% translate "Is this your court case?" %}</h1>
-                <p class="workflow-lede">{% translate "Check the details before you add this filing to the case." %}</p>
             </div>
         </div>
         {% include "efile/partials/filing_guidance.html" %}
@@ -76,10 +74,6 @@
         <form method="post">
             {% csrf_token %}
             <input type="hidden" name="return_to" value="{{ return_to }}" />
-            <div class="confirmation-question">
-                <strong>{% translate "Does this match your case?" %}</strong>
-                <p>{% translate "If you choose Yes, we will attach your documents to this case." %}</p>
-            </div>
             <div class="workflow-actions workflow-actions--confirmation">
                 <button class="btn btn-outline-secondary"
                         type="submit"

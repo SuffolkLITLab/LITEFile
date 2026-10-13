@@ -104,7 +104,7 @@ def test_document_checklist_shows_configured_guidance(client, planned_draft):
     assert "This list is a guide" in page
     assert "Commonly included" in page
     assert "Always needed" not in page
-    assert "Depending on your situation, other documents may be needed" in page
+    assert "Your case may need more or fewer." in page
     assert "Request for name change" in page
     assert "County Division information sheet" in page
     assert planned_draft.plan.checklist["petition"]["requirement"] == "always"
@@ -223,7 +223,7 @@ def test_organize_shows_no_radio_choice_for_a_single_document(client, document_d
 
     assert response.status_code == 200
     content = response.content.decode()
-    assert "only document in this filing" in content
+    assert "This is your main document." in content
     assert 'type="radio"' not in content
     assert f'name="main_document" value="{lead.pk}"' in content
 

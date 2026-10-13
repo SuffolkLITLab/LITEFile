@@ -289,7 +289,7 @@ def test_review_shows_only_the_document_summary_and_fields_the_filer_can_edit(cl
         },
     )
     assert response.status_code == 200
-    assert "Check the box to confirm you compared these details" in response.content.decode()
+    assert "Check these details against your document, then check the box." in response.content.decode()
 
 
 def _post_review(client, jurisdiction="illinois", **fields):
@@ -391,7 +391,7 @@ def test_vermont_review_uses_court_form_terms_and_neutral_copy(client, django_us
     assert "Court division" in content
     assert "Civil includes Small Claims" in content
     assert "Family includes Relief from Abuse" in content
-    assert "Our system did not pull details from your document" in content
+    assert "Enter the details below, or" in content
     assert "We could not find any case details" not in content
 
 
@@ -412,8 +412,8 @@ def test_failed_extraction_allows_review_with_neutral_failure_copy(client, extra
 
     assert response.status_code == 200
     content = response.content.decode()
-    assert "Our system could not pull details from your document." in content
-    assert "go back and try a different document" in content
+    assert "We could not read the details." in content
+    assert "try a different document" in content
 
 
 @pytest.mark.django_db
