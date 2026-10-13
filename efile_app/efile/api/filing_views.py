@@ -13,6 +13,7 @@ from django.views.decorators.http import require_http_methods
 
 from efile.utils.jurisdiction_stuff import get_jurisdiction_from_request
 
+from ..services.court_payments import payment_error, validate_filing_payment
 from ..services.current_drafts import get_current_draft
 from ..services.efsp_errors import describe_efsp_error, efsp_error_problems, error_actions
 from ..services.efsp_payload import PayloadValidationError, prepare_efile_payload
@@ -162,6 +163,17 @@ class FilingAPIViews(APIResponseMixin):
             court_id = case_data.get("court", "")
 
             draft = get_current_draft(request, jurisdiction=jurisdiction_id, resume_latest=False)
+            if draft is not None:
+                court_id = draft.court_code
+            account_id = str(data.get("payment_account_id") or (draft.selected_payment_account_id if draft else ""))
+            try:
+                validate_filing_payment(
+                    jurisdiction_id, court_id, get_tyler_token(request, jurisdiction_id), account_id
+                )
+            except ValueError as error:
+                return JsonResponse(payment_error(draft, error), status=412)
+            # Price the account we checked, never a different ID in the browser payload.
+            efile_data["tyler_payment_id"] = account_id
 
             # Must match what submit_final_filing sends, or fees are quoted
             # against a payload that differs from the one actually filed.
@@ -219,7 +231,7 @@ class FilingAPIViews(APIResponseMixin):
                         draft,
                         total,
                         breakdown,
-                        payment_account_id=str(data.get("payment_account_id") or draft.selected_payment_account_id),
+                        payment_account_id=account_id,
                         inputs_token=inputs_token,
                     )
                 return JsonResponse(

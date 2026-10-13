@@ -98,7 +98,7 @@
                                type="radio"
                                name="paymentIntent"
                                value="pay" />
-                        <span>{% translate "Use a credit or bank account" %}</span>
+                        <span id="paid-account-label">{% translate "Use a credit or bank account" %}</span>
                     </label>
                 </div>
                 <div id="waiverHelp" hidden>
@@ -146,6 +146,13 @@
                 </div>
                 <p id="freeFilingHelp" hidden>{% translate "The court requires an account even for a free filing. If the confirmed total is $0, you will not be charged. No fee waiver is needed." %}</p>
                 <div id="paymentMethodsContainer" aria-live="polite"></div>
+                <div id="bank-payment-notice" role="status" hidden>
+                    <p id="bank-payment-message"></p>
+                    <button type="button"
+                            class="btn btn-outline-secondary"
+                            id="retry-bank-policy"
+                            hidden>{% translate "Try bank payments again" %}</button>
+                </div>
             </fieldset>
             <section class="fee-summary" id="paymentSection" hidden>
                 <h2>{% translate "Confirmed fees" %}</h2>

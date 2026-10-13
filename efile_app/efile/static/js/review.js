@@ -163,7 +163,7 @@ const FilingHandler = {
             });
             this.handleSubmissionResult(result);
         } catch (error) {
-            if (error?.status === 412) {
+            if (error?.status === 412 && error?.errorCode !== "payment_account_unavailable") {
                 // Something changed in another tab since this page loaded.
                 await this.refreshFeeQuote();
             }

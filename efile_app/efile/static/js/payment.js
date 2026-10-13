@@ -131,6 +131,7 @@ const PaymentPage = {
             jurisdiction: apiUtils.getCurrentJurisdiction()
         });
         if (!result?.success || !Array.isArray(result.data)) throw new Error("Account lookup failed");
+        this.showBankPolicy(result);
         this.accounts = result.data.filter((account) => isActive(account));
         const saved = paymentJSON("selected-payment-account-id");
         const account = this.accounts.find((item) => String(item.paymentAccountID) === String(saved));
@@ -148,6 +149,8 @@ const PaymentPage = {
 
     async chooseIntent() {
         const intent = document.querySelector('input[name="paymentIntent"]:checked')?.value;
+        const bankNotice = document.getElementById("bank-payment-notice");
+        if (bankNotice) bankNotice.hidden = true;
         const requestId = this.quoteRequestId = (this.quoteRequestId || 0) + 1;
         this.feeQuoteReady = false;
         document.getElementById("selected-payment-account").value = "";
@@ -200,6 +203,7 @@ const PaymentPage = {
             });
             if (requestId !== this.quoteRequestId) return;
             if (!result?.success || !Array.isArray(result.data)) throw new Error("Account lookup failed");
+            this.showBankPolicy(result);
             const accounts = result.data.filter((account) => account.paymentAccountTypeCode !== "WV" && isActive(account));
             const saved = paymentJSON("selected-payment-account-id");
             const selectedId = accounts.some((account) => String(account.paymentAccountID) === String(saved)) ? saved : accounts[0]?.paymentAccountID;
@@ -207,9 +211,12 @@ const PaymentPage = {
                 const label = this.accountLabel(account, 0);
                 return `<div><label><input class="form-check-input" type="radio" name="paymentMethod" value="${escapeAttribute(account.paymentAccountID)}" data-name="${escapeAttribute(label)}" data-type="${escapeAttribute(account.paymentAccountTypeCode || "")}" ${String(selectedId) === String(account.paymentAccountID) ? "checked" : ""}/> <span><strong>${escapeHTML(label)}</strong></span></label> <button type="button" class="btn btn-outline-secondary btn-sm remove-payment-method" data-account-id="${escapeAttribute(account.paymentAccountID)}" data-account-label="${escapeAttribute(label)}" aria-label="${escapeAttribute(gettext("Remove payment method"))}: ${escapeAttribute(label)}">${gettext("Remove")}</button></div>`;
             }).join("");
-            const noAccountHelp = accounts.length ? "" : `<p>${gettext("Add a credit or bank account to continue.")}</p>`;
+            const bankUnavailable = result.bank_payment_policy && result.bank_payment_policy !== "allowed";
+            const addLabel = bankUnavailable ? gettext("Add credit card") : gettext("Add credit or bank account");
+            const addHelp = bankUnavailable ? gettext("Add a credit card to continue.") : gettext("Add a credit or bank account to continue.");
+            const noAccountHelp = accounts.length ? "" : `<p>${addHelp}</p>`;
             container.innerHTML = `${noAccountHelp}<div class="compact-choice-list">${rows}</div>
-                <button type="button" class="btn btn-outline-primary mt-2" id="add-payment-method">${gettext("Add credit or bank account")}</button>`;
+                <button type="button" class="btn btn-outline-primary mt-2" id="add-payment-method">${addLabel}</button>`;
             container.querySelectorAll('input[name="paymentMethod"]').forEach((input) => {
                 input.addEventListener("change", () => this.selectAndQuote());
             });
@@ -224,6 +231,20 @@ const PaymentPage = {
                 this.showChoiceRetry();
             }
         }
+    },
+
+    showBankPolicy(result) {
+        const notice = document.getElementById("bank-payment-notice");
+        if (!notice) return;
+        notice.hidden = !result.bank_payment_message || document.querySelector('input[name="paymentIntent"]:checked')?.value !== "pay";
+        document.getElementById("bank-payment-message").textContent = result.bank_payment_message || "";
+        const retry = document.getElementById("retry-bank-policy");
+        retry.hidden = result.bank_payment_policy !== "unknown";
+        retry.onclick = () => {
+            document.querySelector('input[name="paymentIntent"][value="pay"]').checked = true;
+            return this.chooseIntent();
+        };
+        document.getElementById("paid-account-label").textContent = result.bank_payment_policy && result.bank_payment_policy !== "allowed" ? gettext("Use a credit card") : gettext("Use a credit or bank account");
     },
 
     showChoiceRetry() {

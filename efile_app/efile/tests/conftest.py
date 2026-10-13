@@ -51,3 +51,16 @@ def court_headings(monkeypatch):
     """
     monkeypatch.setattr("efile.services.filing_code_search.heading_court_codes", lambda *args: frozenset())
     monkeypatch.setattr("efile.api.dropdown_views.heading_court_codes", lambda *args: frozenset())
+
+
+@pytest.fixture(autouse=True)
+def payment_validation(monkeypatch):
+    """Unrelated flow tests do not fetch live payment accounts.
+
+    test_court_payments overrides this fixture and exercises the real validator,
+    including each HTTP boundary and the browser flow.
+    """
+    monkeypatch.setattr("efile.api.filing_views.validate_filing_payment", lambda *args: {})
+    monkeypatch.setattr("efile.views.submission.validate_filing_payment", lambda *args: {})
+    monkeypatch.setattr("efile.services.court_payments.bank_payment_policy", lambda *args: "allowed")
+    monkeypatch.setattr("efile.api.auth_views.bank_payment_policy", lambda *args: "allowed")

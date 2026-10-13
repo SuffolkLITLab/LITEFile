@@ -244,6 +244,7 @@ class ApiUtils {
                 error.status = response.status;
                 error.serverMessage = serverMessage || null;
                 error.errorActions = serverBody?.error_actions || [];
+                error.errorCode = serverBody?.error_code || null;
                 throw error;
             }
 
