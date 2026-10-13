@@ -224,20 +224,25 @@ an EFSP acceptance guarantee.
 
 ## Clerk returns and document corrections
 
-From a locally submitted filing, choose **Correct and resubmit**. LITEFile checks
+From a locally submitted filing, choose **Copy and review filing**. LITEFile checks
 the court's current status for every filing identifier in that submission.
 Only confirmed `rejected` or `returned` statuses permit a correction revision.
 Pending, uncertain, partly accepted, and transport-failure outcomes cannot be
 cloned automatically.
 
-Select the fields the clerk asked to correct. The correction draft keeps the
-same matter, parties, and unchanged documents. The previous submission snapshot
-remains unchanged. Corrected classifications and their dependent choices are
-cleared; fees must be checked again. Repeating the correction action resumes the
-same revision. Filing history groups the attempts together, including returns
-that occurred before a court assigned a case number.
+The correction opens at normal Review with the original filing link and clerk
+feedback. No field-selection questionnaire is required. The draft keeps the
+same matter, parties, answers, and available documents; missing files stay
+visible as replacement requirements. Section edits return to the same draft's
+Review. Payment or waiver must be reconfirmed and fees checked again. Repeating
+the action resumes the same editable revision without requiring another court
+status lookup. Final submission checks the source status again. A submitted
+successor opens as a submission, with its own reference.
 
-For substantive PDF changes, use **Return to my interview to correct a PDF**.
+Older correction drafts retain their recorded field requirements. Adding an
+unrelated attachment alone does not satisfy a requirement to replace a PDF.
+
+For substantive PDF changes, the saved interview screen still offers **Return to my interview to correct a PDF**.
 A filer without an interview can instead upload the corrected PDF in LITEFile.
 Either way, the **PDF contents** correction is complete once a PDF differs from
 the returned filing.

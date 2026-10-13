@@ -61,5 +61,9 @@ def filing_confirmation(request, jurisdiction):
         "draft": draft,
         "confirmation_number": _confirmation_number(draft.submission_response),
     }
+    if draft.correction_of_id:
+        from efile.services.corrections import submission_url
+
+        context["original_filing_url"] = submission_url(draft.correction_of)
     context.update(get_workflow_context(WorkflowStepKey.CONFIRMATION, jurisdiction, draft))
     return render(request, "efile/confirmation.html", context)

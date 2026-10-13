@@ -80,6 +80,7 @@ def test_correction_link_uses_normalized_return_status(client, owner, status):
     sign_in(client, owner)
     payload = rejected_detail()
     payload["filingStatus"]["filingStatusCode"] = status
+    payload["documentIdentification"][1]["identificationID"]["value"] = "returned-id"
     with (
         patch("efile.views.my_cases.fetch_filing_detail", return_value=payload),
         patch("efile.views.my_cases.court_names", return_value={}),

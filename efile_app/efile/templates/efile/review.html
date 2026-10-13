@@ -9,7 +9,20 @@
 {% endblock extra_css %}
 {% block workflow_content %}
     <section class="workflow-card review-workflow-card">
-        <h1>{% translate "Review your filing" %}</h1>
+        <h1>{% if draft.correction_of_id %}Review your corrected filing{% else %}{% translate "Review your filing" %}{% endif %}</h1>
+        {% if draft.correction_of_id %}
+            <p>Draft · Copy of {% if clerk_return.envelope_id %}Envelope {{ clerk_return.envelope_id }}{% else %}filing {{ clerk_return.filing_id }}{% endif %} · {{ clerk_return.status }}
+                <a href="{{ original_filing_url }}">View original filing</a>
+            </p>
+            {% include "efile/partials/correction_feedback.html" %}
+            {% if correction_issues %}
+                <section class="alert alert-warning"
+                         aria-labelledby="correction-issues-heading">
+                    <h2 id="correction-issues-heading">Before you can submit</h2>
+                    <ul>{% for issue in correction_issues %}<li><a href="{{ issue.url }}">{{ issue.message }}</a></li>{% endfor %}</ul>
+                </section>
+            {% endif %}
+        {% endif %}
         {% include "efile/partials/filing_guidance.html" %}
         {% if extracted_markers.has_any %}
             <div class="extraction-page-help">
@@ -24,6 +37,7 @@
                     <a href="{% url 'extraction_review' jurisdiction %}?return_to=review"
                        aria-label="{% translate "Edit case information" %}">{% translate "Edit" %}</a>
                 </header>
+                {% include "efile/partials/correction_section_issues.html" with section="case" %}
                 <dl>
                     <div>
                         <dt>{% translate "Filing path" %}</dt>
@@ -78,6 +92,7 @@
                     <a href="{% url 'organize_documents' jurisdiction %}?return_to=review"
                        aria-label="{% translate "Edit documents" %}">{% translate "Edit" %}</a>
                 </header>
+                {% include "efile/partials/correction_section_issues.html" with section="documents" %}
                 <div class="review-document-list">
                     {% for document in documents %}
                         <article>
@@ -107,6 +122,7 @@
                     <a href="{% url 'your_information' jurisdiction %}?return_to=review"
                        aria-label="{% translate "Edit your information" %}">{% translate "Edit" %}</a>
                 </header>
+                {% include "efile/partials/correction_section_issues.html" with section="filer" %}
                 {% if filer %}
                     <p class="review-person-name">
                         {{ filer.first_name }} {{ filer.middle_name }} {{ filer.last_name }}{% if filer.id in extracted_markers.party_ids %} *{% endif %}
@@ -167,6 +183,7 @@
                     <a href="{% url 'parties' jurisdiction %}?return_to=review"
                        aria-label="{% translate "Edit other people" %}">{% translate "Edit" %}</a>
                 </header>
+                {% include "efile/partials/correction_section_issues.html" with section="parties" %}
                 {% for party in parties %}
                     <div class="review-party">
                         <strong>
@@ -189,6 +206,7 @@
                         <a href="{% url 'case_questions' jurisdiction %}?return_to=review"
                            aria-label="{% translate "Edit case questions" %}">{% translate "Edit" %}</a>
                     </header>
+                    {% include "efile/partials/correction_section_issues.html" with section="questions" %}
                     <dl>
                         {% if draft.amount_in_controversy %}
                             <div>
@@ -215,6 +233,7 @@
                     <a href="{% url 'payment' jurisdiction %}"
                        aria-label="{% translate "Edit payment" %}">{% translate "Edit" %}</a>
                 </header>
+                {% include "efile/partials/correction_section_issues.html" with section="payment" %}
                 <p class="review-person-name">{{ draft.selected_payment_account_name }}</p>
                 {% comment %}
                 A total is only shown while it still prices this filing. After
@@ -258,7 +277,9 @@
                         <p class="text-muted"
                            id="fee-quote-pending"
                            {% if fee_quote.state == "current" %}hidden{% endif %}>
-                            {% if fee_quote.state == "stale" %}
+                            {% if correction_issues %}
+                                {% translate "Complete the items above before checking the court's current fees." %}
+                            {% elif fee_quote.state == "stale" %}
                                 {% translate "Something that affects the court's fees changed since they were calculated. We are calculating them again." %}
                             {% else %}
                                 {% translate "We are calculating the court's fees for this filing." %}
@@ -325,7 +346,7 @@
                 <input class="form-check-input"
                        type="checkbox"
                        id="confirm-filing"
-                       {% if disclaimer_error %}disabled{% endif %} />
+                       {% if disclaimer_error or correction_issues %}disabled{% endif %} />
                 <span>
                     {% if court_disclaimers %}
                         {% translate "I have read and accept the court requirements above. I reviewed this filing and am ready to submit it to the court." %}

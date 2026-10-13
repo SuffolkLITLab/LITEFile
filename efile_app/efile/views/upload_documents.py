@@ -163,7 +163,9 @@ def upload_documents(request, jurisdiction):
             draft.ai_assistance_opted_out = opted_out
             draft.save(update_fields=["ai_assistance_opted_out", "updated_at"])
         try:
-            upload_data = upload_files(draft, uploaded_files, jurisdiction)
+            upload_data = upload_files(
+                draft, uploaded_files, jurisdiction, replace_document_id=request.POST.get("replace_document_id")
+            )
         except ValueError as error:
             logger.warning("Document upload failed")
             return JsonResponse({"success": False, "error": str(error)}, status=400)

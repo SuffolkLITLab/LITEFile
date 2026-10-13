@@ -142,6 +142,29 @@ def filing_detail(request, jurisdiction, court_code, filing_id):
 
         record_court_detail(local_draft, filing_id, detail)
 
+    correction_action = None
+    correction_reason = ""
+    if local_draft is not None and local_draft.user_id == request.user.pk:
+        from efile.services.corrections import correction_destination, source_eligibility
+
+        child = FilingDraft.objects.filter(correction_of=local_draft, user=request.user).first()
+        if child:
+            correction_action = {
+                "url": correction_destination(child),
+                "label": "Continue correction"
+                if child.status == FilingDraft.Status.DRAFT
+                else "View corrected submission"
+                if child.status == FilingDraft.Status.SUBMITTED
+                else "View correction status",
+                "create": False,
+            }
+        else:
+            eligibility = source_eligibility(request, local_draft, known={str(filing_id): detail})
+            if eligibility["eligible"]:
+                correction_action = {"create": True, "label": "Copy and review filing"}
+            else:
+                correction_reason = eligibility["reason"]
+
     return render(
         request,
         "efile/filing_detail.html",
@@ -149,6 +172,8 @@ def filing_detail(request, jurisdiction, court_code, filing_id):
             "is_logged_in": True,
             "filing": detail,
             "local_draft": local_draft,
+            "correction_action": correction_action,
+            "correction_reason": correction_reason,
             "court_code": court_code,
             "filing_id": filing_id,
             "court_contact": court_contact(jurisdiction, court_code),

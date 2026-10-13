@@ -32,7 +32,9 @@ _CLAIMABLE_STATUSES = (FilingDraft.Status.DRAFT,)
 
 
 @transaction.atomic
-def _claim_for_submission(draft: FilingDraft, acceptance: dict, *, checked_fingerprint=None) -> bool:
+def _claim_for_submission(
+    draft: FilingDraft, acceptance: dict, *, checked_fingerprint=None, checked_correction=None
+) -> bool:
     """Atomically move a DRAFT into SUBMITTING, recording the accepted court requirements.
 
     Only one request can win this transition, so concurrent double-clicks cannot
@@ -44,6 +46,11 @@ def _claim_for_submission(draft: FilingDraft, acceptance: dict, *, checked_finge
         return False
     if checked_fingerprint is not None and fee_fingerprint(locked) != checked_fingerprint:
         raise ValueError("This filing changed while we checked your payment. Reload Review before submitting.")
+    if checked_correction is not None:
+        from efile.services.corrections import readiness_fingerprint
+
+        if readiness_fingerprint(locked) != checked_correction:
+            raise ValueError("This correction changed while we checked it. Reload Review before submitting.")
     if message := draft_unavailable_message(locked):
         raise ValueError(message)
     require_document_previews(locked)
@@ -126,6 +133,42 @@ def submit_final_filing(request):
     except ValueError as error:
         return JsonResponse({"success": False, "error": str(error)}, status=412)
 
+    checked_correction = None
+    if draft.correction_of_id:
+        from efile.services.corrections import (
+            correction_readiness,
+            readiness_fingerprint,
+            source_eligibility,
+            submission_url,
+        )
+
+        checked_correction = readiness_fingerprint(draft)
+
+        issues = correction_readiness(draft)
+        if issues:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "Complete the correction requirements before submitting.",
+                    "issues": issues,
+                    "error_code": "correction_not_ready",
+                    "error_actions": [{**issue, "label": "Review this section"} for issue in issues],
+                },
+                status=412,
+            )
+        eligibility = source_eligibility(request, draft.correction_of)
+        if not eligibility["eligible"]:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": eligibility["reason"],
+                    "error_actions": [
+                        {"label": "Check the original filing status", "url": submission_url(draft.correction_of)}
+                    ],
+                },
+                status=409,
+            )
+
     # The filer agreed to a total on Review. If anything that prices the filing
     # changed since, that total is not the one they would be charged, so the
     # page has to show the new one before anything reaches the court.
@@ -160,7 +203,9 @@ def submit_final_filing(request):
 
     # Claim the draft before forwarding so a concurrent request can't file twice.
     try:
-        claimed = _claim_for_submission(draft, acceptance, checked_fingerprint=checked_fingerprint)
+        claimed = _claim_for_submission(
+            draft, acceptance, checked_fingerprint=checked_fingerprint, checked_correction=checked_correction
+        )
     except ValueError as error:
         return JsonResponse({"success": False, "error": str(error)}, status=412)
     if not claimed:

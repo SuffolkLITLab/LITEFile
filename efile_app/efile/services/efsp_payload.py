@@ -132,6 +132,10 @@ def prepare_efile_payload(efile_data, jurisdiction_id, court_id, *, draft=None):
     """
     from efile.services.existing_cases import reconcile_case_parties
 
+    if draft is not None and draft.correction_of_id:
+        from efile.services.corrections import refresh_correction_documents
+
+        refresh_correction_documents(efile_data, draft)
     reconcile_case_parties(efile_data, draft, jurisdiction_id, court_id)
     lookups = _EfspLookups()
     _clean_case_identifiers(efile_data)

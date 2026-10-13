@@ -188,6 +188,7 @@ def test_rejection_comment_is_pulled_off_the_document():
             "kind": "rejection",
             "heading": "Why the court rejected this",
             "text": "Please refile with the case number on page 1.",
+            "document_name": "Appearance (No Fee)",
         }
     ]
 

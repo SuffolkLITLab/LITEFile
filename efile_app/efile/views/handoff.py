@@ -26,7 +26,7 @@ from efile.services.document_preparation import (
 )
 from efile.services.draft_urls import draft_url
 from efile.services.fee_quotes import invalidate_fee_quote
-from efile.services.filings import describe_filing_detail, fetch_filing_detail
+from efile.services.filings import fetch_filing_detail
 from efile.services.handoff import (
     HandoffError,
     create_correction,
@@ -37,7 +37,6 @@ from efile.services.handoff import (
     receipt_for,
     record,
     resolve_metadata,
-    submitted_filing_ids,
     validate_payload,
 )
 from efile.utils.s3_upload_handler import S3UploadHandler
@@ -282,54 +281,23 @@ def correct_filing(request, draft_id):
         draft = _owned(request, draft_id)
         if not get_tyler_token(request, draft.jurisdiction):
             return redirect("efile_login", jurisdiction=draft.jurisdiction)
-        filing_ids = submitted_filing_ids(draft.submission_response)
-        if not filing_ids:
-            raise HandoffError(
-                "This submission has no confirmed filing identifier. Check its status before retrying.", status=409
-            )
-        details = []
-        for filing_id in sorted(filing_ids):
-            detail = describe_filing_detail(
-                fetch_filing_detail(request, draft.jurisdiction, draft.court_code, filing_id)
-            )
-            if (
-                not detail
-                or detail.get("filing_id") != filing_id
-                or detail.get("status", "").strip().lower() not in {"returned", "rejected"}
-            ):
-                raise HandoffError(
-                    "The court has not confirmed a clerk return for every filing in this submission.", status=409
-                )
-            details.append(detail)
-        detail = {
-            **details[0],
-            "comments": [comment for item in details for comment in item.get("comments", [])],
-            "filings": details,
-        }
+        from efile.services.corrections import correction_destination, source_eligibility
+
+        revision = FilingDraft.objects.filter(correction_of=draft, user=request.user).first()
+        if revision:
+            if revision.status == FilingDraft.Status.DRAFT:
+                attach_current_draft(request, revision)
+            return redirect(correction_destination(revision))
+        eligibility = source_eligibility(request, draft, fetch=fetch_filing_detail)
+        if not eligibility["eligible"]:
+            raise HandoffError(eligibility["reason"], status=409)
+        detail = eligibility["detail"]
         if request.method == "POST":
-            revision = create_correction(draft, detail, request.POST.getlist("fields"))
-            attach_current_draft(request, revision)
-            return redirect("handoff_review", draft_id=revision.pk)
-        choices = [
-            (field, label)
-            for field, label in (
-                ("court_code", "Court"),
-                ("case_category_code", "Case category"),
-                ("case_type_code", "Case type"),
-                ("documents", "PDF contents"),
-            )
-        ]
-        choices.extend(
-            (f"documents.{doc.pk}.{field}", f"{doc.name}: {label}")
-            for doc in draft.documents.all()
-            for field, label in (
-                ("filing_type_code", "filing type"),
-                ("document_type_code", "document type"),
-                ("filing_component_code", "filing component"),
-            )
-        )
-        choices.extend((f"parties.{party.pk}.party_type", f"{party}: party type") for party in draft.parties.all())
-        return render(request, "efile/correct_filing.html", {"draft": draft, "detail": detail, "choices": choices})
+            revision = create_correction(draft, detail)
+            if revision.status == FilingDraft.Status.DRAFT:
+                attach_current_draft(request, revision)
+            return redirect(correction_destination(revision))
+        return render(request, "efile/correct_filing.html", {"draft": draft, "detail": detail})
     except HandoffError as exc:
         return render(request, "efile/correct_filing.html", {"draft": draft, "error": str(exc)}, status=exc.status)
 

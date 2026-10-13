@@ -309,6 +309,7 @@ class FilingDraft(models.Model):
         on_delete=models.SET_NULL,
         related_name="filing_drafts",
     )
+    correction_of_id: int | None
     correction_of = models.OneToOneField(
         "self", null=True, blank=True, on_delete=models.RESTRICT, related_name="correction"
     )

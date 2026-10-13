@@ -453,7 +453,11 @@ def _describe_document_comments(document: Any) -> list[dict[str, str]]:
         kind, heading = "acceptance", "Note from the court"
     else:
         kind, heading = "other", "Note from the court"
-    return [{"kind": kind, "heading": heading, "text": text}]
+    comment = {"kind": kind, "heading": heading, "text": text}
+    description = _text(document, "documentDescriptionText")
+    if description:
+        comment["document_name"] = description
+    return [comment]
 
 
 def _describe_fees(payload: dict[str, Any]) -> list[dict[str, str]]:

@@ -59,6 +59,17 @@
               data-extraction-pending="{{ extraction_pending|yesno:'true,false' }}"
               data-wait-seconds="{{ extraction_wait_seconds }}">
             {% csrf_token %}
+            {% if documents %}
+                <label for="replace-document">Add or replace a document</label>
+                <select id="replace-document"
+                        name="replace_document_id"
+                        autocomplete="off"
+                        class="form-select mb-3">
+                    <option value="">Add documents</option>
+                    {% for document in documents %}<option value="{{ document.pk }}">Replace {{ document.name }}</option>{% endfor %}
+                </select>
+                <p>To replace a document, select it above and choose one new file. Its filing choices stay saved. Review the new PDF before submitting.</p>
+            {% endif %}
             <label class="drop-zone" id="document-drop-zone" for="documents-input">
                 <input id="documents-input"
                        type="file"
