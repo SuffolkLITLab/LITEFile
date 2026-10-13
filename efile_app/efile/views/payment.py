@@ -8,6 +8,7 @@ from requests import RequestException
 from efile.api.suffolk_api_views import get_tyler_token
 from efile.models import FilingDocument, FilingParty
 from efile.services.appeals import appeal_answers_complete
+from efile.services.court_payments import require_account_allowed
 from efile.services.current_drafts import ensure_current_draft
 from efile.services.draft_urls import draft_url
 from efile.services.drafts import draft_snapshot, read_case_data
@@ -75,13 +76,21 @@ def efile_payment(request, jurisdiction):
 
     if request.method == "POST":
         account_id = request.POST.get("selected_payment_account", "").strip()
+        account_error = ""
         try:
             accounts = payment_accounts(jurisdiction, get_tyler_token(request, jurisdiction)) if account_id else []
             account = next((a for a in accounts if str(a["paymentAccountID"]) == account_id), None)
         except (RequestException, ValueError):
             account = None
+            account_error = "We could not load payment methods. Please try again."
+        if account:
+            try:
+                require_account_allowed(account, jurisdiction, draft.court_code)
+            except ValueError as error:
+                account_error = str(error)
+                account = None
         if not account:
-            messages.error(request, "Choose a payment method to continue.")
+            messages.error(request, account_error or "Choose a payment method to continue.")
         else:
             draft.selected_payment_account_id = account_id
             draft.selected_payment_account_name = account.get("accountName") or "Selected payment method"

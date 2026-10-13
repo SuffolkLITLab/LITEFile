@@ -8,11 +8,13 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
+from efile.api.suffolk_api_views import get_tyler_token
 from efile.models import FilingDraft
+from efile.services.court_payments import payment_error, validate_filing_payment
 from efile.services.current_drafts import clear_current_draft, get_current_draft
 from efile.services.disclaimers import validate_acceptance
 from efile.services.document_previews import require_document_previews
-from efile.services.fee_quotes import fee_quote_is_usable
+from efile.services.fee_quotes import fee_fingerprint, fee_quote_is_usable
 from efile.services.filing_availability import draft_unavailable_message
 from efile.services.filing_plans import mark_attached_items_filed
 from efile.services.submission_errors import PRE_SUBMIT_ERROR_CODES, SubmissionErrorCode
@@ -30,7 +32,7 @@ _CLAIMABLE_STATUSES = (FilingDraft.Status.DRAFT,)
 
 
 @transaction.atomic
-def _claim_for_submission(draft: FilingDraft, acceptance: dict) -> bool:
+def _claim_for_submission(draft: FilingDraft, acceptance: dict, *, checked_fingerprint=None) -> bool:
     """Atomically move a DRAFT into SUBMITTING, recording the accepted court requirements.
 
     Only one request can win this transition, so concurrent double-clicks cannot
@@ -40,6 +42,8 @@ def _claim_for_submission(draft: FilingDraft, acceptance: dict) -> bool:
     locked = FilingDraft.objects.select_for_update().get(pk=draft.pk)
     if locked.status not in _CLAIMABLE_STATUSES:
         return False
+    if checked_fingerprint is not None and fee_fingerprint(locked) != checked_fingerprint:
+        raise ValueError("This filing changed while we checked your payment. Reload Review before submitting.")
     if message := draft_unavailable_message(locked):
         raise ValueError(message)
     require_document_previews(locked)
@@ -141,9 +145,22 @@ def submit_final_filing(request):
     except ValueError as error:
         return JsonResponse({"success": False, "error": str(error)}, status=400)
 
+    checked_fingerprint = fee_fingerprint(draft)
+    try:
+        validate_filing_payment(
+            draft.jurisdiction,
+            draft.court_code,
+            get_tyler_token(request, draft.jurisdiction),
+            draft.selected_payment_account_id,
+        )
+    except ValueError as error:
+        return JsonResponse(payment_error(draft, error), status=412)
+    if isinstance(submission_data.get("efile_data"), dict):
+        submission_data["efile_data"]["tyler_payment_id"] = draft.selected_payment_account_id
+
     # Claim the draft before forwarding so a concurrent request can't file twice.
     try:
-        claimed = _claim_for_submission(draft, acceptance)
+        claimed = _claim_for_submission(draft, acceptance, checked_fingerprint=checked_fingerprint)
     except ValueError as error:
         return JsonResponse({"success": False, "error": str(error)}, status=412)
     if not claimed:

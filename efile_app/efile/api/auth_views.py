@@ -8,12 +8,16 @@ import logging
 import requests
 from django.conf import settings
 from django.contrib.auth import authenticate, login
+from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from requests.exceptions import RequestException, Timeout
 
 from efile.api.suffolk_api_views import get_tyler_token
 from efile.services.account_profile import fetch_account_profile
+from efile.services.court_payments import BANK_ACCOUNT_TYPE, bank_payment_policy, policy_message
+from efile.services.current_drafts import get_current_draft
+from efile.services.payment_accounts import is_active
 from efile.utils.jurisdiction_stuff import get_jurisdiction_from_request
 
 from .base import APIResponseMixin
@@ -201,6 +205,32 @@ class AuthAPIViews(APIResponseMixin):
 
             if api_response.status_code == 200:
                 payment_accounts = api_response.json()
+                if not isinstance(payment_accounts, list):
+                    return AuthAPIViews.error_response("We could not load payment methods. Please try again.", 503)
+                payment_accounts = [
+                    account
+                    for account in payment_accounts
+                    if isinstance(account, dict) and account.get("paymentAccountID") and is_active(account)
+                ]
+                draft = get_current_draft(request, jurisdiction=jurisdiction, resume_latest=False)
+                if draft is not None and any(
+                    a.get("paymentAccountTypeCode") == BANK_ACCOUNT_TYPE for a in payment_accounts
+                ):
+                    policy = bank_payment_policy(jurisdiction, draft.court_code)
+                    if policy != "allowed":
+                        payment_accounts = [
+                            account
+                            for account in payment_accounts
+                            if account.get("paymentAccountTypeCode") != BANK_ACCOUNT_TYPE
+                        ]
+                    return JsonResponse(
+                        {
+                            "success": True,
+                            "data": payment_accounts,
+                            "bank_payment_policy": policy,
+                            "bank_payment_message": policy_message(policy),
+                        }
+                    )
                 return AuthAPIViews.success_response(payment_accounts)
             elif api_response.status_code == 401:
                 # Return empty list for unauthorized - frontend will show "add new payment method"
