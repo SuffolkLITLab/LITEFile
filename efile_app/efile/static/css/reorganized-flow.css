@@ -203,7 +203,6 @@
     background: var(--surface-subtle);
     border: 2px dashed var(--border-strong);
     border-radius: 14px;
-    cursor: pointer;
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
@@ -2026,4 +2025,9 @@
 .drop-zone .requirements-strip {
     justify-content: center;
     margin: 0;
+}
+
+.drop-zone label {
+    cursor: pointer;
+    width: 100%;
 }

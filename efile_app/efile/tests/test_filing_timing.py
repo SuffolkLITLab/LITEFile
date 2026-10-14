@@ -125,14 +125,16 @@ def test_holiday_guidance_requires_configured_calendar():
 
 
 @pytest.mark.parametrize("year,day", [(2026, 2), (2027, 1), (2028, 6)])
-@pytest.mark.parametrize("court", ["cook:cd1", "cook:dr1", "cook:cvd1", "cook:dr2"])
+@pytest.mark.parametrize(
+    "court", ["cook:cd1", "cook:dr1", "cook:cvd1", "cook:dr2", "cook:crcbc", "cook:jd", "cook:jjcp", "cook:jjcpd6"]
+)
 def test_pulaski_day_is_cook_specific_and_follows_first_monday(year, day, court):
     now = datetime(year, 3, day, 15, tzinfo=timezone.utc)
     assert (
         "Casimir Pulaski Day may add 1 day."
         in court_filing_timing("illinois", court, now=now)["review"]["closure_note"]
     )
-    for other in ("adams", "unknown", "pulaski", "cook:crcbc"):
+    for other in ("adams", "unknown", "pulaski"):
         assert "Pulaski" not in court_filing_timing("illinois", other, now=now)["review"]["closure_note"]
 
 

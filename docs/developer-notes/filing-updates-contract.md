@@ -199,7 +199,8 @@ confirms March 2, 2026 as Casimir Pulaski Day and identifies First Appearance an
 Juvenile Court exceptions. The installed holiday library already supplies the
 first-Monday-in-March recurrence, but incorrectly broadens this guidance to all
 Illinois courts. State configuration now excludes it, with explicit Cook court
-calendar overrides restoring it. Daily-convening exceptions disable closure
-notes. Calendar overrides deep merge with state settings. Dates remain advisory
+calendar overrides restoring it. Daily courtroom sessions do not establish
+clerk e-filing review availability; all configured Cook codes retain the
+advisory closure note. Calendar overrides deep merge with state settings. Dates remain advisory
 review guidance, not legal deadline adjustments. Only the immediate HTML email
 uses today's closure note; saved later-event templates must not repeat it.

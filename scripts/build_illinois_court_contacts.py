@@ -92,22 +92,14 @@ def build(workbook, courts, official_html):
                     "url": COOK_URL,
                 }
             }
-            # First Appearance and Juvenile Court convene every day. Do not
-            # apply the ordinary closure calendar to these exceptional codes.
-            if code == "cook:crcbc" or "juvenile" in name.lower():
-                overrides[code]["filing_timing"] = {
-                    "business_calendar": {
-                        "enabled": False,
-                        "source_url": CALENDAR_URL,
-                    }
+            # Daily courtroom sessions do not establish clerk e-filing review
+            # availability. Keep advisory clerk holiday guidance for all codes.
+            overrides[code]["filing_timing"] = {
+                "business_calendar": {
+                    "excluded_holidays": [],
+                    "source_url": CALENDAR_URL,
                 }
-            else:
-                overrides[code]["filing_timing"] = {
-                    "business_calendar": {
-                        "excluded_holidays": [],
-                        "source_url": CALENDAR_URL,
-                    }
-                }
+            }
             audit.append(
                 [
                     "",

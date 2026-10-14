@@ -1405,7 +1405,7 @@ court_specific_requirements:
       url: https://www.cookcountyclerkofcourt.org/contact-us
     filing_timing:
       business_calendar:
-        enabled: false
+        excluded_holidays: []
         source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
   cook:crd1:
     contact:
@@ -1720,7 +1720,7 @@ court_specific_requirements:
       url: https://www.cookcountyclerkofcourt.org/contact-us
     filing_timing:
       business_calendar:
-        enabled: false
+        excluded_holidays: []
         source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
   cook:jjcp:
     contact:
@@ -1729,7 +1729,7 @@ court_specific_requirements:
       url: https://www.cookcountyclerkofcourt.org/contact-us
     filing_timing:
       business_calendar:
-        enabled: false
+        excluded_holidays: []
         source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
   cook:jjcpd6:
     contact:
@@ -1738,7 +1738,7 @@ court_specific_requirements:
       url: https://www.cookcountyclerkofcourt.org/contact-us
     filing_timing:
       business_calendar:
-        enabled: false
+        excluded_holidays: []
         source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
   cook:law:
     contact:

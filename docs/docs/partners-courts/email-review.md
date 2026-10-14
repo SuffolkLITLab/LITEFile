@@ -310,10 +310,10 @@ Both a label and valid source URL are needed to display review/hours guidance.
 merge individual fields of `review`, `office_hours`, and `business_calendar`
 with the jurisdiction settings. A court can override `excluded_holidays`
 without losing the state’s timezone, subdivision, or display names. Set
-`business_calendar.enabled: false` to omit closure guidance for courts that
-convene every day. Illinois excludes Casimir Pulaski Day by default; configured
-Cook courts retain the library’s first-Monday-in-March holiday. Cook First
-Appearance and Juvenile Court exceptions omit closure guidance. This affects
+`business_calendar.enabled: false` only when clerk review availability has
+been independently verified. Illinois excludes Casimir Pulaski Day by default; configured
+Cook courts retain the library’s first-Monday-in-March holiday. Daily courtroom sessions do not establish clerk e-filing review availability,
+so all configured Cook codes retain the advisory clerk closure note. This affects
 advisory review estimates only, not filing deadlines or online submission.
 Review source content, timezone/daylight-saving
 
