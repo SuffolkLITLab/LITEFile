@@ -1,0 +1,48 @@
+{
+  "checked_at": "2026-10-13",
+  "scope": "Declared repository/output inventory and current local registry; not live court or top-five query coverage.",
+  "states": {
+    "vermont": {
+      "repositories_reviewed": 26,
+      "entrypoints_recorded": 29,
+      "generated_outputs": 75,
+      "court_filing": 45,
+      "document_outputs": 75,
+      "attachment_outputs": 75,
+      "registry_identity_matched": 43,
+      "with_runtime_mapping": 32,
+      "noncourt": 30,
+      "without_runtime_mapping": 13,
+      "registry_identity_unmatched": 2,
+      "repositories_expected": 26,
+      "distinct_court_filing_forms": 36
+    },
+    "illinois": {
+      "repositories_reviewed": 91,
+      "entrypoints_recorded": 77,
+      "generated_outputs": 784,
+      "uncertain": 224,
+      "bundle_outputs": 254,
+      "attachment_outputs": 530,
+      "court_filing": 301,
+      "document_outputs": 488,
+      "registry_identity_matched": 286,
+      "with_runtime_mapping": 63,
+      "noncourt": 259,
+      "without_runtime_mapping": 225,
+      "fragment_outputs": 42,
+      "court_filing_bundles": 9,
+      "registry_identity_ambiguous": 2,
+      "court_filing_fragments": 4,
+      "repositories_expected": 91,
+      "distinct_court_filing_forms": 189
+    }
+  },
+  "inventory_errors": [],
+  "rows_file": "guided-form-coverage-2026-10-13.csv",
+  "limitations": [
+    "Counts are output rows, not eligible courts or independently published interviews.",
+    "Bundled PDFs and split fragments are tracked separately; individual document rows can repeat one form.",
+    "Mappings include unverified advisory suggestions. Unmapped court documents remain unresolved."
+  ]
+}

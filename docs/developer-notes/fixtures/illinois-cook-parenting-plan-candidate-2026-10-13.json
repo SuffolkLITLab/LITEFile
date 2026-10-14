@@ -1,0 +1,156 @@
+{
+  "version": 1,
+  "state": "illinois",
+  "checked_at": "2026-10-13T20:39:41.554852+00:00",
+  "source": "Read-only complete Illinois filing-option catalog index built from the provider test environment on the timestamp above. The index preserves exact option name, provider code, stage, and court code, but not category/case-type route dimensions. Court display names are from the same read-only provider court list snapshot.",
+  "association_status": "candidate_unconfirmed",
+  "imported_into_reviewed_associations": false,
+  "source_document": {
+    "source_document_id": "ParentingPlan:parenting_plan",
+    "repo": "IllinoisLegalAidOnline/docassemble-ParentingPlan",
+    "form_id": "ATJ 108.4",
+    "printed_title": "PARENTING PLAN",
+    "source_template_url": "https://github.com/IllinoisLegalAidOnline/docassemble-ParentingPlan/blob/c0e12e4ac8dd8ef4a20adc5b8abf186dac72d21f/docassemble/ParentingPlan/data/templates/parenting_plan.pdf",
+    "source_publication_url": "https://www.illinoislegalaid.org/legal-information/parenting-plan",
+    "source_stage": "subsequent",
+    "source_case_category": [
+      "Family"
+    ],
+    "source_case_type": [
+      "Parenting Responsibilities"
+    ]
+  },
+  "candidate_provider_option": {
+    "filing_type_label": "Parenting Plan Prepared By One Party",
+    "catalog_observations": [
+      {
+        "stage": "initial",
+        "filing_type_label": "Parenting Plan Prepared By One Party",
+        "court_code_observations": [
+          {
+            "court_code": "cook:dr",
+            "provider_codes": [
+              "257687"
+            ],
+            "court_name": "Cook County - Domestic Relations"
+          },
+          {
+            "court_code": "cook:dr1",
+            "provider_codes": [
+              "257687"
+            ],
+            "court_name": "Cook County - Domestic Relations - District 1 - Chicago"
+          },
+          {
+            "court_code": "cook:dr2",
+            "provider_codes": [
+              "257687"
+            ],
+            "court_name": "Cook County - Domestic Relations - District 2 - Skokie"
+          },
+          {
+            "court_code": "cook:dr3",
+            "provider_codes": [
+              "257687"
+            ],
+            "court_name": "Cook County - Domestic Relations - District 3 - Rolling Meadows"
+          },
+          {
+            "court_code": "cook:dr4",
+            "provider_codes": [
+              "257687"
+            ],
+            "court_name": "Cook County - Domestic Relations - District 4 - Maywood"
+          },
+          {
+            "court_code": "cook:dr5",
+            "provider_codes": [
+              "257687"
+            ],
+            "court_name": "Cook County - Domestic Relations - District 5 - Bridgeview"
+          },
+          {
+            "court_code": "cook:dr6",
+            "provider_codes": [
+              "257687"
+            ],
+            "court_name": "Cook County - Domestic Relations - District 6 - Markham"
+          }
+        ],
+        "flattened_catalog_rows": 7
+      },
+      {
+        "stage": "subsequent",
+        "filing_type_label": "Parenting Plan Prepared By One Party",
+        "court_code_observations": [
+          {
+            "court_code": "cook:dr",
+            "provider_codes": [
+              "254041",
+              "257687"
+            ],
+            "court_name": "Cook County - Domestic Relations"
+          },
+          {
+            "court_code": "cook:dr1",
+            "provider_codes": [
+              "254041",
+              "257687"
+            ],
+            "court_name": "Cook County - Domestic Relations - District 1 - Chicago"
+          },
+          {
+            "court_code": "cook:dr2",
+            "provider_codes": [
+              "254041",
+              "257687"
+            ],
+            "court_name": "Cook County - Domestic Relations - District 2 - Skokie"
+          },
+          {
+            "court_code": "cook:dr3",
+            "provider_codes": [
+              "254041",
+              "257687"
+            ],
+            "court_name": "Cook County - Domestic Relations - District 3 - Rolling Meadows"
+          },
+          {
+            "court_code": "cook:dr4",
+            "provider_codes": [
+              "254041",
+              "257687"
+            ],
+            "court_name": "Cook County - Domestic Relations - District 4 - Maywood"
+          },
+          {
+            "court_code": "cook:dr5",
+            "provider_codes": [
+              "254041",
+              "257687"
+            ],
+            "court_name": "Cook County - Domestic Relations - District 5 - Bridgeview"
+          },
+          {
+            "court_code": "cook:dr6",
+            "provider_codes": [
+              "254041",
+              "257687"
+            ],
+            "court_name": "Cook County - Domestic Relations - District 6 - Markham"
+          }
+        ],
+        "flattened_catalog_rows": 14
+      }
+    ],
+    "mapping_stage_constraint": "subsequent_only_candidate",
+    "case_category": null,
+    "case_types": null
+  },
+  "reason": "The exact provider label explicitly describes a plan prepared by one party, but the source PDF title is only PARENTING PLAN and the interview output does not establish whether the plan is agreed/joint or prepared by one party. Treat this as an unconfirmed candidate only. Do not import as a reviewed association until the partner confirms the source-document relation and exact category/case-type routes. The same provider code 257687 appears in initial and subsequent catalog options; the guided interview source output is subsequent-stage, so initial availability is recorded as catalog evidence only, not a mapping proposal.",
+  "limitations": [
+    "Court code cook:dr is the heading route; cook:dr1 through cook:dr6 are actual district route keys.",
+    "No case-category/case-type paths or selected-party condition are retained in this flattened index.",
+    "A duplicate label/code across court/stage is not proof that all case paths accept the source document."
+  ]
+}

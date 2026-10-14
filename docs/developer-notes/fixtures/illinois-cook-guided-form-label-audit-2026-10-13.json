@@ -1,0 +1,1311 @@
+{
+  "version": 1,
+  "state": "illinois",
+  "checked_at": "2026-10-13",
+  "replace_existing": false,
+  "source": "Read-only provider court/stage filing-option lists. No complete category/case-type path is established by these observations.",
+  "records": [
+    {
+      "form_ids": [
+        "ATJ 503.11"
+      ],
+      "source_document_title": "APPEARANCE (CIVIL)",
+      "source_document_id": "RespondToALawsuit:appearance_attachment",
+      "exact_filing_type": "Appearance Filed",
+      "case_category": null,
+      "case_types": [],
+      "stage_constraint": "subsequent_only_observed",
+      "available_stages": [
+        "subsequent"
+      ],
+      "court_codes": [
+        "cook:cvd2",
+        "cook:cvd3",
+        "cook:cvd4",
+        "cook:cvd5",
+        "cook:cvd6",
+        "cook:dr1",
+        "cook:dr2",
+        "cook:dr3",
+        "cook:dr4",
+        "cook:dr5",
+        "cook:dr6"
+      ],
+      "court_names": [
+        "Cook County - Municipal Civil - District 2 - Skokie",
+        "Cook County - Municipal Civil - District 3 - Rolling Meadows",
+        "Cook County - Municipal Civil - District 4 - Maywood",
+        "Cook County - Municipal Civil - District 5 - Bridgeview",
+        "Cook County - Municipal Civil - District 6 - Markham",
+        "Cook County - Domestic Relations - District 1 - Chicago",
+        "Cook County - Domestic Relations - District 2 - Skokie",
+        "Cook County - Domestic Relations - District 3 - Rolling Meadows",
+        "Cook County - Domestic Relations - District 4 - Maywood",
+        "Cook County - Domestic Relations - District 5 - Bridgeview",
+        "Cook County - Domestic Relations - District 6 - Markham"
+      ],
+      "mapping_status": "verified_label",
+      "association_status": "unverified_suggestion",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-RespondToALawsuit/blob/9960df74194a6124f325538d60d69d0881100ad7/docassemble/RespondToALawsuit/data/templates/appearance.pdf"
+      ],
+      "reason": "This source PDF is the same statewide civil appearance form. The catalog label is an exact observed Cook filing option; it may represent a subsequent appearance, not the interview’s originating case type. Category and case-type route are not present in the flattened catalog index. The association is additive and must not replace statewide generic search paths; only these explicit search terms are supported by the printed form identity. Fee/no-fee suffixes remain distinct options and require case-specific selection.",
+      "search_terms": [
+        "appearance"
+      ],
+      "observations": [
+        {
+          "court_code": "cook:cvd2",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Acvd2/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:52.835706+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:53 GMT",
+          "filing_codes": [
+            "327662"
+          ]
+        },
+        {
+          "court_code": "cook:cvd3",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Acvd3/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:53.465492+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:53 GMT",
+          "filing_codes": [
+            "327662"
+          ]
+        },
+        {
+          "court_code": "cook:cvd4",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Acvd4/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:53.484515+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:54 GMT",
+          "filing_codes": [
+            "327662"
+          ]
+        },
+        {
+          "court_code": "cook:cvd5",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Acvd5/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:53.516886+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:54 GMT",
+          "filing_codes": [
+            "327662"
+          ]
+        },
+        {
+          "court_code": "cook:cvd6",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Acvd6/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:53.688802+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:54 GMT",
+          "filing_codes": [
+            "327662"
+          ]
+        },
+        {
+          "court_code": "cook:dr1",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Adr1/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:42.826063+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:42 GMT",
+          "filing_codes": [
+            "172952"
+          ]
+        },
+        {
+          "court_code": "cook:dr2",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Adr2/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:42.956453+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:43 GMT",
+          "filing_codes": [
+            "172952"
+          ]
+        },
+        {
+          "court_code": "cook:dr3",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Adr3/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:43.111492+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:43 GMT",
+          "filing_codes": [
+            "172952"
+          ]
+        },
+        {
+          "court_code": "cook:dr4",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Adr4/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:43.182879+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:43 GMT",
+          "filing_codes": [
+            "172952"
+          ]
+        },
+        {
+          "court_code": "cook:dr5",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Adr5/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:43.243197+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:43 GMT",
+          "filing_codes": [
+            "172952"
+          ]
+        },
+        {
+          "court_code": "cook:dr6",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Adr6/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:43.297032+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:43 GMT",
+          "filing_codes": [
+            "172952"
+          ]
+        }
+      ]
+    },
+    {
+      "form_ids": [
+        "ATJ 503.11"
+      ],
+      "source_document_title": "APPEARANCE (CIVIL)",
+      "source_document_id": "RespondToALawsuit:appearance_attachment",
+      "exact_filing_type": "Appearance Filed - Fee",
+      "case_category": null,
+      "case_types": [],
+      "stage_constraint": "subsequent_only_observed",
+      "available_stages": [
+        "subsequent"
+      ],
+      "court_codes": [
+        "cook:chd1",
+        "cook:cvd1",
+        "cook:cvd2",
+        "cook:cvd3",
+        "cook:cvd4",
+        "cook:cvd5",
+        "cook:cvd6",
+        "cook:dr1",
+        "cook:dr2",
+        "cook:dr3",
+        "cook:dr4",
+        "cook:dr5",
+        "cook:dr6",
+        "cook:eld1",
+        "cook:eld2",
+        "cook:eld3",
+        "cook:eld4",
+        "cook:eld5",
+        "cook:eld6",
+        "cook:law1",
+        "cook:law2",
+        "cook:law3",
+        "cook:law4",
+        "cook:law5",
+        "cook:law6"
+      ],
+      "court_names": [
+        "Cook County - Chancery - District 1 - Chicago",
+        "Cook County - Municipal Civil - District 1 - Chicago",
+        "Cook County - Municipal Civil - District 2 - Skokie",
+        "Cook County - Municipal Civil - District 3 - Rolling Meadows",
+        "Cook County - Municipal Civil - District 4 - Maywood",
+        "Cook County - Municipal Civil - District 5 - Bridgeview",
+        "Cook County - Municipal Civil - District 6 - Markham",
+        "Cook County - Domestic Relations - District 1 - Chicago",
+        "Cook County - Domestic Relations - District 2 - Skokie",
+        "Cook County - Domestic Relations - District 3 - Rolling Meadows",
+        "Cook County - Domestic Relations - District 4 - Maywood",
+        "Cook County - Domestic Relations - District 5 - Bridgeview",
+        "Cook County - Domestic Relations - District 6 - Markham",
+        "Cook County - Elder Law - District 1 - Chicago",
+        "Cook County - Elder Law - District 2 - Skokie",
+        "Cook County - Elder Law - District 3 - Rolling Meadows",
+        "Cook County - Elder Law - District 4 - Maywood",
+        "Cook County - Elder Law - District 5 - Bridgeview",
+        "Cook County - Elder Law - District 6 - Markham",
+        "Cook County - Law - District 1 - Chicago",
+        "Cook County - Law - District 2 - Skokie",
+        "Cook County - Law - District 3 - Rolling Meadows",
+        "Cook County - Law - District 4 - Maywood",
+        "Cook County - Law - District 5 - Bridgeview",
+        "Cook County - Law - District 6 - Markham"
+      ],
+      "mapping_status": "verified_label",
+      "association_status": "unverified_suggestion",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-RespondToALawsuit/blob/9960df74194a6124f325538d60d69d0881100ad7/docassemble/RespondToALawsuit/data/templates/appearance.pdf"
+      ],
+      "reason": "This source PDF is the same statewide civil appearance form. The catalog label is an exact observed Cook filing option; it may represent a subsequent appearance, not the interview’s originating case type. Category and case-type route are not present in the flattened catalog index. The association is additive and must not replace statewide generic search paths; only these explicit search terms are supported by the printed form identity. Fee/no-fee suffixes remain distinct options and require case-specific selection.",
+      "search_terms": [
+        "appearance"
+      ],
+      "observations": [
+        {
+          "court_code": "cook:chd1",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Achd1/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:40.241551+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:40 GMT",
+          "filing_codes": [
+            "173364"
+          ]
+        },
+        {
+          "court_code": "cook:cvd1",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Acvd1/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:52.423663+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:53 GMT",
+          "filing_codes": [
+            "174465",
+            "331343"
+          ]
+        },
+        {
+          "court_code": "cook:cvd2",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Acvd2/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:52.835706+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:53 GMT",
+          "filing_codes": [
+            "174465",
+            "331343"
+          ]
+        },
+        {
+          "court_code": "cook:cvd3",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Acvd3/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:53.465492+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:53 GMT",
+          "filing_codes": [
+            "174465",
+            "331343"
+          ]
+        },
+        {
+          "court_code": "cook:cvd4",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Acvd4/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:53.484515+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:54 GMT",
+          "filing_codes": [
+            "174465",
+            "331343"
+          ]
+        },
+        {
+          "court_code": "cook:cvd5",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Acvd5/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:53.516886+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:54 GMT",
+          "filing_codes": [
+            "174465",
+            "331343"
+          ]
+        },
+        {
+          "court_code": "cook:cvd6",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Acvd6/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:53.688802+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:54 GMT",
+          "filing_codes": [
+            "174465",
+            "331343"
+          ]
+        },
+        {
+          "court_code": "cook:dr1",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Adr1/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:42.826063+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:42 GMT",
+          "filing_codes": [
+            "172896",
+            "174796"
+          ]
+        },
+        {
+          "court_code": "cook:dr2",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Adr2/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:42.956453+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:43 GMT",
+          "filing_codes": [
+            "172896",
+            "174796"
+          ]
+        },
+        {
+          "court_code": "cook:dr3",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Adr3/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:43.111492+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:43 GMT",
+          "filing_codes": [
+            "172896",
+            "174796"
+          ]
+        },
+        {
+          "court_code": "cook:dr4",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Adr4/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:43.182879+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:43 GMT",
+          "filing_codes": [
+            "172896",
+            "174796"
+          ]
+        },
+        {
+          "court_code": "cook:dr5",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Adr5/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:43.243197+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:43 GMT",
+          "filing_codes": [
+            "172896",
+            "174796"
+          ]
+        },
+        {
+          "court_code": "cook:dr6",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Adr6/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:43.297032+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:43 GMT",
+          "filing_codes": [
+            "172896",
+            "174796"
+          ]
+        },
+        {
+          "court_code": "cook:eld1",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Aeld1/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:44.128246+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:44 GMT",
+          "filing_codes": [
+            "59853"
+          ]
+        },
+        {
+          "court_code": "cook:eld2",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Aeld2/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:44.302479+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:44 GMT",
+          "filing_codes": [
+            "59853"
+          ]
+        },
+        {
+          "court_code": "cook:eld3",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Aeld3/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:44.313251+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:44 GMT",
+          "filing_codes": [
+            "59853"
+          ]
+        },
+        {
+          "court_code": "cook:eld4",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Aeld4/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:44.561387+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:44 GMT",
+          "filing_codes": [
+            "59853"
+          ]
+        },
+        {
+          "court_code": "cook:eld5",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Aeld5/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:44.619343+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:44 GMT",
+          "filing_codes": [
+            "59853"
+          ]
+        },
+        {
+          "court_code": "cook:eld6",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Aeld6/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:44.821101+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:44 GMT",
+          "filing_codes": [
+            "59853"
+          ]
+        },
+        {
+          "court_code": "cook:law1",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Alaw1/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:45.853573+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:49 GMT",
+          "filing_codes": [
+            "172072"
+          ]
+        },
+        {
+          "court_code": "cook:law2",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Alaw2/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:47.012058+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:50 GMT",
+          "filing_codes": [
+            "172072"
+          ]
+        },
+        {
+          "court_code": "cook:law3",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Alaw3/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:48.287908+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:51 GMT",
+          "filing_codes": [
+            "172072"
+          ]
+        },
+        {
+          "court_code": "cook:law4",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Alaw4/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:48.868502+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:52 GMT",
+          "filing_codes": [
+            "172072"
+          ]
+        },
+        {
+          "court_code": "cook:law5",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Alaw5/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:49.666876+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:52 GMT",
+          "filing_codes": [
+            "172072"
+          ]
+        },
+        {
+          "court_code": "cook:law6",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Alaw6/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:50.577122+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:53 GMT",
+          "filing_codes": [
+            "172072"
+          ]
+        }
+      ]
+    },
+    {
+      "form_ids": [
+        "ATJ 503.11"
+      ],
+      "source_document_title": "APPEARANCE (CIVIL)",
+      "source_document_id": "RespondToALawsuit:appearance_attachment",
+      "exact_filing_type": "Appearance Filed - No Fee",
+      "case_category": null,
+      "case_types": [],
+      "stage_constraint": "subsequent_only_observed",
+      "available_stages": [
+        "subsequent"
+      ],
+      "court_codes": [
+        "cook:chd1",
+        "cook:dr1",
+        "cook:dr2",
+        "cook:dr3",
+        "cook:dr4",
+        "cook:dr5",
+        "cook:dr6",
+        "cook:law1",
+        "cook:law2",
+        "cook:law3",
+        "cook:law4",
+        "cook:law5",
+        "cook:law6"
+      ],
+      "court_names": [
+        "Cook County - Chancery - District 1 - Chicago",
+        "Cook County - Domestic Relations - District 1 - Chicago",
+        "Cook County - Domestic Relations - District 2 - Skokie",
+        "Cook County - Domestic Relations - District 3 - Rolling Meadows",
+        "Cook County - Domestic Relations - District 4 - Maywood",
+        "Cook County - Domestic Relations - District 5 - Bridgeview",
+        "Cook County - Domestic Relations - District 6 - Markham",
+        "Cook County - Law - District 1 - Chicago",
+        "Cook County - Law - District 2 - Skokie",
+        "Cook County - Law - District 3 - Rolling Meadows",
+        "Cook County - Law - District 4 - Maywood",
+        "Cook County - Law - District 5 - Bridgeview",
+        "Cook County - Law - District 6 - Markham"
+      ],
+      "mapping_status": "verified_label",
+      "association_status": "unverified_suggestion",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-RespondToALawsuit/blob/9960df74194a6124f325538d60d69d0881100ad7/docassemble/RespondToALawsuit/data/templates/appearance.pdf"
+      ],
+      "reason": "This source PDF is the same statewide civil appearance form. The catalog label is an exact observed Cook filing option; it may represent a subsequent appearance, not the interview’s originating case type. Category and case-type route are not present in the flattened catalog index. The association is additive and must not replace statewide generic search paths; only these explicit search terms are supported by the printed form identity. Fee/no-fee suffixes remain distinct options and require case-specific selection.",
+      "search_terms": [
+        "appearance"
+      ],
+      "observations": [
+        {
+          "court_code": "cook:chd1",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Achd1/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:40.241551+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:40 GMT",
+          "filing_codes": [
+            "173370"
+          ]
+        },
+        {
+          "court_code": "cook:dr1",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Adr1/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:42.826063+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:42 GMT",
+          "filing_codes": [
+            "172950",
+            "172955",
+            "174800"
+          ]
+        },
+        {
+          "court_code": "cook:dr2",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Adr2/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:42.956453+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:43 GMT",
+          "filing_codes": [
+            "172950",
+            "172955",
+            "174800"
+          ]
+        },
+        {
+          "court_code": "cook:dr3",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Adr3/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:43.111492+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:43 GMT",
+          "filing_codes": [
+            "172950",
+            "172955",
+            "174800"
+          ]
+        },
+        {
+          "court_code": "cook:dr4",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Adr4/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:43.182879+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:43 GMT",
+          "filing_codes": [
+            "172950",
+            "172955",
+            "174800"
+          ]
+        },
+        {
+          "court_code": "cook:dr5",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Adr5/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:43.243197+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:43 GMT",
+          "filing_codes": [
+            "172950",
+            "172955",
+            "174800"
+          ]
+        },
+        {
+          "court_code": "cook:dr6",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Adr6/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:43.297032+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:43 GMT",
+          "filing_codes": [
+            "172950",
+            "172955",
+            "174800"
+          ]
+        },
+        {
+          "court_code": "cook:law1",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Alaw1/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:45.853573+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:49 GMT",
+          "filing_codes": [
+            "172078"
+          ]
+        },
+        {
+          "court_code": "cook:law2",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Alaw2/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:47.012058+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:50 GMT",
+          "filing_codes": [
+            "172078"
+          ]
+        },
+        {
+          "court_code": "cook:law3",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Alaw3/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:48.287908+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:51 GMT",
+          "filing_codes": [
+            "172078"
+          ]
+        },
+        {
+          "court_code": "cook:law4",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Alaw4/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:48.868502+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:52 GMT",
+          "filing_codes": [
+            "172078"
+          ]
+        },
+        {
+          "court_code": "cook:law5",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Alaw5/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:49.666876+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:52 GMT",
+          "filing_codes": [
+            "172078"
+          ]
+        },
+        {
+          "court_code": "cook:law6",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Alaw6/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:50.577122+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:53 GMT",
+          "filing_codes": [
+            "172078"
+          ]
+        }
+      ]
+    },
+    {
+      "form_ids": [
+        "ATJ 503.11"
+      ],
+      "source_document_title": "APPEARANCE (CIVIL)",
+      "source_document_id": "RespondToALawsuit:appearance_attachment",
+      "exact_filing_type": "Appearance Filed - Fee Waiver",
+      "case_category": null,
+      "case_types": [],
+      "stage_constraint": "subsequent_only_observed",
+      "available_stages": [
+        "subsequent"
+      ],
+      "court_codes": [
+        "cook:chd1"
+      ],
+      "court_names": [
+        "Cook County - Chancery - District 1 - Chicago"
+      ],
+      "mapping_status": "verified_label",
+      "association_status": "unverified_suggestion",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-RespondToALawsuit/blob/9960df74194a6124f325538d60d69d0881100ad7/docassemble/RespondToALawsuit/data/templates/appearance.pdf"
+      ],
+      "reason": "This source PDF is the same statewide civil appearance form. The catalog label is an exact observed Cook filing option; it may represent a subsequent appearance, not the interview’s originating case type. Category and case-type route are not present in the flattened catalog index. The association is additive and must not replace statewide generic search paths; only these explicit search terms are supported by the printed form identity. Fee/no-fee suffixes remain distinct options and require case-specific selection.",
+      "search_terms": [
+        "appearance"
+      ],
+      "observations": [
+        {
+          "court_code": "cook:chd1",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Achd1/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:40.241551+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:40 GMT",
+          "filing_codes": [
+            "173369"
+          ]
+        }
+      ]
+    },
+    {
+      "form_ids": [
+        "ATJ 503.11"
+      ],
+      "source_document_title": "APPEARANCE (CIVIL)",
+      "source_document_id": "RespondToALawsuit:appearance_attachment",
+      "exact_filing_type": "Appearance Filed - Fee Waived",
+      "case_category": null,
+      "case_types": [],
+      "stage_constraint": "subsequent_only_observed",
+      "available_stages": [
+        "subsequent"
+      ],
+      "court_codes": [
+        "cook:eld1",
+        "cook:eld2",
+        "cook:eld3",
+        "cook:eld4",
+        "cook:eld5",
+        "cook:eld6",
+        "cook:law1",
+        "cook:law2",
+        "cook:law3",
+        "cook:law4",
+        "cook:law5",
+        "cook:law6"
+      ],
+      "court_names": [
+        "Cook County - Elder Law - District 1 - Chicago",
+        "Cook County - Elder Law - District 2 - Skokie",
+        "Cook County - Elder Law - District 3 - Rolling Meadows",
+        "Cook County - Elder Law - District 4 - Maywood",
+        "Cook County - Elder Law - District 5 - Bridgeview",
+        "Cook County - Elder Law - District 6 - Markham",
+        "Cook County - Law - District 1 - Chicago",
+        "Cook County - Law - District 2 - Skokie",
+        "Cook County - Law - District 3 - Rolling Meadows",
+        "Cook County - Law - District 4 - Maywood",
+        "Cook County - Law - District 5 - Bridgeview",
+        "Cook County - Law - District 6 - Markham"
+      ],
+      "mapping_status": "verified_label",
+      "association_status": "unverified_suggestion",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-RespondToALawsuit/blob/9960df74194a6124f325538d60d69d0881100ad7/docassemble/RespondToALawsuit/data/templates/appearance.pdf"
+      ],
+      "reason": "This source PDF is the same statewide civil appearance form. The catalog label is an exact observed Cook filing option; it may represent a subsequent appearance, not the interview’s originating case type. Category and case-type route are not present in the flattened catalog index. The association is additive and must not replace statewide generic search paths; only these explicit search terms are supported by the printed form identity. Fee/no-fee suffixes remain distinct options and require case-specific selection.",
+      "search_terms": [
+        "appearance"
+      ],
+      "observations": [
+        {
+          "court_code": "cook:eld1",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Aeld1/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:44.128246+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:44 GMT",
+          "filing_codes": [
+            "64298"
+          ]
+        },
+        {
+          "court_code": "cook:eld2",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Aeld2/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:44.302479+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:44 GMT",
+          "filing_codes": [
+            "64298"
+          ]
+        },
+        {
+          "court_code": "cook:eld3",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Aeld3/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:44.313251+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:44 GMT",
+          "filing_codes": [
+            "64298"
+          ]
+        },
+        {
+          "court_code": "cook:eld4",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Aeld4/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:44.561387+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:44 GMT",
+          "filing_codes": [
+            "64298"
+          ]
+        },
+        {
+          "court_code": "cook:eld5",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Aeld5/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:44.619343+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:44 GMT",
+          "filing_codes": [
+            "64298"
+          ]
+        },
+        {
+          "court_code": "cook:eld6",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Aeld6/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:44.821101+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:44 GMT",
+          "filing_codes": [
+            "64298"
+          ]
+        },
+        {
+          "court_code": "cook:law1",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Alaw1/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:45.853573+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:49 GMT",
+          "filing_codes": [
+            "172067"
+          ]
+        },
+        {
+          "court_code": "cook:law2",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Alaw2/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:47.012058+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:50 GMT",
+          "filing_codes": [
+            "172067"
+          ]
+        },
+        {
+          "court_code": "cook:law3",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Alaw3/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:48.287908+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:51 GMT",
+          "filing_codes": [
+            "172067"
+          ]
+        },
+        {
+          "court_code": "cook:law4",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Alaw4/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:48.868502+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:52 GMT",
+          "filing_codes": [
+            "172067"
+          ]
+        },
+        {
+          "court_code": "cook:law5",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Alaw5/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:49.666876+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:52 GMT",
+          "filing_codes": [
+            "172067"
+          ]
+        },
+        {
+          "court_code": "cook:law6",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Alaw6/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:50.577122+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:53 GMT",
+          "filing_codes": [
+            "172067"
+          ]
+        }
+      ]
+    },
+    {
+      "form_ids": [
+        "ATJ 503.11"
+      ],
+      "source_document_title": "APPEARANCE (CIVIL)",
+      "source_document_id": "RespondToALawsuit:appearance_attachment",
+      "exact_filing_type": "Appearance Filed - No Fee Paid",
+      "case_category": null,
+      "case_types": [],
+      "stage_constraint": "subsequent_only_observed",
+      "available_stages": [
+        "subsequent"
+      ],
+      "court_codes": [
+        "cook:eld1",
+        "cook:eld2",
+        "cook:eld3",
+        "cook:eld4",
+        "cook:eld5",
+        "cook:eld6"
+      ],
+      "court_names": [
+        "Cook County - Elder Law - District 1 - Chicago",
+        "Cook County - Elder Law - District 2 - Skokie",
+        "Cook County - Elder Law - District 3 - Rolling Meadows",
+        "Cook County - Elder Law - District 4 - Maywood",
+        "Cook County - Elder Law - District 5 - Bridgeview",
+        "Cook County - Elder Law - District 6 - Markham"
+      ],
+      "mapping_status": "verified_label",
+      "association_status": "unverified_suggestion",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-RespondToALawsuit/blob/9960df74194a6124f325538d60d69d0881100ad7/docassemble/RespondToALawsuit/data/templates/appearance.pdf"
+      ],
+      "reason": "This source PDF is the same statewide civil appearance form. The catalog label is an exact observed Cook filing option; it may represent a subsequent appearance, not the interview’s originating case type. Category and case-type route are not present in the flattened catalog index. The association is additive and must not replace statewide generic search paths; only these explicit search terms are supported by the printed form identity. Fee/no-fee suffixes remain distinct options and require case-specific selection.",
+      "search_terms": [
+        "appearance"
+      ],
+      "observations": [
+        {
+          "court_code": "cook:eld1",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Aeld1/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:44.128246+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:44 GMT",
+          "filing_codes": [
+            "64299"
+          ]
+        },
+        {
+          "court_code": "cook:eld2",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Aeld2/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:44.302479+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:44 GMT",
+          "filing_codes": [
+            "64299"
+          ]
+        },
+        {
+          "court_code": "cook:eld3",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Aeld3/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:44.313251+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:44 GMT",
+          "filing_codes": [
+            "64299"
+          ]
+        },
+        {
+          "court_code": "cook:eld4",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Aeld4/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:44.561387+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:44 GMT",
+          "filing_codes": [
+            "64299"
+          ]
+        },
+        {
+          "court_code": "cook:eld5",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Aeld5/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:44.619343+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:44 GMT",
+          "filing_codes": [
+            "64299"
+          ]
+        },
+        {
+          "court_code": "cook:eld6",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Aeld6/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:44.821101+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:44 GMT",
+          "filing_codes": [
+            "64299"
+          ]
+        }
+      ]
+    },
+    {
+      "form_ids": [
+        "ATJ 504.4"
+      ],
+      "source_document_title": "JURY REQUEST (CIVIL)",
+      "source_document_id": "Appearance:jury_request",
+      "exact_filing_type": "Jury Demand Filed - Fee",
+      "case_category": null,
+      "case_types": [],
+      "stage_constraint": "subsequent_only_observed",
+      "available_stages": [
+        "subsequent"
+      ],
+      "court_codes": [
+        "cook:cvd1",
+        "cook:cvd2",
+        "cook:cvd3",
+        "cook:cvd4",
+        "cook:cvd5",
+        "cook:cvd6"
+      ],
+      "court_names": [
+        "Cook County - Municipal Civil - District 1 - Chicago",
+        "Cook County - Municipal Civil - District 2 - Skokie",
+        "Cook County - Municipal Civil - District 3 - Rolling Meadows",
+        "Cook County - Municipal Civil - District 4 - Maywood",
+        "Cook County - Municipal Civil - District 5 - Bridgeview",
+        "Cook County - Municipal Civil - District 6 - Markham"
+      ],
+      "mapping_status": "verified_label",
+      "association_status": "unverified_suggestion",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-Appearance/blob/2aa42c93cdafde3a83d7fa7c1e2ab83d262d1af1/docassemble/Appearance/data/templates/jury_request.pdf"
+      ],
+      "reason": "The printed Jury Request form corresponds to Cook jury-demand filing options. Keep fee/no-fee alternatives distinct; the source does not establish which fee option applies. The association is additive and must not replace statewide generic search paths; only these explicit search terms are supported by the printed form identity. Fee/no-fee suffixes remain distinct options and require case-specific selection.",
+      "search_terms": [
+        "jury request"
+      ],
+      "observations": [
+        {
+          "court_code": "cook:cvd1",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Acvd1/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:52.423663+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:53 GMT",
+          "filing_codes": [
+            "174254"
+          ]
+        },
+        {
+          "court_code": "cook:cvd2",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Acvd2/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:52.835706+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:53 GMT",
+          "filing_codes": [
+            "174254"
+          ]
+        },
+        {
+          "court_code": "cook:cvd3",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Acvd3/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:53.465492+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:53 GMT",
+          "filing_codes": [
+            "174254"
+          ]
+        },
+        {
+          "court_code": "cook:cvd4",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Acvd4/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:53.484515+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:54 GMT",
+          "filing_codes": [
+            "174254"
+          ]
+        },
+        {
+          "court_code": "cook:cvd5",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Acvd5/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:53.516886+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:54 GMT",
+          "filing_codes": [
+            "174254"
+          ]
+        },
+        {
+          "court_code": "cook:cvd6",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Acvd6/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:53.688802+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:54 GMT",
+          "filing_codes": [
+            "174254"
+          ]
+        }
+      ]
+    },
+    {
+      "form_ids": [
+        "ATJ 504.4"
+      ],
+      "source_document_title": "JURY REQUEST (CIVIL)",
+      "source_document_id": "Appearance:jury_request",
+      "exact_filing_type": "Jury Demand Filed - No Fee",
+      "case_category": null,
+      "case_types": [],
+      "stage_constraint": "subsequent_only_observed",
+      "available_stages": [
+        "subsequent"
+      ],
+      "court_codes": [
+        "cook:cvd1",
+        "cook:cvd2",
+        "cook:cvd3",
+        "cook:cvd4",
+        "cook:cvd5",
+        "cook:cvd6",
+        "cook:law1",
+        "cook:law2",
+        "cook:law3",
+        "cook:law4",
+        "cook:law5",
+        "cook:law6"
+      ],
+      "court_names": [
+        "Cook County - Municipal Civil - District 1 - Chicago",
+        "Cook County - Municipal Civil - District 2 - Skokie",
+        "Cook County - Municipal Civil - District 3 - Rolling Meadows",
+        "Cook County - Municipal Civil - District 4 - Maywood",
+        "Cook County - Municipal Civil - District 5 - Bridgeview",
+        "Cook County - Municipal Civil - District 6 - Markham",
+        "Cook County - Law - District 1 - Chicago",
+        "Cook County - Law - District 2 - Skokie",
+        "Cook County - Law - District 3 - Rolling Meadows",
+        "Cook County - Law - District 4 - Maywood",
+        "Cook County - Law - District 5 - Bridgeview",
+        "Cook County - Law - District 6 - Markham"
+      ],
+      "mapping_status": "verified_label",
+      "association_status": "unverified_suggestion",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-Appearance/blob/2aa42c93cdafde3a83d7fa7c1e2ab83d262d1af1/docassemble/Appearance/data/templates/jury_request.pdf"
+      ],
+      "reason": "The printed Jury Request form corresponds to Cook jury-demand filing options. Keep fee/no-fee alternatives distinct; the source does not establish which fee option applies. The association is additive and must not replace statewide generic search paths; only these explicit search terms are supported by the printed form identity. Fee/no-fee suffixes remain distinct options and require case-specific selection.",
+      "search_terms": [
+        "jury request"
+      ],
+      "observations": [
+        {
+          "court_code": "cook:cvd1",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Acvd1/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:52.423663+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:53 GMT",
+          "filing_codes": [
+            "174256"
+          ]
+        },
+        {
+          "court_code": "cook:cvd2",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Acvd2/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:52.835706+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:53 GMT",
+          "filing_codes": [
+            "174256"
+          ]
+        },
+        {
+          "court_code": "cook:cvd3",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Acvd3/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:53.465492+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:53 GMT",
+          "filing_codes": [
+            "174256"
+          ]
+        },
+        {
+          "court_code": "cook:cvd4",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Acvd4/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:53.484515+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:54 GMT",
+          "filing_codes": [
+            "174256"
+          ]
+        },
+        {
+          "court_code": "cook:cvd5",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Acvd5/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:53.516886+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:54 GMT",
+          "filing_codes": [
+            "174256"
+          ]
+        },
+        {
+          "court_code": "cook:cvd6",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Acvd6/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:53.688802+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:54 GMT",
+          "filing_codes": [
+            "174256"
+          ]
+        },
+        {
+          "court_code": "cook:law1",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Alaw1/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:45.853573+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:49 GMT",
+          "filing_codes": [
+            "172109"
+          ]
+        },
+        {
+          "court_code": "cook:law2",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Alaw2/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:47.012058+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:50 GMT",
+          "filing_codes": [
+            "172109"
+          ]
+        },
+        {
+          "court_code": "cook:law3",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Alaw3/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:48.287908+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:51 GMT",
+          "filing_codes": [
+            "172109"
+          ]
+        },
+        {
+          "court_code": "cook:law4",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Alaw4/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:48.868502+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:52 GMT",
+          "filing_codes": [
+            "172109"
+          ]
+        },
+        {
+          "court_code": "cook:law5",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Alaw5/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:49.666876+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:52 GMT",
+          "filing_codes": [
+            "172109"
+          ]
+        },
+        {
+          "court_code": "cook:law6",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Alaw6/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:50.577122+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:53 GMT",
+          "filing_codes": [
+            "172109"
+          ]
+        }
+      ]
+    },
+    {
+      "form_ids": [
+        "ATJ 251.5"
+      ],
+      "source_document_title": "FINANCIAL AFFIDAVIT",
+      "source_document_id": "FinancialAffidavit:fa_primary",
+      "exact_filing_type": "Financial Affidavit Filed",
+      "case_category": null,
+      "case_types": [],
+      "stage_constraint": "subsequent_only_observed",
+      "available_stages": [
+        "subsequent"
+      ],
+      "court_codes": [
+        "cook:dr1",
+        "cook:dr2",
+        "cook:dr3",
+        "cook:dr4",
+        "cook:dr5",
+        "cook:dr6"
+      ],
+      "court_names": [
+        "Cook County - Domestic Relations - District 1 - Chicago",
+        "Cook County - Domestic Relations - District 2 - Skokie",
+        "Cook County - Domestic Relations - District 3 - Rolling Meadows",
+        "Cook County - Domestic Relations - District 4 - Maywood",
+        "Cook County - Domestic Relations - District 5 - Bridgeview",
+        "Cook County - Domestic Relations - District 6 - Markham"
+      ],
+      "mapping_status": "verified_label",
+      "association_status": "unverified_suggestion",
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-FinancialAffidavit/blob/8d8fc1fc96074fc8cb0b707657272751a265cd4f/docassemble/FinancialAffidavit/data/templates/fa_primary.pdf"
+      ],
+      "reason": "Printed form identity and exact filing-label wording align. Source stage is both, but current Cook catalog observation is subsequent only; no initial mapping is proposed. The association is additive and must not replace statewide generic search paths; only these explicit search terms are supported by the printed form identity. Fee/no-fee suffixes remain distinct options and require case-specific selection.",
+      "search_terms": [
+        "financial affidavit"
+      ],
+      "observations": [
+        {
+          "court_code": "cook:dr1",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Adr1/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:42.826063+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:42 GMT",
+          "filing_codes": [
+            "172989"
+          ]
+        },
+        {
+          "court_code": "cook:dr2",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Adr2/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:42.956453+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:43 GMT",
+          "filing_codes": [
+            "172989"
+          ]
+        },
+        {
+          "court_code": "cook:dr3",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Adr3/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:43.111492+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:43 GMT",
+          "filing_codes": [
+            "172989"
+          ]
+        },
+        {
+          "court_code": "cook:dr4",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Adr4/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:43.182879+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:43 GMT",
+          "filing_codes": [
+            "172989"
+          ]
+        },
+        {
+          "court_code": "cook:dr5",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Adr5/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:43.243197+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:43 GMT",
+          "filing_codes": [
+            "172989"
+          ]
+        },
+        {
+          "court_code": "cook:dr6",
+          "request_url": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/cook%3Adr6/filing_types/?initial=false",
+          "checked_at": "2026-10-13T20:34:43.297032+00:00",
+          "response_date": "Tue, 13 Oct 2026 20:34:43 GMT",
+          "filing_codes": [
+            "172989"
+          ]
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "Fee and no-fee alternatives remain separate; the form identifier does not decide which fee applies.",
+    "Only observed Cook district court codes are included; no statewide equivalence is inferred.",
+    "Category and case type are unknown. These are advisory source associations, not human-verified filing instructions."
+  ]
+}

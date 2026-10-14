@@ -1,0 +1,431 @@
+{
+  "checked_at": "2026-10-13T21:06:33+00:00",
+  "state": "illinois",
+  "source": "LITEFile CodeCatalog direct read-only API check (efile-test.suffolklitlab.org)",
+  "api_response_date_headers": [
+    "Tue, 13 Oct 2026 21:06:33 GMT",
+    "Tue, 13 Oct 2026 21:06:34 GMT",
+    "Tue, 13 Oct 2026 21:06:35 GMT",
+    "Tue, 13 Oct 2026 21:06:36 GMT",
+    "Tue, 13 Oct 2026 21:06:37 GMT",
+    "Tue, 13 Oct 2026 21:06:38 GMT",
+    "Tue, 13 Oct 2026 21:06:39 GMT",
+    "Tue, 13 Oct 2026 21:06:40 GMT",
+    "Tue, 13 Oct 2026 21:06:41 GMT",
+    "Tue, 13 Oct 2026 21:06:42 GMT",
+    "Tue, 13 Oct 2026 21:06:43 GMT",
+    "Tue, 13 Oct 2026 21:06:44 GMT",
+    "Tue, 13 Oct 2026 21:06:45 GMT",
+    "Tue, 13 Oct 2026 21:06:46 GMT",
+    "Tue, 13 Oct 2026 21:06:47 GMT",
+    "Tue, 13 Oct 2026 21:06:48 GMT",
+    "Tue, 13 Oct 2026 21:06:49 GMT"
+  ],
+  "query_scope": {
+    "courts": [
+      "DuPage County (dupage)",
+      "Cook County - Domestic Relations (cook:dr)",
+      "Lake County (lake)"
+    ],
+    "filing_type_labels": [
+      "Appearance",
+      "Financial Affidavit",
+      "Parenting Plan",
+      "Support Information Sheet"
+    ],
+    "categories": "DuPage and Lake: exact current \"Family\" categories; Cook DR: all current categories whose names begin \"Domestic Relations\".",
+    "stages": [
+      "initial",
+      "subsequent"
+    ],
+    "request_templates": [
+      "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/{court}/categories?fileable_only=true&timing={Initial|Subsequent}",
+      "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/{court}/case_types/?category_id={category_code}&timing={Initial|Subsequent}",
+      "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/{court}/filing_types/?category_id={category_code}&type_id={case_type_code}&initial={true|false}"
+    ]
+  },
+  "summary": [
+    {
+      "court_code": "dupage",
+      "filing_stage": "initial",
+      "categories_checked": [
+        {
+          "code": "105721",
+          "name": "Family"
+        }
+      ],
+      "labels": {
+        "Appearance": {
+          "matching_filing_paths": 0,
+          "matching_case_types": 0,
+          "examples": []
+        },
+        "Financial Affidavit": {
+          "matching_filing_paths": 0,
+          "matching_case_types": 0,
+          "examples": []
+        },
+        "Parenting Plan": {
+          "matching_filing_paths": 0,
+          "matching_case_types": 0,
+          "examples": []
+        },
+        "Support Information Sheet": {
+          "matching_filing_paths": 0,
+          "matching_case_types": 0,
+          "examples": []
+        }
+      }
+    },
+    {
+      "court_code": "dupage",
+      "filing_stage": "subsequent",
+      "categories_checked": [
+        {
+          "code": "105721",
+          "name": "Family"
+        },
+        {
+          "code": "210",
+          "name": "Family"
+        }
+      ],
+      "labels": {
+        "Appearance": {
+          "matching_filing_paths": 63,
+          "matching_case_types": 63,
+          "examples": [
+            {
+              "category": "Family",
+              "category_code": "105721",
+              "case_type": "Change of Venue - Family",
+              "case_type_code": "192316",
+              "filing_type": "Appearance",
+              "filing_type_code": "129798"
+            },
+            {
+              "category": "Family",
+              "category_code": "105721",
+              "case_type": "Abandoned Baby",
+              "case_type_code": "192317",
+              "filing_type": "Appearance",
+              "filing_type_code": "129798"
+            },
+            {
+              "category": "Family",
+              "category_code": "105721",
+              "case_type": "Child of Assisted Reproduction",
+              "case_type_code": "192318",
+              "filing_type": "Appearance",
+              "filing_type_code": "129798"
+            },
+            {
+              "category": "Family",
+              "category_code": "105721",
+              "case_type": "Delayed Record of Birth",
+              "case_type_code": "192319",
+              "filing_type": "Appearance",
+              "filing_type_code": "129798"
+            }
+          ]
+        },
+        "Financial Affidavit": {
+          "matching_filing_paths": 0,
+          "matching_case_types": 0,
+          "examples": []
+        },
+        "Parenting Plan": {
+          "matching_filing_paths": 0,
+          "matching_case_types": 0,
+          "examples": []
+        },
+        "Support Information Sheet": {
+          "matching_filing_paths": 0,
+          "matching_case_types": 0,
+          "examples": []
+        }
+      }
+    },
+    {
+      "court_code": "cook:dr",
+      "filing_stage": "initial",
+      "categories_checked": [
+        {
+          "code": "172831",
+          "name": "Domestic Relations - Parentage/Child Support"
+        },
+        {
+          "code": "172832",
+          "name": "Domestic Relations - States Attorney Filed Cases"
+        },
+        {
+          "code": "172833",
+          "name": "Domestic Relations - General Proceedings"
+        }
+      ],
+      "labels": {
+        "Appearance": {
+          "matching_filing_paths": 0,
+          "matching_case_types": 0,
+          "examples": []
+        },
+        "Financial Affidavit": {
+          "matching_filing_paths": 0,
+          "matching_case_types": 0,
+          "examples": []
+        },
+        "Parenting Plan": {
+          "matching_filing_paths": 0,
+          "matching_case_types": 0,
+          "examples": []
+        },
+        "Support Information Sheet": {
+          "matching_filing_paths": 0,
+          "matching_case_types": 0,
+          "examples": []
+        }
+      }
+    },
+    {
+      "court_code": "cook:dr",
+      "filing_stage": "subsequent",
+      "categories_checked": [
+        {
+          "code": "172831",
+          "name": "Domestic Relations - Parentage/Child Support"
+        },
+        {
+          "code": "172832",
+          "name": "Domestic Relations - States Attorney Filed Cases"
+        },
+        {
+          "code": "172833",
+          "name": "Domestic Relations - General Proceedings"
+        }
+      ],
+      "labels": {
+        "Appearance": {
+          "matching_filing_paths": 0,
+          "matching_case_types": 0,
+          "examples": []
+        },
+        "Financial Affidavit": {
+          "matching_filing_paths": 0,
+          "matching_case_types": 0,
+          "examples": []
+        },
+        "Parenting Plan": {
+          "matching_filing_paths": 0,
+          "matching_case_types": 0,
+          "examples": []
+        },
+        "Support Information Sheet": {
+          "matching_filing_paths": 0,
+          "matching_case_types": 0,
+          "examples": []
+        }
+      }
+    },
+    {
+      "court_code": "lake",
+      "filing_stage": "initial",
+      "categories_checked": [
+        {
+          "code": "105721",
+          "name": "Family"
+        }
+      ],
+      "labels": {
+        "Appearance": {
+          "matching_filing_paths": 0,
+          "matching_case_types": 0,
+          "examples": []
+        },
+        "Financial Affidavit": {
+          "matching_filing_paths": 0,
+          "matching_case_types": 0,
+          "examples": []
+        },
+        "Parenting Plan": {
+          "matching_filing_paths": 0,
+          "matching_case_types": 0,
+          "examples": []
+        },
+        "Support Information Sheet": {
+          "matching_filing_paths": 0,
+          "matching_case_types": 0,
+          "examples": []
+        }
+      }
+    },
+    {
+      "court_code": "lake",
+      "filing_stage": "subsequent",
+      "categories_checked": [
+        {
+          "code": "105721",
+          "name": "Family"
+        },
+        {
+          "code": "210",
+          "name": "Family"
+        }
+      ],
+      "labels": {
+        "Appearance": {
+          "matching_filing_paths": 78,
+          "matching_case_types": 78,
+          "examples": [
+            {
+              "category": "Family",
+              "category_code": "105721",
+              "case_type": "Delayed Record of Birth",
+              "case_type_code": "105750",
+              "filing_type": "Appearance",
+              "filing_type_code": "50749"
+            },
+            {
+              "category": "Family",
+              "category_code": "105721",
+              "case_type": "Parentage Act - Challenge",
+              "case_type_code": "214624",
+              "filing_type": "Appearance",
+              "filing_type_code": "50749"
+            },
+            {
+              "category": "Family",
+              "category_code": "105721",
+              "case_type": "Change of Venue - Family",
+              "case_type_code": "242477",
+              "filing_type": "Appearance",
+              "filing_type_code": "50749"
+            },
+            {
+              "category": "Family",
+              "category_code": "105721",
+              "case_type": "Abandoned Baby",
+              "case_type_code": "242478",
+              "filing_type": "Appearance",
+              "filing_type_code": "50749"
+            }
+          ]
+        },
+        "Financial Affidavit": {
+          "matching_filing_paths": 78,
+          "matching_case_types": 78,
+          "examples": [
+            {
+              "category": "Family",
+              "category_code": "105721",
+              "case_type": "Delayed Record of Birth",
+              "case_type_code": "105750",
+              "filing_type": "Financial Affidavit",
+              "filing_type_code": "243132"
+            },
+            {
+              "category": "Family",
+              "category_code": "105721",
+              "case_type": "Parentage Act - Challenge",
+              "case_type_code": "214624",
+              "filing_type": "Financial Affidavit",
+              "filing_type_code": "243132"
+            },
+            {
+              "category": "Family",
+              "category_code": "105721",
+              "case_type": "Change of Venue - Family",
+              "case_type_code": "242477",
+              "filing_type": "Financial Affidavit",
+              "filing_type_code": "243132"
+            },
+            {
+              "category": "Family",
+              "category_code": "105721",
+              "case_type": "Abandoned Baby",
+              "case_type_code": "242478",
+              "filing_type": "Financial Affidavit",
+              "filing_type_code": "243132"
+            }
+          ]
+        },
+        "Parenting Plan": {
+          "matching_filing_paths": 78,
+          "matching_case_types": 78,
+          "examples": [
+            {
+              "category": "Family",
+              "category_code": "105721",
+              "case_type": "Delayed Record of Birth",
+              "case_type_code": "105750",
+              "filing_type": "Parenting Plan",
+              "filing_type_code": "244093"
+            },
+            {
+              "category": "Family",
+              "category_code": "105721",
+              "case_type": "Parentage Act - Challenge",
+              "case_type_code": "214624",
+              "filing_type": "Parenting Plan",
+              "filing_type_code": "244093"
+            },
+            {
+              "category": "Family",
+              "category_code": "105721",
+              "case_type": "Change of Venue - Family",
+              "case_type_code": "242477",
+              "filing_type": "Parenting Plan",
+              "filing_type_code": "244093"
+            },
+            {
+              "category": "Family",
+              "category_code": "105721",
+              "case_type": "Abandoned Baby",
+              "case_type_code": "242478",
+              "filing_type": "Parenting Plan",
+              "filing_type_code": "244093"
+            }
+          ]
+        },
+        "Support Information Sheet": {
+          "matching_filing_paths": 78,
+          "matching_case_types": 78,
+          "examples": [
+            {
+              "category": "Family",
+              "category_code": "105721",
+              "case_type": "Delayed Record of Birth",
+              "case_type_code": "105750",
+              "filing_type": "Support Information Sheet",
+              "filing_type_code": "243670"
+            },
+            {
+              "category": "Family",
+              "category_code": "105721",
+              "case_type": "Parentage Act - Challenge",
+              "case_type_code": "214624",
+              "filing_type": "Support Information Sheet",
+              "filing_type_code": "243670"
+            },
+            {
+              "category": "Family",
+              "category_code": "105721",
+              "case_type": "Change of Venue - Family",
+              "case_type_code": "242477",
+              "filing_type": "Support Information Sheet",
+              "filing_type_code": "243670"
+            },
+            {
+              "category": "Family",
+              "category_code": "105721",
+              "case_type": "Abandoned Baby",
+              "case_type_code": "242478",
+              "filing_type": "Support Information Sheet",
+              "filing_type_code": "243670"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "interpretation": "A zero count means the exact filing label did not occur on any live path in the requested court/category/stage scope. Source-side case type phrases are not provider case type evidence. Counts include exact-name filing options per (court, category, case type, stage); they do not establish that an interview output is valid on every matching path."
+}

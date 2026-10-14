@@ -45,7 +45,7 @@ class FilingCodePath(models.Model):
 
 
 class FilingCodeLabel(models.Model):
-    """One filing type, case category and case type by name, across every court that offers it.
+    """One filing/category/case-type name and alias vocabulary, across courts sharing both.
 
     Illinois repeats each label for 13 to 21 courts on average, as paths.
     Searching labels first keeps the search off the much larger paths table
@@ -59,7 +59,7 @@ class FilingCodeLabel(models.Model):
     filing_type_name = models.TextField()
     case_category_name = models.TextField()
     case_type_name = models.TextField()
-    # The words of the three names. A path's search text adds its court's words.
+    # Names and scoped aliases. A path's search text also adds its court's words.
     search_text = models.TextField()
     filing_terms = models.TextField()
     case_terms = models.TextField()

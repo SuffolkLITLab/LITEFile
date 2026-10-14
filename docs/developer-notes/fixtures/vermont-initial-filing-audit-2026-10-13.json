@@ -1,0 +1,2115 @@
+{
+  "audit_name": "Vermont initial filing code availability audit",
+  "as_of_date": "2026-10-13",
+  "environment": "https://efile-test.suffolklitlab.org",
+  "read_only": true,
+  "scope": "Initial case catalog options only; per enabled court, inspect Family RFA case types and exact Initial Filing option; inspect Small Claims case types where offered. No legal coverage or interview-completeness assertion.",
+  "provider_response_date_range_utc": {
+    "first": "Tue, 13 Oct 2026 20:26:29 GMT",
+    "last": "Tue, 13 Oct 2026 20:26:41 GMT"
+  },
+  "enabled_court_count": 17,
+  "method": {
+    "court_source": "https://efile-test.suffolklitlab.org/jurisdictions/vermont/codes/courts/?fileable_only=false&with_names=true",
+    "court_selection": "Fetched CodeCatalog court list (fileable_only=false, with_names=true), then retained Vermont court_selector options: names ending in Unit, Environmental Division, Supreme Court, Judicial Bureau.",
+    "requests": [
+      "GET /jurisdictions/vermont/codes/courts/{court}/categories?fileable_only=true&timing=Initial",
+      "GET /jurisdictions/vermont/codes/courts/{court}/case_types/?category_id={category_id}&timing=Initial",
+      "GET /jurisdictions/vermont/codes/courts/{court}/filing_types/?initial=true&category_id={category_id}&type_id={case_type_id}"
+    ],
+    "matching_rule": "Exact, case-sensitive filing type name “Initial Filing”; code and name are retained as returned by the provider (deduplicated by code as CodeCatalog does).",
+    "limits": [
+      "This is a catalog retrieval test, not a legal coverage assertion.",
+      "The API response does not expose a catalog version. Each recorded response Date header is included.",
+      "Only exact Initial Filing labels are counted; Initial Filing - Confidential is not treated as a match."
+    ]
+  },
+  "summary": {
+    "county_units_with_all_three_rfa_paths": 14,
+    "rfa_case_types_per_unit": 3,
+    "rfa_initial_filing_code": "9564",
+    "county_units_with_all_eight_small_claims_paths": 14,
+    "small_claims_case_types_per_unit": 8,
+    "small_claims_initial_filing_code": "9563",
+    "selector_courts_without_initial_family_category": [
+      "vermont:ed",
+      "vermont:jb",
+      "vermont:supreme"
+    ],
+    "provider_request_errors": 0
+  },
+  "rfa_case_types_expected": [
+    "Relief from Abuse",
+    "Relief from Abuse on Behalf of a Minor",
+    "Relief from Abuse/Neglect/Exploitation"
+  ],
+  "courts": [
+    {
+      "court_code": "sc:addison",
+      "court_name": "Addison Unit",
+      "initial_categories": [
+        {
+          "code": "169",
+          "name": "Probate or Mental Health"
+        },
+        {
+          "code": "210",
+          "name": "Family"
+        },
+        {
+          "code": "7",
+          "name": "Civil"
+        }
+      ],
+      "rfa_status": "audited",
+      "rfa": [
+        {
+          "case_type_id": "6177",
+          "case_type_name": "Relief from Abuse",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9564",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "6178",
+          "case_type_name": "Relief from Abuse on Behalf of a Minor",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9564",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "6179",
+          "case_type_name": "Relief from Abuse/Neglect/Exploitation",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9564",
+              "name": "Initial Filing"
+            }
+          ]
+        }
+      ],
+      "small_claims": [
+        {
+          "case_type_id": "7232",
+          "case_type_name": "Small Claims over $1,001",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "7233",
+          "case_type_name": "Small Claims up to $1,000.00",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13864",
+          "case_type_name": "Small Claims $1,000 or less",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13878",
+          "case_type_name": "Small Claims Medical Debt $1,000 or less",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13892",
+          "case_type_name": "Small Claims Consumer Credit Debt $1,000 or less",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13906",
+          "case_type_name": "Small Claims $1,001 - $10,000",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13920",
+          "case_type_name": "Small Claims Medical Debt $1,001 - $5,000",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13934",
+          "case_type_name": "Small Claims Consumer Credit Debt $1,001 - $5,000",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "court_code": "sc:bennington",
+      "court_name": "Bennington Unit",
+      "initial_categories": [
+        {
+          "code": "169",
+          "name": "Probate or Mental Health"
+        },
+        {
+          "code": "210",
+          "name": "Family"
+        },
+        {
+          "code": "7",
+          "name": "Civil"
+        }
+      ],
+      "rfa_status": "audited",
+      "rfa": [
+        {
+          "case_type_id": "6177",
+          "case_type_name": "Relief from Abuse",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9564",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "6178",
+          "case_type_name": "Relief from Abuse on Behalf of a Minor",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9564",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "6179",
+          "case_type_name": "Relief from Abuse/Neglect/Exploitation",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9564",
+              "name": "Initial Filing"
+            }
+          ]
+        }
+      ],
+      "small_claims": [
+        {
+          "case_type_id": "7232",
+          "case_type_name": "Small Claims over $1,001",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "7233",
+          "case_type_name": "Small Claims up to $1,000.00",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13865",
+          "case_type_name": "Small Claims $1,000 or less",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13879",
+          "case_type_name": "Small Claims Medical Debt $1,000 or less",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13893",
+          "case_type_name": "Small Claims Consumer Credit Debt $1,000 or less",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13907",
+          "case_type_name": "Small Claims $1,001 - $10,000",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13921",
+          "case_type_name": "Small Claims Medical Debt $1,001 - $5,000",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13935",
+          "case_type_name": "Small Claims Consumer Credit Debt $1,001 - $5,000",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "court_code": "sc:caledonia",
+      "court_name": "Caledonia Unit",
+      "initial_categories": [
+        {
+          "code": "169",
+          "name": "Probate or Mental Health"
+        },
+        {
+          "code": "210",
+          "name": "Family"
+        },
+        {
+          "code": "7",
+          "name": "Civil"
+        }
+      ],
+      "rfa_status": "audited",
+      "rfa": [
+        {
+          "case_type_id": "6177",
+          "case_type_name": "Relief from Abuse",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9564",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "6178",
+          "case_type_name": "Relief from Abuse on Behalf of a Minor",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9564",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "6179",
+          "case_type_name": "Relief from Abuse/Neglect/Exploitation",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9564",
+              "name": "Initial Filing"
+            }
+          ]
+        }
+      ],
+      "small_claims": [
+        {
+          "case_type_id": "7232",
+          "case_type_name": "Small Claims over $1,001",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "7233",
+          "case_type_name": "Small Claims up to $1,000.00",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13866",
+          "case_type_name": "Small Claims $1,000 or less",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13880",
+          "case_type_name": "Small Claims Medical Debt $1,000 or less",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13894",
+          "case_type_name": "Small Claims Consumer Credit Debt $1,000 or less",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13908",
+          "case_type_name": "Small Claims $1,001 - $10,000",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13922",
+          "case_type_name": "Small Claims Medical Debt $1,001 - $5,000",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13936",
+          "case_type_name": "Small Claims Consumer Credit Debt $1,001 - $5,000",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "court_code": "sc:chittendon",
+      "court_name": "Chittenden Unit",
+      "initial_categories": [
+        {
+          "code": "169",
+          "name": "Probate or Mental Health"
+        },
+        {
+          "code": "210",
+          "name": "Family"
+        },
+        {
+          "code": "7",
+          "name": "Civil"
+        }
+      ],
+      "rfa_status": "audited",
+      "rfa": [
+        {
+          "case_type_id": "6177",
+          "case_type_name": "Relief from Abuse",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9564",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "6178",
+          "case_type_name": "Relief from Abuse on Behalf of a Minor",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9564",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "6179",
+          "case_type_name": "Relief from Abuse/Neglect/Exploitation",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9564",
+              "name": "Initial Filing"
+            }
+          ]
+        }
+      ],
+      "small_claims": [
+        {
+          "case_type_id": "7232",
+          "case_type_name": "Small Claims over $1,001",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "7233",
+          "case_type_name": "Small Claims up to $1,000.00",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13867",
+          "case_type_name": "Small Claims $1,000 or less",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13881",
+          "case_type_name": "Small Claims Medical Debt $1,000 or less",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13895",
+          "case_type_name": "Small Claims Consumer Credit Debt $1,000 or less",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13909",
+          "case_type_name": "Small Claims $1,001 - $10,000",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13923",
+          "case_type_name": "Small Claims Medical Debt $1,001 - $5,000",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13937",
+          "case_type_name": "Small Claims Consumer Credit Debt $1,001 - $5,000",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "court_code": "vermont:ed",
+      "court_name": "Environmental Division",
+      "initial_categories": [
+        {
+          "code": "7",
+          "name": "Civil"
+        }
+      ],
+      "rfa_status": "no_initial_family_category",
+      "rfa": [],
+      "small_claims": [],
+      "errors": []
+    },
+    {
+      "court_code": "sc:essex",
+      "court_name": "Essex Unit",
+      "initial_categories": [
+        {
+          "code": "169",
+          "name": "Probate or Mental Health"
+        },
+        {
+          "code": "210",
+          "name": "Family"
+        },
+        {
+          "code": "7",
+          "name": "Civil"
+        }
+      ],
+      "rfa_status": "audited",
+      "rfa": [
+        {
+          "case_type_id": "6177",
+          "case_type_name": "Relief from Abuse",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9564",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "6178",
+          "case_type_name": "Relief from Abuse on Behalf of a Minor",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9564",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "6179",
+          "case_type_name": "Relief from Abuse/Neglect/Exploitation",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9564",
+              "name": "Initial Filing"
+            }
+          ]
+        }
+      ],
+      "small_claims": [
+        {
+          "case_type_id": "7232",
+          "case_type_name": "Small Claims over $1,001",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "7233",
+          "case_type_name": "Small Claims up to $1,000.00",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13868",
+          "case_type_name": "Small Claims $1,000 or less",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13882",
+          "case_type_name": "Small Claims Medical Debt $1,000 or less",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13896",
+          "case_type_name": "Small Claims Consumer Credit Debt $1,000 or less",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13910",
+          "case_type_name": "Small Claims $1,001 - $10,000",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13924",
+          "case_type_name": "Small Claims Medical Debt $1,001 - $5,000",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13938",
+          "case_type_name": "Small Claims Consumer Credit Debt $1,001 - $5,000",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "court_code": "sc:franklin",
+      "court_name": "Franklin Unit",
+      "initial_categories": [
+        {
+          "code": "169",
+          "name": "Probate or Mental Health"
+        },
+        {
+          "code": "210",
+          "name": "Family"
+        },
+        {
+          "code": "7",
+          "name": "Civil"
+        }
+      ],
+      "rfa_status": "audited",
+      "rfa": [
+        {
+          "case_type_id": "6177",
+          "case_type_name": "Relief from Abuse",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9564",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "6178",
+          "case_type_name": "Relief from Abuse on Behalf of a Minor",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9564",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "6179",
+          "case_type_name": "Relief from Abuse/Neglect/Exploitation",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9564",
+              "name": "Initial Filing"
+            }
+          ]
+        }
+      ],
+      "small_claims": [
+        {
+          "case_type_id": "7232",
+          "case_type_name": "Small Claims over $1,001",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "7233",
+          "case_type_name": "Small Claims up to $1,000.00",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13869",
+          "case_type_name": "Small Claims $1,000 or less",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13883",
+          "case_type_name": "Small Claims Medical Debt $1,000 or less",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13897",
+          "case_type_name": "Small Claims Consumer Credit Debt $1,000 or less",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13911",
+          "case_type_name": "Small Claims $1,001 - $10,000",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13925",
+          "case_type_name": "Small Claims Medical Debt $1,001 - $5,000",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13939",
+          "case_type_name": "Small Claims Consumer Credit Debt $1,001 - $5,000",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "court_code": "sc:grandisle",
+      "court_name": "Grand Isle Unit",
+      "initial_categories": [
+        {
+          "code": "169",
+          "name": "Probate or Mental Health"
+        },
+        {
+          "code": "210",
+          "name": "Family"
+        },
+        {
+          "code": "7",
+          "name": "Civil"
+        }
+      ],
+      "rfa_status": "audited",
+      "rfa": [
+        {
+          "case_type_id": "6177",
+          "case_type_name": "Relief from Abuse",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9564",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "6178",
+          "case_type_name": "Relief from Abuse on Behalf of a Minor",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9564",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "6179",
+          "case_type_name": "Relief from Abuse/Neglect/Exploitation",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9564",
+              "name": "Initial Filing"
+            }
+          ]
+        }
+      ],
+      "small_claims": [
+        {
+          "case_type_id": "7232",
+          "case_type_name": "Small Claims over $1,001",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "7233",
+          "case_type_name": "Small Claims up to $1,000.00",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13870",
+          "case_type_name": "Small Claims $1,000 or less",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13884",
+          "case_type_name": "Small Claims Medical Debt $1,000 or less",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13898",
+          "case_type_name": "Small Claims Consumer Credit Debt $1,000 or less",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13912",
+          "case_type_name": "Small Claims $1,001 - $10,000",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13926",
+          "case_type_name": "Small Claims Medical Debt $1,001 - $5,000",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13940",
+          "case_type_name": "Small Claims Consumer Credit Debt $1,001 - $5,000",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "court_code": "vermont:jb",
+      "court_name": "Judicial Bureau",
+      "initial_categories": [],
+      "rfa_status": "no_initial_family_category",
+      "rfa": [],
+      "small_claims": [],
+      "errors": []
+    },
+    {
+      "court_code": "sc:lamoille",
+      "court_name": "Lamoille Unit",
+      "initial_categories": [
+        {
+          "code": "169",
+          "name": "Probate or Mental Health"
+        },
+        {
+          "code": "210",
+          "name": "Family"
+        },
+        {
+          "code": "7",
+          "name": "Civil"
+        }
+      ],
+      "rfa_status": "audited",
+      "rfa": [
+        {
+          "case_type_id": "6177",
+          "case_type_name": "Relief from Abuse",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9564",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "6178",
+          "case_type_name": "Relief from Abuse on Behalf of a Minor",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9564",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "6179",
+          "case_type_name": "Relief from Abuse/Neglect/Exploitation",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9564",
+              "name": "Initial Filing"
+            }
+          ]
+        }
+      ],
+      "small_claims": [
+        {
+          "case_type_id": "7232",
+          "case_type_name": "Small Claims over $1,001",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "7233",
+          "case_type_name": "Small Claims up to $1,000.00",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13871",
+          "case_type_name": "Small Claims $1,000 or less",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13885",
+          "case_type_name": "Small Claims Medical Debt $1,000 or less",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13899",
+          "case_type_name": "Small Claims Consumer Credit Debt $1,000 or less",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13913",
+          "case_type_name": "Small Claims $1,001 - $10,000",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13927",
+          "case_type_name": "Small Claims Medical Debt $1,001 - $5,000",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13941",
+          "case_type_name": "Small Claims Consumer Credit Debt $1,001 - $5,000",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "court_code": "sc:orange",
+      "court_name": "Orange Unit",
+      "initial_categories": [
+        {
+          "code": "169",
+          "name": "Probate or Mental Health"
+        },
+        {
+          "code": "210",
+          "name": "Family"
+        },
+        {
+          "code": "7",
+          "name": "Civil"
+        }
+      ],
+      "rfa_status": "audited",
+      "rfa": [
+        {
+          "case_type_id": "6177",
+          "case_type_name": "Relief from Abuse",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9564",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "6178",
+          "case_type_name": "Relief from Abuse on Behalf of a Minor",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9564",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "6179",
+          "case_type_name": "Relief from Abuse/Neglect/Exploitation",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9564",
+              "name": "Initial Filing"
+            }
+          ]
+        }
+      ],
+      "small_claims": [
+        {
+          "case_type_id": "7232",
+          "case_type_name": "Small Claims over $1,001",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "7233",
+          "case_type_name": "Small Claims up to $1,000.00",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13872",
+          "case_type_name": "Small Claims $1,000 or less",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13886",
+          "case_type_name": "Small Claims Medical Debt $1,000 or less",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13900",
+          "case_type_name": "Small Claims Consumer Credit Debt $1,000 or less",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13914",
+          "case_type_name": "Small Claims $1,001 - $10,000",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13928",
+          "case_type_name": "Small Claims Medical Debt $1,001 - $5,000",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13942",
+          "case_type_name": "Small Claims Consumer Credit Debt $1,001 - $5,000",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "court_code": "sc:orleans",
+      "court_name": "Orleans Unit",
+      "initial_categories": [
+        {
+          "code": "169",
+          "name": "Probate or Mental Health"
+        },
+        {
+          "code": "210",
+          "name": "Family"
+        },
+        {
+          "code": "7",
+          "name": "Civil"
+        }
+      ],
+      "rfa_status": "audited",
+      "rfa": [
+        {
+          "case_type_id": "6177",
+          "case_type_name": "Relief from Abuse",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9564",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "6178",
+          "case_type_name": "Relief from Abuse on Behalf of a Minor",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9564",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "6179",
+          "case_type_name": "Relief from Abuse/Neglect/Exploitation",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9564",
+              "name": "Initial Filing"
+            }
+          ]
+        }
+      ],
+      "small_claims": [
+        {
+          "case_type_id": "7232",
+          "case_type_name": "Small Claims over $1,001",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "7233",
+          "case_type_name": "Small Claims up to $1,000.00",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13873",
+          "case_type_name": "Small Claims $1,000 or less",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13887",
+          "case_type_name": "Small Claims Medical Debt $1,000 or less",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13901",
+          "case_type_name": "Small Claims Consumer Credit Debt $1,000 or less",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13915",
+          "case_type_name": "Small Claims $1,001 - $10,000",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13929",
+          "case_type_name": "Small Claims Medical Debt $1,001 - $5,000",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13943",
+          "case_type_name": "Small Claims Consumer Credit Debt $1,001 - $5,000",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "court_code": "sc:rutland",
+      "court_name": "Rutland Unit",
+      "initial_categories": [
+        {
+          "code": "169",
+          "name": "Probate or Mental Health"
+        },
+        {
+          "code": "210",
+          "name": "Family"
+        },
+        {
+          "code": "7",
+          "name": "Civil"
+        }
+      ],
+      "rfa_status": "audited",
+      "rfa": [
+        {
+          "case_type_id": "6177",
+          "case_type_name": "Relief from Abuse",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9564",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "6178",
+          "case_type_name": "Relief from Abuse on Behalf of a Minor",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9564",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "6179",
+          "case_type_name": "Relief from Abuse/Neglect/Exploitation",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9564",
+              "name": "Initial Filing"
+            }
+          ]
+        }
+      ],
+      "small_claims": [
+        {
+          "case_type_id": "7232",
+          "case_type_name": "Small Claims over $1,001",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "7233",
+          "case_type_name": "Small Claims up to $1,000.00",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13874",
+          "case_type_name": "Small Claims $1,000 or less",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13888",
+          "case_type_name": "Small Claims Medical Debt $1,000 or less",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13902",
+          "case_type_name": "Small Claims Consumer Credit Debt $1,000 or less",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13916",
+          "case_type_name": "Small Claims $1,001 - $10,000",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13930",
+          "case_type_name": "Small Claims Medical Debt $1,001 - $5,000",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13944",
+          "case_type_name": "Small Claims Consumer Credit Debt $1,001 - $5,000",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "court_code": "vermont:supreme",
+      "court_name": "Supreme Court",
+      "initial_categories": [
+        {
+          "code": "211",
+          "name": "Appellate"
+        }
+      ],
+      "rfa_status": "no_initial_family_category",
+      "rfa": [],
+      "small_claims": [],
+      "errors": []
+    },
+    {
+      "court_code": "sc:washington",
+      "court_name": "Washington Unit",
+      "initial_categories": [
+        {
+          "code": "169",
+          "name": "Probate or Mental Health"
+        },
+        {
+          "code": "210",
+          "name": "Family"
+        },
+        {
+          "code": "7",
+          "name": "Civil"
+        }
+      ],
+      "rfa_status": "audited",
+      "rfa": [
+        {
+          "case_type_id": "6177",
+          "case_type_name": "Relief from Abuse",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9564",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "6178",
+          "case_type_name": "Relief from Abuse on Behalf of a Minor",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9564",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "6179",
+          "case_type_name": "Relief from Abuse/Neglect/Exploitation",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9564",
+              "name": "Initial Filing"
+            }
+          ]
+        }
+      ],
+      "small_claims": [
+        {
+          "case_type_id": "7232",
+          "case_type_name": "Small Claims over $1,001",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "7233",
+          "case_type_name": "Small Claims up to $1,000.00",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13875",
+          "case_type_name": "Small Claims $1,000 or less",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13889",
+          "case_type_name": "Small Claims Medical Debt $1,000 or less",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13903",
+          "case_type_name": "Small Claims Consumer Credit Debt $1,000 or less",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13917",
+          "case_type_name": "Small Claims $1,001 - $10,000",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13931",
+          "case_type_name": "Small Claims Medical Debt $1,001 - $5,000",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13945",
+          "case_type_name": "Small Claims Consumer Credit Debt $1,001 - $5,000",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "court_code": "sc:windham",
+      "court_name": "Windham Unit",
+      "initial_categories": [
+        {
+          "code": "169",
+          "name": "Probate or Mental Health"
+        },
+        {
+          "code": "210",
+          "name": "Family"
+        },
+        {
+          "code": "7",
+          "name": "Civil"
+        }
+      ],
+      "rfa_status": "audited",
+      "rfa": [
+        {
+          "case_type_id": "6177",
+          "case_type_name": "Relief from Abuse",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9564",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "6178",
+          "case_type_name": "Relief from Abuse on Behalf of a Minor",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9564",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "6179",
+          "case_type_name": "Relief from Abuse/Neglect/Exploitation",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9564",
+              "name": "Initial Filing"
+            }
+          ]
+        }
+      ],
+      "small_claims": [
+        {
+          "case_type_id": "7232",
+          "case_type_name": "Small Claims over $1,001",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "7233",
+          "case_type_name": "Small Claims up to $1,000.00",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13876",
+          "case_type_name": "Small Claims $1,000 or less",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13890",
+          "case_type_name": "Small Claims Medical Debt $1,000 or less",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13904",
+          "case_type_name": "Small Claims Consumer Credit Debt $1,000 or less",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13918",
+          "case_type_name": "Small Claims $1,001 - $10,000",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13932",
+          "case_type_name": "Small Claims Medical Debt $1,001 - $5,000",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13946",
+          "case_type_name": "Small Claims Consumer Credit Debt $1,001 - $5,000",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "court_code": "sc:windsor",
+      "court_name": "Windsor Unit",
+      "initial_categories": [
+        {
+          "code": "169",
+          "name": "Probate or Mental Health"
+        },
+        {
+          "code": "210",
+          "name": "Family"
+        },
+        {
+          "code": "7",
+          "name": "Civil"
+        }
+      ],
+      "rfa_status": "audited",
+      "rfa": [
+        {
+          "case_type_id": "6177",
+          "case_type_name": "Relief from Abuse",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9564",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "6178",
+          "case_type_name": "Relief from Abuse on Behalf of a Minor",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9564",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "6179",
+          "case_type_name": "Relief from Abuse/Neglect/Exploitation",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9564",
+              "name": "Initial Filing"
+            }
+          ]
+        }
+      ],
+      "small_claims": [
+        {
+          "case_type_id": "7232",
+          "case_type_name": "Small Claims over $1,001",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "7233",
+          "case_type_name": "Small Claims up to $1,000.00",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13877",
+          "case_type_name": "Small Claims $1,000 or less",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13891",
+          "case_type_name": "Small Claims Medical Debt $1,000 or less",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13905",
+          "case_type_name": "Small Claims Consumer Credit Debt $1,000 or less",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13919",
+          "case_type_name": "Small Claims $1,001 - $10,000",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13933",
+          "case_type_name": "Small Claims Medical Debt $1,001 - $5,000",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        },
+        {
+          "case_type_id": "13947",
+          "case_type_name": "Small Claims Consumer Credit Debt $1,001 - $5,000",
+          "exact_initial_filing_offered": true,
+          "filing_options": [
+            {
+              "code": "9563",
+              "name": "Initial Filing"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    }
+  ]
+}

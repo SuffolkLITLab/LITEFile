@@ -1,0 +1,452 @@
+{
+  "version": 1,
+  "revision": "HEAD-47f6afc",
+  "database": "isolated sqlite; fixture paths only",
+  "fixture": "/home/quinten/LITEFile/docs/developer-notes/fixtures/form-search-relevance-replay-2026-10-13.json",
+  "ran_at": "2026-10-13T23:04:40.887555+00:00",
+  "search_function": "efile.services.filing_code_search.search_paths",
+  "summary": {
+    "illinois": {
+      "fixture_paths": 8,
+      "queries": 6,
+      "positive_queries": 4,
+      "top1_hit_rate": 0.0,
+      "top5_hit_rate": 0.0,
+      "mean_recall_at_5": 0.0,
+      "negative_queries": 2,
+      "negative_no_result_rate": 1.0,
+      "negative_false_result_queries": []
+    },
+    "vermont": {
+      "fixture_paths": 16,
+      "queries": 16,
+      "positive_queries": 14,
+      "top1_hit_rate": 0.21428571428571427,
+      "top5_hit_rate": 0.21428571428571427,
+      "mean_recall_at_5": 0.21428571428571427,
+      "negative_queries": 2,
+      "negative_no_result_rate": 1.0,
+      "negative_false_result_queries": []
+    }
+  },
+  "results": [
+    {
+      "query_id": "vt_rfa_adult_initial_id",
+      "state": "vermont",
+      "query": "400-00150C",
+      "initial": true,
+      "expected_relevant_ids": [
+        "vt_rfa_adult_initial"
+      ],
+      "top1_ids": [],
+      "top5_ids": [],
+      "total_results": 0,
+      "top1_hit": false,
+      "top5_hit": false,
+      "recall_at_5": 0.0,
+      "no_result_expected": false,
+      "no_result_correct": null,
+      "corrected_terms": []
+    },
+    {
+      "query_id": "vt_rfa_child_initial_id",
+      "state": "vermont",
+      "query": "400-00150CC",
+      "initial": true,
+      "expected_relevant_ids": [
+        "vt_rfa_child_initial"
+      ],
+      "top1_ids": [],
+      "top5_ids": [],
+      "total_results": 0,
+      "top1_hit": false,
+      "top5_hit": false,
+      "recall_at_5": 0.0,
+      "no_result_expected": false,
+      "no_result_correct": null,
+      "corrected_terms": []
+    },
+    {
+      "query_id": "vt_affidavit_adult_id",
+      "state": "vermont",
+      "query": "400-00151",
+      "initial": true,
+      "expected_relevant_ids": [
+        "vt_affidavit_adult_initial"
+      ],
+      "top1_ids": [],
+      "top5_ids": [],
+      "total_results": 0,
+      "top1_hit": false,
+      "top5_hit": false,
+      "recall_at_5": 0.0,
+      "no_result_expected": false,
+      "no_result_correct": null,
+      "corrected_terms": []
+    },
+    {
+      "query_id": "vt_affidavit_minor_id",
+      "state": "vermont",
+      "query": "400-00151M",
+      "initial": true,
+      "expected_relevant_ids": [
+        "vt_affidavit_child_initial"
+      ],
+      "top1_ids": [],
+      "top5_ids": [],
+      "total_results": 0,
+      "top1_hit": false,
+      "top5_hit": false,
+      "recall_at_5": 0.0,
+      "no_result_expected": false,
+      "no_result_correct": null,
+      "corrected_terms": []
+    },
+    {
+      "query_id": "vt_notice_civil_id",
+      "state": "vermont",
+      "query": "100-00265",
+      "initial": false,
+      "expected_relevant_ids": [
+        "vt_notice_civil_subsequent"
+      ],
+      "top1_ids": [],
+      "top5_ids": [],
+      "total_results": 0,
+      "top1_hit": false,
+      "top5_hit": false,
+      "recall_at_5": 0.0,
+      "no_result_expected": false,
+      "no_result_correct": null,
+      "corrected_terms": []
+    },
+    {
+      "query_id": "vt_notice_civil_wrong_stage",
+      "state": "vermont",
+      "query": "100-00265",
+      "initial": true,
+      "expected_relevant_ids": [],
+      "top1_ids": [],
+      "top5_ids": [],
+      "total_results": 0,
+      "top1_hit": false,
+      "top5_hit": false,
+      "recall_at_5": null,
+      "no_result_expected": true,
+      "no_result_correct": true,
+      "corrected_terms": []
+    },
+    {
+      "query_id": "vt_family_notice_id",
+      "state": "vermont",
+      "query": "400-00831",
+      "initial": false,
+      "expected_relevant_ids": [
+        "vt_notice_family_subsequent"
+      ],
+      "top1_ids": [],
+      "top5_ids": [],
+      "total_results": 0,
+      "top1_hit": false,
+      "top5_hit": false,
+      "recall_at_5": 0.0,
+      "no_result_expected": false,
+      "no_result_correct": null,
+      "corrected_terms": []
+    },
+    {
+      "query_id": "vt_small_claims_answer_id",
+      "state": "vermont",
+      "query": "100-00126",
+      "initial": false,
+      "expected_relevant_ids": [
+        "vt_answer_smallclaims_subsequent"
+      ],
+      "top1_ids": [],
+      "top5_ids": [],
+      "total_results": 0,
+      "top1_hit": false,
+      "top5_hit": false,
+      "recall_at_5": 0.0,
+      "no_result_expected": false,
+      "no_result_correct": null,
+      "corrected_terms": []
+    },
+    {
+      "query_id": "vt_certificate_service_id",
+      "state": "vermont",
+      "query": "600-00264",
+      "initial": false,
+      "expected_relevant_ids": [
+        "vt_certificate_civil"
+      ],
+      "top1_ids": [],
+      "top5_ids": [],
+      "total_results": 0,
+      "top1_hit": false,
+      "top5_hit": false,
+      "recall_at_5": 0.0,
+      "no_result_expected": false,
+      "no_result_correct": null,
+      "corrected_terms": []
+    },
+    {
+      "query_id": "vt_unmapped_number_no_results",
+      "state": "vermont",
+      "query": "999-99888",
+      "initial": false,
+      "expected_relevant_ids": [],
+      "top1_ids": [],
+      "top5_ids": [],
+      "total_results": 0,
+      "top1_hit": false,
+      "top5_hit": false,
+      "recall_at_5": null,
+      "no_result_expected": true,
+      "no_result_correct": true,
+      "corrected_terms": []
+    },
+    {
+      "query_id": "il_atj_851_7",
+      "state": "illinois",
+      "query": "ATJ 851.7",
+      "initial": false,
+      "expected_relevant_ids": [
+        "il_proof_delivery_dupage"
+      ],
+      "top1_ids": [],
+      "top5_ids": [],
+      "total_results": 0,
+      "top1_hit": false,
+      "top5_hit": false,
+      "recall_at_5": 0.0,
+      "no_result_expected": false,
+      "no_result_correct": null,
+      "corrected_terms": []
+    },
+    {
+      "query_id": "il_atj_111_5_family_only",
+      "state": "illinois",
+      "query": "ATJ 111.5",
+      "initial": false,
+      "expected_relevant_ids": [
+        "il_family_appearance_cook"
+      ],
+      "top1_ids": [],
+      "top5_ids": [],
+      "total_results": 0,
+      "top1_hit": false,
+      "top5_hit": false,
+      "recall_at_5": 0.0,
+      "no_result_expected": false,
+      "no_result_correct": null,
+      "corrected_terms": []
+    },
+    {
+      "query_id": "il_atj_128_4_family_category",
+      "state": "illinois",
+      "query": "ATJ 128.4",
+      "initial": true,
+      "expected_relevant_ids": [
+        "il_support_info_family"
+      ],
+      "top1_ids": [],
+      "top5_ids": [],
+      "total_results": 0,
+      "top1_hit": false,
+      "top5_hit": false,
+      "recall_at_5": 0.0,
+      "no_result_expected": false,
+      "no_result_correct": null,
+      "corrected_terms": []
+    },
+    {
+      "query_id": "il_cook_atj_503_11_scoped",
+      "state": "illinois",
+      "query": "ATJ 503.11 Appearance Filed Fee",
+      "initial": false,
+      "expected_relevant_ids": [
+        "il_cook_appearance_fee",
+        "il_cook_appearance_other_allowed_cook"
+      ],
+      "top1_ids": [],
+      "top5_ids": [],
+      "total_results": 0,
+      "top1_hit": false,
+      "top5_hit": false,
+      "recall_at_5": 0.0,
+      "no_result_expected": false,
+      "no_result_correct": null,
+      "corrected_terms": []
+    },
+    {
+      "query_id": "il_unknown_number_no_results",
+      "state": "illinois",
+      "query": "xqzvbnm-99999",
+      "initial": false,
+      "expected_relevant_ids": [],
+      "top1_ids": [],
+      "top5_ids": [],
+      "total_results": 0,
+      "top1_hit": false,
+      "top5_hit": false,
+      "recall_at_5": null,
+      "no_result_expected": true,
+      "no_result_correct": true,
+      "corrected_terms": []
+    },
+    {
+      "query_id": "il_vt_id_cross_state_no_results",
+      "state": "illinois",
+      "query": "400-00150C",
+      "initial": true,
+      "expected_relevant_ids": [],
+      "top1_ids": [],
+      "top5_ids": [],
+      "total_results": 0,
+      "top1_hit": false,
+      "top5_hit": false,
+      "recall_at_5": null,
+      "no_result_expected": true,
+      "no_result_correct": true,
+      "corrected_terms": []
+    },
+    {
+      "query_id": "vt_exact_label_control",
+      "state": "vermont",
+      "query": "Certificate of Service",
+      "initial": false,
+      "expected_relevant_ids": [
+        "vt_certificate_civil"
+      ],
+      "top1_ids": [
+        "vt_certificate_civil"
+      ],
+      "top5_ids": [
+        "vt_certificate_civil"
+      ],
+      "total_results": 1,
+      "top1_hit": true,
+      "top5_hit": true,
+      "recall_at_5": 1.0,
+      "no_result_expected": false,
+      "no_result_correct": null,
+      "corrected_terms": []
+    },
+    {
+      "query_id": "vt_rfa_complaint_plain_language",
+      "state": "vermont",
+      "query": "complaint",
+      "initial": true,
+      "expected_relevant_ids": [
+        "vt_rfa_adult_initial",
+        "vt_rfa_child_initial"
+      ],
+      "top1_ids": [],
+      "top5_ids": [],
+      "total_results": 0,
+      "top1_hit": false,
+      "top5_hit": false,
+      "recall_at_5": 0.0,
+      "no_result_expected": false,
+      "no_result_correct": null,
+      "corrected_terms": []
+    },
+    {
+      "query_id": "vt_rfa_complaint_phrase",
+      "state": "vermont",
+      "query": "relief from abuse complaint",
+      "initial": true,
+      "expected_relevant_ids": [
+        "vt_rfa_adult_initial",
+        "vt_rfa_child_initial"
+      ],
+      "top1_ids": [],
+      "top5_ids": [],
+      "total_results": 0,
+      "top1_hit": false,
+      "top5_hit": false,
+      "recall_at_5": 0.0,
+      "no_result_expected": false,
+      "no_result_correct": null,
+      "corrected_terms": []
+    },
+    {
+      "query_id": "vt_rfa_start_case_phrase",
+      "state": "vermont",
+      "query": "start relief from abuse case",
+      "initial": true,
+      "expected_relevant_ids": [
+        "vt_rfa_adult_initial",
+        "vt_rfa_child_initial"
+      ],
+      "top1_ids": [],
+      "top5_ids": [],
+      "total_results": 0,
+      "top1_hit": false,
+      "top5_hit": false,
+      "recall_at_5": 0.0,
+      "no_result_expected": false,
+      "no_result_correct": null,
+      "corrected_terms": []
+    },
+    {
+      "query_id": "vt_fee_waiver_exact_label_keeps_probate_path",
+      "state": "vermont",
+      "query": "Application to Waive Filing and Service Fees",
+      "initial": false,
+      "expected_relevant_ids": [
+        "vt_fee_waiver_civil_exact_label",
+        "vt_fee_waiver_family_exact_label",
+        "vt_fee_waiver_probate_exact_label"
+      ],
+      "top1_ids": [
+        "vt_fee_waiver_civil_exact_label"
+      ],
+      "top5_ids": [
+        "vt_fee_waiver_civil_exact_label",
+        "vt_fee_waiver_family_exact_label",
+        "vt_fee_waiver_probate_exact_label"
+      ],
+      "total_results": 3,
+      "top1_hit": true,
+      "top5_hit": true,
+      "recall_at_5": 1.0,
+      "no_result_expected": false,
+      "no_result_correct": null,
+      "corrected_terms": []
+    },
+    {
+      "query_id": "vt_fee_waiver_exact_label_initial_keeps_probate_path",
+      "state": "vermont",
+      "query": "Application to Waive Filing and Service Fees",
+      "initial": true,
+      "expected_relevant_ids": [
+        "vt_fee_waiver_civil_exact_label_initial",
+        "vt_fee_waiver_family_exact_label_initial",
+        "vt_fee_waiver_probate_exact_label_initial"
+      ],
+      "top1_ids": [
+        "vt_fee_waiver_civil_exact_label_initial"
+      ],
+      "top5_ids": [
+        "vt_fee_waiver_civil_exact_label_initial",
+        "vt_fee_waiver_family_exact_label_initial",
+        "vt_fee_waiver_probate_exact_label_initial"
+      ],
+      "total_results": 3,
+      "top1_hit": true,
+      "top5_hit": true,
+      "recall_at_5": 1.0,
+      "no_result_expected": false,
+      "no_result_correct": null,
+      "corrected_terms": []
+    }
+  ],
+  "limitations": [
+    "Curated replay paths use captured provider filing labels and synthetic assembled court/category/type contexts; they do not establish that each complete path is offered by a live court catalog.",
+    "Synthetic codes are opaque numeric identifiers. Expected relevance is mapped separately by fixture ID and does not enter indexed code text.",
+    "The fee-waiver exact-label collision test uses one captured exact provider label in synthetic Civil, Family, and Probate contexts to guard against scoped concepts hiding the same label outside their alias scope; it does not assert selected live case-type paths in Probate.",
+    "Search-path retrieval and relevance are measured; response latency and user decision quality are not measured."
+  ]
+}

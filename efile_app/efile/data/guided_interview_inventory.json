@@ -1,0 +1,482 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-13",
+  "source_issue": "https://github.com/SuffolkLITLab/LITEFile/issues/296",
+  "source_body_sha256": "82530e18929a813f6cc3ccfcddef77cd4c590e0ee2b99bfa1a3a3913315a5080",
+  "scope": "Repository review queue from issue296, not an assertion that every repository is a published interview. Each PDF output and explicit exclusion is tracked in the state manifests.",
+  "manifest_files": [
+    "guided_interview_forms_vermont.json",
+    "guided_interview_forms_illinois_civil.json",
+    "guided_interview_forms_illinois_other.json"
+  ],
+  "repositories": [
+    {
+      "repo": "IllinoisLegalAidOnline/ILAO_SMS",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/a2j_viewer",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-Appearance",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-AppearanceEfile",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-AskDebtCollectorStopContact",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-CannabisExpungement",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-ChildSupportModification",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-CitationToDiscoverAssetsBankEmployer",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-CitationToDiscoverAssetsDebtor",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-CivilNoContactOrderRequest",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-CollectionProofLetter",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-CountyFunctions",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-CriminalCourtFeeWaiver",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-DebtCollectorLetter",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-DelayAForeclosureSale",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-Divorce",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-EFilingExemptionAppellateCourt",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-EFilingExemptionSupremeCourt",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-EfilingExemptionCircuitCourt",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-EmergencyMotionClaimExemption",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-EmergencyOrderOfProtectionCookCounty",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-EndLockout",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-EvictATenant",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-ExpungementAdult",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-ExtendTimeOfEviction",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-FeeWaiver",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-FeeWaiverAppellate",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-FeeWaiverSupremeCourt",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-FinancialAffidavit",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-GuardianshipMinor",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-IDHRHousingDiscriminationComplaint",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-ILAO",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-ILAOAppearance",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-ILAOEfile",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-IlFeeWaiver",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-InterpreterRequest",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-JointSimplifiedDivorce",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-JuvenileExpungement",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-LivingWill",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-MinorGuardianshipDischarge",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-MononymTests",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-Motion",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-MotionProcessServer",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-NameChangeAdult",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-NameChangeChild",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-NoticeOfAppeal",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-NoticeOfDeathAffidavit",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-OrderOfProtection",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-OrderOfProtectionCookCountyCourthouse",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-ParentingPlan",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-ParentingTimeSchedule",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-PersonnelFileRequest",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-PetitionForRuleToShowCauseFamily",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-PoAHCSpanishTest",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-PowerOfAttorneyHealthCare",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-PowerOfAttorneyProperty",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-PowerOfAttorneyResignation",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-PowerOfAttorneyRevocation",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-ProofOfDelivery",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-RemoveEvictionFromPublicRecord",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-RentalRepairLetter",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-RespondToALawsuit",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-RespondToAnEviction",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-RespondToForeclosureComplaint",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-ReturnCarProperty",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-SecurityDepositDemand",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-ShortTermGuardianship",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-SmallClaimsComplaint",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-SmallEstateAffidavit",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-StalkingNoContactOrderRequest",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-StopWageAssignment",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-TODI",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-TranslationTest",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-UIAppealAfterHearing",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-UIHearingRequest",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-USCISApplications",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-VESSALetter",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-VESSALetter2024",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-VacateDefaultForeclosure",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-VacateDefaultJudgment",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-VoluntaryAcknowledgementOfParentage",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/docassemble-WhichProtectiveOrderIsRightForMe",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/ilao-docassemble-status",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/ilao-documentation",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/ilao-legalaid-scorecard",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/ilao8_docs",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/ilaodocs",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/lite",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/search-icons",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/solve-ilao-public",
+      "state": "illinois"
+    },
+    {
+      "repo": "IllinoisLegalAidOnline/website-docs",
+      "state": "illinois"
+    },
+    {
+      "repo": "LSVermont/docassemble-FinancialForm",
+      "state": "vermont"
+    },
+    {
+      "repo": "LSVermont/docassemble-RFApackage",
+      "state": "vermont"
+    },
+    {
+      "repo": "LSVermont/docassemble-VT813",
+      "state": "vermont"
+    },
+    {
+      "repo": "LSVermont/docassemble-VT813B",
+      "state": "vermont"
+    },
+    {
+      "repo": "LSVermont/docassemble-VTAnswerToEviction",
+      "state": "vermont"
+    },
+    {
+      "repo": "LSVermont/docassemble-VTCertificateOfService",
+      "state": "vermont"
+    },
+    {
+      "repo": "LSVermont/docassemble-VTCertificateOfServiceGeneral",
+      "state": "vermont"
+    },
+    {
+      "repo": "LSVermont/docassemble-VTCourtFormsBranding",
+      "state": "vermont"
+    },
+    {
+      "repo": "LSVermont/docassemble-VTCourtFormsInterviewUnderMaintenance",
+      "state": "vermont"
+    },
+    {
+      "repo": "LSVermont/docassemble-VTCourtFormsRootPage",
+      "state": "vermont"
+    },
+    {
+      "repo": "LSVermont/docassemble-VTDisclosureOfExemptIncome",
+      "state": "vermont"
+    },
+    {
+      "repo": "LSVermont/docassemble-VTDivorce",
+      "state": "vermont"
+    },
+    {
+      "repo": "LSVermont/docassemble-VTFamilyCourtInfoSheet",
+      "state": "vermont"
+    },
+    {
+      "repo": "LSVermont/docassemble-VTFeeWaiver",
+      "state": "vermont"
+    },
+    {
+      "repo": "LSVermont/docassemble-VTFeeWaiverWithIncludeYMLFile",
+      "state": "vermont"
+    },
+    {
+      "repo": "LSVermont/docassemble-VTFeedback",
+      "state": "vermont"
+    },
+    {
+      "repo": "LSVermont/docassemble-VTFinAffSelfEmplPart",
+      "state": "vermont"
+    },
+    {
+      "repo": "LSVermont/docassemble-VTFinancialDisclosure",
+      "state": "vermont"
+    },
+    {
+      "repo": "LSVermont/docassemble-VTHousingRA",
+      "state": "vermont"
+    },
+    {
+      "repo": "LSVermont/docassemble-VTNoticeOfAppearance",
+      "state": "vermont"
+    },
+    {
+      "repo": "LSVermont/docassemble-VTSharedYMLFile",
+      "state": "vermont"
+    },
+    {
+      "repo": "LSVermont/docassemble-VTSmallClaimsAnswer",
+      "state": "vermont"
+    },
+    {
+      "repo": "LSVermont/docassemble-VTSmallClaimsCertificateOfService",
+      "state": "vermont"
+    },
+    {
+      "repo": "LSVermont/docassemble-VTSmallClaimsComplaint",
+      "state": "vermont"
+    },
+    {
+      "repo": "LSVermont/docassemble-VTSuperiorCourtDebtAnswer",
+      "state": "vermont"
+    },
+    {
+      "repo": "LSVermont/docassemble-VTUnderMaintenance",
+      "state": "vermont"
+    }
+  ]
+}

@@ -669,6 +669,8 @@ def exact_form_crosswalk_matches(jurisdiction: str, evidence: dict[str, Any]) ->
                 continue
             if not any(mapping.get(level) for level in ("category", "case_type", "filing_type")):
                 continue
+            court_scope = mapping.get("court_scope") or {}
+            court_codes = court_scope.get("observed_route_keys") or court_scope.get("court_codes") or []
             matches.append(
                 {
                     "canonical_form_id": form.get("canonical_id"),
@@ -680,7 +682,11 @@ def exact_form_crosswalk_matches(jurisdiction: str, evidence: dict[str, Any]) ->
                     "case_type": mapping.get("case_type"),
                     "filing_type": mapping.get("filing_type"),
                     "filing_phase": mapping.get("filing_phase"),
-                    "court_names": (mapping.get("court_scope") or {}).get("court_names", []),
+                    "court_names": court_scope.get("court_names", []),
+                    # These are provider location codes, not human-readable
+                    # names. Prefer them when filtering so two jurisdictions
+                    # with a shared court name cannot share a route hint.
+                    "court_codes": court_codes,
                     "confidence": mapping.get("confidence"),
                     "association_status": mapping.get("association_status"),
                     "catalog_status": mapping.get("catalog_status"),
@@ -689,12 +695,58 @@ def exact_form_crosswalk_matches(jurisdiction: str, evidence: dict[str, Any]) ->
     summary = summarize_form_crosswalk_matches(matches, identity_status=identity["status"])
     for match in matches:
         match["route_resolution"] = summary["route_resolution"]
+        match["requires_court_selection"] = bool(match.get("court_codes") or match.get("court_names"))
         match["deterministic"] = (
             summary["route_resolution"] == "exact"
             and match.get("association_status") == "human_verified"
             and match.get("catalog_status") == "current"
+            and not match["requires_court_selection"]
         )
     return matches[:30]
+
+
+def _crosswalk_matches_for_context(
+    matches: list[dict[str, Any]],
+    *,
+    filing_phase: str,
+    court: dict[str, Any] | None = None,
+    category: dict[str, Any] | None = None,
+    case_type: dict[str, Any] | None = None,
+) -> list[dict[str, Any]]:
+    """Keep only advisory mappings compatible with already selected context.
+
+    Missing constraints remain unconstrained. A recorded court scope, however,
+    must match the selected provider route code when one is available; names
+    are a fallback for older observations that recorded no route key.
+    """
+
+    filtered = []
+    for match in matches:
+        mapped_phase = str(match.get("filing_phase") or "").casefold()
+        if filing_phase in {"initial", "subsequent"} and mapped_phase in {"initial", "subsequent"}:
+            if mapped_phase != filing_phase:
+                continue
+
+        if court:
+            court_codes = {str(value).casefold() for value in match.get("court_codes", []) if value}
+            court_names = {_normalized(value) for value in match.get("court_names", []) if value}
+            route_key = str(court.get("route_key") or "").casefold()
+            court_name = _normalized(court.get("name"))
+            if court_codes:
+                if route_key not in court_codes:
+                    continue
+            elif court_names and court_name not in court_names:
+                continue
+
+        compatible = True
+        for selection, key in ((category, "category"), (case_type, "case_type")):
+            mapped_name = match.get(key)
+            if selection and mapped_name and _normalized(mapped_name) != _normalized(selection.get("name")):
+                compatible = False
+                break
+        if compatible:
+            filtered.append(match)
+    return filtered
 
 
 def _decimal_amount(value: Any) -> Decimal | None:
@@ -876,12 +928,14 @@ class HierarchicalDocumentClassifier:
             filing_phase = "unknown"
         identity = deterministic_form_identity(jurisdiction, evidence)
         crosswalk = exact_form_crosswalk_matches(jurisdiction, evidence)
-        crosswalk_summary = summarize_form_crosswalk_matches(
-            crosswalk,
-            identity_status=identity["status"],
-        )
+        active_crosswalk = _crosswalk_matches_for_context(crosswalk, filing_phase=filing_phase)
+        crosswalk_summary = summarize_form_crosswalk_matches(active_crosswalk, identity_status=identity["status"])
         selections: dict[str, dict[str, Any]] = {}
 
+        # A court-scoped association cannot help choose the court itself. Keep
+        # the complete advisory candidates in the run metadata, but withhold
+        # them from this first model choice until the filer context resolves a
+        # provider court route.
         selections["court"] = self._select(
             level="court",
             jurisdiction=jurisdiction,
@@ -890,13 +944,18 @@ class HierarchicalDocumentClassifier:
             source_text=source_text,
             filing_phase=filing_phase,
             selections=selections,
-            crosswalk=crosswalk,
-            crosswalk_summary=crosswalk_summary,
+            crosswalk=[],
+            crosswalk_summary=summarize_form_crosswalk_matches([], identity_status=identity["status"]),
         )
         if selections["court"].get("status") != "selected":
-            return self._run(selections, filing_phase, crosswalk, crosswalk_summary, identity)
+            return self._run(selections, filing_phase, active_crosswalk, crosswalk_summary, identity)
 
-        court = selections["court"]["route_key"]
+        selected_court = selections["court"]
+        active_crosswalk = _crosswalk_matches_for_context(
+            active_crosswalk, filing_phase=filing_phase, court=selected_court
+        )
+        crosswalk_summary = summarize_form_crosswalk_matches(active_crosswalk, identity_status=identity["status"])
+        court = selected_court["route_key"]
         selections["case category"] = self._select(
             level="case category",
             jurisdiction=jurisdiction,
@@ -905,13 +964,21 @@ class HierarchicalDocumentClassifier:
             source_text=source_text,
             filing_phase=filing_phase,
             selections=selections,
-            crosswalk=crosswalk,
+            crosswalk=active_crosswalk,
             crosswalk_summary=crosswalk_summary,
         )
         if selections["case category"].get("status") != "selected":
-            return self._run(selections, filing_phase, crosswalk, crosswalk_summary, identity)
+            return self._run(selections, filing_phase, active_crosswalk, crosswalk_summary, identity)
 
-        category = selections["case category"]["route_key"]
+        selected_category = selections["case category"]
+        active_crosswalk = _crosswalk_matches_for_context(
+            active_crosswalk,
+            filing_phase=filing_phase,
+            court=selected_court,
+            category=selected_category,
+        )
+        crosswalk_summary = summarize_form_crosswalk_matches(active_crosswalk, identity_status=identity["status"])
+        category = selected_category["route_key"]
         selections["case type"] = self._select(
             level="case type",
             jurisdiction=jurisdiction,
@@ -920,13 +987,22 @@ class HierarchicalDocumentClassifier:
             source_text=source_text,
             filing_phase=filing_phase,
             selections=selections,
-            crosswalk=crosswalk,
+            crosswalk=active_crosswalk,
             crosswalk_summary=crosswalk_summary,
         )
         if selections["case type"].get("status") != "selected":
-            return self._run(selections, filing_phase, crosswalk, crosswalk_summary, identity)
+            return self._run(selections, filing_phase, active_crosswalk, crosswalk_summary, identity)
 
-        case_type = selections["case type"]["route_key"]
+        selected_case_type = selections["case type"]
+        active_crosswalk = _crosswalk_matches_for_context(
+            active_crosswalk,
+            filing_phase=filing_phase,
+            court=selected_court,
+            category=selected_category,
+            case_type=selected_case_type,
+        )
+        crosswalk_summary = summarize_form_crosswalk_matches(active_crosswalk, identity_status=identity["status"])
+        case_type = selected_case_type["route_key"]
         selections["filing type"] = self._select(
             level="filing type",
             jurisdiction=jurisdiction,
@@ -935,10 +1011,10 @@ class HierarchicalDocumentClassifier:
             source_text=source_text,
             filing_phase=filing_phase,
             selections=selections,
-            crosswalk=crosswalk,
+            crosswalk=active_crosswalk,
             crosswalk_summary=crosswalk_summary,
         )
-        return self._run(selections, filing_phase, crosswalk, crosswalk_summary, identity)
+        return self._run(selections, filing_phase, active_crosswalk, crosswalk_summary, identity)
 
     def _run(
         self,

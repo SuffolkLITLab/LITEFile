@@ -502,6 +502,44 @@ These are search associations, not statements that remedies or procedures are
 legally interchangeable. Multiword phrases match together: “summary judgment”
 does not expand to “summary process.”
 
+Use `path_aliases` when terminology depends on the case and filing stage.
+Each rule requires `jurisdictions`, `initial` (`true` for new cases), and exact
+`filing_type` names. Optional `case_category` and `case_type` lists also match
+whole normalized names; `case_concepts` requires every named concept in the
+category/type context. `terms` adds search vocabulary only to matching paths.
+For example, the Vermont complaint rules add “complaint” to **Initial Filing**
+only in the reviewed Family, small-claims, and eviction case types. Administrative
+answer-only cases, foreign-order registrations, and other divisions receive no
+complaint alias.
+
+A concept with `path_only: true` expands phrases only in filing-code queries.
+Matching aliases must explicitly grant it through `concepts`; a matching word
+in a court or case name cannot grant that document-specific concept. Illinois
+“seal eviction” uses this approach for the exact record-removal motion in an
+existing eviction case. If the court does not offer that motion, the alias
+creates no substitute. These restricted concepts do not alter document-finder
+queries or rename provider labels.
+
+Rules need a `source` documenting the association, plus regression tests for the
+opposite stage, unrelated case types, and other courts. Restrict a local alias
+with `court_codes: ["cook:dr1"]` or `court_code_prefixes: ["cook:"]`, using actual
+provider court codes. Grouped labels keep different indexed vocabularies separate
+so Cook aliases cannot leak to another county with the same label names. Use a
+separately reviewed explanation rule for the contextual description.
+
+The optional `facet` is `filing_type` by default. Set it to `case_category` or
+`case_type` to add vocabulary to that level, with an exact label constraint for
+that facet. For example, Cook Domestic Relations category aliases add “family”
+to case search terms without claiming that a particular filing document is a
+family-law form.
+
+`guided_form_aliases_file` names the generated JSON supplement beside this YAML.
+It contains printed-form concepts, scoped path aliases, and sourced definitions;
+its contents also affect the index digest. Regenerate it with the reviewed form
+reconciliation script, not by treating a repository title as a provider code.
+Restart workers and rebuild the affected jurisdiction's index after editing
+these rules, including when catalogs themselves have not changed.
+
 When a result was found through a related term rather than its own name (a
 search for “unlawful detainer” finding an eviction filing), it says “Related to
 eviction”. Concept definitions are expandable under “About this filing type”.

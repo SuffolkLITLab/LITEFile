@@ -1,0 +1,3281 @@
+{
+  "audit_name": "Illinois eviction record-removal filing label scan",
+  "checked_date": "2026-10-13",
+  "environment": "efile-test.suffolklitlab.org",
+  "provider_version": "not exposed in response headers or catalog payload inspected",
+  "endpoints": {
+    "court_list": "GET /jurisdictions/illinois/codes/courts/?fileable_only=false&with_names=true",
+    "subsequent_all_options": "GET /jurisdictions/illinois/codes/courts/{court_code}/filing_types/?initial=false",
+    "targeted_paths": "GET /jurisdictions/illinois/codes/courts/{court_code}/categories?fileable_only=true&timing=Subsequent, then case_types and filing_types for categories named Civil/Eviction/Housing/Forcible and eviction-related case types"
+  },
+  "exact_title": "Motion to Remove Eviction Court File from Public Record",
+  "all_subsequent_scan": {
+    "courts_listed": 360,
+    "successful_requests": 360,
+    "errors": 0,
+    "returned_option_rows": 784189,
+    "courts_with_exact_title": 0
+  },
+  "targeted_eviction_path_scan": {
+    "courts_scanned": 360,
+    "errors": 0,
+    "matching_eviction_case_type_rows": 855,
+    "exact_title_rows": 0,
+    "scope_note": "Categories were filtered by category name containing Civil, Eviction, Housing, or Forcible; case types by Eviction, Forcible, Detainer, or Landlord. This is a discovery scan, not an eligible-court denominator."
+  },
+  "historical_snapshot": {
+    "path": "benchmarking/promptfoo/data/tyler_catalog/illinois/catalog.json",
+    "git_commit": "179b2d8",
+    "commit_date": "2026-08-23",
+    "dupage_exact_title_codes": [
+      "309683",
+      "309736",
+      "309746",
+      "309756"
+    ],
+    "casecategory_and_casetypeid": "blank for all four rows"
+  },
+  "courts": [
+    {
+      "court_code": "TSUPCRT",
+      "court_name": "Supreme Court of Illinois",
+      "subsequent_option_count": 434,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "TAC1",
+      "court_name": "Appellate Court – 1st District",
+      "subsequent_option_count": 393,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "TAC2",
+      "court_name": "Appellate Court – 2nd District",
+      "subsequent_option_count": 388,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "TAC3",
+      "court_name": "Appellate Court – 3rd District",
+      "subsequent_option_count": 388,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "TAC4",
+      "court_name": "Appellate Court – 4th District",
+      "subsequent_option_count": 388,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "TAC5",
+      "court_name": "Appellate Court – 5th District",
+      "subsequent_option_count": 393,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook",
+      "court_name": "(zOdyssey) - Cook County",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:chd",
+      "court_name": "(zOdyssey) - Cook County - Chancery",
+      "subsequent_option_count": 448,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:chd1",
+      "court_name": "(zOdyssey) - Cook County - Chancery - District 1 - Chicago",
+      "subsequent_option_count": 448,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:chd5",
+      "court_name": "(zOdyssey) - Cook County - Chancery - District 5 - Bridgeview",
+      "subsequent_option_count": 448,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:cd",
+      "court_name": "(zOdyssey) - Cook County - County Division",
+      "subsequent_option_count": 725,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:cd1",
+      "court_name": "(zOdyssey) - Cook County - County Division - District 1 - Chicago",
+      "subsequent_option_count": 725,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:crcbc",
+      "court_name": "(zOdyssey) - Cook County - Criminal - District 1 - Central Bond Court",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:crd1",
+      "court_name": "(zOdyssey) - Cook County - Criminal - District 1 - Chicago",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:crb2",
+      "court_name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Branch 2",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:crb23",
+      "court_name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Branch 23",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:crb29",
+      "court_name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Branch 29",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:crb34",
+      "court_name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Branch 34",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:crb35",
+      "court_name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Branch 35",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:crb38",
+      "court_name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Branch 38",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:crb42",
+      "court_name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Branch 42",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:crb43",
+      "court_name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Branch 43",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:crb44",
+      "court_name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Branch 44",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:crb46",
+      "court_name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Branch 46",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:crb48",
+      "court_name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Branch 48",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:crb50",
+      "court_name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Branch 50",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:crb60",
+      "court_name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Branch 60",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:crb61",
+      "court_name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Branch 61",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:crb62",
+      "court_name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Branch 62",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:crb63",
+      "court_name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Branch 63",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:crb64",
+      "court_name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Branch 64",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:crb66",
+      "court_name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Branch 66",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:crb7",
+      "court_name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Branch 7",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:crb9",
+      "court_name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Branch 9",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:crb95",
+      "court_name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Branch 95",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:crb98",
+      "court_name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Branch 98",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:crd1cdpt",
+      "court_name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Department",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:crd1cd",
+      "court_name": "(zOdyssey) - Cook County - Criminal - District 1 - Criminal Division",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:crd2",
+      "court_name": "(zOdyssey) - Cook County - Criminal - District 2 - Skokie",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:crd3",
+      "court_name": "(zOdyssey) - Cook County - Criminal - District 3 - Rolling Meadows",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:crd4",
+      "court_name": "(zOdyssey) - Cook County - Criminal - District 4 - Maywood",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:crd5",
+      "court_name": "(zOdyssey) - Cook County - Criminal - District 5 - Bridgeview",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:crd6",
+      "court_name": "(zOdyssey) - Cook County - Criminal - District 6 - Markham",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:crb",
+      "court_name": "(zOdyssey) - Cook County - Criminal Bureau",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:dr",
+      "court_name": "(zOdyssey) - Cook County - Domestic Relations",
+      "subsequent_option_count": 274,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:dr1",
+      "court_name": "(zOdyssey) - Cook County - Domestic Relations - District 1 - Chicago",
+      "subsequent_option_count": 274,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:dr2",
+      "court_name": "(zOdyssey) - Cook County - Domestic Relations - District 2 - Skokie",
+      "subsequent_option_count": 273,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:dr3",
+      "court_name": "(zOdyssey) - Cook County - Domestic Relations - District 3 - Rolling Meadows",
+      "subsequent_option_count": 273,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:dr4",
+      "court_name": "(zOdyssey) - Cook County - Domestic Relations - District 4 - Maywood",
+      "subsequent_option_count": 273,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:dr5",
+      "court_name": "(zOdyssey) - Cook County - Domestic Relations - District 5 - Bridgeview",
+      "subsequent_option_count": 273,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:dr6",
+      "court_name": "(zOdyssey) - Cook County - Domestic Relations - District 6 - Markham",
+      "subsequent_option_count": 273,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:jd",
+      "court_name": "(zOdyssey) - Cook County - Juvenile Division",
+      "subsequent_option_count": 2,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:jjcp",
+      "court_name": "(zOdyssey) - Cook County - Juvenile Justice/Child Protection",
+      "subsequent_option_count": 2,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:jjcpd6",
+      "court_name": "(zOdyssey) - Cook County - Juvenile Justice/Child Protection - District 6 - Markham",
+      "subsequent_option_count": 2,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:law",
+      "court_name": "(zOdyssey) - Cook County - Law",
+      "subsequent_option_count": 221,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:law1",
+      "court_name": "(zOdyssey) - Cook County - Law - District 1 - Chicago",
+      "subsequent_option_count": 221,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:law2",
+      "court_name": "(zOdyssey) - Cook County - Law - District 2 - Skokie",
+      "subsequent_option_count": 220,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:law3",
+      "court_name": "(zOdyssey) - Cook County - Law - District 3 - Rolling Meadows",
+      "subsequent_option_count": 220,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:law4",
+      "court_name": "(zOdyssey) - Cook County - Law - District 4 - Maywood",
+      "subsequent_option_count": 220,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:law5",
+      "court_name": "(zOdyssey) - Cook County - Law - District 5 - Bridgeview",
+      "subsequent_option_count": 220,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:law6",
+      "court_name": "(zOdyssey) - Cook County - Law - District 6 - Markham",
+      "subsequent_option_count": 220,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:cvd",
+      "court_name": "(zOdyssey) - Cook County - Municipal Civil",
+      "subsequent_option_count": 289,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 18,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:cvd1",
+      "court_name": "(zOdyssey) - Cook County - Municipal Civil - District 1 - Chicago",
+      "subsequent_option_count": 282,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 18,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:cvd2",
+      "court_name": "(zOdyssey) - Cook County - Municipal Civil - District 2 - Skokie",
+      "subsequent_option_count": 280,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 16,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:cvd3",
+      "court_name": "(zOdyssey) - Cook County - Municipal Civil - District 3 - Rolling Meadows",
+      "subsequent_option_count": 280,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 16,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:cvd4",
+      "court_name": "(zOdyssey) - Cook County - Municipal Civil - District 4 - Maywood",
+      "subsequent_option_count": 286,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 16,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:cvd5",
+      "court_name": "(zOdyssey) - Cook County - Municipal Civil - District 5 - Bridgeview",
+      "subsequent_option_count": 280,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 16,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:cvd6",
+      "court_name": "(zOdyssey) - Cook County - Municipal Civil - District 6 - Markham",
+      "subsequent_option_count": 281,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 16,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:pr",
+      "court_name": "(zOdyssey) - Cook County - Probate",
+      "subsequent_option_count": 376,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:pr1",
+      "court_name": "(zOdyssey) - Cook County - Probate  - District 1 - Chicago",
+      "subsequent_option_count": 376,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:pr2",
+      "court_name": "(zOdyssey) - Cook County - Probate  - District 5 - Bridgeview",
+      "subsequent_option_count": 376,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:tr1",
+      "court_name": "(zOdyssey) - Cook County - Traffic - District 1 - Chicago",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:tr2",
+      "court_name": "(zOdyssey) - Cook County - Traffic - District 2 - Skokie",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:tr3",
+      "court_name": "(zOdyssey) - Cook County - Traffic - District 3 - Rolling Meadows",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:tr4",
+      "court_name": "(zOdyssey) - Cook County - Traffic - District 4 - Maywood",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:tr5",
+      "court_name": "(zOdyssey) - Cook County - Traffic - District 5 - Bridgeview",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:tr6",
+      "court_name": "(zOdyssey) - Cook County - Traffic - District 6 - Markham",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zodycook:tr",
+      "court_name": "(zOdyssey) - Cook County - Traffic Bureau",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "ardc",
+      "court_name": "ARDC Clerk's Office",
+      "subsequent_option_count": 31,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "adams",
+      "court_name": "Adams County",
+      "subsequent_option_count": 6090,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "alexander",
+      "court_name": "Alexander County",
+      "subsequent_option_count": 6100,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "bond",
+      "court_name": "Bond County",
+      "subsequent_option_count": 6055,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "boone",
+      "court_name": "Boone County",
+      "subsequent_option_count": 6231,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "brown",
+      "court_name": "Brown County",
+      "subsequent_option_count": 6075,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "bureau",
+      "court_name": "Bureau County",
+      "subsequent_option_count": 6066,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "calhoun",
+      "court_name": "Calhoun County",
+      "subsequent_option_count": 6066,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "carroll",
+      "court_name": "Carroll County",
+      "subsequent_option_count": 6078,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cass",
+      "court_name": "Cass County",
+      "subsequent_option_count": 6108,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "champaign",
+      "court_name": "Champaign County",
+      "subsequent_option_count": 4849,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 3,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "christian",
+      "court_name": "Christian County",
+      "subsequent_option_count": 5929,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "clark",
+      "court_name": "Clark County",
+      "subsequent_option_count": 5913,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "clay",
+      "court_name": "Clay County",
+      "subsequent_option_count": 6165,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "clinton",
+      "court_name": "Clinton County",
+      "subsequent_option_count": 6046,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "coles",
+      "court_name": "Coles County",
+      "subsequent_option_count": 6056,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook",
+      "court_name": "Cook County",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:chd",
+      "court_name": "Cook County - Chancery",
+      "subsequent_option_count": 452,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:chd1",
+      "court_name": "Cook County - Chancery - District 1 - Chicago",
+      "subsequent_option_count": 452,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:cd",
+      "court_name": "Cook County - County Division",
+      "subsequent_option_count": 761,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:cd1",
+      "court_name": "Cook County - County Division - District 1 - Chicago",
+      "subsequent_option_count": 761,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:crcbc",
+      "court_name": "Cook County - Criminal - District 1 - Central Bond Court",
+      "subsequent_option_count": 99,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:crd1",
+      "court_name": "Cook County - Criminal - District 1 - Chicago",
+      "subsequent_option_count": 99,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:crb2",
+      "court_name": "Cook County - Criminal - District 1 - Criminal Branch 2",
+      "subsequent_option_count": 99,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:crb23",
+      "court_name": "Cook County - Criminal - District 1 - Criminal Branch 23",
+      "subsequent_option_count": 99,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:crb29",
+      "court_name": "Cook County - Criminal - District 1 - Criminal Branch 29",
+      "subsequent_option_count": 99,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:crb34",
+      "court_name": "Cook County - Criminal - District 1 - Criminal Branch 34",
+      "subsequent_option_count": 99,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:crb35",
+      "court_name": "Cook County - Criminal - District 1 - Criminal Branch 35",
+      "subsequent_option_count": 99,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:crb38",
+      "court_name": "Cook County - Criminal - District 1 - Criminal Branch 38",
+      "subsequent_option_count": 99,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:crb42",
+      "court_name": "Cook County - Criminal - District 1 - Criminal Branch 42",
+      "subsequent_option_count": 99,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:crb43",
+      "court_name": "Cook County - Criminal - District 1 - Criminal Branch 43",
+      "subsequent_option_count": 99,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:crb44",
+      "court_name": "Cook County - Criminal - District 1 - Criminal Branch 44",
+      "subsequent_option_count": 99,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:crb46",
+      "court_name": "Cook County - Criminal - District 1 - Criminal Branch 46",
+      "subsequent_option_count": 99,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:crb48",
+      "court_name": "Cook County - Criminal - District 1 - Criminal Branch 48",
+      "subsequent_option_count": 99,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:crb50",
+      "court_name": "Cook County - Criminal - District 1 - Criminal Branch 50",
+      "subsequent_option_count": 99,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:crb60",
+      "court_name": "Cook County - Criminal - District 1 - Criminal Branch 60",
+      "subsequent_option_count": 99,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:crb61",
+      "court_name": "Cook County - Criminal - District 1 - Criminal Branch 61",
+      "subsequent_option_count": 99,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:crb62",
+      "court_name": "Cook County - Criminal - District 1 - Criminal Branch 62",
+      "subsequent_option_count": 99,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:crb63",
+      "court_name": "Cook County - Criminal - District 1 - Criminal Branch 63",
+      "subsequent_option_count": 99,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:crb64",
+      "court_name": "Cook County - Criminal - District 1 - Criminal Branch 64",
+      "subsequent_option_count": 99,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:crb66",
+      "court_name": "Cook County - Criminal - District 1 - Criminal Branch 66",
+      "subsequent_option_count": 99,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:crb7",
+      "court_name": "Cook County - Criminal - District 1 - Criminal Branch 7",
+      "subsequent_option_count": 99,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:crb9",
+      "court_name": "Cook County - Criminal - District 1 - Criminal Branch 9",
+      "subsequent_option_count": 99,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:crb95",
+      "court_name": "Cook County - Criminal - District 1 - Criminal Branch 95",
+      "subsequent_option_count": 99,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:crb98",
+      "court_name": "Cook County - Criminal - District 1 - Criminal Branch 98",
+      "subsequent_option_count": 99,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:crd1cdpt",
+      "court_name": "Cook County - Criminal - District 1 - Criminal Department",
+      "subsequent_option_count": 99,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:crd1cd",
+      "court_name": "Cook County - Criminal - District 1 - Criminal Division",
+      "subsequent_option_count": 98,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:crd2",
+      "court_name": "Cook County - Criminal - District 2 - Skokie",
+      "subsequent_option_count": 99,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:crd3",
+      "court_name": "Cook County - Criminal - District 3 - Rolling Meadows",
+      "subsequent_option_count": 99,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:crd4",
+      "court_name": "Cook County - Criminal - District 4 - Maywood",
+      "subsequent_option_count": 99,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:crd5",
+      "court_name": "Cook County - Criminal - District 5 - Bridgeview",
+      "subsequent_option_count": 99,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:crd6",
+      "court_name": "Cook County - Criminal - District 6 - Markham",
+      "subsequent_option_count": 99,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:crb",
+      "court_name": "Cook County - Criminal Bureau",
+      "subsequent_option_count": 99,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:dr",
+      "court_name": "Cook County - Domestic Relations",
+      "subsequent_option_count": 289,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:dr1",
+      "court_name": "Cook County - Domestic Relations - District 1 - Chicago",
+      "subsequent_option_count": 289,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:dr2",
+      "court_name": "Cook County - Domestic Relations - District 2 - Skokie",
+      "subsequent_option_count": 289,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:dr3",
+      "court_name": "Cook County - Domestic Relations - District 3 - Rolling Meadows",
+      "subsequent_option_count": 289,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:dr4",
+      "court_name": "Cook County - Domestic Relations - District 4 - Maywood",
+      "subsequent_option_count": 289,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:dr5",
+      "court_name": "Cook County - Domestic Relations - District 5 - Bridgeview",
+      "subsequent_option_count": 289,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:dr6",
+      "court_name": "Cook County - Domestic Relations - District 6 - Markham",
+      "subsequent_option_count": 289,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:dv",
+      "court_name": "Cook County - Domestic Violence",
+      "subsequent_option_count": 111,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:dv1",
+      "court_name": "Cook County - Domestic Violence - District 1 - Chicago",
+      "subsequent_option_count": 111,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:dv2",
+      "court_name": "Cook County - Domestic Violence - District 2 - Skokie",
+      "subsequent_option_count": 111,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:dv3",
+      "court_name": "Cook County - Domestic Violence - District 3 - Rolling Meadows",
+      "subsequent_option_count": 111,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:dv4",
+      "court_name": "Cook County - Domestic Violence - District 4 - Maywood",
+      "subsequent_option_count": 111,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:dv5",
+      "court_name": "Cook County - Domestic Violence - District 5 - Bridgeview",
+      "subsequent_option_count": 111,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:dv6",
+      "court_name": "Cook County - Domestic Violence - District 6 - Markham",
+      "subsequent_option_count": 111,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:eld",
+      "court_name": "Cook County - Elder Law",
+      "subsequent_option_count": 396,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:eld1",
+      "court_name": "Cook County - Elder Law - District 1 - Chicago",
+      "subsequent_option_count": 396,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:eld2",
+      "court_name": "Cook County - Elder Law - District 2 - Skokie",
+      "subsequent_option_count": 396,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:eld3",
+      "court_name": "Cook County - Elder Law - District 3 - Rolling Meadows",
+      "subsequent_option_count": 396,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:eld4",
+      "court_name": "Cook County - Elder Law - District 4 - Maywood",
+      "subsequent_option_count": 396,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:eld5",
+      "court_name": "Cook County - Elder Law - District 5 - Bridgeview",
+      "subsequent_option_count": 396,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:eld6",
+      "court_name": "Cook County - Elder Law - District 6 - Markham",
+      "subsequent_option_count": 396,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:jd",
+      "court_name": "Cook County - Juvenile Division",
+      "subsequent_option_count": 25,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:jjcp",
+      "court_name": "Cook County - Juvenile Justice/Child Protection",
+      "subsequent_option_count": 25,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:jjcpd6",
+      "court_name": "Cook County - Juvenile Justice/Child Protection - District 6 - Markham",
+      "subsequent_option_count": 25,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:law",
+      "court_name": "Cook County - Law",
+      "subsequent_option_count": 234,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:law1",
+      "court_name": "Cook County - Law - District 1 - Chicago",
+      "subsequent_option_count": 234,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:law2",
+      "court_name": "Cook County - Law - District 2 - Skokie",
+      "subsequent_option_count": 234,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:law3",
+      "court_name": "Cook County - Law - District 3 - Rolling Meadows",
+      "subsequent_option_count": 234,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:law4",
+      "court_name": "Cook County - Law - District 4 - Maywood",
+      "subsequent_option_count": 234,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:law5",
+      "court_name": "Cook County - Law - District 5 - Bridgeview",
+      "subsequent_option_count": 234,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:law6",
+      "court_name": "Cook County - Law - District 6 - Markham",
+      "subsequent_option_count": 235,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:cvd",
+      "court_name": "Cook County - Municipal Civil",
+      "subsequent_option_count": 315,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 30,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:cvd1",
+      "court_name": "Cook County - Municipal Civil - District 1 - Chicago",
+      "subsequent_option_count": 313,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 30,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:cvd2",
+      "court_name": "Cook County - Municipal Civil - District 2 - Skokie",
+      "subsequent_option_count": 315,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 30,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:cvd3",
+      "court_name": "Cook County - Municipal Civil - District 3 - Rolling Meadows",
+      "subsequent_option_count": 315,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 30,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:cvd4",
+      "court_name": "Cook County - Municipal Civil - District 4 - Maywood",
+      "subsequent_option_count": 315,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 30,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:cvd5",
+      "court_name": "Cook County - Municipal Civil - District 5 - Bridgeview",
+      "subsequent_option_count": 315,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 30,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:cvd6",
+      "court_name": "Cook County - Municipal Civil - District 6 - Markham",
+      "subsequent_option_count": 315,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 30,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:pr",
+      "court_name": "Cook County - Probate",
+      "subsequent_option_count": 399,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:pr1",
+      "court_name": "Cook County - Probate  - District 1 - Chicago",
+      "subsequent_option_count": 399,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:tr",
+      "court_name": "Cook County - Traffic",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:tr1",
+      "court_name": "Cook County - Traffic - District 1 - Chicago",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:tr2",
+      "court_name": "Cook County - Traffic - District 2 - Skokie",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:tr3",
+      "court_name": "Cook County - Traffic - District 3 - Rolling Meadows",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:tr4",
+      "court_name": "Cook County - Traffic - District 4 - Maywood",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:tr5",
+      "court_name": "Cook County - Traffic - District 5 - Bridgeview",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cook:tr6",
+      "court_name": "Cook County - Traffic - District 6 - Markham",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "crawford",
+      "court_name": "Crawford County",
+      "subsequent_option_count": 6162,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "cumberland",
+      "court_name": "Cumberland County",
+      "subsequent_option_count": 6099,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "dewitt",
+      "court_name": "De Witt County",
+      "subsequent_option_count": 6046,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "dekalb",
+      "court_name": "DeKalb County",
+      "subsequent_option_count": 3673,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 3,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "douglas",
+      "court_name": "Douglas County",
+      "subsequent_option_count": 6564,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "dupage:ecf4",
+      "court_name": "DuPage - ECF4",
+      "subsequent_option_count": 2030,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 1,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "dupage:ecf5",
+      "court_name": "DuPage - ECF5",
+      "subsequent_option_count": 2030,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 1,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "dupage",
+      "court_name": "DuPage County",
+      "subsequent_option_count": 2308,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 3,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "edgar",
+      "court_name": "Edgar County",
+      "subsequent_option_count": 6046,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "edwards",
+      "court_name": "Edwards County",
+      "subsequent_option_count": 7028,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "effingham",
+      "court_name": "Effingham County",
+      "subsequent_option_count": 6111,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "fayette",
+      "court_name": "Fayette County",
+      "subsequent_option_count": 6135,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "1",
+      "court_name": "File & Serve",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "ford",
+      "court_name": "Ford County",
+      "subsequent_option_count": 6030,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "franklin",
+      "court_name": "Franklin County",
+      "subsequent_option_count": 6904,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "fulton",
+      "court_name": "Fulton County",
+      "subsequent_option_count": 5155,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "gallatin",
+      "court_name": "Gallatin County",
+      "subsequent_option_count": 6878,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "goodin",
+      "court_name": "Goodin County",
+      "subsequent_option_count": 6016,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 1,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "GoodinECF5",
+      "court_name": "Goodin ECF5",
+      "subsequent_option_count": 6016,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 2,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "greene",
+      "court_name": "Greene County",
+      "subsequent_option_count": 5806,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "grundy",
+      "court_name": "Grundy County",
+      "subsequent_option_count": 6044,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "hamilton",
+      "court_name": "Hamilton County",
+      "subsequent_option_count": 6886,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "hancock",
+      "court_name": "Hancock County",
+      "subsequent_option_count": 5260,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "hardin",
+      "court_name": "Hardin County",
+      "subsequent_option_count": 6044,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "henderson",
+      "court_name": "Henderson County",
+      "subsequent_option_count": 5996,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "henry",
+      "court_name": "Henry County",
+      "subsequent_option_count": 6211,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "henrykew",
+      "court_name": "Henry County Kewanee Division",
+      "subsequent_option_count": 6211,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "iroquois",
+      "court_name": "Iroquois County",
+      "subsequent_option_count": 6046,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "jackson",
+      "court_name": "Jackson County",
+      "subsequent_option_count": 5942,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "jasper",
+      "court_name": "Jasper County",
+      "subsequent_option_count": 6066,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "jefferson",
+      "court_name": "Jefferson County",
+      "subsequent_option_count": 6078,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "jersey",
+      "court_name": "Jersey County",
+      "subsequent_option_count": 5944,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "jodaviess",
+      "court_name": "Jo Daviess County",
+      "subsequent_option_count": 6028,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "johnson",
+      "court_name": "Johnson County",
+      "subsequent_option_count": 6046,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "kane",
+      "court_name": "Kane County",
+      "subsequent_option_count": 3208,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 3,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "KankakeeCV",
+      "court_name": "Kankakee - Civil",
+      "subsequent_option_count": 5762,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 5,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "KankakeeCR",
+      "court_name": "Kankakee - Criminal",
+      "subsequent_option_count": 5762,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "KankakeeFAM",
+      "court_name": "Kankakee - Family and Juvenile",
+      "subsequent_option_count": 5762,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "KankakeeTR",
+      "court_name": "Kankakee - Traffic",
+      "subsequent_option_count": 5762,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "kankakee",
+      "court_name": "Kankakee County",
+      "subsequent_option_count": 5762,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 5,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "kendall",
+      "court_name": "Kendall County",
+      "subsequent_option_count": 4862,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 3,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "knox",
+      "court_name": "Knox County",
+      "subsequent_option_count": 5996,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "lasalle",
+      "court_name": "LaSalle County",
+      "subsequent_option_count": 3492,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 3,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "lake",
+      "court_name": "Lake County",
+      "subsequent_option_count": 5660,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 3,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "lawrence",
+      "court_name": "Lawrence County",
+      "subsequent_option_count": 5968,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "lee",
+      "court_name": "Lee County",
+      "subsequent_option_count": 5192,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 3,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "livingston",
+      "court_name": "Livingston County",
+      "subsequent_option_count": 5947,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "logan",
+      "court_name": "Logan County",
+      "subsequent_option_count": 6046,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "macon",
+      "court_name": "Macon County",
+      "subsequent_option_count": 6082,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "macoupin",
+      "court_name": "Macoupin County",
+      "subsequent_option_count": 6028,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "madison",
+      "court_name": "Madison County",
+      "subsequent_option_count": 4343,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 3,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "marion",
+      "court_name": "Marion County",
+      "subsequent_option_count": 6162,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "marshall",
+      "court_name": "Marshall County",
+      "subsequent_option_count": 6091,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "mason",
+      "court_name": "Mason County",
+      "subsequent_option_count": 5954,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "massac",
+      "court_name": "Massac County",
+      "subsequent_option_count": 6066,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "mcdonough",
+      "court_name": "McDonough County",
+      "subsequent_option_count": 5886,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "mchenry",
+      "court_name": "McHenry County",
+      "subsequent_option_count": 2289,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 2,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "mclean",
+      "court_name": "McLean",
+      "subsequent_option_count": 4099,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 1,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "menard",
+      "court_name": "Menard County",
+      "subsequent_option_count": 6149,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "mercer",
+      "court_name": "Mercer County",
+      "subsequent_option_count": 6200,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "monroe",
+      "court_name": "Monroe County",
+      "subsequent_option_count": 6112,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "montgomery",
+      "court_name": "Montgomery County",
+      "subsequent_option_count": 5996,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "morgan",
+      "court_name": "Morgan County",
+      "subsequent_option_count": 6021,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "moultrie",
+      "court_name": "Moultrie County",
+      "subsequent_option_count": 6026,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "ogle",
+      "court_name": "Ogle County",
+      "subsequent_option_count": 6108,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "peoriacr",
+      "court_name": "Peoria CR",
+      "subsequent_option_count": 5075,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 3,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "peoriacs",
+      "court_name": "Peoria CS",
+      "subsequent_option_count": 5075,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 3,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "peoria",
+      "court_name": "Peoria County",
+      "subsequent_option_count": 5075,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 3,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "peoriatr",
+      "court_name": "Peoria TR",
+      "subsequent_option_count": 5075,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 3,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "perry",
+      "court_name": "Perry County",
+      "subsequent_option_count": 6155,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "piatt",
+      "court_name": "Piatt County",
+      "subsequent_option_count": 6058,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "pike",
+      "court_name": "Pike County",
+      "subsequent_option_count": 6040,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "pope",
+      "court_name": "Pope County",
+      "subsequent_option_count": 5994,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "pulaski",
+      "court_name": "Pulaski County",
+      "subsequent_option_count": 6108,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "putnam",
+      "court_name": "Putnam County",
+      "subsequent_option_count": 6008,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "randolph",
+      "court_name": "Randolph County",
+      "subsequent_option_count": 6091,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "richland",
+      "court_name": "Richland County",
+      "subsequent_option_count": 5755,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "rockisland",
+      "court_name": "Rock Island County",
+      "subsequent_option_count": 6831,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "saline",
+      "court_name": "Saline County",
+      "subsequent_option_count": 6056,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "sangamon",
+      "court_name": "Sangamon County",
+      "subsequent_option_count": 5015,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 3,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "schuyler",
+      "court_name": "Schuyler County",
+      "subsequent_option_count": 5995,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "scott",
+      "court_name": "Scott County",
+      "subsequent_option_count": 6048,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "shelby",
+      "court_name": "Shelby County",
+      "subsequent_option_count": 5779,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "stclair",
+      "court_name": "St. Clair County",
+      "subsequent_option_count": 7071,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 6,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "stclairlog",
+      "court_name": "St. Clair County-Backlog",
+      "subsequent_option_count": 3751,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 1,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "stclairstp",
+      "court_name": "St. Clair County-STP",
+      "subsequent_option_count": 3751,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 1,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "stark",
+      "court_name": "Stark County",
+      "subsequent_option_count": 6943,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "stephenson",
+      "court_name": "Stephenson County",
+      "subsequent_option_count": 5854,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "0",
+      "court_name": "System",
+      "subsequent_option_count": 0,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "tazewell",
+      "court_name": "Tazewell County",
+      "subsequent_option_count": 6462,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "tazewell:tr",
+      "court_name": "Tazewell County - Traffic",
+      "subsequent_option_count": 6462,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "union",
+      "court_name": "Union County",
+      "subsequent_option_count": 6954,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "vermilion",
+      "court_name": "Vermilion County",
+      "subsequent_option_count": 5811,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 3,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "wabash",
+      "court_name": "Wabash County",
+      "subsequent_option_count": 6019,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "warren",
+      "court_name": "Warren County",
+      "subsequent_option_count": 5927,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "washington",
+      "court_name": "Washington County",
+      "subsequent_option_count": 7040,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "wayne",
+      "court_name": "Wayne County",
+      "subsequent_option_count": 6106,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "white",
+      "court_name": "White County",
+      "subsequent_option_count": 6948,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "whiteside",
+      "court_name": "Whiteside County",
+      "subsequent_option_count": 6397,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "will",
+      "court_name": "Will County",
+      "subsequent_option_count": 6512,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "williamson",
+      "court_name": "Williamson County",
+      "subsequent_option_count": 6046,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "winnebago",
+      "court_name": "Winnebago County",
+      "subsequent_option_count": 3912,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 3,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "woodford",
+      "court_name": "Woodford County",
+      "subsequent_option_count": 6131,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zdevcook:chd",
+      "court_name": "Z - Clarity Dev - Cook - Chancery",
+      "subsequent_option_count": 1427,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zdevcook:chd1",
+      "court_name": "Z - Clarity Dev - Cook - Chancery  - District 1 - Chicago",
+      "subsequent_option_count": 1427,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zdevcook:cvd",
+      "court_name": "Z - Clarity Dev - Cook - Civil Division",
+      "subsequent_option_count": 433,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 10,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zdevcook:cvd1",
+      "court_name": "Z - Clarity Dev - Cook - Civil Division - District 1",
+      "subsequent_option_count": 433,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 10,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zdevcook:cvd2",
+      "court_name": "Z - Clarity Dev - Cook - Civil Division - District 2",
+      "subsequent_option_count": 433,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 10,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zdevcook:cvd3",
+      "court_name": "Z - Clarity Dev - Cook - Civil Division - District 3",
+      "subsequent_option_count": 433,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 10,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zdevcook:cvd4",
+      "court_name": "Z - Clarity Dev - Cook - Civil Division - District 4",
+      "subsequent_option_count": 433,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 10,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zdevcook:cvd5",
+      "court_name": "Z - Clarity Dev - Cook - Civil Division - District 5",
+      "subsequent_option_count": 433,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 10,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zdevcook:cvd6",
+      "court_name": "Z - Clarity Dev - Cook - Civil Division - District 6",
+      "subsequent_option_count": 433,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 10,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zdevcook:crdm",
+      "court_name": "Z - Clarity Dev - Cook - Criminal",
+      "subsequent_option_count": 1427,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zdevcook:crdm1",
+      "court_name": "Z - Clarity Dev - Cook - Criminal  - District 1 - Chicago",
+      "subsequent_option_count": 1427,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zdevcook:crdm2",
+      "court_name": "Z - Clarity Dev - Cook - Criminal  - District 2 - Skokie",
+      "subsequent_option_count": 1427,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zdevcook:crdm3",
+      "court_name": "Z - Clarity Dev - Cook - Criminal  - District 3 - Rolling Meadows",
+      "subsequent_option_count": 1427,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zdevcook:crdm4",
+      "court_name": "Z - Clarity Dev - Cook - Criminal  - District 4 - Maywood",
+      "subsequent_option_count": 1427,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zdevcook:crdm5",
+      "court_name": "Z - Clarity Dev - Cook - Criminal  - District 5 - Bridgeview",
+      "subsequent_option_count": 1427,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zdevcook:crdm6",
+      "court_name": "Z - Clarity Dev - Cook - Criminal  - District 6 - Markham",
+      "subsequent_option_count": 1427,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zdevcook:dr",
+      "court_name": "Z - Clarity Dev - Cook - Domestic Relations",
+      "subsequent_option_count": 151,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zdevcook:dr1",
+      "court_name": "Z - Clarity Dev - Cook - Domestic Relations - District 1 - Chicago",
+      "subsequent_option_count": 151,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zdevcook:dr2",
+      "court_name": "Z - Clarity Dev - Cook - Domestic Relations - District 2 - Skokie",
+      "subsequent_option_count": 151,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zdevcook:dr3",
+      "court_name": "Z - Clarity Dev - Cook - Domestic Relations - District 3 - Rolling Meadows",
+      "subsequent_option_count": 151,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zdevcook:dr4",
+      "court_name": "Z - Clarity Dev - Cook - Domestic Relations - District 4 - Maywood",
+      "subsequent_option_count": 151,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zdevcook:dr5",
+      "court_name": "Z - Clarity Dev - Cook - Domestic Relations - District 5 - Bridgeview",
+      "subsequent_option_count": 151,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zdevcook:dr6",
+      "court_name": "Z - Clarity Dev - Cook - Domestic Relations - District 6 - Markham",
+      "subsequent_option_count": 151,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zdevcook:dv",
+      "court_name": "Z - Clarity Dev - Cook - Domestic Violence",
+      "subsequent_option_count": 109,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zdevcook:dv1",
+      "court_name": "Z - Clarity Dev - Cook - Domestic Violence  - District 1 - Chicago",
+      "subsequent_option_count": 109,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zdevcook:dv2",
+      "court_name": "Z - Clarity Dev - Cook - Domestic Violence  - District 2 - Skokie",
+      "subsequent_option_count": 109,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zdevcook:dv3",
+      "court_name": "Z - Clarity Dev - Cook - Domestic Violence  - District 3 - Rolling Meadows",
+      "subsequent_option_count": 109,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zdevcook:dv4",
+      "court_name": "Z - Clarity Dev - Cook - Domestic Violence  - District 4 - Maywood",
+      "subsequent_option_count": 109,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zdevcook:dv5",
+      "court_name": "Z - Clarity Dev - Cook - Domestic Violence  - District 5 - Bridgeview",
+      "subsequent_option_count": 109,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zdevcook:dv6",
+      "court_name": "Z - Clarity Dev - Cook - Domestic Violence  - District 6 - Markham",
+      "subsequent_option_count": 109,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zdevcook:jd",
+      "court_name": "Z - Clarity Dev - Cook - Juvenile",
+      "subsequent_option_count": 1427,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zdevcook:jddcfs",
+      "court_name": "Z - Clarity Dev - Cook - Juvenile  - Dept of CFS",
+      "subsequent_option_count": 1427,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zdevcook:jdjd",
+      "court_name": "Z - Clarity Dev - Cook - Juvenile  - Justice",
+      "subsequent_option_count": 1427,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zdevcook:law",
+      "court_name": "Z - Clarity Dev - Cook - Law",
+      "subsequent_option_count": 1427,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zdevcook:law1",
+      "court_name": "Z - Clarity Dev - Cook - Law  - District 1 - Chicago",
+      "subsequent_option_count": 1427,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zdevcook:law2",
+      "court_name": "Z - Clarity Dev - Cook - Law  - District 2 - Skokie",
+      "subsequent_option_count": 1427,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zdevcook:law3",
+      "court_name": "Z - Clarity Dev - Cook - Law  - District 3 - Rolling Meadows",
+      "subsequent_option_count": 1427,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zdevcook:law4",
+      "court_name": "Z - Clarity Dev - Cook - Law  - District 4 - Maywood",
+      "subsequent_option_count": 1427,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zdevcook:law5",
+      "court_name": "Z - Clarity Dev - Cook - Law  - District 5 - Bridgeview",
+      "subsequent_option_count": 1427,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zdevcook:law6",
+      "court_name": "Z - Clarity Dev - Cook - Law  - District 6 - Markham",
+      "subsequent_option_count": 1427,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zdevcook:pr",
+      "court_name": "Z - Clarity Dev - Cook - Probate Division",
+      "subsequent_option_count": 712,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zdevcook:pr1",
+      "court_name": "Z - Clarity Dev - Cook - Probate Division - District 1",
+      "subsequent_option_count": 712,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "ClarityDev",
+      "court_name": "Z - Clarity Dev Node",
+      "subsequent_option_count": 1427,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 10,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "ClarityLocal",
+      "court_name": "Z - Clarity Local Node",
+      "subsequent_option_count": 1427,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 10,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "ClarityStage",
+      "court_name": "Z - Clarity Stage Node",
+      "subsequent_option_count": 547,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 5,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "journal:ecf5",
+      "court_name": "ZZZ-Journal-ECF5",
+      "subsequent_option_count": 3375,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 1,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "mp",
+      "court_name": "z - MP",
+      "subsequent_option_count": 3097,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 1,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "configtest1",
+      "court_name": "z - Standards 3 Test 1",
+      "subsequent_option_count": 6806,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 4,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "configtest2",
+      "court_name": "z - Standards 3 Test 2",
+      "subsequent_option_count": 6807,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "temptest",
+      "court_name": "z - Test",
+      "subsequent_option_count": 847,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "DAC1",
+      "court_name": "zDEV - 1st District Appellate Court",
+      "subsequent_option_count": 371,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "DAC2",
+      "court_name": "zDEV - 2nd District Appellate Court",
+      "subsequent_option_count": 371,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "DAC3",
+      "court_name": "zDEV - 3rd District Appellate Court",
+      "subsequent_option_count": 371,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "DAC4",
+      "court_name": "zDEV - 4th District Appellate Court",
+      "subsequent_option_count": 371,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "DAC5",
+      "court_name": "zDEV - 5th District Appellate Court",
+      "subsequent_option_count": 371,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "DSUPCRT",
+      "court_name": "zDEV - Supreme Court of Illinois",
+      "subsequent_option_count": 434,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "aoictest",
+      "court_name": "zz - AOIC Testing",
+      "subsequent_option_count": 4,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "caliber",
+      "court_name": "zzz - Caliber",
+      "subsequent_option_count": 1187,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "EFMNonIntegrated",
+      "court_name": "zzz - EFM Non-Integrated Test",
+      "subsequent_option_count": 4899,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 3,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "equivant",
+      "court_name": "zzz - Equivant",
+      "subsequent_option_count": 1603,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "henderson2",
+      "court_name": "zzz - Henderson County",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "jano",
+      "court_name": "zzz - JANO",
+      "subsequent_option_count": 1559,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 1,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "jano2",
+      "court_name": "zzz - JANO2",
+      "subsequent_option_count": 1559,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 1,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "JSYS",
+      "court_name": "zzz - Justice Systems",
+      "subsequent_option_count": 3089,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 1,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "ijustice1",
+      "court_name": "zzz - Justice Systems 1",
+      "subsequent_option_count": 3889,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 3,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "REA",
+      "court_name": "zzz - REA",
+      "subsequent_option_count": 1623,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "zzzhenderson",
+      "court_name": "zzz - REA Henderson",
+      "subsequent_option_count": 918,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "ResearchIL",
+      "court_name": "zzz - REA ResearchIL",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "reaknox",
+      "court_name": "zzz - REA-KNOX",
+      "subsequent_option_count": 1623,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "reaknox 2",
+      "court_name": "zzz - REA-KNOX  2",
+      "subsequent_option_count": 1,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "TR-DAC1",
+      "court_name": "zzz - TR-DAC1",
+      "subsequent_option_count": 367,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "TR-DAC2",
+      "court_name": "zzz - TR-DAC2",
+      "subsequent_option_count": 367,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "TR-DAC3",
+      "court_name": "zzz - TR-DAC3",
+      "subsequent_option_count": 367,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "TR-DAC4",
+      "court_name": "zzz - TR-DAC4",
+      "subsequent_option_count": 367,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "TR-DAC5",
+      "court_name": "zzz - TR-DAC5",
+      "subsequent_option_count": 367,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "TR-SC",
+      "court_name": "zzz - TR-SC",
+      "subsequent_option_count": 321,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "thomsonreuters",
+      "court_name": "zzz - Thomson Reuters",
+      "subsequent_option_count": 311,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "ijustice",
+      "court_name": "zzz - iJustice",
+      "subsequent_option_count": 1164,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 0,
+      "targeted_path_scan_error": null
+    },
+    {
+      "court_code": "journal:lake",
+      "court_name": "zzz-Journal",
+      "subsequent_option_count": 4098,
+      "exact_title_count": 0,
+      "all_subsequent_request_error": null,
+      "targeted_eviction_case_type_rows": 1,
+      "targeted_path_scan_error": null
+    }
+  ],
+  "http_date_header_from_court_list_response": "Tue, 13 Oct 2026 20:23:36 GMT"
+}

@@ -66,8 +66,20 @@ def rules():
     config = yaml.safe_load(raw)
     if config.get("version") != 1 or config.get("stemming") != "english":
         raise ValueError("Unsupported filing search rules version or stemmer")
+    if config.get("guided_form_aliases_file"):
+        supplement = RULES_PATH.with_name(config["guided_form_aliases_file"]).read_bytes()
+        aliases = json.loads(supplement)
+        if aliases.get("version") != 1:
+            raise ValueError("Unsupported guided form aliases version")
+        duplicates = config["concepts"].keys() & aliases["concepts"].keys()
+        if duplicates:
+            raise ValueError(f"Duplicate guided form concepts: {sorted(duplicates)}")
+        config["concepts"].update(aliases["concepts"])
+        config.setdefault("path_aliases", []).extend(aliases["path_aliases"])
+        config["guided_definitions"] = aliases.get("definitions", {})
+        raw += b"\n" + supplement
     # Bump this prefix whenever tokenization changes incompatibly.
-    return config, hashlib.sha256(b"filing-search-v1\n" + raw).hexdigest()
+    return config, hashlib.sha256(b"filing-search-v2-court-aliases\n" + raw).hexdigest()
 
 
 def words(text):
@@ -88,23 +100,35 @@ def stems(text):
 
 
 @lru_cache(maxsize=8)
-def concept_phrases(jurisdiction):
+def concept_phrases(jurisdiction, path_query=False):
     config, _ = rules()
     phrases = []
     for name, concept in config["concepts"].items():
         if jurisdiction not in concept.get("jurisdictions", config["jurisdictions"]):
+            continue
+        if concept.get("path_only") and not path_query:
             continue
         for term in concept["terms"]:
             phrases.append((stems(term), "concept" + re.sub(r"[^a-z0-9]", "", name)))
     return sorted(phrases, key=lambda pair: -len(pair[0]))
 
 
+@lru_cache(maxsize=8)
+def path_only_concept_tokens(jurisdiction):
+    config, _ = rules()
+    return frozenset(
+        "concept" + re.sub(r"[^a-z0-9]", "", name)
+        for name, concept in config["concepts"].items()
+        if concept.get("path_only") and jurisdiction in concept.get("jurisdictions", config["jurisdictions"])
+    )
+
+
 @lru_cache(maxsize=32768)
-def search_tokens(text, jurisdiction, *, query=False):
+def search_tokens(text, jurisdiction, *, query=False, path_query=False):
     tokens = stems(text)
     concepts = set()
     consumed = set()
-    for phrase, concept in concept_phrases(jurisdiction):
+    for phrase, concept in concept_phrases(jurisdiction, path_query):
         for start in range(len(tokens) - len(phrase) + 1):
             positions = set(range(start, start + len(phrase)))
             if query and consumed & positions:
@@ -127,6 +151,7 @@ def concept_definitions():
     config = yaml.safe_load(DEFINITIONS_PATH.read_bytes())
     if config.get("version") != 1:
         raise ValueError("Unsupported concept definitions version")
+    config.setdefault("concepts", {}).update(rules()[0].get("guided_definitions", {}))
     return config
 
 
@@ -175,7 +200,9 @@ def search_context(jurisdiction, query, labels, *, court_name="", corrected=(), 
     A group contains filing labels only; a path also provides its case/court
     labels. Query concepts can match that associated context, not the document.
     """
-    query_tokens = search_tokens(resolved_query if resolved_query is not None else query, jurisdiction, query=True)
+    query_tokens = search_tokens(
+        resolved_query if resolved_query is not None else query, jurisdiction, query=True, path_query=True
+    )
     name_tokens = set().union(*(search_tokens(name, jurisdiction, query=True) for _, name in labels))
     related = []
     meanings = []
@@ -219,6 +246,9 @@ def explanation_rules(jurisdiction, initial):
             continue
         constraints = {facet: {tuple(words(label)) for label in rule[facet]} for facet in FACETS if facet in rule}
         facets.update(constraints)
+        if rule.get("case_concepts"):
+            constraints["case_concepts"] = rule["case_concepts"]
+            facets.update(("case_category", "case_type"))
         compiled.append((constraints, rule["text"], rule["source"]))
     return tuple(facet for facet in FACETS if facet in facets), compiled
 
@@ -228,7 +258,7 @@ def _explanation_for_names(jurisdiction, initial, names):
     facets, compiled = explanation_rules(jurisdiction, initial)
     normalized = dict(zip(facets, (tuple(words(name)) for name in names), strict=True))
     for constraints, text, source in compiled:
-        if all(normalized[facet] in labels for facet, labels in constraints.items()):
+        if _matches_alias_constraints(jurisdiction, normalized, constraints):
             return text, source
     return "", ""
 
@@ -239,6 +269,99 @@ def explanation_for(jurisdiction, path, initial):
     # context-specific matches without re-normalizing every rule for every row.
     facets, _ = explanation_rules(jurisdiction, initial)
     return _explanation_for_names(jurisdiction, initial, tuple(path[facet]["name"] for facet in facets))
+
+
+def _matches_alias_constraints(jurisdiction, names, constraints):
+    for facet, labels in constraints.items():
+        if facet == "case_concepts":
+            context = " ".join((*names["case_category"], *names["case_type"]))
+            tokens = search_tokens(context, jurisdiction)
+            if not all("concept" + re.sub(r"[^a-z0-9]", "", key) in tokens for key in labels):
+                return False
+        elif facet == "court_codes":
+            if names.get("court_code", "") not in labels:
+                return False
+        elif facet == "court_code_prefixes":
+            if not any(names.get("court_code", "").startswith(prefix) for prefix in labels):
+                return False
+        elif names[facet] not in labels:
+            return False
+    return True
+
+
+@lru_cache(maxsize=24)
+def path_alias_rules(jurisdiction, initial, facet="filing_type"):
+    """Compile exact constraints shared by grouped labels and individual paths.
+
+    Court selectors use provider codes, not fuzzy court-name matching. Grouped
+    labels include their indexed vocabulary in their identity so a local alias
+    cannot leak into another court with the same provider label names.
+    """
+    compiled = []
+    for rule in rules()[0].get("path_aliases", []):
+        target = rule.get("facet", "filing_type")
+        if target not in {"filing_type", "case_category", "case_type"} or target not in rule or "initial" not in rule:
+            raise ValueError("Path aliases require an exact target facet label and initial stage")
+        if "court" in rule:
+            raise ValueError("Use court_codes or court_code_prefixes for court-specific aliases")
+        if target != facet:
+            continue
+        if jurisdiction not in rule["jurisdictions"] or initial != rule["initial"]:
+            continue
+        constraints = {facet: {tuple(words(label)) for label in rule[facet]} for facet in FACETS if facet in rule}
+        if rule.get("case_concepts"):
+            constraints["case_concepts"] = rule["case_concepts"]
+        for selector in ("court_codes", "court_code_prefixes"):
+            if selector in rule:
+                if not rule[selector] or any(not value for value in rule[selector]):
+                    raise ValueError("Court alias selectors cannot be empty")
+                constraints[selector] = tuple(rule[selector])
+        tokens = set().union(*(search_tokens(term, jurisdiction) for term in rule.get("terms", [])))
+        tokens.update("concept" + re.sub(r"[^a-z0-9]", "", key) for key in rule.get("concepts", []))
+        compiled.append((constraints, tokens))
+    return compiled
+
+
+@lru_cache(maxsize=32768)
+def path_alias_tokens(jurisdiction, initial, category, case_type, filing, court_code="", facet="filing_type"):
+    names = dict(
+        zip(
+            ("case_category", "case_type", "filing_type"),
+            (tuple(words(name)) for name in (category, case_type, filing)),
+            strict=True,
+        )
+    )
+    names["court_code"] = court_code
+    tokens = set()
+    for constraints, aliases in path_alias_rules(jurisdiction, initial, facet):
+        if _matches_alias_constraints(jurisdiction, names, constraints):
+            tokens.update(aliases)
+    return frozenset(tokens)
+
+
+def indexed_path(jurisdiction, path, initial):
+    """Materialize the same scoped aliases for every catalog transport."""
+    terms = {facet: search_tokens(path[facet]["name"], jurisdiction) for facet in FACETS}
+    for facet in ("filing_type", "case_category", "case_type"):
+        terms[facet] = terms[facet] | path_alias_tokens(
+            jurisdiction,
+            initial,
+            *(path[level]["name"] for level in ("case_category", "case_type", "filing_type")),
+            court_code=path["court"]["code"],
+            facet=facet,
+        )
+    all_terms = set.union(*terms.values())
+    all_terms.update(token for facet in FACETS for token in stems(path[facet]["code"]))
+    explanation, source = explanation_for(jurisdiction, path, initial)
+    return dict(
+        **path,
+        initial=initial,
+        search_text=packed(all_terms),
+        filing_terms=packed(terms["filing_type"]),
+        case_terms=packed(terms["case_category"] | terms["case_type"]),
+        explanation=explanation,
+        explanation_source=source,
+    )
 
 
 def source_url():
@@ -383,19 +506,7 @@ def _court_entries(catalog, jurisdiction, court, executor):
             ):
                 for filing in filings:
                     path = dict(zip(FACETS, (court, category, case_type, filing), strict=True))
-                    terms = {facet: search_tokens(path[facet]["name"], jurisdiction) for facet in FACETS}
-                    all_terms = set.union(*terms.values())
-                    all_terms.update(t for facet in FACETS for t in stems(path[facet]["code"]))
-                    explanation, source = explanation_for(jurisdiction, path, initial)
-                    yield dict(
-                        **path,
-                        initial=initial,
-                        search_text=packed(all_terms),
-                        filing_terms=packed(terms["filing_type"]),
-                        case_terms=packed(terms["case_category"] | terms["case_type"]),
-                        explanation=explanation,
-                        explanation_source=source,
-                    )
+                    yield indexed_path(jurisdiction, path, initial)
 
 
 def refresh_index(jurisdiction, *, progress=None, cache_dir=None, transport=None, force=(), dry_run=False):
@@ -613,7 +724,10 @@ def corrected_search_query(index, query):
 
 def matching_paths(index, query, initial):
     resolved_query, corrected = corrected_search_query(index, query)
-    tokens = search_tokens(resolved_query, index.jurisdiction, query=True)
+    tokens = search_tokens(resolved_query, index.jurisdiction, query=True, path_query=True)
+    exact_name = query.strip()
+    exact_fallback = bool(tokens & path_only_concept_tokens(index.jurisdiction))
+    literal_tokens = search_tokens(resolved_query, index.jurisdiction, query=True) if exact_fallback else frozenset()
     if not tokens:
         return index.paths.none().alias(court_code=CourtCode("court")).annotate(score=Value(0)), []
     # A court that only heads the locations under it is refused by the e-filing
@@ -628,7 +742,14 @@ def matching_paths(index, query, initial):
     )
     if connection.vendor == "postgresql":
         search = SearchQuery(" ".join(sorted(tokens)), config="simple")
-        paths = paths.annotate(document=SearchVector("search_text", config="simple")).filter(document=search)
+        paths = paths.annotate(document=SearchVector("search_text", config="simple"))
+        if exact_fallback and literal_tokens:
+            literal_search = SearchQuery(" ".join(sorted(literal_tokens)), config="simple")
+            paths = paths.annotate(literal_document=SearchVector("search_text", config="simple")).filter(
+                Q(document=search) | (Q(literal_document=literal_search) & Q(filing_type__name__iexact=exact_name))
+            )
+        else:
+            paths = paths.filter(document=search)
     elif connection.vendor == "sqlite":
         # Look up candidate row IDs before ranking/grouping. LIKE '% token %'
         # scanned every path in the jurisdiction (millions for Illinois).
@@ -636,15 +757,37 @@ def matching_paths(index, query, initial):
         # user punctuation must never become FTS operators or SQL syntax.
         terms = " AND ".join('"' + token.replace('"', '""') + '"' for token in sorted(tokens))
         expression = f'index_id : "{int(index.pk)}" AND initial : "{int(initial)}" AND search_text : ({terms})'
-        paths = paths.filter(
+        alias_candidates = Q(
             pk__in=RawSQL(
                 "SELECT rowid FROM filing_code_search_fts WHERE filing_code_search_fts MATCH %s",
                 (expression,),
             )
         )
+        if exact_fallback and literal_tokens:
+            literal_terms = " AND ".join('"' + token.replace('"', '""') + '"' for token in sorted(literal_tokens))
+            literal_expression = (
+                f'index_id : "{int(index.pk)}" AND initial : "{int(initial)}" AND search_text : ({literal_terms})'
+            )
+            exact_candidates = Q(
+                pk__in=RawSQL(
+                    "SELECT rowid FROM filing_code_search_fts WHERE filing_code_search_fts MATCH %s",
+                    (literal_expression,),
+                )
+            ) & Q(filing_type__name__iexact=exact_name)
+            paths = paths.filter(alias_candidates | exact_candidates)
+        else:
+            paths = paths.filter(alias_candidates)
     else:
+        token_query = Q()
         for token in sorted(tokens):
-            paths = paths.filter(search_text__contains=f" {token} ")
+            token_query &= Q(search_text__contains=f" {token} ")
+        if exact_fallback and literal_tokens:
+            literal_query = Q()
+            for token in sorted(literal_tokens):
+                literal_query &= Q(search_text__contains=f" {token} ")
+            paths = paths.filter(token_query | (literal_query & Q(filing_type__name__iexact=exact_name)))
+        else:
+            paths = paths.filter(token_query)
     scores = {
         "filing_terms": Value(0, output_field=IntegerField()),
         "case_terms": Value(0, output_field=IntegerField()),
@@ -653,6 +796,14 @@ def matching_paths(index, query, initial):
         for field, weight in (("filing_terms", 8), ("case_terms", 3)):
             clause = Q(**{f"{field}__contains": f" {token} "})
             scores[field] += Case(When(clause, then=Value(weight)), default=Value(0), output_field=IntegerField())
+    if exact_fallback:
+        # An exact label is a full name match, on the same scale as a
+        # synonym. A large bonus would hide valid aliases in strong-only UI.
+        scores["filing_terms"] = Case(
+            When(filing_type__name__iexact=exact_name, then=Value(8 * len(tokens))),
+            default=scores["filing_terms"],
+            output_field=IntegerField(),
+        )
     paths = paths.annotate(name_score=scores["filing_terms"])
     return paths.annotate(score=scores["filing_terms"] + scores["case_terms"]), corrected
 
@@ -682,7 +833,10 @@ def matching_labels(index, query, initial, courts=(), *, names=None, contexts=No
     label to match. Most searches name no court: one query for every word.
     """
     resolved_query, corrected = corrected_search_query(index, query)
-    tokens = search_tokens(resolved_query, index.jurisdiction, query=True)
+    tokens = search_tokens(resolved_query, index.jurisdiction, query=True, path_query=True)
+    exact_name = query.strip()
+    exact_fallback = bool(tokens & path_only_concept_tokens(index.jurisdiction))
+    literal_tokens = search_tokens(resolved_query, index.jurisdiction, query=True) if exact_fallback else frozenset()
     if not tokens:
         return [], tokens, corrected
     headings = heading_court_codes(index.jurisdiction)
@@ -700,13 +854,35 @@ def matching_labels(index, query, initial, courts=(), *, names=None, contexts=No
             labels = labels.filter(context_filter(contexts, ("case_category_name", "case_type_name")))
         if not words_left:
             # Only court words: every label of those courts.
-            labels = labels.filter(courts__has_any_keys=[code for code, left in required.items() if not left])
+            court_match = Q(courts__has_any_keys=[code for code, left in required.items() if not left])
+            if exact_fallback and literal_tokens:
+                exact_text = Q()
+                for token in sorted(literal_tokens):
+                    exact_text &= Q(search_text__contains=f" {token} ")
+                labels = labels.filter(court_match | (exact_text & Q(filing_type_name__iexact=exact_name)))
+            else:
+                labels = labels.filter(court_match)
         elif connection.vendor == "postgresql":
             search = SearchQuery(" ".join(sorted(words_left)), config="simple")
-            labels = labels.alias(document=SearchVector("search_text", config="simple")).filter(document=search)
+            labels = labels.alias(document=SearchVector("search_text", config="simple"))
+            if exact_fallback and literal_tokens:
+                literal_search = SearchQuery(" ".join(sorted(literal_tokens)), config="simple")
+                labels = labels.alias(literal_document=SearchVector("search_text", config="simple")).filter(
+                    Q(document=search) | (Q(literal_document=literal_search) & Q(filing_type_name__iexact=exact_name))
+                )
+            else:
+                labels = labels.filter(document=search)
         else:
+            text_query = Q()
             for token in sorted(words_left):
-                labels = labels.filter(search_text__contains=f" {token} ")
+                text_query &= Q(search_text__contains=f" {token} ")
+            if exact_fallback and literal_tokens:
+                exact_text = Q()
+                for token in sorted(literal_tokens):
+                    exact_text &= Q(search_text__contains=f" {token} ")
+                labels = labels.filter(text_query | (exact_text & Q(filing_type_name__iexact=exact_name)))
+            else:
+                labels = labels.filter(text_query)
         for label in labels.iterator(chunk_size=2000):
             if label.pk in found:
                 continue
@@ -714,7 +890,13 @@ def matching_labels(index, query, initial, courts=(), *, names=None, contexts=No
             counts = {
                 code: count
                 for code, count in label.courts.items()
-                if code in required and required[code] <= label_words
+                if code in required
+                and (
+                    required[code] <= label_words
+                    or (
+                        exact_fallback and literal_tokens and label.filing_type_name.casefold() == exact_name.casefold()
+                    )
+                )
             }
             if counts:
                 found[label.pk] = (label, counts)
@@ -1021,7 +1203,7 @@ def filing_groups(index, query, initial, courts=()):
     fingerprint = hashlib.sha256(
         f"{index.pk}:{index.refreshed_at}:{initial}:{query}:{courts}:{headings}".encode()
     ).hexdigest()
-    key = f"filing-groups-v10:{fingerprint}:{bool(index.labels_built_at)}"
+    key = f"filing-groups-v12:{fingerprint}:{bool(index.labels_built_at)}"
     # The court and case-type steps repeat the search that listed the groups,
     # often in another worker or machine: keep results where all of them read.
     cached = cache.get(key)
@@ -1102,9 +1284,15 @@ def filing_groups(index, query, initial, courts=()):
 def _label_rows(index, query, initial, courts):
     """filing_groups' per-label rows, summed over the matching courts' paths."""
     labels, tokens, corrected = matching_labels(index, query, initial, courts)
+    exact_fallback = bool(tokens & path_only_concept_tokens(index.jurisdiction))
+    exact_name = query.strip().casefold()
     rows = []
     for label, counts in labels:
-        name_rank = label_score(label.filing_terms, tokens, 8)
+        name_rank = (
+            8 * len(tokens)
+            if exact_fallback and label.filing_type_name.casefold() == exact_name
+            else label_score(label.filing_terms, tokens, 8)
+        )
         rows.append(
             {
                 "filing_type__name": label.filing_type_name,

@@ -1,0 +1,207 @@
+{
+  "version": 1,
+  "state": "illinois",
+  "checked_at": "2026-10-13",
+  "catalog_source": "https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/",
+  "catalog_label_index": "/tmp/guided-live-catalog/label-index-fast.json",
+  "catalog_checked_at": "2026-10-13T20:35:19.991597+00:00",
+  "records": [
+    {
+      "form_ids": [
+        "ATJ 503.11"
+      ],
+      "source_document_title": "APPEARANCE (CIVIL)",
+      "exact_filing_type": "Appearance",
+      "case_category": "Civil",
+      "case_types": [],
+      "case_concepts": [],
+      "initial": false,
+      "stage_constraint": "subsequent (source interview stage)",
+      "available_stages": [
+        "initial",
+        "subsequent"
+      ],
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-Appearance/blob/2aa42c93cdafde3a83d7fa7c1e2ab83d262d1af1/docassemble/Appearance/data/templates/appearance.pdf",
+        "https://www.illinoislegalaid.org/legal-information/appearance"
+      ],
+      "reason": "The printed form title names a civil appearance, and the selected filing label is the same filing instrument without the parenthetical case qualifier. The source interview presents this as a subsequent filing. Provider lists contain exact label 'Appearance' in 181 courts at subsequent timing and 120 courts at initial timing. Label presence does not establish the selected court/type route; court and case type remain unverified.",
+      "observed_by_stage": {
+        "subsequent": [
+          {
+            "court_code": "KankakeeCV",
+            "provider_id": "5900",
+            "label": "Appearance"
+          }
+        ],
+        "initial": [
+          {
+            "court_code": "boone",
+            "provider_id": "286451",
+            "label": "Appearance"
+          }
+        ]
+      },
+      "mapping_status": "verified_label"
+    },
+    {
+      "form_ids": [
+        "ATJ 504.4"
+      ],
+      "source_document_title": "JURY REQUEST (CIVIL)",
+      "exact_filing_type": "Jury Demand/Request",
+      "case_category": "Civil",
+      "case_types": [],
+      "case_concepts": [],
+      "initial": false,
+      "stage_constraint": "subsequent (source interview stage)",
+      "available_stages": [
+        "initial",
+        "subsequent"
+      ],
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-Appearance/blob/2aa42c93cdafde3a83d7fa7c1e2ab83d262d1af1/docassemble/Appearance/data/templates/jury_request.pdf",
+        "https://www.illinoislegalaid.org/legal-information/appearance"
+      ],
+      "reason": "The printed document is a civil jury request; the provider's exact label explicitly pairs the synonymous court terms 'Demand/Request'. The source interview presents it as subsequent. Provider lists contain exact label 'Jury Demand/Request' in 113 courts at subsequent timing and 106 courts at initial timing. No case type or selected route is asserted.",
+      "observed_by_stage": {
+        "subsequent": [
+          {
+            "court_code": "knox",
+            "provider_id": "286726",
+            "label": "Jury Demand/Request"
+          }
+        ],
+        "initial": [
+          {
+            "court_code": "boone",
+            "provider_id": "286726",
+            "label": "Jury Demand/Request"
+          }
+        ]
+      },
+      "mapping_status": "verified_label"
+    },
+    {
+      "form_ids": [
+        "ATJ 520.5"
+      ],
+      "source_document_title": "CERTIFICATION FOR EXEMPTION",
+      "exact_filing_type": "Certificate of Exemption from eFiling",
+      "case_category": null,
+      "case_types": [],
+      "case_concepts": [],
+      "initial": true,
+      "stage_constraint": "initial (source interview outputs)",
+      "available_stages": [
+        "initial",
+        "subsequent"
+      ],
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-OrderOfProtection/blob/2703abf4ef22d1510cb12e894428a8cd0b6772a0/docassemble/OrderOfProtection/data/templates/efiling_exemption.pdf",
+        "https://www.illinoislegalaid.org/legal-information/order-protection"
+      ],
+      "reason": "The document title and provider label both identify the same exemption certificate; 'Certification' and 'Certificate' are the only wording difference. The reviewed source outputs use this certification as an initial filing attachment; no single case category is shared across those outputs. Provider lists contain this exact label in 30 courts at both timings; no selected route is inferred.",
+      "observed_by_stage": {
+        "initial": [
+          {
+            "court_code": "peoria",
+            "provider_id": "302470",
+            "label": "Certificate of Exemption from eFiling"
+          }
+        ],
+        "subsequent": [
+          {
+            "court_code": "KankakeeCV",
+            "provider_id": "297759",
+            "label": "Certificate of Exemption from eFiling"
+          }
+        ]
+      },
+      "mapping_status": "verified_label"
+    },
+    {
+      "form_ids": [
+        "ATJ 601.9"
+      ],
+      "source_document_title": "APPLICATION FOR WAIVER OF COURT FEES (CIVIL)",
+      "exact_filing_type": "Application Waiver of Court Fees (Civil)",
+      "case_category": "Civil",
+      "case_types": [],
+      "case_concepts": [],
+      "initial": false,
+      "stage_constraint": "subsequent (source interview stage)",
+      "available_stages": [
+        "initial",
+        "subsequent"
+      ],
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-FeeWaiver/blob/cd0c5e8fe4028b0881d20281dddb2409f0ed6730/docassemble/FeeWaiver/data/templates/FeeWaiver_Civil_Application.pdf",
+        "https://www.illinoislegalaid.org/legal-information/fee-waiver"
+      ],
+      "reason": "The printed form title and provider label contain the same civil-court-fee waiver application wording; the provider omits only the word 'for'. The source interview presents this output as subsequent. Provider lists contain this exact label in 110 courts at both timings. No case type or selected route is asserted.",
+      "observed_by_stage": {
+        "initial": [
+          {
+            "court_code": "boone",
+            "provider_id": "181750",
+            "label": "Application Waiver of Court Fees (Civil)"
+          }
+        ],
+        "subsequent": [
+          {
+            "court_code": "boone",
+            "provider_id": "181750",
+            "label": "Application Waiver of Court Fees (Civil)"
+          }
+        ]
+      },
+      "mapping_status": "verified_label"
+    },
+    {
+      "form_ids": [
+        "ATJ 602.8"
+      ],
+      "source_document_title": "ORDER ON APPLICATION FOR WAIVER OF COURT FEES (CIVIL)",
+      "exact_filing_type": "Order for Waiver of Fees/Assessments",
+      "case_category": "Civil",
+      "case_types": [],
+      "case_concepts": [],
+      "initial": false,
+      "stage_constraint": "subsequent (source interview stage)",
+      "available_stages": [
+        "subsequent"
+      ],
+      "source_urls": [
+        "https://github.com/IllinoisLegalAidOnline/docassemble-FeeWaiver/blob/cd0c5e8fe4028b0881d20281dddb2409f0ed6730/docassemble/FeeWaiver/data/templates/FW-CIV-Order.pdf",
+        "https://www.illinoislegalaid.org/legal-information/fee-waiver"
+      ],
+      "reason": "The document is specifically an order granting or addressing waiver of court fees; the provider label is specifically an order for waiver of fees/assessments, so this is not a generic Order equivalence. The source interview presents it as subsequent. Provider lists contain this exact label in 24 courts at subsequent timing. No case type or selected route is asserted.",
+      "observed_by_stage": {
+        "subsequent": [
+          {
+            "court_code": "KankakeeCV",
+            "provider_id": "297811",
+            "label": "Order for Waiver of Fees/Assessments"
+          }
+        ]
+      },
+      "mapping_status": "verified_label"
+    }
+  ],
+  "not_proposed": [
+    {
+      "title": "Name-change notice, publication, and impound/seal forms",
+      "reason": "Some source titles and exact provider labels have a plausible name-change correspondence, but the relevant PDFs have no reliably printed form identifier or the observed labels are court-limited. No alias is supplied pending a stable source identity and route evidence."
+    },
+    {
+      "title": "Jury Request AP-J 504.1",
+      "reason": "The printed title supports the same Jury Demand/Request meaning, but its case/court-specific prefix and route were not independently verified in this review."
+    }
+  ],
+  "limitations": [
+    "This is source-title-to-provider-label evidence, not a complete court/category/case-type path audit or claim of statewide filing eligibility.",
+    "Court observations are samples; counts are distinct provider list rows/court coverage from the dated cached all-options index, not live transaction validation.",
+    "No generic Motion, Order, or fee-waiver family mapping is proposed."
+  ]
+}

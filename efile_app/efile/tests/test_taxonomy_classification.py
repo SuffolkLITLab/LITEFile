@@ -1,12 +1,14 @@
 import json
 from unittest.mock import Mock, patch
 
+import pytest
 import requests
 from django.test import override_settings
 
 from efile.services.taxonomy_classification import (
     HierarchicalDocumentClassifier,
     TylerTaxonomyClient,
+    _crosswalk_matches_for_context,
     deterministic_form_identity,
     exact_form_crosswalk_matches,
     primary_amount_in_controversy,
@@ -537,6 +539,198 @@ def test_a_single_entry_without_a_canonical_id_still_matches(tmp_path):
     assert [match["case_type"] for match in matches] == ["Small Claims"]
 
 
+def test_crosswalk_matches_expose_provider_court_codes_and_remain_advisory(tmp_path):
+    registry = {
+        "registry": [
+            {
+                "form": {
+                    "canonical_id": "IL-SCOPED-FORM",
+                    "jurisdiction": "illinois",
+                    "form_id": "SCOPED",
+                    "canonical_name": "Scoped Form",
+                    "is_form": True,
+                },
+                "mappings": [
+                    {
+                        "court_scope": {
+                            "court_names": ["Shared Court"],
+                            "observed_route_keys": ["court-source"],
+                        },
+                        "category": "Family",
+                        "case_type": "Divorce",
+                        "filing_type": "Petition",
+                        "filing_phase": "subsequent",
+                        "catalog_status": "current",
+                        "association_status": "human_verified",
+                    }
+                ],
+            }
+        ]
+    }
+    path = tmp_path / "scoped.json"
+    path.write_text(json.dumps(registry), encoding="utf-8")
+
+    with override_settings(FORM_CODE_CROSSWALK_PATH=path):
+        matches = exact_form_crosswalk_matches("illinois", {"form identifier": "SCOPED"})
+
+    assert matches[0]["court_names"] == ["Shared Court"]
+    assert matches[0]["court_codes"] == ["court-source"]
+    assert matches[0]["requires_court_selection"] is True
+    assert matches[0]["deterministic"] is False
+
+
+def test_context_filter_rejects_same_named_foreign_court_and_wrong_parent_category():
+    matches = [
+        {
+            "court_names": ["Shared Court"],
+            "court_codes": ["foreign-route"],
+            "category": "Family",
+            "case_type": "Divorce",
+            "filing_type": "Foreign petition",
+            "filing_phase": "subsequent",
+        },
+        {
+            "court_names": ["Shared Court"],
+            "court_codes": ["selected-route"],
+            "category": "Civil",
+            "case_type": "Small Claims",
+            "filing_type": "Civil filing",
+            "filing_phase": "subsequent",
+        },
+        {
+            "court_names": ["Shared Court"],
+            "court_codes": ["selected-route"],
+            "category": "Family",
+            "case_type": "Divorce",
+            "filing_type": "Family filing",
+            "filing_phase": "subsequent",
+        },
+        {
+            "court_names": ["Shared Court"],
+            "court_codes": ["selected-route"],
+            "category": "Family",
+            "case_type": "Divorce",
+            "filing_type": "Initial-only filing",
+            "filing_phase": "initial",
+        },
+    ]
+    selected_court = {"route_key": "selected-route", "name": "Shared Court"}
+
+    by_court = _crosswalk_matches_for_context(matches, filing_phase="subsequent", court=selected_court)
+    assert [match["filing_type"] for match in by_court] == ["Civil filing", "Family filing"]
+    by_category = _crosswalk_matches_for_context(
+        by_court,
+        filing_phase="subsequent",
+        court=selected_court,
+        category={"route_key": "family", "name": "Family"},
+    )
+    assert [match["filing_type"] for match in by_category] == ["Family filing"]
+
+
+def test_classifier_passes_only_selected_court_and_category_crosswalk_hints(tmp_path):
+    registry = {
+        "registry": [
+            {
+                "form": {
+                    "canonical_id": "IL-SCOPED-FORM",
+                    "jurisdiction": "illinois",
+                    "form_id": "SCOPED",
+                    "canonical_name": "Scoped Form",
+                    "is_form": True,
+                },
+                "mappings": [
+                    {
+                        "court_scope": {"court_names": ["Shared Court"], "observed_route_keys": ["foreign-route"]},
+                        "category": "Family",
+                        "case_type": "Divorce",
+                        "filing_type": "Foreign petition",
+                        "filing_phase": "subsequent",
+                        "catalog_status": "partial_observation",
+                        "association_status": "unverified_suggestion",
+                    },
+                    {
+                        "court_scope": {"court_names": ["Shared Court"], "observed_route_keys": ["selected-route"]},
+                        "category": "Civil",
+                        "case_type": "Small Claims",
+                        "filing_type": "Civil filing",
+                        "filing_phase": "subsequent",
+                        "catalog_status": "partial_observation",
+                        "association_status": "unverified_suggestion",
+                    },
+                    {
+                        "court_scope": {"court_names": ["Shared Court"], "observed_route_keys": ["selected-route"]},
+                        "category": "Family",
+                        "case_type": "Divorce",
+                        "filing_type": "Family filing",
+                        "filing_phase": "subsequent",
+                        "catalog_status": "partial_observation",
+                        "association_status": "unverified_suggestion",
+                    },
+                    {
+                        "court_scope": {"court_names": ["Shared Court"], "observed_route_keys": ["selected-route"]},
+                        "category": "Family",
+                        "case_type": "Divorce",
+                        "filing_type": "Initial-only filing",
+                        "filing_phase": "initial",
+                        "catalog_status": "partial_observation",
+                        "association_status": "unverified_suggestion",
+                    },
+                ],
+            }
+        ]
+    }
+    path = tmp_path / "scoped.json"
+    path.write_text(json.dumps(registry), encoding="utf-8")
+
+    class ScopedTaxonomy:
+        base_url = "https://taxonomy.example"
+
+        def courts(self, _jurisdiction):
+            return [{"route_key": "selected-route", "name": "Shared Court"}]
+
+        def categories(self, _jurisdiction, _court, _phase):
+            return [
+                {"route_key": "family", "name": "Family"},
+                {"route_key": "civil", "name": "Civil"},
+            ]
+
+        def case_types(self, _jurisdiction, _court, _category, _phase):
+            return [{"route_key": "divorce", "name": "Divorce"}]
+
+        def filing_types(self, _jurisdiction, _court, _category, _case_type, _phase):
+            return [{"route_key": "family-filing", "name": "Family filing"}]
+
+    rendered = []
+
+    def render(_prompt, **kwargs):
+        rendered.append(kwargs["template_values"])
+        return [], {"inference": {}}
+
+    with (
+        override_settings(FORM_CODE_CROSSWALK_PATH=path),
+        patch("efile.services.taxonomy_classification.render_prompt_messages", side_effect=render),
+        patch(
+            "efile.services.taxonomy_classification.chat_completion",
+            return_value={"status": "selected", "selection_ref": "C001", "confidence": 0.8},
+        ),
+    ):
+        run = HierarchicalDocumentClassifier(taxonomy=ScopedTaxonomy(), model="test").classify(
+            "illinois",
+            {"form identifier": "SCOPED", "filing phase": "subsequent"},
+            "Form SCOPED",
+        )
+
+    assert [item["classification_level"] for item in rendered] == ["court", "case category", "case type", "filing type"]
+    assert rendered[0]["crosswalk_matches"] == []
+    assert {match["filing_type"] for match in rendered[1]["crosswalk_matches"]} == {
+        "Civil filing",
+        "Family filing",
+    }
+    assert {match["filing_type"] for match in rendered[2]["crosswalk_matches"]} == {"Family filing"}
+    assert {match["filing_type"] for match in rendered[3]["crosswalk_matches"]} == {"Family filing"}
+    assert run.metadata["form_crosswalk_summary"]["filing_type_candidates"] == ["Family filing"]
+
+
 def test_crosswalk_summary_preserves_narrowed_case_type_with_multiple_filings():
     summary = summarize_form_crosswalk_matches(
         [
@@ -569,3 +763,44 @@ def test_crosswalk_summary_preserves_narrowed_case_type_with_multiple_filings():
         "filing_type": 2,
     }
     assert summary["next_evidence"] == ["amount_in_controversy"]
+
+
+@pytest.mark.parametrize(
+    ("form_id", "category", "case_type", "filing_type", "catalog_status"),
+    [
+        ("400-00150C", "Family", "Relief from Abuse", "Initial Filing", "current"),
+        (
+            "400-00150CC",
+            "Family",
+            "Relief from Abuse on Behalf of a Minor",
+            "Initial Filing",
+            "current",
+        ),
+        ("400-00836NoChildren", "Family", None, "Initial Filing", "partial_observation"),
+        ("400-00836Children", "Family", None, "Initial Filing", "partial_observation"),
+        (
+            "400-00849",
+            "Family",
+            None,
+            "Statement of Confidential Information",
+            "partial_observation",
+        ),
+        ("400-00813A", "Family", None, "813A Financial Affidavit", "partial_observation"),
+        ("100-00257", "Civil", None, "Initial Filing", "partial_observation"),
+    ],
+)
+def test_vermont_spreadsheet_crosswalk_suggestions_are_exact_and_advisory(
+    form_id, category, case_type, filing_type, catalog_status
+):
+    identity = deterministic_form_identity("vermont", {"form identifier": form_id})
+    matches = exact_form_crosswalk_matches("vermont", {"form identifier": form_id})
+
+    assert identity["status"] == "matched"
+    assert len(matches) == 1
+    assert matches[0]["category"] == category
+    assert matches[0]["case_type"] == case_type
+    assert matches[0]["filing_type"] == filing_type
+    assert matches[0]["catalog_status"] == catalog_status
+    assert matches[0]["association_status"] == "unverified_suggestion"
+    if form_id in {"400-00150C", "400-00150CC"}:
+        assert len(matches[0]["court_names"]) == 14
