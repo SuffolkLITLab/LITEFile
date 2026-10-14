@@ -1,4 +1,4 @@
-"""Compare raw Gotenberg, LITEFile and PDFtk using local filled PDF forms.
+"""Compare raw Gotenberg, LITEfile and PDFtk using local filled PDF forms.
 
 From efile_app: uv run python ../testing/validate_document_preparation.py --output /tmp/pdf-validation
 Rendered documents remain local. Publish only synthetic examples.

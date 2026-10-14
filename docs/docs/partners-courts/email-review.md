@@ -66,10 +66,10 @@ record a missing hook in [#328](https://github.com/SuffolkLITLab/LITEFile/issues
 The default templates live in
 `efile_app/efile/static/config/base-case-types.yaml`; state YAML inherits
 them. Each overridden subject/body is a **plain string**, not a file containing
-Jinja2. The server expands three supported Python `string.Template` values:
+Jinja2. The server expands these built-in Python `string.Template` values:
 `$tracker_url` (a sign-in-safe tracker link), `$help_line` (court-specific
 contact with fallback), and `$waiver_line` (a fixed optional **request**
-notice, not waiver approval). `$` represents a literal dollar sign.
+notice, not waiver approval). `$$` represents a literal dollar sign.
 The HTML tracker presentation is supplied by code. For example:
 
 ```yaml
@@ -115,27 +115,18 @@ through `ALCourtLoader`, resolves `trial_court`, and places
 `trial_court.phone` in its help text and status emails. The court list is
 shared across other ILAO interviews.
 
-**Engineering first:** inspect the versioned ILAO spreadsheet, its freshness and
-reuse terms, and compare it with the
-[Illinois Courts' official directory](https://www.illinoiscourts.gov/courts-directory/).
-Map ILAO court/county entries to LITEFile's **actual Tyler/EFSP court codes**;
-the Appearance interview's court selection is not itself a Tyler-code
-crosswalk. Record unmatched courts, Cook County divisions, trial versus
-appellate courts, and conflicting numbers for review instead of silently
-guessing. The
-[current EFSPProxy CourtLocationInfo model](https://github.com/SuffolkLITLab/EfileProxyServer/blob/main/proxyserver/src/main/java/edu/suffolk/litlab/efsp/tyler/ecfcodes/CourtLocationInfo.java)
-has court codes/names and filing configuration but no clerk-phone field; this
-does not rule out some **other** Tyler endpoint. Search that possibility, but
-do not treat it as a prerequisite for reusing the known ILAO directory.
+The checked crosswalk uses the spreadsheet's explicit `tyler_court_code`,
+requires a unique match in the Tyler court list, and compares phone numbers
+with the [official circuit clerk directory](https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/).
+Verified entries populate `court_specific_requirements.<exact court code>.contact`.
+Cook divisions use the clearly named county-wide clerk customer-service line;
+no courthouse-to-division phone mapping is inferred. Unmatched codes and
+conflicting numbers retain Illinois Court Help pending targeted review.
 
-The existing LITEFile resolver reads
-`court_specific_requirements.<exact court code>.contact` (`name`,
-`phone`, `email`, `url`). `$help_line` can include it in all email
-categories and the filing-detail screen uses the same resolver. **A partial
-contact entry is unsafe in the current fallback:** the resolver can label a
-statewide help number as though it belonged to the local clerk when it merges
-missing phone/URL fields with a local name. Implement or verify a clearly
-labeled local-versus-statewide fallback before enabling this.
+`$help_line` includes this contact in all four default email categories. The
+filing-detail screen uses the same resolver. Local contacts are kept intact:
+a local phone, website, or email never inherits statewide details. An entry
+with only a name falls back to the complete statewide help contact.
 
 ILAO has also [documented a separate court-info lookup](https://github.com/IllinoisLegalAidOnline/website-docs/blob/main/docs/source/dhi_helpful_functions.rst)
 that distinguishes `clerk_phone_number` from `court_phone_number`, falling
@@ -158,11 +149,36 @@ partner-data blocker.
 | --- | --- | --- |
 | Four jurisdiction-specific subject/body pairs | **Yes** via `submission_notifications.templates` | Partner-reviewed content, sender/release checks |
 | Tracker link in body | **Yes** via `$tracker_url` | Rendering and authorization verification |
-| Court-specific help contact | **Yes**, provided exact court-code contact is configured and `$help_line` is included | Reuse/validate ILAO shared court list first; build Tyler-code crosswalk; safe fallback and preview tests; targeted partner exceptions only |
+| Court-specific help contact | **Yes**, provided exact court-code contact is configured and `$help_line` is included | Review remaining conflicting/unmatched records; periodically refresh the checked crosswalk |
 | Fixed fee-waiver **request** note | **Yes** via `$waiver_line`; it is omitted absent the selected WV account/detected waiver document | Partner approval of the wording and scope |
-| Arbitrary partner-authored `if / else` paragraphs or statutory-exemption-specific wording | **Not a documented/tested config hook** | Define safe explicit condition inputs and conditional content, or introduce a structured `when` renderer, then test |
+| Custom waiver-request paragraphs | **Yes**, via `conditional_text` below, in subjects and bodies | Partner approval of wording |
+| Other conditions, including statutory exemptions or court waiver decisions | **No** | Require independently available facts and explicit server support |
 | Dynamic conditional **subjects**, including upstream `{{ status }}` | **No** proxy second-pass rendering | Do not promise; would need an explicit upstream/app contract change |
 | Per-court different email prose or sender domain | **Not shown by the current state-level template/sender config** | Scope separately if partners request it; contact interpolation alone is not per-court prose or sender branding |
+
+Define named literal paragraphs under `submission_notifications.conditional_text`
+and insert `$fee_note` (or another configured name) in any subject or body:
+
+```yaml
+submission_notifications:
+  conditional_text:
+    fee_note:
+      when: fee_waiver_requested
+      then: "Check the court’s fee-waiver decision for any next steps."
+      otherwise: ""  # optional; omitted by default
+  templates:
+    acceptance_contents: >-
+      Check your filing: $tracker_url$fee_note$help_line
+```
+
+`fee_waiver_requested` is true when a WV payment account was selected or a
+waiver document was detected. Missing payment data alone and statutory
+exemptions do not establish a waiver request. This fact is captured at
+submission and does not change when a court later decides the waiver.
+Unknown conditions, malformed blocks, and names that replace built-in values
+are rejected. Selected text is literal: braces are escaped before the proxy
+pass and HTML bodies escape markup. Different event wording can use different
+named paragraphs. These settings are jurisdiction-wide.
 
 For any new condition, the partner should provide:
 `event | when true | exact true sentence | false/omit sentence | state/courts/forms | legal source | reviewer`.
@@ -226,7 +242,7 @@ real filing data or secrets in a shared packet.
 
 ## Two substitution stages and delivery ownership
 
-LITEFile fills `$tracker_url`, `$help_line`, and `$waiver_line` with Python
+LITEfile fills `$tracker_url`, `$help_line`, and `$waiver_line` with Python
 `string.Template` substitution. Use `$$` for a literal dollar sign. The tracker
 URL names the local submission UUID; it does not grant access. Help comes from
 court contact settings with jurisdiction fallback. Waiver wording appears only
@@ -245,7 +261,7 @@ There is no callback `filing_id` variable. Proxy subjects pass through unchanged
 do not put `{{ status }}` in a subject expecting rendering. Inserted configuration
 values are escaped to prevent them becoming second-stage template expressions.
 
-LITEFile supplies copy; EFSPProxy sends it. The inspected SendGrid path recognizes
+LITEfile supplies copy; EFSPProxy sends it. The inspected SendGrid path recognizes
 HTML bodies by their doctype. The current SMTP path sends plain text, so choose
 `format: plain_text` there. There is no multipart fallback. Tyler can independently
 send filing notices and account-activation mail. Sender identity is owned by proxy
@@ -291,11 +307,16 @@ filing_timing:
 
 Both a label and valid source URL are needed to display review/hours guidance.
 `checked_on` is review metadata, not automatic expiry. Exact court settings
-replace the whole `review`, `office_hours` or `business_calendar` block for
-that key; they do not merge its individual fields. Restate every required field
-in a court block. For example, setting only `business_calendar.review_days` at
-court level loses the state’s subdivision and holiday-name overrides.
+merge individual fields of `review`, `office_hours`, and `business_calendar`
+with the jurisdiction settings. A court can override `excluded_holidays`
+without losing the state’s timezone, subdivision, or display names. Set
+`business_calendar.enabled: false` only when clerk review availability has
+been independently verified. Illinois excludes Casimir Pulaski Day by default; configured
+Cook courts retain the library’s first-Monday-in-March holiday. Daily courtroom sessions do not establish clerk e-filing review availability,
+so all configured Cook codes retain the advisory clerk closure note. This affects
+advisory review estimates only, not filing deadlines or online submission.
 Review source content, timezone/daylight-saving
+
 behavior, `business_calendar` subdivision, observed holidays, closure weekdays,
 and any `holiday_names` overrides before release and after court-calendar changes.
 Government holidays are advisory; they do not establish court deadlines.

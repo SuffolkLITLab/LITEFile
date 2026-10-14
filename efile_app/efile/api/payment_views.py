@@ -1,4 +1,4 @@
-"""Payment actions that do not require leaving LITEFile."""
+"""Payment actions that do not require leaving LITEfile."""
 
 import json
 

@@ -74,7 +74,7 @@ case_types:
 
 ## 2. Requirement levels
 
-Checklist items are grouped into three tiers. The YAML keys describe how often a document goes with this kind of filing. Filers see softer labels, because LITEFile cannot know which forms a particular filer's situation calls for:
+Checklist items are grouped into three tiers. The YAML keys describe how often a document goes with this kind of filing. Filers see softer labels, because LITEfile cannot know which forms a particular filer's situation calls for:
 
 | Requirement level | Displayed as | Meaning |
 | :--- | :--- | :--- |

@@ -2,7 +2,7 @@
 
 ## Study question
 
-Can LITEFile improve exact court-code selection by separating direct evidence
+Can LITEfile improve exact court-code selection by separating direct evidence
 extraction from court-specific taxonomy classification without losing useful
 information from the source filing?
 
@@ -21,7 +21,7 @@ that this assumption can be tested on longer documents.
 | Case type | The selected category plus the same source inputs and valid child types | Candidate reference, abstention, or request for more candidates | Exact durable name and status after reference resolution |
 | Filing type | The selected category and case type plus the same source inputs and valid filing types | Candidate reference, abstention, or request for more candidates | Exact durable name and status after reference resolution |
 
-Before taxonomy classification, LITEFile should attempt the deterministic
+Before taxonomy classification, LITEfile should attempt the deterministic
 official-form lookup described in
 [`form-code-crosswalk.md`](form-code-crosswalk.md). A unique, currently valid and
 human-verified form mapping can bypass model classification. Until associations
@@ -78,7 +78,7 @@ close contrast candidates and measure more than gold recall before it replaces
 the full candidate list.
 
 A downstream dependency can make a later level unreachable. For example, when a
-generic fee-waiver document does not establish case type, LITEFile may be unable
+generic fee-waiver document does not establish case type, LITEfile may be unable
 to retrieve the correct filing-type list until it gets case context from the
 user or an existing docket. That is a workflow limitation, not a prompt failure.
 

@@ -7,7 +7,7 @@ This document provides conventions and context for AI coding assistants working 
 ## 1. Documentation & style conventions
 
 - **Sentence case for titles & headings**: All documentation titles, sidebar labels, navigation items, page headings (`#`, `##`, `###`), and captions must use **sentence case** (e.g., *How e-filing works*, *Step-by-step filing walkthrough*, *Jurisdiction & court YAML configuration*, *System architecture & tech stack*).
-  - Capitalize only the first word of the heading and proper nouns (e.g., *LITEFile*, *PDF*, *Docassemble*, *AssemblyLine*, *Fly.io*, *AWS S3*, *Django*, *PostgreSQL*, *Ruff*, *Pytest*, *Illinois*, *Massachusetts*, *Vermont*, *Tyler*).
+  - Capitalize only the first word of the heading and proper nouns (e.g., *LITEfile*, *PDF*, *Docassemble*, *AssemblyLine*, *Fly.io*, *AWS S3*, *Django*, *PostgreSQL*, *Ruff*, *Pytest*, *Illinois*, *Massachusetts*, *Vermont*, *Tyler*).
   - Do not use Title Case for headings or navigation labels.
 - **Tone & accessibility**: Maintain plain, accessible language for user-facing guides, avoiding unnecessary technical jargon.
 - **Multi-state architecture**: Documentation and user-facing resources must support multi-state expansion (e.g., Illinois, Massachusetts, Vermont, and nationwide legal aid/court directories). Avoid hardcoding references to a single state unless describing a state-specific configuration file.

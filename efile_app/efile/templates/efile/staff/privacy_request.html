@@ -1,7 +1,7 @@
 {% extends "efile/staff/base.html" %}
 {% block staff_content %}
     <p>Reference {{ item.reference }} — {{ item.jurisdiction }} — {{ item.get_status_display }}.</p>
-    <p>Outcome: {{ item.outcome|default:"Pending" }}. {% if item.account_wide %}Scope: delete this local account and all of its LITEFile data.{% else %}Scope: delete selected filings and keep the account.{% endif %}</p>
+    <p>Outcome: {{ item.outcome|default:"Pending" }}. {% if item.account_wide %}Scope: delete this local account and all of its LITEfile data.{% else %}Scope: delete selected filings and keep the account.{% endif %}</p>
     {% if item.target_id %}<p>Account #{{ item.target_id }} — {{ item.target.account_email }}.</p>{% endif %}
     <h2>Deletion preview</h2>
     <dl>{% for name, count in plan.counts.items %}<dt>{{ name }}</dt><dd>{{ count }}</dd>{% endfor %}</dl>
@@ -10,7 +10,7 @@
         <ul>{% for blocker in plan.blockers %}<li>{{ blocker }}</li>{% endfor %}</ul>
     {% endif %}
     <p>Shared objects and correction chains outside this scope are blockers. Submitting filings and uncertain transmission outcomes require reconciliation; active extraction workers must stop before deletion.</p>
-    <p>Deleting LITEFile's copies does not withdraw a filing, erase court records, or delete a Tyler account. Backup and provider cleanup need a separate operator disposition.</p>
+    <p>Deleting LITEfile's copies does not withdraw a filing, erase court records, or delete a Tyler account. Backup and provider cleanup need a separate operator disposition.</p>
     {% if item.status != 'completed' and not deletion_enabled %}<p><strong>Deletion is disabled on this deployment.</strong> You can review and verify this request. Ask a deployment administrator to enable deletion before the final confirmation.</p>{% endif %}
     {% if item.status == 'received' %}
         <h2>Verify the requester's authority</h2>

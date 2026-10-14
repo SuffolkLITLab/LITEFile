@@ -195,7 +195,7 @@ class CrosswalkViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Form One")
         self.assertContains(response, "Alice")
-        self.assertContains(response, "Browse filing codes on LITEFile")
+        self.assertContains(response, "Browse filing codes on LITEfile")
 
     def test_review_form_displays_confidence_as_percentage(self):
         response = self.client.get(reverse("crosswalk_review:review_form", args=["MA-01"]) + "?reviewer=Alice")

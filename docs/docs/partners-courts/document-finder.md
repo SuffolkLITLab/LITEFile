@@ -9,7 +9,7 @@ sidebar_position: 4
 
 The document finder helps a filer who does not know yet which documents they
 need. They describe what they want to do in their own words — *change my name*,
-*respond to a small claims case* — and LITEFile shows the documents filings like
+*respond to a small claims case* — and LITEfile shows the documents filings like
 that often include, plus links to guided interviews, official blank forms, and
 help pages.
 

@@ -342,7 +342,7 @@ def replace_documents(request):
             scope = signing.loads(token, salt=REPLACE_SALT, max_age=settings.LITEFILE_HANDOFF_TOKEN_MAX_AGE)
         except signing.BadSignature:
             raise HandoffError(
-                "The document correction link expired. Return from LITEFile again.", status=403
+                "The document correction link expired. Return from LITEfile again.", status=403
             ) from None
         if scope.get("source") != source:
             raise HandoffError("The correction belongs to another source.", status=403)
@@ -377,7 +377,7 @@ def replace_documents(request):
                 for doc in payload["documents"]:
                     row = draft.documents.filter(pk=by_source_id[doc["id"]]).first()
                     if row is None:
-                        raise HandoffError("A document was removed in LITEFile. Add its replacement there.", status=409)
+                        raise HandoffError("A document was removed in LITEfile. Add its replacement there.", status=409)
                     updates.append((row, doc))
                 HandoffDocumentUpdate.objects.create(
                     draft=draft, source=source, idempotency_key=payload["idempotency_key"], fingerprint=digest

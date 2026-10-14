@@ -56,11 +56,11 @@ pages and the application header. Set these values for each jurisdiction:
 
 ```yaml
 jurisdiction:
-  brand_name: "LITEFile"
+  brand_name: "LITEfile"
   logo: "img/litefile-logo.svg"
-  logo_alt: "LITEFile logo"
+  logo_alt: "LITEfile logo"
   official_court_name: "the Illinois Courts"
-  official_tool_statement: "LITEFile is an official, approved electronic filing tool of the Illinois Courts."
+  official_tool_statement: "LITEfile is an official, approved electronic filing tool of the Illinois Courts."
   court_logos:
     - name: "Illinois Courts"
       src: "img/court-logo-illinois-placeholder.svg"
@@ -655,9 +655,9 @@ text:
     starting_document_example: "complaint"
   about:
     project_partner_description: >-
-      LITEFile's Vermont e-filing integration was developed in close partnership
+      LITEfile's Vermont e-filing integration was developed in close partnership
       with Legal Services Vermont (LSV), who collaborated on funding, building,
-      and deploying LITEFile to expand accessible electronic court filing for
+      and deploying LITEfile to expand accessible electronic court filing for
       self-represented litigants in Vermont.
 ```
 
@@ -994,7 +994,7 @@ boundary tests in `test_fee_estimates.py` when schedules change.
 
 Selecting a waiver calls the authenticated, CSRF-protected `POST
 /api/waiver-account/` endpoint. It reuses an active waiver or creates a non-global
-account named `LITEFile  managed waiver account` using the proxy's plain-text
+account named `LITEfile  managed waiver account` using the proxy's plain-text
 creation API. User-row locking serializes concurrent creation requests. A failed
 account lookup never triggers creation. The payment form rechecks the selected
 account with Tyler before saving its ID, name, and type. Waiver selection does

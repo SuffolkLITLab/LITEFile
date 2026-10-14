@@ -22,14 +22,14 @@ jurisdiction:
   name: "Illinois eFile"
   code: "illinois"
   display_name: "Illinois"
-  brand_name: "LITEFile"
+  brand_name: "LITEfile"
   logo: "img/litefile-logo.svg"
-  logo_alt: "LITEFile logo"
+  logo_alt: "LITEfile logo"
   icon: "fas fa-balance-scale"
   svg: "img/IL.svg"
   api_endpoint: "/api/illinois"
   official_court_name: "the Illinois Courts"
-  official_tool_statement: "LITEFile is an official, approved electronic filing tool of the Illinois Courts."
+  official_tool_statement: "LITEfile is an official, approved electronic filing tool of the Illinois Courts."
   court_logos:
     - name: "Illinois Courts"
       src: "img/court-logo-illinois.svg"
@@ -76,7 +76,7 @@ court_specific_requirements:
 ```
 
 :::tip Clerk contact information
-When a filing is rejected by a court clerk, LITEFile automatically surfaces the clerk's phone number and email address directly on the filer's status screen so they know who to call for assistance.
+When a filing is rejected by a court clerk, LITEfile automatically surfaces the clerk's phone number and email address directly on the filer's status screen so they know who to call for assistance.
 :::
 
 ### Other-party address rules
@@ -99,7 +99,7 @@ court_specific_requirements:
       reason: "The court needs an address to issue or serve these documents."
 ```
 
-Set `required: true` when every other party in that layer needs an address. The three `required_for_*` lists may contain a Tyler code or name and are matched without regard to capitalization. A matching party type, filing type, or selected optional service makes the address required. LITEFile also honors an address-required flag from live Tyler party metadata if the code list provides one.
+Set `required: true` when every other party in that layer needs an address. The three `required_for_*` lists may contain a Tyler code or name and are matched without regard to capitalization. A matching party type, filing type, or selected optional service makes the address required. LITEfile also honors an address-required flag from live Tyler party metadata if the code list provides one.
 
 ---
 
@@ -120,9 +120,9 @@ text:
     starting_document_example: "complaint"
   about:
     project_partner_description: >-
-      LITEFile's Vermont e-filing integration was developed in close partnership
+      LITEfile's Vermont e-filing integration was developed in close partnership
       with Legal Services Vermont (LSV), who collaborated on funding, building,
-      and deploying LITEFile to expand accessible electronic court filing for
+      and deploying LITEfile to expand accessible electronic court filing for
       self-represented litigants in Vermont.
 ```
 

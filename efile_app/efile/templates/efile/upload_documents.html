@@ -31,18 +31,6 @@
                 </div>
             </details>
         {% endif %}
-        <div class="requirements-strip">
-            <span><i class="fa-solid fa-file-pdf" aria-hidden="true"></i> {% translate "PDF or Word" %}</span>
-            <span><i class="fa-solid fa-weight-hanging" aria-hidden="true"></i> {% translate "10 MB per file" %}</span>
-            <span><i class="fa-solid fa-eye" aria-hidden="true"></i> {% translate "Text must be readable" %}</span>
-        </div>
-        <p class="mt-3">
-            {% if flatten_pdf_forms %}
-                {% ui_text "upload_documents.preparation_help" %}
-            {% else %}
-                {% ui_text "upload_documents.preparation_help_unflattened" %}
-            {% endif %}
-        </p>
         {% if has_document_finder %}
             <p class="finder-invitation">
                 <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
@@ -70,15 +58,28 @@
                 </select>
                 <p>To replace a document, select it above and choose one new file. Its filing choices stay saved. Review the new PDF before submitting.</p>
             {% endif %}
-            <label class="drop-zone" id="document-drop-zone" for="documents-input">
+            <div class="drop-zone" id="document-drop-zone">
                 <input id="documents-input"
                        type="file"
                        name="documents"
                        accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                       aria-describedby="upload-requirements upload-preparation"
                        multiple />
                 <span class="drop-zone__icon"><i class="fa-solid fa-cloud-arrow-up" aria-hidden="true"></i></span>
-                <strong>{% translate "Choose files or drag them here" %}</strong>
-            </label>
+                <label for="documents-input"><strong>{% translate "Choose files or drag them here" %}</strong></label>
+                <span class="requirements-strip" id="upload-requirements">
+                    <span><i class="fa-solid fa-file-pdf" aria-hidden="true"></i> {% translate "PDF or Word (DOC or DOCX)" %}</span>
+                    <span><i class="fa-solid fa-weight-hanging" aria-hidden="true"></i> {% translate "10 MB per file" %}</span>
+                    <span><i class="fa-solid fa-eye" aria-hidden="true"></i> {% translate "Text must be readable" %}</span>
+                </span>
+                <span class="drop-zone__preparation" id="upload-preparation">
+                    {% if flatten_pdf_forms %}
+                        {% ui_text "upload_documents.preparation_help" %}
+                    {% else %}
+                        {% ui_text "upload_documents.preparation_help_unflattened" %}
+                    {% endif %}
+                </span>
+            </div>
             <section class="pending-files"
                      id="pending-files"
                      aria-labelledby="pending-files-heading"

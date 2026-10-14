@@ -1,13 +1,15 @@
 # Filing updates contract
 
-This note records the verified contract for LITEFile filing emails and the upstream EFSPProxy. It is an implementation and release checklist, not evidence of partner approval or production delivery.
+This note records the verified contract for LITEfile filing emails and the upstream EFSPProxy. It is an implementation and release checklist, not evidence of partner approval or production delivery.
 
-## Configuration hook audit (October 13, 2026)
+## Earlier configuration hook audit (October 13, 2026)
+
+The implementation update below supersedes this earlier gap audit for conditional waiver text, contact fallback, and court calendars.
 
 This is a **source audit**, not verification that the requested partner customization has been deployed or signed off. See the [partner copy-packet format](../docs/partners-courts/email-review.md) and issues [#335](https://github.com/SuffolkLITLab/LITEFile/issues/335), [#328](https://github.com/SuffolkLITLab/LITEFile/issues/328), [#329](https://github.com/SuffolkLITLab/LITEFile/issues/329), and [#331](https://github.com/SuffolkLITLab/LITEFile/issues/331).
 
-- **Current rendering model.** `efile/services/submission_notifications.py` reads `submission_notifications.templates` from the merged jurisdiction configuration and uses Python `string.Template.safe_substitute`; it does **not** run arbitrary Jinja2/Jinjava templates in LITEFile. All eight subject/body fields must be nonblank in the *merged* config, otherwise the app omits the entire custom set. Browser-injected email fields are stripped. The proxy later runs Jinjava on **bodies only**; subjects go to the provider without that second rendering. Raw upstream expressions authored by a partner are not a defined/tested LITEFile customization interface.
-- **Existing approved input vocabulary is narrow.** LITEFile substitutes `$tracker_url`, `$help_line`, and `$waiver_line`. The first is a local tracker URL, the second formats `court_contact()` data, and the third is an **optional request note** when `selected_payment_account_type == WV` or `has_waiver_document()` is true. `$waiver_line` is a single hardcoded message in `_waiver_line`, not arbitrary partner-supplied text. It does not know if a later fee waiver was approved, nor distinguish a statutory no-fee exemption as a separate event. If the same fixed message suffices it can be inserted into any of the four *body* fields without a new template engine.
+- **Current rendering model.** `efile/services/submission_notifications.py` reads `submission_notifications.templates` from the merged jurisdiction configuration and uses Python `string.Template.safe_substitute`; it does **not** run arbitrary Jinja2/Jinjava templates in LITEfile. All eight subject/body fields must be nonblank in the *merged* config, otherwise the app omits the entire custom set. Browser-injected email fields are stripped. The proxy later runs Jinjava on **bodies only**; subjects go to the provider without that second rendering. Raw upstream expressions authored by a partner are not a defined/tested LITEfile customization interface.
+- **Existing approved input vocabulary is narrow.** LITEfile substitutes `$tracker_url`, `$help_line`, and `$waiver_line`. The first is a local tracker URL, the second formats `court_contact()` data, and the third is an **optional request note** when `selected_payment_account_type == WV` or `has_waiver_document()` is true. `$waiver_line` is a single hardcoded message in `_waiver_line`, not arbitrary partner-supplied text. It does not know if a later fee waiver was approved, nor distinguish a statutory no-fee exemption as a separate event. If the same fixed message suffices it can be inserted into any of the four *body* fields without a new template engine.
 - **#328 gap.** No tested config mechanism currently lets partners define `if / else` paragraphs keyed by explicit facts (e.g., fee waiver requested vs not, statutory exemption vs hardship application, document type, court, or court's later ruling). Add a small, server-owned conditional text contract or typed `when` rules rather than silently treating raw proxy Jinjava as supported. Define allowed boolean/enumerated facts, availability at submission versus callback, precedence, omission/unknown behavior, escaping and both transport formats; test all four events, waiver/nonwaiver/exemption, and subjects separately. Do **not** infer waiver acceptance from WV selection or attached paperwork.
 - **#329 existing hook and available ILAO data.** `efile/services/filings.py::court_contact` supports exact `court_specific_requirements.<court_code>.contact` with `name`, `phone`, `email`, and `url`, falling back to the state `jurisdiction.help_*` fields. `$help_line` formats that contact for any body containing the token; `filing_detail` uses the same source. **Do not solicit a new Illinois-wide clerk directory by default:** the [ILAO Appearance with e-filing interview](https://github.com/IllinoisLegalAidOnline/docassemble-AppearanceEfile/blob/main/docassemble/AppearanceEfile/data/questions/appearance.yml) already loads [the ILAO shared court list](https://github.com/IllinoisLegalAidOnline/docassemble-ILAO/blob/main/docassemble/ILAO/data/sources/il_courts.xlsx) through `ALCourtLoader` and uses `trial_court.phone` in its submission/status email templates. Engineering should assess the list's update/usage terms and freshness, compare the public [Illinois Courts directory](https://www.illinoiscourts.gov/courts-directory/), and build an explicit, reviewed ILAO-record-to-Tyler-code mapping, including Cook division exceptions. The inspected [proxy `CourtLocationInfo` model](https://github.com/SuffolkLITLab/EfileProxyServer/blob/main/proxyserver/src/main/java/edu/suffolk/litlab/efsp/tyler/ecfcodes/CourtLocationInfo.java) contains codes/names/settings but no clerk-phone field; this does not exclude another Tyler service. ILAO also [documents a separate clerk/general-phone lookup](https://github.com/IllinoisLegalAidOnline/website-docs/blob/main/docs/source/dhi_helpful_functions.rst); evaluate independently, not as an assumed production dependency. Partners should verify ambiguous, missing or stale results and local-vs-state contact policy, not re-enter a list already stored by ILAO. This is primarily mapping, data maintenance and regression testing—not demonstrated blocked partner research.
 - **Partial-contact fallback bug/risk.** The current `court_contact()` copies a nonempty local `contact`, then uses `setdefault` to fill missing `url` and `phone` from statewide fields. If a court supplies only a local clerk **name**, `$help_line` and the filing detail can display that name with a **statewide** number/URL without identifying the distinction. Before closing #329/#331 either require complete local contact entries and test them or implement an explicit, labeled two-tier fallback. Also confirm courts with no local data receive the proper statewide name.
@@ -19,7 +21,7 @@ Partner packet should include, per event, exact approved subject/body, court sco
 
 ## Email ownership and contract
 
-LITEFile does not send the filing notifications directly. It selects server-owned, jurisdiction-configured subject and body text, then includes those fields in the filing request. EFSPProxy sends the submission confirmation and later callback messages. Tyler may also send its own messages, including account activation. The Illinois partner issue asks that LITEFile-configured notices continue alongside Tyler messages, use an Illinois-branded sender domain, and have jurisdiction-specific subject/body text. It also calls out Tyler Odyssey activation mail as a separate, earlier message that needs an explanation during onboarding. See [LITEFile #157](https://github.com/SuffolkLITLab/LITEFile/issues/157).
+LITEfile does not send the filing notifications directly. It selects server-owned, jurisdiction-configured subject and body text, then includes those fields in the filing request. EFSPProxy sends the submission confirmation and later callback messages. Tyler may also send its own messages, including account activation. The Illinois partner issue asks that LITEfile-configured notices continue alongside Tyler messages, use an Illinois-branded sender domain, and have jurisdiction-specific subject/body text. It also calls out Tyler Odyssey activation mail as a separate, earlier message that needs an explanation during onboarding. See [LITEfile #157](https://github.com/SuffolkLITLab/LITEFile/issues/157).
 
 The upstream JSON contract in `docassemble-EFSPIntegration/efm_client.py` forwards these per-filing template fields:
 
@@ -30,7 +32,7 @@ The upstream JSON contract in `docassemble-EFSPIntegration/efm_client.py` forwar
 | Rejected status | `rejected_subject`, `rejected_contents` |
 | Other status | `neutral_subject`, `neutral_contents` |
 
-The proxy sends one confirmation for a submitted envelope. Its `transaction_id` template value joins the envelope's transaction IDs, and the confirmation also receives `envelope_id`. A later callback is handled for an individual filing transaction and its template variables include that transaction ID. The callback context has no `filing_id` field, so callback email copy must not assume it can link directly to one filing by ID. LITEFile's configured tracker URL points to the local submission's random `public_id` (a UUID, so links can't be walked to find other submissions); when that submission contains multiple filing IDs, the tracker asks the filer to choose which filing to view. The current copy's wording “A filing in your submission” reflects that individual filings in one submission can reach different outcomes.
+The proxy sends one confirmation for a submitted envelope. Its `transaction_id` template value joins the envelope's transaction IDs, and the confirmation also receives `envelope_id`. A later callback is handled for an individual filing transaction and its template variables include that transaction ID. The callback context has no `filing_id` field, so callback email copy must not assume it can link directly to one filing by ID. LITEfile's configured tracker URL points to the local submission's random `public_id` (a UUID, so links can't be walked to find other submissions); when that submission contains multiple filing IDs, the tracker asks the filer to choose which filing to view. The current copy's wording “A filing in your submission” reflects that individual filings in one submission can reach different outcomes.
 
 EFSPProxy renders the callback status templates with `name`, `court_name`, `case_type`, `case_title`, `status`, `message_text`, `transaction_id`, and `message_url` when the callback supplies a nonblank URL. Its confirmation template also has `envelope_id`; it uses the same name, court, case type, title, and transaction ID values. EFSPProxy renders bodies with Jinjava. Its SendGrid transport sends `text/html` when the rendered body starts with `<!DOCTYPE html>`, otherwise `text/plain`. Its SMTP transport always sends plain text; it does not currently create multipart alternatives. Its REST guide describes the template fields and variables; implementation is in `OrgMessageSender.java`.
 
@@ -44,20 +46,20 @@ The upstream sender considers HTTP-style results 200, 202, and 204 successful; i
 
 ## Related work and release gates
 
-- [LITEFile #297](https://github.com/SuffolkLITLab/LITEFile/issues/297) requests customizable submission, acceptance, and rejection messages, including tracker link, next steps, and local court/help contacts. The existing upstream contract carries templates and basic filing/court status values; it does not itself prove those jurisdiction-specific contents are configured or approved.
-- [LITEFile #229](https://github.com/SuffolkLITLab/LITEFile/issues/229) defines the filing detail tracker and its status presentation. Keep email status language aligned with the tracker and concise: state what happened, what the filer needs to do, and only context needed to act. Do not repeat status banners or include inapplicable guidance.
+- [LITEfile #297](https://github.com/SuffolkLITLab/LITEFile/issues/297) requests customizable submission, acceptance, and rejection messages, including tracker link, next steps, and local court/help contacts. The existing upstream contract carries templates and basic filing/court status values; it does not itself prove those jurisdiction-specific contents are configured or approved.
+- [LITEfile #229](https://github.com/SuffolkLITLab/LITEFile/issues/229) defines the filing detail tracker and its status presentation. Keep email status language aligned with the tracker and concise: state what happened, what the filer needs to do, and only context needed to act. Do not repeat status banners or include inapplicable guidance.
 - [EfileProxyServer #375](https://github.com/SuffolkLITLab/EfileProxyServer/issues/375) tracks per-server SendGrid API credentials. The issue remains open in the inspected GitHub state. Discussion rejects storing API keys directly in the database and considers secret storage. It does not establish that per-jurisdiction sender domains or credentials are implemented.
 
 The filing detail page presents `STATUS_PRESENTATION` labels and a tracker derived from the existing filing status. Its normal path is Sent → Received → Clerk review, followed by the actual outcome. `submitting` maps to Sent; `submitted` and `receipted` map to Received; `under-review` and `reviewed` map to Clerk review; `accepted` ends at Accepted; `rejected` and `returned` end at Returned for changes. `failed` and `cancelled` stop progress, `served` is presented separately, and unknown statuses use a neutral message. A blank status says the filing was sent, not that the court sent an update. See `efile/services/filings.py` (`STATUS_PRESENTATION`, `TRACKER_STAGES`, and `filing_tracker`). Email links should land on the submission tracker and let a filer select among multiple filings when needed.
 
 Before release, verify the following with configuration and an end-to-end delivery check:
 
-1. Decide which channel handles each event so LITEFile-configured proxy messages and Tyler messages do not duplicate or contradict one another. Keep Tyler account activation mail identified separately.
+1. Decide which channel handles each event so LITEfile-configured proxy messages and Tyler messages do not duplicate or contradict one another. Keep Tyler account activation mail identified separately.
 2. Confirm jurisdiction-specific sender name/address/domain, provider credentials, and email authentication with the partner/operations owner. No partner approval or production sender configuration is evidenced by the code/issues reviewed here.
 3. Confirm the configured short copy for submission, accepted, rejected, and neutral statuses. Account for the upstream mapping where a literal `returned` status selects the neutral template, and where `showreturnonreject` only changes callback message text. Each email should plainly state the event, the filer action (if any), and the minimum useful context. Do not claim an action is required when none is.
 4. Exercise successful delivery, invalid/missing recipients, provider errors, duplicate callbacks, and retries. Confirm what the filer and support staff see when sending fails.
 5. Verify the tracker URL uses the correct submission reference and that the destination gives the filer the detail and correction path described by the status email.
-6. Confirm final filing-detail access remains authorized. LITEFile now checks ownership when a detail ID is present in another local draft, while remote-only filing history remains protected by the user's Tyler token. The proxy passes that user's credentials to Tyler for the requested filing ID and has no separate filing-owner lookup. Verify Tyler enforces record access for that credential, and preserve access to legitimate history entries that have no local `FilingDraft`.
+6. Confirm final filing-detail access remains authorized. LITEfile now checks ownership when a detail ID is present in another local draft, while remote-only filing history remains protected by the user's Tyler token. The proxy passes that user's credentials to Tyler for the requested filing ID and has no separate filing-owner lookup. Verify Tyler enforces record access for that credential, and preserve access to legitimate history entries that have no local `FilingDraft`.
 
 ## Indexed filing ownership
 
@@ -104,7 +106,7 @@ Validation before the HTML tracker follow-up:
 | Live Tyler test submission and tracker | Passed: real Illinois login, fee quote, one submission, confirmation page, signed-out UUID tracker link, login redirect, and live filing detail at mobile width |
 | End-to-end plain-text email delivery | Recipient confirmed the proxy email arrived in spam; Tyler also sent its own email |
 
-The live check used `efile-test.suffolklitlab.org` with the configured Illinois test account and an isolated database at `/tmp/litefile-contract-review/live.sqlite3`. Notification templates were enabled only in a temporary settings wrapper, with `[LITEFile test PR 316]` prepended to subjects and notices addressed to the designated test recipient. Repository notification flags remain disabled. The local development stand-in PDF was active. The first fee calculation timed out; a read-only retry succeeded. Exactly one submission was attempted and succeeded. The generated tracker link opened the returned filing ID after real login, showing `submitting` and “No action is needed right now.” This verifies the live submission/tracker path. The recipient subsequently confirmed that the proxy email arrived in spam. Live accepted/rejected callbacks remain unverified. Those callback categories are covered by the synthetic browser and Jinjava checks above. The proxy log records SendGrid HTTP 202 at 22:34:53 Eastern with a redacted provider message ID; its database confirms the intended recipient and persisted callback templates.
+The live check used `efile-test.suffolklitlab.org` with the configured Illinois test account and an isolated database at `/tmp/litefile-contract-review/live.sqlite3`. Notification templates were enabled only in a temporary settings wrapper, with `[LITEfile test PR 316]` prepended to subjects and notices addressed to the designated test recipient. Repository notification flags remain disabled. The local development stand-in PDF was active. The first fee calculation timed out; a read-only retry succeeded. Exactly one submission was attempted and succeeded. The generated tracker link opened the returned filing ID after real login, showing `submitting` and “No action is needed right now.” This verifies the live submission/tracker path. The recipient subsequently confirmed that the proxy email arrived in spam. Live accepted/rejected callbacks remain unverified. Those callback categories are covered by the synthetic browser and Jinjava checks above. The proxy log records SendGrid HTTP 202 at 22:34:53 Eastern with a redacted provider message ID; its database confirms the intended recipient and persisted callback templates.
 
 Repository-wide Ruff, `ty check`, ESLint for the changed browser script, and `git diff --check` passed for the review fix. The unchanged tracker stylesheet passed Stylelint in the earlier validation.
 - GitHub issues #297, #229, #157, and EfileProxyServer #375, read on 2026-10-11.
@@ -112,11 +114,11 @@ Repository-wide Ruff, `ty check`, ESLint for the changed browser script, and `gi
 
 ## HTML email tracker follow-up
 
-The recipient requested the progress graphic inside the email. The default notification configuration now selects `format: html`, while the existing jurisdiction enable flags remain off. LITEFile wraps the jurisdiction-owned copy in an HTML email with inline styles and a four-stage table: Sent → Received → Clerk review → Court decision. Completed, current, and upcoming labels convey progress without relying on color or image loading. The stages reuse `filing_tracker()`; the confirmation highlights Received, and accepted/returned messages highlight the corresponding outcome. Neutral callbacks show a stage only for explicit known status codes or display labels; unknown statuses retain the message and link without inventing progress.
+The recipient requested the progress graphic inside the email. The default notification configuration now selects `format: html`, while the existing jurisdiction enable flags remain off. LITEfile wraps the jurisdiction-owned copy in an HTML email with inline styles and a four-stage table: Sent → Received → Clerk review → Court decision. Completed, current, and upcoming labels convey progress without relying on color or image loading. The stages reuse `filing_tracker()`; the confirmation highlights Received, and accepted/returned messages highlight the corresponding outcome. Neutral callbacks show a stage only for explicit known status codes or display labels; unknown statuses retain the message and link without inventing progress.
 
 The graphic is a snapshot at send time. Its link opens the latest live tracker. Subjects remain plain strings. Configuration/contact text is HTML-escaped, URL attributes are separately escaped, and interpolated template delimiters remain encoded before Jinjava runs. `format: plain_text` preserves the previous output and must be used with the proxy's current SMTP transport. This is a format choice, not a multipart fallback.
 
-Validation: 14 focused notification/browser tests passed; the actual proxy Jinjava harness passed with HTML bodies, returned and pending stage branches, and the unknown-status fallback. Chromium previews of all four message types fit at 320px and 600px, each showing one current stage. Template lint, type checking, and the focused security scan passed. The HTML email was sent through the existing proxy JAR's real `SendMessage`/SendGrid implementation to the designated test recipient, from `massaccess@suffolk.edu`, with subject `[LITEFile HTML tracker test] Your filing was submitted`. SendGrid returned HTTP 202 at 23:02:04 Eastern, a redacted provider message ID. It links to the earlier live test submission; no additional filing was submitted. The recipient confirmed that the HTML tracker renders correctly. Required pre-push backend and JavaScript tests also passed. At the time of that validation, the PR was unmerged. PRs #316/#317 are merged at the October 13 audit; customized notifications remain disabled pending partner sender/copy approval and the other release gates above.
+Validation: 14 focused notification/browser tests passed; the actual proxy Jinjava harness passed with HTML bodies, returned and pending stage branches, and the unknown-status fallback. Chromium previews of all four message types fit at 320px and 600px, each showing one current stage. Template lint, type checking, and the focused security scan passed. The HTML email was sent through the existing proxy JAR's real `SendMessage`/SendGrid implementation to the designated test recipient, from `massaccess@suffolk.edu`, with subject `[LITEfile HTML tracker test] Your filing was submitted`. SendGrid returned HTTP 202 at 23:02:04 Eastern, a redacted provider message ID. It links to the earlier live test submission; no additional filing was submitted. The recipient confirmed that the HTML tracker renders correctly. Required pre-push backend and JavaScript tests also passed. At the time of that validation, the PR was unmerged. PRs #316/#317 are merged at the October 13 audit; customized notifications remain disabled pending partner sender/copy approval and the other release gates above.
 
 ## Stage timing and court hours
 
@@ -128,7 +130,7 @@ Illinois displays “Typically 1–2 days” as plain-language timing guidance b
 
 The compact tracker shows the estimate beneath Clerk review. Court hours are collapsed on the web and linked from email. The previous missing-times note and separate estimate disclaimer have been removed. Known event times remain beneath their stages. HTML emails include the same sourced range. The proxy's current email context has no event timestamps, and the templates are generated before filing submission, so the emails do not manufacture send or callback times. Their linked tracker reads the court's available timestamps.
 
-Validation: 59 focused timing/history/notification/browser tests passed, covering time-zone conversion, missing dates, date-only values, current-status mapping, sourced court overrides, mobile display, and accessible tracker navigation. The proxy Jinjava contract harness passed. A real signed-out browser followed the existing Adams County test submission link through Tyler login and displayed the reported Sent timestamp as Oct 11, 2026, 9:34 p.m. CDT, the review estimate, and office hours without mobile overflow. The API supplied no separate receipt time. An updated email, `[LITEFile timing tracker test] Your filing was submitted`, was sent through the real proxy JAR/SendGrid transport to the same recipient; SendGrid returned HTTP 202. No new filing was submitted. The recipient has been asked to review this timing presentation.
+Validation: 59 focused timing/history/notification/browser tests passed, covering time-zone conversion, missing dates, date-only values, current-status mapping, sourced court overrides, mobile display, and accessible tracker navigation. The proxy Jinjava contract harness passed. A real signed-out browser followed the existing Adams County test submission link through Tyler login and displayed the reported Sent timestamp as Oct 11, 2026, 9:34 p.m. CDT, the review estimate, and office hours without mobile overflow. The API supplied no separate receipt time. An updated email, `[LITEfile timing tracker test] Your filing was submitted`, was sent through the real proxy JAR/SendGrid transport to the same recipient; SendGrid returned HTTP 202. No new filing was submitted. The recipient has been asked to review this timing presentation.
 
 
 ### Simpler timing and business days
@@ -139,4 +141,66 @@ Only the immediate confirmation includes the date-sensitive holiday note. Later 
 
 Validation: 67 focused tests passed, including observed holidays, local-date boundaries, year rollover, and omission of stale holiday guidance from callbacks. The actual proxy Jinjava harness passed. All four email variants fit at 320px and 600px. The real signed-out Tyler test-filing link passed again, with the reported Sent time, “1–2 days,” current holiday context, and collapsed court hours. The original filing was reused. The earlier timing revision also passed the complete backend suite (1,862 passed, 4 skipped) and JavaScript suite; its push was stopped when the requested presentation changes were made during the hook.
 
-The simplified email was sent through the real proxy JAR/SendGrid transport to the designated test recipient, with subject `[LITEFile simpler timing test] Your filing was submitted`; SendGrid returned HTTP 202. Manual review was requested.
+The simplified email was sent through the real proxy JAR/SendGrid transport to the designated test recipient, with subject `[LITEfile simpler timing test] Your filing was submitted`; SendGrid returned HTTP 202. Manual review was requested.
+
+
+## Contact and conditional-copy implementation (October 13, 2026)
+
+The shared resolver now returns either the configured local contact or a complete
+statewide fallback. It never adds a statewide phone/URL to a local clerk name.
+Both the filing-detail page and all four default email bodies use this resolver.
+`submission_notifications.conditional_text` supports named literal `then` and
+optional `otherwise` text for `when: fee_waiver_requested`. See the
+[configuration example](../docs/partners-courts/email-review.md). These facts are
+submission-time facts, not court decisions. Custom notifications remain disabled
+pending the existing delivery and copy review.
+
+### Illinois contact provenance and refresh
+
+The [review CSV](./court-contacts/illinois-crosswalk.csv) records every ILAO row,
+its explicit Tyler code, both phone values, and the disposition, plus unmatched
+Tyler codes. Generated entries appear under `court_specific_requirements` in
+`efile_app/efile/static/config/states/illinois.yaml`.
+
+Inputs checked on October 13, 2026:
+
+- ILAO workbook: `https://raw.githubusercontent.com/IllinoisLegalAidOnline/docassemble-ILAO/5fe7d8f4528bfd88b23ed5ecbcefaa680fa781ac/docassemble/ILAO/data/sources/il_courts.xlsx`. Latest workbook commit was September 28, 2026. The 110 rows include nine Cook courthouse records without Tyler codes.
+- Tyler codes: `https://efile-test.suffolklitlab.org/jurisdictions/illinois/codes/courts/?with_names=true`. This is the test environment snapshot; new or different production codes intentionally fall back until checked.
+- Official verification: [AOIC circuit clerks](https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/).
+- Cook source: [clerk customer service](https://www.cookcountyclerkofcourt.org/contact-us), 312-603-5030, independently matching AOIC. This is explicitly county-wide service, not an inferred division phone.
+- ILAO's repository LICENSE file was empty; GitHub reported `NOASSERTION`. No license grant is assumed and the workbook is not vendored. Published contact facts are independently verified against official public sources; the audit preserves attribution. Confirm reuse terms with ILAO before redistributing their workbook.
+
+Refresh by downloading those three inputs, then run from the repository root:
+
+```bash
+uv run --with openpyxl --with beautifulsoup4 --with pyyaml python scripts/build_illinois_court_contacts.py \
+  --workbook /tmp/litefile-il-courts.xlsx \
+  --courts /tmp/litefile-tyler-courts.json \
+  --official-html /tmp/litefile-official-clerks.html \
+  --overrides /tmp/litefile-court-overrides.yaml \
+  --audit docs/developer-notes/court-contacts/illinois-crosswalk.csv
+```
+
+Review the CSV and merge the generated overrides into the state YAML, preserving
+existing case-type and timing settings. Do not deploy unmatched codes or conflicting
+phone numbers automatically. The script does not fetch data or change runtime
+configuration itself. Contact maintenance has no runtime external dependency.
+
+Crosswalk counts: 63 verified, 37 phone differs from official clerk directory; review required, 9 unmapped; Cook uses county-wide clerk contact separately, 1 code absent from Tyler snapshot, 213 no verified contact; statewide fallback, 84 verified county-wide contact; no division inference.
+
+- Input SHA-256 `litefile-il-courts.xlsx`: `18bb6673fa7427196921896962e246084abb30fdc7c2a897e2ac411b5d351bd1`.
+- Input SHA-256 `litefile-tyler-courts.json`: `c8ca177f4604dc378b49042a7074f93d8abcfc86e73aab14bc346a0985d75fc7`.
+- Input SHA-256 `litefile-official-clerks.html`: `4188491e45b84aa833f9d2ccf956124e44dc503f0ddad28ebdac3303c343db7e`.
+
+### Cook holiday scope
+
+The [official Cook legal holiday schedule](https://www.cookcountycourtil.gov/about/legal-court-holidays)
+confirms March 2, 2026 as Casimir Pulaski Day and identifies First Appearance and
+Juvenile Court exceptions. The installed holiday library already supplies the
+first-Monday-in-March recurrence, but incorrectly broadens this guidance to all
+Illinois courts. State configuration now excludes it, with explicit Cook court
+calendar overrides restoring it. Daily courtroom sessions do not establish
+clerk e-filing review availability; all configured Cook codes retain the
+advisory closure note. Calendar overrides deep merge with state settings. Dates remain advisory
+review guidance, not legal deadline adjustments. Only the immediate HTML email
+uses today's closure note; saved later-event templates must not repeat it.

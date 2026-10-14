@@ -22,15 +22,15 @@ submission_notifications:
       {% if status|lower == "returned" or status|lower == "returned for changes" or status|lower == "returned to filer" %}A filing in your submission was returned for changes. Review the clerk’s comments and next steps here: $tracker_url$help_line{% else %}A filing in your submission changed status. Check its status and next steps here: $tracker_url$help_line{% endif %}
 
 jurisdiction:
-  name: "LITEFile"
+  name: "LITEfile"
   code: ""
-  display_name: "LITEFile"
-  brand_name: "LITEFile"
+  display_name: "LITEfile"
+  brand_name: "LITEfile"
   logo: "img/litefile-logo.svg"
-  logo_alt: "LITEFile logo"
+  logo_alt: "LITEfile logo"
   icon: "fas fa-scale-balanced"
   official_court_name: "the jurisdiction's court"
-  official_tool_statement: "LITEFile is an official, approved electronic filing tool of the jurisdiction's court."
+  official_tool_statement: "LITEfile is an official, approved electronic filing tool of the jurisdiction's court."
   court_logos: []
   partner_logos: []
   funder_logos:

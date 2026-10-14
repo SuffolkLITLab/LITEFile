@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Summarize LITEFile extraction results against non-gold synthetic corpus expectations.
+"""Summarize LITEfile extraction results against non-gold synthetic corpus expectations.
 
 Usage:
   python evaluate_litefile_results.py litefile_results.jsonl

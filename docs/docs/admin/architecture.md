@@ -7,7 +7,7 @@ sidebar_position: 2
 
 # System architecture & technologies <span className="wip-badge">WIP</span>
 
-LITEFile is designed around a clean separation of concerns between user session state, declarative jurisdiction configurations, cloud document storage, and third-party court APIs.
+LITEfile is designed around a clean separation of concerns between user session state, declarative jurisdiction configurations, cloud document storage, and third-party court APIs.
 
 ---
 
@@ -19,7 +19,7 @@ graph TB
         Browser[User Web Browser]
     end
 
-    subgraph LITEFile Web App [Django ASGI App]
+    subgraph LITEfile Web App [Django ASGI App]
         NginxWhiteNoise[WhiteNoise Static File Server]
         Router[Django URL Router & Workflow Middleware]
         Views[View Controllers & API Endpoints]

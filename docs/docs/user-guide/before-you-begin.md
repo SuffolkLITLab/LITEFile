@@ -13,7 +13,7 @@ Before you start filing online, taking two minutes to gather your documents and 
 
 ## 1. Have your completed PDF or Word forms
 
-LITEFile accepts PDF (`.pdf`) and Word (`.doc`, `.docx`) files up to **10 MB per file** and prepares PDF copies for court. It preserves originals. Check the filing copy on **Confirm information** before sending, and recheck any replaced or changed document.
+LITEfile accepts PDF (`.pdf`) and Word (`.doc`, `.docx`) files up to **10 MB per file** and prepares PDF copies for court. It preserves originals. Check the filing copy on **Confirm information** before sending, and recheck any replaced or changed document.
 
 :::tip Where to get free, approved court forms
 If your forms are not ready, use **Find forms and instructions** where offered, or check these resources for your jurisdiction. A guide or link is preparation help, not a court approval of your filing:
@@ -32,7 +32,7 @@ If your forms are not ready, use **Find forms and instructions** where offered, 
 
 ## 2. Your login details
 
-LITEFile connects directly to the official statewide court e-filing system.
+LITEfile connects directly to the official statewide court e-filing system.
 
 - **Already have an e-filing account?** Sign in with your existing email and password.
 - **First time filing online?** You can register for a free account right on the sign-in screen.

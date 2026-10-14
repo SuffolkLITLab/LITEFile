@@ -5,9 +5,9 @@ sidebar_label: How e-filing works
 sidebar_position: 1
 ---
 
-# How e-filing works in LITEFile
+# How e-filing works in LITEfile
 
-LITEFile helps you prepare a filing and send its PDF documents to a supported
+LITEfile helps you prepare a filing and send its PDF documents to a supported
 court through the electronic filing service. Court choices, required details
 and fees differ by jurisdiction. Check the court's rules or get
 [local help](./state-help.md) when you are unsure what to file.
@@ -30,7 +30,7 @@ editing from Review can return you to an earlier screen.
 
 ## Prepare and check documents
 
-Upload PDF, DOC or DOCX files up to **10 MB per file**. LITEFile preserves the
+Upload PDF, DOC or DOCX files up to **10 MB per file**. LITEfile preserves the
 originals and prepares PDFs for court. Review each filing copy on **Confirm
 information**, including layout, signatures and form answers. Check changed
 copies again. You can opt out of AI reading and enter details manually.

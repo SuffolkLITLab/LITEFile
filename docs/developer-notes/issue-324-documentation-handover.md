@@ -2,7 +2,7 @@
 
 Audit source: October 13, 2026 `main`, `b4be391ab8837851a63363a6cae0750b5b32c7ce`;
 merged window September 15–October 13. Spec:
-[LITEFile #324](https://github.com/SuffolkLITLab/LITEFile/issues/324).
+[LITEfile #324](https://github.com/SuffolkLITLab/LITEFile/issues/324).
 This note stays outside the public Docusaurus source tree.
 
 ## Delivered pages and review status

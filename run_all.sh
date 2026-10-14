@@ -53,7 +53,7 @@ SKIP_MIGRATE=false
 show_help() {
     echo -e "${BOLD}Usage:${NC} ./run_all.sh [options]"
     echo ""
-    echo "Start the LITEFile application for local development without building Docker containers."
+    echo "Start the LITEfile application for local development without building Docker containers."
     echo "Automatically sets up a local .venv (using Astral uv), runs database migrations,"
     echo "manages LocalStack for S3 document storage, and starts extraction and filing code search workers."
     echo ""
@@ -272,7 +272,7 @@ trap cleanup INT TERM
 
 echo ""
 echo -e "${BOLD}======================================================${NC}"
-echo -e "${BOLD}${GREEN} LITEFile local development environment is ready!${NC}"
+echo -e "${BOLD}${GREEN} LITEfile local development environment is ready!${NC}"
 echo -e "${BOLD}======================================================${NC}"
 echo -e "  ${BOLD}Web application:${NC} http://${HOST}:${PORT}/"
 echo -e "  ${BOLD}Login page:${NC}      http://${HOST}:${PORT}/login"

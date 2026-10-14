@@ -27,8 +27,8 @@ remains the technical reference.
 | `pages_transmitted` | Pages when every document's extraction page count is known | Omitted when incomplete; not zero-page filing |
 | `guided_forms_transmitted` | Transmitted documents with an interview-supplied form name | Excludes forms removed before sending |
 | `matter_first_used` | First confirmed transmission into a known matter for a local account | Per-account matter identity; not unique court cases across people |
-| `court_accepted` | Once per LITEFile filing ID observed accepted in current court status | Observed when an authenticated filer views status; no automatic outcome poll |
-| `court_returned` | Once per LITEFile filing ID observed rejected or returned | Multiple filings can belong to one submission |
+| `court_accepted` | Once per LITEfile filing ID observed accepted in current court status | Observed when an authenticated filer views status; no automatic outcome poll |
+| `court_returned` | Once per LITEfile filing ID observed rejected or returned | Multiple filings can belong to one submission |
 | `rejection_reason` | Once per returned filing whose detail was viewed, reduced to fixed category | Clerk free text is classified in memory and never stored in analytics |
 | `draft_discarded` | Once per explicit discard of an unfinished draft | Session expiry is not a discard |
 | `draft_resumed` | Each resume from the drafts page | Repeat resumes can exceed draft count |
@@ -37,7 +37,7 @@ Events use UTC date, configured jurisdiction and new/existing/unknown stage as
 recorded at the time; later changes do not rewrite history. Contributor counts
 are distinct **local accounts per cell**, not distinct human beings. One person
 can have accounts in different jurisdictions; an account can file for others.
-Only submitted LITEFile drafts contribute observed court outcomes.
+Only submitted LITEfile drafts contribute observed court outcomes.
 
 Detailed monthly reports give independent breakdowns for configured case type,
 filing code, court, filer side, attorney representation, filing for self/someone

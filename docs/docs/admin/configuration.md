@@ -7,7 +7,7 @@ sidebar_position: 3
 
 # Configuration & environment variables <span className="wip-badge">WIP</span>
 
-LITEFile follows [Twelve-Factor App](https://12factor.net/) principles, configuring all environment-specific settings, API keys, database credentials, and storage parameters through environment variables.
+LITEfile follows [Twelve-Factor App](https://12factor.net/) principles, configuring all environment-specific settings, API keys, database credentials, and storage parameters through environment variables.
 
 ---
 
@@ -85,7 +85,7 @@ The service must support `/forms/libreoffice/convert` and `/forms/pdfengines/fla
 Use HTTPS and service credentials when connecting to a remote instance. Install
 fonts used by your forms in Gotenberg: missing fonts can change pagination or layout.
 
-LITEFile keeps an unchanged PDF byte for byte. When form fields need locking, it
+LITEfile keeps an unchanged PDF byte for byte. When form fields need locking, it
 preserves existing appearance streams and repairs missing or stale text appearances
 with `pypdf` before Gotenberg flattens the fields. It rejects unreadable, encrypted,
 XFA, digitally certificate-signed PDFs that would need flattening, and results with
@@ -114,7 +114,7 @@ document_preparation:
 text:
   upload_documents:
     preparation_help_unflattened: >-
-      LITEFile converts Word documents to PDF. PDF form fields are kept as uploaded.
+      LITEfile converts Word documents to PDF. PDF form fields are kept as uploaded.
       Check the filing PDFs before continuing.
 ```
 

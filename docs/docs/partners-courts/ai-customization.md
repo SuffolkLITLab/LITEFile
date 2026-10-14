@@ -7,7 +7,7 @@ sidebar_position: 4
 
 # Customizing AI document extraction & prompts <span className="wip-badge">WIP</span>
 
-LITEFile includes a staged document-analysis engine that extracts facts from an uploaded court PDF or Word document and recommends an exact current court, case category, case type, and filing type for the filer to confirm.
+LITEfile includes a staged document-analysis engine that extracts facts from an uploaded court PDF or Word document and recommends an exact current court, case category, case type, and filing type for the filer to confirm.
 
 This guide explains how court partners and developers can customize extraction hints, field definitions, model tiers, and private LLM gateways.
 
@@ -66,7 +66,7 @@ Tyler route keys vary by environment and can change. The classifier therefore se
 
 ## LLM provider configuration and privacy
 
-LITEFile uses an OpenAI-compatible endpoint. Provider capabilities differ, so test native PDF input and JSON output against the exact deployed model before enabling it for court documents.
+LITEfile uses an OpenAI-compatible endpoint. Provider capabilities differ, so test native PDF input and JSON output against the exact deployed model before enabling it for court documents.
 
 ### Environment variables
 
@@ -85,11 +85,11 @@ DOCUMENT_CLASSIFICATION_MODEL="gpt-6-sol"            # Optional exact deployment
 
 *Last updated: September 2026 (subject to periodic updates for security, quality, and performance).*
 
-LITEFile connects exclusively to enterprise-tier endpoints operating under commercial privacy agreements. User documents, extracted evidence, and case data are **never** used to train, retrain, or improve any public or private artificial intelligence models.
+LITEfile connects exclusively to enterprise-tier endpoints operating under commercial privacy agreements. User documents, extracted evidence, and case data are **never** used to train, retrain, or improve any public or private artificial intelligence models.
 
 ### Currently supported enterprise models and tiers
 
-In `efile/utils/llms.py`, each tier is a model plus a reasoning effort. LITEFile checks the provider's `/models` endpoint and uses the first model in the tier that is deployed:
+In `efile/utils/llms.py`, each tier is a model plus a reasoning effort. LITEfile checks the provider's `/models` endpoint and uses the first model in the tier that is deployed:
 
 | Tier | Default model | Reasoning effort | Fallbacks | Primary purpose |
 | :--- | :--- | :--- | :--- | :--- |
@@ -97,13 +97,13 @@ In `efile/utils/llms.py`, each tier is a model plus a reasoning effort. LITEFile
 | **Medium** | `gpt-6-sol` | `low` | `gpt-5.4-mini`, `gpt-5-mini` | Complex multi-party caption extraction and ambiguous case-type matching |
 | **Large** | `gpt-6-sol` | `medium` | `gpt-5.4`, `gpt-5` | Advanced edge-case classification and unstructured document review |
 
-On an endpoint without GPT models, such as Bedrock, Vertex, or another OpenAI-compatible gateway, each tier falls back to named Claude and Gemini models (`claude-haiku-4-5` / `claude-sonnet-5-5` / `claude-opus-5-5`, `gemini-2.5-flash-lite` / `gemini-2.5-flash` / `gemini-2.5-pro`). If none of those are listed, LITEFile picks a listed model whose name fits the tier (`haiku`, `sonnet`, `opus`, `flash`, `pro`, `mini`, `nano`, and so on), then any listed chat model, and logs a warning. To choose exactly, set `DOCUMENT_EVIDENCE_MODEL` and `DOCUMENT_CLASSIFICATION_MODEL`, or the `open ai` config.
+On an endpoint without GPT models, such as Bedrock, Vertex, or another OpenAI-compatible gateway, each tier falls back to named Claude and Gemini models (`claude-haiku-4-5` / `claude-sonnet-5-5` / `claude-opus-5-5`, `gemini-2.5-flash-lite` / `gemini-2.5-flash` / `gemini-2.5-pro`). If none of those are listed, LITEfile picks a listed model whose name fits the tier (`haiku`, `sonnet`, `opus`, `flash`, `pro`, `mini`, `nano`, and so on), then any listed chat model, and logs a warning. To choose exactly, set `DOCUMENT_EVIDENCE_MODEL` and `DOCUMENT_CLASSIFICATION_MODEL`, or the `open ai` config.
 
-A prompt version can set its own `inference.reasoning_effort`, and a deployment can set one for every call with the `open ai` → `reasoning effort` config. LITEFile translates the effort to what the model accepts: GPT-6 takes `none` but not `minimal`, and the original GPT-5 models take `minimal` but not `none`. Reasoning models don't accept a custom `temperature`, so LITEFile doesn't send one.
+A prompt version can set its own `inference.reasoning_effort`, and a deployment can set one for every call with the `open ai` → `reasoning effort` config. LITEfile translates the effort to what the model accepts: GPT-6 takes `none` but not `minimal`, and the original GPT-5 models take `minimal` but not `none`. Reasoning models don't accept a custom `temperature`, so LITEfile doesn't send one.
 
 ### Approved enterprise provider configurations
 
-LITEFile deployments can route requests through any of the following enterprise configurations:
+LITEfile deployments can route requests through any of the following enterprise configurations:
 
 1. **Enterprise OpenAI / Azure OpenAI Service**: Commercial enterprise tier with zero data retention (ZDR) or ephemeral operational processing, and explicit no-training clauses.
 2. **Private enterprise gateways**: Custom OpenAI-compatible proxy gateways (such as LiteLLM, vLLM, or court-hosted infrastructure) enforcing local jurisdictional encryption and data-residency boundaries.
@@ -111,5 +111,5 @@ LITEFile deployments can route requests through any of the following enterprise 
 
 ### Quality monitoring and human evaluation
 
-Approved LITEFile staff may monitor AI performance manually from time to time to evaluate system accuracy, benchmark prompts, and improve the tool. Any manual review is conducted under strict confidentiality and access controls by authorized personnel, and documents are never used to train third-party AI models.
+Approved LITEfile staff may monitor AI performance manually from time to time to evaluate system accuracy, benchmark prompts, and improve the tool. Any manual review is conducted under strict confidentiality and access controls by authorized personnel, and documents are never used to train third-party AI models.
 

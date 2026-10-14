@@ -13,7 +13,7 @@ CONFIG_STRINGS = [
     # Translators: The partner paragraph on this jurisdiction's About page. Partners approve their own wording, so set it per state.
     pgettext_lazy(
         "about.project_partner_description",
-        "LITEFile's Illinois e-filing integration was developed in close partnership with Illinois Legal Aid Online (ILAO), who provided project leadership, co-development, and funding to expand accessible electronic court filing for self-represented litigants in Illinois.",
+        "LITEfile's Illinois e-filing integration was developed in close partnership with Illinois Legal Aid Online (ILAO), who provided project leadership, co-development, and funding to expand accessible electronic court filing for self-represented litigants in Illinois.",
     ),
     # Translators: Explains when filers in this jurisdiction may mark a document confidential. A state should use the rule or order language its court approves.
     pgettext_lazy(
@@ -24,7 +24,7 @@ CONFIG_STRINGS = [
     # Translators: The partner paragraph on this jurisdiction's About page. Partners approve their own wording, so set it per state.
     pgettext_lazy(
         "about.project_partner_description",
-        "LITEFile's Vermont e-filing integration was developed in close partnership with Legal Services Vermont (LSV), who collaborated on funding, building, and deploying LITEFile to expand accessible electronic court filing for self-represented litigants in Vermont.",
+        "LITEfile's Vermont e-filing integration was developed in close partnership with Legal Services Vermont (LSV), who collaborated on funding, building, and deploying LITEfile to expand accessible electronic court filing for self-represented litigants in Vermont.",
     ),
     # Translators: May include familiar examples that help filers recognize the court's formal categories.
     pgettext_lazy(

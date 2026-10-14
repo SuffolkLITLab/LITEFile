@@ -1,4 +1,4 @@
-"""Verified, scoped, resumable deletion of live LITEFile data."""
+"""Verified, scoped, resumable deletion of live LITEfile data."""
 
 from typing import cast
 

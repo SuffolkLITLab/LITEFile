@@ -11,7 +11,7 @@ export default function Home(): React.JSX.Element {
   return (
     <Layout
       title="Documentation"
-      description="LITEFile: Streamlined, accessible electronic court filing and platform documentation"
+      description="LITEfile: Streamlined, accessible electronic court filing and platform documentation"
     >
       <main>
         {/* Hero Section */}
@@ -22,7 +22,7 @@ export default function Home(): React.JSX.Element {
                 Streamlined <strong>Court E-Filing</strong> Made Accessible
               </h1>
               <p className={styles.heroSubtitle}>
-                LITEFile is a modern, lightweight web application designed to simplify electronic court filing for self-represented litigants, legal aid advocates, and court partners through plain-language guidance, document checklists, and automated field extraction.
+                LITEfile is a modern, lightweight web application designed to simplify electronic court filing for self-represented litigants, legal aid advocates, and court partners through plain-language guidance, document checklists, and automated field extraction.
               </p>
               <div className={styles.heroCTAButtons}>
                 <Link
@@ -59,7 +59,7 @@ export default function Home(): React.JSX.Element {
         <section className={styles.indexSection}>
           <blockquote className={styles.pullQuote}>
             <p>
-              "E-filing shouldn't require a law degree or an encyclopedic knowledge of court codes. LITEFile turns complex filing requirements into clear, step-by-step guidance."
+              "E-filing shouldn't require a law degree or an encyclopedic knowledge of court codes. LITEfile turns complex filing requirements into clear, step-by-step guidance."
             </p>
             <cite>
               — <strong>Suffolk University Law School LIT Lab</strong> & Partner Courts

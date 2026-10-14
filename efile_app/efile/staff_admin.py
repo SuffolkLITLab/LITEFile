@@ -42,7 +42,7 @@ class LookupForm(forms.Form):
 class RequestForm(forms.Form):
     account_wide = forms.BooleanField(
         required=False,
-        label="Delete this account and all of its LITEFile data",
+        label="Delete this account and all of its LITEfile data",
         help_text="Includes this local account's filings, plans, browser sessions, and uploaded files.",
     )
     drafts = forms.MultipleChoiceField(
@@ -88,8 +88,8 @@ class ReportForm(forms.Form):
 
 class StaffSite(OTPAdminSite):
     login_form = StaffLoginForm
-    site_header = "LITEFile staff"
-    site_title = "LITEFile staff"
+    site_header = "LITEfile staff"
+    site_title = "LITEfile staff"
     index_title = "Staff tools"
     index_template = "efile/staff/index.html"
     site_url = None

@@ -1,5 +1,5 @@
 # Demonstration filing guidance for local validation only. These are not court
-# instructions. LITEFile reads this file only under development settings, when
+# instructions. LITEfile reads this file only under development settings, when
 # FILING_GUIDANCE_DEMO_FILE points at it, so it never reaches a deployed site or
 # the translation catalog. Rules use the filing_guidance format described in
 # docs/docs/partners-courts/jurisdiction-config.md, keyed by jurisdiction.

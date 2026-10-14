@@ -45,7 +45,7 @@ carries the new/existing path; you still choose and confirm live court codes.
 ## Upload your court documents
 
 Upload PDF (`.pdf`) or Word (`.doc`, `.docx`) files, up to **10 MB per file**.
-LITEFile prepares PDF copies for court and preserves the originals. By default,
+LITEfile prepares PDF copies for court and preserves the originals. By default,
 fillable PDFs are flattened to keep their visible answers; jurisdiction settings
 can disable this preparation. All three configured states use the default.
 Check the prepared copy next: conversion can change layout, fonts or form fields.
@@ -86,7 +86,7 @@ the case in the court's records. The case title/category/type come from the
 court lookup rather than becoming editable guesses from your document.
 
 A saved path appears with **Change**. If the document seems to conflict with
-it, LITEFile asks you to check; it does not change the path automatically.
+it, LITEfile asks you to check; it does not change the path automatically.
 Changing new/existing keeps the draft and uploads but requires checking filing
 types and fees again. Switching to existing goes through lookup.
 
@@ -213,7 +213,7 @@ times; missing times are not a complete event history. A submission can contain
 several filings with different outcomes.
 
 Email availability depends on the service configuration. Tyler may send separate
-notices; customized LITEFile/proxy mail is disabled pending signoff at this
+notices; customized LITEfile/proxy mail is disabled pending signoff at this
 snapshot. An email graphic shows the status when sent. Follow the tracker link
 and sign in to see current details; a submission link may ask you to choose a
 filing. Local review estimates/office hours, where sourced, do not promise a

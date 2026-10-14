@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Run LITEFile's analyze_document() over the synthetic benchmark dataset.
+"""Run LITEfile's analyze_document() over the synthetic benchmark dataset.
 
-From the LITEFile repository root:
+From the LITEfile repository root:
   PYTHONPATH=efile_app DJANGO_SETTINGS_MODULE=efile.settings python benchmarking/synthetic/run_litefile_extraction.py
 
-Requires the same OPENAI/API configuration as LITEFile. Results are emitted as JSONL on stdout.
+Requires the same OPENAI/API configuration as LITEfile. Results are emitted as JSONL on stdout.
 """
 
 import json

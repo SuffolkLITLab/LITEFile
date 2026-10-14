@@ -300,3 +300,110 @@ def test_saved_callback_templates_do_not_repeat_submission_day_holiday_guidance(
     assert "Indigenous Peoples’ Day may add 1 day." in confirmation
     assert "Indigenous Peoples’ Day" not in callback
     assert timing["review"]["closure_note"]
+
+
+@pytest.mark.parametrize("email_format", ["html", "plain_text"])
+@pytest.mark.parametrize(
+    "court,phone",
+    [
+        ("adams", "217-277-2100"),
+        ("cook:cd1", "312-603-5030"),
+        ("cook:dr1", "312-603-5030"),
+        ("unknown", "833-411-1121"),
+    ],
+)
+def test_verified_court_contact_in_all_email_events(email_format, court, phone):
+    config = deepcopy(config_loader.load_jurisdiction_config("illinois"))
+    config["submission_notifications"].update(enabled=True, format=email_format)
+    fields = submission_email_fields(RequestFactory().get("/"), fake_draft(court_code=court), "illinois", config)
+    for field, body in fields.items():
+        if field.endswith("_contents"):
+            assert phone in body
+            if court != "unknown":
+                assert "833-411-1121" not in body
+
+
+@pytest.mark.parametrize("email_format", ["html", "plain_text"])
+@pytest.mark.parametrize(
+    "payment,document,expected",
+    [
+        ("WV", False, "Waiver requested"),
+        ("CC", True, "Waiver requested"),
+        ("CC", False, "No waiver request detected"),
+        (None, False, "No waiver request detected"),
+        ("EX", False, "No waiver request detected"),
+    ],
+)
+def test_partner_conditional_copy_uses_only_submission_facts(email_format, payment, document, expected):
+    config = deepcopy(config_loader.load_jurisdiction_config("illinois"))
+    notifications = config["submission_notifications"]
+    notifications.update(enabled=True, format=email_format)
+    notifications["conditional_text"] = {
+        "fee_note": {
+            "when": "fee_waiver_requested",
+            "then": "Waiver requested {{literal}} <test>",
+            "otherwise": "No waiver request detected",
+        }
+    }
+    for field in PROXY_EMAIL_FIELDS:
+        notifications["templates"][field] = "Update $fee_note"
+    with patch("efile.services.submission_notifications.has_waiver_document", return_value=document):
+        fields = submission_email_fields(
+            RequestFactory().get("/"), fake_draft(selected_payment_account_type=payment), "illinois", config
+        )
+    for field, body in fields.items():
+        assert expected in body
+        assert "{{literal}}" not in body
+        if payment == "WV" or document:
+            assert "%7B%7Bliteral%7D%7D" in body
+            if email_format == "html" and field.endswith("_contents"):
+                assert "&lt;test&gt;" in body
+
+
+@pytest.mark.parametrize(
+    "block",
+    [
+        {"when": "waiver_approved", "then": "Approved"},
+        {"when": "fee_waiver_requested", "then": None},
+        {"when": "fee_waiver_requested", "then": "Yes", "otherwise": False},
+    ],
+)
+def test_invalid_conditional_config_is_rejected(block):
+    from django.core.exceptions import ImproperlyConfigured
+
+    config = deepcopy(config_loader.load_jurisdiction_config("illinois"))
+    config["submission_notifications"].update(enabled=True, conditional_text={"fee_note": block})
+    with pytest.raises(ImproperlyConfigured):
+        submission_email_fields(RequestFactory().get("/"), fake_draft(), "illinois", config)
+
+
+def test_conditional_false_branch_defaults_to_omission():
+    config = deepcopy(config_loader.load_jurisdiction_config("illinois"))
+    notifications = config["submission_notifications"]
+    notifications.update(
+        enabled=True,
+        format="plain_text",
+        conditional_text={"fee_note": {"when": "fee_waiver_requested", "then": "Requested"}},
+    )
+    notifications["templates"]["acceptance_contents"] = "Accepted$fee_note"
+    assert (
+        submission_email_fields(RequestFactory().get("/"), fake_draft(), "illinois", config)["acceptance_contents"]
+        == "Accepted"
+    )
+
+
+def test_cook_pulaski_closure_appears_only_in_immediate_email():
+    from datetime import datetime, timezone
+
+    from efile.services.filing_timing import court_filing_timing
+
+    config = deepcopy(config_loader.load_jurisdiction_config("illinois"))
+    config["submission_notifications"].update(enabled=True, format="html")
+    timing = court_filing_timing("illinois", "cook:cd1", config, now=datetime(2026, 3, 2, 15, tzinfo=timezone.utc))
+    with patch("efile.services.filing_timing.court_filing_timing", return_value=timing):
+        fields = submission_email_fields(
+            RequestFactory().get("/"), fake_draft(court_code="cook:cd1"), "illinois", config
+        )
+    assert "Casimir Pulaski Day" in fields["email_confirmation_contents"]
+    for event in ("acceptance_contents", "rejected_contents", "neutral_contents"):
+        assert "Casimir Pulaski Day" not in fields[event]

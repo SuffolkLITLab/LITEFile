@@ -55,7 +55,7 @@ and record its owner before onboarding staff.
    retry through the established workflow. Never report a partial attempt complete
    or manually unfreeze it to clear a queue.
 6. Confirm backup/provider disposition separately before resolving the request.
-   Deleting LITEFile's active copies does not withdraw court filings or delete Tyler
+   Deleting LITEfile's active copies does not withdraw court filings or delete Tyler
    accounts/records. Permanent anonymous aggregates remain. Explain the actual
    remaining exceptions, backup expiry/isolation and provider work to the requester.
 

@@ -1,4 +1,4 @@
-# LITEFile
+# LITEfile
 
 A minimal Django app for form submission and review. The Django project lives under `efile_app/` with settings in `efile_app/efile/`.
 
@@ -167,7 +167,7 @@ AWS_S3_BUCKET_NAME = "your-bucket-name-here"
 AWS_S3_REGION_NAME = "your-bucket-region"
 ```
 
-LITEFile generates time-limited presigned URLs that the e-file proxy can retrieve with an ordinary HTTP GET. The signing principal needs `s3:GetObject`, but the bucket does not need public access or CORS for this server-to-server download. For an existing bucket, remove any `PublicReadGetObject` statement and confirm all four public access blocks are enabled. Check that an unsigned object URL returns 403 while a fresh presigned URL downloads the file. Do not paste presigned URLs into issue reports or logs; they grant access until they expire.
+LITEfile generates time-limited presigned URLs that the e-file proxy can retrieve with an ordinary HTTP GET. The signing principal needs `s3:GetObject`, but the bucket does not need public access or CORS for this server-to-server download. For an existing bucket, remove any `PublicReadGetObject` statement and confirm all four public access blocks are enabled. Check that an unsigned object URL returns 403 while a fresh presigned URL downloads the file. Do not paste presigned URLs into issue reports or logs; they grant access until they expire.
 
 ## Development: dev dependencies and Ruff
 

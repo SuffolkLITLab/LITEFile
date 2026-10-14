@@ -220,7 +220,7 @@ UI_STRINGS: dict[str, UIString] = {
         # No {state_name} in the default on purpose: a state that has partners
         # to name is a state that should be naming them in its own words.
         default=(
-            "LITEFile is built with legal aid partners who help fund, build, and deploy it for "
+            "LITEfile is built with legal aid partners who help fund, build, and deploy it for "
             "self-represented litigants in their states:"
         ),
         description=(
@@ -285,7 +285,7 @@ def _jurisdiction_params(config):
     jurisdiction = (config or {}).get("jurisdiction") or {}
     state = (config or {}).get("state") or {}
     return {
-        "brand_name": jurisdiction.get("brand_name") or "LITEFile",
+        "brand_name": jurisdiction.get("brand_name") or "LITEfile",
         "court_name": jurisdiction.get("official_court_name") or "the court",
         "jurisdiction_name": jurisdiction.get("display_name") or "",
         "state_code": state.get("code") or "",

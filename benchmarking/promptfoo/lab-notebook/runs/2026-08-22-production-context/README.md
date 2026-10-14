@@ -10,7 +10,7 @@ digests.
 ## Input construction
 
 The deterministic [preprocessing snapshot](inputs/build_document_inputs.py)
-uses the same MarkItDown package declared by LITEFile and pypdf's `get_fields()`.
+uses the same MarkItDown package declared by LITEfile and pypdf's `get_fields()`.
 The resulting [document-input corpus](inputs/document_inputs.json) records source
 PDF hashes, tool versions, precomputed text, and non-empty form-field values.
 
@@ -74,7 +74,7 @@ document through the most expensive path.
   OCR.
 - Preserve the v2 evidence rules when supplying structured context; v2 gains are
   largest on the sources that otherwise require inference.
-- Add this hybrid context path to the actual LITEFile provider call before
+- Add this hybrid context path to the actual LITEfile provider call before
   claiming full production parity. The current vision test uses rendered page
   images, not the provider Files API.
 - Add adversarial form-field values to a later security sentinel and explicitly

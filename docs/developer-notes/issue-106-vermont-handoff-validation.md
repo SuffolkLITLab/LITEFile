@@ -1,7 +1,7 @@
 # Vermont interview handoff validation
 
 Validated on September 8, 2026, using synthetic answers in the running local
-Docassemble server, the installed `docassemble.RFApackage`, an isolated LITEFile
+Docassemble server, the installed `docassemble.RFApackage`, an isolated LITEfile
 SQLite database, private LocalStack S3 storage, and the dev EFSP's live Vermont
 court metadata. No filing was sent during the initial pass. The later dev
 submission is documented below.
@@ -33,7 +33,7 @@ creation and transfer ran in the installed interview.
   Relief from Abuse case type, plaintiff/defendant party types, and three
   supporting filing types against live Vermont metadata. Filer and party names
   and contact information were prefilled.
-- The source's `Complaint` hint had no unique live filing-type match. LITEFile
+- The source's `Complaint` hint had no unique live filing-type match. LITEfile
   left it editable. Browser selection of a dev filing type, confidentiality,
   and components saved successfully and returned directly to the handoff
   screen. Only payment/fee work remained in the missing-details list.
@@ -100,9 +100,9 @@ minor-specific semantic hint was verified by a sender unit test.
 
 ## Final automated checks
 
-- LITEFile: `uv run pytest -q` — 784 passed.
+- LITEfile: `uv run pytest -q` — 784 passed.
 - Vermont sender: `python -m pytest -q tests/test_litefile.py` — 17 passed.
-- LITEFile: `uv run ruff check .` and `uv run ty check` — passed.
+- LITEfile: `uv run ruff check .` and `uv run ty check` — passed.
 - Django: `makemigrations --check --dry-run` — no model drift; migration 0023
   was applied to the isolated test database.
 - Public documentation: `npm run build` — passed.
@@ -111,7 +111,7 @@ minor-specific semantic hint was verified by a sender unit test.
 ## Updated Vermont credential retry
 
 After the Vermont-specific password was updated, the requested Luna subagent
-retried authentication and received HTTP 200. LITEFile authenticated the real
+retried authentication and received HTTP 200. LITEfile authenticated the real
 Vermont account. A fresh dev handoff containing one synthetic PDF was claimed
 by that account and reached the handoff review hub, resolving Chittenden Unit
 and Relief from Abuse against live metadata. The local database confirms that
@@ -142,7 +142,7 @@ metadata selection, payment, and final review.
 - Browser verification after the fix showed “Your filing was sent to the court,”
   a visible confirmation reference, and four documents sent.
 - The dev stand-in PDF setting remained active. Actual interview PDFs were
-  generated, transferred, and verified in LITEFile, while the remote proxy
+  generated, transferred, and verified in LITEfile, while the remote proxy
   fetched the configured stand-in PDF for each submitted document. This test
   demonstrates the dev filing transaction, not clerk acceptance or review of
   the actual RFA document contents.

@@ -8,7 +8,7 @@ from efile.utils.config_loader import config_loader
 
 TIMEOUT_SECONDS = 20
 # Some court sites refuse requests that do not look like a browser.
-HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; LITEFile link check)"}
+HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; LITEfile link check)"}
 
 
 class Command(BaseCommand):

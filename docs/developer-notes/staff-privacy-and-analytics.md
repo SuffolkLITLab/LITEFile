@@ -182,7 +182,7 @@ decision changes it.
    Matching emails across jurisdictions are separate accounts and separate
    approvals. The lookup shows metadata and counts, without document contents,
    payment information, session credentials, or raw session payloads.
-3. Record either selected owned drafts or all LITEFile-held data for this local
+3. Record either selected owned drafts or all LITEfile-held data for this local
    account. Staff accounts are excluded. Disputed ownership, another person's
    records, and unclaimed handoffs require manual review; do not infer ownership
    from names, document text, or a matching email.
@@ -225,7 +225,7 @@ approved backup expiry/isolation and provider disposition are confirmed. If an
 exception applies, refer it to the person authorized to approve exceptions;
 do not mark it resolved merely to close the queue.
 
-Suggested response: “We deleted the specified copies held in LITEFile's active
+Suggested response: “We deleted the specified copies held in LITEfile's active
 systems. This does not withdraw a court filing or delete court or Tyler records.
 [Describe the actual backup/provider disposition and any remaining exception.]
 Anonymous aggregate usage counts remain.” Do not tell a user that all copies
@@ -297,8 +297,8 @@ filer changes an answer.
 | `submission_error` | Once per logical operation with a confirmed pre-call failure or API rejection; ambiguous outcomes excluded |
 | `document_uploaded` | Once per document row; includes preparation outcome and original PDF form-field presence |
 | `matter_first_used` | First confirmed transmission into a known matter for this local account |
-| `court_accepted` | Once per LITEFile filing ID when a current court status response reports acceptance |
-| `court_returned` | Once per LITEFile filing ID when a current court status response reports rejection or return |
+| `court_accepted` | Once per LITEfile filing ID when a current court status response reports acceptance |
+| `court_returned` | Once per LITEfile filing ID when a current court status response reports rejection or return |
 | `rejection_reason` | Once per returned filing whose detail is viewed; clerk text is reduced immediately to a fixed category and is never stored in analytics |
 | `draft_discarded` | Once when a filer explicitly discards an unfinished draft |
 | `draft_resumed` | Each time a filer resumes a saved draft from the drafts page |
@@ -318,14 +318,14 @@ transmission, so outcomes line up with the `transmitted` count.
 not a claim that every unchanged upload was previously flattened. Word files
 and legacy unknowns are separate from tested PDF input.
 
-Court outcomes are observation-based: LITEFile records them when an authenticated
+Court outcomes are observation-based: LITEfile records them when an authenticated
 filer loads the court history or filing-detail screen. The counters do not poll
 the court or claim complete outcome coverage while statuses have not been viewed.
 Return comments are classified into a fixed category in memory; names, clerk
 text, and other free text never enter the usage outbox. Guided-interview source
 values are limited to deployment-configured source keys. Court outcomes count
 only drafts still marked submitted, the same drafts the filing-detail screen
-treats as LITEFile's own. Report contributor
+treats as LITEfile's own. Report contributor
 counts are distinct local accounts within a cell, not distinct natural people.
 Attorney representation is `yes` only when the imported court roster links the
 filer to a represented party. It is `no` only for a new-case filer who selected

@@ -236,17 +236,19 @@ def court_contact(jurisdiction: str, court_code: str, config: dict | None = None
     no contact.
     """
 
-    config = config or config_loader.load_jurisdiction_config(jurisdiction) or {}
+    config = config if config is not None else config_loader.load_jurisdiction_config(jurisdiction) or {}
     court = (config.get("court_specific_requirements") or {}).get(court_code) or {}
-    contact = dict(court.get("contact") or {})
-
+    contact = court.get("contact") or {}
+    # A name alone is not a usable local contact. Never combine a clerk's name
+    # with a statewide number or website: fall back as a complete unit.
+    if any(contact.get(key) for key in ("phone", "url", "email")):
+        return {key: str(contact[key]) for key in ("name", "phone", "url", "email") if contact.get(key)}
     jurisdiction_help = config.get("jurisdiction") or {}
-    if not contact:
-        # Name the help line only when it stands alone, not beside a clerk's details.
-        contact["name"] = jurisdiction_help.get("help_name", "")
-    contact.setdefault("url", jurisdiction_help.get("help_url", ""))
-    contact.setdefault("phone", jurisdiction_help.get("help_number", ""))
-    return {key: str(value) for key, value in contact.items() if value}
+    return {
+        key: str(jurisdiction_help[source])
+        for key, source in (("name", "help_name"), ("url", "help_url"), ("phone", "help_number"))
+        if jurisdiction_help.get(source)
+    }
 
 
 def archived_case_ids(user, jurisdiction: str) -> set[str]:

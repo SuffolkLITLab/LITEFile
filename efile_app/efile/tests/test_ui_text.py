@@ -37,12 +37,12 @@ def test_jurisdiction_values_fill_placeholders():
     lede = get_text(
         "your_information.lede",
         config={
-            "jurisdiction": {"brand_name": "LITEFile"},
+            "jurisdiction": {"brand_name": "LITEfile"},
             "text": {"your_information": {"lede": "Check your {brand_name} account details."}},
         },
     )
 
-    assert "LITEFile account" in lede
+    assert "LITEfile account" in lede
     assert "eFile account" not in lede
 
 

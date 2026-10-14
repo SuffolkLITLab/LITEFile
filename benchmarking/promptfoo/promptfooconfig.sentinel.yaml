@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
-description: LITEFile seven-document text extraction sentinel
+description: LITEfile seven-document text extraction sentinel
 
 prompts:
   - id: file://./prompts/document_extraction.py:create_v1

@@ -15,7 +15,7 @@ ALLOWED_HOSTS = [APP_HOSTNAME]
 CSRF_TRUSTED_ORIGINS = [f"https://{APP_HOSTNAME}"]
 
 # The review UI performs read-only hierarchy lookups against this endpoint.
-# Keep it separate from the public LITEFile link so a reviewer can point the
+# Keep it separate from the public LITEfile link so a reviewer can point the
 # tool at another jurisdiction-aware staging environment without changing the
 # form preview URL.
 CROSSWALK_REVIEW_EFSP_URL = os.getenv("CROSSWALK_REVIEW_EFSP_URL", EFSP_URL).strip().rstrip("/")
@@ -25,7 +25,7 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "")
 if not SECRET_KEY or SECRET_KEY.startswith("django-insecure-"):
     raise RuntimeError("DJANGO_SECRET_KEY must be set to a strong value for the crosswalk review app")
 
-# Serve the review app at the root and do not expose the rest of LITEFile's
+# Serve the review app at the root and do not expose the rest of LITEfile's
 # filing workflow from this deployment.
 ROOT_URLCONF = "crosswalk_review.project_urls"
 

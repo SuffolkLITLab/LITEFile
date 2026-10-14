@@ -1,4 +1,4 @@
-# Official source links for the initial LITEFile test corpus
+# Official source links for the initial LITEfile test corpus
 
 Retrieved/checked: 2026-08-24. Prefer the official court page when a direct PDF URL is versioned or may change. The exact download URLs used by the corpus builder are recorded in `official_sources.json`.
 

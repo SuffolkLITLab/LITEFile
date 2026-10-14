@@ -1,7 +1,7 @@
 """Incremental public-catalog imports across the proxy's HTTP service boundary.
 
 One small manifest identifies changed courts. A compact export contains their
-code tables and relationships; expansion and search rules belong to LITEFile.
+code tables and relationships; expansion and search rules belong to LITEfile.
 Downloads and validation finish before a transaction replaces changed courts.
 """
 

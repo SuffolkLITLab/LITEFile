@@ -145,7 +145,7 @@ EFSP_URL = os.getenv("EFSP_URL", "https://efile-test.suffolklitlab.org")
 # Where filing codes come from: "database" copies them straight from the EFSP
 # proxy's codes database (read only); "bulk" and "legacy" use its HTTP API.
 FILING_CODE_SYNC_MODE = os.getenv("FILING_CODE_SYNC_MODE", "database")
-# The proxy's Postgres codes database. LITEFile only ever reads it, inside
+# The proxy's Postgres codes database. LITEfile only ever reads it, inside
 # READ ONLY transactions; a read-only database role is still recommended.
 EFSP_CODES_DATABASE_URL = os.getenv("EFSP_CODES_DATABASE_URL", "")
 # When the code index worker copies codes each day, in FILING_CODE_SYNC_TIMEZONE.

@@ -1,4 +1,4 @@
-"""Deployment-owned restrictions on filing through LITEFile, matched by human-readable type names."""
+"""Deployment-owned restrictions on filing through LITEfile, matched by human-readable type names."""
 
 import re
 from urllib.parse import quote, urlencode
@@ -94,7 +94,7 @@ def _unavailable_message(availabilities, *, case_category="", case_type="", fili
     }
     for availability in availabilities:
         fallback = availability.get("message") or _(
-            "LITEFile cannot submit this filing to this court right now. Contact the court clerk to ask how to file."
+            "LITEfile cannot submit this filing to this court right now. Contact the court clerk to ask how to file."
         )
         # Specific explanations take precedence over the court's generic one.
         for rule in availability.get("rules") or []:

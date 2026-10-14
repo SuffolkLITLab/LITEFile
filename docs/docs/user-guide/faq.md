@@ -7,27 +7,27 @@ sidebar_position: 6
 
 # Frequently asked questions & troubleshooting
 
-Find quick answers to common questions about electronic filing through LITEFile.
+Find quick answers to common questions about electronic filing through LITEfile.
 
 ---
 
 ### General questions
 
-#### What is LITEFile?
-LITEFile is an open-source, web-based electronic court filing application developed by the Suffolk University Law School Legal Innovation & Technology (LIT) Lab in partnership with courts and legal aid organizations.
+#### What is LITEfile?
+LITEfile is an open-source, web-based electronic court filing application developed by the Suffolk University Law School Legal Innovation & Technology (LIT) Lab in partnership with courts and legal aid organizations.
 
-#### Do I need to be a lawyer to use LITEFile?
-No. LITEFile is specifically designed for self-represented litigants (people representing themselves without an attorney), pro bono legal volunteers, and legal aid attorneys.
+#### Do I need to be a lawyer to use LITEfile?
+No. LITEfile is specifically designed for self-represented litigants (people representing themselves without an attorney), pro bono legal volunteers, and legal aid attorneys.
 
-#### Does LITEFile charge a convenience fee?
-No. LITEFile does not add any surcharge or markup. Any statutory court filing fees charged by the court or payment processing fees charged by the state EFSP are paid directly to those entities.
+#### Does LITEfile charge a convenience fee?
+No. LITEfile does not add any surcharge or markup. Any statutory court filing fees charged by the court or payment processing fees charged by the state EFSP are paid directly to those entities.
 
 ---
 
 ### Documents & uploads
 
 #### What file types are accepted?
-LITEFile accepts **PDF and Word** (`.pdf`, `.doc`, `.docx`) files up to **10 MB per file**. It preserves originals and prepares PDF copies for court. Check layout, signatures and answers on **Confirm information**. Export Apple Pages or images to a supported format first.
+LITEfile accepts **PDF and Word** (`.pdf`, `.doc`, `.docx`) files up to **10 MB per file**. It preserves originals and prepares PDF copies for court. Check layout, signatures and answers on **Confirm information**. Export Apple Pages or images to a supported format first.
 
 #### Why was my PDF upload rejected?
 Common upload issues include:
@@ -54,7 +54,7 @@ replace your original, and visual review is still required.
 You may be able to request a waiver under your state's rules. On Fees, open **Who qualifies for a fee waiver?** for local help. Under **Payment method**, select **I think I qualify for a fee waiver** and include the required form or order. A configured case exemption instead shows **Claim the fee exemption for this case** with its instructions. Eligibility, exemptions and allowed payment methods differ by court; selecting either option does not approve a waiver.
 
 #### What happens after I submit a fee waiver?
-Check the court's decision and instructions. It may approve the request or require payment. LITEFile's waiver option does not promise approval or a decision date.
+Check the court's decision and instructions. It may approve the request or require payment. LITEfile's waiver option does not promise approval or a decision date.
 
 ---
 
@@ -76,4 +76,4 @@ Missing or unknown status is not proof of failure. See
 If you have questions about specific court requirements, forms, or clerk procedures:
 - **[State-by-state court help directory](./state-help.md)**: Find phone numbers, online chat services, self-help centers, and legal aid partners for your state.
 - **Suffolk LIT Lab technical support**: [suffolklitlab.org](https://suffolklitlab.org) | Email: `litlab@suffolk.edu`
-- **Court clerk information**: Use the court/help contacts where supplied in LITEFile, or the state directory. A specific clerk's direct contact may not be available.
+- **Court clerk information**: Use the court/help contacts where supplied in LITEfile, or the state directory. A specific clerk's direct contact may not be available.
