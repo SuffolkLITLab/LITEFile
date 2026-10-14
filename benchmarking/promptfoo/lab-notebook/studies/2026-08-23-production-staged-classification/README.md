@@ -2,7 +2,7 @@
 
 ## Result
 
-The best benchmarked method is now wired into LITEFile's lead-document worker:
+The best benchmarked method is now wired into LITEfile's lead-document worker:
 
 1. `document_evidence_extraction/v1` extracts direct facts, official-form
    identity, selected options, classification excerpts, and structured monetary

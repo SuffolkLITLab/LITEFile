@@ -85,7 +85,7 @@ putting `text` under a court does not create a court-specific override.
 | `your_information.lede` | Check your name and contact information. | Yes |
 | `parties.role_question` | What is your role in this case? | No |
 | `parties.role_help` | Look for your role next to your name on the court documents. | Yes |
-| `about.project_partner_description` | LITEFile is built with legal aid partners who help fund, build, and deploy it for self-represented litigants in their states: | Yes |
+| `about.project_partner_description` | LITEfile is built with legal aid partners who help fund, build, and deploy it for self-represented litigants in their states: | Yes |
 
 ## Make a safe wording change
 

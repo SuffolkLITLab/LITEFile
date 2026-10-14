@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
-description: LITEFile production-like preprocessing and modality comparison
+description: LITEfile production-like preprocessing and modality comparison
 
 prompts:
   - id: file://./prompts/document_extraction.py:create_v1_markitdown

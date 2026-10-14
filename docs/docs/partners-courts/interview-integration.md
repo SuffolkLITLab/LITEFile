@@ -8,11 +8,11 @@ sidebar_position: 5
 # Guided interview and Docassemble integration
 
 A guided interview can send its generated PDFs and already-collected answers to
-LITEFile. LITEFile saves a draft, resolves filing hints against current court
+LITEfile. LITEfile saves a draft, resolves filing hints against current court
 choices, and asks the filer for missing details. A successful transfer means
 **draft created**, not **filed with the court**.
 
-Docassemble owns the legal interview and documents. LITEFile owns court codes,
+Docassemble owns the legal interview and documents. LITEfile owns court codes,
 filing classifications, party types, fees, payment, submission, and clerk returns.
 The Vermont `docassemble.RFApackage` interview includes a working sender.
 
@@ -22,7 +22,7 @@ Apply the database migrations before enabling a source (`uv run python manage.py
 from `efile_app/`). Migration `0023_interview_handoff` adds receipts, provenance,
 and correction revisions.
 
-Set `LITEFILE_HANDOFF_SOURCES` in the LITEFile environment to a JSON object:
+Set `LITEFILE_HANDOFF_SOURCES` in the LITEfile environment to a JSON object:
 
 ```json
 {
@@ -40,7 +40,7 @@ is required for return links. Source authentication is independent of the
 filer's e-filing account; do not send the filer's password through this API.
 
 Run database migrations when deploying the receiver. Configure the existing S3
-upload handler with a private bucket. LITEFile accepts uploaded PDFs; it does
+upload handler with a private bucket. LITEfile accepts uploaded PDFs; it does
 not fetch arbitrary document URLs supplied by an interview.
 
 ## Version 1 request
@@ -165,7 +165,7 @@ County keys match `case.county`; they may include or omit the word `County`.
 Court keys match either the source's `case.court_name` or the official court
 name resolved from live metadata. Matching ignores capitalization and ordinary
 name punctuation. Scoped `documents` keys must be document IDs declared in the
-same request. Names remain semantic suggestions: LITEFile only saves a code
+same request. Names remain semantic suggestions: LITEfile only saves a code
 when exactly one live option matches.
 
 ## Response, continuation, and retries
@@ -219,12 +219,12 @@ The receipt preserves original suggestions. Append-only metadata events record
 live resolutions, user edits and confirmations, clerk corrections, and replacement
 PDF hashes. Targeted edit links return to the missing-details list, so complete
 answers do not have to be entered again. Final payment, payload validation, and
-submission remain the ordinary LITEFile workflow; an empty `issues` list is not
+submission remain the ordinary LITEfile workflow; an empty `issues` list is not
 an EFSP acceptance guarantee.
 
 ## Clerk returns and document corrections
 
-From a locally submitted filing, choose **Copy and review filing**. LITEFile checks
+From a locally submitted filing, choose **Copy and review filing**. LITEfile checks
 the court's current status for every filing identifier in that submission.
 Only confirmed `rejected` or `returned` statuses permit a correction revision.
 Pending, uncertain, partly accepted, and transport-failure outcomes cannot be
@@ -243,10 +243,10 @@ Older correction drafts retain their recorded field requirements. Adding an
 unrelated attachment alone does not satisfy a requirement to replace a PDF.
 
 For substantive PDF changes, the saved interview screen still offers **Return to my interview to correct a PDF**.
-A filer without an interview can instead upload the corrected PDF in LITEFile.
+A filer without an interview can instead upload the corrected PDF in LITEfile.
 Either way, the **PDF contents** correction is complete once a PDF differs from
 the returned filing.
-LITEFile adds an expiring `litefile_correction` parameter to the approved return
+LITEfile adds an expiring `litefile_correction` parameter to the approved return
 URL. Docassemble resumes the existing interview. After the filer edits the
 answers, the sender posts the updated PDFs to `/api/handoffs/v1/documents/`,
 with its normal source headers and `X-LITEFile-Correction: <token>`.
@@ -255,11 +255,11 @@ The replacement request uses the original `source_id`, stable document IDs,
 updated hashes, and a replacement idempotency key. It sends only the documents
 that changed, so it can replace a supporting PDF without resending the lead; it
 can include at most one lead. Document IDs keep working after the filer
-reorganizes documents in LITEFile. It changes PDF storage
+reorganizes documents in LITEfile. It changes PDF storage
 references, retains the draft's filing metadata, records the replacement, and
 invalidates its fee quote. It cannot modify submitted or uncertain attempts.
 Other source answers in a replacement request do not overwrite the filer's
-LITEFile edits. Documents removed in LITEFile must be added there again.
+LITEfile edits. Documents removed in LITEfile must be added there again.
 
 ## Configure the Vermont sender
 
@@ -279,7 +279,7 @@ override `litefile_config_name` in a later YAML block to select another top-leve
 configuration; its default is `"litefile"`. Migrate an older `litefile.rfa`
 configuration by moving its contents up to `litefile`.
 
-The RFA download screen then offers **Continue in LITEFile**. The adapter sends
+The RFA download screen then offers **Continue in LITEfile**. The adapter sends
 the enabled court bundle, excluding the separate next-steps instructions. Its
 only responsibilities are collecting known facts, hashing and transferring PDFs,
 source authentication, idempotency, and presenting the continuation link.

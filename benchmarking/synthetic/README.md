@@ -1,9 +1,9 @@
 # Synthetic benchmark dataset
 
-This directory contains the **synthetic benchmark dataset** for LITEFile, designed to test and evaluate automated document extraction, form classification, field normalization, and abstention behavior across multiple state court jurisdictions.
+This directory contains the **synthetic benchmark dataset** for LITEfile, designed to test and evaluate automated document extraction, form classification, field normalization, and abstention behavior across multiple state court jurisdictions.
 
 > [!IMPORTANT]
-> **Fictional data notice**: All people, organizations, addresses, docket numbers, dates, and narrative facts in the filled documents are fictional benchmark data. The 30 paired filings use court-published PDF templates, and their PDF metadata identifies them as LITEFile benchmark fixtures. Do not file them with a court.
+> **Fictional data notice**: All people, organizations, addresses, docket numbers, dates, and narrative facts in the filled documents are fictional benchmark data. The 30 paired filings use court-published PDF templates, and their PDF metadata identifies them as LITEfile benchmark fixtures. Do not file them with a court.
 
 ---
 
@@ -76,9 +76,9 @@ The synthetic benchmark dataset covers **30 distinct court filing targets** acro
 | `download_official_forms.py` | Reproducible downloader for the 30 official templates. |
 | `build_official_corpus.py` | Fills the fictional scenarios, creates interactive and flattened pairs, cleans visible fixture artifacts in manifests, and refreshes the structure report. |
 | `official_templates/` | Court-published blank PDF forms. |
-| `litefile_schema_snapshot.json` | Reference snapshot of LITEFile extraction field definitions and normalization rules. |
+| `litefile_schema_snapshot.json` | Reference snapshot of LITEfile extraction field definitions and normalization rules. |
 | `pdf_structure_check.json` | Pre-computed structure validation metrics (page count, AcroForm field count, text character count) for both PDF variants. |
-| `run_litefile_extraction.py` | Benchmark execution script that runs LITEFile's `analyze_document()` across all synthetic documents. |
+| `run_litefile_extraction.py` | Benchmark execution script that runs LITEfile's `analyze_document()` across all synthetic documents. |
 | `evaluate_litefile_results.py` | Diagnostic scoring script that evaluates extraction output against `extractability.jsonl`. |
 | `filled_pdfs/interactive/` | 30 interactive fillable PDFs (IL-01..10, MA-01..10, VT-01..10). |
 | `filled_pdfs/flattened/` | 30 flattened non-fillable PDFs (IL-01..10, MA-01..10, VT-01..10). |

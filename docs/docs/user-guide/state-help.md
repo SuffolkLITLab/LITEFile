@@ -7,7 +7,7 @@ sidebar_position: 5
 
 # State-by-state court help & resources
 
-LITEFile is designed to support electronic court filing across court systems nationwide. When you use LITEFile, the system automatically adapts to your selected state—displaying state-approved court statements, local legal aid contacts, and court help lines in the footer and on your filing status screens.
+LITEfile is designed to support electronic court filing across court systems nationwide. When you use LITEfile, the system automatically adapts to your selected state—displaying state-approved court statements, local legal aid contacts, and court help lines in the footer and on your filing status screens.
 
 Find official court help centers, legal aid organizations, and approved form repositories for your state below:
 
@@ -58,8 +58,8 @@ If your state is not listed above or you are preparing forms across jurisdiction
 
 ---
 
-## How LITEFile connects you to local help
+## How LITEfile connects you to local help
 
-When you file in LITEFile:
+When you file in LITEfile:
 1. **Footer court statement & help line**: Every page shows the official court statement and direct telephone assistance for the state you are filing in.
-2. **Rejection assistance**: If a court clerk returns a filing, LITEFile displays the exact phone number, email address, and website of that specific court clerk's office so you know whom to contact for clarification.
+2. **Rejection assistance**: If a court clerk returns a filing, LITEfile displays the exact phone number, email address, and website of that specific court clerk's office so you know whom to contact for clarification.

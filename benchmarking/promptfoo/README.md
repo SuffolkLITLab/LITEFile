@@ -1,6 +1,6 @@
 # Court-document extraction study
 
-This directory evaluates LITEFile's versioned document-extraction prompts as a
+This directory evaluates LITEfile's versioned document-extraction prompts as a
 Promptfoo prompt × model × document matrix.
 
 The checked-in dataset has 66 PDF cases:
@@ -55,7 +55,7 @@ PROMPTFOO_CONFIG_DIR=.promptfoo PROMPTFOO_DISABLE_WAL_MODE=true npm run view
 
 Promptfoo extracts text from each PDF with its own PDF parser before rendering
 the text prompt. This is a provider-neutral text-input comparison, but it is not
-production parity with LITEFile's provider file upload or MarkItDown fallback.
+production parity with LITEfile's provider file upload or MarkItDown fallback.
 The separate modality suite renders pages to images for vision-capable models.
 
 For a quick diagnostic study, run:

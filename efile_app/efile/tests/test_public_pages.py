@@ -9,9 +9,9 @@ def test_about_page_has_litefile_identity_and_project_links(client):
 
     assert response.status_code == 200
     content = response.content.decode()
-    assert "About LITEFile" in content
+    assert "About LITEfile" in content
     assert "Suffolk University Law School" in content
-    assert "LITEFile works with courts that have approved us to integrate" in content
+    assert "LITEfile works with courts that have approved us to integrate" in content
     assert "https://github.com/SuffolkLITLab/LITEFile" in content
     assert "https://assemblyline.suffolklitlab.org/docs/volunteer" in content
     assert "Legal Services Corporation" in content
@@ -123,7 +123,7 @@ def test_vermont_about_uses_the_partner_approved_description(client):
 
     content = response.content.decode()
     assert "in close partnership with Legal Services Vermont (LSV)" in content
-    assert "deploying LITEFile to expand accessible electronic court filing" in content
+    assert "deploying LITEfile to expand accessible electronic court filing" in content
     # The earlier copy named a second organization and a different website.
     assert "Vermont Legal Aid, who collaborated" not in content
     assert "VTLawHelp to make court filing accessible" not in content
@@ -163,7 +163,7 @@ def test_choose_jurisdiction_carries_footer(client):
 
     assert response.status_code == 200
     content = response.content.decode()
-    assert "About LITEFile" in content
+    assert "About LITEfile" in content
     assert "Terms of Service and Privacy" in content
     assert "suffolk-lit-lab-logo.svg" in content
 
@@ -194,7 +194,7 @@ def test_root_about_does_not_inherit_session_jurisdiction(client, django_user_mo
     assert response.status_code == 200
     content = response.content.decode()
     assert response.context["jurisdiction"] is None
-    assert "LITEFile works with courts that have approved us to integrate" in content
+    assert "LITEfile works with courts that have approved us to integrate" in content
     assert "Seal of the Supreme Court of Illinois" in content
     assert "Seal of the Massachusetts Trial Court" in content
     assert "Seal of the State of Vermont" in content

@@ -7,14 +7,14 @@ sidebar_position: 3
 
 # Control filing availability
 
-Use court configuration to stop filings that LITEFile cannot support yet—for
+Use court configuration to stop filings that LITEfile cannot support yet—for
 example, when a court requires hearing scheduling that the e-filing service
 does not provide. Filing is enabled by default. A restriction can cover a whole
 court or selected case categories, case types, and filing types.
 
 Filers see a warning as soon as their selections match a restriction, before
 continuing to the remaining questions. The restriction controls filing through
-LITEFile; it does not change the court's rules or availability through other
+LITEfile; it does not change the court's rules or availability through other
 filing providers.
 
 ## Where to configure restrictions
@@ -45,7 +45,7 @@ These identify two different things:
 Tyler's numeric type IDs can change. Do not use those IDs in availability
 selectors. Do not use document-checklist keys such as `name_change` unless
 that is also the court's actual displayed name. Use the name shown for the
-selected court, without LITEFile's recommendation marker (`*`). Verify names in
+selected court, without LITEfile's recommendation marker (`*`). Verify names in
 the environment where you will deploy: test and production choices can differ.
 
 The same name may appear in several categories. Combine category and type
@@ -87,7 +87,7 @@ A plain string matches the entire name, case-sensitively. `"Motion"` does not
 match `"motion"`, `"Motion to dismiss"`, or `"Notice of Motion"`. Parentheses,
 periods, and other punctuation in a plain string are literal.
 
-LITEFile removes surrounding whitespace from the selected name. It does not
+LITEfile removes surrounding whitespace from the selected name. It does not
 collapse internal spaces, change capitalization, or trim the configured literal.
 
 A `regex` matcher uses Python `re.fullmatch`, also case-sensitive by default.
@@ -149,7 +149,7 @@ court_specific_requirements:
     filing_availability:
       enabled: false
       message: >-
-        LITEFile cannot submit filings to this court yet. Contact the court
+        LITEfile cannot submit filings to this court yet. Contact the court
         clerk to ask how to file.
 ```
 
@@ -165,7 +165,7 @@ court_specific_requirements:
       rules:
         - case_types: ["Contract"]
           message: >-
-            LITEFile cannot file this case type in Cook County yet because it
+            LITEfile cannot file this case type in Cook County yet because it
             requires scheduling a hearing. Our e-filing service does not support
             hearing scheduling yet. Contact the court clerk to ask how to file.
 ```
@@ -181,7 +181,7 @@ rules:
     filing_types:
       - "Motion"
       - regex: '(?i)motion to .+'
-    message: "LITEFile does not support hearing scheduling for this filing yet."
+    message: "LITEfile does not support hearing scheduling for this filing yet."
 ```
 
 ### Disable categories or filing types independently
@@ -193,12 +193,12 @@ Claims and, in other categories, any envelope containing Notice of hearing:
 court_specific_requirements:
   "example:civil":
     filing_availability:
-      message: "LITEFile cannot submit this filing to this court yet."
+      message: "LITEfile cannot submit this filing to this court yet."
       rules:
         - case_categories: ["Small Claims"]
         - filing_types: ["Notice of hearing"]
           message: >-
-            This filing needs hearing scheduling, which LITEFile does not
+            This filing needs hearing scheduling, which LITEfile does not
             support yet. Contact the court clerk to ask how to file.
 ```
 
@@ -212,7 +212,7 @@ court_specific_requirements:
     filing_availability:
       rules:
         - filing_types: ["Notice of hearing"]
-          message: "LITEFile does not support hearing scheduling for this filing yet."
+          message: "LITEfile does not support hearing scheduling for this filing yet."
 ```
 
 The supported prefix is the text before the first colon, followed by `:*`.
@@ -228,7 +228,7 @@ other court-specific features such as checklist overrides still use exact keys.
 
 The built-in English message is:
 
-> LITEFile cannot submit this filing to this court right now. Contact the court clerk to ask how to file.
+> LITEfile cannot submit this filing to this court right now. Contact the court clerk to ask how to file.
 
 Messages are plain text. HTML, Markdown links, and template placeholders are not
 rendered or expanded. Custom YAML messages are displayed as written; they do not
@@ -276,7 +276,7 @@ and review pages, and during final submission. Existing drafts are not exempt
 from newly added restrictions. Drafts and documents are retained for correction;
 removing the restriction lets an otherwise valid draft continue.
 
-At final submission, LITEFile resolves outgoing numeric IDs to current names
+At final submission, LITEfile resolves outgoing numeric IDs to current names
 from the court API for configured type selectors and applies the same rules.
 It does not trust browser-provided labels as proof that the filing is allowed.
 If required names cannot be resolved, it stops submission with a retry message

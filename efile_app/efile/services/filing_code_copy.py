@@ -1,6 +1,6 @@
 """Copy filing codes straight from the EFSP proxy's codes database, then index them.
 
-The proxy refreshes its codes from Tyler once a day. LITEFile reads the same
+The proxy refreshes its codes from Tyler once a day. LITEfile reads the same
 tables over a read-only connection -- the queries match the proxy's own
 filing-catalog export -- and keeps a copy per court
 (``FilingCodeCourtCatalog``). The search index is built from that copy, so a

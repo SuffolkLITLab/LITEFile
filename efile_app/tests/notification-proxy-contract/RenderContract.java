@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Renders LITEFile's generated bodies with the proxy's Jinjava dependency.
+ * Renders LITEfile's generated bodies with the proxy's Jinjava dependency.
  * Subjects are copied through unchanged because SendMessage renders bodies only.
  */
 public class RenderContract {

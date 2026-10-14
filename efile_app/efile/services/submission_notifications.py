@@ -1,7 +1,9 @@
 """Build jurisdiction-selected, server-owned proxy notification copy."""
 
+import re
 from string import Template
 
+from django.core.exceptions import ImproperlyConfigured
 from django.urls import reverse
 
 from efile.services.fee_quotes import WAIVER_ACCOUNT_TYPE
@@ -47,6 +49,7 @@ def submission_email_fields(request, draft, jurisdiction, config=None):
         "help_line": _help_line(contact),
         "waiver_line": _waiver_line(draft, waiver_url),
     }
+    values.update(_conditional_text(notification_config, draft))
     fields = {field: Template(templates[field]).safe_substitute(values).strip() for field in PROXY_EMAIL_FIELDS}
     if notification_config.get("format") == "html":
         from efile.services.filing_timing import court_filing_timing
@@ -94,3 +97,27 @@ def _waiver_line(draft, waiver_url):
 def _fee_waiver_requested(draft):
     """Whether the filing asks for a waiver, by payment account or waiver document."""
     return draft.selected_payment_account_type == WAIVER_ACCOUNT_TYPE or has_waiver_document(draft)
+
+
+def _conditional_text(notification_config, draft):
+    """Evaluate only server-defined submission facts, never partner-authored code."""
+    blocks = notification_config.get("conditional_text", {})
+    if not isinstance(blocks, dict):
+        raise ImproperlyConfigured("submission_notifications.conditional_text must be a mapping")
+    values = {}
+    for name, block in blocks.items():
+        if (
+            not isinstance(name, str)
+            or not re.fullmatch(r"[a-z][a-z0-9_]*", name)
+            or name in {"tracker_url", "help_line", "waiver_line"}
+            or not isinstance(block, dict)
+            or set(block) - {"when", "then", "otherwise"}
+            or block.get("when") != "fee_waiver_requested"
+            or not isinstance(block.get("then"), str)
+            or not isinstance(block.get("otherwise", ""), str)
+        ):
+            raise ImproperlyConfigured(f"Invalid notification conditional text: {name}")
+        text = block["then"] if _fee_waiver_requested(draft) else block.get("otherwise", "")
+        # Treat the selected copy as literal data across the proxy rendering pass.
+        values[name] = "\n" + _template_value(text.strip()) if text.strip() else ""
+    return values

@@ -20,7 +20,7 @@ def test_account_screens_share_the_full_site_chrome(client, route_name):
     assertTemplateUsed(response, "efile/auth_base.html")
     assert content.count('<header class="header">') == 1
     assert "profileMenuButton" in content
-    assert "About LITEFile" in content
+    assert "About LITEfile" in content
     assert "suffolk-lit-lab-logo.svg" in content
     assert "auth-shell" in content
 

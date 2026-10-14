@@ -7,7 +7,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
 
-MANAGED_WAIVER_NAME = "LITEFile managed waiver account"
+MANAGED_WAIVER_NAME = "LITEfile managed waiver account"
 
 
 def account_headers(jurisdiction, token):

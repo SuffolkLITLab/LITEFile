@@ -1,7 +1,7 @@
 # Translations
 
 Compiled message catalogs go here, one directory per language
-(`locale/es/LC_MESSAGES/django.po`). The directory is empty on purpose: LITEFile
+(`locale/es/LC_MESSAGES/django.po`). The directory is empty on purpose: LITEfile
 ships English only today, and this is the plumbing that makes a second language
 a translation job rather than a code change.
 

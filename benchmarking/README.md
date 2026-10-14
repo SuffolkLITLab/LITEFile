@@ -1,6 +1,6 @@
 # Benchmarking & evaluation suite
 
-This directory contains benchmarking suites, test corpora, and evaluation tools for LITEFile's document extraction and e-filing pipeline.
+This directory contains benchmarking suites, test corpora, and evaluation tools for LITEfile's document extraction and e-filing pipeline.
 
 ---
 
@@ -15,14 +15,14 @@ This directory contains benchmarking suites, test corpora, and evaluation tools 
 
 ### Synthetic dataset (`synthetic/`)
 
-The **synthetic dataset** is a standardized test corpus designed to evaluate LITEFile's automated document extraction and classification capabilities.
+The **synthetic dataset** is a standardized test corpus designed to evaluate LITEfile's automated document extraction and classification capabilities.
 
 Key characteristics:
 - **Multi-state coverage**: 10 target filings each for **Massachusetts**, **Vermont**, and **Illinois** (30 unique form types).
 - **Paired PDF variants**: Each form scenario is provided in both an **interactive AcroForm PDF** (with fillable form fields) and a **flattened PDF** (with appearances baked into page graphics).
 - **Standalone motion filings**: 6 official-template motion PDFs (2 per jurisdiction) to test extraction and abstention behavior on open-ended motion forms.
 - **Official form layouts**: The 30 paired filings use court-published blank templates downloaded from Massachusetts, Vermont, and Illinois court websites.
-- **Fictional data**: All names, addresses, docket numbers, dates, and case facts are fictional. No real personal identifying information (PII) or confidential legal data is included. PDF metadata identifies the filled forms as LITEFile benchmark fixtures.
+- **Fictional data**: All names, addresses, docket numbers, dates, and case facts are fictional. No real personal identifying information (PII) or confidential legal data is included. PDF metadata identifies the filled forms as LITEfile benchmark fixtures.
 
 For full documentation on data schema, source forms, field extractability mappings, and execution instructions, see [synthetic/README.md](synthetic/README.md).
 
@@ -30,7 +30,7 @@ For full documentation on data schema, source forms, field extractability mappin
 
 ## Quick start
 
-To run extraction across the synthetic dataset using LITEFile's extraction service:
+To run extraction across the synthetic dataset using LITEfile's extraction service:
 
 ```bash
 cd /home/quinten/LITEFile

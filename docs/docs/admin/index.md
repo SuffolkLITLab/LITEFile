@@ -8,10 +8,10 @@ sidebar_position: 1
 # Administrator & deployment guide <span className="wip-badge">Work in progress</span>
 
 :::warning Work in progress (WIP)
-This section contains technical documentation for system administrators, DevOps engineers, and developers hosting or contributing to the LITEFile application.
+This section contains technical documentation for system administrators, DevOps engineers, and developers hosting or contributing to the LITEfile application.
 :::
 
-LITEFile is built as a lightweight, production-grade Django ASGI web application designed for high security, low operational overhead, and straightforward deployment on modern container platforms like **Fly.io**, AWS ECS, or Kubernetes.
+LITEfile is built as a lightweight, production-grade Django ASGI web application designed for high security, low operational overhead, and straightforward deployment on modern container platforms like **Fly.io**, AWS ECS, or Kubernetes.
 
 ---
 

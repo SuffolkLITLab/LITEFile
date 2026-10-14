@@ -236,7 +236,7 @@
     font-size: 2.2rem;
 }
 
-.drop-zone span:last-child {
+.drop-zone__preparation {
     color: var(--text-muted);
     font-size: 0.9rem;
 }
@@ -2021,4 +2021,9 @@
 
 .finder-invitation i {
     color: var(--better-blue);
+}
+
+.drop-zone .requirements-strip {
+    justify-content: center;
+    margin: 0;
 }

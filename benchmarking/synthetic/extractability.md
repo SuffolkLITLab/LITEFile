@@ -1,6 +1,6 @@
-# LITEFile PDF extractability guide
+# LITEfile PDF extractability guide
 
-These are pragmatic test expectations, not gold labels. `Direct` means the PDF visibly supplies the value. `Semantic` means LITEFile should usually be able to infer it from the document title, division, or filing language. `Do not require` identifies fields where abstention is a valid outcome.
+These are pragmatic test expectations, not gold labels. `Direct` means the PDF visibly supplies the value. `Semantic` means LITEfile should usually be able to infer it from the document title, division, or filing language. `Do not require` identifies fields where abstention is a valid outcome.
 
 ## Massachusetts
 

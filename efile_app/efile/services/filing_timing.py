@@ -13,7 +13,7 @@ def court_filing_timing(jurisdiction, court_code, config=None, *, now=None):
     config = config if config is not None else config_loader.load_jurisdiction_config(jurisdiction) or {}
     settings = dict(config.get("filing_timing") or {})
     court = (config.get("court_specific_requirements") or {}).get(court_code) or {}
-    settings.update(court.get("filing_timing") or {})
+    settings = config_loader._deep_merge(settings, court.get("filing_timing") or {})
     try:
         zone = ZoneInfo(settings.get("timezone") or "UTC")
     except (ZoneInfoNotFoundError, ValueError, TypeError):
@@ -34,7 +34,7 @@ def court_filing_timing(jurisdiction, court_code, config=None, *, now=None):
 def review_closure_note(settings, zone, *, now=None):
     """Explain likely closures near today, without promising a decision date."""
     calendar = settings.get("business_calendar") or {}
-    if not calendar:
+    if not calendar or calendar.get("enabled") is False:
         return ""
     today = (now or datetime.now(timezone.utc)).astimezone(zone).date()
     try:
@@ -49,6 +49,7 @@ def review_closure_note(settings, zone, *, now=None):
         )
     except (NotImplementedError, ValueError, TypeError):
         return ""
+    excluded = set(calendar.get("excluded_holidays") or [])
     aliases = calendar.get("holiday_names") or {}
     closed_weekdays = set(calendar.get("closed_weekdays", [5, 6]))
     notes = []
@@ -59,6 +60,8 @@ def review_closure_note(settings, zone, *, now=None):
     for _ in range(60):
         if day.weekday() not in closed_weekdays:
             name = holiday_calendar.get(day)
+            if name in excluded:
+                name = None
             if name:
                 name = aliases.get(name, name)
                 notes.append(f"{name} may add 1 day.")

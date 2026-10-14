@@ -122,3 +122,22 @@ def test_upcoming_closures_use_local_date_observed_holidays_and_year_rollover(in
 def test_holiday_guidance_requires_configured_calendar():
     config = {"filing_timing": {"review": {"label": "1–2 days", "source_url": "https://example.test"}}}
     assert court_filing_timing("", "", config)["review"]["closure_note"] == ""
+
+
+@pytest.mark.parametrize("year,day", [(2026, 2), (2027, 1), (2028, 6)])
+@pytest.mark.parametrize("court", ["cook:cd1", "cook:dr1", "cook:cvd1", "cook:dr2"])
+def test_pulaski_day_is_cook_specific_and_follows_first_monday(year, day, court):
+    now = datetime(year, 3, day, 15, tzinfo=timezone.utc)
+    assert (
+        "Casimir Pulaski Day may add 1 day."
+        in court_filing_timing("illinois", court, now=now)["review"]["closure_note"]
+    )
+    for other in ("adams", "unknown", "pulaski", "cook:crcbc"):
+        assert "Pulaski" not in court_filing_timing("illinois", other, now=now)["review"]["closure_note"]
+
+
+def test_pulaski_day_is_visible_from_previous_friday_but_not_tuesday():
+    friday = datetime(2026, 2, 27, 15, tzinfo=timezone.utc)
+    tuesday = datetime(2026, 3, 3, 15, tzinfo=timezone.utc)
+    assert "Pulaski" in court_filing_timing("illinois", "cook:cd1", now=friday)["review"]["closure_note"]
+    assert "Pulaski" not in court_filing_timing("illinois", "cook:cd1", now=tuesday)["review"]["closure_note"]

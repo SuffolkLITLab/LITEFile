@@ -7,7 +7,7 @@ sidebar_position: 5
 
 # Local development & quality assurance <span className="wip-badge">WIP</span>
 
-This guide covers running LITEFile locally, running test suites (Pytest and Playwright), type checking, and code formatting.
+This guide covers running LITEfile locally, running test suites (Pytest and Playwright), type checking, and code formatting.
 
 ---
 
@@ -74,7 +74,7 @@ RUN_FILING_MATRIX=1 npx playwright test tests/reorganized-filing-matrix.spec.js
 
 ## 3. Code formatting & type checking
 
-LITEFile enforces high code quality through Ruff and Ty:
+LITEfile enforces high code quality through Ruff and Ty:
 
 ```bash
 # Run Ruff linting and auto-formatting

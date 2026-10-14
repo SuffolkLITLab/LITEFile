@@ -6,14 +6,14 @@ jurisdiction:
   name: "Vermont eFile"
   code: "vermont"
   display_name: "Vermont"
-  brand_name: "LITEFile"
+  brand_name: "LITEfile"
   logo: "img/litefile-logo.svg"
-  logo_alt: "LITEFile logo"
+  logo_alt: "LITEfile logo"
   icon: "fas fa-balance-scale"
   svg: "img/VT.svg"
   api_endpoint: "/api/vermont"
   official_court_name: "the Vermont Judiciary"
-  official_tool_statement: "LITEFile is an official, approved electronic filing tool of the Vermont Judiciary."
+  official_tool_statement: "LITEfile is an official, approved electronic filing tool of the Vermont Judiciary."
   court_logos:
     - name: "Vermont Judiciary"
       src: "img/court-logo-vermont.svg"
@@ -60,9 +60,9 @@ text:
       and Family includes Relief from Abuse.
   about:
     project_partner_description: >-
-      LITEFile's Vermont e-filing integration was developed in close partnership
+      LITEfile's Vermont e-filing integration was developed in close partnership
       with Legal Services Vermont (LSV), who collaborated on funding, building,
-      and deploying LITEFile to expand accessible electronic court filing for
+      and deploying LITEfile to expand accessible electronic court filing for
       self-represented litigants in Vermont.
 
 # Inherit from base case types and customize

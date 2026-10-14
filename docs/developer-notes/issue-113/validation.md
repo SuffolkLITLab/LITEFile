@@ -1,6 +1,6 @@
 # Document preparation and preview validation
 
-Validated September 30, 2026 for [LITEFile issue #113](https://github.com/SuffolkLITLab/LITEFile/issues/113).
+Validated September 30, 2026 for [LITEfile issue #113](https://github.com/SuffolkLITLab/LITEFile/issues/113).
 Branch: `feature/document-preparation-preview`.
 Validation gist: https://gist.github.com/nonprofittechy/54857d2ed0b841a486dbf7a30b1ad915.
 
@@ -21,7 +21,7 @@ more representative completed filings become available.
 | Method | Accepted local specimens | Fields remaining in accepted outputs |
 | --- | --- | --- |
 | Raw Gotenberg flatten route | 11 / 11 | 0 |
-| LITEFile preparation pipeline | 11 / 11 | 0 |
+| LITEfile preparation pipeline | 11 / 11 | 0 |
 | PDFtk Java 3.3.3 `flatten` | 10 / 11 | 0 |
 
 PDFtk rejected ALWeaver's option-group fixture. Full provenance, SHA-256 hashes,
@@ -33,16 +33,16 @@ metadata and synthetic screenshots.
 Text extraction initially made raw Gotenberg look sufficient. Raster inspection
 revealed that its appearance generation placed three multiline answers on one
 line when `/AP` was missing. This matches QPDF's documented limits on appearance
-generation. LITEFile creates the text appearance with `pypdf`, clears
+generation. LITEfile creates the text appearance with `pypdf`, clears
 `NeedAppearances`, then lets Gotenberg flatten that appearance. Existing usable
 appearances remain intact. The synthetic reproducer shows the difference:
 
 ![Raw Gotenberg joins the three lines](https://gist.githubusercontent.com/nonprofittechy/54857d2ed0b841a486dbf7a30b1ad915/raw/12-raw-gotenberg-multiline.png)
 
-![LITEFile preserves three separate lines](https://gist.githubusercontent.com/nonprofittechy/54857d2ed0b841a486dbf7a30b1ad915/raw/13-repaired-multiline.png)
+![LITEfile preserves three separate lines](https://gist.githubusercontent.com/nonprofittechy/54857d2ed0b841a486dbf7a30b1ad915/raw/13-repaired-multiline.png)
 
 An EOIR missing-appearance stress case containing accented names demonstrated
-another engine limitation. The prepared result retained form fields, so LITEFile
+another engine limitation. The prepared result retained form fields, so LITEfile
 rejected it with a printed-PDF recovery instruction. The automated checks also
 reject lost filled text, changed page counts and unreadable responses. Preview
 and filer review remain necessary for layout, fonts, clipping, checkbox

@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
-description: LITEFile hierarchical taxonomy classification input ablation
+description: LITEfile hierarchical taxonomy classification input ablation
 
 prompts:
   - id: file://./prompts/taxonomy_classification.py:create_source_only

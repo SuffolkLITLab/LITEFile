@@ -6,14 +6,14 @@ jurisdiction:
   name: "Illinois eFile"
   code: "illinois"
   display_name: "Illinois"
-  brand_name: "LITEFile"
+  brand_name: "LITEfile"
   logo: "img/litefile-logo.svg"
-  logo_alt: "LITEFile logo"
+  logo_alt: "LITEfile logo"
   icon: "fas fa-balance-scale"
   svg: "img/IL.svg"
   api_endpoint: "/api/illinois"
   official_court_name: "the Illinois Courts"
-  official_tool_statement: "LITEFile is an official, approved electronic filing tool of the Illinois Courts."
+  official_tool_statement: "LITEfile is an official, approved electronic filing tool of the Illinois Courts."
   court_logos:
     - name: "Illinois Courts"
       src: "img/court-logo-illinois.svg"
@@ -40,6 +40,8 @@ filing_timing:
   business_calendar:
     country: US
     subdivision: IL
+    # Pulaski Day is a Cook closure, not statewide court guidance.
+    excluded_holidays: [Casimir Pulaski Day]
     review_days: 2
     closed_weekdays: [5, 6]
     holiday_names:
@@ -72,7 +74,7 @@ text:
       order requires it.
   about:
     project_partner_description: >-
-      LITEFile's Illinois e-filing integration was developed in close
+      LITEfile's Illinois e-filing integration was developed in close
       partnership with Illinois Legal Aid Online (ILAO), who provided project
       leadership, co-development, and funding to expand accessible electronic
       court filing for self-represented litigants in Illinois.
@@ -847,13 +849,1060 @@ document_finder:
 
 # Illinois-specific court mappings
 court_specific_requirements:
+  # Verified contacts: scripts/build_illinois_court_contacts.py; checked 2026-10-13.
+  alexander:
+    contact:
+      name: Alexander County Circuit Clerk
+      phone: 618-734-0107
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  boone:
+    contact:
+      name: Boone County Circuit Clerk
+      phone: 815-544-0371
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  brown:
+    contact:
+      name: Brown County Circuit Clerk
+      phone: 217-773-2713
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  bureau:
+    contact:
+      name: Bureau County Circuit Clerk
+      phone: 815-872-2001
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  calhoun:
+    contact:
+      name: Calhoun County Circuit Clerk
+      phone: 618-576-2451
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  carroll:
+    contact:
+      name: Carroll County Circuit Clerk
+      phone: 815-244-0230
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  cass:
+    contact:
+      name: Cass County Circuit Clerk
+      phone: 217-452-7225
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  christian:
+    contact:
+      name: Christian County Circuit Clerk
+      phone: 217-824-4966
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  crawford:
+    contact:
+      name: Crawford County Circuit Clerk
+      phone: 618-544-3512
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  dewitt:
+    contact:
+      name: DeWitt County Circuit Clerk
+      phone: 217-935-7750
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  douglas:
+    contact:
+      name: Douglas County Circuit Clerk
+      phone: 217-253-2352
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  edwards:
+    contact:
+      name: Edwards County Circuit Clerk
+      phone: 618-445-2016
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  effingham:
+    contact:
+      name: Effingham County Circuit Clerk
+      phone: 217-342-4065
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  fayette:
+    contact:
+      name: Fayette County Circuit Clerk
+      phone: 618-283-5009
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  ford:
+    contact:
+      name: Ford County Circuit Clerk
+      phone: 217-379-9420
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  fulton:
+    contact:
+      name: Fulton County Circuit Clerk
+      phone: 309-547-3041
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  gallatin:
+    contact:
+      name: Gallatin County Circuit Clerk
+      phone: 618-269-3140
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  greene:
+    contact:
+      name: Greene County Circuit Clerk
+      phone: 217-942-3421
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  grundy:
+    contact:
+      name: Grundy County Circuit Clerk
+      phone: 815-941-3256
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  hamilton:
+    contact:
+      name: Hamilton County Circuit Clerk
+      phone: 618-643-3224
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  hardin:
+    contact:
+      name: Hardin County Circuit Clerk
+      phone: 618-287-2735
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  henderson:
+    contact:
+      name: Henderson County Circuit Clerk
+      phone: 309-867-3121
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  iroquois:
+    contact:
+      name: Iroquois County Circuit Clerk
+      phone: 815-432-6950
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  jackson:
+    contact:
+      name: Jackson County Circuit Clerk
+      phone: 618-687-7300
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  jasper:
+    contact:
+      name: Jasper County Circuit Clerk
+      phone: 618-783-2524
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  jersey:
+    contact:
+      name: Jersey County Circuit Clerk
+      phone: 618-498-5571
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  jodaviess:
+    contact:
+      name: Jo Daviess County Circuit Clerk
+      phone: 815-777-0037
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  johnson:
+    contact:
+      name: Johnson County Circuit Clerk
+      phone: 618-658-4751
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  kane:
+    contact:
+      name: Kane County Circuit Clerk
+      phone: 630-232-3413
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  lasalle:
+    contact:
+      name: LaSalle County Circuit Clerk
+      phone: 815-434-8671
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  lawrence:
+    contact:
+      name: Lawrence County Circuit Clerk
+      phone: 618-943-2815
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  livingston:
+    contact:
+      name: Livingston County Circuit Clerk
+      phone: 815-844-2602
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  logan:
+    contact:
+      name: Logan County Circuit Clerk
+      phone: 217-735-2376
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  marion:
+    contact:
+      name: Marion County Circuit Clerk
+      phone: 618-548-3856
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  marshall:
+    contact:
+      name: Marshall County Circuit Clerk
+      phone: 309-246-6435
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  mason:
+    contact:
+      name: Mason County Circuit Clerk
+      phone: 309-543-6619
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  mercer:
+    contact:
+      name: Mercer County Circuit Clerk
+      phone: 309-582-7122
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  monroe:
+    contact:
+      name: Monroe County Circuit Clerk
+      phone: 618-939-8681
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  morgan:
+    contact:
+      name: Morgan County Circuit Clerk
+      phone: 217-243-5419
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  moultrie:
+    contact:
+      name: Moultrie County Circuit Clerk
+      phone: 217-728-4622
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  ogle:
+    contact:
+      name: Ogle County Circuit Clerk
+      phone: 815-732-3201
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  perry:
+    contact:
+      name: Perry County Circuit Clerk
+      phone: 618-357-6726
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  piatt:
+    contact:
+      name: Piatt County Circuit Clerk
+      phone: 217-762-4966
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  pike:
+    contact:
+      name: Pike County Circuit Clerk
+      phone: 217-285-6612
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  pulaski:
+    contact:
+      name: Pulaski County Circuit Clerk
+      phone: 618-748-9300
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  putnam:
+    contact:
+      name: Putnam County Circuit Clerk
+      phone: 815-925-7016
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  randolph:
+    contact:
+      name: Randolph County Circuit Clerk
+      phone: 618-826-5000
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  richland:
+    contact:
+      name: Richland County Circuit Clerk
+      phone: 618-392-2151
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  saline:
+    contact:
+      name: Saline County Circuit Clerk
+      phone: 618-253-5096
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  sangamon:
+    contact:
+      name: Sangamon County Circuit Clerk
+      phone: 217-753-6674
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  schuyler:
+    contact:
+      name: Schuyler County Circuit Clerk
+      phone: 217-322-4633
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  scott:
+    contact:
+      name: Scott County Circuit Clerk
+      phone: 217-742-5217
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  shelby:
+    contact:
+      name: Shelby County Circuit Clerk
+      phone: 217-774-4212
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  stark:
+    contact:
+      name: Stark County Circuit Clerk
+      phone: 309-286-5941
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  stephenson:
+    contact:
+      name: Stephenson County Circuit Clerk
+      phone: 815-235-8266
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  vermilion:
+    contact:
+      name: Vermilion County Circuit Clerk
+      phone: 217-554-7700
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  wabash:
+    contact:
+      name: Wabash County Circuit Clerk
+      phone: 618-262-5362
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  washington:
+    contact:
+      name: Washington County Circuit Clerk
+      phone: 618-327-4800
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  wayne:
+    contact:
+      name: Wayne County Circuit Clerk
+      phone: 618-842-7684
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  williamson:
+    contact:
+      name: Williamson County Circuit Clerk
+      phone: 618-997-1301
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  woodford:
+    contact:
+      name: Woodford County Circuit Clerk
+      phone: 309-467-3312
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  cook:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:cd:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:chd:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:chd1:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:crb:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:crb2:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:crb23:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:crb29:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:crb34:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:crb35:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:crb38:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:crb42:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:crb43:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:crb44:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:crb46:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:crb48:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:crb50:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:crb60:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:crb61:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:crb62:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:crb63:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:crb64:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:crb66:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:crb7:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:crb9:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:crb95:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:crb98:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:crcbc:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        enabled: false
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:crd1:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:crd1cd:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:crd1cdpt:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:crd2:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:crd3:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:crd4:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:crd5:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:crd6:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:cvd:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:cvd2:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:cvd3:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:cvd4:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:cvd5:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:cvd6:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:dr:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:dr2:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:dr3:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:dr4:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:dr5:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:dr6:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:dv:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:dv1:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:dv2:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:dv3:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:dv4:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:dv5:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:dv6:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:eld:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:eld1:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:eld2:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:eld3:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:eld4:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:eld5:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:eld6:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:jd:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        enabled: false
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:jjcp:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        enabled: false
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:jjcpd6:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        enabled: false
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:law:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:law1:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:law2:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:law3:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:law4:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:law5:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:law6:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:pr:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:pr1:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:tr:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:tr1:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:tr2:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:tr3:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:tr4:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:tr5:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
+  cook:tr6:
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
   adams:
+    contact:
+      name: Adams County Circuit Clerk
+      phone: 217-277-2100
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
     filing_timing:
       office_hours:
         label: "Monday–Friday, 8:15 a.m.–4:30 p.m. Central time"
         source_url: "https://www.adamscountyil.gov/government/departments/circuit-clerk/services-provided"
         checked_on: "2026-10-12"
   "cook:cd1":  # Cook County Circuit Court - County Division
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
     case_types:
       name_change:
         # Checklist overrides are merged item by item into the case type above,
@@ -881,6 +1930,14 @@ court_specific_requirements:
                 required_for_courts: ["cook:cd1"]
   
   "cook:dr1":  # Cook County Circuit Court - Domestic Relations Division
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
     case_types:
       divorce:
         documents:
@@ -894,13 +1951,21 @@ court_specific_requirements:
             requirement: always
 
   "cook:cvd1":  # Cook County Circuit Court - Municipal Civil Division
+    contact:
+      name: Cook County Circuit Clerk customer service
+      phone: 312-603-5030
+      url: https://www.cookcountyclerkofcourt.org/contact-us
+    filing_timing:
+      business_calendar:
+        excluded_holidays: []
+        source_url: https://www.cookcountycourtil.gov/about/legal-court-holidays
     # Optional availability hook. Leave commented until affected names and
     # hearing-scheduling requirements are confirmed against the target EFSP.
     # filing_availability:
     #   rules:
     #     - case_types: ["Contract"] # Illustrative, not a live restriction.
     #       message: >-
-    #         LITEFile cannot file this case type in Cook County yet because it
+    #         LITEfile cannot file this case type in Cook County yet because it
     #         requires scheduling a hearing. Our e-filing service does not support
     #         hearing scheduling yet. Contact the court clerk to ask how to file.
     case_types:
@@ -915,6 +1980,10 @@ court_specific_requirements:
             description: "Cook County asks you to give the tenant this notice about its free help and mediation program."
 
   "bond":  # Bond Court
+    contact:
+      name: Bond County Circuit Clerk
+      phone: 618-664-3208
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
     case_types:
       name_change:
         # Hide both sections for Bond Court

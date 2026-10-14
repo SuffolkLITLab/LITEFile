@@ -20,7 +20,7 @@ there is no universal `court_specific_requirements` override for every dataset.
 
 | Asset | Owner/reviewer to assign | What changes / scope | Refresh after deploy |
 | --- | --- | --- | --- |
-| EFSP court, category, case-type and filing catalogs | Proxy/court code steward; LITEFile operator checks copy health | Authoritative provider names and IDs, separated by environment/jurisdiction/court/new or existing stage | Automatic sync or operator resync; [operations checklist](../admin/filing-code-operations.md) |
+| EFSP court, category, case-type and filing catalogs | Proxy/court code steward; LITEfile operator checks copy health | Authoritative provider names and IDs, separated by environment/jurisdiction/court/new or existing stage | Automatic sync or operator resync; [operations checklist](../admin/filing-code-operations.md) |
 | `efile/data/filing_code_search.yaml` | Partner terminology editor + court/legal reviewer; search maintainer | Synonyms, stems, stop words, matching/explanation rules; changes discovery, not a submitted Tyler code | Restart web/workers to clear cached rules; rebuild search index |
 | `efile/data/filing_concept_definitions.yaml` | Partner editor + local court/legal reviewer | Concept descriptions/sources with jurisdiction, explicit county mapping and exact-court precedence | Web restart; response-only definitions, no catalog rebuild |
 | `efile/data/filing_code_facets.yaml` | Partner editor + search maintainer | Labels/classification rules for result facets and local overrides | Web restart; response-only facets, no catalog rebuild |

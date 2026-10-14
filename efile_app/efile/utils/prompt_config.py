@@ -1,4 +1,4 @@
-"""Load and render versioned LITEFile prompts bundled with the application."""
+"""Load and render versioned LITEfile prompts bundled with the application."""
 
 import os
 from functools import cache

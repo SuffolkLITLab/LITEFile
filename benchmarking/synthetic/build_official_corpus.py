@@ -793,7 +793,7 @@ def overlay_ma07(template: Path, destination: Path, scenario: dict[str, Any]) ->
         writer.add_page(page)
     writer.add_metadata(
         {
-            "/Subject": "LITEFile fictional benchmark fixture using an official court template"
+            "/Subject": "LITEfile fictional benchmark fixture using an official court template"
         }
     )
     with destination.open("wb") as output:
@@ -833,7 +833,7 @@ def overlay_ma10(template: Path, destination: Path, scenario: dict[str, Any]) ->
     writer.pages[0].merge_page(layer.pages[0])
     writer.add_metadata(
         {
-            "/Subject": "LITEFile fictional benchmark fixture using an official court template"
+            "/Subject": "LITEfile fictional benchmark fixture using an official court template"
         }
     )
     with destination.open("wb") as output:
@@ -862,7 +862,7 @@ def fill_form(
     set_checkbox_states(writer, checkbox_rules(form_id))
     writer.add_metadata(
         {
-            "/Subject": "LITEFile fictional benchmark fixture using an official court template"
+            "/Subject": "LITEfile fictional benchmark fixture using an official court template"
         }
     )
     with destination.open("wb") as output:
@@ -926,9 +926,9 @@ def write_extractability_summaries(records: list[dict[str, Any]]) -> None:
         "illinois": "Illinois",
     }
     lines = [
-        "# LITEFile PDF extractability guide",
+        "# LITEfile PDF extractability guide",
         "",
-        "These are pragmatic test expectations, not gold labels. `Direct` means the PDF visibly supplies the value. `Semantic` means LITEFile should usually be able to infer it from the document title, division, or filing language. `Do not require` identifies fields where abstention is a valid outcome.",
+        "These are pragmatic test expectations, not gold labels. `Direct` means the PDF visibly supplies the value. `Semantic` means LITEfile should usually be able to infer it from the document title, division, or filing language. `Do not require` identifies fields where abstention is a valid outcome.",
     ]
     for jurisdiction, heading in jurisdiction_names.items():
         lines.extend(

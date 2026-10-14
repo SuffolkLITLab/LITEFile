@@ -11,7 +11,7 @@ sidebar_position: 1
 This section is actively being expanded as new court systems, case types, and partner integrations are brought online. Contact the [Suffolk LIT Lab](mailto:litlab@suffolk.edu) for technical collaboration or pilot deployment inquiries.
 :::
 
-LITEFile is engineered from the ground up to be **declarative, customizable, and multi-jurisdictional**. Court administrators, state administrative offices of the courts (AOCs), and legal aid partners (such as Illinois Legal Aid Online) can configure:
+LITEfile is engineered from the ground up to be **declarative, customizable, and multi-jurisdictional**. Court administrators, state administrative offices of the courts (AOCs), and legal aid partners (such as Illinois Legal Aid Online) can configure:
 
 - **Court & partner branding**: Official court seals, partner badges, help line phone numbers, and customized terms of service.
 - **Dynamic case types & checklists**: Rule-based filing plans that advise filers which documents are needed for their case.
@@ -20,7 +20,7 @@ LITEFile is engineered from the ground up to be **declarative, customizable, and
 
 ---
 
-## How LITEFile configures jurisdictions
+## How LITEfile configures jurisdictions
 
 ```
 efile_app/efile/static/config/

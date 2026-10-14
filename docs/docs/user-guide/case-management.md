@@ -32,7 +32,7 @@ other parties are different events; neither establishes acceptance.
 | Stopped | The filing was cancelled | Read the details before deciding what to do next |
 | Served | The filing was served | This does not show whether the court accepted it; check the court's details |
 | Sent to the court | No status update has been supplied yet | Check later or contact support/the clerk if the update remains unresolved; do not assume acceptance |
-| Status update from the court | The court supplied a status LITEFile does not recognize | Read the details; do not treat it as a missing update or guess the outcome |
+| Status update from the court | The court supplied a status LITEfile does not recognize | Read the details; do not treat it as a missing update or guess the outcome |
 
 The tracker displays only event times the court supplied. It is not a complete
 transition history. Sourced review estimates and hours may appear for a court;
@@ -54,7 +54,7 @@ personal details in a public issue. Ask the court about deadlines while an updat
 is unresolved.
 
 Emails depend on the configured service. Tyler can send separate notices and
-activation mail. Customized LITEFile/proxy emails are implemented but disabled
+activation mail. Customized LITEfile/proxy emails are implemented but disabled
 pending signoff at the October 13, 2026 snapshot; immediate or successful mail
 delivery is not guaranteed by this guide.
 
@@ -64,8 +64,8 @@ Read the clerk's actual comments and contact the clerk if the requested changes
 are unclear. Do not assume every return has the same cause or that every filing
 in a mixed submission should be sent again.
 
-Where offered for a LITEFile-owned returned/rejected submission, choose **Copy
-and review filing**. LITEFile checks the current court status of every filing
+Where offered for a LITEfile-owned returned/rejected submission, choose **Copy
+and review filing**. LITEfile checks the current court status of every filing
 in the submission; all must be confirmed returned or rejected before it creates
 a copy. Mixed outcomes, failed transmissions and uncertain updates cannot be
 copied automatically. Contact the clerk before trying to send those filings again.

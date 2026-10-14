@@ -86,7 +86,7 @@ vision config as an explicitly experimental provider.
 
 - This is one run per cell on seven synthetic documents, not an uncertainty
   estimate. Repeat high-leverage cells before ranking close models.
-- Promptfoo's `pdf-parse` text is not production parity with LITEFile's file
+- Promptfoo's `pdf-parse` text is not production parity with LITEfile's file
   upload and MarkItDown fallback. A custom provider should exercise those exact
   paths next.
 - In the current development environment, MarkItDown raises its missing PDF

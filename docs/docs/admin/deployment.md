@@ -7,13 +7,13 @@ sidebar_position: 4
 
 # Production deployment & cloud setup <span className="wip-badge">WIP</span>
 
-This guide explains how to deploy LITEFile to cloud infrastructure using **Docker**, **Fly.io**, and **AWS S3**.
+This guide explains how to deploy LITEfile to cloud infrastructure using **Docker**, **Fly.io**, and **AWS S3**.
 
 ---
 
 ## 1. Docker build & image optimization
 
-LITEFile includes a production-ready `Dockerfile` using multi-stage caching and [Astral uv](https://astral.sh/uv).
+LITEfile includes a production-ready `Dockerfile` using multi-stage caching and [Astral uv](https://astral.sh/uv).
 
 ### Preventing documentation from deploying with the Docker build
 
@@ -52,7 +52,7 @@ CMD ["uv", "run", "gunicorn", "efile.asgi:application", "-k", "uvicorn.workers.U
 
 ## 2. Deploying to Fly.io
 
-LITEFile uses `fly.toml` for staging and production hosting on [Fly.io](https://fly.io):
+LITEfile uses `fly.toml` for staging and production hosting on [Fly.io](https://fly.io):
 
 ```toml
 # fly.toml
@@ -95,7 +95,7 @@ primary_region = 'lax'
 
 Document analysis runs outside the web request in the `extraction_worker` process group. The web process stores the upload and queues a durable database job; the worker downloads the original lead document from S3 and records the extracted details on the filing draft. PDFs retain their stored form values for extraction. DOCX files are read locally with `docx2python`, and their text is supplied to analysis. Older binary DOC files use the converted PDF. Keep at least one worker Machine running so queued documents are analyzed.
 
-By default, LITEFile sends only the first 20 PDF pages for analysis. Set `DOCUMENT_EXTRACTION_MAX_PAGES` to a positive integer to change that cap. DOCX text is limited to the first 100,000 characters with `DOCUMENT_EXTRACTION_MAX_TEXT_CHARS`; Word files have no reliable page boundaries. Review identifies when either limit omitted part of a document. `DOCUMENT_EXTRACTION_MAX_ATTEMPTS` controls how many times a failed job is tried before the filer is sent to manual review.
+By default, LITEfile sends only the first 20 PDF pages for analysis. Set `DOCUMENT_EXTRACTION_MAX_PAGES` to a positive integer to change that cap. DOCX text is limited to the first 100,000 characters with `DOCUMENT_EXTRACTION_MAX_TEXT_CHARS`; Word files have no reliable page boundaries. Review identifies when either limit omitted part of a document. `DOCUMENT_EXTRACTION_MAX_ATTEMPTS` controls how many times a failed job is tried before the filer is sent to manual review.
 
 ### Filing code search index
 
@@ -106,13 +106,13 @@ below remain the reference for provisioning.
 Filing codes come straight from the EFSP proxy's codes database. The proxy
 updates its codes from Tyler once a day (production at 02:13, test at 19:35
 Eastern). Each day at `FILING_CODE_SYNC_TIME` in `FILING_CODE_SYNC_TIMEZONE`, the
-`code_index_worker` copies every court whose codes changed into LITEFile's own
+`code_index_worker` copies every court whose codes changed into LITEfile's own
 database, then rebuilds the search index for those courts. Set the time well
 after the proxy's update: Fly staging, which uses the test EFSP, runs at 21:30
 Eastern. Production should run at about 04:30. Keep one Machine running in the
 `code_index_worker` process group.
 
-LITEFile connects with `EFSP_CODES_DATABASE_URL` and only ever reads. The court
+LITEfile connects with `EFSP_CODES_DATABASE_URL` and only ever reads. The court
 list and every court's tables are read in one `READ ONLY`, `REPEATABLE READ`
 transaction, so the copy is a consistent snapshot and the database refuses any
 write. Supabase's connection pooler ignores connection-level settings, which is
@@ -120,7 +120,7 @@ why read-only is set per transaction. The queries match the proxy's own
 filing-catalog export: courts with all three installed code lists, non-criminal
 case categories, and filings that aren't court-use only.
 
-LITEFile connects as its own role, `litefile_codes_reader`, never with the
+LITEfile connects as its own role, `litefile_codes_reader`, never with the
 proxy's credentials. The proxy keeps user data in the same database, so the role
 can read only the five code tables. It is also read only at the server, which
 holds even through Supabase's pooler. The test EFSP's database already has it.
@@ -146,7 +146,7 @@ the grants persist. If a proxy schema migration ever recreates one of them,
 grant `SELECT` on it again. Postgres lets every role create session-private
 temporary tables (a `PUBLIC` default that can't be revoked from one role). Those
 can't touch shared data, and the role's read-only default refuses them unless a
-client turns read-only off, which LITEFile never does.
+client turns read-only off, which LITEfile never does.
 
 A court whose revision is unchanged is not read again. A court that suddenly
 has no filing types usually means the proxy's update is half finished, so the
@@ -164,7 +164,7 @@ jurisdiction or all of them:
 - **Resync codes** copies changed courts from the EFSP now, then updates their
   part of the index.
 - **Rebuild code search indexes** rebuilds the whole index from the copy already
-  in LITEFile, without contacting the EFSP. Use it after changing search rules
+  in LITEfile, without contacting the EFSP. Use it after changing search rules
   in `filing_code_search.yaml`.
 
 The buttons queue a job, which the code index worker starts within a minute.
@@ -222,7 +222,7 @@ fly secrets set \
 
 ## 3. AWS S3 storage setup
 
-LITEFile stores uploaded PDFs in a private S3 bucket and generates presigned URLs for e-file proxy document ingestion. Set `AWS_S3_REGION_NAME` to the bucket's actual region. Keep all four S3 Block Public Access settings enabled, use "Bucket owner enforced" object ownership, and do not add a public bucket policy or object ACLs. The proxy downloads each presigned URL with an HTTP GET; CORS is not needed for that server-to-server request.
+LITEfile stores uploaded PDFs in a private S3 bucket and generates presigned URLs for e-file proxy document ingestion. Set `AWS_S3_REGION_NAME` to the bucket's actual region. Keep all four S3 Block Public Access settings enabled, use "Bucket owner enforced" object ownership, and do not add a public bucket policy or object ACLs. The proxy downloads each presigned URL with an HTTP GET; CORS is not needed for that server-to-server request.
 
 ### IAM policy
 

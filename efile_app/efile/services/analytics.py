@@ -399,7 +399,7 @@ def _outcome_metric(status):
 
 
 def record_court_statuses(user, jurisdiction, filings):
-    """Record terminal statuses only for filings LITEFile submitted for this account."""
+    """Record terminal statuses only for filings LITEfile submitted for this account."""
     from efile.models import FilingIdentifier
 
     try:

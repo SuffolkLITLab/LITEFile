@@ -3,7 +3,7 @@
 {% load i18n %}
 {% load ui_text %}
 {% block title %}
-    {% translate "About LITEFile" %}
+    {% translate "About LITEfile" %}
 {% endblock title %}
 {% block public_content %}
     <div class="public-hero">
@@ -11,12 +11,12 @@
              src="{% static config.jurisdiction.logo|default:'img/litefile-logo.svg' %}"
              alt="{{ config.jurisdiction.logo_alt|default:'LITEfile logo' }}" />
         <div>
-            <h1>{% translate "About LITEFile" %}</h1>
+            <h1>{% translate "About LITEfile" %}</h1>
             <p class="lead">{% translate "A secure, official way to file documents with the court online." %}</p>
         </div>
     </div>
     <section aria-labelledby="what-is-litefile">
-        <h2 id="what-is-litefile">{% translate "What is LITEFile?" %}</h2>
+        <h2 id="what-is-litefile">{% translate "What is LITEfile?" %}</h2>
         <div class="d-flex flex-wrap align-items-center gap-4 my-3">
             <a href="https://suffolklitlab.org/"
                target="_blank"
@@ -30,7 +30,7 @@
             </a>
             <div style="flex: 1; min-width: 260px;">
                 <p class="mb-2">
-                    {% translate "LITEFile is a product built by the" %}
+                    {% translate "LITEfile is a product built by the" %}
                     <a href="https://suffolklitlab.org/">{% translate "Suffolk University Law School Legal Innovation &amp; Technology (LIT) Lab" %}</a>.
                     {% translate "It helps people prepare and submit electronic court filings through a guided, step-by-step process." %}
                 </p>
@@ -49,10 +49,10 @@
     <section aria-labelledby="how-it-works">
         <h2 id="how-it-works">{% translate "How does it work?" %}</h2>
         <p>
-            {% translate "LITEFile asks questions about your filing, helps you organize your documents, and sends your completed filing through the jurisdiction's electronic filing system. You can use it on a computer or mobile device." %}
+            {% translate "LITEfile asks questions about your filing, helps you organize your documents, and sends your completed filing through the jurisdiction's electronic filing system. You can use it on a computer or mobile device." %}
         </p>
         <p>
-            {% translate "A submission confirmation means that LITEFile sent the filing for processing. It does not by itself mean that the court accepted the filing. Check your filing status and follow any instructions from the court." %}
+            {% translate "A submission confirmation means that LITEfile sent the filing for processing. It does not by itself mean that the court accepted the filing. Check your filing status and follow any instructions from the court." %}
         </p>
     </section>
     <section aria-labelledby="documentation-and-guides">
@@ -66,7 +66,7 @@
                target="_blank"
                rel="noopener noreferrer">
                 <i class="fas fa-book-open me-2" aria-hidden="true"></i>
-                {% translate "View LITEFile Documentation" %}
+                {% translate "View LITEfile Documentation" %}
             </a>
         </p>
     </section>
@@ -74,7 +74,7 @@
         <h2 id="court-partners">{% translate "Court partners" %}</h2>
         {% if jurisdiction %}
             <p>
-                {% blocktranslate with court=config.jurisdiction.official_court_name %}This LITEFile experience is configured for {{ court }}.{% endblocktranslate %}
+                {% blocktranslate with court=config.jurisdiction.official_court_name %}This LITEfile experience is configured for {{ court }}.{% endblocktranslate %}
             </p>
             <div class="logo-grid">
                 {% for court_logo in config.jurisdiction.court_logos %}
@@ -90,7 +90,7 @@
             </div>
         {% else %}
             <p>
-                {% translate "LITEFile works with courts that have approved us to integrate with their electronic filing systems. Each state integration is tailored to the specific court rules, forms, and filing standards of that jurisdiction:" %}
+                {% translate "LITEfile works with courts that have approved us to integrate with their electronic filing systems. Each state integration is tailored to the specific court rules, forms, and filing standards of that jurisdiction:" %}
             </p>
             <div class="logo-grid">
                 <a href="{% url 'jurisdiction_about' 'illinois' %}"
@@ -143,7 +143,7 @@
                 </div>
             {% else %}
                 <p>
-                    {% translate "LITEFile is developed in close collaboration with legal aid organizations that help fund, build, and deploy user-friendly electronic filing tools in their states:" %}
+                    {% translate "LITEfile is developed in close collaboration with legal aid organizations that help fund, build, and deploy user-friendly electronic filing tools in their states:" %}
                 </p>
                 <div class="logo-grid">
                     <a href="https://www.illinoislegalaid.org/"
@@ -169,7 +169,7 @@
     <section aria-labelledby="project-funders">
         <h2 id="project-funders">{% translate "Project funders" %}</h2>
         <p>
-            {% translate "The development of LITEFile and its court filing integrations has received generous grant support from national organizations dedicated to advancing equal access to justice:" %}
+            {% translate "The development of LITEfile and its court filing integrations has received generous grant support from national organizations dedicated to advancing equal access to justice:" %}
         </p>
         <div class="logo-grid">
             <a href="https://www.lsc.gov/"
@@ -193,7 +193,7 @@
     <section aria-labelledby="privacy-and-security">
         <h2 id="privacy-and-security">{% translate "Your information is safe and private" %}</h2>
         <p>
-            {% translate "LITEFile is designed to keep your filing information safe and private. Information you enter is used to prepare, submit, and track your filing, and is shared with the court and filing services needed to process it. We do not sell your personal information." %}
+            {% translate "LITEfile is designed to keep your filing information safe and private. Information you enter is used to prepare, submit, and track your filing, and is shared with the court and filing services needed to process it. We do not sell your personal information." %}
         </p>
         <p>
             {% translate "We use HTTPS encryption, access controls, firewalls, monitoring, and regular security updates to protect information. Access is limited to authorized people who need it to operate or improve the service." %}
@@ -203,8 +203,8 @@
     <section aria-labelledby="get-involved">
         <h2 id="get-involved">{% translate "Get involved" %}</h2>
         <p>
-            {% translate "LITEFile is built with free and open-source technology. Visit the" %}
-            <a href="https://github.com/SuffolkLITLab/LITEFile">{% translate "public LITEFile GitHub repository" %}</a>
+            {% translate "LITEfile is built with free and open-source technology. Visit the" %}
+            <a href="https://github.com/SuffolkLITLab/LITEFile">{% translate "public LITEfile GitHub repository" %}</a>
             {% translate "to learn about the project, report an issue, or contribute." %}
         </p>
         <p>
@@ -218,7 +218,7 @@
     <section aria-labelledby="legal-help">
         <h2 id="legal-help">{% translate "Need legal help?" %}</h2>
         <p>
-            {% translate "LITEFile provides legal information and filing technology, not legal advice or representation. If you need legal advice, representation, or assistance with your situation, free and low-cost help may be available through local legal aid organizations and court resource centers:" %}
+            {% translate "LITEfile provides legal information and filing technology, not legal advice or representation. If you need legal advice, representation, or assistance with your situation, free and low-cost help may be available through local legal aid organizations and court resource centers:" %}
         </p>
         <div class="row g-3 my-2">
             {% if not jurisdiction or jurisdiction == "illinois" %}

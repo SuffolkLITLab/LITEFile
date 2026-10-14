@@ -16,7 +16,7 @@
             </a>
         </div>
         <div class="public-footer-links">
-            <a href="{% if jurisdiction %}{% url 'jurisdiction_about' jurisdiction %}{% else %}{% url 'about' %}{% endif %}">{% translate "About LITEFile" %}</a>
+            <a href="{% if jurisdiction %}{% url 'jurisdiction_about' jurisdiction %}{% else %}{% url 'about' %}{% endif %}">{% translate "About LITEfile" %}</a>
             <a href="{% if jurisdiction %}{% url 'jurisdiction_terms_of_service' jurisdiction %}{% else %}{% url 'terms_of_service' %}{% endif %}">{% translate "Terms of Service and Privacy" %}</a>
             <a href="https://github.com/SuffolkLITLab/LITEFile">{% translate "GitHub" %}</a>
             {% if config.jurisdiction.help_url %}
@@ -26,6 +26,6 @@
                 <a href="tel:{{ config.jurisdiction.help_number }}">{% translate "Call" %}</a>
             {% endif %}
         </div>
-        <p class="public-footer-credit">{% translate "LITEFile is built by Suffolk University Law School's LIT Lab." %}</p>
+        <p class="public-footer-credit">{% translate "LITEfile is built by Suffolk University Law School's LIT Lab." %}</p>
     </div>
 </footer>

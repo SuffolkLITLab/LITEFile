@@ -1,4 +1,4 @@
-"""Generate deterministic LITEFile notification fields for the proxy contract check."""
+"""Generate deterministic LITEfile notification fields for the proxy contract check."""
 
 from __future__ import annotations
 

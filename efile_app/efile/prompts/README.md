@@ -1,6 +1,6 @@
 # LLM prompts
 
-This package directory is the source of truth for prompts used by LITEFile.
+This package directory is the source of truth for prompts used by LITEfile.
 Prompt files include the model preferences and inference settings that should be
 evaluated with the prompt text. Setuptools includes these YAML files in installed
 packages, and the repository Docker build copies them under `/app/efile_app`.

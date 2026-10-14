@@ -41,7 +41,7 @@ REQUIREMENT_ORDER: tuple[str, ...] = ("always", "usually", "sometimes")
 DEFAULT_REQUIREMENT = "sometimes"
 
 # What filers see for each level. Worded as how often a document goes with
-# filings like this one, never as what this filer must file: LITEFile cannot
+# filings like this one, never as what this filer must file: LITEfile cannot
 # know which forms someone's situation calls for.
 REQUIREMENT_LABELS: dict[str, str] = {
     "always": "Commonly included",

@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
-description: LITEFile court-document extraction prompt and model matrix
+description: LITEfile court-document extraction prompt and model matrix
 
 prompts:
   - id: file://./prompts/document_extraction.py:create_v1

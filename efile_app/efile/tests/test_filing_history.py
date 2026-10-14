@@ -492,3 +492,50 @@ def test_my_cases_needs_a_signed_in_filer(client):
 
     assert response.status_code == 302
     assert "/login/" in response.url
+
+
+@pytest.mark.parametrize("local", [{"name": "Local clerk"}, {"name": "Local clerk", "phone": ""}, {}])
+def test_contact_without_usable_local_details_falls_back_as_a_unit(local):
+    config = {
+        "jurisdiction": {"help_name": "State help", "help_number": "555-0100", "help_url": "https://state.example"},
+        "court_specific_requirements": {"court": {"contact": local}},
+    }
+    assert court_contact("illinois", "court", config) == {
+        "name": "State help",
+        "phone": "555-0100",
+        "url": "https://state.example",
+    }
+
+
+@pytest.mark.parametrize(
+    "local", [{"name": "Local clerk", "phone": "555-0200"}, {"name": "Local clerk", "url": "https://local.example"}]
+)
+def test_local_contact_does_not_inherit_statewide_details(local):
+    config = {
+        "jurisdiction": {"help_name": "State help", "help_number": "555-0100", "help_url": "https://state.example"},
+        "court_specific_requirements": {"court": {"contact": local}},
+    }
+    assert court_contact("illinois", "court", config) == local
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "court,phone",
+    [
+        ("adams", "217-277-2100"),
+        ("cook:cd1", "312-603-5030"),
+        ("cook:dr1", "312-603-5030"),
+        ("unknown", "833-411-1121"),
+    ],
+)
+def test_filing_status_page_renders_the_resolved_court_phone(client, user, court, phone):
+    sign_in(client, user)
+    url = reverse("filing_detail", kwargs={"jurisdiction": "illinois", "court_code": court, "filing_id": "filing-1"})
+    with (
+        patch("efile.views.my_cases.fetch_filing_detail", return_value=accepted_detail()),
+        patch("efile.views.my_cases.court_names", return_value={}),
+    ):
+        response = client.get(url)
+    assert response.status_code == 200
+    assert f'href="tel:{phone}"' in response.content.decode()
+    assert response.context["court_contact"]["phone"] == phone
