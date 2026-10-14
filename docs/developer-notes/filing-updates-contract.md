@@ -192,6 +192,43 @@ Crosswalk counts: 63 verified, 37 phone differs from official clerk directory; r
 - Input SHA-256 `litefile-tyler-courts.json`: `c8ca177f4604dc378b49042a7074f93d8abcfc86e73aab14bc346a0985d75fc7`.
 - Input SHA-256 `litefile-official-clerks.html`: `4188491e45b84aa833f9d2ccf956124e44dc503f0ddad28ebdac3303c343db7e`.
 
+### Official clerk reconciliation (October 14, 2026)
+
+The contact generator now uses AOIC's published **circuit clerk** phone when
+ILAO's explicit Tyler code is unique, present in the provider snapshot, and the
+provider county name agrees with the workbook county. This resolves the 37
+previously withheld counties. It does not assume their ILAO numbers are invalid:
+they may reach a courthouse or another office. Both values remain in the CSV.
+[ILAO issue #25](https://github.com/IllinoisLegalAidOnline/docassemble-ILAO/issues/25)
+reports every difference with the proposed clerk number highlighted and asks the
+maintainer to confirm the intended field semantics.
+
+The AOIC parser now joins adjacent bold headings, fixing its previous failure
+to read Cumberland and Rock Island. Duplicate official headings, ambiguous
+workbook codes, missing official numbers, and inconsistent county identities
+are withheld. Existing Cook contacts remain explicitly county-wide.
+
+The refreshed output contains **184 contacts**: 100 county records (63 matching
+ILAO phones and 37 official clerk alternatives) and 84 Cook provider codes.
+There are 176 provider codes without a verified contact, nine unmapped workbook
+Cook courthouse records, and one workbook code absent from the snapshot. These
+still use the existing statewide fallback. The same resolver supplies the status
+page and all four notification bodies; notifications retain their existing
+enablement and approval settings.
+
+The workbook commit and Tyler snapshot are unchanged from the October 13
+inputs above. The AOIC HTML fetched October 14 has SHA-256
+`f92aba7174f959a24822c1a8600a1acb2d1e1ad4b6ebf6f913681024ba18ce2a`.
+The generation command above is unchanged. Review its audit before merging
+output; preserve other court configuration. The earlier instruction to withhold
+all differing numbers is superseded by this explicit official-clerk policy.
+
+Run the generator's regression tests from `efile_app`:
+
+```bash
+uv run --with openpyxl --with beautifulsoup4 pytest -q ../scripts/tests/test_build_illinois_court_contacts.py
+```
+
 ### Cook holiday scope
 
 The [official Cook legal holiday schedule](https://www.cookcountycourtil.gov/about/legal-court-holidays)

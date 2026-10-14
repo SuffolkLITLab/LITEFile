@@ -1997,6 +1997,193 @@ court_specific_requirements:
               conditional_requirements:
                 hidden_for_courts: ["bond"]
 
+  # Official AOIC clerk contacts, reconciled with ILAO county/code identities on 2026-10-14.
+  champaign:
+    contact:
+      name: Champaign County Circuit Clerk
+      phone: 217-384-3725
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  clark:
+    contact:
+      name: Clark County Circuit Clerk
+      phone: 217-826-2811
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  clay:
+    contact:
+      name: Clay County Circuit Clerk
+      phone: 618-665-3523
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  clinton:
+    contact:
+      name: Clinton County Circuit Clerk
+      phone: 618-594-6615
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  coles:
+    contact:
+      name: Coles County Circuit Clerk
+      phone: 217-348-0516
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  cumberland:
+    contact:
+      name: Cumberland County Circuit Clerk
+      phone: 217-849-3601
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  dekalb:
+    contact:
+      name: DeKalb County Circuit Clerk
+      phone: 815-895-7131
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  edgar:
+    contact:
+      name: Edgar County Circuit Clerk
+      phone: 217-466-7447
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  franklin:
+    contact:
+      name: Franklin County Circuit Clerk
+      phone: 618-439-2011
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  hancock:
+    contact:
+      name: Hancock County Circuit Clerk
+      phone: 217-357-2616
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  henry:
+    contact:
+      name: Henry County Circuit Clerk
+      phone: 309-937-3752
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  jefferson:
+    contact:
+      name: Jefferson County Circuit Clerk
+      phone: 618-244-8008
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  kankakee:
+    contact:
+      name: Kankakee County Circuit Clerk
+      phone: 815-936-5700
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  kendall:
+    contact:
+      name: Kendall County Circuit Clerk
+      phone: 630-553-4183
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  knox:
+    contact:
+      name: Knox County Circuit Clerk
+      phone: 309-345-6719
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  lake:
+    contact:
+      name: Lake County Circuit Clerk
+      phone: 847-377-3380
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  lee:
+    contact:
+      name: Lee County Circuit Clerk
+      phone: 815-284-5234
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  macon:
+    contact:
+      name: Macon County Circuit Clerk
+      phone: 217-424-1454
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  macoupin:
+    contact:
+      name: Macoupin County Circuit Clerk
+      phone: 217-854-3211
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  madison:
+    contact:
+      name: Madison County Circuit Clerk
+      phone: 618-692-6240
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  massac:
+    contact:
+      name: Massac County Circuit Clerk
+      phone: 618-524-5011
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  mcdonough:
+    contact:
+      name: McDonough County Circuit Clerk
+      phone: 309-837-4889
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  mchenry:
+    contact:
+      name: McHenry County Circuit Clerk
+      phone: 815-334-4310
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  mclean:
+    contact:
+      name: McLean County Circuit Clerk
+      phone: 309-888-5301
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  menard:
+    contact:
+      name: Menard County Circuit Clerk
+      phone: 217-632-2615
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  montgomery:
+    contact:
+      name: Montgomery County Circuit Clerk
+      phone: 217-532-9546
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  peoria:
+    contact:
+      name: Peoria County Circuit Clerk
+      phone: 309-672-6989
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  pope:
+    contact:
+      name: Pope County Circuit Clerk
+      phone: 618-683-3941
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  rockisland:
+    contact:
+      name: Rock Island County Circuit Clerk
+      phone: 309-558-3538
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  stclair:
+    contact:
+      name: St. Clair County Circuit Clerk
+      phone: 618-277-6832
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  tazewell:
+    contact:
+      name: Tazewell County Circuit Clerk
+      phone: 309-477-2214
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  union:
+    contact:
+      name: Union County Circuit Clerk
+      phone: 618-833-5913
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  warren:
+    contact:
+      name: Warren County Circuit Clerk
+      phone: 309-734-5179
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  white:
+    contact:
+      name: White County Circuit Clerk
+      phone: 618-382-2321
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  whiteside:
+    contact:
+      name: Whiteside County Circuit Clerk
+      phone: 815-772-5188
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  will:
+    contact:
+      name: Will County Circuit Clerk
+      phone: 815-727-8592
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+  winnebago:
+    contact:
+      name: Winnebago County Circuit Clerk
+      phone: 815-319-4500
+      url: https://www.illinoiscourts.gov/courts/circuit-court/circuit-court-clerks/
+
 # How a filer says which court this filing goes to.
 #
 # Illinois routes by county: the e-filing service lists more than 200 courts,

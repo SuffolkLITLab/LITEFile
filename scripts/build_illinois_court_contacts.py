@@ -1,9 +1,10 @@
 """Build reviewable court overrides from downloaded ILAO, Tyler and AOIC inputs.
 
 Run with ``uv run --with openpyxl --with beautifulsoup4 --with pyyaml``.
-Only exact, unique Tyler codes with an independently confirmed clerk phone are
-published. Cook uses the official county-wide clerk help line, never a guessed
-association between a courthouse row and a division.
+Only exact, unique Tyler codes whose county matches the official clerk directory
+are published. The official clerk phone takes precedence over the ILAO general
+court phone; discrepancies remain in the audit. Cook uses the county-wide clerk
+help line, never a guessed association between a courthouse row and a division.
 """
 
 import argparse
@@ -23,34 +24,53 @@ CALENDAR_URL = "https://www.cookcountycourtil.gov/about/legal-court-holidays"
 
 
 def digits(value):
-    return re.sub(r"\D", "", str(value or ""))[:10]
+    number = re.sub(r"\D", "", str(value or ""))
+    if len(number) >= 11 and number.startswith("1"):
+        number = number[1:]
+    return number[:10]
+
+
+def county_key(value):
+    return re.sub(r"\W", "", str(value or "").strip().lower().removesuffix(" county"))
+
+
+def official_phones(official_html):
+    # AOIC splits Rock Island across adjacent strong tags and has an empty
+    # strong tag after Cumberland. Join adjacent headings before splitting.
+    official_html = re.sub(
+        r"</strong>\s*<strong[^>]*>", " ", official_html, flags=re.IGNORECASE
+    )
+    official = {}
+    for section in re.split(r"<strong[^>]*>", official_html)[1:]:
+        county_html, separator, details = section.partition("</strong>")
+        if not separator:
+            continue
+        county = BeautifulSoup(county_html, "html.parser").get_text(" ", strip=True)
+        phone = re.search(
+            r"Phone:\s*([\d /()-]+)",
+            BeautifulSoup(details, "html.parser").get_text(" ", strip=True),
+        )
+        if phone and len(digits(phone[1])) == 10:
+            key = county_key(county)
+            if key in official:
+                raise ValueError(f"Duplicate official clerk entry: {county}")
+            official[key] = digits(phone[1])
+    return official
 
 
 def build(workbook, courts, official_html):
     sheet = openpyxl.load_workbook(workbook, read_only=True).active
     entries = iter(sheet.values)
     headers = next(entries)
-    records = [dict(zip(headers, row)) for row in entries if any(row)]
+    records = [dict(zip(headers, row, strict=True)) for row in entries if any(row)]
     live = {row["code"]: row["name"] for row in courts}
     counts = Counter(row["tyler_court_code"] for row in records)
-    official = {}
-    sections = re.split(r"<strong[^>]*>", official_html)
-    for section in sections[1:]:
-        county_html, separator, details = section.partition("</strong>")
-        if not separator:
-            continue
-        county = BeautifulSoup(county_html, "html.parser").get_text()
-        phone = re.search(
-            r"Phone:\s*([\d /()-]+)",
-            BeautifulSoup(details, "html.parser").get_text(" ", strip=True),
-        )
-        if phone:
-            official[re.sub(r"\W", "", county).lower()] = digits(phone[1])
+    official = official_phones(official_html)
     overrides, audit = {}, []
     for row in records:
         code = row["tyler_court_code"]
         county = row["address_county"] or ""
-        official_phone = official.get(re.sub(r"\W", "", county).lower(), "")
+        official_phone = official.get(county_key(county), "")
         status = "verified"
         if not code:
             status = "unmapped; Cook uses county-wide clerk contact separately"
@@ -58,9 +78,13 @@ def build(workbook, courts, official_html):
             status = "ambiguous duplicate code"
         elif code not in live:
             status = "code absent from Tyler snapshot"
-        elif not digits(row["phone"]) or digits(row["phone"]) != official_phone:
-            status = "phone differs from official clerk directory; review required"
-        if status == "verified":
+        elif county_key(live[code]) != county_key(county):
+            status = "county differs from Tyler name; review required"
+        elif not official_phone:
+            status = "no official clerk phone; review required"
+        elif digits(row["phone"]) != official_phone:
+            status = "verified official clerk phone; differs from ILAO court phone"
+        if status.startswith("verified"):
             overrides[code] = {
                 "contact": {
                     "name": f"{county} County Circuit Clerk",
@@ -132,7 +156,7 @@ def main():
         yaml.safe_dump(overrides, sort_keys=False, allow_unicode=True)
     )
     with args.audit.open("w", newline="") as output:
-        writer = csv.writer(output)
+        writer = csv.writer(output, lineterminator="\n")
         writer.writerow(
             [
                 "ilao_record",
