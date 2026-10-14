@@ -37,6 +37,15 @@ def test_tyler_taxonomy_client_retries_a_transient_timeout():
     sleep.assert_called_once_with(0.2)
 
 
+@pytest.mark.parametrize("identifier", ["VDH-VR-DIV", "VDH-VR-DISS"])
+def test_workbook_vital_record_ids_resolve_identity_without_inventing_filing_codes(identifier):
+    evidence = {"form identifier": identifier}
+    identity = deterministic_form_identity("vermont", evidence)
+    assert identity["status"] == "matched"
+    assert identity["matches"][0]["form_id"].startswith(identifier + "-")
+    assert exact_form_crosswalk_matches("vermont", evidence) == []
+
+
 class FakeTaxonomy:
     base_url = "https://efile-test.example"
 

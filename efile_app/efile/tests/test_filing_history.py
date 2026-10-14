@@ -523,6 +523,10 @@ def test_local_contact_does_not_inherit_statewide_details(local):
     "court,phone",
     [
         ("adams", "217-277-2100"),
+        ("champaign", "217-384-3725"),
+        ("cumberland", "217-849-3601"),
+        ("rockisland", "309-558-3538"),
+        ("lake", "847-377-3380"),
         ("cook:cd1", "312-603-5030"),
         ("cook:dr1", "312-603-5030"),
         ("unknown", "833-411-1121"),

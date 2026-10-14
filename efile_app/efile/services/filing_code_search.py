@@ -907,7 +907,22 @@ def label_score(terms, tokens, weight):
     return sum(weight for token in tokens if f" {token} " in terms)
 
 
-def search_paths(index, query, *, initial=True, offset=0, limit=20, names=None, court=None, contexts=None, courts=()):
+def search_paths(
+    index,
+    query,
+    *,
+    initial=True,
+    offset=0,
+    limit=20,
+    names=None,
+    court=None,
+    contexts=None,
+    courts=(),
+    category=None,
+    case_type=None,
+    include_total=True,
+    include_details=True,
+):
     paths, corrected = matching_paths(index, query, initial)
     resolved_query = corrected_search_query(index, query)[0] if corrected else query
     if names is not None:
@@ -916,13 +931,30 @@ def search_paths(index, query, *, initial=True, offset=0, limit=20, names=None, 
         paths = paths.filter(court_code=court)
     if courts:
         paths = paths.filter(court_code__in=courts)
+    if category:
+        paths = paths.filter(case_category__code=category)
+    if case_type:
+        paths = paths.filter(case_type__code=case_type)
     if contexts is not None:
         paths = paths.filter(context_filter(contexts))
-    total = paths.count()
+    total = paths.count() if include_total else None
     paths = paths.order_by("-score", "court__name", "case_type__name", "filing_type__name", "pk")
     return {
         "results": [
             serialize_path(path, query=query, corrected=corrected, resolved_query=resolved_query)
+            if include_details
+            else {
+                **{facet: getattr(path, facet) for facet in FACETS},
+                "explanation": path.explanation,
+                "explanation_source": path.explanation_source,
+                "unavailable": filing_unavailable_message(
+                    index.jurisdiction,
+                    path.court["code"],
+                    case_category=path.case_category["name"],
+                    case_type=path.case_type["name"],
+                    filing_types=[path.filing_type["name"]],
+                ),
+            }
             # index.paths already carries its index as a known related object.
             # Joining it repeats megabytes of vocabulary/snapshots for every
             # row, particularly on the court screen's 500-result pages.

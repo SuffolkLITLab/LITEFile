@@ -8,12 +8,12 @@ ilao_record,ilao_name,tyler_code,tyler_name,ilao_phone,official_phone,review_sta
 7,Calhoun County Courthouse,calhoun,Calhoun County,(618) 576-2451,6185762451,verified
 8,Carroll County Courthouse,carroll,Carroll County,815-244-0230,8152440230,verified
 9,Cass County Courthouse,cass,Cass County,(217) 452-7225,2174527225,verified
-10,Champaign County Courthouse,champaign,Champaign County,(217) 384-3707,2173843725,phone differs from official clerk directory; review required
+10,Champaign County Courthouse,champaign,Champaign County,(217) 384-3707,2173843725,verified official clerk phone; differs from ILAO court phone
 11,Christian County Courthouse,christian,Christian County,(217) 824-4966,2178244966,verified
-12,Clark County Courthouse,clark,Clark County,(217) 826-8713,2178262811,phone differs from official clerk directory; review required
-13,Clay County Courthouse,clay,Clay County,(618) 665-3525,6186653523,phone differs from official clerk directory; review required
-14,Clinton County Courthouse,clinton,Clinton County,(618) 594-6600,6185946615,phone differs from official clerk directory; review required
-15,Coles County Courthouse,coles,Coles County,(217) 348-0538,2173480516,phone differs from official clerk directory; review required
+12,Clark County Courthouse,clark,Clark County,(217) 826-8713,2178262811,verified official clerk phone; differs from ILAO court phone
+13,Clay County Courthouse,clay,Clay County,(618) 665-3525,6186653523,verified official clerk phone; differs from ILAO court phone
+14,Clinton County Courthouse,clinton,Clinton County,(618) 594-6600,6185946615,verified official clerk phone; differs from ILAO court phone
+15,Coles County Courthouse,coles,Coles County,(217) 348-0538,2173480516,verified official clerk phone; differs from ILAO court phone
 16,Richard J. Daley Center,,,(312) 603-6000,3126035030,unmapped; Cook uses county-wide clerk contact separately
 103,Second Municipal District Courthouse,,,(847) 470-7200,3126035030,unmapped; Cook uses county-wide clerk contact separately
 104,Third Municipal District Courthouse,,,(847) 818-2286,3126035030,unmapped; Cook uses county-wide clerk contact separately
@@ -24,90 +24,90 @@ ilao_record,ilao_name,tyler_code,tyler_name,ilao_phone,official_phone,review_sta
 109,George N. Leighton Criminal Court Building,,,(773) 674-3160,3126035030,unmapped; Cook uses county-wide clerk contact separately
 110,Juvenile Center,,,(312) 433-4754,3126035030,unmapped; Cook uses county-wide clerk contact separately
 17,Crawford County Courthouse,crawford,Crawford County,(618) 544-3512,6185443512,verified
-18,Cumberland County Courthouse,cumberland,Cumberland County,(217) 849-3871,,phone differs from official clerk directory; review required
-19,DeKalb County Courthouse,dekalb,DeKalb County,(815) 895-7160,8158957131,phone differs from official clerk directory; review required
+18,Cumberland County Courthouse,cumberland,Cumberland County,(217) 849-3871,2178493601,verified official clerk phone; differs from ILAO court phone
+19,DeKalb County Courthouse,dekalb,DeKalb County,(815) 895-7160,8158957131,verified official clerk phone; differs from ILAO court phone
 20,Dewitt County Courthouse,dewitt,De Witt County,(217) 935-7750,2179357750,verified
 21,Douglas County Courthouse,douglas,Douglas County,(217) 253-2352,2172532352,verified
 22,DuPage County Courthouse,dupageinteg,,(630) 407-8904,6304078700,code absent from Tyler snapshot
-23,Edgar County Courthouse,edgar,Edgar County,(217) 466-7473,2174667447,phone differs from official clerk directory; review required
+23,Edgar County Courthouse,edgar,Edgar County,(217) 466-7473,2174667447,verified official clerk phone; differs from ILAO court phone
 24,Edwards County Courthouse,edwards,Edwards County,(618) 445-2016,6184452016,verified
 25,Effingham County Courthouse,effingham,Effingham County,(217) 342-4065,2173424065,verified
 26,Fayette County Courthouse,fayette,Fayette County,(618) 283-5009,6182835009,verified
 27,Ford County Courthouse,ford,Ford County,(217) 379-9420,2173799420,verified
-28,Franklin County Courthouse,franklin,Franklin County,(618) 435-9800,6184392011,phone differs from official clerk directory; review required
+28,Franklin County Courthouse,franklin,Franklin County,(618) 435-9800,6184392011,verified official clerk phone; differs from ILAO court phone
 29,Fulton County Courthouse,fulton,Fulton County,(309) 547-3041,3095473041,verified
 30,Gallatin County Courthouse,gallatin,Gallatin County,(618) 269-3140,6182693140,verified
 31,Greene County Courthouse,greene,Greene County,(217) 942-3421,2179423421,verified
 32,Grundy County Courthouse,grundy,Grundy County,(815) 941-3256,8159413256,verified
 33,Hamilton County Courthouse,hamilton,Hamilton County,(618) 643-3224,6186433224,verified
-34,Hancock County Courthouse,hancock,Hancock County,(309) 837-9278,2173572616,phone differs from official clerk directory; review required
+34,Hancock County Courthouse,hancock,Hancock County,(309) 837-9278,2173572616,verified official clerk phone; differs from ILAO court phone
 35,Hardin County Courthouse,hardin,Hardin County,(618) 287-2735,6182872735,verified
 36,Henderson County Courthouse,henderson,Henderson County,(309) 867-3121,3098673121,verified
-37,Henry County Courthouse,henry,Henry County,(309) 937-3578,3099373752,phone differs from official clerk directory; review required
+37,Henry County Courthouse,henry,Henry County,(309) 937-3578,3099373752,verified official clerk phone; differs from ILAO court phone
 38,Iroquois County Courthouse,iroquois,Iroquois County,(815) 432-6950,8154326950,verified
 39,Jackson County Courthouse,jackson,Jackson County,(618) 687-7300,6186877300,verified
 40,Jasper County Courthouse,jasper,Jasper County,(618) 783-2524,6187832524,verified
-41,Jefferson County Courthouse ,jefferson,Jefferson County,(618) 244-8007,6182448008,phone differs from official clerk directory; review required
+41,Jefferson County Courthouse ,jefferson,Jefferson County,(618) 244-8007,6182448008,verified official clerk phone; differs from ILAO court phone
 42,Jersey County Courthouse,jersey,Jersey County,(618) 498-5571,6184985571,verified
 43,Jo Daviess County Courthouse,jodaviess,Jo Daviess County,(815) 777-0037,8157770037,verified
 44,Johnson County Courthouse,johnson,Johnson County,(618) 658-4751,6186584751,verified
 45,Kane County Courthouse,kane,Kane County,(630) 232-3413,6302323413,verified
-46,Kankakee County Courthouse ,kankakee,Kankakee County,(815) 937-2915,8159365700,phone differs from official clerk directory; review required
-47,Kendall County Courthouse,kendall,Kendall County,(630) 553-4208,6305534183,phone differs from official clerk directory; review required
-48,Knox County Courthouse,knox,Knox County,(309) 345-3847,3093456719,phone differs from official clerk directory; review required
-49,Lake County Courthouse,lake,Lake County,(847) 377-3600,8473773380,phone differs from official clerk directory; review required
+46,Kankakee County Courthouse ,kankakee,Kankakee County,(815) 937-2915,8159365700,verified official clerk phone; differs from ILAO court phone
+47,Kendall County Courthouse,kendall,Kendall County,(630) 553-4208,6305534183,verified official clerk phone; differs from ILAO court phone
+48,Knox County Courthouse,knox,Knox County,(309) 345-3847,3093456719,verified official clerk phone; differs from ILAO court phone
+49,Lake County Courthouse,lake,Lake County,(847) 377-3600,8473773380,verified official clerk phone; differs from ILAO court phone
 50,LaSalle County Courthouse,lasalle,LaSalle County,(815) 434-8671,8154348671,verified
 51,Lawrence County Courthouse,lawrence,Lawrence County,(618) 943-2815,6189432815,verified
-52,Lee County Courthouse,lee,Lee County,(815) 288-3309,8152845234,phone differs from official clerk directory; review required
+52,Lee County Courthouse,lee,Lee County,(815) 288-3309,8152845234,verified official clerk phone; differs from ILAO court phone
 53,Livingston County Law and Justice Center,livingston,Livingston County,(815) 844-2602,8158442602,verified
 54,Logan County Courthouse,logan,Logan County,(217) 735-2376,2177352376,verified
-55,Macon County Courthouse,macon,Macon County,(217) 425-7098,2174241454,phone differs from official clerk directory; review required
-56,Macoupin County Courthouse,macoupin,Macoupin County,(217) 854-7361,2178543211,phone differs from official clerk directory; review required
-57,Madison County Courthouse,madison,Madison County,(618) 296-4580,6186926240,phone differs from official clerk directory; review required
+55,Macon County Courthouse,macon,Macon County,(217) 425-7098,2174241454,verified official clerk phone; differs from ILAO court phone
+56,Macoupin County Courthouse,macoupin,Macoupin County,(217) 854-7361,2178543211,verified official clerk phone; differs from ILAO court phone
+57,Madison County Courthouse,madison,Madison County,(618) 296-4580,6186926240,verified official clerk phone; differs from ILAO court phone
 58,Marion County Courthouse,marion,Marion County,(618) 548-3856,6185483856,verified
 59,Marshall County Courthouse,marshall,Marshall County,(309) 246-6435,3092466435,verified
 60,Mason County Courthouse,mason,Mason County,(309) 543-6619,3095436619,verified
-61,Massac County Courthouse,massac,Massac County,(618) 524-4850,6185245011,phone differs from official clerk directory; review required
-62,McDonough County Courthouse,mcdonough,McDonough County,(309) 837-4891,3098374889,phone differs from official clerk directory; review required
-63,McHenry County Courthouse,mchenry,McHenry County,(815) 334-4385,8153344310,phone differs from official clerk directory; review required
-64,McLean County Law and Justice Center,mclean,McLean,(309) 888-5254,3098885301,phone differs from official clerk directory; review required
-65,Menard County Courthouse,menard,Menard County,(217) 632-2415,2176322615,phone differs from official clerk directory; review required
+61,Massac County Courthouse,massac,Massac County,(618) 524-4850,6185245011,verified official clerk phone; differs from ILAO court phone
+62,McDonough County Courthouse,mcdonough,McDonough County,(309) 837-4891,3098374889,verified official clerk phone; differs from ILAO court phone
+63,McHenry County Courthouse,mchenry,McHenry County,(815) 334-4385,8153344310,verified official clerk phone; differs from ILAO court phone
+64,McLean County Law and Justice Center,mclean,McLean,(309) 888-5254,3098885301,verified official clerk phone; differs from ILAO court phone
+65,Menard County Courthouse,menard,Menard County,(217) 632-2415,2176322615,verified official clerk phone; differs from ILAO court phone
 66,Mercer County Courthouse,mercer,Mercer County,(309) 582-7122,3095827122,verified
 67,Monroe County Courthouse,monroe,Monroe County,(618) 939-8681,6189398681,verified
-68,Montgomery County Courthouse,montgomery,Montgomery County,(217) 532-9540,2175329546,phone differs from official clerk directory; review required
+68,Montgomery County Courthouse,montgomery,Montgomery County,(217) 532-9540,2175329546,verified official clerk phone; differs from ILAO court phone
 69,Morgan County Courthouse,morgan,Morgan County,(217) 243-5419,2172435419,verified
 70,Moultrie County Courthouse,moultrie,Moultrie County,(217) 728-4622,2177284622,verified
 71,Ogle County Judicial Center,ogle,Ogle County,(815) 732-3201,8157323201,verified
-72,Peoria County Court Administration,peoria,Peoria County,(309) 672-6036,3096726989,phone differs from official clerk directory; review required
+72,Peoria County Court Administration,peoria,Peoria County,(309) 672-6036,3096726989,verified official clerk phone; differs from ILAO court phone
 73,Perry County Courthouse,perry,Perry County,(618) 357-6726,6183576726,verified
 74,Piatt County Courthouse,piatt,Piatt County,(217) 762-4966,2177624966,verified
 75,Pike County Courthouse,pike,Pike County,(217) 285-6612,2172856612,verified
-76,Pope County Courthouse,pope,Pope County,(618) 683-4071,6186833941,phone differs from official clerk directory; review required
+76,Pope County Courthouse,pope,Pope County,(618) 683-4071,6186833941,verified official clerk phone; differs from ILAO court phone
 77,Pulaski County Courthouse,pulaski,Pulaski County,(618) 748-9300,6187489300,verified
 78,Putnam County Courthouse,putnam,Putnam County,(815) 925-7016,8159257016,verified
 79,Randolph County Courthouse,randolph,Randolph County,(618) 826-5000,6188265000,verified
 80,Richland County Courthouse,richland,Richland County,(618) 392-2151,6183922151,verified
-81,Rock Island County Courthouse,rockisland,Rock Island County,(309) 558-3289,,phone differs from official clerk directory; review required
+81,Rock Island County Courthouse,rockisland,Rock Island County,(309) 558-3289,3095583538,verified official clerk phone; differs from ILAO court phone
 82,Saline County Courthouse,saline,Saline County,(618) 253-5096,6182535096,verified
 83,Sangamon County Courthouse,sangamon,Sangamon County,(217) 753-6674,2177536674,verified
 84,Schuyler County Courthouse,schuyler,Schuyler County,(217) 322-4633,2173224633,verified
 85,Scott County Courthouse,scott,Scott County,(217) 742-5217,2177425217,verified
 86,Shelby County Courthouse,shelby,Shelby County,(217) 774-4212,2177744212,verified
-87,St. Clair County Courthouse,stclair,St. Clair County,(618) 277-6600,6182776832,phone differs from official clerk directory; review required
+87,St. Clair County Courthouse,stclair,St. Clair County,(618) 277-6600,6182776832,verified official clerk phone; differs from ILAO court phone
 88,Stark County Courthouse,stark,Stark County,(309) 286-5941,3092865941,verified
 89,Stephenson County Courthouse,stephenson,Stephenson County,(815) 235-8266,8152358266,verified
-90,Tazewell County Courthouse,tazewell,Tazewell County,(309) 477-2201,3094772214,phone differs from official clerk directory; review required
-91,Union County Courthouse,union,Union County,(618) 833-8114,6188335913,phone differs from official clerk directory; review required
+90,Tazewell County Courthouse,tazewell,Tazewell County,(309) 477-2201,3094772214,verified official clerk phone; differs from ILAO court phone
+91,Union County Courthouse,union,Union County,(618) 833-8114,6188335913,verified official clerk phone; differs from ILAO court phone
 92,Vermilion County Courthouse (Rita B. Garman Courthouse),vermilion,Vermilion County,(217) 554-7700,2175547700,verified
 93,Wabash County Courthouse,wabash,Wabash County,(618) 262-5362,6182625362,verified
-94,Warren County Courthouse,warren,Warren County,(309) 837-9278,3097345179,phone differs from official clerk directory; review required
+94,Warren County Courthouse,warren,Warren County,(309) 837-9278,3097345179,verified official clerk phone; differs from ILAO court phone
 95,Washington County Judicial Center,washington,Washington County,(618) 327-4800,6183274800,verified
 96,Wayne County Courthouse,wayne,Wayne County,(618) 842-7684,6188427684,verified
-97,White County Courthouse,white,White County,(618) 382-7211,6183822321,phone differs from official clerk directory; review required
-98,Whiteside County Courthouse,whiteside,Whiteside County,(815) 772-5170,8157725188,phone differs from official clerk directory; review required
-99,Will County Courthouse,will,Will County,(815) 727-8540,8157278592,phone differs from official clerk directory; review required
+97,White County Courthouse,white,White County,(618) 382-7211,6183822321,verified official clerk phone; differs from ILAO court phone
+98,Whiteside County Courthouse,whiteside,Whiteside County,(815) 772-5170,8157725188,verified official clerk phone; differs from ILAO court phone
+99,Will County Courthouse,will,Will County,(815) 727-8540,8157278592,verified official clerk phone; differs from ILAO court phone
 100,Williamson County Courthouse,williamson,Williamson County,(618) 997-1301,6189971301,verified
-101,Winnebago County Courthouse,winnebago,Winnebago County,(815) 319-4806,8153194500,phone differs from official clerk directory; review required
+101,Winnebago County Courthouse,winnebago,Winnebago County,(815) 319-4806,8153194500,verified official clerk phone; differs from ILAO court phone
 102,Woodford County Courthouse,woodford,Woodford County,(309) 467-3312,3094673312,verified
 ,,0,System,,,no verified contact; statewide fallback
 ,,1,File & Serve,,,no verified contact; statewide fallback
@@ -144,11 +144,6 @@ ilao_record,ilao_name,tyler_code,tyler_name,ilao_phone,official_phone,review_sta
 ,,aoictest,zz - AOIC Testing,,,no verified contact; statewide fallback
 ,,ardc,ARDC Clerk's Office,,,no verified contact; statewide fallback
 ,,caliber,zzz - Caliber,,,no verified contact; statewide fallback
-,,champaign,Champaign County,,,no verified contact; statewide fallback
-,,clark,Clark County,,,no verified contact; statewide fallback
-,,clay,Clay County,,,no verified contact; statewide fallback
-,,clinton,Clinton County,,,no verified contact; statewide fallback
-,,coles,Coles County,,,no verified contact; statewide fallback
 ,,configtest1,z - Standards 3 Test 1,,,no verified contact; statewide fallback
 ,,configtest2,z - Standards 3 Test 2,,,no verified contact; statewide fallback
 ,Cook county-wide clerk (official source),cook,Cook County,,3126035030,verified county-wide contact; no division inference
@@ -235,62 +230,30 @@ ilao_record,ilao_name,tyler_code,tyler_name,ilao_phone,official_phone,review_sta
 ,Cook county-wide clerk (official source),cook:tr4,Cook County - Traffic - District 4 - Maywood,,3126035030,verified county-wide contact; no division inference
 ,Cook county-wide clerk (official source),cook:tr5,Cook County - Traffic - District 5 - Bridgeview,,3126035030,verified county-wide contact; no division inference
 ,Cook county-wide clerk (official source),cook:tr6,Cook County - Traffic - District 6 - Markham,,3126035030,verified county-wide contact; no division inference
-,,cumberland,Cumberland County,,,no verified contact; statewide fallback
-,,dekalb,DeKalb County,,,no verified contact; statewide fallback
 ,,dupage,DuPage County,,,no verified contact; statewide fallback
 ,,dupage:ecf4,DuPage - ECF4,,,no verified contact; statewide fallback
 ,,dupage:ecf5,DuPage - ECF5,,,no verified contact; statewide fallback
-,,edgar,Edgar County,,,no verified contact; statewide fallback
 ,,equivant,zzz - Equivant,,,no verified contact; statewide fallback
-,,franklin,Franklin County,,,no verified contact; statewide fallback
 ,,goodin,Goodin County,,,no verified contact; statewide fallback
-,,hancock,Hancock County,,,no verified contact; statewide fallback
 ,,henderson2,zzz - Henderson County,,,no verified contact; statewide fallback
-,,henry,Henry County,,,no verified contact; statewide fallback
 ,,henrykew,Henry County Kewanee Division,,,no verified contact; statewide fallback
 ,,ijustice,zzz - iJustice,,,no verified contact; statewide fallback
 ,,ijustice1,zzz - Justice Systems 1,,,no verified contact; statewide fallback
 ,,jano,zzz - JANO,,,no verified contact; statewide fallback
 ,,jano2,zzz - JANO2,,,no verified contact; statewide fallback
-,,jefferson,Jefferson County,,,no verified contact; statewide fallback
 ,,journal:ecf5,ZZZ-Journal-ECF5,,,no verified contact; statewide fallback
 ,,journal:lake,zzz-Journal,,,no verified contact; statewide fallback
-,,kankakee,Kankakee County,,,no verified contact; statewide fallback
-,,kendall,Kendall County,,,no verified contact; statewide fallback
-,,knox,Knox County,,,no verified contact; statewide fallback
-,,lake,Lake County,,,no verified contact; statewide fallback
-,,lee,Lee County,,,no verified contact; statewide fallback
-,,macon,Macon County,,,no verified contact; statewide fallback
-,,macoupin,Macoupin County,,,no verified contact; statewide fallback
-,,madison,Madison County,,,no verified contact; statewide fallback
-,,massac,Massac County,,,no verified contact; statewide fallback
-,,mcdonough,McDonough County,,,no verified contact; statewide fallback
-,,mchenry,McHenry County,,,no verified contact; statewide fallback
-,,mclean,McLean,,,no verified contact; statewide fallback
-,,menard,Menard County,,,no verified contact; statewide fallback
-,,montgomery,Montgomery County,,,no verified contact; statewide fallback
 ,,mp,z - MP,,,no verified contact; statewide fallback
-,,peoria,Peoria County,,,no verified contact; statewide fallback
 ,,peoriacr,Peoria CR,,,no verified contact; statewide fallback
 ,,peoriacs,Peoria CS,,,no verified contact; statewide fallback
 ,,peoriatr,Peoria TR,,,no verified contact; statewide fallback
-,,pope,Pope County,,,no verified contact; statewide fallback
 ,,reaknox,zzz - REA-KNOX,,,no verified contact; statewide fallback
 ,,reaknox 2,zzz - REA-KNOX  2,,,no verified contact; statewide fallback
-,,rockisland,Rock Island County,,,no verified contact; statewide fallback
-,,stclair,St. Clair County,,,no verified contact; statewide fallback
 ,,stclairlog,St. Clair County-Backlog,,,no verified contact; statewide fallback
 ,,stclairstp,St. Clair County-STP,,,no verified contact; statewide fallback
-,,tazewell,Tazewell County,,,no verified contact; statewide fallback
 ,,tazewell:tr,Tazewell County - Traffic,,,no verified contact; statewide fallback
 ,,temptest,z - Test,,,no verified contact; statewide fallback
 ,,thomsonreuters,zzz - Thomson Reuters,,,no verified contact; statewide fallback
-,,union,Union County,,,no verified contact; statewide fallback
-,,warren,Warren County,,,no verified contact; statewide fallback
-,,white,White County,,,no verified contact; statewide fallback
-,,whiteside,Whiteside County,,,no verified contact; statewide fallback
-,,will,Will County,,,no verified contact; statewide fallback
-,,winnebago,Winnebago County,,,no verified contact; statewide fallback
 ,,zdevcook:chd,Z - Clarity Dev - Cook - Chancery,,,no verified contact; statewide fallback
 ,,zdevcook:chd1,Z - Clarity Dev - Cook - Chancery  - District 1 - Chicago,,,no verified contact; statewide fallback
 ,,zdevcook:crdm,Z - Clarity Dev - Cook - Criminal,,,no verified contact; statewide fallback

@@ -14,7 +14,7 @@ workflow:
     case_type: [court, filing_phase, selected_case_category]
     filing_type: [court, filing_phase, selected_case_category, selected_case_type]
   retry_status: request_more_candidates
-  maximum_candidate_rounds: 3
+  # Runtime search limits are defined in services/classification_search.py.
 
 shared:
   json_mode_reminder: Respond only with a JSON object
