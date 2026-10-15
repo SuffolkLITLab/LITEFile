@@ -172,11 +172,20 @@ def test_illinois_payment_displays_configured_poverty_range(client, payment_draf
     assert "federal poverty level" in accordion
 
 
-def test_statutory_exemption_choice_does_not_claim_low_income(client, payment_draft):
+@pytest.mark.parametrize(
+    "name",
+    [
+        "Relief from Abuse",
+        "Add Name to Voter Checklist",
+        "Permission to File Pursuant to 15 VSA Sec 1185",
+        "Restricting Abusive Litigation Pursuant to 15 VSA Sec 1182",
+    ],
+)
+def test_statutory_exemption_choice_does_not_claim_low_income(client, payment_draft, name):
     from efile.services.fee_surcharges import matching_exemption
     from efile.utils.config_loader import config_loader
 
-    payment_draft.case_type_name = "Relief from Abuse"
+    payment_draft.case_type_name = name
     policy = config_loader.load_jurisdiction_config("vermont")["fee_estimates"]["surcharges"]
     exemption = matching_exemption(policy, payment_draft)
     with patch("efile.views.payment.estimate_fees", return_value={"waiver_exemption": exemption}):
@@ -185,7 +194,10 @@ def test_statutory_exemption_choice_does_not_claim_low_income(client, payment_dr
     assert "Claim the fee exemption for this case" in body
     assert "I think I qualify for a fee waiver" not in body
     assert "You do not need to qualify based on income" in body
-    assert "Add fee waiver documents" not in body
+    assert 'id="add-waiver-document"' not in body
+    assert 'class="fee-waiver-eligibility"' not in body
+    assert "We will add a waiver payment account" in body
+    assert body.index('id="statutory-exemption-heading"') < body.index('name="paymentIntent"')
 
 
 def test_payment_without_a_fee_quote_can_open_review_for_corrections(client, payment_draft):
@@ -205,3 +217,55 @@ def test_payment_without_a_fee_quote_can_open_review_for_corrections(client, pay
     payment_draft.refresh_from_db()
     assert payment_draft.selected_payment_account_id == "card"
     assert payment_draft.quoted_fee_total == ""
+
+
+@pytest.mark.parametrize(
+    "code,phase,exempt",
+    [("6055", "new", True), ("14360", "new", True), ("14360", "existing", False), ("6063", "new", False)],
+)
+def test_vermont_payment_and_review_use_real_exemption_estimate(client, payment_draft, code, phase, exempt):
+    from efile.tests.test_fee_estimates import VT_STATUTORY_SAMPLES, code_lookup
+
+    sample = next(row for row in VT_STATUTORY_SAMPLES if row["case_type"]["code"] == code)
+    case = sample["case_type"]
+    filing = sample["filing_types"][0]
+    payment_draft.jurisdiction = "vermont"
+    payment_draft.existing_case = phase
+    payment_draft.court_code = sample["court"]
+    payment_draft.case_category_code = sample["category"]
+    payment_draft.case_type_code = code
+    payment_draft.case_type_name = case["name"]
+    if phase == "existing":
+        from efile.tests.helpers import loaded_case_snapshot
+
+        payment_draft.previous_case_id = "synthetic-existing-case"
+        payment_draft.existing_case_snapshot = loaded_case_snapshot(payment_draft)
+    payment_draft.selected_payment_account_id = "wv"
+    payment_draft.selected_payment_account_type = "WV"
+    payment_draft.save()
+    payment_draft.user.tyler_jurisdiction = "vermont"
+    payment_draft.user.save()
+    document = payment_draft.documents.first()
+    document.filing_type_code = filing["code"]
+    document.filing_type_name = filing["name"]
+    document.save()
+    session = client.session
+    session["jurisdiction"] = "vermont"
+    session["auth_tokens"] = {"TYLER-TOKEN-VERMONT": "test-token"}
+    session.save()
+    with (
+        patch("efile.services.fee_estimates._codes", side_effect=code_lookup([filing], [case])),
+        patch("efile.views.payment.appeal_answers_complete", return_value=True),
+        patch("efile.views.review.appeal_answers_complete", return_value=True),
+    ):
+        result = client.get(reverse("payment", kwargs={"jurisdiction": "vermont"}))
+        assert result.status_code == 200
+        body = result.content.decode()
+        # JSON carries the note too; count only its visible paragraph.
+        assert body.count("<p>For this type of case, choose a waiver payment account") == int(exempt)
+        assert ('id="add-waiver-document"' not in body) is exempt
+        assert ('class="fee-waiver-eligibility"' not in body) is exempt
+        assert ("Read about this fee exemption" in body) is exempt
+        review = client.get(reverse("case_review", kwargs={"jurisdiction": "vermont"}))
+        assert review.status_code == 200
+        assert ("Fee exemption claimed: $0 due now." in review.content.decode()) is exempt

@@ -387,3 +387,16 @@ test("a rejected fee quote still lets the filer continue to Review", async () =>
     assert.equal(node("selected-payment-account").value, "card");
     assert.equal(node("submitButton").disabled, false);
 });
+test("statutory waiver selection confirms an exemption without claiming financial hardship", async () => {
+    const {
+        payment,
+        node
+    } = pageHarness(async () => waiver);
+    node("waiver-exemption").textContent = JSON.stringify({
+        requires_waiver_account: true
+    });
+    await payment.chooseIntent();
+    assert.equal(node("successText").textContent, "Fee exemption claimed: $0 due now. The court will review your filing.");
+    assert.equal(node("selected-payment-account-type").value, "WV");
+    assert.equal(node("submitButton").disabled, false);
+});

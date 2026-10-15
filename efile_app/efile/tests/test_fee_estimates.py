@@ -119,8 +119,8 @@ def test_state_convenience_fee_is_included_with_zero_court_fees(state):
         side_effect=code_lookup(filings, [{"code": "case", "initial": True, "fee": 0}]),
     ):
         result = estimate_fees(draft)
-        assert result["is_zero"] is (state != "massachusetts")
-        assert result["total"] == ("~$22.25" if state == "massachusetts" else "~$0.00")
+        assert result["is_zero"] is (state == "illinois")
+        assert result["total"] == {"illinois": "~$0.00", "massachusetts": "~$22.25", "vermont": "~$15.00"}[state]
 
 
 @pytest.mark.parametrize("row", SAMPLES["illinois_answers"], ids=lambda row: row["code"])
@@ -416,3 +416,32 @@ def test_saved_waiver_account_does_not_price_the_pre_waiver_estimate():
     assert result == unsaved
     assert result["total"]
     assert "waiver account" not in result["note"]
+
+
+VT_STATUTORY_SAMPLES = json.loads(
+    (Path(__file__).parent / "fixtures" / "vermont_statutory_fee_codes.json").read_text()
+)["samples"]
+
+
+@pytest.mark.parametrize("sample", VT_STATUTORY_SAMPLES, ids=lambda row: row["case_type"]["code"])
+@pytest.mark.parametrize("method", ["CC", "BankAccount", "WV", ""])
+def test_vermont_live_statutory_code_estimates(sample, method):
+    case = sample["case_type"]
+    filing = sample["filing_types"][0]
+    draft, document = make_draft("vermont", "new", case_name=case["name"])
+    draft.case_type_code = case["code"]
+    draft.court_code = sample["court"]
+    draft.case_category_code = sample["category"]
+    draft.selected_payment_account_type = method
+    document.filing_type_code = filing["code"]
+    document.filing_type_name = filing["name"]
+    with patch("efile.services.fee_estimates._codes", side_effect=code_lookup([filing], [case])):
+        result = estimate_fees(draft)
+    paid = case["code"] == "6063"
+    assert result["total"] == (
+        {"CC": "~$317.93", "BankAccount": "~$310.00"}.get(method, "$310.00–$317.93")
+        if paid
+        else {"CC": "~$14.40", "BankAccount": "~$15.00"}.get(method, "$14.40–$15.00")
+    )
+    assert bool(result["waiver_exemption"].get("requires_waiver_account")) is not paid
+    assert not result["is_zero"]

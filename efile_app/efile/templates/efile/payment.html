@@ -44,26 +44,41 @@
             <p>{% translate "Choose a payment method to confirm fees. You are not charged now." %}</p>
             {% if fee_estimate.note %}<p>{{ fee_estimate.note }}</p>{% endif %}
         </section>
-        <details class="fee-waiver-eligibility">
-            <summary>{% translate "Who qualifies for a fee waiver?" %}</summary>
-            <p>{% translate "You may qualify based on your benefits or income, or if paying fees would leave too little for basic needs. Income limits use the federal poverty level (FPL)." %}</p>
-            {% if fee_waiver.benefits %}<p>{{ fee_waiver.benefits }}</p>{% endif %}
-            {% for band in fee_waiver.income_bands %}
-                <p>
-                    <strong>{% if band.min_fpl_percent_exclusive %}{{ band.min_fpl_percent_exclusive }}%–{{ band.max_fpl_percent }}%{% else %}{% translate "Up to" %} {{ band.max_fpl_percent }}%{% endif %} {% translate "of FPL" %}:</strong>
-                    {{ band.description }}
-                </p>
-            {% endfor %}
-            {% if fee_waiver.source_url %}
-                <a href="{{ fee_waiver.source_url }}"
-                   target="_blank"
-                   rel="noopener noreferrer">
-                    {% translate "Read the court's fee waiver rules" %}
-                    <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
-                    <span class="visually-hidden">{% translate "(opens in a new tab)" %}</span>
-                </a>
-            {% endif %}
-        </details>
+        {% if fee_estimate.waiver_exemption.requires_waiver_account %}
+            <aside class="alert alert-info"
+                   aria-labelledby="statutory-exemption-heading">
+                <h2 id="statutory-exemption-heading">{% translate "Claim your case’s fee exemption" %}</h2>
+                <p>{{ fee_estimate.waiver_exemption.note }}</p>
+                <p>{% translate "We will add a waiver payment account if you do not already have one. You do not need an income-based fee waiver application for this exemption." %}</p>
+                <p>{% translate "If you choose a credit or bank account instead, service and processing fees may apply." %}</p>
+                {% if fee_estimate.waiver_exemption.source_url %}
+                    <a href="{{ fee_estimate.waiver_exemption.source_url }}"
+                       target="_blank"
+                       rel="noopener noreferrer">{% translate "Read about this fee exemption" %}<span class="visually-hidden">{% translate "(opens in a new tab)" %}</span></a>
+                {% endif %}
+            </aside>
+        {% else %}
+            <details class="fee-waiver-eligibility">
+                <summary>{% translate "Who qualifies for a fee waiver?" %}</summary>
+                <p>{% translate "You may qualify based on your benefits or income, or if paying fees would leave too little for basic needs. Income limits use the federal poverty level (FPL)." %}</p>
+                {% if fee_waiver.benefits %}<p>{{ fee_waiver.benefits }}</p>{% endif %}
+                {% for band in fee_waiver.income_bands %}
+                    <p>
+                        <strong>{% if band.min_fpl_percent_exclusive %}{{ band.min_fpl_percent_exclusive }}%–{{ band.max_fpl_percent }}%{% else %}{% translate "Up to" %} {{ band.max_fpl_percent }}%{% endif %} {% translate "of FPL" %}:</strong>
+                        {{ band.description }}
+                    </p>
+                {% endfor %}
+                {% if fee_waiver.source_url %}
+                    <a href="{{ fee_waiver.source_url }}"
+                       target="_blank"
+                       rel="noopener noreferrer">
+                        {% translate "Read the court's fee waiver rules" %}
+                        <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+                        <span class="visually-hidden">{% translate "(opens in a new tab)" %}</span>
+                    </a>
+                {% endif %}
+            </details>
+        {% endif %}
         <form method="post" id="payment-form">
             {% csrf_token %}
             <input type="hidden" name="return_to" value="{{ return_to }}" />
@@ -101,9 +116,7 @@
                     </label>
                 </div>
                 <div id="waiverHelp" hidden>
-                    {% if fee_estimate.waiver_exemption.requires_waiver_account %}
-                        <p>{{ fee_estimate.waiver_exemption.note }}</p>
-                    {% else %}
+                    {% if not fee_estimate.waiver_exemption.requires_waiver_account %}
                         <div id="waiver-upload-required"
                              {% if has_waiver_document %}hidden{% endif %}>
                             <p>{% translate "The court may reject your waiver request if you do not include the required forms." %}</p>
@@ -186,6 +199,7 @@
     {{ new_toga_url|json_script:"new-toga-url" }}
     {{ selected_payment_account_id|json_script:"selected-payment-account-id" }}
     {{ fee_inputs_token|json_script:"fee-inputs-token" }}
+    {{ fee_estimate.waiver_exemption|json_script:"waiver-exemption" }}
     {{ fee_estimate.is_zero|json_script:"estimated-zero-fees" }}
 {% endblock workflow_content %}
 {% block extra_js %}

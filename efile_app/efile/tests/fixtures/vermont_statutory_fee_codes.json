@@ -1,0 +1,431 @@
+{
+  "retrieved": "2026-10-14",
+  "source": "https://efile-test.suffolklitlab.org",
+  "scope": "Public initial case, filing and party code lookups in Chittenden; not authenticated fee quotes",
+  "samples": [
+    {
+      "court": "sc:chittendon",
+      "category": "7",
+      "case_type": {
+        "code": "6055",
+        "name": "Add Name to Voter Checklist",
+        "casecategory": "7",
+        "initial": true,
+        "fee": 0.0,
+        "willfileddate": "Not Available",
+        "efspcode": "",
+        "location": "sc:chittendon"
+      },
+      "filing_types": [
+        {
+          "code": "9563",
+          "name": "Initial Filing",
+          "fee": "",
+          "casecategory": "7",
+          "casetypeid": "",
+          "filingtype": "Initial",
+          "iscourtuseonly": false,
+          "civilclaimamount": "Not Available",
+          "probateestateamount": "Not Available",
+          "amountincontroversy": "Not Available",
+          "useduedate": false,
+          "isproposedorder": false,
+          "efspcode": "",
+          "location": "sc:chittendon"
+        }
+      ],
+      "party_types": [
+        {
+          "code": "5707",
+          "name": "Plaintiff",
+          "isAvailableForNewParties": true,
+          "casetypeid": "6055",
+          "isrequired": true,
+          "amount": 0,
+          "numberofpartiestoignore": "0",
+          "sendforredaction": "False",
+          "dateofdeath": "Not Available",
+          "displayorder": 1,
+          "efspcode": "PLAINTIFFEFSP",
+          "location": "sc:chittendon"
+        }
+      ]
+    },
+    {
+      "court": "sc:chittendon",
+      "category": "7",
+      "case_type": {
+        "code": "14000",
+        "name": "Permission to File Pursuant to 15 VSA Sec 1185",
+        "casecategory": "7",
+        "initial": true,
+        "fee": 0.0,
+        "willfileddate": "Not Available",
+        "efspcode": "",
+        "location": "sc:chittendon"
+      },
+      "filing_types": [
+        {
+          "code": "9563",
+          "name": "Initial Filing",
+          "fee": "",
+          "casecategory": "7",
+          "casetypeid": "",
+          "filingtype": "Initial",
+          "iscourtuseonly": false,
+          "civilclaimamount": "Not Available",
+          "probateestateamount": "Not Available",
+          "amountincontroversy": "Not Available",
+          "useduedate": false,
+          "isproposedorder": false,
+          "efspcode": "",
+          "location": "sc:chittendon"
+        }
+      ],
+      "party_types": [
+        {
+          "code": "5705",
+          "name": "Petitioner",
+          "isAvailableForNewParties": true,
+          "casetypeid": "14000",
+          "isrequired": true,
+          "amount": 0,
+          "numberofpartiestoignore": "0",
+          "sendforredaction": "False",
+          "dateofdeath": "Not Available",
+          "displayorder": 1,
+          "efspcode": "",
+          "location": "sc:chittendon"
+        },
+        {
+          "code": "5671",
+          "name": "Respondent",
+          "isAvailableForNewParties": true,
+          "casetypeid": "14000",
+          "isrequired": true,
+          "amount": 0,
+          "numberofpartiestoignore": "0",
+          "sendforredaction": "False",
+          "dateofdeath": "Not Available",
+          "displayorder": 2,
+          "efspcode": "",
+          "location": "sc:chittendon"
+        }
+      ]
+    },
+    {
+      "court": "sc:chittendon",
+      "category": "7",
+      "case_type": {
+        "code": "14360",
+        "name": "Restricting Abusive Litigation Pursuant to 15 VSA Sec 1182",
+        "casecategory": "7",
+        "initial": true,
+        "fee": 0.0,
+        "willfileddate": "Not Available",
+        "efspcode": "",
+        "location": "sc:chittendon"
+      },
+      "filing_types": [
+        {
+          "code": "9563",
+          "name": "Initial Filing",
+          "fee": "",
+          "casecategory": "7",
+          "casetypeid": "",
+          "filingtype": "Initial",
+          "iscourtuseonly": false,
+          "civilclaimamount": "Not Available",
+          "probateestateamount": "Not Available",
+          "amountincontroversy": "Not Available",
+          "useduedate": false,
+          "isproposedorder": false,
+          "efspcode": "",
+          "location": "sc:chittendon"
+        }
+      ],
+      "party_types": [
+        {
+          "code": "5705",
+          "name": "Petitioner",
+          "isAvailableForNewParties": true,
+          "casetypeid": "14360",
+          "isrequired": false,
+          "amount": 0,
+          "numberofpartiestoignore": "0",
+          "sendforredaction": "False",
+          "dateofdeath": "Not Available",
+          "displayorder": 1,
+          "efspcode": "",
+          "location": "sc:chittendon"
+        },
+        {
+          "code": "5671",
+          "name": "Respondent",
+          "isAvailableForNewParties": true,
+          "casetypeid": "14360",
+          "isrequired": false,
+          "amount": 0,
+          "numberofpartiestoignore": "0",
+          "sendforredaction": "False",
+          "dateofdeath": "Not Available",
+          "displayorder": 2,
+          "efspcode": "",
+          "location": "sc:chittendon"
+        }
+      ]
+    },
+    {
+      "court": "sc:chittendon",
+      "category": "210",
+      "case_type": {
+        "code": "6177",
+        "name": "Relief from Abuse",
+        "casecategory": "210",
+        "initial": true,
+        "fee": 0.0,
+        "willfileddate": "Not Available",
+        "efspcode": "RELIEFFROMABUSEEFSP",
+        "location": "sc:chittendon"
+      },
+      "filing_types": [
+        {
+          "code": "9564",
+          "name": "Initial Filing",
+          "fee": "",
+          "casecategory": "210",
+          "casetypeid": "",
+          "filingtype": "Initial",
+          "iscourtuseonly": false,
+          "civilclaimamount": "Not Available",
+          "probateestateamount": "Not Available",
+          "amountincontroversy": "Not Available",
+          "useduedate": false,
+          "isproposedorder": false,
+          "efspcode": "INITIALFILINGEFSP",
+          "location": "sc:chittendon"
+        }
+      ],
+      "party_types": [
+        {
+          "code": "5707",
+          "name": "Plaintiff",
+          "isAvailableForNewParties": true,
+          "casetypeid": "6177",
+          "isrequired": true,
+          "amount": 0,
+          "numberofpartiestoignore": "0",
+          "sendforredaction": "False",
+          "dateofdeath": "Not Available",
+          "displayorder": 1,
+          "efspcode": "PLAINTIFFEFSP",
+          "location": "sc:chittendon"
+        },
+        {
+          "code": "5693",
+          "name": "Defendant",
+          "isAvailableForNewParties": true,
+          "casetypeid": "6177",
+          "isrequired": true,
+          "amount": 0,
+          "numberofpartiestoignore": "0",
+          "sendforredaction": "False",
+          "dateofdeath": "Not Available",
+          "displayorder": 2,
+          "efspcode": "DEFENDANTEFSP",
+          "location": "sc:chittendon"
+        }
+      ]
+    },
+    {
+      "court": "sc:chittendon",
+      "category": "7",
+      "case_type": {
+        "code": "6063",
+        "name": "Appeal - Administrative Agency",
+        "casecategory": "7",
+        "initial": true,
+        "fee": 295.0,
+        "willfileddate": "Not Available",
+        "efspcode": "",
+        "location": "sc:chittendon"
+      },
+      "filing_types": [
+        {
+          "code": "9563",
+          "name": "Initial Filing",
+          "fee": "",
+          "casecategory": "7",
+          "casetypeid": "",
+          "filingtype": "Initial",
+          "iscourtuseonly": false,
+          "civilclaimamount": "Not Available",
+          "probateestateamount": "Not Available",
+          "amountincontroversy": "Not Available",
+          "useduedate": false,
+          "isproposedorder": false,
+          "efspcode": "",
+          "location": "sc:chittendon"
+        }
+      ],
+      "party_types": [
+        {
+          "code": "5684",
+          "name": "Appellant",
+          "isAvailableForNewParties": true,
+          "casetypeid": "6063",
+          "isrequired": true,
+          "amount": 0,
+          "numberofpartiestoignore": "0",
+          "sendforredaction": "False",
+          "dateofdeath": "Not Available",
+          "displayorder": 1,
+          "efspcode": "",
+          "location": "sc:chittendon"
+        },
+        {
+          "code": "5685",
+          "name": "Appellee",
+          "isAvailableForNewParties": true,
+          "casetypeid": "6063",
+          "isrequired": true,
+          "amount": 0,
+          "numberofpartiestoignore": "0",
+          "sendforredaction": "False",
+          "dateofdeath": "Not Available",
+          "displayorder": 2,
+          "efspcode": "",
+          "location": "sc:chittendon"
+        }
+      ]
+    },
+    {
+      "court": "sc:chittendon",
+      "category": "169",
+      "case_type": {
+        "code": "14001",
+        "name": "Permission to File Pursuant to 15 VSA Sec 1185",
+        "casecategory": "169",
+        "initial": true,
+        "fee": 0.0,
+        "willfileddate": "Not Available",
+        "efspcode": "",
+        "location": "sc:chittendon"
+      },
+      "filing_types": [
+        {
+          "code": "9568",
+          "name": "Initial Filing",
+          "fee": "",
+          "casecategory": "169",
+          "casetypeid": "",
+          "filingtype": "Initial",
+          "iscourtuseonly": false,
+          "civilclaimamount": "Not Available",
+          "probateestateamount": "Not Available",
+          "amountincontroversy": "Not Available",
+          "useduedate": false,
+          "isproposedorder": false,
+          "efspcode": "",
+          "location": "sc:chittendon"
+        }
+      ]
+    },
+    {
+      "court": "sc:chittendon",
+      "category": "169",
+      "case_type": {
+        "code": "14362",
+        "name": "Restricting Abusive Litigation Pursuant to 15 VSA Sec 1182",
+        "casecategory": "169",
+        "initial": true,
+        "fee": 0.0,
+        "willfileddate": "Not Available",
+        "efspcode": "",
+        "location": "sc:chittendon"
+      },
+      "filing_types": [
+        {
+          "code": "9568",
+          "name": "Initial Filing",
+          "fee": "",
+          "casecategory": "169",
+          "casetypeid": "",
+          "filingtype": "Initial",
+          "iscourtuseonly": false,
+          "civilclaimamount": "Not Available",
+          "probateestateamount": "Not Available",
+          "amountincontroversy": "Not Available",
+          "useduedate": false,
+          "isproposedorder": false,
+          "efspcode": "",
+          "location": "sc:chittendon"
+        }
+      ]
+    },
+    {
+      "court": "sc:chittendon",
+      "category": "210",
+      "case_type": {
+        "code": "13999",
+        "name": "Permission to File Pursuant to 15 VSA Sec 1185",
+        "casecategory": "210",
+        "initial": true,
+        "fee": 0.0,
+        "willfileddate": "Not Available",
+        "efspcode": "",
+        "location": "sc:chittendon"
+      },
+      "filing_types": [
+        {
+          "code": "9564",
+          "name": "Initial Filing",
+          "fee": "",
+          "casecategory": "210",
+          "casetypeid": "",
+          "filingtype": "Initial",
+          "iscourtuseonly": false,
+          "civilclaimamount": "Not Available",
+          "probateestateamount": "Not Available",
+          "amountincontroversy": "Not Available",
+          "useduedate": false,
+          "isproposedorder": false,
+          "efspcode": "INITIALFILINGEFSP",
+          "location": "sc:chittendon"
+        }
+      ]
+    },
+    {
+      "court": "sc:chittendon",
+      "category": "210",
+      "case_type": {
+        "code": "14361",
+        "name": "Restricting Abusive Litigation Pursuant to 15 VSA Sec 1182",
+        "casecategory": "210",
+        "initial": true,
+        "fee": 0.0,
+        "willfileddate": "Not Available",
+        "efspcode": "",
+        "location": "sc:chittendon"
+      },
+      "filing_types": [
+        {
+          "code": "9564",
+          "name": "Initial Filing",
+          "fee": "",
+          "casecategory": "210",
+          "casetypeid": "",
+          "filingtype": "Initial",
+          "iscourtuseonly": false,
+          "civilclaimamount": "Not Available",
+          "probateestateamount": "Not Available",
+          "amountincontroversy": "Not Available",
+          "useduedate": false,
+          "isproposedorder": false,
+          "efspcode": "INITIALFILINGEFSP",
+          "location": "sc:chittendon"
+        }
+      ]
+    }
+  ]
+}

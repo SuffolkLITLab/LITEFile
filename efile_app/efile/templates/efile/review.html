@@ -242,7 +242,11 @@
                 {% endcomment %}
                 <div id="fee-quote" data-state="{{ fee_quote.state }}" aria-live="polite">
                     {% if fee_quote.state == "waived" %}
-                        <small class="text-muted">{% translate "Fee waiver requested: $0 due now. The court may ask you to pay if it denies your request." %}</small>
+                        {% if waiver_exemption.requires_waiver_account %}
+                            <small class="text-muted">{% translate "Fee exemption claimed: $0 due now. The court will review your filing." %}</small>
+                        {% else %}
+                            <small class="text-muted">{% translate "Fee waiver requested: $0 due now. The court may ask you to pay if it denies your request." %}</small>
+                        {% endif %}
                     {% else %}
                         <dl class="fee-receipt" id="fee-quote-breakdown">
                             {% if not fee_quote.is_zero %}

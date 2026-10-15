@@ -980,8 +980,7 @@ free. The estimator never writes a live quote or authorizes submission.
 `high`. Equal bounds mean one approximate amount. The claim amount comes from
 the draft's existing amount-in-controversy question. With no amount, guidance
 spans all bands in the matching rule. Nonmatching filings remain unknown; a
-partial estimate is never presented as a full total. Optional services and
-payment processing charges are excluded.
+partial estimate is never presented as a full total. Selected optional services and configured payment processing charges are included.
 
 Illinois uses the non-Cook and Cook statutory limits as a rough range, not a
 promise about actual county charges. Massachusetts uses statewide small-claims
@@ -998,7 +997,24 @@ account named `LITEfile  managed waiver account` using the proxy's plain-text
 creation API. User-row locking serializes concurrent creation requests. A failed
 account lookup never triggers creation. The payment form rechecks the selected
 account with Tyler before saving its ID, name, and type. Waiver selection does
-not grant a court waiver; the filer must provide the appropriate documents.
+not grant a court waiver. Income-based requests still prompt for the appropriate
+documents. A matched statutory exemption instead explains the exemption and
+suppresses the income-based application prompt.
+
+`fee_estimates.surcharges.platform.exemptions` is an ordered list of rules with
+an `id`, optional case-insensitive `case_pattern`, `requires_waiver_account`,
+plain-language `note`, and optional official `source_url`. `initial_only: true`
+restricts automatic matching to a draft explicitly marked as a new case; unlike
+claim-band rules, it does not inspect individual documents. Rules without a
+pattern are only matched by an explicit internal `exemption` argument, never
+inferred from income or a $0 catalog fee. Prefer narrow, verified case labels;
+zero fees can be placeholders or describe free documents in paid cases.
+
+Vermont paid-account estimates include the platform fee even for $0 court fees.
+A statutory exemption requiring a waiver account does not remove that fee for
+a card or bank account. Existing-case estimates retain a range when this
+filer’s prior payment is unknown. Statutory suggestions are not final fee quotes;
+Tyler and the court still determine the actual fees.
 
 
 ## Notices before upload

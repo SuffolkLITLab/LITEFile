@@ -22,7 +22,9 @@ def matching_exemption(policy, draft, exemption=None):
             (
                 r
                 for r in rules
-                if r.get("case_pattern") and re.search(r["case_pattern"], getattr(draft, "case_type_name", ""), re.I)
+                if r.get("case_pattern")
+                and (not r.get("initial_only") or getattr(draft, "existing_case", "") == "new")
+                and re.search(r["case_pattern"], getattr(draft, "case_type_name", ""), re.I)
             ),
             None,
         )
@@ -71,17 +73,6 @@ def surcharge_estimate(policy, draft, bounds, *, first_use=None, exemption=None,
             )
         if matched and (not requires_waiver or waiver):
             platform_bounds = (ZERO, ZERO)
-        elif platform.get("exempt_when_court_fees_zero") and not requires_waiver:
-            if bounds is None:
-                platform_bounds = (ZERO, platform_bounds[1])
-            elif bounds[1] == 0:
-                # A free response in a paid case does not exempt a new filer
-                # from Vermont's per-case fee. Without case history, keep it
-                # in the range; an explicit no-court-fee-case exemption can
-                # remove it above.
-                platform_bounds = (ZERO, ZERO) if draft.existing_case != "existing" else (ZERO, platform_bounds[1])
-            elif bounds[0] == 0:
-                platform_bounds = (ZERO, platform_bounds[1])
         if fee:
             rows.append(("E-filing service fee", platform_bounds))
         if bounds is None:
