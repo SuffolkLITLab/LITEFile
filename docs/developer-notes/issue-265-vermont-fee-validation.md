@@ -70,4 +70,22 @@ npx eslint efile/static/js/payment.js js-tests/payment.test.js
 
 Claude reviewed the diff and relevant code, ran the affected tests, and independently read the official sources. Verified and implemented suggestions: separate 1182/1185 source mappings and explain their limits; use a source-neutral link label; show the exemption note once; distinguish exemption confirmations on Payment and Review; add real-estimator screen/negative tests and cross-division fixtures; update configuration documentation and remove the unused zero-fee shortcut.
 
-Existing-case 1182 motion support remains out of automatic matching because eligibility needs more than the case name. A requested follow-up Claude review could not authenticate because its OAuth token had expired. The initial review completed; the changes responding to it were validated locally.
+Existing-case 1182 motion support remains out of automatic matching because eligibility needs more than the case name. A second Claude review of commit `646ac19` found no blocking issues. Its three low-priority follow-ups were addressed: public configuration documentation, the rationale for keeping the explicit-only `no_court_fee_case` rule, and tests for an unmatched $0 case and a protection-order rule without a source link.
+
+
+## Simplification pass
+
+At the user's request, Claude applied a simplification pass after correctness
+review: one YAML anchor for the repeated exemption note, shorter filer copy,
+consolidated surcharge cases, and fewer redundant mocked-template tests. The
+primary agent independently reviewed the diff and tightened the synthetic-case
+test setup so an incorrect fixture code fails instead of silently falling back.
+The eligibility rules, fee calculations and explicit-choice behavior are unchanged.
+Screenshots were regenerated from the Django view after the copy edit.
+
+The full pre-push Python run passed **2,256 tests, 13 skipped**, and the full
+JavaScript unit suite passed. The hook invocation still returned failure because
+its whole-repository formatter changed an unrelated benchmark file and source
+files changed during the test run. The unrelated formatter change was restored.
+Final affected tests passed **304 tests**, and formatting/lint/type checks
+passed again after simplification; the public Docusaurus documentation also builds successfully.

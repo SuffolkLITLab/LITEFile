@@ -172,20 +172,11 @@ def test_illinois_payment_displays_configured_poverty_range(client, payment_draf
     assert "federal poverty level" in accordion
 
 
-@pytest.mark.parametrize(
-    "name",
-    [
-        "Relief from Abuse",
-        "Add Name to Voter Checklist",
-        "Permission to File Pursuant to 15 VSA Sec 1185",
-        "Restricting Abusive Litigation Pursuant to 15 VSA Sec 1182",
-    ],
-)
-def test_statutory_exemption_choice_does_not_claim_low_income(client, payment_draft, name):
+def test_statutory_exemption_choice_does_not_claim_low_income(client, payment_draft):
     from efile.services.fee_surcharges import matching_exemption
     from efile.utils.config_loader import config_loader
 
-    payment_draft.case_type_name = name
+    payment_draft.case_type_name = "Relief from Abuse"
     policy = config_loader.load_jurisdiction_config("vermont")["fee_estimates"]["surcharges"]
     exemption = matching_exemption(policy, payment_draft)
     with patch("efile.views.payment.estimate_fees", return_value={"waiver_exemption": exemption}):
@@ -221,13 +212,23 @@ def test_payment_without_a_fee_quote_can_open_review_for_corrections(client, pay
 
 @pytest.mark.parametrize(
     "code,phase,exempt",
-    [("6055", "new", True), ("14360", "new", True), ("14360", "existing", False), ("6063", "new", False)],
+    [
+        ("6055", "new", True),
+        ("14360", "new", True),
+        ("14360", "existing", False),
+        ("6063", "new", False),
+        ("6177", "new", True),  # protection order: no source link
+        ("unverified-zero", "new", False),  # $0 case without a statutory rule
+    ],
 )
 def test_vermont_payment_and_review_use_real_exemption_estimate(client, payment_draft, code, phase, exempt):
     from efile.tests.test_fee_estimates import VT_STATUTORY_SAMPLES, code_lookup
 
-    sample = next(row for row in VT_STATUTORY_SAMPLES if row["case_type"]["code"] == code)
-    case = sample["case_type"]
+    samples = {row["case_type"]["code"]: row for row in VT_STATUTORY_SAMPLES}
+    sample = samples["6055" if code == "unverified-zero" else code]
+    case = dict(sample["case_type"])
+    if code == "unverified-zero":
+        case.update(code=code, name="Unverified")
     filing = sample["filing_types"][0]
     payment_draft.jurisdiction = "vermont"
     payment_draft.existing_case = phase
@@ -265,7 +266,10 @@ def test_vermont_payment_and_review_use_real_exemption_estimate(client, payment_
         assert body.count("<p>For this type of case, choose a waiver payment account") == int(exempt)
         assert ('id="add-waiver-document"' not in body) is exempt
         assert ('class="fee-waiver-eligibility"' not in body) is exempt
-        assert ("Read about this fee exemption" in body) is exempt
+        assert ("Read about this fee exemption" in body) is (exempt and code != "6177")
+        assert ("I think I qualify for a fee waiver" in body) is not exempt
+        if code == "unverified-zero":
+            assert "$14.40–$15.00" in body
         review = client.get(reverse("case_review", kwargs={"jurisdiction": "vermont"}))
         assert review.status_code == 200
         assert ("Fee exemption claimed: $0 due now." in review.content.decode()) is exempt

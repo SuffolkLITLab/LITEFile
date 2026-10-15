@@ -49,7 +49,7 @@
                    aria-labelledby="statutory-exemption-heading">
                 <h2 id="statutory-exemption-heading">{% translate "Claim your case’s fee exemption" %}</h2>
                 <p>{{ fee_estimate.waiver_exemption.note }}</p>
-                <p>{% translate "We will add a waiver payment account if you do not already have one. You do not need an income-based fee waiver application for this exemption." %}</p>
+                <p>{% translate "We will add a waiver payment account if you do not have one. You do not need a fee waiver application." %}</p>
                 <p>{% translate "If you choose a credit or bank account instead, service and processing fees may apply." %}</p>
                 {% if fee_estimate.waiver_exemption.source_url %}
                     <a href="{{ fee_estimate.waiver_exemption.source_url }}"

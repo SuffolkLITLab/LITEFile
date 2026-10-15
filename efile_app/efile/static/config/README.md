@@ -980,7 +980,8 @@ free. The estimator never writes a live quote or authorizes submission.
 `high`. Equal bounds mean one approximate amount. The claim amount comes from
 the draft's existing amount-in-controversy question. With no amount, guidance
 spans all bands in the matching rule. Nonmatching filings remain unknown; a
-partial estimate is never presented as a full total. Selected optional services and configured payment processing charges are included.
+partial estimate is never presented as a full total. Selected optional services
+and configured payment processing charges are included.
 
 Illinois uses the non-Cook and Cook statutory limits as a rough range, not a
 promise about actual county charges. Massachusetts uses statewide small-claims

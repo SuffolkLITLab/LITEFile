@@ -371,19 +371,21 @@ filer/firm is known. Otherwise Vermont's platform fee remains a range. A free
 response in a paid case does not prove that the per-filer fee is exempt.
 
 Platform `exemptions` have stable `id` values and may have a state-wide
-`case_pattern` regular expression, `requires_waiver_account`, and a plain-language
-`note`. The pattern identifies the applicable exemption guidance; it does not
-silently create or select an account. Callers may supply `exemption="rule_id"`
-for established facts that cannot be inferred from case names, such as government
-or appointed filers. Vermont also has a `no_court_fee_case` exemption for an
-established case-wide exemption. `exempt_when_court_fees_zero` removes the
-platform fee for a known zero-fee new case, except where the matched exemption
-requires a waiver account. Unknown court fees remain unknown.
+`case_pattern` regular expression, `requires_waiver_account`, a plain-language
+`note`, and an optional official `source_url`. `initial_only: true` limits
+automatic matching to drafts marked as a new case. A matched pattern shows
+exemption guidance; it never creates or selects an account. Rules without a
+pattern, such as Vermont's `government_or_appointed` and `no_court_fee_case`,
+match only when a caller supplies `exemption="rule_id"` for an established fact
+that case names cannot show. Paid Vermont accounts keep the platform fee even
+when court fees are zero, because a catalog zero does not prove statutory
+eligibility. Unknown court fees remain unknown.
 
 A statutory exemption that requires a waiver account changes the payment choice
 label and help text, so users need not claim low income. Account creation still
 requires their explicit choice. Merely selecting a waiver account does not
-establish a confirmed $0 total; the live quote is required.
+establish a confirmed fee quote. The waiver flow displays $0 due now subject
+to court review; ordinary paid accounts require a current quote.
 
 Keep `reviewed` and `fee_estimates.sources` current when updating rates. Illinois
 has $0.25 bank processing and 2.89% card processing; Massachusetts uses those

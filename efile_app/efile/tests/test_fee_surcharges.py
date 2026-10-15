@@ -3,7 +3,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from efile.services.fee_surcharges import surcharge_estimate
+from efile.services.fee_surcharges import matching_exemption, surcharge_estimate
 from efile.utils.config_loader import config_loader
 
 
@@ -54,9 +54,7 @@ def test_massachusetts_subsequent_filing_has_no_platform_fee():
 
 def test_vermont_zero_court_fee_does_not_exempt_a_paid_account():
     assert estimate("vermont", 0, "CC")[1] == (Decimal("14.40"),) * 2
-    rows, bounds, notes = estimate("vermont", 0, "CC", name="Relief from Abuse")
-    assert bounds == (Decimal("14.40"),) * 2
-    assert "do not need to qualify based on income" in " ".join(notes)
+    assert estimate("vermont", 0)[1] == (Decimal("14.40"), Decimal("15.00"))
 
 
 def test_waiver_selection_does_not_establish_final_zero():
@@ -97,7 +95,9 @@ def test_free_response_does_not_prove_vermont_platform_fee_was_paid():
     )
 
 
-@pytest.mark.parametrize("name", ["Add Name to Voter Checklist", "Permission to File Pursuant to 15 VSA Sec 1185"])
+@pytest.mark.parametrize(
+    "name", ["Relief from Abuse", "Add Name to Voter Checklist", "Permission to File Pursuant to 15 VSA Sec 1185"]
+)
 @pytest.mark.parametrize("method,total", [("CC", "14.40"), ("BankAccount", "15.00")])
 def test_statutory_exemptions_require_waiver_for_paid_quotes(name, method, total):
     _, bounds, notes = estimate("vermont", 0, method, name=name)
@@ -106,27 +106,23 @@ def test_statutory_exemptions_require_waiver_for_paid_quotes(name, method, total
     assert estimate("vermont", 0, "WV", name=name)[1] is None
 
 
-def test_vermont_zero_court_fee_unknown_method_includes_service_fee():
-    assert estimate("vermont", 0)[1] == (Decimal("14.40"), Decimal("15.00"))
+ABUSIVE_LITIGATION = "Restricting Abusive Litigation Pursuant to 15 VSA Sec 1182"
 
 
 @pytest.mark.parametrize(
-    "name", ["Appeal - Administrative Agency", "Estate - Small", "Conversion Default Family", "Unknown case"]
+    "name,phase,rule",
+    [
+        # A $0 catalog fee alone does not establish statutory eligibility.
+        ("Appeal - Administrative Agency", "new", None),
+        ("Estate - Small", "new", None),
+        ("Conversion Default Family", "new", None),
+        ("Unknown case", "new", None),
+        # An existing-case filer may be the restricted party.
+        (ABUSIVE_LITIGATION, "existing", None),
+        (ABUSIVE_LITIGATION, "new", "abusive_litigation"),
+    ],
 )
-def test_zero_catalog_fee_does_not_establish_statutory_eligibility(name):
-    from efile.services.fee_surcharges import matching_exemption
-
+def test_vermont_exemption_matching(name, phase, rule):
     policy = config_loader.load_jurisdiction_config("vermont")["fee_estimates"]["surcharges"]
-    assert matching_exemption(policy, SimpleNamespace(case_type_name=name)) is None
-
-
-def test_abusive_litigation_does_not_assume_existing_case_filer_is_unrestricted():
-    from efile.services.fee_surcharges import matching_exemption
-
-    policy = config_loader.load_jurisdiction_config("vermont")["fee_estimates"]["surcharges"]
-    draft = SimpleNamespace(
-        case_type_name="Restricting Abusive Litigation Pursuant to 15 VSA Sec 1182", existing_case="existing"
-    )
-    assert matching_exemption(policy, draft) is None
-    draft.existing_case = "new"
-    assert matching_exemption(policy, draft)["id"] == "abusive_litigation"
+    match = matching_exemption(policy, SimpleNamespace(case_type_name=name, existing_case=phase))
+    assert (match or {}).get("id") == rule
