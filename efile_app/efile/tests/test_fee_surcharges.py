@@ -3,7 +3,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from efile.services.fee_surcharges import surcharge_estimate
+from efile.services.fee_surcharges import matching_exemption, surcharge_estimate
 from efile.utils.config_loader import config_loader
 
 
@@ -23,6 +23,8 @@ def estimate(state, base, method="", phase="new", name="Civil case", **context):
         ("vermont", 0, "CC", "Relief from Abuse", "14.40"),
         ("vermont", 295, "CC", "Divorce", "317.93"),
         ("vermont", 295, "BankAccount", "Divorce", "310"),
+        ("massachusetts", 0, "CC", "Dismissal nisi refile", "22.64"),
+        ("massachusetts", 0, "BankAccount", "Dismissal nisi refile", "22.25"),
         ("massachusetts", 195, "BankAccount", "Money action", "217.25"),
         ("massachusetts", 195, "CC", "Money action", "223.27"),
     ],
@@ -50,11 +52,9 @@ def test_massachusetts_subsequent_filing_has_no_platform_fee():
     assert estimate("massachusetts", 100, "BankAccount", phase="existing")[1] == (Decimal("100.25"),) * 2
 
 
-def test_vermont_automatic_zero_fee_exemption_and_statutory_exception():
-    assert estimate("vermont", 0, "CC")[1] == (Decimal("0"),) * 2
-    rows, bounds, notes = estimate("vermont", 0, "CC", name="Relief from Abuse")
-    assert bounds == (Decimal("14.40"),) * 2
-    assert "do not need to qualify based on income" in " ".join(notes)
+def test_vermont_zero_court_fee_does_not_exempt_a_paid_account():
+    assert estimate("vermont", 0, "CC")[1] == (Decimal("14.40"),) * 2
+    assert estimate("vermont", 0)[1] == (Decimal("14.40"), Decimal("15.00"))
 
 
 def test_waiver_selection_does_not_establish_final_zero():
@@ -89,4 +89,40 @@ def test_configurable_percentage_basis_fixed_fee_and_zero_behavior():
 def test_free_response_does_not_prove_vermont_platform_fee_was_paid():
     assert estimate("vermont", 0, "CC", phase="existing")[1] == (Decimal("0"), Decimal("14.40"))
     assert estimate("vermont", 0, "CC", phase="existing", first_use=False)[1] == (Decimal("0"),) * 2
-    assert estimate("vermont", 0, "CC", phase="existing", exemption="no_court_fee_case")[1] == (Decimal("0"),) * 2
+    assert estimate("vermont", 0, "CC", phase="existing", exemption="no_court_fee_case")[1] == (
+        Decimal("0"),
+        Decimal("14.40"),
+    )
+
+
+@pytest.mark.parametrize(
+    "name", ["Relief from Abuse", "Add Name to Voter Checklist", "Permission to File Pursuant to 15 VSA Sec 1185"]
+)
+@pytest.mark.parametrize("method,total", [("CC", "14.40"), ("BankAccount", "15.00")])
+def test_statutory_exemptions_require_waiver_for_paid_quotes(name, method, total):
+    _, bounds, notes = estimate("vermont", 0, method, name=name)
+    assert bounds == (Decimal(total),) * 2
+    assert "do not need to qualify based on income" in " ".join(notes)
+    assert estimate("vermont", 0, "WV", name=name)[1] is None
+
+
+ABUSIVE_LITIGATION = "Restricting Abusive Litigation Pursuant to 15 VSA Sec 1182"
+
+
+@pytest.mark.parametrize(
+    "name,phase,rule",
+    [
+        # A $0 catalog fee alone does not establish statutory eligibility.
+        ("Appeal - Administrative Agency", "new", None),
+        ("Estate - Small", "new", None),
+        ("Conversion Default Family", "new", None),
+        ("Unknown case", "new", None),
+        # An existing-case filer may be the restricted party.
+        (ABUSIVE_LITIGATION, "existing", None),
+        (ABUSIVE_LITIGATION, "new", "abusive_litigation"),
+    ],
+)
+def test_vermont_exemption_matching(name, phase, rule):
+    policy = config_loader.load_jurisdiction_config("vermont")["fee_estimates"]["surcharges"]
+    match = matching_exemption(policy, SimpleNamespace(case_type_name=name, existing_case=phase))
+    assert (match or {}).get("id") == rule

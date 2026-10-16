@@ -183,7 +183,9 @@ const PaymentPage = {
             document.getElementById("selected-payment-account-name").value = account.accountName;
             document.getElementById("selected-payment-account-type").value = "WV";
             this.feeQuoteReady = true;
-            paymentMessages.showSuccess(gettext("Fee waiver requested: $0 due now. The court may ask you to pay if it denies your request."));
+            paymentMessages.showSuccess(paymentJSON("waiver-exemption").requires_waiver_account === true ?
+                gettext("Fee exemption claimed: $0 due now. The court will review your filing.") :
+                gettext("Fee waiver requested: $0 due now. The court may ask you to pay if it denies your request."));
         } catch {
             this.waiverRequest = null;
             if (requestId !== this.quoteRequestId) return;

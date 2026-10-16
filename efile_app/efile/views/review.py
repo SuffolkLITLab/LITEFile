@@ -10,9 +10,11 @@ from efile.services.document_previews import unreviewed_documents
 from efile.services.drafts import draft_snapshot, read_case_data, read_upload_data
 from efile.services.extracted_parties import party_display_name
 from efile.services.fee_quotes import fee_inputs_token, fee_quote_summary
+from efile.services.fee_surcharges import matching_exemption
 from efile.services.filing_availability import draft_unavailable_message, unavailable_response
 from efile.services.filing_plans import documents_missing_from_envelope
 from efile.services.people import get_case_questions
+from efile.utils.config_loader import config_loader
 
 from ..workflow import RETURN_TO_REVIEW, WorkflowStepKey, get_step_url, get_workflow_context, with_return_to
 
@@ -113,6 +115,10 @@ def case_review(request, jurisdiction):
         "filing_draft": draft_snapshot(draft),
         "draft": draft,
         "fee_quote": fee_quote_summary(draft),
+        "waiver_exemption": matching_exemption(
+            config_loader.load_jurisdiction_config(jurisdiction).get("fee_estimates", {}).get("surcharges", {}), draft
+        )
+        or {},
         "fee_inputs_token": fee_inputs_token(draft),
         "filer": filer,
         "filer_court_party": next((party for party in other_parties if party.on_case_roster and party.is_self), None),

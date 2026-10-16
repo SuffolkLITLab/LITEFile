@@ -58,6 +58,7 @@ def amount_range(draft, document, option, rules):
 
 def estimate_fees(draft, *, first_use=None, exemption=None):
     config = (config_loader.load_jurisdiction_config(draft.jurisdiction) or {}).get("fee_estimates", {})
+    waiver_exemption = matching_exemption(config.get("surcharges", {}), draft, exemption) or {}
     documents = list(draft.documents.all())
     options = _codes(
         draft.jurisdiction,
@@ -192,13 +193,14 @@ def estimate_fees(draft, *, first_use=None, exemption=None):
             rows.append(
                 {"label": label, "amount": display_range(*bounds) if bounds else "Not available yet", "note": ""}
             )
-        notes.extend(extra_notes)
+        # The payment page presents this guidance once, beside the choice.
+        notes.extend(note for note in extra_notes if note != waiver_exemption.get("note"))
         unknown = total_bounds is None
         if total_bounds is not None:
             low, high = total_bounds
 
     return {
-        "waiver_exemption": matching_exemption(config.get("surcharges", {}), draft, exemption) or {},
+        "waiver_exemption": waiver_exemption,
         "rows": rows,
         "total": display_range(low, high) if rows and not unknown else "",
         "partial": unknown,

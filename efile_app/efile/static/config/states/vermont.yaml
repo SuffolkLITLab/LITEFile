@@ -193,7 +193,7 @@ handoff:
 # use Tyler's static fee when available, otherwise leave them unknown.
 fee_estimates:
   surcharges:
-    reviewed: "2026-09-29"
+    reviewed: "2026-10-14"
     waiver_account_types: [WV]
     payment_methods:
       BankAccount:
@@ -206,14 +206,44 @@ fee_estimates:
     platform:
       amount: "14.00"
       timing: first_filing_per_filer
-      exempt_when_court_fees_zero: true
+      # Paid accounts still incur Tyler fees for $0 court-fee cases.
+      # A catalog zero alone is not proof of a statutory exemption.
       exemptions:
+        # Explicit-only, like government_or_appointed: no production caller
+        # supplies this ID yet, and it is never inferred from a $0 catalog fee.
         - id: no_court_fee_case
-          requires_waiver_account: false
+          requires_waiver_account: true
+          note: &waiver_exemption_note "For this type of case, choose a waiver payment account to claim the exemption. You do not need to qualify based on income."
         - id: protection_order
           case_pattern: 'relief from abuse|stalking|sexual assault|abuse prevention|abuse/neglect/exploitation|vulnerable adult'
           requires_waiver_account: true
-          note: "For this type of case, choose a waiver payment account to claim the exemption. You do not need to qualify based on income."
+          note: *waiver_exemption_note
+        # Exact catalog labels, verified against the sources below. Do not
+        # match generic administrative appeals, probate zeros or conversions.
+        # Section 2148 establishes the court-fee exemption. WV handling follows
+        # the Judiciary guide’s general instructions for statutorily exempt filers;
+        # a fresh authenticated quote for this code remains to be verified.
+        - id: voter_checklist
+          case_pattern: '^Add Name to Voter Checklist$'
+          requires_waiver_account: true
+          source_url: https://legislature.vermont.gov/statutes/section/17/043/02148
+          note: *waiver_exemption_note
+        # The guide explicitly allows WV for this label. This is court guidance,
+        # not an inference that the restricted party is exempt under 1182(e).
+        - id: permission_to_file
+          case_pattern: '^Permission to File Pursuant to 15 VSA Sec 1185$'
+          initial_only: true
+          requires_waiver_account: true
+          source_url: https://www.vtcourts.gov/media/12012
+          note: *waiver_exemption_note
+        # Only the initiating/unrestricted party is established by this context.
+        # Do not infer eligibility for a respondent filing into an existing case.
+        - id: abusive_litigation
+          case_pattern: '^Restricting Abusive Litigation Pursuant to 15 VSA Sec 1182$'
+          initial_only: true
+          requires_waiver_account: true
+          source_url: https://legislature.vermont.gov/statutes/section/15/021/01182
+          note: *waiver_exemption_note
         - id: government_or_appointed
           requires_waiver_account: true
         - id: criminal
