@@ -31,6 +31,7 @@ from efile.services.filing_path import (
     describe_path_change,
     filing_path_conflict,
 )
+from efile.services.filing_plans import needs_filer_role
 from efile.services.filing_type_proposals import current_proposal, save_proposal
 from efile.utils.s3_upload_handler import S3UploadHandler
 from efile.workflow import (
@@ -266,7 +267,10 @@ def extraction_review(request, jurisdiction):
             # form is accepted along with them.
             preview_error, status = approval_error
         else:
-            if filer_role in offered_roles and draft.filer_role != filer_role:
+            # Validated above, so this is an offered side or, when nothing
+            # needed confirming, a blank that drops a side the new case type
+            # no longer has.
+            if existing_case == ExistingCase.NEW and draft.filer_role != filer_role:
                 draft.filer_role = filer_role
                 draft.save(update_fields=["filer_role", "updated_at"])
             # Before the rest is saved: switching kinds of filing clears the
@@ -324,6 +328,13 @@ def extraction_review(request, jurisdiction):
                 if existing_case == ExistingCase.EXISTING and not draft.previous_case_id:
                     write_case_data(draft, {}, current_step=WorkflowStepKey.CASE_LOOKUP)
                     return redirect(with_return_to(get_step_url(WorkflowStepKey.CASE_LOOKUP, jurisdiction), return_to))
+                if needs_filer_role(draft):
+                    # The side was left for the checklist to ask, so the
+                    # detour goes there before returning.
+                    write_case_data(draft, {}, current_step=WorkflowStepKey.DOCUMENT_CHECKLIST)
+                    return redirect(
+                        with_return_to(get_step_url(WorkflowStepKey.DOCUMENT_CHECKLIST, jurisdiction), return_to)
+                    )
                 linear = get_next_step(WorkflowStepKey.EXTRACTION_REVIEW, draft)
                 default_step = linear.key if linear else WorkflowStepKey.REVIEW
                 write_case_data(draft, {}, current_step=continue_step(draft, return_to, default_step))

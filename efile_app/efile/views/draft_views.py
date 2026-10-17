@@ -38,11 +38,10 @@ def start_filing(request, jurisdiction):
     )
     logger.info("Started draft id=%s from the navigation menu (path=%s)", draft.pk, path or "unset")
 
+    # Without an answer, leave it unset until the filer confirms it beside
+    # their document.
     if path in {ExistingCase.NEW, ExistingCase.EXISTING}:
-        write_case_data(draft, {"existing_case": path}, current_step=WorkflowStepKey.UPLOAD_DOCUMENTS)
-        record_filing_path_source(draft, FilingPathSource.START_MENU)
-        return redirect(get_step_url(WorkflowStepKey.UPLOAD_DOCUMENTS, jurisdiction))
-    # Leave the answer unset until the filer confirms it beside their document.
+        write_case_data(draft, {"existing_case": path})
     record_filing_path_source(draft, FilingPathSource.START_MENU)
     return redirect(get_step_url(WorkflowStepKey.UPLOAD_DOCUMENTS, jurisdiction))
 

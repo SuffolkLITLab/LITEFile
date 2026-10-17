@@ -6,8 +6,13 @@
     const context = JSON.parse(contextEl.textContent);
     const guesses = context.guesses || {};
 
+    // "new", "existing", or "" before the filer has answered.
+    function chosenPath() {
+        return form.querySelector('input[name="existing_case"]:checked')?.value || "";
+    }
+
     function isExisting() {
-        return form.querySelector('input[name="existing_case"]:checked')?.value === "existing";
+        return chosenPath() === "existing";
     }
     const errorBox = document.getElementById("extraction-review-error");
     const acknowledgement = document.getElementById("reviewed_extraction");
@@ -245,8 +250,7 @@
     }
 
     function existingCaseWire() {
-        const checked = form.querySelector('input[name="existing_case"]:checked');
-        return checked && checked.value === "existing" ? "yes" : "no";
+        return isExisting() ? "yes" : "no";
     }
 
     const LISTS = {
@@ -391,7 +395,10 @@
 
     const roleField = document.getElementById("filer-role-field");
     const roleOptions = document.getElementById("filer-role-options");
-    let savedRole = context.filer_role || "";
+    // The side saved on the draft. The server asks for it again whenever the
+    // chosen case type still offers it, so the screen must show it then too.
+    const draftRole = context.filer_role || "";
+    let savedRole = draftRole;
     let roleGeneration = 0;
 
     function chosenRole() {
@@ -478,14 +485,14 @@
     // -- an eviction is two different filings depending on who is making it --
     // and which ones depends on the case type chosen above, so the question
     // appears and disappears with it.
-    function roleOptionHtml(role) {
-        const hint = role.suggested && !savedRole ?
+    function roleOptionHtml(role, chosen) {
+        const hint = role.suggested && !chosen ?
             ` <em class="filer-role__hint">${gettext("probably you, from the document you uploaded")}</em>` :
             "";
         const description = role.description ? `<small>${escapeHtml(role.description)}</small>` : "";
         return `
       <label>
-        <input type="radio" name="filer_role" value="${escapeHtml(role.id)}"${role.id === savedRole ? " checked" : ""} />
+        <input type="radio" name="filer_role" value="${escapeHtml(role.id)}"${role.id === chosen ? " checked" : ""} />
         <span><strong>${escapeHtml(role.label)}${hint}</strong>${description}</span>
       </label>`;
     }
@@ -517,9 +524,11 @@
             console.warn("Could not load the sides of this case:", error);
         }
         if (token !== roleGeneration) return;
-        if (!roles.some((role) => role.id === savedRole)) savedRole = "";
-        const needsConfirmation = Boolean(savedRole) || roles.some((role) => role.suggested);
-        roleOptions.innerHTML = needsConfirmation ? roles.map(roleOptionHtml).join("") : "";
+        // Same rule as the server: ask when a side is suggested or the saved
+        // side is on offer. An answer given here is kept while it is offered.
+        const chosen = roles.some((role) => role.id === savedRole) ? savedRole : "";
+        const needsConfirmation = Boolean(chosen) || roles.some((role) => role.suggested || role.id === draftRole);
+        roleOptions.innerHTML = needsConfirmation ? roles.map((role) => roleOptionHtml(role, chosen)).join("") : "";
         roleField.hidden = !needsConfirmation;
     }
 
@@ -667,7 +676,7 @@
             proposal.disabled = !existing;
         }
         const details = document.getElementById("new-case-details");
-        const isNew = form.querySelector('input[name="existing_case"]:checked')?.value === "new";
+        const isNew = chosenPath() === "new";
         details.hidden = !isNew;
         details.disabled = !isNew;
         const parties = document.getElementById("review-parties");
@@ -713,18 +722,15 @@
 
     form.addEventListener("submit", (event) => {
         if (isExisting()) return;
-        if (!form.querySelector('input[name="existing_case"]:checked')) {
+        if (!chosenPath()) {
             event.preventDefault();
             errorBox.textContent = gettext("Choose whether this is a new or existing court case to continue.");
             errorBox.hidden = false;
-            document.getElementById("path-question").scrollIntoView({
-                block: "center"
-            });
+            openPathQuestion("");
             return;
         }
         if (blockUnfinished(event)) return;
-        const isNew = form.querySelector('input[name="existing_case"]:checked')?.value === "new";
-        const missingCase = isNew && (!fields.court.select.value || !fields.case_category.select.value || !fields.case_type.select.value);
+        const missingCase = !fields.court.select.value || !fields.case_category.select.value || !fields.case_type.select.value;
         const missingRole = !roleField.hidden && !chosenRole();
         if (!missingCase && !missingRole) return;
 

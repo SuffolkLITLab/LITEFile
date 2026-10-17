@@ -92,7 +92,7 @@
     }
     // Merely opening preferences never changes the account default. Include
     // it only after the filer changes an AI setting during this page load.
-    let rememberOffered = false;
+    let aiChoiceTouched = false;
 
     function aiIsOff() {
         return Boolean(aiOptOut && aiOptOut.checked);
@@ -118,18 +118,13 @@
         });
     }
 
-    function offerToRemember() {
-        if (!aiRemember || rememberOffered) return;
-        rememberOffered = true;
-        aiRemember.open = true;
-    }
 
     async function saveAiPreference() {
         const optedOut = aiOptOut.checked;
         const body = new FormData();
         body.append("action", "ai_preference");
         body.append("ai_opt_out", optedOut ? "yes" : "");
-        if (rememberOffered && aiRememberChoice) {
+        if (aiChoiceTouched && aiRememberChoice) {
             body.append("remember_ai_choice", aiRememberChoice.checked ? "yes" : "no");
         }
         body.append("csrfmiddlewaretoken", apiUtils.getCSRFToken());
@@ -155,13 +150,14 @@
             const optedOut = aiOptOut.checked;
             if (aiNoteOn) aiNoteOn.hidden = optedOut;
             if (aiNoteOff) aiNoteOff.hidden = !optedOut;
-            offerToRemember();
+            aiChoiceTouched = true;
+            if (aiRemember) aiRemember.open = true;
             saveAiPreference();
         });
     }
 
     if (aiRememberChoice) aiRememberChoice.addEventListener("change", () => {
-        rememberOffered = true;
+        aiChoiceTouched = true;
         saveAiPreference();
     });
 
