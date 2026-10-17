@@ -517,8 +517,10 @@
             console.warn("Could not load the sides of this case:", error);
         }
         if (token !== roleGeneration) return;
-        roleOptions.innerHTML = roles.map(roleOptionHtml).join("");
-        roleField.hidden = roles.length === 0;
+        if (!roles.some((role) => role.id === savedRole)) savedRole = "";
+        const needsConfirmation = Boolean(savedRole) || roles.some((role) => role.suggested);
+        roleOptions.innerHTML = needsConfirmation ? roles.map(roleOptionHtml).join("") : "";
+        roleField.hidden = !needsConfirmation;
     }
 
     const ADVANCE = {
@@ -665,8 +667,9 @@
             proposal.disabled = !existing;
         }
         const details = document.getElementById("new-case-details");
-        details.hidden = existing;
-        details.disabled = existing;
+        const isNew = form.querySelector('input[name="existing_case"]:checked')?.value === "new";
+        details.hidden = !isNew;
+        details.disabled = !isNew;
         const parties = document.getElementById("review-parties");
         if (parties) {
             parties.hidden = existing;
@@ -710,6 +713,15 @@
 
     form.addEventListener("submit", (event) => {
         if (isExisting()) return;
+        if (!form.querySelector('input[name="existing_case"]:checked')) {
+            event.preventDefault();
+            errorBox.textContent = gettext("Choose whether this is a new or existing court case to continue.");
+            errorBox.hidden = false;
+            document.getElementById("path-question").scrollIntoView({
+                block: "center"
+            });
+            return;
+        }
         if (blockUnfinished(event)) return;
         const isNew = form.querySelector('input[name="existing_case"]:checked')?.value === "new";
         const missingCase = isNew && (!fields.court.select.value || !fields.case_category.select.value || !fields.case_type.select.value);

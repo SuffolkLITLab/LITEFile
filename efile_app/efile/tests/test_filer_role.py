@@ -304,3 +304,23 @@ def test_without_a_side_the_party_type_is_still_guessed_from_posture(signed_in):
     ]
 
     assert guessed_party_type(signed_in, party_types)["code"] == "PL"
+
+
+@pytest.mark.django_db
+def test_no_detected_side_defers_to_the_document_checklist(client, signed_in):
+    response = confirm_filing(client, filing_type_name="Other filing")
+
+    signed_in.refresh_from_db()
+    assert response.status_code == 302
+    assert response.url.partition("?")[0] == CHECKLIST_URL
+    assert signed_in.filer_role == ""
+    page = client.get(response.url)
+    assert page.context["choosing_filer_role"] is True
+
+
+@pytest.mark.django_db
+def test_deferred_side_cannot_accept_an_unoffered_role(client, signed_in):
+    response = confirm_filing(client, filing_type_name="Other filing", filer_role="invalid")
+    assert response.status_code == 200
+    signed_in.refresh_from_db()
+    assert signed_in.filer_role == ""

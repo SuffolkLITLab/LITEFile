@@ -90,9 +90,8 @@
             waitTimerDone = true;
         }, Number(form.dataset.waitSeconds) * 1000);
     }
-    // The "remember this" row is offered only after the filer changes the
-    // setting, and only for the rest of this page load. Until then the account
-    // preference is not this request's business, so it is left out of the post.
+    // Merely opening preferences never changes the account default. Include
+    // it only after the filer changes an AI setting during this page load.
     let rememberOffered = false;
 
     function aiIsOff() {
@@ -122,10 +121,7 @@
     function offerToRemember() {
         if (!aiRemember || rememberOffered) return;
         rememberOffered = true;
-        if (window.bootstrap) new window.bootstrap.Collapse(aiRemember, {
-            toggle: false
-        }).show();
-        else aiRemember.classList.add("show");
+        aiRemember.open = true;
     }
 
     async function saveAiPreference() {
@@ -164,7 +160,10 @@
         });
     }
 
-    if (aiRememberChoice) aiRememberChoice.addEventListener("change", saveAiPreference);
+    if (aiRememberChoice) aiRememberChoice.addEventListener("change", () => {
+        rememberOffered = true;
+        saveAiPreference();
+    });
 
     function syncFiles() {
         const transfer = new DataTransfer();
