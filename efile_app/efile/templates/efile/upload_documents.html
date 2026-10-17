@@ -48,7 +48,7 @@
               data-wait-seconds="{{ extraction_wait_seconds }}">
             {% csrf_token %}
             {% if documents %}
-                <details class="mb-3">
+                <details class="mb-3" id="replace-document-disclosure">
                     <summary>{% translate "Replace a document" %}</summary>
                     <label for="replace-document">Add or replace a document</label>
                     <select id="replace-document"

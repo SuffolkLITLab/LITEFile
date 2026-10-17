@@ -156,6 +156,14 @@
         });
     }
 
+    // Closing "Replace a document" goes back to adding: a Replace choice the
+    // filer can no longer see must not overwrite one of their documents.
+    const replaceDocument = document.getElementById("replace-document");
+    const replaceDisclosure = document.getElementById("replace-document-disclosure");
+    if (replaceDocument && replaceDisclosure) replaceDisclosure.addEventListener("toggle", () => {
+        if (!replaceDisclosure.open) replaceDocument.value = "";
+    });
+
     if (aiRememberChoice) aiRememberChoice.addEventListener("change", () => {
         aiChoiceTouched = true;
         saveAiPreference();
